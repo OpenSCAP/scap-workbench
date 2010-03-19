@@ -1,0 +1,53 @@
+#get sources
+$git clone ssh://147.229.13.225/git/bplib.git
+
+#set your name and email and colors
+$git config --global user.name "Your Name"
+$git config --global user.email "you@example.com"
+$git config --global color.ui "auto"
+
+#create new file and stage it for commit
+$<<create the file newfile>>
+$git add newfile
+
+#edit file and stage it for commit
+$<<edit file>>
+$git add file
+
+#remove file
+$git rm oldfile
+
+#see the changes between last commit and staged files
+$git diff --cached
+
+#see files which would be commited (by git commit)
+#and files which could be commited(by git add; git commit) 
+$git status
+
+#do you want to revert changes in the file that is already staged?
+#unstage it first
+$git reset file
+#chechout the file again
+$git checkout file
+
+#we are done with work, lets commit it
+$git commit -m "my first commit"
+
+#list commits
+$git log
+
+#otherwise, create a patch from the latest commit
+$git-format-patch -1
+
+#clean working tree, erase untracked files
+$git clean -fd
+
+#Common work flow:
+#
+$git rebase origin/master #if u have uncommited changes and something changed
+$git status #see what has changed
+$git add -u #-u just update changed files, ..
+# .. if new file was created, use 
+# $git add <<newfile>>
+$git commit -m "Your Comment of commit, don't be too laudly"
+$git push #push changes to remote repository
