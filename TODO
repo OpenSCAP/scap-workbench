@@ -1,2 +1,8 @@
-1. Design GUI na zobrazenie informacii ohladne CVE (vid links)
-2. Doprogramovat modul na pracu s OVAL suborom
+Design GUI na zobrazenie informacii ohladne CVE (vid links)
+Doprogramovat modul na pracu s OVAL suborom
+Pridat help
+
+=== Ideas ===
+Stromova struktura CVE v GUI
+Pridat do GUI filter
+
