@@ -3,39 +3,9 @@
 
 
 import pygtk
-
 import gtk
 
 
-class Main_bar:   # totot se nepoužije
-
-	def __init__(self):
-		p = gtk.ToggleButton("pokus")
-		p2 =gtk.ToggleButton("pokus2")
-		p2.set_sensitive(False)
-		p3 = gtk.ToggleButton("pokus3")
-		p3.set_active(True)
-		self.__toolbar = gtk.Toolbar()
-		self.__toolbar.add(p)
-		self.__toolbar.add(gtk.VSeparator())
-		self.__toolbar.add(p2)
-		self.__toolbar.add(gtk.VSeparator())
-		self.__toolbar.add(p3)
-		return
-		
-	def get_bar(self):
-		return self.__toolbar
-		
-		
-class Second_bar: # toto se nepoužije 
-
-	def __init__(self):
-		self.__toolbar = gtk.Toolbar()
-		return
-
-	def get_bar(self):
-		return self.__toolbar
-		
 class TreeToolBar_toggleButtonGroup:
 	""" Create Main item for TreeToolBar_toggleButtonGroup and draw all tree"""
 	
@@ -70,8 +40,9 @@ class TreeToolBar_toggleButtonGroup:
 			if n.conteiner_child <> None:
 				n.conteiner_child.hide()
 			init_selected(n)
-		if item.conteiner_child <> None:
+		if item.selected_item_child <> None:
 			item.conteiner_child.show()
+
 		
 		
 		
@@ -88,7 +59,7 @@ class Item_treeToolBar_toggleButtonGroup:
 		self.conteiner_child = None				# instance conteiner of dependeci toolBar
 		self.toolBar_child = None				# instance toolbar for toggleButtonGroup
 		self.parent_item = None					#
-		
+
 		#information
 		self.selected_item_child = None # který toggleButon v primem potomku je active (predelat primo na togglebutton)
 		self.condition_sensitivity = condition_sensitivity	#f-ce for resolve sensitive return tre or false (if none always True)
@@ -102,62 +73,33 @@ class Item_treeToolBar_toggleButtonGroup:
 			self.toggleButton = gtk.ToggleButton(name)		# instance of toggleButton(top level has None))
 			self.toggleButton.set_sensitive(True)			# init sensitivity
 			self.toggleButton.show()
-			self.toggleButton.set_active(False)
 			self.toggleButton.connect("toggled", self.callback_toggleButton)
-			
-		# jeho tool bar nas nezajima budu pracovat primo s instancemi (sensitivity, toggled)
-		# zaji ma nas toolbar podnim, ale jen priplněni a při rušeni 
-		# pokud se změni podminky viditelnosti zavolam prekresleni GUI
-		# toolbary budou v Hboxech jako ve stomu, aby zrusenim hboxu se zrusilo vykresleni podrizenych toolbaru
+			self.active = name
 		return
 		
-	#def draw(self):
-		#""" Draw dependency toggleBar"""
-		#self.conteiner_child = gtk.VBox()
-		#toolbar = gtk.Toolbar()
-		#self.conteiner_child.pack_start(toolbar, expand=False, fill=True, padding=0)
-		#for item in self.conteiner_child.pack_start:
-			#toolbar.add(item[0].toggleButton)
-			#toolbar.add(gtk.VSeparator())
-			##set sensitivity podle podminen item[0].toggleButton
-		
-		#call
-			
-		#return
-		
-	#def cancel_draw(self):
-		#""" Clean dependency toggleBars"""
-		#if item_parent == None:
-			## it is main toolBar
-			#conteiner = self.treeToolBar_toggleButtonGroup.get_conteiner_toolBar
-		#else:
-			#conteiner = self.treeToolBar_toggleButtonGroup.get_conteiner_toolBar		
-		#return
-		
-	#def set_visibility_toggleButtons_child(self,all_dependency_tree = False):
-		#""" Set which toggleButtons of child toolBar are visible."""
-		#return
-		
 	def callback_toggleButton(self, widget):
-		""" Change active of toggleButtons in current toolBar
-		and visibility of child"""
+		#""" Change active of toggleButtons in current toolBar
+		#and visibility of child"""
+
 		old_active_item = self.parent_item.selected_item_child
-		print old_active_item
+		#print old_active_item
 		if old_active_item == self:
-			self.toggleButton.set_active(True)
-		elif old_active_item == None:
-			self.toggleButton.set_active(True)###############################################kk
+			self.toggleButton.handler_block_by_func(self.callback_toggleButton)
+			self.toggleButton.set_active(True)	
+			self.toggleButton.handler_unblock_by_func(self.callback_toggleButton)
 		else:
 			#Deselect and select new item (active)
+			old_active_item.toggleButton.handler_block_by_func(old_active_item.callback_toggleButton)
 			old_active_item.toggleButton.set_active(False)
+			old_active_item.toggleButton.handler_unblock_by_func(old_active_item.callback_toggleButton)
 			self.parent_item.selected_item_child = self
-			self.toggleButton.set_active(True)
 			
 			# hide and show toolBar
 			if old_active_item.conteiner_child <> None:
 				old_active_item.conteiner_child.hide()
 			if self.conteiner_child <> None:
 				self.conteiner_child.show()
+		#
 		return
 		
 	def add_item(self,item,selected = False, position = None):
@@ -186,6 +128,7 @@ class Item_treeToolBar_toggleButtonGroup:
 				self.parent_item.conteiner_child.pack_start(self.conteiner_child, expand=False, fill=True, padding=0)
 		# add widget to toolBar
 		separator = gtk.VSeparator()
+		separator.show()
 		self.toolBar_child.add(separator)
 		self.toolBar_child.add(item.toggleButton)
 		
@@ -198,14 +141,18 @@ class Item_treeToolBar_toggleButtonGroup:
 			# set selected this item
 			if self.selected_item_child <> None:
 				#Deselect selected item
+				
+				#self.change_select(self.selected_item_child.toggleButton,self,False)
 				self.selected_item_child.toggleButton.set_active(False)
 				
-			item.toggleButton.set_active(True)
+			self.change_select(item.toggleButton,item,True)
+			#item.toggleButton.set_active(True)
 			self.selected_item_child = item
 		elif self.selected_item_child == None:
 			#some tooggleButton must be selected
 			self.selected_item_child = item
-			item.toggleButton.set_active(True)
+			self.change_select(item.toggleButton,item,True)
+			#item.toggleButton.set_active(True)
 		
 		# init visible toolbar
 		self.treeToolBar_toggleButtonGroup.init_draw()
@@ -214,13 +161,12 @@ class Item_treeToolBar_toggleButtonGroup:
 		""" Delete item (Item_treeToolBar_toggleButtonGroup) from child toolBar"""
 		return
 	
-
-class Body:
-	
-	def __init__(self):
-		
+	def change_select(self,toggleButton,function,active):
+		toggleButton.handler_block_by_func(function.callback_toggleButton)
+		toggleButton.set_active(active)
+		toggleButton.handler_unblock_by_func(function.callback_toggleButton)
 		return
-		
+	
 class Main_window:
 
 	# close the window and quit
@@ -283,20 +229,6 @@ class Main_window:
 		self.body_old.destroy()
 		self.vbox.pack_start(body, expand=False, fill=True, padding=0)
 		self.window.show_all()
-		
-	
-	
-#class Core_draw:
-	
-	#def __init__(self):
-		
-		
-		
-		#self.status_bar = gtk.Statusbar()
-		#self.body = gtk.Button()
-		#self.main_window = Main_window(self.treeToolBar_toggleButtonGroup,self.body,self.status_bar)
-		#self.main_window.set_body(gtk.Toolbar())
-		#return
 		
 def main():
 	gtk.main()
