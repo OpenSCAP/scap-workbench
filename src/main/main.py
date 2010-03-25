@@ -40,13 +40,10 @@ class TreeToolBar_toggleButtonGroup:
 			if n.conteiner_child <> None:
 				n.conteiner_child.hide()
 			init_selected(n)
-		if item.selected_item_child <> None:
-			item.conteiner_child.show()
+		if item.selected_item_child.conteiner_child <> None:
+			item.selected_item_child.conteiner_child.show()
+		item.conteiner_child.show()
 
-		
-		
-		
-		#TOOOOODDOOOOOOO initial draw; sensitive do main clase i do toolbar
 		
 class Item_treeToolBar_toggleButtonGroup:
 	
@@ -141,18 +138,14 @@ class Item_treeToolBar_toggleButtonGroup:
 			# set selected this item
 			if self.selected_item_child <> None:
 				#Deselect selected item
+				self.change_select(self.selected_item_child,False)
 				
-				#self.change_select(self.selected_item_child.toggleButton,self,False)
-				self.selected_item_child.toggleButton.set_active(False)
-				
-			self.change_select(item.toggleButton,item,True)
-			#item.toggleButton.set_active(True)
+			self.change_select(item,True)
 			self.selected_item_child = item
 		elif self.selected_item_child == None:
 			#some tooggleButton must be selected
 			self.selected_item_child = item
-			self.change_select(item.toggleButton,item,True)
-			#item.toggleButton.set_active(True)
+			self.change_select(item,True)
 		
 		# init visible toolbar
 		self.treeToolBar_toggleButtonGroup.init_draw()
@@ -161,10 +154,10 @@ class Item_treeToolBar_toggleButtonGroup:
 		""" Delete item (Item_treeToolBar_toggleButtonGroup) from child toolBar"""
 		return
 	
-	def change_select(self,toggleButton,function,active):
-		toggleButton.handler_block_by_func(function.callback_toggleButton)
-		toggleButton.set_active(active)
-		toggleButton.handler_unblock_by_func(function.callback_toggleButton)
+	def change_select(self,item,active):
+		item.toggleButton.handler_block_by_func(item.callback_toggleButton)
+		item.toggleButton.set_active(active)
+		item.toggleButton.handler_unblock_by_func(item.callback_toggleButton)
 		return
 	
 class Main_window:
@@ -205,7 +198,7 @@ class Main_window:
 		
 		# menu 2b1
 		menu2b1_but1 = Item_treeToolBar_toggleButtonGroup(self.treeToolBar_toggleButtonGroup,"menu 2.1 button1", conteiner_with_body = None,condition_sensitivity=None)
-		menu1_but1.add_item(menu2b1_but1,True)
+		menu1_but1.add_item(menu2b1_but1,False)
 		menu2b1_but2 = Item_treeToolBar_toggleButtonGroup(self.treeToolBar_toggleButtonGroup,"menu 2.2 button1", conteiner_with_body = None,condition_sensitivity=None)
 		menu1_but1.add_item(menu2b1_but2,True)
 		
@@ -224,11 +217,6 @@ class Main_window:
 		
 		self.window.show()
 		return
-		
-	def set_body(self,body):
-		self.body_old.destroy()
-		self.vbox.pack_start(body, expand=False, fill=True, padding=0)
-		self.window.show_all()
 		
 def main():
 	gtk.main()
