@@ -42,7 +42,7 @@ class TreeToolBar_toggleButtonGroup:
 	def __init__(self,conteiner_for_body,conteiner_for_toolBar):
 		self.__conteiner_for_body=conteiner_for_body
 		self.__conteiner_for_toolBar=conteiner_for_toolBar
-		self.__main_item = Item_treeToolBar_toggleButtonGroup(None,None)
+		self.__main_item = Item_treeToolBar_toggleButtonGroup(self,None)
 		return
 	
 	def get_conteiner_for_body(self):
@@ -54,16 +54,16 @@ class TreeToolBar_toggleButtonGroup:
 	def get_main_item(self):
 		return self.__main_item
 		
-	#def create_main_item(self):
-		#self.__main_item = Item_treeToolBar_toggleButtonGroup(None,None)
+	def add_item(self,item,selected = False, position = None):
+		self.__main_item.add_item(item,selected,position)
 	
 	def init_draw(self,sensitive = False):
 		"""init all TreeToolBar_toggleButtonGroup
 		if sensitive  = True se sensitive to toggleButton"""
 		self.__conteiner_for_toolBar.show()
-		init_selected(self.__main_item,sensitive)
+		self.init_selected(self.__main_item,sensitive)
 		
-	def	init_selected(item,sensitive = False):
+	def	init_selected(self,item,sensitive = False):
 		"""init branch TreeToolBar_toggleButtonGroup
 		if sensitive  = True se sensitive to toggleButton"""
 		for n in item.toggleButtonGroup_child:
@@ -84,7 +84,7 @@ class Item_treeToolBar_toggleButtonGroup:
 		
 		# structure
 		self.treeToolBar_toggleButtonGroup =treeToolBar_toggleButtonGroup # main group
-		self.toggleButtonGroup_child = None		# list of Item_treeToolBar_toggleButtonGroup direct chlidrens
+		self.toggleButtonGroup_child = []		# list of Item_treeToolBar_toggleButtonGroup direct chlidrens
 		self.conteiner_child = None				# instance conteiner of dependeci toolBar
 		self.toolBar_child = None				# instance toolbar for toggleButtonGroup
 		self.parent_item = None					#
@@ -138,12 +138,15 @@ class Item_treeToolBar_toggleButtonGroup:
 		#""" Set which toggleButtons of child toolBar are visible."""
 		#return
 		
-	def callback_toggleButton(self):
+	def callback_toggleButton(self, widget):
 		""" Change active of toggleButtons in current toolBar
 		and visibility of child"""
 		old_active_item = self.parent_item.selected_item_child
+		print old_active_item
 		if old_active_item == self:
 			self.toggleButton.set_active(True)
+		elif old_active_item == None:
+			self.toggleButton.set_active(True)###############################################kk
 		else:
 			#Deselect and select new item (active)
 			old_active_item.toggleButton.set_active(False)
@@ -160,7 +163,11 @@ class Item_treeToolBar_toggleButtonGroup:
 	def add_item(self,item,selected = False, position = None):
 		""" Add item (Item_treeToolBar_toggleButtonGroup) to child toolBar"""
 		
-		self.toggleButtonGroup_child[len(self.toggleButtonGroup_child):] = item
+		#if self.toggleButtonGroup_child <> None:
+		if len(self.toggleButtonGroup_child) > 0:
+			self.toggleButtonGroup_child[len(self.toggleButtonGroup_child):] = item
+		else:
+			toggleButtonGroup_child = [item]
 		item.parent_item = self
 		
 		if self.conteiner_child == None:
@@ -170,11 +177,13 @@ class Item_treeToolBar_toggleButtonGroup:
 			self.toolBar_child.show()
 			self.conteiner_child.pack_start(self.toolBar_child, expand=False, fill=True, padding=0)
 			
-			if self.parent_item == self.treeToolBar_toggleButtonGroup.get_main_item():
+			# if parent_item == None it is main item // musi se pridavat postupne ne spojovat ruzne vetve
+			# jink to presmeruje na Main item
+			if self.parent_item == None:
 				conteiner = self.treeToolBar_toggleButtonGroup.get_conteiner_for_toolBar()
-				conteiner.pack_start(self.self.conteiner_child, expand=False, fill=True, padding=0)
+				conteiner.pack_start(self.conteiner_child, expand=False, fill=True, padding=0)
 			else:
-				self.parent_item.conteiner_child.pack_start(self.self.conteiner_child, expand=False, fill=True, padding=0)
+				self.parent_item.conteiner_child.pack_start(self.conteiner_child, expand=False, fill=True, padding=0)
 		# add widget to toolBar
 		separator = gtk.VSeparator()
 		self.toolBar_child.add(separator)
@@ -219,9 +228,8 @@ class Main_window:
 		gtk.main_quit()
 		return False
 
-	def __init__(self,main_bar,second_bar,body,status_bar):
+	def __init__(self):
 		# Create a new window
-		self.body_old = body                  # set for change body
 		
 		self.window = gtk.Window(gtk.WINDOW_TOPLEVEL)
 		self.window.set_title("Main window")
@@ -240,55 +248,60 @@ class Main_window:
 		vbox_menu.show()
 		self.vbox_main.pack_start(vbox_menu, expand=True, fill=True, padding=0)
 		self.treeToolBar_toggleButtonGroup = TreeToolBar_toggleButtonGroup(vbox_menu,vbox_body)
-		
+		#main_item = self.treeToolBar_toggleButtonGroup.get_main_item()
 		# menu 1
 		menu1_but1 = Item_treeToolBar_toggleButtonGroup(self.treeToolBar_toggleButtonGroup,"menu 1.1", conteiner_with_body = None,condition_sensitivity=None)
-		self.treeToolBar_toggleButtonGroup.get_main_item.add_item(menu1_but,True)
+		self.treeToolBar_toggleButtonGroup.add_item(menu1_but1,True)
 		menu1_but2 = Item_treeToolBar_toggleButtonGroup(self.treeToolBar_toggleButtonGroup,"menu 1.2", conteiner_with_body = None,condition_sensitivity=None)
-		self.treeToolBar_toggleButtonGroup.get_main_item.add_item(menu1_but2,False)
+		self.treeToolBar_toggleButtonGroup.add_item(menu1_but2,False)
 		menu1_but3 = Item_treeToolBar_toggleButtonGroup(self.treeToolBar_toggleButtonGroup,"menu 1.3", conteiner_with_body = None,condition_sensitivity=None)
-		self.treeToolBar_toggleButtonGroup.get_main_item.add_item(menu1_but3,False)
+		self.treeToolBar_toggleButtonGroup.add_item(menu1_but3,False)
 		
 		# menu 2b1
-		menu2b1_but1 = Item_treeToolBar_toggleButtonGroup(self.treeToolBar_toggleButtonGroup,"menu 2.1", conteiner_with_body = None,condition_sensitivity=None)
+		menu2b1_but1 = Item_treeToolBar_toggleButtonGroup(self.treeToolBar_toggleButtonGroup,"menu 2.1 button1", conteiner_with_body = None,condition_sensitivity=None)
 		menu1_but1.add_item(menu2b1_but1,True)
-		menu2b1_but2 = Item_treeToolBar_toggleButtonGroup(self.treeToolBar_toggleButtonGroup,"menu 2.2", conteiner_with_body = None,condition_sensitivity=None)
+		menu2b1_but2 = Item_treeToolBar_toggleButtonGroup(self.treeToolBar_toggleButtonGroup,"menu 2.2 button1", conteiner_with_body = None,condition_sensitivity=None)
 		menu1_but1.add_item(menu2b1_but2,True)
 		
 		# menu 2b2
-		menu2b2_but1 = Item_treeToolBar_toggleButtonGroup(self.treeToolBar_toggleButtonGroup,"menu 2.1", conteiner_with_body = None,condition_sensitivity=None)
-		menu1_but2.add_itrm(menu2b2_but1,False)
-		menu2b2_but2 = Item_treeToolBar_toggleButtonGroup(self.treeToolBar_toggleButtonGroup,"menu 2.2", conteiner_with_body = None,condition_sensitivity=None)
+		menu2b2_but1 = Item_treeToolBar_toggleButtonGroup(self.treeToolBar_toggleButtonGroup,"menu 2.1 button2", conteiner_with_body = None,condition_sensitivity=None)
+		menu1_but2.add_item(menu2b2_but1,False)
+		menu2b2_but2 = Item_treeToolBar_toggleButtonGroup(self.treeToolBar_toggleButtonGroup,"menu 2.2 button2", conteiner_with_body = None,condition_sensitivity=None)
 		menu1_but2.add_item(menu2b2_but2,False)
 		
-		
+		# menu 3b2
+		menu3b2b2_but1 = Item_treeToolBar_toggleButtonGroup(self.treeToolBar_toggleButtonGroup,"menu 3.1 button2", conteiner_with_body = None,condition_sensitivity=None)
+		menu2b2_but2.add_item(menu3b2b2_but1,False)
+		menu3b2b3_but2 = Item_treeToolBar_toggleButtonGroup(self.treeToolBar_toggleButtonGroup,"menu 3.2 button2", conteiner_with_body = None,condition_sensitivity=None)
+		menu2b2_but2.add_item(menu3b2b3_but2,False)
 		self.vbox_main.pack_start(vbox_body, expand=True, fill=True, padding=0)
-		self.window.add(self.vbox_main)
+		
 		self.window.show()
 		return
 		
 	def set_body(self,body):
 		self.body_old.destroy()
 		self.vbox.pack_start(body, expand=False, fill=True, padding=0)
-		self.window.show()
+		self.window.show_all()
 		
 	
 	
-class Core_draw:
+#class Core_draw:
 	
-	def __init__(self):
+	#def __init__(self):
 		
 		
 		
-		self.status_bar = gtk.Statusbar()
-		self.body = gtk.Button()
-		self.main_window = Main_window(self.treeToolBar_toggleButtonGroup,self.body,self.status_bar)
-		self.main_window.set_body(gtk.Toolbar())
-		return
+		#self.status_bar = gtk.Statusbar()
+		#self.body = gtk.Button()
+		#self.main_window = Main_window(self.treeToolBar_toggleButtonGroup,self.body,self.status_bar)
+		#self.main_window.set_body(gtk.Toolbar())
+		#return
 		
 def main():
 	gtk.main()
 	
 if __name__ == "__main__":
-	otool_xample = Core_draw()
+	#otool_xample = Core_draw()
+	Main_window()
 	main()
