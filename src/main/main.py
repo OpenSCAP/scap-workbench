@@ -82,6 +82,7 @@ class MenuButton:
 
         # setings
         self.widget = gtk.ToggleToolButton()
+        self.widget.set_is_important(True)
         self.widget.set_label(name)
         if self.sensitivity == None: 
             self.widget.set_sensitive(True)
