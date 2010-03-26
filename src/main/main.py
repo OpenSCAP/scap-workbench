@@ -1,10 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-
+""" prijde dat do vlastniho modulu tridy pro vytvareni menu"""
+""" pro kazde okno vlastni modul """
+""" v hlavnim modulu se to bude spojovat"""
 import pygtk
 import gtk
-
 
 class TreeToolBar_toggleButtonGroup:
 	""" Create Main item for TreeToolBar_toggleButtonGroup and draw all tree"""
@@ -44,6 +45,30 @@ class TreeToolBar_toggleButtonGroup:
 			item.selected_item_child.conteiner_child.show()
 		item.conteiner_child.show()
 
+	def callback_toggleButton(self, widget,item):
+		#""" Change active of toggleButtons in current toolBar
+		#and visibility of child"""
+		old_active_item = item.parent_item.selected_item_child
+		#print old_active_item
+		if old_active_item == item:
+			self.change_select(item,True)
+		else:
+			#Deselect and select new item (active)
+			self.change_select(old_active_item,False)
+			item.parent_item.selected_item_child = item
+			
+			# hide and show toolBar
+			if old_active_item.conteiner_child <> None:
+				old_active_item.conteiner_child.hide()
+			if item.conteiner_child <> None:
+				item.conteiner_child.show()
+		return
+		
+	def change_select(self,item,active):
+		item.toggleButton.handler_block_by_func(self.callback_toggleButton)
+		item.toggleButton.set_active(active)
+		item.toggleButton.handler_unblock_by_func(self.callback_toggleButton)
+		return
 		
 class Item_treeToolBar_toggleButtonGroup:
 	
@@ -70,33 +95,8 @@ class Item_treeToolBar_toggleButtonGroup:
 			self.toggleButton = gtk.ToggleButton(name)		# instance of toggleButton(top level has None))
 			self.toggleButton.set_sensitive(True)			# init sensitivity
 			self.toggleButton.show()
-			self.toggleButton.connect("toggled", self.callback_toggleButton)
+			self.toggleButton.connect("toggled", self.treeToolBar_toggleButtonGroup.callback_toggleButton,self)
 			self.active = name
-		return
-		
-	def callback_toggleButton(self, widget):
-		#""" Change active of toggleButtons in current toolBar
-		#and visibility of child"""
-
-		old_active_item = self.parent_item.selected_item_child
-		#print old_active_item
-		if old_active_item == self:
-			self.toggleButton.handler_block_by_func(self.callback_toggleButton)
-			self.toggleButton.set_active(True)	
-			self.toggleButton.handler_unblock_by_func(self.callback_toggleButton)
-		else:
-			#Deselect and select new item (active)
-			old_active_item.toggleButton.handler_block_by_func(old_active_item.callback_toggleButton)
-			old_active_item.toggleButton.set_active(False)
-			old_active_item.toggleButton.handler_unblock_by_func(old_active_item.callback_toggleButton)
-			self.parent_item.selected_item_child = self
-			
-			# hide and show toolBar
-			if old_active_item.conteiner_child <> None:
-				old_active_item.conteiner_child.hide()
-			if self.conteiner_child <> None:
-				self.conteiner_child.show()
-		#
 		return
 		
 	def add_item(self,item,selected = False, position = None):
@@ -138,26 +138,21 @@ class Item_treeToolBar_toggleButtonGroup:
 			# set selected this item
 			if self.selected_item_child <> None:
 				#Deselect selected item
-				self.change_select(self.selected_item_child,False)
+				self.treeToolBar_toggleButtonGroup.change_select(self.selected_item_child,False)
 				
-			self.change_select(item,True)
+			self.treeToolBar_toggleButtonGroup.change_select(item,True)
 			self.selected_item_child = item
+			
 		elif self.selected_item_child == None:
 			#some tooggleButton must be selected
 			self.selected_item_child = item
-			self.change_select(item,True)
+			self.treeToolBar_toggleButtonGroup.change_select(item,True)
 		
 		# init visible toolbar
 		self.treeToolBar_toggleButtonGroup.init_draw()
 		
 	def del_item(self,item):
 		""" Delete item (Item_treeToolBar_toggleButtonGroup) from child toolBar"""
-		return
-	
-	def change_select(self,item,active):
-		item.toggleButton.handler_block_by_func(item.callback_toggleButton)
-		item.toggleButton.set_active(active)
-		item.toggleButton.handler_unblock_by_func(item.callback_toggleButton)
 		return
 	
 class Main_window:
@@ -185,7 +180,7 @@ class Main_window:
 		#create menu
 		vbox_menu = gtk.VBox()
 		vbox_menu.show()
-		self.vbox_main.pack_start(vbox_menu, expand=True, fill=True, padding=0)
+		self.vbox_main.pack_start(vbox_menu, expand=False, fill=True, padding=0)
 		self.treeToolBar_toggleButtonGroup = TreeToolBar_toggleButtonGroup(vbox_menu,vbox_body)
 		#main_item = self.treeToolBar_toggleButtonGroup.get_main_item()
 		# menu 1
@@ -217,7 +212,15 @@ class Main_window:
 		
 		self.window.show()
 		return
+
+class menu():
+	""" sem se presune vytvareni menu
+	bude obsahovat slovnik (jmeno taggleButtonu a ukazatel na nej), aby se dalo pridavat pod jednotliva menu
+	pres ni se tedy budou moci pridavat dalsi menu"""
+	
+	def __init__(self):
 		
+		return
 def main():
 	gtk.main()
 	
