@@ -1,12 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-""" TODO:
-- prijde dat do vlastniho modulu tridy pro vytvareni menu
-- pro kazde okno vlastni modul
-- v hlavnim modulu se to bude spojovat
-"""
-
 import pygtk
 import gtk
 
@@ -15,6 +9,8 @@ class Menu:
     Menu
     """
     def __init__(self, id, c_toolBar):
+
+        self.id = id
         self.btnList = []
         self.active_item = None
         self.default_item = None
@@ -112,7 +108,6 @@ class Main_window:
 
     def __init__(self):
         # Create a new window
-		
         self.window = gtk.Window(gtk.WINDOW_TOPLEVEL)
         self.window.set_title("Main window")
         self.window.set_size_request(300, 300)
@@ -127,35 +122,49 @@ class Main_window:
         
         #create menu
 
-        # menu 1
+        # main menu
         vbox_menu = gtk.Toolbar()
         self.vbox_main.pack_start(vbox_menu, expand=False, fill=True, padding=0)
         self.menu = Menu("menu:main", vbox_menu)
-        menu1_but1 = MenuButton("menu:main:btn1", "XCCDF", vbox_body)
+        menu1_but1 = MenuButton("menu:main:btn:main", "Main", vbox_body)
         self.menu.add_item(menu1_but1)
-        menu1_but2 = MenuButton("menu:main:btn1", "OVAL", vbox_body)
+        menu1_but2 = MenuButton("menu:main:btn:tailoring", "Tailoring", vbox_body)
         self.menu.add_item(menu1_but2)
-
-        # menu 2
+        menu1_but3 = MenuButton("menu:main:btn:edit", "Edit", vbox_body)
+        self.menu.add_item(menu1_but3)
+        menu1_but4 = MenuButton("menu:main:btn:scan", "Scen", vbox_body)
+        self.menu.add_item(menu1_but4)
+        menu1_but5 = MenuButton("menu:main:btn:reports", "Reports", vbox_body)
+        self.menu.add_item(menu1_but5)
+        
+        
+        # subMenu_but_main
         vbox_submenu = gtk.Toolbar()
         self.vbox_main.pack_start(vbox_submenu, expand=False, fill=True, padding=0)
-        self.submenu = Menu("menu:XCCDF", vbox_submenu)
-        menu2_but1 = MenuButton("menu:XCCDF:btn1", "XCCDF button1", vbox_body)
+        self.submenu = Menu("menu:main", vbox_submenu)
+        menu2_but1 = MenuButton("menu:main:btn:xccdf", "XCCDF", vbox_body)
         self.submenu.add_item(menu2_but1)
-        menu2_but2 = MenuButton("menu:XCCDF:btn2", "XCCDF button2", vbox_body)
+        menu2_but2 = MenuButton("menu:main:btn:oval", "OVAL", vbox_body)
         self.submenu.add_item(menu2_but2)
         menu1_but1.set_menu(self.submenu)
 
-        # menu 3
+        # subMenu_but_tailoring
         vbox_submenu1 = gtk.Toolbar()
         self.vbox_main.pack_start(vbox_submenu1, expand=False, fill=True, padding=0)
-        self.submenu1 = Menu("menu:OVAL", vbox_submenu1)
-        menu3_but1 = MenuButton("menu:OVAL:btn1", "OVAL button1", vbox_body)
+        self.submenu1 = Menu("menu:tailoring", vbox_submenu1)
+        menu3_but1 = MenuButton("menu:tailoring:btn:profiles", "Profiles", vbox_body)
         self.submenu1.add_item(menu3_but1)
-        menu3_but2 = MenuButton("menu:OVAL:btn2", "OVAL button2", vbox_body)
+        menu3_but2 = MenuButton("menu:OVAL:btn:refines", "Refines", vbox_body)
         self.submenu1.add_item(menu3_but2)
         menu1_but2.set_menu(self.submenu1)
 
+		# subMenu_but_edit
+		
+		# subMenu_but_scan
+		
+		# subMenu_but_reports
+		
+		
         self.vbox_main.pack_start(vbox_body, expand=True, fill=True, padding=0)
         
         self.window.show()
@@ -167,7 +176,7 @@ class Main_window:
         gtk.main_quit()
         return False
 
-class menu():
+class create_menu():
     # TODO: CZ -> ENG
     """ sem se presune vytvareni menu
     bude obsahovat slovnik (jmeno taggleButtonu a ukazatel na nej), aby se dalo pridavat pod jednotliva menu
