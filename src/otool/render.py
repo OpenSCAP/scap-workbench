@@ -86,7 +86,7 @@ class MenuButton:
             self.widget.set_sensitive(True)
         else: self.widget.set_sensitive(False)
         self.widget.show()
-        self.widget.connect("toggled", self.cb_toggle, self)
+        self.widget.connect("toggled", self.cb_toggle)
 
 
     def set_active(self, active):
@@ -102,7 +102,7 @@ class MenuButton:
     def set_menu(self, menu):
         self.menu = menu
 
-    def cb_toggle(self, widget, item):
+    def cb_toggle(self, widget):
         """ Change active of toggleButtons in current toolBar
         and visibility of child
         """
@@ -120,20 +120,54 @@ class MenuButton_XCCDF(MenuButton):
     def __init__(self, c_body=None, sensitivity=None):
         MenuButton.__init__(self,"menu:main:btn:xccdf", "XCCDF", c_body, sensitivity)
         self.c_body = c_body
-        self.body = self.draw_body()
+        
+        # referencies
         self.label_title = None
         self.label_description = None
         self.label_version = None
         self.label_url = None
-        self.language = None
+        self.cBox_language = None
 
+        # draw body
+        self.body = self.draw_body()
+        
+        
+    # set functions
+    def set_detail(self, tile, description, version, url):
+        self.label_title.set_text(title)
+        self.label_description.set_text(description)
+        self.label_version.set_text(version)
+        self.label_url.set_text(url)
+        
+    def set_language(self, languages, active):
+        model = self.cBox_language.get_model()
+        model.clear()
+        for lan in languages:
+            model.append([lan])
+        self.cBox_language.set_active(active)
+        
+    # callBack functions
+    def cb_btn(self, btn, data=None):
+        print "clicked = ", data
+
+    def cb_changed(self, combobox):
+        model = combobox.get_model()
+        index = combobox.get_active()
+        if index < 0:
+           pass#print 'I prefered English Language'
+        else:
+             print 'I prefered', model[index][0], 'Language'
+        return
+        
+        
+    # draw functions
     def add_label(self,table, text, left, right, top, bottom, x=gtk.FILL, y=gtk.FILL):
         label = gtk.Label(text)
         table.attach(label, left, right, top, bottom, x, y)
         label.set_alignment(0, 0.5)
         return label
         
-    def set_frame(self, body, text, expand = True):
+    def add_frame(self, body, text, expand = True):
         frame = gtk.Frame(text)
         label = frame.get_label_widget()
         label.set_use_markup(True)
@@ -144,15 +178,9 @@ class MenuButton_XCCDF(MenuButton):
         frame.add(alig)
         return alig
 
-    def set_detail(self, tile, description, version, url):
-        if self.label_title: self.label_title.set_text(title)
-        if self.label_description: self.label_description.set_text(description)
-        if self.label_version: self.label_version.set_text(version)
-        if self.label_url: self.label_url.set_text(url)
-
     def draw_body(self):
         body = gtk.VBox()
-        alig = self.set_frame(body, "<b>List</b>")
+        alig = self.add_frame(body, "<b>List</b>")
         table = gtk.Table(5 ,2)
         alig.add(table)
 
@@ -167,56 +195,97 @@ class MenuButton_XCCDF(MenuButton):
         self.label_version = self.add_label(table, "None", 1, 2, 2, 3)
         self.label_url = self.add_label(table, "None ", 1, 2, 3, 4)
 
-        combobox = gtk.combo_box_new_text()
-        combobox.append_text('English')
-        combobox.append_text('Czech')
-        combobox.append_text('Russian')        
-        combobox.connect('changed', self.changed_cb)
-        combobox.set_active(0)
-        table.attach(combobox, 1, 2, 4, 5,gtk.FILL,gtk.FILL)
+        self.cBox_language = gtk.ComboBox()
+        model = gtk.ListStore(str)
+        cell = gtk.CellRendererText()
+        self.cBox_language.pack_start(cell)
+        self.cBox_language.add_attribute(cell, 'text', 0)
+        self.cBox_language.set_model(model)
+        self.cBox_language.connect('changed', self.cb_changed)
+        self.cBox_language.set_active(0)
+        table.attach(self.cBox_language, 1, 2, 4, 5,gtk.FILL,gtk.FILL)
 
+        self.set_language(["English", "Czech", "Russian"], 0)
         
         # generator for oval
-        alig = self.set_frame(body, "<b>Generator for OVAL</b>")
+        alig = self.add_frame(body, "<b>Generator for OVAL</b>")
 
         # operations
-        alig = self.set_frame(body, "<b>Operations</b>", False)
-        
+        alig = self.add_frame(body, "<b>Operations</b>", False)
         box = gtk.HButtonBox()
         box.set_layout(gtk.BUTTONBOX_START)
+        
         btn = gtk.Button("Load File")
+        btn.connect("clicked", self.cb_btn, "load")
         box.add(btn)
+        
         btn = gtk.Button("Save Changes")
+        btn.connect("clicked", self.cb_btn, "save")        
         box.add(btn)
+        
         btn = gtk.Button("Validate")
+        btn.connect("clicked", self.cb_btn, "valid")
         box.add(btn)
         alig.add(box)
 
-        body.hide_all()
-        
         # add to conteiner
+        body.hide_all()
         self.c_body.add(body)
         return body
 
-    def changed_cb(self, combobox):
-        model = combobox.get_model()
-        index = combobox.get_active()
-        if index:
-            print 'I prefered', model[index][0], 'Language'
-        else:
-            print 'I prefered English Language'
-        return
+
         
 class MenuButton_profiles(MenuButton):
 
     def __init__(self, c_body=None, sensitivity=None):
         MenuButton.__init__(self,"menu:main:btn:xccdf", "Profiles", c_body, sensitivity)
         self.c_body = c_body
+        
+        #referencies
         self.label_abstract = None
         self.label_extend = None
+        self.entry_version = None
+        self.textView_tile = None
+        self.textView_description = None
+        self.treeView_profiles = None
+        
+        # draw body
         self.body = self.draw_body()
+    
+    #set functions
+    def set_listProfiles(self, model):
+        self.treeView_profiles.set_model(model)
+    
+    def set_info(self, abstract, extend):
+        self.label_abstract.set_text(abstract)
+        self.label_extend.set_text(extend)
 
-    def set_frame_vp(self,body, text,pos = 1):
+    def set_version(self, version):
+        self.entry_version.set_text(version)
+    
+    def set_title(self, text):
+        textbuffer = self.texView_title.get_buffer()
+        textbuffer.set_text(text)
+        
+    def set_descriprion(self, text):
+        textbuffer = self.texView_description.get_buffer()
+        textbuffer.set_text(text)
+        
+    #callBack functions
+    def cb_btnProfiles(self, button, data=None):
+        pass
+    
+    def cb_listProfiles(self, widget):
+        pass
+    
+    def cb_textView(self, widget, data=None):
+        print data
+        
+    def cb_version(self, widget, data=None):
+        pass
+        
+    # draw function
+    def add_frame_vp(self,body, text,pos = 1):
         frame = gtk.Frame(text)
         label = frame.get_label_widget()
         label.set_use_markup(True)
@@ -239,34 +308,60 @@ class MenuButton_profiles(MenuButton):
         body = gtk.VPaned()
 
         # List of profiles
-        alig = self.set_frame_vp(body, "<b>List of profiles</b>")
+        alig = self.add_frame_vp(body, "<b>List of profiles</b>")
         hbox = gtk.HBox()
         alig.add(hbox)
         sw = gtk.ScrolledWindow()
         sw.set_shadow_type(gtk.SHADOW_IN)
         sw.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
-        self.treeV = gtk.TreeView()
-        sw.add(self.treeV)
+        self.treeView_profiles = gtk.TreeView()
+        sw.add(self.treeView_profiles)
         hbox.pack_start(sw, expand=True, fill=True, padding=3)
-
+        
+        column = gtk.TreeViewColumn('ID', gtk.CellRendererText(),text=0) 
+        column.set_sort_column_id(0)
+        self.treeView_profiles.append_column(column)
+        
+        column = gtk.TreeViewColumn('Title', gtk.CellRendererText(),text=1) 
+        column.set_sort_column_id(1)
+        self.treeView_profiles.append_column(column)
+        
+        column = gtk.TreeViewColumn('Version', gtk.CellRendererText(),text=2) 
+        column.set_sort_column_id(2)
+        self.treeView_profiles.append_column(column)
+        
+        selection = self.treeView_profiles.get_selection()
+        selection.set_mode(gtk.SELECTION_SINGLE)
+        selection.connect("changed", self.cb_listProfiles)
+        
+        
         # operations with profiles
         hbox.pack_start(gtk.VSeparator(), expand=False, fill=True, padding=10)
         box = gtk.VButtonBox()
         box.set_layout(gtk.BUTTONBOX_START)
+        
         btn = gtk.Button("Add")
+        btn.connect("clicked", self.cb_btnProfiles, "add")
         box.add(btn)
+        
         btn = gtk.Button("Extend")
+        btn.connect("clicked", self.cb_btnProfiles, "extend")
         box.add(btn)
+        
         btn = gtk.Button("Copy")
-        box.add(btn)        
-        btn = gtk.Button("Delete")
+        btn.connect("clicked", self.cb_btnProfiles, "copy")
         box.add(btn)
+        
+        btn = gtk.Button("Delete")
+        btn.connect("clicked", self.cb_btnProfiles, "del")
+        box.add(btn)
+        
         hbox.pack_start(box, expand=False, fill=True, padding=0)
 
         # edit profiles
         #body.pack_start(gtk.HSeparator(), expand=False, fill=True, padding=10)
         
-        alig = self.set_frame_vp(body, "<b>Details</b>",2)
+        alig = self.add_frame_vp(body, "<b>Details</b>",2)
 
         table = gtk.Table(5 ,2)
         alig.add(table)
@@ -282,14 +377,16 @@ class MenuButton_profiles(MenuButton):
         self.label_extend = self.add_label(table, "None ", 1, 2, 1, 2)
 
         self.entry_version = gtk.Entry()
+        self.entry_version.connect("selection-notify-event", self.cb_version, "Description")
         table.attach(self.entry_version, 1, 2, 2, 3,gtk.EXPAND|gtk.FILL,gtk.FILL)
 
         hbox = gtk.HBox()
         table.attach(hbox, 1, 2, 3, 4,gtk.EXPAND|gtk.FILL,gtk.EXPAND|gtk.FILL, 0, 3)
-        self.texView_title = gtk.TextView()
         sw = gtk.ScrolledWindow()
         sw.set_shadow_type(gtk.SHADOW_IN)
         sw.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
+        self.texView_title = gtk.TextView()
+        self.texView_title.connect("selection-notify-event", self.cb_textView, "Title")
         sw.add(self.texView_title)
         hbox.pack_start(sw, expand=True, fill=True, padding=0)
         self.button_title = gtk.Button("...")
@@ -297,17 +394,28 @@ class MenuButton_profiles(MenuButton):
 
         hbox = gtk.HBox()
         table.attach(hbox, 1, 2, 4, 5,gtk.EXPAND|gtk.FILL,gtk.EXPAND|gtk.FILL, 0, 3)
-        self.texView_description = gtk.TextView()
         sw = gtk.ScrolledWindow()
         sw.set_shadow_type(gtk.SHADOW_IN)
         sw.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
+        self.texView_description = gtk.TextView()
+        self.texView_title.connect("selection-notify-event", self.cb_textView, "Description")
         sw.add(self.texView_description)
         hbox.pack_start(sw, expand=True, fill=True, padding=0)
         self.button_description = gtk.Button("...")
         hbox.pack_start(self.button_description, expand=False, fill=True, padding=0)
-        textbuffer = self.texView_description.get_buffer()
-        textbuffer.set_text("asdasdasdasds")
 
+        #tests
+        self.set_descriprion("pokuss")
+        self.set_descriprion("pokuss2")
+        self.set_title("title")
+        self.set_version("version")
+        model = gtk.ListStore( gobject.TYPE_STRING, gobject.TYPE_STRING,gobject.TYPE_STRING)
+        model.append(["e", "e", "w"])
+        model.append(["e", "e", "w"])
+        model.append(["e", "e", "w"])
+        model.append(["e", "e", "w"])
+           
+        self.set_listProfiles(model)
         
         body.hide_all()
         self.c_body.add(body)
@@ -318,11 +426,20 @@ class MenuButton_refines(MenuButton):
     def __init__(self, c_body=None, sensitivity=None):
         MenuButton.__init__(self,"menu:main:btn:xccdf", "Refines", c_body, sensitivity)
         self.c_body = c_body
+        
+        #referencies
         self.label_abstract = None
         self.label_extend = None
+        
+        #draw body
         self.body = self.draw_body()
+        
+    #set functions
+    
+    #callBack functions
 
-    def set_frame_box(self, body, text, expand):
+    #draw functions
+    def add_frame_cBox(self, body, text, expand):
         frame = gtk.Frame(text)
         label = frame.get_label_widget()
         label.set_use_markup(True)        
@@ -334,7 +451,7 @@ class MenuButton_refines(MenuButton):
         frame.add(alig)
         return alig
 
-    def set_frame_vp(self,body, text,pos = 1):
+    def add_frame_vp(self,body, text,pos = 1):
         frame = gtk.Frame(text)
         frame.set_shadow_type(gtk.SHADOW_NONE)
         #frame.set_border_width(5)        
@@ -389,13 +506,13 @@ class MenuButton_refines(MenuButton):
         # filters
         vbox_filter = gtk.VBox()
         hbox_main.pack_start(vbox_filter, expand=False, fill=True, padding=0)
-        alig = self.set_frame_box(vbox_filter, "<b>Layouts list profiles</b>", False)
+        alig = self.add_frame_cBox(vbox_filter, "<b>Layouts list profiles</b>", False)
         self.cb_filter = gtk.combo_box_entry_new_text()
         alig.add(self.cb_filter)
-        alig = self.set_frame_box(vbox_filter, "<b>Filters</b>", False)
+        alig = self.add_frame_cBox(vbox_filter, "<b>Filters</b>", False)
         self.btn_filter = gtk.Button("Set fiters")
         alig.add(self.btn_filter)
-        alig_filters = self.set_frame_box(vbox_filter, "<b>Active filters</b>", False)
+        alig_filters = self.add_frame_cBox(vbox_filter, "<b>Active filters</b>", False)
         
         
         hbox_main.pack_start(gtk.VSeparator(), expand=False, fill=True, padding=4)
@@ -405,7 +522,7 @@ class MenuButton_refines(MenuButton):
         hbox_main.pack_start(vpaned_tree, expand=True, fill=True, padding=0)
         
         # tree
-        alig = self.set_frame_vp(vpaned_tree, "<b>List</b>",1)
+        alig = self.add_frame_vp(vpaned_tree, "<b>List</b>",1)
         sw = gtk.ScrolledWindow()
         sw.set_shadow_type(gtk.SHADOW_IN)
         sw.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
@@ -417,7 +534,7 @@ class MenuButton_refines(MenuButton):
         vpaned_details = gtk.VPaned()
         vpaned_tree.pack2(vpaned_details,  resize=False, shrink=False)
  
-        alig = self.set_frame_vp(vpaned_details, "<b>Details</b>",1)
+        alig = self.add_frame_vp(vpaned_details, "<b>Details</b>",1)
         sw = gtk.ScrolledWindow()
         sw.set_shadow_type(gtk.SHADOW_IN)
         sw.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
@@ -426,7 +543,7 @@ class MenuButton_refines(MenuButton):
         sw.add(textV)
         
         #Defendecies
-        alig = self.set_frame_vp(vpaned_details, "<b>Defendencies</b>",2)
+        alig = self.add_frame_vp(vpaned_details, "<b>Defendencies</b>",2)
         sw = gtk.ScrolledWindow()
         sw.set_shadow_type(gtk.SHADOW_IN)
         sw.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
@@ -440,23 +557,23 @@ class MenuButton_refines(MenuButton):
         vbox_refines = gtk.VBox()
         hbox_main.pack_start(vbox_refines, expand=False, fill=True)
         
-        alig = self.set_frame_box(vbox_refines, "<b>Operator</b>", False)
+        alig = self.add_frame_cBox(vbox_refines, "<b>Operator</b>", False)
         self.cB_operator = gtk.combo_box_entry_new_text()
         alig.add(self.cB_operator)
         
-        alig = self.set_frame_box(vbox_refines, "<b>Check</b>", False)
+        alig = self.add_frame_cBox(vbox_refines, "<b>Check</b>", False)
         self.cB_check = gtk.combo_box_entry_new_text()
         alig.add(self.cB_check)
         
-        alig = self.set_frame_box(vbox_refines, "<b>Role</b>", False)
+        alig = self.add_frame_cBox(vbox_refines, "<b>Role</b>", False)
         self.cB_role = gtk.combo_box_entry_new_text()
         alig.add(self.cB_role)
         
-        alig = self.set_frame_box(vbox_refines, "<b>Severity</b>", False)
+        alig = self.add_frame_cBox(vbox_refines, "<b>Severity</b>", False)
         self.cB_severity = gtk.combo_box_entry_new_text()
         alig.add(self.cB_severity)
         
-        self.values_c = self.set_frame_box(vbox_refines, "<b>Values</b>", False)
+        self.values_c = self.add_frame_cBox(vbox_refines, "<b>Values</b>", False)
         list_values = []
         list_values.append(Value("pokus1", 1, ["34","35","36","37"], 1))
         list_values.append(Value("pokus2", 1, ["34","35","36","37"], 1))
