@@ -6,11 +6,14 @@ import gtk
 import gobject
 
 class Menu:
-    """ Create Main item for TreeToolBar_toggleButtonGroup and draw all tree
-    Menu
+    """ 
+    Create Main item for TreeToolBar_toggleButtonGroup and draw all tree Menu
     """
     def __init__(self, id, c_toolBar):
-
+        """
+        @param id
+        @param c_toolBar Conteiner for menu.
+        """
         self.id = id
         self.btnList = []
         self.active_item = None
@@ -18,7 +21,10 @@ class Menu:
         self.c_toolBar = c_toolBar
 	
     def add_item(self, item, position=None):
-        """ Add item to the menu list
+        """ 
+        Add item to the menu list
+        @param item MenuButton which is added to menu.
+        @param position Position of MenuButton in menu.
         """
 
         if len(self.btnList) == 0:
@@ -34,19 +40,31 @@ class Menu:
         item.parent = self
 
     def show(self):
+        """
+        Show the menu and set active itme.
+        """
         self.c_toolBar.show()
         self.toggle_button(self.active_item)
 
     def set_active(self, active):
+        """
+        Show or hide menu with MenuButtons.
+        @param active True/False - Show/Hide 
+        """
         if active: self.show()
         else: self.c_toolBar.hide()
 
     def set_default(self, item):
+        """
+        Set default active MenuButton object in menu.
+        @param item Default active item.
+        """
         self.active_item = item
         self.default_item = item
 
     def toggle_button(self, item):
-        """ Toggle selected button
+        """ 
+        Toggle selected button.
         @param item selected MenuButton object
         """
         # Deselect all buttons
@@ -54,6 +72,7 @@ class Menu:
         # Show selected button
         self.active_item = item
         self.active_item.set_active(True)
+        print "tada"
 		
     def refresh(self):
         """ Refresh graphic content
@@ -67,13 +86,16 @@ class MenuButton:
 
     def __init__(self, id, name, c_body=None, sensitivity=None):
         """
-        @param sensitivity filter function
+        @param id
+        @param name Name of MenuButton
+        @param C_body Conteiner for draw of body.
+        @param sensitivity Filter function for set sensitivity of MenuButton
         """
         # structure
         self.id = id
-        self.name = name
+        self.name = name        # dependent menu of MenuButton object
         self.sensitivity = sensitivity
-        self.parent = None
+        self.parent = None      #menu for this MenuButton
         self.c_body = c_body
         self.menu = None
         self.body = None
@@ -90,33 +112,49 @@ class MenuButton:
 
 
     def set_active(self, active):
+        """
+        Show or hide MenuButton object and dependent menu, body.
+        @param active True/False - Show/Hide 
+        """
         self.widget.handler_block_by_func(self.cb_toggle)
         self.widget.set_active(active)
         self.set_body(active)
         if self.menu: 
             self.menu.set_active(active)
-            if self.menu.active_item:
+            if self.menu.active_item and not active:
                 self.menu.active_item.set_active(active)
         self.widget.handler_unblock_by_func(self.cb_toggle)
 
     def set_menu(self, menu):
+        """
+        Add sudmenu tu MenuButton.
+        @param menu Submenu which is set to MenuButton
+        """
         self.menu = menu
 
     def cb_toggle(self, widget):
-        """ Change active of toggleButtons in current toolBar
-        and visibility of child
+        """ 
+        CallBack function which change active of toggleButtons in current toolBar
+        and visibility of child.
         """
         self.parent.toggle_button(self)
 
     def set_body(self,active):
+        """
+        Show or hide content of body if exist.
+        @param active True/False - Show/Hide 
+        """
         if self.body:
             if active:
                 self.body.show_all()
             else:
                 self.body.hide_all()
 
-class MenuButton_XCCDF(MenuButton):
 
+class MenuButton_XCCDF(MenuButton):
+    """
+
+    """
     def __init__(self, c_body=None, sensitivity=None):
         MenuButton.__init__(self,"menu:main:btn:xccdf", "XCCDF", c_body, sensitivity)
         self.c_body = c_body
