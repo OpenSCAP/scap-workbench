@@ -273,6 +273,7 @@ class MenuButton_profiles(MenuButton):
         
     #callBack functions
     def cb_btnProfiles(self, button, data=None):
+        self.profile = New_profile(data)
         pass
     
     def cb_listProfiles(self, widget):
@@ -435,9 +436,35 @@ class MenuButton_refines(MenuButton):
         self.body = self.draw_body()
         
     #set functions
-    
+    def set_values(self, list_values):
+        """ 
+        The function create comboBoxs for set values
+        @param list_values list of objects with name, id, list of values for selection
+        """
+        radek = 0
+        self.vbox = gtk.VBox()
+        for value in list_values:
+            label = gtk.Label(value.name+": ")
+            label.set_alignment(0, 0.5)
+            self.vbox.pack_start(label, expand=False, fill=True, padding=0)
+            comboBox = gtk.combo_box_entry_new_text()
+            for val in value.list_values:
+                comboBox.append_text(val)
+            comboBox.connect('changed', self.cb_values)
+            self.vbox.pack_start(comboBox, expand=False, fill=True, padding=0)
+        self.values_c.add(self.vbox)
+        
+    def destroy_values(self):
+        """
+        The function destroy table with values
+        """
+        self.table.destroy()
+        
     #callBack functions
 
+    def cb_values(self, id):
+        pass
+    
     #draw functions
     def add_frame_cBox(self, body, text, expand):
         frame = gtk.Frame(text)
@@ -463,33 +490,6 @@ class MenuButton_refines(MenuButton):
         alig.set_padding(0, 0, 12, 0)
         frame.add(alig)
         return alig
-        
-    def create_values(self, list_values):
-        """ 
-        The function create comboBoxs for set values
-        @param list_values list of objects with name, id, list of values for selection
-        """
-        radek = 0
-        self.vbox = gtk.VBox()
-        for value in list_values:
-            label = gtk.Label(value.name+": ")
-            label.set_alignment(0, 0.5)
-            self.vbox.pack_start(label, expand=False, fill=True, padding=0)
-            comboBox = gtk.combo_box_entry_new_text()
-            for val in value.list_values:
-                comboBox.append_text(val)
-            comboBox.connect('changed', self.cb_values)
-            self.vbox.pack_start(comboBox, expand=False, fill=True, padding=0)
-        self.values_c.add(self.vbox)
-        
-    def destroy_values(self):
-        """
-        The function destroy table with values
-        """
-        self.table.destroy()
-     
-    def cb_values(self, id):
-        pass
     
     def draw_body(self):
         body = gtk.VBox()
@@ -513,7 +513,6 @@ class MenuButton_refines(MenuButton):
         self.btn_filter = gtk.Button("Set fiters")
         alig.add(self.btn_filter)
         alig_filters = self.add_frame_cBox(vbox_filter, "<b>Active filters</b>", False)
-        
         
         hbox_main.pack_start(gtk.VSeparator(), expand=False, fill=True, padding=4)
         
@@ -578,7 +577,7 @@ class MenuButton_refines(MenuButton):
         list_values.append(Value("pokus1", 1, ["34","35","36","37"], 1))
         list_values.append(Value("pokus2", 1, ["34","35","36","37"], 1))
         list_values.append(Value("pokus3", 1, ["34","35","36","37"], 1))
-        self.create_values(list_values)
+        self.set_values(list_values)
         body.hide_all()
         self.c_body.add(body)
         return body
@@ -604,9 +603,184 @@ class MenuButton_oval(MenuButton):
         self.c_body.add(body)
         return body
 
-
-class Value:
+class New_profile:
     
+    def __init__(self, action="add"):
+        self.action = action
+        self.draw_window()
+
+
+        
+    #set function
+    def set_abstract(self, abstract):
+        if abstract == True:
+            self.label_abstract = "Yes"
+        else:
+            self.label_abstract = "No"
+    
+    def set_extend(self, text):
+        self.label_extend = text
+
+    def set_version(self, text):
+        self.entry_version = text
+        
+    def set_language(self, languages, active):
+        model = self.cBox_language.get_model()
+        model.clear()
+        for lan in languages:
+            model.append([lan])
+        self.cBox_language.set_active(active)
+
+    def set_title(self, text):
+        textbuffer = self.texView_title.get_buffer()
+        textbuffer.set_text(text)
+        
+    def set_descriprion(self, text):
+        textbuffer = self.texView_description.get_buffer()
+        textbuffer.set_text(text)
+
+    #callBack function
+    def cb_abstract(self, combobox):
+        model = combobox.get_model()
+        index = combobox.get_active()
+        if index < 0:
+            pass#print 'I prefered English Language'
+        else:
+                print 'I prefered', model[index][0], 'Language'
+        return
+
+    def cb_version(self, entry):
+        pass
+    
+    def cb_language(self, combobox):
+        model = combobox.get_model()
+        index = combobox.get_active()
+        if index < 0:
+            pass#print 'I prefered English Language'
+        else:
+                print 'I prefered', model[index][0], 'Language'
+        return
+
+    def cb_textView(self, widget, data=None):
+        print data
+
+    def cb_btn(self, button, data=None):
+        pass
+    
+    def delete_event(self, widget, event, data=None):
+        self.window.destroy()
+    
+    # draw function
+    def add_frame_cBox(self, body, text, expand):
+        frame = gtk.Frame(text)
+        label = frame.get_label_widget()
+        label.set_use_markup(True)        
+        frame.set_shadow_type(gtk.SHADOW_NONE)
+        if expand: body.pack_start(frame, True, True)
+        else: body.pack_start(frame, False, True)
+        alig = gtk.Alignment(0.5, 0.5, 1, 1)
+        alig.set_padding(0, 0, 12, 0)
+        frame.add(alig)
+        return alig
+
+    def add_label(self,table, text, left, right, top, bottom, x=gtk.FILL, y=gtk.FILL):
+        label = gtk.Label(text)
+        table.attach(label, left, right, top, bottom, x, y)
+        label.set_alignment(0, 0.5)
+        return label
+        
+    def draw_window(self):
+        # Create a new window
+        self.window = gtk.Window(gtk.WINDOW_TOPLEVEL)
+        self.window.set_title("New profile")
+        self.window.set_size_request(600, 400)
+        self.window.set_modal(True)
+        self.window.connect("delete_event", self.delete_event)
+        
+        # for insert data
+        vbox = gtk.VBox()
+        alig = self.add_frame_cBox(vbox, "<b>New</b>", True)
+        table = gtk.Table()
+        table.set_row_spacings(4)
+        
+        self.add_label(table, "Abstract: ", 0, 1, 0, 1)
+        self.add_label(table, "Extend: ", 0, 1, 1, 2)
+        self.add_label(table, "Version: ", 0, 1, 2, 3)
+        self.add_label(table, "Language: ", 0, 1, 3, 4)
+        self.add_label(table, "Title: ", 0, 1, 4, 5)
+        self.add_label(table, "Description: ", 0, 1, 5, 6)
+        
+        if self.action == "add":
+            self.cBox_language = gtk.ComboBox()
+            model = gtk.ListStore(str)
+            cell = gtk.CellRendererText()
+            self.cBox_language.pack_start(cell)
+            self.cBox_language.add_attribute(cell, 'text', 0)
+            self.cBox_language.set_model(model)
+            self.cBox_language.connect('changed', self.cb_abstract)
+            table.attach(self.cBox_language, 1, 2, 0, 1,gtk.FILL,gtk.FILL)
+            self.set_language(["No", "Yes"], 0)
+        else:
+            self.label_abstract = self.add_label(table, "None ", 1, 2, 0, 1)
+        self.label_extend = self.add_label(table, "None ", 1, 2, 1, 2)
+
+        self.entry_version = gtk.Entry()
+        self.entry_version.connect("selection-notify-event", self.cb_version, "version")
+        table.attach(self.entry_version, 1, 2, 2, 3, gtk.EXPAND|gtk.FILL, gtk.FILL)
+
+        self.cBox_language = gtk.ComboBox()
+        model = gtk.ListStore(str)
+        cell = gtk.CellRendererText()
+        self.cBox_language.pack_start(cell)
+        self.cBox_language.add_attribute(cell, 'text', 0)
+        self.cBox_language.set_model(model)
+        self.cBox_language.connect('changed', self.cb_language)
+        table.attach(self.cBox_language, 1, 2, 3, 4,gtk.FILL,gtk.FILL)
+
+        self.set_language(["English", "Czech", "Russian"], 0)
+        
+        sw = gtk.ScrolledWindow()
+        sw.set_shadow_type(gtk.SHADOW_IN)
+        sw.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
+        self.texView_title = gtk.TextView()
+        self.texView_title.connect("selection-notify-event", self.cb_textView, "title")
+        sw.add(self.texView_title)
+        table.attach(sw, 1, 2, 4, 5, gtk.EXPAND|gtk.FILL, gtk.EXPAND|gtk.FILL)
+        
+        sw = gtk.ScrolledWindow()
+        sw.set_shadow_type(gtk.SHADOW_IN)
+        sw.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
+        self.texView_description = gtk.TextView()
+        self.texView_title.connect("selection-notify-event", self.cb_textView, "description")
+        sw.add(self.texView_description)
+        table.attach(sw, 1, 2, 5, 6, gtk.EXPAND|gtk.FILL, gtk.EXPAND|gtk.FILL)
+        
+        alig.add(table)
+        #operationes
+        box = gtk.HButtonBox()
+        box.set_layout(gtk.BUTTONBOX_END)
+        
+        btn = gtk.Button("Create")
+        btn.connect("clicked", self.cb_btn, "create")
+        box.add(btn)
+        
+        btn = gtk.Button("Cancel")
+        btn.connect("clicked", self.cb_btn, "cancel")        
+        box.add(btn)
+        
+        vbox.pack_start(box, False, True)
+        
+        vbox.pack_start(gtk.Statusbar(), False, True)
+        self.window.add(vbox)
+        self.window.show_all()
+
+    def destroy_window(self):
+        self.window.destroy()
+    
+class Value:
+    """
+    struct for create iformation for value
+    """
     def __init__(self, name, id, list_values, default, old_value=None):
         self.name = name
         self.id = id
