@@ -72,7 +72,6 @@ class Menu:
         # Show selected button
         self.active_item = item
         self.active_item.set_active(True)
-        print "tada"
 		
     def refresh(self):
         """ Refresh graphic content
@@ -153,7 +152,7 @@ class MenuButton:
 
 class MenuButton_XCCDF(MenuButton):
     """
-
+    GUI for operations with xccdf file.
     """
     def __init__(self, c_body=None, sensitivity=None):
         MenuButton.__init__(self,"menu:main:btn:xccdf", "XCCDF", c_body, sensitivity)
@@ -172,12 +171,20 @@ class MenuButton_XCCDF(MenuButton):
         
     # set functions
     def set_detail(self, tile, description, version, url):
+        """
+        Set information about file.
+        """
         self.label_title.set_text(title)
         self.label_description.set_text(description)
         self.label_version.set_text(version)
         self.label_url.set_text(url)
         
     def set_language(self, languages, active):
+        """
+        Set list of languades for comboBox and set active.
+        @param languages List of laguages name.
+        @param active Number of active item in list
+        """
         model = self.cBox_language.get_model()
         model.clear()
         for lan in languages:
@@ -274,7 +281,9 @@ class MenuButton_XCCDF(MenuButton):
 
         
 class MenuButton_profiles(MenuButton):
-
+    """
+    GUI for profiles.
+    """
     def __init__(self, c_body=None, sensitivity=None):
         MenuButton.__init__(self,"menu:main:btn:xccdf", "Profiles", c_body, sensitivity)
         self.c_body = c_body
@@ -292,20 +301,38 @@ class MenuButton_profiles(MenuButton):
     
     #set functions
     def set_listProfiles(self, model):
+        """
+        Set treeView with list of profiles
+        @param model Model (listStore) with column for treeView. Columns(ID(str), Title(str), version(str))
+        """
         self.treeView_profiles.set_model(model)
     
     def set_info(self, abstract, extend):
+        """
+        Set abstract and extend information.
+        """
         self.label_abstract.set_text(abstract)
         self.label_extend.set_text(extend)
 
     def set_version(self, version):
+        """
+        Set version of profile.
+        """
         self.entry_version.set_text(version)
     
     def set_title(self, text):
+        """
+        Set title to the textView.
+        @param text Text with title
+        """
         textbuffer = self.texView_title.get_buffer()
         textbuffer.set_text(text)
         
     def set_descriprion(self, text):
+        """
+        Set description to the textView.
+        @param text Text with description
+        """
         textbuffer = self.texView_description.get_buffer()
         textbuffer.set_text(text)
         
@@ -461,7 +488,9 @@ class MenuButton_profiles(MenuButton):
         return body
 
 class MenuButton_refines(MenuButton):
-
+    """
+    GUI for refines.
+    """
     def __init__(self, c_body=None, sensitivity=None):
         MenuButton.__init__(self,"menu:main:btn:xccdf", "Refines", c_body, sensitivity)
         self.c_body = c_body
@@ -469,7 +498,8 @@ class MenuButton_refines(MenuButton):
         #referencies
         self.label_abstract = None
         self.label_extend = None
-        
+        self.details = None
+        self.defendecies = None
         #draw body
         self.body = self.draw_body()
         
@@ -575,21 +605,21 @@ class MenuButton_refines(MenuButton):
         sw = gtk.ScrolledWindow()
         sw.set_shadow_type(gtk.SHADOW_IN)
         sw.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
-        textV = gtk.TextView()
+        self.details = gtk.TextView()
         alig.add(sw)
-        sw.add(textV)
+        sw.add(self.details)
         
         #Defendecies
         alig = self.add_frame_vp(vpaned_details, "<b>Defendencies</b>",2)
         sw = gtk.ScrolledWindow()
         sw.set_shadow_type(gtk.SHADOW_IN)
         sw.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
-        textV = gtk.TextView()
+        self.defendecies = gtk.TextView()
         alig.add(sw)
-        sw.add(textV)
-        
+        sw.add(self.defendecies)
+
         hbox_main.pack_start(gtk.VSeparator(), expand=False, fill=True, padding=4)
-        
+
         #set refines
         vbox_refines = gtk.VBox()
         hbox_main.pack_start(vbox_refines, expand=False, fill=True)
@@ -642,27 +672,47 @@ class MenuButton_oval(MenuButton):
         return body
 
 class New_profile:
-    
+    """
+    GUI for create new profile.
+    """
     def __init__(self, action="add"):
+        """
+        @param action type of creating profile (copy, extend, new)
+        """
         self.action = action
         self.draw_window()
 
-
-        
     #set function
     def set_abstract(self, abstract):
+        """
+        Set if new profal is abstract or not.
+        @param abstract True/False - Yes/No
+        """
         if abstract == True:
             self.label_abstract = "Yes"
         else:
             self.label_abstract = "No"
     
     def set_extend(self, text):
+        """
+        Set id profile.
+        @param text
+        """
         self.label_extend = text
 
     def set_version(self, text):
+        """
+        Set version of profile.
+        @param text
+        """
         self.entry_version = text
         
     def set_language(self, languages, active):
+        """
+        Set list of languades for comboBox and set active.
+        @param languages List of laguages name.
+        @param active Number of active item in list
+        """
         model = self.cBox_language.get_model()
         model.clear()
         for lan in languages:
@@ -670,10 +720,18 @@ class New_profile:
         self.cBox_language.set_active(active)
 
     def set_title(self, text):
+        """
+        Set title to the textView.
+        @param text Text with title
+        """
         textbuffer = self.texView_title.get_buffer()
         textbuffer.set_text(text)
         
     def set_descriprion(self, text):
+        """
+        Set description to the textView.
+        @param text Text with description
+        """
         textbuffer = self.texView_description.get_buffer()
         textbuffer.set_text(text)
 
@@ -817,7 +875,7 @@ class New_profile:
     
 class Value:
     """
-    struct for create iformation for value
+    Structre for create iformation for value
     """
     def __init__(self, name, id, list_values, default, old_value=None):
         self.name = name
