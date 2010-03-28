@@ -896,12 +896,16 @@ class ExpandBox:
     Create expand box. Set only to conteiner.
     """
     
-    def __init__(self, place, body, text):
+    def __init__(self, place, body, text, show = True):
         """
         @param place Conteiner for this expandBox.
         @param body Conteiner or widget to expandBox
         @param text Button name for show or hide expandBox
+        @param show If ExpanBox should be hide/show False/True
         """
+        self.show = show
+        
+        # body for expandBox
         rollBox = gtk.HBox()
         place.pack_start(rollBox, False, True)
 
@@ -910,29 +914,49 @@ class ExpandBox:
         
         rollBox.pack_start(gtk.VSeparator() , False, True)
         
-        btn = gtk.Button()
-        self.image = gtk.Image()
+        #create icon
+        self.image1 = gtk.Image()
+        self.image2 = gtk.Image()
+        self.pixbufShow = self.image1.render_icon(stock_id=getattr(gtk, "STOCK_GO_FORWARD"),
+                                size=gtk.ICON_SIZE_MENU,
+                                detail=None)
+        self.pixbufHide = self.image2.render_icon(stock_id=getattr(gtk, "STOCK_GO_BACK"),
+                        size=gtk.ICON_SIZE_MENU,
+                        detail=None)
+        
+        #create label
         self.label = gtk.Label(text)
         self.label.set_angle(90)
-        
-        hbox = gtk.HBox()
-        hbox.pack_start(self.image, False, True)        
-        hbox.pack_start(self.label, True, True)
-        btn.add(hbox)
-        
-        rollBox.pack_start(btn, False, True)
 
+        #create button
+        hbox = gtk.VBox()
+        hbox.pack_start(self.image1, False, True)        
+        hbox.pack_start(self.label, True, True)
+        hbox.pack_start(self.image2, False, True)
+        btn = gtk.Button()
+        btn.add(hbox)
+        rollBox.pack_start(btn, False, True)
         btn.connect("clicked", self.cb_changed)
-        self.show = True
+        
+        #init
+        if self.show:
+            self.show = False
+            self.cb_changed(self)
+        else:
+            self.show = True
+            self.cb_changed(self)
 
     def cb_changed(self, widget):
         if self.show:
             self.frameContent.hide_all()
             self.show = False
+            self.image1.set_from_pixbuf(self.pixbufShow)
+            self.image2.set_from_pixbuf(self.pixbufShow)
         else:
             self.frameContent.show_all()
             self.show = True
-
+            self.image1.set_from_pixbuf(self.pixbufHide)
+            self.image2.set_from_pixbuf(self.pixbufHide)
 class Value:
     """
     Structre for create iformation for value
