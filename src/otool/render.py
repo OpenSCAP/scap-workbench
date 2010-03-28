@@ -145,9 +145,9 @@ class MenuButton:
         """
         if self.body:
             if active:
-                self.body.show_all()
+                self.body.show()
             else:
-                self.body.hide_all()
+                self.body.hide()
 
 
 class MenuButton_XCCDF(MenuButton):
@@ -274,7 +274,8 @@ class MenuButton_XCCDF(MenuButton):
         alig.add(box)
 
         # add to conteiner
-        body.hide_all()
+        body.show_all()
+        body.hide()
         self.c_body.add(body)
         return body
 
@@ -483,7 +484,8 @@ class MenuButton_profiles(MenuButton):
            
         self.set_listProfiles(model)
         
-        body.hide_all()
+        body.show_all()
+        body.hide()
         self.c_body.add(body)
         return body
 
@@ -568,12 +570,14 @@ class MenuButton_refines(MenuButton):
         body.pack_start(gtk.HSeparator(), expand=False, fill=True, padding=4)
         
         #main body
-        hbox_main = gtk.HBox()
-        body.pack_start(hbox_main, expand=True, fill=True, padding=0)
+        vpaned_main = gtk.VPaned()
+        body.pack_start(vpaned_main, expand=True, fill=True, padding=0)
+        box_main = gtk.HBox()
+        vpaned_main.pack1(box_main, resize=False, shrink=False)
 
         # filters
         vbox_filter = gtk.VBox()
-        hbox_main.pack_start(vbox_filter, expand=False, fill=True, padding=0)
+        ExpandBox(box_main, vbox_filter, "Filter")
         alig = self.add_frame_cBox(vbox_filter, "<b>Layouts list profiles</b>", False)
         self.cb_filter = gtk.combo_box_entry_new_text()
         alig.add(self.cb_filter)
@@ -582,14 +586,12 @@ class MenuButton_refines(MenuButton):
         alig.add(self.btn_filter)
         alig_filters = self.add_frame_cBox(vbox_filter, "<b>Active filters</b>", False)
         
-        hbox_main.pack_start(gtk.VSeparator(), expand=False, fill=True, padding=4)
-        
-        # show data
-        vpaned_tree = gtk.VPaned()
-        hbox_main.pack_start(vpaned_tree, expand=True, fill=True, padding=0)
+        box_main.pack_start(gtk.VSeparator(), expand=False, fill=True, padding=0)
+        hpaned = gtk.HPaned()
+        box_main.pack_start(hpaned, True, True)
         
         # tree
-        alig = self.add_frame_vp(vpaned_tree, "<b>List</b>",1)
+        alig = self.add_frame_vp(hpaned, "<b>List</b>",1)
         sw = gtk.ScrolledWindow()
         sw.set_shadow_type(gtk.SHADOW_IN)
         sw.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
@@ -597,32 +599,22 @@ class MenuButton_refines(MenuButton):
         sw.add(self.treeV)
         alig.add(sw)
         
-        #Details
-        vpaned_details = gtk.VPaned()
-        vpaned_tree.pack2(vpaned_details,  resize=False, shrink=False)
+        # notebook for details and refines
+        notebook = gtk.Notebook()
+        hpaned.pack2(notebook, False, False)
  
-        alig = self.add_frame_vp(vpaned_details, "<b>Details</b>",1)
+        #Details 
+        box_details = gtk.VBox()
         sw = gtk.ScrolledWindow()
         sw.set_shadow_type(gtk.SHADOW_IN)
         sw.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
         self.details = gtk.TextView()
-        alig.add(sw)
         sw.add(self.details)
-        
-        #Defendecies
-        alig = self.add_frame_vp(vpaned_details, "<b>Defendencies</b>",2)
-        sw = gtk.ScrolledWindow()
-        sw.set_shadow_type(gtk.SHADOW_IN)
-        sw.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
-        self.defendecies = gtk.TextView()
-        alig.add(sw)
-        sw.add(self.defendecies)
+        notebook.append_page(sw, gtk.Label("Detail"))
 
-        hbox_main.pack_start(gtk.VSeparator(), expand=False, fill=True, padding=4)
-
-        #set refines
+       #set refines
         vbox_refines = gtk.VBox()
-        hbox_main.pack_start(vbox_refines, expand=False, fill=True)
+        notebook.append_page(vbox_refines, gtk.Label("Refines"))
         
         alig = self.add_frame_cBox(vbox_refines, "<b>Operator</b>", False)
         self.cB_operator = gtk.combo_box_entry_new_text()
@@ -646,7 +638,32 @@ class MenuButton_refines(MenuButton):
         list_values.append(Value("pokus2", 1, ["34","35","36","37"], 1))
         list_values.append(Value("pokus3", 1, ["34","35","36","37"], 1))
         self.set_values(list_values)
-        body.hide_all()
+
+        # box for defendecies and something else
+        box = gtk.HBox()
+        vpaned_main.pack2(box, False, False)
+        
+        #Defendecies
+        alig = self.add_frame_cBox(box, "<b>Defendencies</b>",2)
+        sw = gtk.ScrolledWindow()
+        sw.set_shadow_type(gtk.SHADOW_IN)
+        sw.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
+        self.defendecies = gtk.TextView()
+        alig.add(sw)
+        sw.add(self.defendecies)
+        
+
+        # smothing else
+        alig = self.add_frame_cBox(box, "<b>Something else</b>",2)
+        sw = gtk.ScrolledWindow()
+        sw.set_shadow_type(gtk.SHADOW_IN)
+        sw.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
+        self.d = gtk.TextView()
+        alig.add(sw)
+        sw.add(self.d)
+        
+        body.show_all()
+        body.hide()
         self.c_body.add(body)
         return body
 
@@ -667,7 +684,8 @@ class MenuButton_oval(MenuButton):
     def draw_body(self):
         body = gtk.VBox()
 
-        body.hide_all()
+        body.show_all()
+        body.hide()
         self.c_body.add(body)
         return body
 
@@ -850,29 +868,71 @@ class New_profile:
         self.texView_title.connect("selection-notify-event", self.cb_textView, "description")
         sw.add(self.texView_description)
         table.attach(sw, 1, 2, 5, 6, gtk.EXPAND|gtk.FILL, gtk.EXPAND|gtk.FILL)
-        
+
         alig.add(table)
         #operationes
         box = gtk.HButtonBox()
         box.set_layout(gtk.BUTTONBOX_END)
-        
+
         btn = gtk.Button("Create")
         btn.connect("clicked", self.cb_btn, "create")
         box.add(btn)
-        
+
         btn = gtk.Button("Cancel")
-        btn.connect("clicked", self.cb_btn, "cancel")        
+        btn.connect("clicked", self.cb_btn, "cancel")
         box.add(btn)
-        
+
         vbox.pack_start(box, False, True)
-        
+
         vbox.pack_start(gtk.Statusbar(), False, True)
         self.window.add(vbox)
         self.window.show_all()
 
     def destroy_window(self):
         self.window.destroy()
+
+class ExpandBox:
+    """
+    Create expand box. Set only to conteiner.
+    """
     
+    def __init__(self, place, body, text):
+        """
+        @param place Conteiner for this expandBox.
+        @param body Conteiner or widget to expandBox
+        @param text Button name for show or hide expandBox
+        """
+        rollBox = gtk.HBox()
+        place.pack_start(rollBox, False, True)
+
+        self.frameContent = body
+        rollBox.pack_start(body , True, True)
+        
+        rollBox.pack_start(gtk.VSeparator() , False, True)
+        
+        btn = gtk.Button()
+        self.image = gtk.Image()
+        self.label = gtk.Label(text)
+        self.label.set_angle(90)
+        
+        hbox = gtk.HBox()
+        hbox.pack_start(self.image, False, True)        
+        hbox.pack_start(self.label, True, True)
+        btn.add(hbox)
+        
+        rollBox.pack_start(btn, False, True)
+
+        btn.connect("clicked", self.cb_changed)
+        self.show = True
+
+    def cb_changed(self, widget):
+        if self.show:
+            self.frameContent.hide_all()
+            self.show = False
+        else:
+            self.frameContent.show_all()
+            self.show = True
+
 class Value:
     """
     Structre for create iformation for value
@@ -892,7 +952,7 @@ class Main_window:
         # Create a new window
         self.window = gtk.Window(gtk.WINDOW_TOPLEVEL)
         self.window.set_title("Main window")
-        self.window.set_size_request(700, 500)
+        self.window.set_size_request(900, 700)
         self.window.connect("delete_event", self.delete_event)
         self.vbox_main = gtk.VBox()
         self.vbox_main.show()
