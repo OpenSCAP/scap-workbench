@@ -256,6 +256,10 @@ class MenuButtonRefines(abstract.MenuButton):
         self.body = self.draw_body()
         
     #set functions
+    
+    def set_refinesList(self, layouts, model):
+        self.sw.fill(layouts, model)
+        
     def set_values(self, list_values):
         """ 
         The function create comboBoxs for set values
@@ -342,12 +346,8 @@ class MenuButtonRefines(abstract.MenuButton):
         
         # tree
         alig = self.add_frame_vp(hpaned, "<b>List</b>",1)
-        sw = gtk.ScrolledWindow()
-        sw.set_shadow_type(gtk.SHADOW_IN)
-        sw.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
-        self.treeV = gtk.TreeView()
-        sw.add(self.treeV)
-        alig.add(sw)
+        self.sw = abstract.RefinesList()
+        alig.add(self.sw.get_treeV())
         
         # notebook for details and refines
         notebook = gtk.Notebook()

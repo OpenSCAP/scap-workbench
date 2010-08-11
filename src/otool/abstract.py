@@ -174,4 +174,49 @@ class MenuButton:
             else:
                 self.body.hide()
 
+class RefinesList:
+    
+    def __init__(self):
+        
+        #create view
+        self.sw = gtk.ScrolledWindow()
+        self.sw.set_shadow_type(gtk.SHADOW_IN)
+        self.sw.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
+        self.treeV = gtk.TreeView()
+        self.sw.add(self.treeV)
+        
 
+            
+    def fill(self, lyouts, model):
+        #setup cell renderer
+        
+        i = 0
+        for typ in layout:
+            if typ['type'] == "text":
+                render = gtk.CellRendererText()
+                render.connect('toggled', typ['cb'], model)
+                
+                column = gtk.TreeViewColumn(typ['name'], render, i)
+
+            elif typ['type'] == "picture":
+                render = gtk.CellRendererPixbuf()
+                render.connect('toggled', typ['cb'], model)
+                
+                column = gtk.TreeViewColumn(typ['name'], render, i)
+                
+            elif typ['type'] == "checkbox":
+                render = gtk.CellRendererToggle()
+                render.set_property('activatable', True)
+                render.connect( 'toggled', typ['cb'], model )
+                
+                self.column = gtk.TreeViewColumn(typ['name'], self.renderer1 )
+                self.column.add_attribute( self.renderer1, "active", i)
+            
+            i = i + 1
+            self.treeV.append_column(column)
+
+    def get_treeV(self):
+        """
+        vrati window with treeView
+        """
+        return self.sw
