@@ -26,6 +26,9 @@ import pygtk
 import gtk
 import gobject
 
+import logging
+
+logger = logging.getLogger("OSCAPEditor")
 
 class Menu:
     """ 
