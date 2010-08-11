@@ -39,9 +39,15 @@ except Exception as ex:
     openscap=None
 
 
-class LibWrapper:
+class OECore:
 
-    def __init__(self, XCCDF=None):
+    def __init__(self):
+
+        if len(sys.argv) > 1:
+            XCCDF = sys.argv[1]
+        else: XCCDF = None
+
+        logger = logging.getLogger(self.__class__.__name__)
         if openscap == None:
             logger.error("Can't initialize openscap library.")
             return
@@ -49,6 +55,13 @@ class LibWrapper:
         if self.lib != None: 
             logger.info("Initialization done.")
         else: logger.error("Initialization failed.")
+
+    def render(self):
+        self.mainWindow = render.MainWindow()
+
+    def run(self):
+        self.render()
+        gtk.main()
 
     def __destroy__(self):
         if self.lib == None: return
@@ -59,17 +72,3 @@ class LibWrapper:
         for sess in self.lib["sessions"]:
             sess.free()
 
-
-class OECore:
-
-    def __init__(self):
-
-        logger = logging.getLogger(self.__class__.__name__)
-        self.openscap = LibWrapper()
-
-    def render(self):
-        render.MainWindow()
-
-    def run(self):
-        self.render()
-        gtk.main()

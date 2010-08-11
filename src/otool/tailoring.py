@@ -659,7 +659,7 @@ class ExpandBox:
         btn.connect("clicked", self.cb_changed)
 
     def cb_changed(self, widget):
-        logger.debug("Expander switched to %s", self.show)
+        logger.debug("Expander switched to %s", not self.show)
         if self.show:
             self.frameContent.hide_all()
             if widget != None: self.show = False

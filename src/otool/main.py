@@ -23,7 +23,5 @@
 #      Vladimir Oberreiter  <xoberr01@stud.fit.vutbr.cz>
 
 from core import OECore
-import render
-import gtk
 
 OECore().run()
