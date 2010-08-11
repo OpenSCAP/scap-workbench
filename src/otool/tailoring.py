@@ -28,7 +28,7 @@ import gobject
 
 import abstract
 
-class MenuButton_profiles(abstract.MenuButton):
+class MenuButtonProfiles(abstract.MenuButton):
     """
     GUI for profiles.
     """
@@ -86,7 +86,7 @@ class MenuButton_profiles(abstract.MenuButton):
         
     #callBack functions
     def cb_btnProfiles(self, button, data=None):
-        self.profile = New_profile(data)
+        self.profile = NewProfileWindow(data)
         pass
     
     def cb_listProfiles(self, widget):
@@ -236,7 +236,7 @@ class MenuButton_profiles(abstract.MenuButton):
         self.c_body.add(body)
         return body
 
-class MenuButton_refines(abstract.MenuButton):
+class MenuButtonRefines(abstract.MenuButton):
     """
     GUI for refines.
     """
@@ -416,7 +416,7 @@ class MenuButton_refines(abstract.MenuButton):
         return body
 
 
-class New_profile:
+class NewProfileWindow:
     """
     GUI for create new profile.
     """

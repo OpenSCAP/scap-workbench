@@ -22,9 +22,8 @@
 #      Maros Barabas        <mbarabas@redhat.com>
 #      Vladimir Oberreiter  <xoberr01@stud.fit.vutbr.cz>
 
-import core
+from core import OECore
 import render
 import gtk
 
-render.Main_window()
-gtk.main()
+OECore().render()

@@ -29,7 +29,7 @@ import gobject
 import abstract
 import tailoring
 
-class MenuButton_XCCDF(abstract.MenuButton):
+class MenuButtonXCCDF(abstract.MenuButton):
     """
     GUI for operations with xccdf file.
     """
@@ -155,7 +155,7 @@ class MenuButton_XCCDF(abstract.MenuButton):
         return body
 
 
-class MenuButton_oval(abstract.MenuButton):
+class MenuButtonOVAL(abstract.MenuButton):
 
     def __init__(self, c_body=None, sensitivity=None):
         abstract.MenuButton.__init__(self,"menu:main:btn:oval", "Oval", c_body, sensitivity)
@@ -176,7 +176,7 @@ class MenuButton_oval(abstract.MenuButton):
         self.c_body.add(body)
         return body
 
-class Main_window:
+class MainWindow:
     """TODO:
     """
 
@@ -216,9 +216,9 @@ class Main_window:
         vbox_submenu = gtk.Toolbar()
         self.vbox_main.pack_start(vbox_submenu, expand=False, fill=True, padding=0)
         self.submenu = abstract.Menu("menu:main", vbox_submenu)
-        menu2_but1 = MenuButton_XCCDF(vbox_body)
+        menu2_but1 = MenuButtonXCCDF(vbox_body)
         self.submenu.add_item(menu2_but1)
-        menu2_but2 = MenuButton_oval(vbox_body)
+        menu2_but2 = MenuButtonOVAL(vbox_body)
         self.submenu.add_item(menu2_but2)
         menu1_but1.set_menu(self.submenu)
 
@@ -226,9 +226,9 @@ class Main_window:
         vbox_submenu1 = gtk.Toolbar()
         self.vbox_main.pack_start(vbox_submenu1, expand=False, fill=True, padding=0)
         self.submenu1 = abstract.Menu("menu:tailoring", vbox_submenu1)
-        menu3_but1 = tailoring.MenuButton_profiles(vbox_body)
+        menu3_but1 = tailoring.MenuButtonProfiles(vbox_body)
         self.submenu1.add_item(menu3_but1)
-        menu3_but2 = tailoring.MenuButton_refines(vbox_body)
+        menu3_but2 = tailoring.MenuButtonRefines(vbox_body)
         self.submenu1.add_item(menu3_but2)
         menu1_but2.set_menu(self.submenu1)
 
@@ -250,19 +250,3 @@ class Main_window:
         """
         gtk.main_quit()
         return False
-
-class create_menu():
-    # TODO: CZ -> ENG
-    """ sem se presune vytvareni menu
-    bude obsahovat slovnik (jmeno taggleButtonu a ukazatel na nej), aby se dalo pridavat pod jednotliva menu
-    pres ni se tedy budou moci pridavat dalsi menu
-    """
-    
-    def __init__(self):
-        return
-
-
-if __name__ == "__main__":
-	#otool_xample = Core_draw()
-	Main_window()
-	gtk.main()

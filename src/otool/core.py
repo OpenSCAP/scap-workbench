@@ -22,7 +22,8 @@
 #      Maros Barabas        <mbarabas@redhat.com>
 #      Vladimir Oberreiter  <xoberr01@stud.fit.vutbr.cz>
 
-import sys
+import sys, gtk
+import render
 
 sys.path.append("/tmp/scap/usr/local/lib64/python2.6/site-packages")
 try:
@@ -32,9 +33,9 @@ except Exception as ex:
     openscap=None
 
 
-class OSCAP_Wrapper:
+class OSCAPWrapper:
 
-    def __init__(self, XCCDF):
+    def __init__(self, XCCDF=None):
         if openscap == None:
             print >>sys.stderr, "Can't initialize openscap library."
             return
@@ -49,3 +50,14 @@ class OSCAP_Wrapper:
             model.free()
         for sess in self.lib["sessions"]:
             sess.free()
+
+
+class OECore:
+
+    def __init__(self):
+
+        self.openscap = OSCAPWrapper()
+
+    def render(self):
+        render.MainWindow()
+        gtk.main()
