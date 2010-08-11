@@ -23,7 +23,7 @@
 #      Vladimir Oberreiter  <xoberr01@stud.fit.vutbr.cz>
 
 import logging, logging.config
-import sys, gtk
+import sys, gtk, gobject
 import render
 
 logging.config.fileConfig("logger.conf")
@@ -38,6 +38,53 @@ except Exception as ex:
     print ex
     openscap=None
 
+class EODataHandler:
+
+    def __init__(self, library):
+        self.lib = library
+        logger.debug("Created Data Handler")
+
+    def __get_item_data(self, item):
+
+        if item.type == openscap.XCCDF_GROUP:
+            pass
+
+    def __fill_items_to_list(self, model, xitem=None, parent=None):
+        
+        # Iteration (not first)
+        if xitem != None:
+            # store data to model
+            logger.info("Adding row with %s", xitem.id)
+            item_it = model.append(parent, [xitem.id])
+            if xitem.type in [openscap.OSCAP.XCCDF_GROUP, openscap.OSCAP.XCCDF_BENCHMARK]:
+                for item in xitem.content:
+                    self.__fill_items_to_list(model, item, item_it)
+            return
+
+        # xitem == None so we have callback call
+        benchmark = self.lib["policy_model"].benchmark
+        if benchmark == None or benchmark.instance == None:
+            logger.error("XCCDF benchmark does not exists. Can't fill data")
+            return False
+        
+        for item in benchmark.content:
+            self.__fill_items_to_list(model, item)
+
+        return True
+
+    def get_items_model(self, filter=None):
+        # Make a model
+        model = gtk.TreeStore(
+                #gtk.gdk.Pixbuf,
+                str)#,
+                #gobject.TYPE_PYOBJECT)
+
+        items = [{"id":"Rule/Group ID", "type":"text", "cb":self.__empty}]
+        return (items, model, self.__fill_items_to_list)
+
+    def __empty(self):
+        pass
+
 
 class OECore:
 
@@ -47,17 +94,18 @@ class OECore:
             XCCDF = sys.argv[1]
         else: XCCDF = None
 
-        logger = logging.getLogger(self.__class__.__name__)
         if openscap == None:
             logger.error("Can't initialize openscap library.")
-            return
+            raise Exception("Can't initialize openscap library")
         self.lib = openscap.xccdf.init(XCCDF)
         if self.lib != None: 
             logger.info("Initialization done.")
         else: logger.error("Initialization failed.")
 
+        self.data = EODataHandler(self.lib)
+
     def render(self):
-        self.mainWindow = render.MainWindow()
+        self.mainWindow = render.MainWindow(self)
 
     def run(self):
         self.render()

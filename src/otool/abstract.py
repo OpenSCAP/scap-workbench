@@ -134,6 +134,8 @@ class MenuButton:
         self.widget.show()
         self.widget.connect("toggled", self.cb_toggle)
 
+    def renew(self):
+        pass
 
     def set_active(self, active):
         """
@@ -148,6 +150,7 @@ class MenuButton:
             if self.menu.active_item and not active:
                 self.menu.active_item.set_active(active)
         self.widget.handler_unblock_by_func(self.cb_toggle)
+        self.renew()
 
     def set_menu(self, menu):
         """
@@ -174,49 +177,25 @@ class MenuButton:
             else:
                 self.body.hide()
 
-class RefinesList:
+class List:
     
-    def __init__(self):
+    def __init__(self, core=None):
         
         #create view
-        self.sw = gtk.ScrolledWindow()
-        self.sw.set_shadow_type(gtk.SHADOW_IN)
-        self.sw.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
-        self.treeV = gtk.TreeView()
-        self.sw.add(self.treeV)
-        
+        self.core = core
+        self.scrolledWindow = gtk.ScrolledWindow()
+        self.scrolledWindow.set_shadow_type(gtk.SHADOW_IN)
+        self.scrolledWindow.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
+        self.treeView = gtk.TreeView()
+        self.scrolledWindow.add(self.treeView)
 
+    def fill(self):
+        raise NotImplementedError
             
-    def fill(self, lyouts, model):
-        #setup cell renderer
-        
-        i = 0
-        for typ in layout:
-            if typ['type'] == "text":
-                render = gtk.CellRendererText()
-                render.connect('toggled', typ['cb'], model)
-                
-                column = gtk.TreeViewColumn(typ['name'], render, i)
+    def get_TreeView(self):
+        """Returns treeView"""
+        return self.treeView
 
-            elif typ['type'] == "picture":
-                render = gtk.CellRendererPixbuf()
-                render.connect('toggled', typ['cb'], model)
-                
-                column = gtk.TreeViewColumn(typ['name'], render, i)
-                
-            elif typ['type'] == "checkbox":
-                render = gtk.CellRendererToggle()
-                render.set_property('activatable', True)
-                render.connect( 'toggled', typ['cb'], model )
-                
-                self.column = gtk.TreeViewColumn(typ['name'], self.renderer1 )
-                self.column.add_attribute( self.renderer1, "active", i)
-            
-            i = i + 1
-            self.treeV.append_column(column)
-
-    def get_treeV(self):
-        """
-        vrati window with treeView
-        """
-        return self.sw
+    def get_widget(self):
+        """Returns top widget"""
+        return self.scrolledWindow

@@ -35,8 +35,9 @@ class MenuButtonProfiles(abstract.MenuButton):
     """
     GUI for profiles.
     """
-    def __init__(self, c_body=None, sensitivity=None):
+    def __init__(self, c_body=None, sensitivity=None, core=None):
         abstract.MenuButton.__init__(self,"menu:main:btn:xccdf", "Profiles", c_body, sensitivity)
+        self.core = core
         self.c_body = c_body
         
         #referencies
@@ -239,12 +240,61 @@ class MenuButtonProfiles(abstract.MenuButton):
         self.c_body.add(body)
         return body
 
+
+class ItemList(abstract.List):
+    
+    def __init__(self, core=None):
+        self.core = core
+        abstract.List.__init__(self, core)
+        self.fill()
+
+    def fill(self):
+        #setup cell renderer
+        
+        retval = self.core.data.get_items_model(filter=None)
+        if retval == None: 
+            return None
+        else: 
+            self.items, self.model, self.cb_fill = retval
+
+        for i, item in enumerate(self.items):
+            column = None
+            if item["type"] == "text":
+                render = gtk.CellRendererText()
+                #render.connect("toggled", item["cb"], self.model)
+                
+                column = gtk.TreeViewColumn(item["id"], render, text=i)
+
+            elif item["type"] == "picture":
+                render = gtk.CellRendererPixbuf()
+                render.connect("toggled", item["cb"], self.model)
+                
+                column = gtk.TreeViewColumn(item['id'], render, text=i)
+                
+            elif item["type"] == "checkbox":
+                render = gtk.CellRendererToggle()
+                render.set_property("activatable", True)
+                render.connect( "toggled", item["cb"], self.model )
+                
+                column = gtk.TreeViewColumn(item["id"], self.renderer1 )
+                column.add_attribute( self.renderer1, "active", text=i)
+            else:
+                logger.error("Item type not supported: %s", item["type"])
+            
+            self.get_TreeView().append_column(column)
+            self.get_TreeView().set_model(self.model)
+
+    def renew(self):
+        self.cb_fill(self.model)
+
+
 class MenuButtonRefines(abstract.MenuButton):
     """
     GUI for refines.
     """
-    def __init__(self, c_body=None, sensitivity=None):
+    def __init__(self, c_body=None, sensitivity=None, core=None):
         abstract.MenuButton.__init__(self,"menu:main:btn:xccdf", "Refines", c_body, sensitivity)
+        self.core = core
         self.c_body = c_body
         
         #referencies
@@ -289,6 +339,10 @@ class MenuButtonRefines(abstract.MenuButton):
     def cb_values(self, id):
         pass
     
+    def renew(self):
+        logger.debug("Renew triggered")
+        self.rules_list.renew()
+
     #draw functions
     def add_frame_cBox(self, body, text, expand):
         frame = gtk.Frame(text)
@@ -345,9 +399,9 @@ class MenuButtonRefines(abstract.MenuButton):
         box_main.pack_start(hpaned, True, True)
         
         # tree
-        alig = self.add_frame_vp(hpaned, "<b>List</b>",1)
-        self.sw = abstract.RefinesList()
-        alig.add(self.sw.get_treeV())
+        alig = self.add_frame_vp(hpaned, "<b>Rules and Groups</b>",1)
+        self.rules_list = ItemList(core=self.core)
+        alig.add(self.rules_list.get_widget())
         
         # notebook for details and refines
         notebook = gtk.Notebook()
@@ -423,10 +477,11 @@ class NewProfileWindow:
     """
     GUI for create new profile.
     """
-    def __init__(self, action="add"):
+    def __init__(self, action="add", core=None):
         """
         @param action type of creating profile (copy, extend, new)
         """
+        self.core = core
         self.action = action
         self.draw_window()
 
@@ -616,13 +671,14 @@ class ExpandBox:
     Create expand box. Set only to conteiner.
     """
     
-    def __init__(self, place, body, text, show = True):
+    def __init__(self, place, body, text, show=True, core=None):
         """
         @param place Conteiner for this expandBox.
         @param body Conteiner or widget to expandBox
         @param text Button name for show or hide expandBox
         @param show If ExpanBox should be hide/show False/True
         """
+        self.core = core
         self.show = not show
         
         # body for expandBox
@@ -681,4 +737,3 @@ class Value:
         self.list_values = list_values
         self.default = default
         self.old_value = old_value
-        

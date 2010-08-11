@@ -187,8 +187,9 @@ class MainWindow:
     """TODO:
     """
 
-    def __init__(self):
+    def __init__(self, core):
         logger = logging.getLogger(self.__class__.__name__)
+        self.core = core
         # Create a new window
         self.window = gtk.Window(gtk.WINDOW_TOPLEVEL)
         self.window.set_title("Main window")
@@ -234,9 +235,9 @@ class MainWindow:
         vbox_submenu1 = gtk.Toolbar()
         self.vbox_main.pack_start(vbox_submenu1, expand=False, fill=True, padding=0)
         self.submenu1 = abstract.Menu("menu:tailoring", vbox_submenu1)
-        menu3_but1 = tailoring.MenuButtonProfiles(vbox_body)
+        menu3_but1 = tailoring.MenuButtonProfiles(vbox_body, core=self.core)
         self.submenu1.add_item(menu3_but1)
-        menu3_but2 = tailoring.MenuButtonRefines(vbox_body)
+        menu3_but2 = tailoring.MenuButtonRefines(vbox_body, core=self.core)
         self.submenu1.add_item(menu3_but2)
         menu1_but2.set_menu(self.submenu1)
 
@@ -245,8 +246,6 @@ class MainWindow:
         # subMenu_but_scan
 
         # subMenu_but_reports
-
-
 
         self.vbox_main.pack_start(vbox_body, expand=True, fill=True, padding=0)
         
