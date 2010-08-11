@@ -27,6 +27,9 @@ import gtk
 import gobject
 
 import abstract
+import logging
+
+logger = logging.getLogger("OSCAPEditor")
 
 class MenuButtonProfiles(abstract.MenuButton):
     """
@@ -656,6 +659,7 @@ class ExpandBox:
         btn.connect("clicked", self.cb_changed)
 
     def cb_changed(self, widget):
+        logger.debug("Expander switched to %s", self.show)
         if self.show:
             self.frameContent.hide_all()
             if widget != None: self.show = False

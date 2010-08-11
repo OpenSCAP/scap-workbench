@@ -26,4 +26,4 @@ from core import OECore
 import render
 import gtk
 
-OECore().render()
+OECore().run()

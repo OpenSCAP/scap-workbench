@@ -25,15 +25,21 @@
 import pygtk
 import gtk
 import gobject
+import logging
 
+import core
 import abstract
 import tailoring
+import logging
+
+logger = logging.getLogger("OSCAPEditor")
 
 class MenuButtonXCCDF(abstract.MenuButton):
     """
     GUI for operations with xccdf file.
     """
     def __init__(self, c_body=None, sensitivity=None):
+        logger = logging.getLogger(self.__class__.__name__)
         abstract.MenuButton.__init__(self,"menu:main:btn:xccdf", "XCCDF", c_body, sensitivity)
         self.c_body = c_body
         
@@ -72,7 +78,7 @@ class MenuButtonXCCDF(abstract.MenuButton):
         
     # callBack functions
     def cb_btn(self, btn, data=None):
-        print "clicked = ", data
+        logger.debug("clicked = ", data)
 
     def cb_changed(self, combobox):
         model = combobox.get_model()
@@ -158,6 +164,7 @@ class MenuButtonXCCDF(abstract.MenuButton):
 class MenuButtonOVAL(abstract.MenuButton):
 
     def __init__(self, c_body=None, sensitivity=None):
+        logger = logging.getLogger(self.__class__.__name__)
         abstract.MenuButton.__init__(self,"menu:main:btn:oval", "Oval", c_body, sensitivity)
         self.c_body = c_body
         self.title = None
@@ -181,6 +188,7 @@ class MainWindow:
     """
 
     def __init__(self):
+        logger = logging.getLogger(self.__class__.__name__)
         # Create a new window
         self.window = gtk.Window(gtk.WINDOW_TOPLEVEL)
         self.window.set_title("Main window")

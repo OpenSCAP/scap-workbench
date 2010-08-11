@@ -22,10 +22,16 @@
 #      Maros Barabas        <mbarabas@redhat.com>
 #      Vladimir Oberreiter  <xoberr01@stud.fit.vutbr.cz>
 
+import logging, logging.config
 import sys, gtk
 import render
 
+logging.config.fileConfig("logger.conf")
+# create logger
+logger = logging.getLogger("OSCAPEditor")
+
 sys.path.append("/tmp/scap/usr/local/lib64/python2.6/site-packages")
+
 try:
     import openscap_api as openscap
 except Exception as ex:
@@ -33,14 +39,16 @@ except Exception as ex:
     openscap=None
 
 
-class OSCAPWrapper:
+class LibWrapper:
 
     def __init__(self, XCCDF=None):
         if openscap == None:
-            print >>sys.stderr, "Can't initialize openscap library."
+            logger.error("Can't initialize openscap library.")
             return
         self.lib = openscap.xccdf.init(XCCDF)
-        if self.lib != None: print "Initialization done."
+        if self.lib != None: 
+            logger.info("Initialization done.")
+        else: logger.error("Initialization failed.")
 
     def __destroy__(self):
         if self.lib == None: return
@@ -56,8 +64,12 @@ class OECore:
 
     def __init__(self):
 
-        self.openscap = OSCAPWrapper()
+        logger = logging.getLogger(self.__class__.__name__)
+        self.openscap = LibWrapper()
 
     def render(self):
         render.MainWindow()
+
+    def run(self):
+        self.render()
         gtk.main()
