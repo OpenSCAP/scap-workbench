@@ -28,15 +28,53 @@ import gobject
 
 import abstract
 import logging
+import core
 
 logger = logging.getLogger("OSCAPEditor")
+
+class ItemList(abstract.List):
+    
+    def __init__(self, core=None):
+        self.core = core
+        abstract.List.__init__(self, "gui:tailoring:refines:item_list", core)
+        self.__render()
+        self.add_receiver("gui:btn:tailoring:refines", "update", self.__update)
+
+    def __update(self):
+        self.cb_fill(self.model)
+
+    def __render(self):
+        items, model, cb_fill  = self.core.data.get_items_model(filter=None)
+        if model == None: 
+            return None
+
+        self.render(items, model, cb_fill)
+
+class ProfileList(abstract.List):
+    
+    def __init__(self, core=None):
+        self.core = core
+        abstract.List.__init__(self, "gui:tailoring:profiles:profile_list", core)
+        self.__render()
+        self.add_receiver("gui:btn:tailoring:profiles", "update", self.__update)
+
+    def __update(self):
+        self.cb_fill(self.model)
+
+    def __render(self):
+        items, model, cb_fill  = self.core.data.get_profiles_model(filter=None)
+        if model == None: 
+            return None
+
+        self.render(items, model, cb_fill)
+
 
 class MenuButtonProfiles(abstract.MenuButton):
     """
     GUI for profiles.
     """
     def __init__(self, c_body=None, sensitivity=None, core=None):
-        abstract.MenuButton.__init__(self,"menu:main:btn:xccdf", "Profiles", c_body, sensitivity)
+        abstract.MenuButton.__init__(self,"gui:btn:tailoring:profiles", "Profiles", c_body, sensitivity)
         self.core = core
         self.c_body = c_body
         
@@ -46,19 +84,12 @@ class MenuButtonProfiles(abstract.MenuButton):
         self.entry_version = None
         self.textView_tile = None
         self.textView_description = None
-        self.treeView_profiles = None
         
         # draw body
         self.body = self.draw_body()
+        self.add_sender(self.id, "update")
     
     #set functions
-    def set_listProfiles(self, model):
-        """
-        Set treeView with list of profiles
-        @param model Model (listStore) with column for treeView. Columns(ID(str), Title(str), version(str))
-        """
-        self.treeView_profiles.set_model(model)
-    
     def set_info(self, abstract, extend):
         """
         Set abstract and extend information.
@@ -126,29 +157,13 @@ class MenuButtonProfiles(abstract.MenuButton):
         body = gtk.VPaned()
 
         # List of profiles
-        alig = self.add_frame_vp(body, "<b>List of profiles</b>")
+        alig = self.add_frame_vp(body, "<b>Profiles</b>")
         hbox = gtk.HBox()
         alig.add(hbox)
-        sw = gtk.ScrolledWindow()
-        sw.set_shadow_type(gtk.SHADOW_IN)
-        sw.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
-        self.treeView_profiles = gtk.TreeView()
-        sw.add(self.treeView_profiles)
-        hbox.pack_start(sw, expand=True, fill=True, padding=3)
+        self.profiles_list = ProfileList(self.core)
+        hbox.pack_start(self.profiles_list.get_widget(), expand=True, fill=True, padding=3)
         
-        column = gtk.TreeViewColumn('ID', gtk.CellRendererText(),text=0) 
-        column.set_sort_column_id(0)
-        self.treeView_profiles.append_column(column)
-        
-        column = gtk.TreeViewColumn('Title', gtk.CellRendererText(),text=1) 
-        column.set_sort_column_id(1)
-        self.treeView_profiles.append_column(column)
-        
-        column = gtk.TreeViewColumn('Version', gtk.CellRendererText(),text=2) 
-        column.set_sort_column_id(2)
-        self.treeView_profiles.append_column(column)
-        
-        selection = self.treeView_profiles.get_selection()
+        selection = self.profiles_list.get_TreeView().get_selection()
         selection.set_mode(gtk.SELECTION_SINGLE)
         selection.connect("changed", self.cb_listProfiles)
         
@@ -232,8 +247,6 @@ class MenuButtonProfiles(abstract.MenuButton):
         model.append(["e", "e", "w"])
         model.append(["e", "e", "w"])
         model.append(["e", "e", "w"])
-           
-        self.set_listProfiles(model)
         
         body.show_all()
         body.hide()
@@ -241,59 +254,12 @@ class MenuButtonProfiles(abstract.MenuButton):
         return body
 
 
-class ItemList(abstract.List):
-    
-    def __init__(self, core=None):
-        self.core = core
-        abstract.List.__init__(self, core)
-        self.fill()
-
-    def fill(self):
-        #setup cell renderer
-        
-        retval = self.core.data.get_items_model(filter=None)
-        if retval == None: 
-            return None
-        else: 
-            self.items, self.model, self.cb_fill = retval
-
-        for i, item in enumerate(self.items):
-            column = None
-            if item["type"] == "text":
-                render = gtk.CellRendererText()
-                #render.connect("toggled", item["cb"], self.model)
-                
-                column = gtk.TreeViewColumn(item["id"], render, text=i)
-
-            elif item["type"] == "picture":
-                render = gtk.CellRendererPixbuf()
-                render.connect("toggled", item["cb"], self.model)
-                
-                column = gtk.TreeViewColumn(item['id'], render, text=i)
-                
-            elif item["type"] == "checkbox":
-                render = gtk.CellRendererToggle()
-                render.set_property("activatable", True)
-                render.connect( "toggled", item["cb"], self.model )
-                
-                column = gtk.TreeViewColumn(item["id"], self.renderer1 )
-                column.add_attribute( self.renderer1, "active", text=i)
-            else:
-                logger.error("Item type not supported: %s", item["type"])
-            
-            self.get_TreeView().append_column(column)
-            self.get_TreeView().set_model(self.model)
-
-    def renew(self):
-        self.cb_fill(self.model)
-
-
 class MenuButtonRefines(abstract.MenuButton):
     """
     GUI for refines.
     """
     def __init__(self, c_body=None, sensitivity=None, core=None):
-        abstract.MenuButton.__init__(self,"menu:main:btn:xccdf", "Refines", c_body, sensitivity)
+        abstract.MenuButton.__init__(self, "gui:btn:tailoring:refines", "Refines", c_body, sensitivity)
         self.core = core
         self.c_body = c_body
         
@@ -304,6 +270,9 @@ class MenuButtonRefines(abstract.MenuButton):
         self.defendecies = None
         #draw body
         self.body = self.draw_body()
+
+        # set signals
+        self.add_sender(self.id, "update")
         
     #set functions
     
@@ -338,10 +307,6 @@ class MenuButtonRefines(abstract.MenuButton):
 
     def cb_values(self, id):
         pass
-    
-    def renew(self):
-        logger.debug("Renew triggered")
-        self.rules_list.renew()
 
     #draw functions
     def add_frame_cBox(self, body, text, expand):
@@ -473,7 +438,7 @@ class MenuButtonRefines(abstract.MenuButton):
         return body
 
 
-class NewProfileWindow:
+class NewProfileWindow(abstract.Window):
     """
     GUI for create new profile.
     """
@@ -666,7 +631,7 @@ class NewProfileWindow:
     def destroy_window(self):
         self.window.destroy()
 
-class ExpandBox:
+class ExpandBox(abstract.EventObject):
     """
     Create expand box. Set only to conteiner.
     """
@@ -727,7 +692,7 @@ class ExpandBox:
             self.image1.set_from_pixbuf(self.pixbufHide)
             self.image2.set_from_pixbuf(self.pixbufHide)
 
-class Value:
+class Value(abstract.EventObject):
     """
     Structre for create iformation for value
     """

@@ -40,7 +40,7 @@ class MenuButtonXCCDF(abstract.MenuButton):
     """
     def __init__(self, c_body=None, sensitivity=None):
         logger = logging.getLogger(self.__class__.__name__)
-        abstract.MenuButton.__init__(self,"menu:main:btn:xccdf", "XCCDF", c_body, sensitivity)
+        abstract.MenuButton.__init__(self,"gui:btn:main:xccdf", "XCCDF", c_body, sensitivity)
         self.c_body = c_body
         
         # referencies
@@ -165,7 +165,7 @@ class MenuButtonOVAL(abstract.MenuButton):
 
     def __init__(self, c_body=None, sensitivity=None):
         logger = logging.getLogger(self.__class__.__name__)
-        abstract.MenuButton.__init__(self,"menu:main:btn:oval", "Oval", c_body, sensitivity)
+        abstract.MenuButton.__init__(self,"gui:btn:main:oval", "Oval", c_body, sensitivity)
         self.c_body = c_body
         self.title = None
         self.description = None
@@ -183,7 +183,7 @@ class MenuButtonOVAL(abstract.MenuButton):
         self.c_body.add(body)
         return body
 
-class MainWindow:
+class MainWindow(abstract.Window):
     """TODO:
     """
 
@@ -208,23 +208,23 @@ class MainWindow:
         # main menu
         vbox_menu = gtk.Toolbar()
         self.vbox_main.pack_start(vbox_menu, expand=False, fill=True, padding=0)
-        self.menu = abstract.Menu("menu:main", vbox_menu)
-        menu1_but1 = abstract.MenuButton("menu:main:btn:main", "Main", vbox_body)
+        self.menu = abstract.Menu("gui:menu", vbox_menu)
+        menu1_but1 = abstract.MenuButton("gui:btn:menu:main", "Main", vbox_body)
         self.menu.add_item(menu1_but1)
-        menu1_but2 = abstract.MenuButton("menu:main:btn:tailoring", "Tailoring", vbox_body)
+        menu1_but2 = abstract.MenuButton("gui:btn:menu:tailoring", "Tailoring", vbox_body)
         self.menu.add_item(menu1_but2)
-        menu1_but3 = abstract.MenuButton("menu:main:btn:edit", "Edit", vbox_body)
+        menu1_but3 = abstract.MenuButton("gui:btn:menu:edit", "Edit", vbox_body)
         self.menu.add_item(menu1_but3)
-        menu1_but4 = abstract.MenuButton("menu:main:btn:scan", "Scan", vbox_body)
+        menu1_but4 = abstract.MenuButton("gui:btn:menu:scan", "Scan", vbox_body)
         self.menu.add_item(menu1_but4)
-        menu1_but5 = abstract.MenuButton("menu:main:btn:reports", "Reports", vbox_body)
+        menu1_but5 = abstract.MenuButton("gui:btn:menu:reports", "Reports", vbox_body)
         self.menu.add_item(menu1_but5)
         
         
         # subMenu_but_main
         vbox_submenu = gtk.Toolbar()
         self.vbox_main.pack_start(vbox_submenu, expand=False, fill=True, padding=0)
-        self.submenu = abstract.Menu("menu:main", vbox_submenu)
+        self.submenu = abstract.Menu("gui:menu:main", vbox_submenu)
         menu2_but1 = MenuButtonXCCDF(vbox_body)
         self.submenu.add_item(menu2_but1)
         menu2_but2 = MenuButtonOVAL(vbox_body)
@@ -234,7 +234,7 @@ class MainWindow:
         # subMenu_but_tailoring
         vbox_submenu1 = gtk.Toolbar()
         self.vbox_main.pack_start(vbox_submenu1, expand=False, fill=True, padding=0)
-        self.submenu1 = abstract.Menu("menu:tailoring", vbox_submenu1)
+        self.submenu1 = abstract.Menu("gui:menu:tailoring", vbox_submenu1)
         menu3_but1 = tailoring.MenuButtonProfiles(vbox_body, core=self.core)
         self.submenu1.add_item(menu3_but1)
         menu3_but2 = tailoring.MenuButtonRefines(vbox_body, core=self.core)

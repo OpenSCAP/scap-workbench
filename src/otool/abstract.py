@@ -26,11 +26,13 @@ import pygtk
 import gtk
 import gobject
 
+from events import EventObject
+import core
 import logging
 
 logger = logging.getLogger("OSCAPEditor")
 
-class Menu:
+class Menu(EventObject):
     """ 
     Create Main item for TreeToolBar_toggleButtonGroup and draw all tree Menu
     """
@@ -40,6 +42,7 @@ class Menu:
         @param c_toolBar Conteiner for menu.
         """
         self.id = id
+        super(Menu, self).__init__()
         self.btnList = []
         self.active_item = None
         self.default_item = None
@@ -104,7 +107,7 @@ class Menu:
         """
         raise NotImplementedError, "Function \"refresh\" is not implemented yet"
 
-class MenuButton:
+class MenuButton(EventObject):
     """ Class for tree of toogleBar with toggleButtons in group
     """
 
@@ -116,6 +119,8 @@ class MenuButton:
         @param sensitivity Filter function for set sensitivity of MenuButton
         """
         # structure
+        super(MenuButton, self).__init__()
+        self.add_sender(id, "update")
         self.id = id
         self.name = name        # dependent menu of MenuButton object
         self.sensitivity = sensitivity
@@ -134,7 +139,7 @@ class MenuButton:
         self.widget.show()
         self.widget.connect("toggled", self.cb_toggle)
 
-    def renew(self):
+    def update(self):
         pass
 
     def set_active(self, active):
@@ -150,7 +155,9 @@ class MenuButton:
             if self.menu.active_item and not active:
                 self.menu.active_item.set_active(active)
         self.widget.handler_unblock_by_func(self.cb_toggle)
-        self.renew()
+        if active: 
+            self.emit("update")
+            self.update()
 
     def set_menu(self, menu):
         """
@@ -177,12 +184,19 @@ class MenuButton:
             else:
                 self.body.hide()
 
-class List:
+class Window(EventObject):
+    pass
+
+class List(EventObject):
     
-    def __init__(self, core=None):
+    def __init__(self, id, core=None):
         
         #create view
         self.core = core
+        super(List, self).__init__(core)
+        self.add_sender(id, "update")
+        self.id = id
+
         self.scrolledWindow = gtk.ScrolledWindow()
         self.scrolledWindow.set_shadow_type(gtk.SHADOW_IN)
         self.scrolledWindow.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
@@ -199,3 +213,35 @@ class List:
     def get_widget(self):
         """Returns top widget"""
         return self.scrolledWindow
+
+    def render(self, items, model, cb_fill):
+        #setup cell renderer
+        
+        self.items, self.model, self.cb_fill = items, model, cb_fill
+
+        for i, item in enumerate(self.items):
+            column = None
+            if item["type"] == "text":
+                render = gtk.CellRendererText()
+                #render.connect("toggled", item["cb"], self.model)
+                
+                column = gtk.TreeViewColumn(item["id"], render, text=i)
+
+            elif item["type"] == "picture":
+                render = gtk.CellRendererPixbuf()
+                render.connect("toggled", item["cb"], self.model)
+                
+                column = gtk.TreeViewColumn(item['id'], render, text=i)
+                
+            elif item["type"] == "checkbox":
+                render = gtk.CellRendererToggle()
+                render.set_property("activatable", True)
+                render.connect( "toggled", item["cb"], self.model )
+                
+                column = gtk.TreeViewColumn(item["id"], self.renderer1 )
+                column.add_attribute( self.renderer1, "active", text=i)
+            else:
+                logger.error("Item type not supported: %s", item["type"])
+            
+            self.get_TreeView().append_column(column)
+            self.get_TreeView().set_model(self.model)

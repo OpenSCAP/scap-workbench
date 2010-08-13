@@ -24,10 +24,10 @@
 
 import logging, logging.config
 import sys, gtk, gobject
+from events import EventObject, EventHandler
 import render
 
 logging.config.fileConfig("logger.conf")
-# create logger
 logger = logging.getLogger("OSCAPEditor")
 
 sys.path.append("/tmp/scap/usr/local/lib64/python2.6/site-packages")
@@ -38,49 +38,68 @@ except Exception as ex:
     print ex
     openscap=None
 
-class EODataHandler:
+
+class DataHandler:
 
     def __init__(self, library):
         self.lib = library
         logger.debug("Created Data Handler")
 
-    def __get_item_data(self, item):
-
-        if item.type == openscap.XCCDF_GROUP:
-            pass
-
-    def __fill_items_to_list(self, model, xitem=None, parent=None):
+    def __fill_items(self, model, xitem=None, parent=None):
         
         # Iteration (not first)
         if xitem != None:
             # store data to model
-            logger.info("Adding row with %s", xitem.id)
-            item_it = model.append(parent, [xitem.id])
-            if xitem.type in [openscap.OSCAP.XCCDF_GROUP, openscap.OSCAP.XCCDF_BENCHMARK]:
+            if xitem.type == openscap.OSCAP.XCCDF_GROUP:
+                item_it = model.append(parent, ["Group "+xitem.id])
                 for item in xitem.content:
-                    self.__fill_items_to_list(model, item, item_it)
+                    self.__fill_items(model, item, item_it)
+            elif xitem.type == openscap.OSCAP.XCCDF_RULE:
+                item_it = model.append(parent, ["Rule "+xitem.id])
+            else: logger.warning("Unknown type: %s - %s", xitem.type, xitem.id)
+
             return
 
         # xitem == None so we have callback call
+        model.clear()
         benchmark = self.lib["policy_model"].benchmark
         if benchmark == None or benchmark.instance == None:
             logger.error("XCCDF benchmark does not exists. Can't fill data")
             return False
         
         for item in benchmark.content:
-            self.__fill_items_to_list(model, item)
+            self.__fill_items(model, item)
 
         return True
 
+    def __fill_profiles(self, model):
+        
+        model.clear()
+        benchmark = self.lib["policy_model"].benchmark
+        if benchmark == None or benchmark.instance == None:
+            logger.error("XCCDF benchmark does not exists. Can't fill data")
+            return False
+        
+        for item in benchmark.profiles:
+            logger.debug("Adding profile %s", item.id)
+            model.append(["Profile "+item.id])
+
+        return True
+
+    def set_selected_profile(self, profile):
+        self.profile = profile
+
     def get_items_model(self, filter=None):
         # Make a model
-        model = gtk.TreeStore(
-                #gtk.gdk.Pixbuf,
-                str)#,
-                #gobject.TYPE_PYOBJECT)
-
+        model = gtk.TreeStore(str)
         items = [{"id":"Rule/Group ID", "type":"text", "cb":self.__empty}]
-        return (items, model, self.__fill_items_to_list)
+        return (items, model, self.__fill_items)
+
+    def get_profiles_model(self, filter=None):
+        # Make a model
+        model = gtk.ListStore(str)
+        items = [{"id":"Profile ID", "type":"text", "cb":self.__empty}]
+        return (items, model, self.__fill_profiles)
 
     def __empty(self):
         pass
@@ -102,14 +121,24 @@ class OECore:
             logger.info("Initialization done.")
         else: logger.error("Initialization failed.")
 
-        self.data = EODataHandler(self.lib)
+        self.data = DataHandler(self.lib)
+        self.eventHandler = EventHandler(self)
 
     def render(self):
         self.mainWindow = render.MainWindow(self)
 
+    def set_sender(self, signal, sender):
+        self.eventHandler.set_sender(signal, sender)
+
+    def set_receiver(self, sender_id, signal, callback, position):
+        self.eventHandler.register_receiver(sender_id, signal, callback, position)
+
     def run(self):
         self.render()
         gtk.main()
+
+    def set_callback(self, action, callback, position=None):
+        pass
 
     def __destroy__(self):
         if self.lib == None: return
