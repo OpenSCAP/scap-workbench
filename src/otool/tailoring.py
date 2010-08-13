@@ -38,13 +38,14 @@ class ItemList(abstract.List):
         self.core = core
         abstract.List.__init__(self, "gui:tailoring:refines:item_list", core)
         self.__render()
-        self.add_receiver("gui:btn:tailoring:refines", "update", self.__update)
+        self.add_receiver("gui:btn:tailoring:profiles", "profile_changed", self.__update)
 
     def __update(self):
         self.cb_fill(self.model)
 
     def __render(self):
         items, model, cb_fill  = self.core.data.get_items_model(filter=None)
+        self.get_TreeView().set_enable_tree_lines(True)
         if model == None: 
             return None
 
@@ -88,6 +89,7 @@ class MenuButtonProfiles(abstract.MenuButton):
         # draw body
         self.body = self.draw_body()
         self.add_sender(self.id, "update")
+        self.add_sender(self.id, "profile_changed")
     
     #set functions
     def set_info(self, abstract, extend):
@@ -124,8 +126,13 @@ class MenuButtonProfiles(abstract.MenuButton):
         self.profile = NewProfileWindow(data)
         pass
     
-    def cb_listProfiles(self, widget):
-        pass
+    def cb_profile_changed(self, widget, treeView):
+
+        selection = treeView.get_selection( )
+        if selection != None: 
+            (model, iter) = selection.get_selected( )
+            self.core.data.set_selected_profile(model.get_value(iter, 0))
+        self.emit("profile_changed")
     
     def cb_textView(self, widget, data=None):
         print data
@@ -165,7 +172,7 @@ class MenuButtonProfiles(abstract.MenuButton):
         
         selection = self.profiles_list.get_TreeView().get_selection()
         selection.set_mode(gtk.SELECTION_SINGLE)
-        selection.connect("changed", self.cb_listProfiles)
+        selection.connect("changed", self.cb_profile_changed, self.profiles_list.get_TreeView())
         
         
         # operations with profiles
@@ -206,8 +213,8 @@ class MenuButtonProfiles(abstract.MenuButton):
         self.add_label(table, "Description: ", 0, 1, 4, 5)
 
 
-        self.label_abstract = self.add_label(table, "None ", 1, 2, 0, 1)
-        self.label_extend = self.add_label(table, "None ", 1, 2, 1, 2)
+        self.label_abstract = self.add_label(table, "-", 1, 2, 0, 1)
+        self.label_extend = self.add_label(table, "-", 1, 2, 1, 2)
 
         self.entry_version = gtk.Entry()
         self.entry_version.connect("selection-notify-event", self.cb_version, "Description")
@@ -305,6 +312,14 @@ class MenuButtonRefines(abstract.MenuButton):
         
     #callBack functions
 
+    def cb_item_changed(self, widget, treeView):
+
+        selection = treeView.get_selection( )
+        if selection != None: 
+            (model, iter) = selection.get_selected( )
+            if iter: self.core.data.set_selected_item(model.get_value(iter, 0))
+        self.emit("update")
+
     def cb_values(self, id):
         pass
 
@@ -361,6 +376,7 @@ class MenuButtonRefines(abstract.MenuButton):
         
         box_main.pack_start(gtk.VSeparator(), expand=False, fill=True, padding=0)
         hpaned = gtk.HPaned()
+        hpaned.set_position(600)
         box_main.pack_start(hpaned, True, True)
         
         # tree
@@ -368,6 +384,9 @@ class MenuButtonRefines(abstract.MenuButton):
         self.rules_list = ItemList(core=self.core)
         alig.add(self.rules_list.get_widget())
         
+        selection = self.rules_list.get_TreeView().get_selection()
+        selection.set_mode(gtk.SELECTION_SINGLE)
+        selection.connect("changed", self.cb_item_changed, self.rules_list.get_TreeView())
         # notebook for details and refines
         notebook = gtk.Notebook()
         hpaned.pack2(notebook, False, False)

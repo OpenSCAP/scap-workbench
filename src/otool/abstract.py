@@ -194,7 +194,6 @@ class List(EventObject):
         #create view
         self.core = core
         super(List, self).__init__(core)
-        self.add_sender(id, "update")
         self.id = id
 
         self.scrolledWindow = gtk.ScrolledWindow()
@@ -202,6 +201,7 @@ class List(EventObject):
         self.scrolledWindow.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
         self.treeView = gtk.TreeView()
         self.scrolledWindow.add(self.treeView)
+        self.add_sender(id, "update")
 
     def fill(self):
         raise NotImplementedError
@@ -219,29 +219,61 @@ class List(EventObject):
         
         self.items, self.model, self.cb_fill = items, model, cb_fill
 
-        for i, item in enumerate(self.items):
+        pos = 0
+        for item in self.items:
+
+            if "visible" in item: visible = item["visible"]
+            else: visible = True
+            if "expand" in item: expand = item["expand"]
+            else: expand = False
             column = None
+
             if item["type"] == "text":
                 render = gtk.CellRendererText()
                 #render.connect("toggled", item["cb"], self.model)
                 
-                column = gtk.TreeViewColumn(item["id"], render, text=i)
+                column = gtk.TreeViewColumn(item["id"], render, text=pos)
+                column.set_visible(visible)
+                pos += 1
 
             elif item["type"] == "picture":
                 render = gtk.CellRendererPixbuf()
-                render.connect("toggled", item["cb"], self.model)
+                #render.connect("toggled", item["cb"], self.model)
                 
-                column = gtk.TreeViewColumn(item['id'], render, text=i)
+                column = gtk.TreeViewColumn(item["id"], render, stock_id=pos)
+                column.set_expand(expand)
+                column.set_visible(visible)
+                pos += 1
                 
             elif item["type"] == "checkbox":
                 render = gtk.CellRendererToggle()
                 render.set_property("activatable", True)
                 render.connect( "toggled", item["cb"], self.model )
                 
-                column = gtk.TreeViewColumn(item["id"], self.renderer1 )
-                column.add_attribute( self.renderer1, "active", text=i)
+                column = gtk.TreeViewColumn(item["id"], renderer )
+                column.add_attribute( renderer, "active", text=pos)
+                column.set_expand(expand)
+                column.set_visible(visible)
+                pos += 1
+
+            elif item["type"] == "pixtext":
+                column = gtk.TreeViewColumn()
+                column.set_title(item["id"])
+
+                renderer = gtk.CellRendererPixbuf()
+                column.pack_start(renderer, False)
+                column.set_attributes(renderer, stock_id=pos)
+
+                renderer = gtk.CellRendererText()
+                column.pack_start(renderer, True)
+                column.set_attributes(renderer, text=pos+1)
+                column.set_expand(expand)
+                column.set_visible(visible)
+                pos += 2
+
             else:
                 logger.error("Item type not supported: %s", item["type"])
             
             self.get_TreeView().append_column(column)
-            self.get_TreeView().set_model(self.model)
+
+        self.get_TreeView().set_model(self.model)

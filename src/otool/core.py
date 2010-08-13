@@ -43,19 +43,33 @@ class DataHandler:
 
     def __init__(self, library):
         self.lib = library
-        logger.debug("Created Data Handler")
+        self.selected_profile = None
+        self.selected_item = None
+
+    def get_selected(self, item):
+        if self.selected_profile == None:
+            if item.selected: return gtk.STOCK_APPLY
+            else: return None
+        else:
+            policy = self.lib["policy_model"].get_policy_by_id(self.selected_profile)
+            for select in policy.selected_rules:
+                if select.item == item.id:
+                    if select.selected: return gtk.STOCK_APPLY
+            return None
+
 
     def __fill_items(self, model, xitem=None, parent=None):
         
         # Iteration (not first)
         if xitem != None:
+            selected = self.get_selected(xitem)
             # store data to model
             if xitem.type == openscap.OSCAP.XCCDF_GROUP:
-                item_it = model.append(parent, ["Group "+xitem.id])
+                item_it = model.append(parent, [ gtk.STOCK_DND_MULTIPLE, "Group: "+xitem.title[0].text, selected])
                 for item in xitem.content:
                     self.__fill_items(model, item, item_it)
             elif xitem.type == openscap.OSCAP.XCCDF_RULE:
-                item_it = model.append(parent, ["Rule "+xitem.id])
+                item_it = model.append(parent, [gtk.STOCK_DND, "Rule: "+xitem.title[0].text, selected])
             else: logger.warning("Unknown type: %s - %s", xitem.type, xitem.id)
 
             return
@@ -82,23 +96,28 @@ class DataHandler:
         
         for item in benchmark.profiles:
             logger.debug("Adding profile %s", item.id)
-            model.append(["Profile "+item.id])
+            model.append([item.id, "Profile: "+item.title[0].text])
 
         return True
 
     def set_selected_profile(self, profile):
-        self.profile = profile
+        self.selected_profile = profile
+
+    def set_selected_item(self, item):
+        self.selected_item = item
 
     def get_items_model(self, filter=None):
         # Make a model
-        model = gtk.TreeStore(str)
-        items = [{"id":"Rule/Group ID", "type":"text", "cb":self.__empty}]
+        model = gtk.TreeStore(str, str, str)
+        items = [{"id":"Rule/Group ID", "type":"pixtext", "cb":self.__empty, "expand":True}, 
+                 {"id":"Selected", "type":"picture"}]
         return (items, model, self.__fill_items)
 
     def get_profiles_model(self, filter=None):
         # Make a model
-        model = gtk.ListStore(str)
-        items = [{"id":"Profile ID", "type":"text", "cb":self.__empty}]
+        model = gtk.ListStore(str, str)
+        items = [{"id":"ID", "type":"text", "visible":False}, 
+                 {"id":"Profile", "type":"text", "cb":self.__empty}]
         return (items, model, self.__fill_profiles)
 
     def __empty(self):
