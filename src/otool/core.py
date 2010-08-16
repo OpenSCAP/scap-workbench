@@ -57,6 +57,77 @@ class DataHandler:
                     if select.selected: return gtk.STOCK_APPLY
             return None
 
+    def __item_get_values(self, item):
+        return None
+
+    def __rule_get_fixes(self, item):
+        return None
+
+    def __rule_get_fixtexts(self, item):
+        return None
+
+    def get_item_details(self, id):
+
+        benchmark = self.lib["policy_model"].benchmark
+        if benchmark == None or benchmark.instance == None:
+            logger.error("XCCDF benchmark does not exists. Can't get data")
+            return None
+        
+        item = benchmark.item(id)
+        if item != None:
+            values = {
+                    "id":               item.id,
+                    "type":             item.type,
+                    "titles":           [(title.lang, title.text) for title in item.title],
+                    "descriptioms":     [(desc.lang, desc.text) for desc in item.description],
+                    "abstract":         item.abstract,
+                    "cluster_id":       item.cluster_id,
+                    "conflicts":        [conflict.text for conflict in item.conflicts],
+                    "extends":          item.extends,
+                    "hidden":           item.hidden,
+                    "platforms":        [platform.text for platform in item.platforms],
+                    "prohibit_changes": item.prohibit_changes,
+                    "questions":        [(question.lang, question.text) for question in item.question],
+                    "rationale":        [rationale.text for rationale in item.rationale],
+                    "references":       [(ref.href, ref.text.text) for ref in item.references],
+                    "requires":         item.requires,
+                    "selected":         item.selected,
+                    "statuses":         [(status.date, status.text) for status in item.statuses],
+                    #"values":           self.__item_get_values(item),
+                    "version":          item.version,
+                    "version_time":     item.version_time,
+                    "version_update":   item.version_update,
+                    "warnings":         [(warning.category, warning.text) for warning in item.warnings],
+                    "weight":           item.weight
+                    }
+            if item.type == openscap.OSCAP.XCCDF_GROUP:
+                item = item.to_group()
+                values.update({
+                    #"content":         item.content,
+                    "status_current":   item.status_current
+                    })
+            elif item.type == openscap.OSCAP.XCCDF_RULE:
+                item = item.to_rule()
+                values.update({
+                    #"checks":          item.checks
+                    "fixes":            self.__rule_get_fixes(item),
+                    "fixtexts":         self.__rule_get_fixtexts(item),
+                    "idents":           [(ident.id, ident.system) for ident in item.idents],
+                    "imapct_metric":    item.impact_metric,
+                    "multiple":         item.multiple,
+                    "profile_notes":    [(note.reftag, note.text) for note in item.profile_notes],
+                    "role":             item.role,
+                    "severity":         item.severity,
+                    "status_current":   item.status_current
+                    })
+            else: 
+                logger.error("Item type not supported %d", item.type)
+                return None
+        else:
+            logger.error("No item '%s' in benchmark", id)
+            return None
+
+        return values
 
     def __fill_items(self, model, xitem=None, parent=None):
         
@@ -65,11 +136,11 @@ class DataHandler:
             selected = self.get_selected(xitem)
             # store data to model
             if xitem.type == openscap.OSCAP.XCCDF_GROUP:
-                item_it = model.append(parent, [ gtk.STOCK_DND_MULTIPLE, "Group: "+xitem.title[0].text, selected])
+                item_it = model.append(parent, [xitem.id, gtk.STOCK_DND_MULTIPLE, "Group: "+xitem.title[0].text, selected])
                 for item in xitem.content:
                     self.__fill_items(model, item, item_it)
             elif xitem.type == openscap.OSCAP.XCCDF_RULE:
-                item_it = model.append(parent, [gtk.STOCK_DND, "Rule: "+xitem.title[0].text, selected])
+                item_it = model.append(parent, [xitem.id, gtk.STOCK_DND, "Rule: "+xitem.title[0].text, selected])
             else: logger.warning("Unknown type: %s - %s", xitem.type, xitem.id)
 
             return
@@ -108,8 +179,9 @@ class DataHandler:
 
     def get_items_model(self, filter=None):
         # Make a model
-        model = gtk.TreeStore(str, str, str)
-        items = [{"id":"Rule/Group ID", "type":"pixtext", "cb":self.__empty, "expand":True}, 
+        model = gtk.TreeStore(str, str, str, str)
+        items = [{"id":"ID", "type":"text", "visible":False},
+                 {"id":"Rule/Group ID", "type":"pixtext", "cb":self.__empty, "expand":True}, 
                  {"id":"Selected", "type":"picture"}]
         return (items, model, self.__fill_items)
 

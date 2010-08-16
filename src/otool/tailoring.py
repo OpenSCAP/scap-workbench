@@ -319,6 +319,11 @@ class MenuButtonRefines(abstract.MenuButton):
             (model, iter) = selection.get_selected( )
             if iter: self.core.data.set_selected_item(model.get_value(iter, 0))
         self.emit("update")
+        items = self.core.data.get_item_details(self.core.data.selected_item)
+        print 80*"-"
+        for key in items.keys():
+            print "# ", key, ": ", items[key]
+        print 80*"-"
 
     def cb_values(self, id):
         pass
@@ -353,13 +358,13 @@ class MenuButtonRefines(abstract.MenuButton):
         body = gtk.VBox()
     
         # label info with profile name
-        self.label_info = gtk.Label("None")
-        body.pack_start(self.label_info, expand=False, fill=True, padding=0)
-        body.pack_start(gtk.HSeparator(), expand=False, fill=True, padding=4)
+        #self.label_info = gtk.Label("None")
+        #body.pack_start(self.label_info, expand=False, fill=True, padding=0)
+        #body.pack_start(gtk.HSeparator(), expand=False, fill=True, padding=4)
         
         #main body
         vpaned_main = gtk.VPaned()
-        body.pack_start(vpaned_main, expand=True, fill=True, padding=0)
+        body.pack_start(vpaned_main, expand=True, fill=True, padding=10)
         box_main = gtk.HBox()
         vpaned_main.pack1(box_main, resize=False, shrink=False)
 
