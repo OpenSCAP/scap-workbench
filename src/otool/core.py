@@ -38,24 +38,37 @@ except Exception as ex:
     print ex
     openscap=None
 
-
 class DataHandler:
+    """DataHandler Class implements handling data from Openscap library,
+    calling oscap functions and parsing oscap output to models specified by
+    tool's objects"""
 
     def __init__(self, library):
+        """DataHandler.__init__ -- initialization of data handler.
+        Initialization is done by Core object.
+        library => openscap library"""
+
         self.lib = library
         self.selected_profile = None
         self.selected_item = None
 
     def get_selected(self, item):
+        """DataHandler.get_selected -- get selction of rule/group
+        returns boolean value"""
+
         if self.selected_profile == None:
-            if item.selected: return gtk.STOCK_APPLY
-            else: return None
+            return item.selected
+
         else:
             policy = self.lib["policy_model"].get_policy_by_id(self.selected_profile)
+            if policy == None: raise Exception, "Policy %s does not exist" % (self.selected_profile,)
+            # Get selector from policy
             for select in policy.selected_rules:
                 if select.item == item.id:
-                    if select.selected: return gtk.STOCK_APPLY
-            return None
+                    if select.selected: 
+                        return True
+                    return False
+            return item.selected
 
     def __item_get_values(self, item):
         return None
@@ -66,20 +79,37 @@ class DataHandler:
     def __rule_get_fixtexts(self, item):
         return None
 
-    def get_item_details(self, id):
+    def get_item_deps(self, id):
+        """DataHandler.get_item_deps -- get dependecies of XCCDF_ITEM"""
 
         benchmark = self.lib["policy_model"].benchmark
         if benchmark == None or benchmark.instance == None:
             logger.error("XCCDF benchmark does not exists. Can't get data")
-            return None
+            raise Exception, "XCCDF benchmark does not exists. Can't get data"
         
         item = benchmark.item(id)
+        if item != None:
+            pass
+        else:
+            logger.error("No item '%s' in benchmark", id)
+            return None
+
+
+    def get_item_details(self, id):
+        """DataHandler.get_item_details -- get details of XCCDF_ITEM"""
+
+        benchmark = self.lib["policy_model"].benchmark
+        if benchmark == None or benchmark.instance == None:
+            logger.error("XCCDF benchmark does not exists. Can't get data")
+            raise Exception, "XCCDF benchmark does not exists. Can't get data"
+        
+        item = benchmark.item(id or self.selected_item)
         if item != None:
             values = {
                     "id":               item.id,
                     "type":             item.type,
-                    "titles":           [(title.lang, title.text) for title in item.title],
-                    "descriptioms":     [(desc.lang, desc.text) for desc in item.description],
+                    "titles":           dict([(title.lang, title.text) for title in item.title]),
+                    "descriptioms":     dict([(desc.lang, desc.text) for desc in item.description]),
                     "abstract":         item.abstract,
                     "cluster_id":       item.cluster_id,
                     "conflicts":        [conflict.text for conflict in item.conflicts],
@@ -87,7 +117,7 @@ class DataHandler:
                     "hidden":           item.hidden,
                     "platforms":        [platform.text for platform in item.platforms],
                     "prohibit_changes": item.prohibit_changes,
-                    "questions":        [(question.lang, question.text) for question in item.question],
+                    "questions":        dict([(question.lang, question.text) for question in item.question]),
                     "rationale":        [rationale.text for rationale in item.rationale],
                     "references":       [(ref.href, ref.text.text) for ref in item.references],
                     "requires":         item.requires,
@@ -98,7 +128,8 @@ class DataHandler:
                     "version_time":     item.version_time,
                     "version_update":   item.version_update,
                     "warnings":         [(warning.category, warning.text) for warning in item.warnings],
-                    "weight":           item.weight
+                    "weight":           item.weight,
+                    "selected":         self.get_selected(item)
                     }
             if item.type == openscap.OSCAP.XCCDF_GROUP:
                 item = item.to_group()
@@ -130,10 +161,11 @@ class DataHandler:
         return values
 
     def __fill_items(self, model, xitem=None, parent=None):
+        """DataHandler.__fill_items -- recursively fill items into model"""
         
         # Iteration (not first)
         if xitem != None:
-            selected = self.get_selected(xitem)
+            selected = [None, gtk.STOCK_APPLY][self.get_selected(xitem)]
             # store data to model
             if xitem.type == openscap.OSCAP.XCCDF_GROUP:
                 item_it = model.append(parent, [xitem.id, gtk.STOCK_DND_MULTIPLE, "Group: "+xitem.title[0].text, selected])
@@ -157,9 +189,37 @@ class DataHandler:
 
         return True
 
+    def __fill_deps(self, model, item=None):
+        """DataHandler.__fill_items -- recursively fill items into model"""
+        
+        benchmark = self.lib["policy_model"].benchmark
+        if benchmark == None or benchmark.instance == None:
+            logger.error("XCCDF benchmark does not exists. Can't fill data")
+            return False
+        
+        if item == None:
+            model.clear()
+            if self.selected_item != None:
+                item = benchmark.get_item(self.selected_item)
+                if item == None: 
+                    logger.error("XCCDF Item \"%s\" does not exists. Can't fill data", self.selected_item)
+                    return False
+
+        # TODO: Add requires / conflicts
+
+        if item.parent.type != openscap.OSCAP.XCCDF_BENCHMARK:
+            selected = [gtk.STOCK_CANCEL, gtk.STOCK_APPLY][self.get_selected(item.parent)]
+            item_it = model.prepend([item.parent.id, gtk.STOCK_DND_MULTIPLE, "Group: "+item.parent.title[0].text, selected])
+            self.__fill_deps(model, item.parent)
+
+        return True
+
     def __fill_profiles(self, model):
         
         model.clear()
+        logger.debug("Adding profile (Default document)")
+        model.append([None, "(Default document)"])
+
         benchmark = self.lib["policy_model"].benchmark
         if benchmark == None or benchmark.instance == None:
             logger.error("XCCDF benchmark does not exists. Can't fill data")
@@ -176,6 +236,16 @@ class DataHandler:
 
     def set_selected_item(self, item):
         self.selected_item = item
+
+    def set_selected_deps(self, item):
+        self.selected_deps = item
+
+    def get_deps_model(self, filter=None):
+        model = gtk.ListStore(str, str, str, str)
+        items = [{"id":"ID", "type":"text", "visible":False},
+                 {"id":"Rule/Group ID", "type":"pixtext", "cb":self.__empty, "expand":True}, 
+                 {"id":"Selected", "type":"picture"}]
+        return (items, model, self.__fill_deps)
 
     def get_items_model(self, filter=None):
         # Make a model

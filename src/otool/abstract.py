@@ -203,6 +203,15 @@ class List(EventObject):
         self.scrolledWindow.add(self.treeView)
         self.add_sender(id, "update")
 
+    def set_selected(self, model, path, iter, usr):
+
+        id, view = usr
+        selection = view.get_selection()
+        
+        if model.get_value(iter, 0) == id:
+            view.expand_to_path(path)
+            selection.select_path(path)
+
     def fill(self):
         raise NotImplementedError
             

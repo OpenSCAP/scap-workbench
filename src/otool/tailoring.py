@@ -38,10 +38,21 @@ class ItemList(abstract.List):
         self.core = core
         abstract.List.__init__(self, "gui:tailoring:refines:item_list", core)
         self.__render()
-        self.add_receiver("gui:btn:tailoring:profiles", "profile_changed", self.__update)
+
+        selection = self.get_TreeView().get_selection()
+        selection.set_mode(gtk.SELECTION_SINGLE)
+
+        # actions
+        self.add_receiver("gui:btn:tailoring:refines", "update", self.__update)
+        selection.connect("changed", self.cb_item_changed, self.get_TreeView())
+        self.add_sender(self.id, "item_changed")
 
     def __update(self):
-        self.cb_fill(self.model)
+        if "profile" not in self.__dict__ or self.profile != self.core.data.selected_profile:
+            self.profile = self.core.data.selected_profile
+            self.cb_fill(self.model)
+            # Select the last one selected if there is one
+            self.get_TreeView().get_model().foreach(self.set_selected, (self.core.data.selected_item, self.get_TreeView()))
 
     def __render(self):
         items, model, cb_fill  = self.core.data.get_items_model(filter=None)
@@ -51,13 +62,74 @@ class ItemList(abstract.List):
 
         self.render(items, model, cb_fill)
 
+    def cb_item_changed(self, widget, treeView):
+
+        selection = treeView.get_selection( )
+        if selection != None: 
+            (model, iter) = selection.get_selected( )
+            if iter: self.core.data.set_selected_item(model.get_value(iter, 0))
+        self.emit("update")
+        items = self.core.data.get_item_details(self.core.data.selected_item)
+        print 80*"-"
+        for key in items.keys():
+            print "# ", key, ": ", items[key]
+        print 80*"-"
+
+class DepsList(abstract.List):
+    
+    def __init__(self, core=None):
+        self.core = core
+        abstract.List.__init__(self, "gui:tailoring:refines:deps_list", core)
+        self.__render()
+
+        selection = self.get_TreeView().get_selection()
+        selection.set_mode(gtk.SELECTION_SINGLE)
+
+        # actions
+        self.add_receiver("gui:tailoring:refines:item_list", "update", self.__update)
+        selection.connect("changed", self.cb_item_changed, self.get_TreeView())
+
+    def __update(self):
+        self.cb_fill(self.model)
+        #self.get_TreeView().get_model().foreach(self.set_selected, (self.core.data.selected_deps, self.get_TreeView()))
+
+    def __render(self):
+        items, model, cb_fill  = self.core.data.get_deps_model(filter=None)
+        self.get_TreeView().set_enable_tree_lines(True)
+        if model == None: 
+            return None
+
+        self.render(items, model, cb_fill)
+
+    def cb_item_changed(self, widget, treeView):
+
+        selection = treeView.get_selection( )
+        if selection != None: 
+            (model, iter) = selection.get_selected( )
+            if iter: self.core.data.set_selected_deps(model.get_value(iter, 0))
+
 class ProfileList(abstract.List):
     
     def __init__(self, core=None):
         self.core = core
         abstract.List.__init__(self, "gui:tailoring:profiles:profile_list", core)
         self.__render()
+
+        selection = self.get_TreeView().get_selection()
+        selection.set_mode(gtk.SELECTION_SINGLE)
+
+        # actions
+        self.add_sender(self.id, "show")
+        self.add_sender(self.id, "profile_changed")
         self.add_receiver("gui:btn:tailoring:profiles", "update", self.__update)
+        self.add_receiver("gui:tailoring:profiles:profile_list", "update", self.__show)
+        selection.connect("changed", self.cb_item_changed, self.get_TreeView())
+
+    def __show(self):
+        if "profile" not in self.__dict__ or self.profile != self.core.data.selected_profile:
+            self.profile = self.core.data.selected_profile
+            print "SHOW", self.profile
+            self.get_TreeView().get_model().foreach(self.set_selected, (self.core.data.selected_profile, self.get_TreeView()))
 
     def __update(self):
         self.cb_fill(self.model)
@@ -68,6 +140,15 @@ class ProfileList(abstract.List):
             return None
 
         self.render(items, model, cb_fill)
+
+    def cb_item_changed(self, widget, treeView):
+
+        selection = treeView.get_selection( )
+        if selection != None: 
+            (model, iter) = selection.get_selected( )
+            if iter: self.core.data.set_selected_profile(model.get_value(iter, 0))
+        self.emit("update")
+
 
 
 class MenuButtonProfiles(abstract.MenuButton):
@@ -89,7 +170,6 @@ class MenuButtonProfiles(abstract.MenuButton):
         # draw body
         self.body = self.draw_body()
         self.add_sender(self.id, "update")
-        self.add_sender(self.id, "profile_changed")
     
     #set functions
     def set_info(self, abstract, extend):
@@ -126,14 +206,6 @@ class MenuButtonProfiles(abstract.MenuButton):
         self.profile = NewProfileWindow(data)
         pass
     
-    def cb_profile_changed(self, widget, treeView):
-
-        selection = treeView.get_selection( )
-        if selection != None: 
-            (model, iter) = selection.get_selected( )
-            self.core.data.set_selected_profile(model.get_value(iter, 0))
-        self.emit("profile_changed")
-    
     def cb_textView(self, widget, data=None):
         print data
         
@@ -169,11 +241,6 @@ class MenuButtonProfiles(abstract.MenuButton):
         alig.add(hbox)
         self.profiles_list = ProfileList(self.core)
         hbox.pack_start(self.profiles_list.get_widget(), expand=True, fill=True, padding=3)
-        
-        selection = self.profiles_list.get_TreeView().get_selection()
-        selection.set_mode(gtk.SELECTION_SINGLE)
-        selection.connect("changed", self.cb_profile_changed, self.profiles_list.get_TreeView())
-        
         
         # operations with profiles
         hbox.pack_start(gtk.VSeparator(), expand=False, fill=True, padding=10)
@@ -312,19 +379,6 @@ class MenuButtonRefines(abstract.MenuButton):
         
     #callBack functions
 
-    def cb_item_changed(self, widget, treeView):
-
-        selection = treeView.get_selection( )
-        if selection != None: 
-            (model, iter) = selection.get_selected( )
-            if iter: self.core.data.set_selected_item(model.get_value(iter, 0))
-        self.emit("update")
-        items = self.core.data.get_item_details(self.core.data.selected_item)
-        print 80*"-"
-        for key in items.keys():
-            print "# ", key, ": ", items[key]
-        print 80*"-"
-
     def cb_values(self, id):
         pass
 
@@ -389,9 +443,6 @@ class MenuButtonRefines(abstract.MenuButton):
         self.rules_list = ItemList(core=self.core)
         alig.add(self.rules_list.get_widget())
         
-        selection = self.rules_list.get_TreeView().get_selection()
-        selection.set_mode(gtk.SELECTION_SINGLE)
-        selection.connect("changed", self.cb_item_changed, self.rules_list.get_TreeView())
         # notebook for details and refines
         notebook = gtk.Notebook()
         hpaned.pack2(notebook, False, False)
@@ -432,18 +483,14 @@ class MenuButtonRefines(abstract.MenuButton):
         list_values.append(Value("pokus3", 1, ["34","35","36","37"], 1))
         self.set_values(list_values)
 
-        # box for defendecies and something else
+        # box for dependecies and something else
         box = gtk.HBox()
         vpaned_main.pack2(box, False, False)
         
         #Defendecies
-        alig = self.add_frame_cBox(box, "<b>Defendencies</b>",2)
-        sw = gtk.ScrolledWindow()
-        sw.set_shadow_type(gtk.SHADOW_IN)
-        sw.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
-        self.defendecies = gtk.TextView()
-        alig.add(sw)
-        sw.add(self.defendecies)
+        alig = self.add_frame_cBox(box, "<b>Dependencies</b>", 2)
+        self.dependencies = DepsList(core=self.core)
+        alig.add(self.dependencies.get_widget())
         
 
         # smothing else
