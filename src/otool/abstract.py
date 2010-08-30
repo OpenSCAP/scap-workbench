@@ -139,6 +139,32 @@ class MenuButton(EventObject):
         self.widget.show()
         self.widget.connect("toggled", self.cb_toggle)
 
+    def add_frame_vp(self,body, text,pos = 1):
+        frame = gtk.Frame(text)
+        frame.set_shadow_type(gtk.SHADOW_NONE)
+        #frame.set_border_width(5)        
+        label = frame.get_label_widget()
+        label.set_use_markup(True)        
+        if pos == 1: body.pack1(frame,  resize=False, shrink=False)
+        else: body.pack2(frame,  resize=False, shrink=False)
+        alig = gtk.Alignment(0.5, 0.5, 1, 1)
+        alig.set_padding(0, 0, 12, 0)
+        frame.add(alig)
+        return alig
+
+    #draw functions
+    def add_frame_cBox(self, body, text, expand):
+        frame = gtk.Frame(text)
+        label = frame.get_label_widget()
+        label.set_use_markup(True)        
+        frame.set_shadow_type(gtk.SHADOW_NONE)
+        if expand: body.pack_start(frame, True, True)
+        else: body.pack_start(frame, False, True)
+        alig = gtk.Alignment(0.5, 0.5, 1, 1)
+        alig.set_padding(0, 0, 12, 0)
+        frame.add(alig)
+        return alig
+
     def update(self):
         pass
 
@@ -202,6 +228,7 @@ class List(EventObject):
         self.treeView = gtk.TreeView()
         self.scrolledWindow.add(self.treeView)
         self.add_sender(id, "update")
+        self.render()
 
     def set_selected(self, model, path, iter, usr):
 
@@ -212,9 +239,6 @@ class List(EventObject):
             view.expand_to_path(path)
             selection.select_path(path)
 
-    def fill(self):
-        raise NotImplementedError
-            
     def get_TreeView(self):
         """Returns treeView"""
         return self.treeView
@@ -223,66 +247,7 @@ class List(EventObject):
         """Returns top widget"""
         return self.scrolledWindow
 
-    def render(self, items, model, cb_fill):
-        #setup cell renderer
-        
-        self.items, self.model, self.cb_fill = items, model, cb_fill
+    def render(self):
+        assert self.data_model, "Data model of %s does not exist !" % (self.id,)
+        self.data_model.render(self.get_TreeView())
 
-        pos = 0
-        for item in self.items:
-
-            if "visible" in item: visible = item["visible"]
-            else: visible = True
-            if "expand" in item: expand = item["expand"]
-            else: expand = False
-            column = None
-
-            if item["type"] == "text":
-                render = gtk.CellRendererText()
-                #render.connect("toggled", item["cb"], self.model)
-                
-                column = gtk.TreeViewColumn(item["id"], render, text=pos)
-                column.set_visible(visible)
-                pos += 1
-
-            elif item["type"] == "picture":
-                render = gtk.CellRendererPixbuf()
-                #render.connect("toggled", item["cb"], self.model)
-                
-                column = gtk.TreeViewColumn(item["id"], render, stock_id=pos)
-                column.set_expand(expand)
-                column.set_visible(visible)
-                pos += 1
-                
-            elif item["type"] == "checkbox":
-                render = gtk.CellRendererToggle()
-                render.set_property("activatable", True)
-                render.connect( "toggled", item["cb"], self.model )
-                
-                column = gtk.TreeViewColumn(item["id"], renderer )
-                column.add_attribute( renderer, "active", text=pos)
-                column.set_expand(expand)
-                column.set_visible(visible)
-                pos += 1
-
-            elif item["type"] == "pixtext":
-                column = gtk.TreeViewColumn()
-                column.set_title(item["id"])
-
-                renderer = gtk.CellRendererPixbuf()
-                column.pack_start(renderer, False)
-                column.set_attributes(renderer, stock_id=pos)
-
-                renderer = gtk.CellRendererText()
-                column.pack_start(renderer, True)
-                column.set_attributes(renderer, text=pos+1)
-                column.set_expand(expand)
-                column.set_visible(visible)
-                pos += 2
-
-            else:
-                logger.error("Item type not supported: %s", item["type"])
-            
-            self.get_TreeView().append_column(column)
-
-        self.get_TreeView().set_model(self.model)

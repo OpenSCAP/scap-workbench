@@ -30,14 +30,18 @@ import abstract
 import logging
 import core
 
+import commands
+import filter
+
 logger = logging.getLogger("OSCAPEditor")
 
 class ItemList(abstract.List):
     
     def __init__(self, core=None):
         self.core = core
+        self.data_model = commands.DHItemsTree(core)
         abstract.List.__init__(self, "gui:tailoring:refines:item_list", core)
-        self.__render()
+        self.get_TreeView().set_enable_tree_lines(True)
 
         selection = self.get_TreeView().get_selection()
         selection.set_mode(gtk.SELECTION_SINGLE)
@@ -48,28 +52,20 @@ class ItemList(abstract.List):
         self.add_sender(self.id, "item_changed")
 
     def __update(self):
-        if "profile" not in self.__dict__ or self.profile != self.core.data.selected_profile:
-            self.profile = self.core.data.selected_profile
-            self.cb_fill(self.model)
+        if "profile" not in self.__dict__ or self.profile != self.core.selected_profile:
+            self.profile = self.core.selected_profile
+            self.data_model.fill()
             # Select the last one selected if there is one
-            self.get_TreeView().get_model().foreach(self.set_selected, (self.core.data.selected_item, self.get_TreeView()))
-
-    def __render(self):
-        items, model, cb_fill  = self.core.data.get_items_model(filter=None)
-        self.get_TreeView().set_enable_tree_lines(True)
-        if model == None: 
-            return None
-
-        self.render(items, model, cb_fill)
+            self.get_TreeView().get_model().foreach(self.set_selected, (self.core.selected_item, self.get_TreeView()))
 
     def cb_item_changed(self, widget, treeView):
 
         selection = treeView.get_selection( )
         if selection != None: 
             (model, iter) = selection.get_selected( )
-            if iter: self.core.data.set_selected_item(model.get_value(iter, 0))
+            if iter: self.core.selected_item = model.get_value(iter, 0)
         self.emit("update")
-        items = self.core.data.get_item_details(self.core.data.selected_item)
+        items = self.data_model.get_item_details(self.core.selected_item)
         print 80*"-"
         for key in items.keys():
             print "# ", key, ": ", items[key]
@@ -79,8 +75,9 @@ class DepsList(abstract.List):
     
     def __init__(self, core=None):
         self.core = core
+        self.data_model = commands.DHDependencies(core)
         abstract.List.__init__(self, "gui:tailoring:refines:deps_list", core)
-        self.__render()
+        self.get_TreeView().set_enable_tree_lines(True)
 
         selection = self.get_TreeView().get_selection()
         selection.set_mode(gtk.SELECTION_SINGLE)
@@ -90,30 +87,21 @@ class DepsList(abstract.List):
         selection.connect("changed", self.cb_item_changed, self.get_TreeView())
 
     def __update(self):
-        self.cb_fill(self.model)
-        #self.get_TreeView().get_model().foreach(self.set_selected, (self.core.data.selected_deps, self.get_TreeView()))
-
-    def __render(self):
-        items, model, cb_fill  = self.core.data.get_deps_model(filter=None)
-        self.get_TreeView().set_enable_tree_lines(True)
-        if model == None: 
-            return None
-
-        self.render(items, model, cb_fill)
+        self.data_model.fill()
 
     def cb_item_changed(self, widget, treeView):
 
         selection = treeView.get_selection( )
         if selection != None: 
             (model, iter) = selection.get_selected( )
-            if iter: self.core.data.set_selected_deps(model.get_value(iter, 0))
+            if iter: self.core.selected_deps = model.get_value(iter, 0)
 
 class ProfileList(abstract.List):
     
     def __init__(self, core=None):
         self.core = core
+        self.data_model = commands.DHProfiles(core)
         abstract.List.__init__(self, "gui:tailoring:profiles:profile_list", core)
-        self.__render()
 
         selection = self.get_TreeView().get_selection()
         selection.set_mode(gtk.SELECTION_SINGLE)
@@ -126,27 +114,19 @@ class ProfileList(abstract.List):
         selection.connect("changed", self.cb_item_changed, self.get_TreeView())
 
     def __show(self):
-        if "profile" not in self.__dict__ or self.profile != self.core.data.selected_profile:
-            self.profile = self.core.data.selected_profile
-            print "SHOW", self.profile
-            self.get_TreeView().get_model().foreach(self.set_selected, (self.core.data.selected_profile, self.get_TreeView()))
+        if "profile" not in self.__dict__ or self.profile != self.core.selected_profile:
+            self.profile = self.core.selected_profile
+            self.get_TreeView().get_model().foreach(self.set_selected, (self.core.selected_profile, self.get_TreeView()))
 
     def __update(self):
-        self.cb_fill(self.model)
-
-    def __render(self):
-        items, model, cb_fill  = self.core.data.get_profiles_model(filter=None)
-        if model == None: 
-            return None
-
-        self.render(items, model, cb_fill)
+        self.data_model.fill()
 
     def cb_item_changed(self, widget, treeView):
 
         selection = treeView.get_selection( )
         if selection != None: 
             (model, iter) = selection.get_selected( )
-            if iter: self.core.data.set_selected_profile(model.get_value(iter, 0))
+            if iter: self.core.selected_profile = model.get_value(iter, 0)
         self.emit("update")
 
 
@@ -379,35 +359,10 @@ class MenuButtonRefines(abstract.MenuButton):
         
     #callBack functions
 
-    def cb_values(self, id):
+    def cb_values(self, widget):
+        logger.info("Changed value %s", widget)
         pass
 
-    #draw functions
-    def add_frame_cBox(self, body, text, expand):
-        frame = gtk.Frame(text)
-        label = frame.get_label_widget()
-        label.set_use_markup(True)        
-        frame.set_shadow_type(gtk.SHADOW_NONE)
-        if expand: body.pack_start(frame, True, True)
-        else: body.pack_start(frame, False, True)
-        alig = gtk.Alignment(0.5, 0.5, 1, 1)
-        alig.set_padding(0, 0, 12, 0)
-        frame.add(alig)
-        return alig
-
-    def add_frame_vp(self,body, text,pos = 1):
-        frame = gtk.Frame(text)
-        frame.set_shadow_type(gtk.SHADOW_NONE)
-        #frame.set_border_width(5)        
-        label = frame.get_label_widget()
-        label.set_use_markup(True)        
-        if pos == 1: body.pack1(frame,  resize=False, shrink=False)
-        else: body.pack2(frame,  resize=False, shrink=False)
-        alig = gtk.Alignment(0.5, 0.5, 1, 1)
-        alig.set_padding(0, 0, 12, 0)
-        frame.add(alig)
-        return alig
-    
     def draw_body(self):
         body = gtk.VBox()
     
@@ -423,15 +378,7 @@ class MenuButtonRefines(abstract.MenuButton):
         vpaned_main.pack1(box_main, resize=False, shrink=False)
 
         # filters
-        vbox_filter = gtk.VBox()
-        self.expander = ExpandBox(box_main, vbox_filter, "Search / Filters", False)
-        alig = self.add_frame_cBox(vbox_filter, "<b>Layouts list profiles</b>", False)
-        self.cb_filter = gtk.combo_box_entry_new_text()
-        alig.add(self.cb_filter)
-        alig = self.add_frame_cBox(vbox_filter, "<b>Filters</b>", False)
-        self.btn_filter = gtk.Button("Set fiters")
-        alig.add(self.btn_filter)
-        alig_filters = self.add_frame_cBox(vbox_filter, "<b>Active filters</b>", False)
+        self.filter = filter.Renderer(self.core, box_main)
         
         box_main.pack_start(gtk.VSeparator(), expand=False, fill=True, padding=0)
         hpaned = gtk.HPaned()
@@ -505,7 +452,7 @@ class MenuButtonRefines(abstract.MenuButton):
         body.show_all()
         body.hide()
         self.c_body.add(body)
-        self.expander.cb_changed(self)
+        self.filter.expander.cb_changed(None)
         return body
 
 
@@ -701,67 +648,6 @@ class NewProfileWindow(abstract.Window):
 
     def destroy_window(self):
         self.window.destroy()
-
-class ExpandBox(abstract.EventObject):
-    """
-    Create expand box. Set only to conteiner.
-    """
-    
-    def __init__(self, place, body, text, show=True, core=None):
-        """
-        @param place Conteiner for this expandBox.
-        @param body Conteiner or widget to expandBox
-        @param text Button name for show or hide expandBox
-        @param show If ExpanBox should be hide/show False/True
-        """
-        self.core = core
-        self.show = not show
-        
-        # body for expandBox
-        rollBox = gtk.HBox()
-        place.pack_start(rollBox, False, True)
-
-        self.frameContent = body
-        rollBox.pack_start(body , True, True)
-        
-        rollBox.pack_start(gtk.VSeparator() , False, True)
-        
-        #create icon
-        self.image1 = gtk.Image()
-        self.image2 = gtk.Image()
-        self.pixbufShow = self.image1.render_icon(stock_id=getattr(gtk, "STOCK_GO_FORWARD"),
-                                size=gtk.ICON_SIZE_MENU,
-                                detail=None)
-        self.pixbufHide = self.image2.render_icon(stock_id=getattr(gtk, "STOCK_GO_BACK"),
-                        size=gtk.ICON_SIZE_MENU,
-                        detail=None)
-        
-        #create label
-        self.label = gtk.Label(text)
-        self.label.set_angle(90)
-
-        #create button
-        hbox = gtk.VBox()
-        hbox.pack_start(self.image1, False, True)        
-        hbox.pack_start(self.label, True, True)
-        hbox.pack_start(self.image2, False, True)
-        btn = gtk.Button()
-        btn.add(hbox)
-        rollBox.pack_start(btn, False, True)
-        btn.connect("clicked", self.cb_changed)
-
-    def cb_changed(self, widget):
-        logger.debug("Expander switched to %s", not self.show)
-        if self.show:
-            self.frameContent.hide_all()
-            if widget != None: self.show = False
-            self.image1.set_from_pixbuf(self.pixbufShow)
-            self.image2.set_from_pixbuf(self.pixbufShow)
-        else:
-            self.frameContent.show_all()
-            if widget != None: self.show = True
-            self.image1.set_from_pixbuf(self.pixbufHide)
-            self.image2.set_from_pixbuf(self.pixbufHide)
 
 class Value(abstract.EventObject):
     """
