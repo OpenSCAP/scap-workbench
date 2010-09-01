@@ -29,6 +29,7 @@ import gobject
 import abstract
 import logging
 import core
+from events import EventObject
 
 import commands
 import filter
@@ -65,11 +66,6 @@ class ItemList(abstract.List):
             (model, iter) = selection.get_selected( )
             if iter: self.core.selected_item = model.get_value(iter, 0)
         self.emit("update")
-        items = self.data_model.get_item_details(self.core.selected_item)
-        print 80*"-"
-        for key in items.keys():
-            print "# ", key, ": ", items[key]
-        print 80*"-"
 
 class DepsList(abstract.List):
     
@@ -131,6 +127,76 @@ class ProfileList(abstract.List):
             (model, iter) = selection.get_selected( )
             if iter: self.core.selected_profile = model.get_value(iter, 0)
         self.emit("update")
+
+
+class ItemDetail(EventObject):
+
+    def __init__(self, core):
+        
+        #create view
+        self.core = core
+        EventObject.__init__(self, self.core)
+        self.data_model = commands.DataHandler(self.core)
+        
+        self.add_receiver("gui:tailoring:refines:item_list", "update", self.__update)
+        self.add_receiver("gui:tailoring:refines:item_list", "changed", self.__update)
+        self.draw()
+
+    def __update(self):
+        details = self.data_model.get_item_details(self.core.selected_item)
+        self.id.set_text(details["id"])
+        self.title.set_text(details["titles"]["en"])
+        if "fixtests" in details: pass
+        
+    def draw(self):
+        self.box_details = gtk.VBox()
+        
+        #info (id, title, type)
+        self.box_details.pack_start(gtk.Label("Info"), expand=False, fill=False, padding=1)
+        self.box_details.pack_start(gtk.HSeparator(), expand=False, fill=True, padding=1)
+        alig = gtk.Alignment(0.5, 10.5, 1, 1)
+        self.box_details.pack_start(alig, expand=False, fill=True, padding=1)
+        vbox = gtk.VBox()
+        alig.add(vbox)
+        
+        #id
+        hbox = gtk.HBox()
+        hbox.pack_start(gtk.Label("ID: "), expand=False, fill=False, padding=1)
+        self.id = gtk.Label("")
+        hbox.pack_start(self.id, expand=False, fill=False, padding=1)
+        vbox.pack_start(hbox, expand=False, fill=True, padding=1)
+
+        #title
+        hbox = gtk.HBox()
+        hbox.pack_start(gtk.Label("Title: "), expand=False, fill=False, padding=1)
+        self.title = gtk.Label("")
+        hbox.pack_start(self.title, expand=False, fill=False, padding=1)
+        vbox.pack_start(hbox, expand=False, fill=True, padding=1)
+        
+        #type
+        hbox = gtk.HBox()
+        hbox.pack_start(gtk.Label("Type: "), expand=False, fill=False, padding=1)
+        self.type = gtk.Label("")
+        hbox.pack_start(self.type, expand=False, fill=False, padding=1)
+        vbox.pack_start(hbox, expand=False, fill=True, padding=1)
+        
+        #description
+        self.box_details.pack_start(gtk.Label("Description"), expand=False, fill=False, padding=1)
+        self.box_details.pack_start(gtk.HSeparator(), expand=False, fill=True, padding=1)
+        alig = gtk.Alignment(0.5, 0.5, 1, 1)
+        self.box_details.pack_start(alig, expand=False, fill=True, padding=1)
+        
+        #referencies
+        self.box_details.pack_start(gtk.Label("References"), expand=False, fill=False, padding=1)
+        self.box_details.pack_start(gtk.HSeparator(), expand=False, fill=True, padding=1)
+        alig = gtk.Alignment(0.5, 0.5, 1, 1)
+        self.box_details.pack_start(alig, expand=False, fill=True, padding=1)
+        
+        #fixes
+        self.box_details.pack_start(gtk.Label("Fixes"), expand=False, fill=False, padding=1)
+        self.box_details.pack_start(gtk.HSeparator(), expand=False, fill=True, padding=1)
+        alig = gtk.Alignment(0.5, 0.5, 1, 1)
+        self.box_details.pack_start(alig, expand=False, fill=True, padding=1)
 
 
 
@@ -332,9 +398,6 @@ class MenuButtonRefines(abstract.MenuButton):
         self.add_sender(self.id, "update")
         
     #set functions
-    
-    def set_refinesList(self, layouts, model):
-        self.sw.fill(layouts, model)
         
     def set_values(self, list_values):
         """ 
@@ -398,13 +461,8 @@ class MenuButtonRefines(abstract.MenuButton):
         hpaned.pack2(notebook, False, False)
  
         #Details 
-        box_details = gtk.VBox()
-        sw = gtk.ScrolledWindow()
-        sw.set_shadow_type(gtk.SHADOW_IN)
-        sw.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
-        self.details = gtk.TextView()
-        sw.add(self.details)
-        notebook.append_page(sw, gtk.Label("Detail"))
+        box_details = ItemDetail(self.core)
+        notebook.append_page(box_details.box_details, gtk.Label("Detail"))
 
         #set refines
         vbox_refines = gtk.VBox()
