@@ -1,8 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import gtk, logging
+import gtk, logging, sys
 logger = logging.getLogger("OSCAPEditor")
+
+sys.path.append("/tmp/scap/usr/local/lib64/python2.6/site-packages")
+sys.path.append("/tmp/scap/usr/local/lib/python2.6/site-packages")
 
 try:
     import openscap_api as openscap
@@ -60,7 +63,7 @@ class DataHandler:
                     "id":               item.id,
                     "type":             item.type,
                     "titles":           dict([(title.lang, title.text) for title in item.title]),
-                    "descriptioms":     dict([(desc.lang, desc.text) for desc in item.description]),
+                    "descriptions":     dict([(desc.lang, desc.text) for desc in item.description]),
                     "abstract":         item.abstract,
                     "cluster_id":       item.cluster_id,
                     "conflicts":        [conflict.text for conflict in item.conflicts],
@@ -70,7 +73,7 @@ class DataHandler:
                     "prohibit_changes": item.prohibit_changes,
                     "questions":        dict([(question.lang, question.text) for question in item.question]),
                     "rationale":        [rationale.text for rationale in item.rationale],
-                    "references":       [(ref.href, ref.text.text) for ref in item.references],
+                    "references":       [(ref.text, ref.text.href) for ref in item.references],
                     "requires":         item.requires,
                     "selected":         item.selected,
                     "statuses":         [(status.date, status.text) for status in item.statuses],

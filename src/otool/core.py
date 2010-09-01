@@ -31,6 +31,7 @@ logging.config.fileConfig("logger.conf")
 logger = logging.getLogger("OSCAPEditor")
 
 sys.path.append("/tmp/scap/usr/local/lib64/python2.6/site-packages")
+sys.path.append("/tmp/scap/usr/local/lib/python2.6/site-packages")
 
 try:
     import openscap_api as openscap
