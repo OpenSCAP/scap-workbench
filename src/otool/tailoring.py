@@ -109,17 +109,20 @@ class ProfileList(abstract.List):
         # actions
         self.add_sender(self.id, "show")
         self.add_sender(self.id, "profile_changed")
-        self.add_receiver("gui:btn:tailoring:profiles", "update", self.__update)
+        #self.add_receiver("gui:btn:tailoring:profiles", "update", self.__update)
         self.add_receiver("gui:tailoring:profiles:profile_list", "update", self.__show)
         selection.connect("changed", self.cb_item_changed, self.get_TreeView())
+
+        # TODO: Update should be called after importing XCCDF file.
+        self.__update()
 
     def __show(self):
         if "profile" not in self.__dict__ or self.profile != self.core.selected_profile:
             self.profile = self.core.selected_profile
-            self.get_TreeView().get_model().foreach(self.set_selected, (self.core.selected_profile, self.get_TreeView()))
 
     def __update(self):
         self.data_model.fill()
+        self.get_TreeView().get_model().foreach(self.set_selected, (None, self.get_TreeView()))
 
     def cb_item_changed(self, widget, treeView):
 
