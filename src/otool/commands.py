@@ -73,7 +73,7 @@ class DataHandler:
                     "prohibit_changes": item.prohibit_changes,
                     "questions":        dict([(question.lang, question.text) for question in item.question]),
                     "rationale":        [rationale.text for rationale in item.rationale],
-                    "references":       [(ref.text, ref.text.href) for ref in item.references],
+                    "references":       [(ref.text.text, ref.href) for ref in item.references],
                     "requires":         item.requires,
                     "selected":         item.selected,
                     "statuses":         [(status.date, status.text) for status in item.statuses],
