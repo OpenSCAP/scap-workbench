@@ -25,6 +25,7 @@
 import pygtk
 import gtk
 import gobject
+import pango
 
 import abstract
 import logging
@@ -129,7 +130,7 @@ class ProfileList(abstract.List):
         self.emit("update")
 
 
-class ItemDetail(EventObject):
+class ItemDetails(EventObject):
 
     def __init__(self, core):
         
@@ -137,7 +138,7 @@ class ItemDetail(EventObject):
         self.core = core
         EventObject.__init__(self, self.core)
         self.data_model = commands.DataHandler(self.core)
-        
+
         self.add_receiver("gui:tailoring:refines:item_list", "update", self.__update)
         self.add_receiver("gui:tailoring:refines:item_list", "changed", self.__update)
         self.draw()
@@ -146,19 +147,39 @@ class ItemDetail(EventObject):
         details = self.data_model.get_item_details(self.core.selected_item)
         self.id.set_text(details["id"])
         self.title.set_text(details["titles"]["en"])
-        if "fixtests" in details: pass
+        self.type.set_text(str(details["type"]))
+        self.weight.set_text(str(details["weight"]))
         
+        if "en" in details["descriptions"]: self.description.set_text(details["descriptions"]["en"][:100]+" ...")
+        else: self.description.set_text("")
+        
+        self.description.realize()
+        self.description.set_redraw_on_allocate(True)
+        
+        referencies = ""
+        for ref in details["references"]:
+               referencies += "%s: %s\n" % (ref[0], ref[1])
+        self.ref.set_text(referencies)
+        
+        if "fixes" in details: self.fixes.set_text(details["fixes"])
+        else: self.fixes.set_text("")
+
     def draw(self):
         self.box_details = gtk.VBox()
-        
+
         #info (id, title, type)
-        self.box_details.pack_start(gtk.Label("Info"), expand=False, fill=False, padding=1)
-        self.box_details.pack_start(gtk.HSeparator(), expand=False, fill=True, padding=1)
-        alig = gtk.Alignment(0.5, 10.5, 1, 1)
-        self.box_details.pack_start(alig, expand=False, fill=True, padding=1)
+        expander = gtk.Expander("<b>Info</b>")
+        expander.set_expanded(True)
+        label = expander.get_label_widget()
+        label.set_use_markup(True)
+        alig = gtk.Alignment(0.5, 0.5, 1, 1)
+        alig.set_padding(0,0,12,4)
+        expander.add(alig)
         vbox = gtk.VBox()
         alig.add(vbox)
-        
+        vbox.pack_start(gtk.HSeparator(), expand=False, fill=True, padding=1)
+        self.box_details.pack_start(expander, expand=False, fill=False, padding=1)
+
         #id
         hbox = gtk.HBox()
         hbox.pack_start(gtk.Label("ID: "), expand=False, fill=False, padding=1)
@@ -170,9 +191,12 @@ class ItemDetail(EventObject):
         hbox = gtk.HBox()
         hbox.pack_start(gtk.Label("Title: "), expand=False, fill=False, padding=1)
         self.title = gtk.Label("")
+        self.title.set_line_wrap(True)
+        self.title.set_line_wrap_mode(pango.WRAP_WORD)
+        self.title.set_alignment(0,0)
         hbox.pack_start(self.title, expand=False, fill=False, padding=1)
         vbox.pack_start(hbox, expand=False, fill=True, padding=1)
-        
+
         #type
         hbox = gtk.HBox()
         hbox.pack_start(gtk.Label("Type: "), expand=False, fill=False, padding=1)
@@ -180,24 +204,67 @@ class ItemDetail(EventObject):
         hbox.pack_start(self.type, expand=False, fill=False, padding=1)
         vbox.pack_start(hbox, expand=False, fill=True, padding=1)
         
+        #weight
+        hbox = gtk.HBox()
+        hbox.pack_start(gtk.Label("Weight: "), expand=False, fill=False, padding=1)
+        self.weight = gtk.Label("")
+        hbox.pack_start(self.weight, expand=False, fill=False, padding=1)
+        vbox.pack_start(hbox, expand=False, fill=True, padding=1)
+        
         #description
-        self.box_details.pack_start(gtk.Label("Description"), expand=False, fill=False, padding=1)
-        self.box_details.pack_start(gtk.HSeparator(), expand=False, fill=True, padding=1)
-        alig = gtk.Alignment(0.5, 0.5, 1, 1)
-        self.box_details.pack_start(alig, expand=False, fill=True, padding=1)
-        
-        #referencies
-        self.box_details.pack_start(gtk.Label("References"), expand=False, fill=False, padding=1)
-        self.box_details.pack_start(gtk.HSeparator(), expand=False, fill=True, padding=1)
-        alig = gtk.Alignment(0.5, 0.5, 1, 1)
-        self.box_details.pack_start(alig, expand=False, fill=True, padding=1)
-        
-        #fixes
-        self.box_details.pack_start(gtk.Label("Fixes"), expand=False, fill=False, padding=1)
-        self.box_details.pack_start(gtk.HSeparator(), expand=False, fill=True, padding=1)
-        alig = gtk.Alignment(0.5, 0.5, 1, 1)
-        self.box_details.pack_start(alig, expand=False, fill=True, padding=1)
+        expander = gtk.Expander("<b>Description</b>")
+        expander.set_expanded(True)
+        label = expander.get_label_widget()
+        label.set_use_markup(True)
+        alig = gtk.Alignment(0, 0, 1, 1)
+        alig.set_padding(0,0,12,4)
+        vbox = gtk.VBox()
+        alig.add(vbox)
+        vbox.pack_start(gtk.HSeparator(), expand=True, fill=True, padding=3)
+        self.description = gtk.Label()
+        self.description.set_line_wrap(True)
+        self.description.set_line_wrap_mode(pango.WRAP_WORD)
+        self.description.set_alignment(0,0)
 
+        vbox.pack_start(self.description, expand=False, fill=True, padding=1)
+        expander.add(alig)
+        self.box_details.pack_start(expander, expand=False, fill=False, padding=1)
+        
+        #References
+        expander = gtk.Expander("<b>References</b>")
+        expander.set_expanded(True)
+        label = expander.get_label_widget()
+        label.set_use_markup(True)
+        alig = gtk.Alignment(0.5, 0.5, 1, 1)
+        alig.set_padding(0,0,12,4)
+        vbox = gtk.VBox()
+        alig.add(vbox)
+        vbox.pack_start(gtk.HSeparator(), expand=True, fill=True, padding=3)
+        self.ref = gtk.Label()
+        self.ref.set_line_wrap(True)
+        self.ref.set_line_wrap_mode(pango.WRAP_WORD) 
+        self.ref.set_alignment(0,0)
+        vbox.pack_start(self.ref, expand=False, fill=True, padding=1)
+        expander.add(alig)
+        self.box_details.pack_start(expander, expand=False, fill=False, padding=1)
+
+        #fixes
+        expander = gtk.Expander("<b>Fixes</b>")
+        expander.set_expanded(True)
+        label = expander.get_label_widget()
+        label.set_use_markup(True)
+        alig = gtk.Alignment(0.5, 0.5, 1, 1)
+        alig.set_padding(0,0,12,4)
+        vbox = gtk.VBox()
+        alig.add(vbox)
+        vbox.pack_start(gtk.HSeparator(), expand=True, fill=True, padding=3)
+        self.fixes = gtk.Label()
+        self.fixes.set_line_wrap(True)
+        self.fixes.set_line_wrap_mode(pango.WRAP_WORD) 
+        self.fixes.set_alignment(0,0)
+        vbox.pack_start(self.fixes, expand=False, fill=True, padding=1)
+        expander.add(alig)
+        self.box_details.pack_start(expander, expand=False, fill=False, padding=1)
 
 
 class MenuButtonProfiles(abstract.MenuButton):
@@ -461,7 +528,7 @@ class MenuButtonRefines(abstract.MenuButton):
         hpaned.pack2(notebook, False, False)
  
         #Details 
-        box_details = ItemDetail(self.core)
+        box_details = ItemDetails(self.core)
         notebook.append_page(box_details.box_details, gtk.Label("Detail"))
 
         #set refines
