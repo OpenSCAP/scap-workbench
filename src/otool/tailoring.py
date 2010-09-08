@@ -146,12 +146,18 @@ class ItemDetails(EventObject):
     def __update(self):
         details = self.data_model.get_item_details(self.core.selected_item)
         self.id.set_text(details["id"])
-        self.title.set_text(details["titles"]["en"])
         self.type.set_text(details["typetext"])
         self.weight.set_text(str(details["weight"]))
+
+        if self.core.selected_lang in details["titles"]: 
+            self.description.set_text(details["titles"][self.core.selected_lang])
+        else: 
+            self.description.set_text("")
         
-        if "en" in details["descriptions"]: self.description.set_text(details["descriptions"]["en"][:100]+" ...")
-        else: self.description.set_text("")
+        if self.core.selected_lang in details["descriptions"]: 
+            self.description.set_text(details["descriptions"][self.core.selected_lang][:100]+" ...")
+        else: 
+            self.description.set_text("")
         
         self.description.realize()
         self.description.set_redraw_on_allocate(True)
@@ -278,21 +284,26 @@ class ProfileDetails(EventObject):
 
         self.add_receiver("gui:tailoring:profiles:profile_list", "update", self.__update)
         self.add_receiver("gui:tailoring:profiles:profile_list", "changed", self.__update)
+        #self.add_receiver("gui:btn:main:xccdf", "lang_changed", self.__update)
         
     def __update(self):
-
+        logger.info(self.core.selected_lang)
         details = self.data_model.get_profile_details(self.core.selected_profile)
         if details != None:
-            #item = self.data_model.benchmark.item(self.core.selected_profile)
-            #self.guiProfiles.set_title(item.title[0].text)
-            #self.guiProfiles.set_description(item.descriptions[0].text)
             self.guiProfiles.set_info(str(details["abstract"]), str(details["extends"]))
-            self.guiProfiles.set_title(details["titles"]["en"])
             self.guiProfiles.set_version(details["version"])
-            if "en" in details["descriptions"]: self.guiProfiles.set_description(details["descriptions"]["en"])
-            else: self.guiProfiles.set_description("")
+
+            if self.core.selected_lang in details["titles"]: 
+                self.guiProfiles.set_title(details["titles"][self.core.selected_lang])
+            else: 
+                self.guiProfiles.set_title("")
+                
+            if self.core.selected_lang in details["descriptions"]: 
+                self.guiProfiles.set_description(details["descriptions"][self.core.selected_lang])
+            else: 
+                self.guiProfiles.set_description("")
         else:
-            self.guiProfiles.set_info("-", "-")
+            self.guiProfiles.set_info("", "")
             self.guiProfiles.set_version("")
             self.guiProfiles.set_title("")
             self.guiProfiles.set_description("")
@@ -345,6 +356,9 @@ class MenuButtonProfiles(abstract.MenuButton):
         self.profile = NewProfileWindow(data)
         pass
         
+    def cb_btnLang(self, widget, name, core, data):
+        window = Language_form(name, core, data)
+
     # draw function
     def add_frame_vp(self,body, text,pos = 1):
         frame = gtk.Frame(text)
@@ -416,11 +430,11 @@ class MenuButtonProfiles(abstract.MenuButton):
         self.add_label(table, "Description: ", 0, 1, 4, 5)
 
         # abstract expand
-        self.abstract = self.add_label(table, "-", 1, 2, 0, 1)
-        self.extend = self.add_label(table, "-", 1, 2, 1, 2)
+        self.abstract = self.add_label(table, "", 1, 2, 0, 1)
+        self.extend = self.add_label(table, "", 1, 2, 1, 2)
 
         #version
-        self.version = self.add_label(table, "-", 1, 2, 1, 2)
+        self.version = self.add_label(table, "", 1, 2, 1, 2)
 
         #title
         hbox = gtk.HBox()
@@ -428,8 +442,9 @@ class MenuButtonProfiles(abstract.MenuButton):
         self.title.set_alignment(0, 0.5)
         table.attach(hbox, 1, 2, 3, 4,gtk.FILL,gtk.FILL, 0, 3)
         hbox.pack_start(self.title, expand=True, fill=True, padding=0)
-        self.button_title = gtk.Button("...")
-        hbox.pack_start(self.button_title, expand=False, fill=True, padding=0)
+        self.but_title = gtk.Button("...")
+        self.but_title.connect("clicked", self.cb_btnLang, "Titles", self.core, "titles")
+        hbox.pack_start(self.but_title, expand=False, fill=True, padding=0)
 
         #description
         hbox = gtk.HBox()
@@ -438,8 +453,9 @@ class MenuButtonProfiles(abstract.MenuButton):
         table.attach(hbox, 1, 2, 4, 5,gtk.EXPAND|gtk.FILL,gtk.FILL, 0, 3)
         #table.attach(hbox, 1, 2, 4, 5,gtk.EXPAND|gtk.FILL,gtk.EXPAND|gtk.FILL, 0, 3)
         hbox.pack_start(self.description, expand=True, fill=True, padding=0)
-        self.button_description = gtk.Button("...")
-        hbox.pack_start(self.button_description, expand=False, fill=True, padding=0)
+        self.but_description = gtk.Button("...")
+        self.but_description.connect("clicked", self.cb_btnLang, "Descriptions", self.core, "descriptions")
+        hbox.pack_start(self.but_description, expand=False, fill=True, padding=0)
 
         body.show_all()
         body.hide()
@@ -779,6 +795,39 @@ class NewProfileWindow(abstract.Window):
 
     def destroy_window(self):
         self.window.destroy()
+
+
+
+class Language_form():
+    """
+    Form for show information in accessible languages
+    """
+    def __init__(self, name, core, data):
+        
+        self.core = core
+        self.data_model = commands.DataHandler(self.core)
+        
+        self.window = gtk.Window(gtk.WINDOW_TOPLEVEL)
+        self.window.set_title(name)
+        self.window.set_size_request(400, 250)
+        self.window.set_modal(True)
+        #lself.window.set_transient_for(parent)
+        
+        label_text = gtk.Label()
+        label_text.set_alignment(0,0)
+        self.window.add(label_text)
+        details = self.data_model.get_profile_details(self.core.selected_profile)
+        text = ""
+        if details != None:
+            for lang in details[data]:
+                text += "%s:    %s\n\n" % (lang, details[data][lang])
+            label_text.set_text(text)
+        else:
+            label_text.set_text("no " + data)
+        if text == "":
+            label_text.set_text("no " + data)
+        
+        self.window.show_all()
 
 class Value(abstract.EventObject):
     """

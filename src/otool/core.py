@@ -60,6 +60,7 @@ class OECore:
         self.selected_profile   = None
         self.selected_item      = None
         self.selected_deps      = None
+        self.selected_lang      = "en"
 
     def render(self):
         self.mainWindow = render.MainWindow(self)

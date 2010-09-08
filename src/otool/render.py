@@ -31,6 +31,7 @@ import core
 import abstract
 import tailoring
 import logging
+import commands
 
 logger = logging.getLogger("OSCAPEditor")
 
@@ -38,10 +39,11 @@ class MenuButtonXCCDF(abstract.MenuButton):
     """
     GUI for operations with xccdf file.
     """
-    def __init__(self, c_body=None, sensitivity=True):
+    def __init__(self, c_body=None, sensitivity=True, core=None):
         logger = logging.getLogger(self.__class__.__name__)
         abstract.MenuButton.__init__(self,"gui:btn:main:xccdf", "XCCDF", None, c_body, sensitivity)
         self.c_body = c_body
+        self.core = core
         
         # referencies
         self.label_title = None
@@ -80,11 +82,15 @@ class MenuButtonXCCDF(abstract.MenuButton):
     def cb_btn(self, btn, data=None):
         logger.debug("clicked = ", data)
 
-    def cb_changed(self, combobox):
-        model = combobox.get_model()
-        index = combobox.get_active()
-        return
+    def cb_changed(self, combobox, core):
         
+        model = combobox.get_model()
+        active = combobox.get_active()
+        if active < 0:
+            return
+        core.selected_lang = model[active][0]
+        self.emit("lang_changed")
+        return
         
     # draw functions
     def add_label(self,table, text, left, right, top, bottom, x=gtk.FILL, y=gtk.FILL):
@@ -127,11 +133,14 @@ class MenuButtonXCCDF(abstract.MenuButton):
         self.cBox_language.pack_start(cell)
         self.cBox_language.add_attribute(cell, 'text', 0)
         self.cBox_language.set_model(model)
-        self.cBox_language.connect('changed', self.cb_changed)
+        self.cBox_language.connect('changed', self.cb_changed, self.core)
         self.cBox_language.set_active(0)
         table.attach(self.cBox_language, 1, 2, 4, 5,gtk.FILL,gtk.FILL)
 
-        self.set_language(["English", "Czech", "Russian"], 0)
+        data_model = commands.DataHandler(self.core)
+        self.add_sender(self.id, "lang_changed")
+        #self.set_language(data_model.get_languages(), 0)
+        self.set_language(["en", "cz"], 0)
         
         # generator for oval
         alig = self.add_frame(body, "<b>Generator for OVAL</b>")
@@ -161,9 +170,10 @@ class MenuButtonXCCDF(abstract.MenuButton):
         return body
 
 
+    
 class MenuButtonOVAL(abstract.MenuButton):
 
-    def __init__(self, c_body=None, sensitivity=None):
+    def __init__(self, c_body=None, sensitivity=None ,core=None):
         logger = logging.getLogger(self.__class__.__name__)
         abstract.MenuButton.__init__(self,"gui:btn:main:oval", "Oval", None, c_body, sensitivity)
         self.c_body = c_body
@@ -225,9 +235,9 @@ class MainWindow(abstract.Window):
         vbox_submenu = gtk.Toolbar()
         self.vbox_main.pack_start(vbox_submenu, expand=False, fill=True, padding=0)
         self.submenu = abstract.Menu("gui:menu:main", vbox_submenu)
-        menu2_but1 = MenuButtonXCCDF(vbox_body)
+        menu2_but1 = MenuButtonXCCDF(vbox_body, core=self.core)
         self.submenu.add_item(menu2_but1)
-        menu2_but2 = MenuButtonOVAL(vbox_body)
+        menu2_but2 = MenuButtonOVAL(vbox_body, core=self.core)
         self.submenu.add_item(menu2_but2)
         menu1_but1.set_menu(self.submenu)
 
