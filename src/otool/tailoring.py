@@ -266,7 +266,37 @@ class ItemDetails(EventObject):
         expander.add(alig)
         self.box_details.pack_start(expander, expand=False, fill=False, padding=1)
 
+class ProfileDetails(EventObject):
 
+    def __init__(self, core, guiProfiles):
+        
+        #create view
+        self.core = core
+        self.guiProfiles = guiProfiles
+        EventObject.__init__(self, self.core)
+        self.data_model = commands.DataHandler(self.core)
+
+        self.add_receiver("gui:tailoring:profiles:profile_list", "update", self.__update)
+        self.add_receiver("gui:tailoring:profiles:profile_list", "changed", self.__update)
+        
+    def __update(self):
+
+        details = self.data_model.get_profile_details(self.core.selected_profile)
+        if details != None:
+            #item = self.data_model.benchmark.item(self.core.selected_profile)
+            #self.guiProfiles.set_title(item.title[0].text)
+            #self.guiProfiles.set_description(item.descriptions[0].text)
+            self.guiProfiles.set_info(str(details["abstract"]), str(details["extends"]))
+            self.guiProfiles.set_title(details["titles"]["en"])
+            self.guiProfiles.set_version(details["version"])
+            if "en" in details["descriptions"]: self.guiProfiles.set_description(details["descriptions"]["en"])
+            else: self.guiProfiles.set_description("")
+        else:
+            self.guiProfiles.set_info("-", "-")
+            self.guiProfiles.set_version("")
+            self.guiProfiles.set_title("")
+            self.guiProfiles.set_description("")
+        
 class MenuButtonProfiles(abstract.MenuButton):
     """
     GUI for profiles.
@@ -299,6 +329,8 @@ class MenuButtonProfiles(abstract.MenuButton):
         """
         Set version of profile.
         """
+        if version == None:
+            version = ""
         self.entry_version.set_text(version)
     
     def set_title(self, text):
@@ -309,7 +341,7 @@ class MenuButtonProfiles(abstract.MenuButton):
         textbuffer = self.texView_title.get_buffer()
         textbuffer.set_text(text)
         
-    def set_descriprion(self, text):
+    def set_description(self, text):
         """
         Set description to the textView.
         @param text Text with description
@@ -357,6 +389,8 @@ class MenuButtonProfiles(abstract.MenuButton):
         alig.add(hbox)
         self.profiles_list = ProfileList(self.core)
         hbox.pack_start(self.profiles_list.get_widget(), expand=True, fill=True, padding=3)
+        
+        ProfileDetails(self.core, self)
         
         # operations with profiles
         hbox.pack_start(gtk.VSeparator(), expand=False, fill=True, padding=10)
@@ -428,10 +462,6 @@ class MenuButtonProfiles(abstract.MenuButton):
         hbox.pack_start(self.button_description, expand=False, fill=True, padding=0)
 
         #tests
-        self.set_descriprion("pokuss")
-        self.set_descriprion("pokuss2")
-        self.set_title("title")
-        self.set_version("version")
         model = gtk.ListStore( gobject.TYPE_STRING, gobject.TYPE_STRING,gobject.TYPE_STRING)
         model.append(["e", "e", "w"])
         model.append(["e", "e", "w"])
