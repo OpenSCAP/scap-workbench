@@ -306,13 +306,6 @@ class MenuButtonProfiles(abstract.MenuButton):
         self.core = core
         self.c_body = c_body
         
-        #referencies
-        self.label_abstract = None
-        self.label_extend = None
-        self.entry_version = None
-        self.textView_tile = None
-        self.textView_description = None
-        
         # draw body
         self.body = self.draw_body()
         self.add_sender(self.id, "update")
@@ -322,8 +315,8 @@ class MenuButtonProfiles(abstract.MenuButton):
         """
         Set abstract and extend information.
         """
-        self.label_abstract.set_text(abstract)
-        self.label_extend.set_text(extend)
+        self.abstract.set_text(abstract)
+        self.extend.set_text(extend)
 
     def set_version(self, version):
         """
@@ -331,33 +324,25 @@ class MenuButtonProfiles(abstract.MenuButton):
         """
         if version == None:
             version = ""
-        self.entry_version.set_text(version)
+        self.version.set_text(version)
     
     def set_title(self, text):
         """
         Set title to the textView.
         @param text Text with title
         """
-        textbuffer = self.texView_title.get_buffer()
-        textbuffer.set_text(text)
+        self.title.set_text(text)
         
     def set_description(self, text):
         """
         Set description to the textView.
         @param text Text with description
         """
-        textbuffer = self.texView_description.get_buffer()
-        textbuffer.set_text(text)
+        self.description.set_text(text)
         
     #callBack functions
     def cb_btnProfiles(self, button, data=None):
         self.profile = NewProfileWindow(data)
-        pass
-    
-    def cb_textView(self, widget, data=None):
-        print data
-        
-    def cb_version(self, widget, data=None):
         pass
         
     # draw function
@@ -376,6 +361,7 @@ class MenuButtonProfiles(abstract.MenuButton):
         
     def add_label(self,table, text, left, right, top, bottom):
         label = gtk.Label(text)
+        #table.attach(hbox, 1, 2, 3, 4,gtk.EXPAND|gtk.FILL,gtk.EXPAND|gtk.FILL, 0, 3)
         table.attach(label, left, right, top, bottom,gtk.FILL,gtk.FILL)
         label.set_alignment(0, 0.5)
         return label
@@ -429,45 +415,32 @@ class MenuButtonProfiles(abstract.MenuButton):
         self.add_label(table, "Title: ", 0, 1, 3, 4)
         self.add_label(table, "Description: ", 0, 1, 4, 5)
 
+        # abstract expand
+        self.abstract = self.add_label(table, "-", 1, 2, 0, 1)
+        self.extend = self.add_label(table, "-", 1, 2, 1, 2)
 
-        self.label_abstract = self.add_label(table, "-", 1, 2, 0, 1)
-        self.label_extend = self.add_label(table, "-", 1, 2, 1, 2)
+        #version
+        self.version = self.add_label(table, "-", 1, 2, 1, 2)
 
-        self.entry_version = gtk.Entry()
-        self.entry_version.connect("selection-notify-event", self.cb_version, "Description")
-        table.attach(self.entry_version, 1, 2, 2, 3,gtk.EXPAND|gtk.FILL,gtk.FILL)
-
+        #title
         hbox = gtk.HBox()
-        table.attach(hbox, 1, 2, 3, 4,gtk.EXPAND|gtk.FILL,gtk.EXPAND|gtk.FILL, 0, 3)
-        sw = gtk.ScrolledWindow()
-        sw.set_shadow_type(gtk.SHADOW_IN)
-        sw.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
-        self.texView_title = gtk.TextView()
-        self.texView_title.connect("selection-notify-event", self.cb_textView, "Title")
-        sw.add(self.texView_title)
-        hbox.pack_start(sw, expand=True, fill=True, padding=0)
+        self.title = gtk.Label()
+        self.title.set_alignment(0, 0.5)
+        table.attach(hbox, 1, 2, 3, 4,gtk.FILL,gtk.FILL, 0, 3)
+        hbox.pack_start(self.title, expand=True, fill=True, padding=0)
         self.button_title = gtk.Button("...")
         hbox.pack_start(self.button_title, expand=False, fill=True, padding=0)
 
+        #description
         hbox = gtk.HBox()
-        table.attach(hbox, 1, 2, 4, 5,gtk.EXPAND|gtk.FILL,gtk.EXPAND|gtk.FILL, 0, 3)
-        sw = gtk.ScrolledWindow()
-        sw.set_shadow_type(gtk.SHADOW_IN)
-        sw.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
-        self.texView_description = gtk.TextView()
-        self.texView_title.connect("selection-notify-event", self.cb_textView, "Description")
-        sw.add(self.texView_description)
-        hbox.pack_start(sw, expand=True, fill=True, padding=0)
+        self.description = gtk.Label()
+        self.description.set_alignment(0, 0.5)
+        table.attach(hbox, 1, 2, 4, 5,gtk.EXPAND|gtk.FILL,gtk.FILL, 0, 3)
+        #table.attach(hbox, 1, 2, 4, 5,gtk.EXPAND|gtk.FILL,gtk.EXPAND|gtk.FILL, 0, 3)
+        hbox.pack_start(self.description, expand=True, fill=True, padding=0)
         self.button_description = gtk.Button("...")
         hbox.pack_start(self.button_description, expand=False, fill=True, padding=0)
 
-        #tests
-        model = gtk.ListStore( gobject.TYPE_STRING, gobject.TYPE_STRING,gobject.TYPE_STRING)
-        model.append(["e", "e", "w"])
-        model.append(["e", "e", "w"])
-        model.append(["e", "e", "w"])
-        model.append(["e", "e", "w"])
-        
         body.show_all()
         body.hide()
         self.c_body.add(body)
