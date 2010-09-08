@@ -87,6 +87,7 @@ class DataHandler:
             if item.type == openscap.OSCAP.XCCDF_GROUP:
                 item = item.to_group()
                 values.update({
+                    "typetext":         "Group",
                     #"content":         item.content,
                     #"values":           self.__item_get_values(item),
                     "status_current":   item.status_current
@@ -95,6 +96,7 @@ class DataHandler:
                 item = item.to_rule()
                 values.update({
                     #"checks":          item.checks
+                    "typetext":         "Rule",
                     "fixes":            self.__rule_get_fixes(item),
                     "fixtexts":         self.__rule_get_fixtexts(item),
                     "idents":           [(ident.id, ident.system) for ident in item.idents],

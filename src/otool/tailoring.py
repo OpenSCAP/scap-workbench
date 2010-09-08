@@ -147,7 +147,7 @@ class ItemDetails(EventObject):
         details = self.data_model.get_item_details(self.core.selected_item)
         self.id.set_text(details["id"])
         self.title.set_text(details["titles"]["en"])
-        self.type.set_text(str(details["type"]))
+        self.type.set_text(details["typetext"])
         self.weight.set_text(str(details["weight"]))
         
         if "en" in details["descriptions"]: self.description.set_text(details["descriptions"]["en"][:100]+" ...")
@@ -161,7 +161,7 @@ class ItemDetails(EventObject):
                referencies += "%s: %s\n" % (ref[0], ref[1])
         self.ref.set_text(referencies)
         
-        if "fixes" in details: self.fixes.set_text(details["fixes"])
+        if "fixes" in details: self.fixes.set_text(details["fixes"] or "")
         else: self.fixes.set_text("")
 
     def draw(self):
