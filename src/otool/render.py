@@ -139,8 +139,8 @@ class MenuButtonXCCDF(abstract.MenuButton):
 
         data_model = commands.DataHandler(self.core)
         self.add_sender(self.id, "lang_changed")
-        #self.set_language(data_model.get_languages(), 0)
-        self.set_language(["en", "cz"], 0)
+        self.set_language(data_model.get_languages(), 0)
+
         
         # generator for oval
         alig = self.add_frame(body, "<b>Generator for OVAL</b>")
