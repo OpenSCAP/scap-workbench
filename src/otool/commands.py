@@ -36,6 +36,10 @@ class DataHandler:
             logger.error("XCCDF benchmark does not exists. Can't fill data")
             raise Error, "XCCDF benchmark does not exists. Can't fill data"
 
+    def get_languages(self):
+        """Get available languages from XCCDF Benchmark"""
+        return [self.lib["policy_model"].benchmark.lang]
+
     def get_selected(self, item):
         """DataHandler.get_selected -- get selction of rule/group
         returns boolean value"""
