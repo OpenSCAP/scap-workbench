@@ -302,7 +302,7 @@ class MenuButtonProfiles(abstract.MenuButton):
     GUI for profiles.
     """
     def __init__(self, c_body=None, sensitivity=None, core=None):
-        abstract.MenuButton.__init__(self,"gui:btn:tailoring:profiles", "Profiles", c_body, sensitivity)
+        abstract.MenuButton.__init__(self,"gui:btn:tailoring:profiles", "Profiles", None, c_body, sensitivity)
         self.core = core
         self.c_body = c_body
         
@@ -452,7 +452,7 @@ class MenuButtonRefines(abstract.MenuButton):
     GUI for refines.
     """
     def __init__(self, c_body=None, sensitivity=None, core=None):
-        abstract.MenuButton.__init__(self, "gui:btn:tailoring:refines", "Refines", c_body, sensitivity)
+        abstract.MenuButton.__init__(self, "gui:btn:tailoring:refines", "Refines", None, c_body, sensitivity)
         self.core = core
         self.c_body = c_body
         

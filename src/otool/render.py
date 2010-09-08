@@ -38,9 +38,9 @@ class MenuButtonXCCDF(abstract.MenuButton):
     """
     GUI for operations with xccdf file.
     """
-    def __init__(self, c_body=None, sensitivity=None):
+    def __init__(self, c_body=None, sensitivity=True):
         logger = logging.getLogger(self.__class__.__name__)
-        abstract.MenuButton.__init__(self,"gui:btn:main:xccdf", "XCCDF", c_body, sensitivity)
+        abstract.MenuButton.__init__(self,"gui:btn:main:xccdf", "XCCDF", None, c_body, sensitivity)
         self.c_body = c_body
         
         # referencies
@@ -165,7 +165,7 @@ class MenuButtonOVAL(abstract.MenuButton):
 
     def __init__(self, c_body=None, sensitivity=None):
         logger = logging.getLogger(self.__class__.__name__)
-        abstract.MenuButton.__init__(self,"gui:btn:main:oval", "Oval", c_body, sensitivity)
+        abstract.MenuButton.__init__(self,"gui:btn:main:oval", "Oval", None, c_body, sensitivity)
         self.c_body = c_body
         self.title = None
         self.description = None
@@ -209,15 +209,15 @@ class MainWindow(abstract.Window):
         vbox_menu = gtk.Toolbar()
         self.vbox_main.pack_start(vbox_menu, expand=False, fill=True, padding=0)
         self.menu = abstract.Menu("gui:menu", vbox_menu)
-        menu1_but1 = abstract.MenuButton("gui:btn:menu:main", "Main", vbox_body)
+        menu1_but1 = abstract.MenuButton("gui:btn:menu:main", "Main", gtk.STOCK_HOME, vbox_body)
         self.menu.add_item(menu1_but1)
-        menu1_but2 = abstract.MenuButton("gui:btn:menu:tailoring", "Tailoring", vbox_body)
+        menu1_but2 = abstract.MenuButton("gui:btn:menu:tailoring", "Tailoring", gtk.STOCK_FIND_AND_REPLACE, vbox_body)
         self.menu.add_item(menu1_but2)
-        menu1_but3 = abstract.MenuButton("gui:btn:menu:edit", "Edit", vbox_body)
+        menu1_but3 = abstract.MenuButton("gui:btn:menu:edit", "Edit", gtk.STOCK_EDIT, vbox_body)
         self.menu.add_item(menu1_but3)
-        menu1_but4 = abstract.MenuButton("gui:btn:menu:scan", "Scan", vbox_body)
+        menu1_but4 = abstract.MenuButton("gui:btn:menu:scan", "Scan", gtk.STOCK_DIALOG_AUTHENTICATION, vbox_body)
         self.menu.add_item(menu1_but4)
-        menu1_but5 = abstract.MenuButton("gui:btn:menu:reports", "Reports", vbox_body)
+        menu1_but5 = abstract.MenuButton("gui:btn:menu:reports", "Reports", gtk.STOCK_DIALOG_INFO, vbox_body)
         self.menu.add_item(menu1_but5)
         
         

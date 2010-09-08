@@ -111,7 +111,7 @@ class MenuButton(EventObject):
     """ Class for tree of toogleBar with toggleButtons in group
     """
 
-    def __init__(self, id, name, c_body=None, sensitivity=None):
+    def __init__(self, id, name, image=None, c_body=None, sensitivity=True):
         """
         @param id
         @param name Name of MenuButton
@@ -130,14 +130,20 @@ class MenuButton(EventObject):
         self.body = None
 
         # setings
-        self.widget = gtk.ToggleToolButton()
+        self.widget_btn = gtk.ToggleButton()
+        self.widget = gtk.ToolItem()
+        self.widget.add(self.widget_btn)
         self.widget.set_is_important(True)
-        self.widget.set_label(name)
-        if self.sensitivity == None: 
-            self.widget.set_sensitive(True)
-        else: self.widget.set_sensitive(False)
+        self.widget_btn.set_label(name)
+        if image: 
+            img = gtk.image_new_from_stock(image, gtk.ICON_SIZE_MENU)
+            self.widget_btn.set_image(img)
+            self.widget_btn.set_image_position(gtk.POS_TOP)
+        self.widget_btn.set_sensitive(True)
+        self.widget_btn.set_relief(gtk.RELIEF_NONE)
         self.widget.show()
-        self.widget.connect("toggled", self.cb_toggle)
+        self.widget_btn.show()
+        self.widget_btn.connect("toggled", self.cb_toggle)
 
     def add_frame_vp(self,body, text,pos = 1):
         frame = gtk.Frame(text)
@@ -173,14 +179,14 @@ class MenuButton(EventObject):
         Show or hide MenuButton object and dependent menu, body.
         @param active True/False - Show/Hide 
         """
-        self.widget.handler_block_by_func(self.cb_toggle)
-        self.widget.set_active(active)
+        self.widget_btn.handler_block_by_func(self.cb_toggle)
+        self.widget_btn.set_active(active)
         self.set_body(active)
         if self.menu: 
             self.menu.set_active(active)
             if self.menu.active_item and not active:
                 self.menu.active_item.set_active(active)
-        self.widget.handler_unblock_by_func(self.cb_toggle)
+        self.widget_btn.handler_unblock_by_func(self.cb_toggle)
         if active: 
             self.emit("update")
             self.update()
