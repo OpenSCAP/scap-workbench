@@ -150,14 +150,18 @@ class ItemDetails(EventObject):
         self.weight.set_text(str(details["weight"]))
 
         if self.core.selected_lang in details["titles"]: 
-            self.description.set_text(details["titles"][self.core.selected_lang])
+            self.title.set_text(details["titles"][self.core.selected_lang])
         else: 
-            self.description.set_text("")
-        
+            for lang in details["titles"]:
+                self.title.set_text(details["titles"][lang])
+                break
+                
         if self.core.selected_lang in details["descriptions"]: 
             self.description.set_text(details["descriptions"][self.core.selected_lang][:100]+" ...")
         else: 
-            self.description.set_text("")
+            for lang in details["descriptions"]:
+                self.description.set_text(details["descriptions"][lang])
+                break
         
         self.description.realize()
         self.description.set_redraw_on_allocate(True)
@@ -284,10 +288,9 @@ class ProfileDetails(EventObject):
 
         self.add_receiver("gui:tailoring:profiles:profile_list", "update", self.__update)
         self.add_receiver("gui:tailoring:profiles:profile_list", "changed", self.__update)
-        #self.add_receiver("gui:btn:main:xccdf", "lang_changed", self.__update)
+        self.add_receiver("gui:btn:main:xccdf", "lang_changed", self.__update)
         
     def __update(self):
-        logger.info(self.core.selected_lang)
         details = self.data_model.get_profile_details(self.core.selected_profile)
         if details != None:
             self.guiProfiles.set_info(str(details["abstract"]), str(details["extends"]))
@@ -296,12 +299,16 @@ class ProfileDetails(EventObject):
             if self.core.selected_lang in details["titles"]: 
                 self.guiProfiles.set_title(details["titles"][self.core.selected_lang])
             else: 
-                self.guiProfiles.set_title("")
+                for lang in details["titles"]:
+                    self.guiProfiles.set_title(details["titles"][lang])
+                    break
                 
             if self.core.selected_lang in details["descriptions"]: 
                 self.guiProfiles.set_description(details["descriptions"][self.core.selected_lang])
             else: 
-                self.guiProfiles.set_description("")
+                for lang in details["descriptions"]:
+                    self.guiProfiles.set_description(details["descriptions"][lang])
+                    break
         else:
             self.guiProfiles.set_info("", "")
             self.guiProfiles.set_version("")
