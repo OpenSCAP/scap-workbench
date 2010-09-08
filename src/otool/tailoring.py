@@ -293,7 +293,7 @@ class ProfileDetails(EventObject):
     def __update(self):
         details = self.data_model.get_profile_details(self.core.selected_profile)
         if details != None:
-            self.guiProfiles.set_info(str(details["abstract"]), str(details["extends"]))
+            self.guiProfiles.set_info(details["id"], str(details["abstract"]), str(details["extends"]))
             self.guiProfiles.set_version(details["version"])
 
             if self.core.selected_lang in details["titles"]: 
@@ -329,10 +329,11 @@ class MenuButtonProfiles(abstract.MenuButton):
         self.add_sender(self.id, "update")
     
     #set functions
-    def set_info(self, abstract, extend):
+    def set_info(self, id, abstract, extend):
         """
         Set abstract and extend information.
         """
+        self.id_profil.set_text(id)
         self.abstract.set_text(abstract)
         self.extend.set_text(extend)
 
@@ -430,34 +431,40 @@ class MenuButtonProfiles(abstract.MenuButton):
         table = gtk.Table(5 ,2)
         alig.add(table)
 
-        self.add_label(table, "Abstract: ", 0, 1, 0, 1)
-        self.add_label(table, "Extend: ", 0, 1, 1, 2)
-        self.add_label(table, "Version: ", 0, 1, 2, 3)
-        self.add_label(table, "Title: ", 0, 1, 3, 4)
-        self.add_label(table, "Description: ", 0, 1, 4, 5)
+        self.add_label(table, "ID: ", 0, 1, 0, 1)
+        self.add_label(table, "Title: ", 0, 1, 1, 2)
+        self.add_label(table, "Abstract: ", 0, 1, 2, 3)
+        self.add_label(table, "Extend: ", 0, 1, 3, 4)
+        self.add_label(table, "Version: ", 0, 1, 4, 5)
+        self.add_label(table, "Description: ", 0, 1, 5, 6)
 
-        # abstract expand
-        self.abstract = self.add_label(table, "", 1, 2, 0, 1)
-        self.extend = self.add_label(table, "", 1, 2, 1, 2)
-
-        #version
-        self.version = self.add_label(table, "", 1, 2, 1, 2)
-
+        #id
+        self.id_profil = self.add_label(table, "", 1, 2, 0, 1)
+        
         #title
         hbox = gtk.HBox()
         self.title = gtk.Label()
         self.title.set_alignment(0, 0.5)
-        table.attach(hbox, 1, 2, 3, 4,gtk.FILL,gtk.FILL, 0, 3)
+        table.attach(hbox, 1, 2, 1, 2,gtk.FILL,gtk.FILL, 0, 3)
         hbox.pack_start(self.title, expand=True, fill=True, padding=0)
         self.but_title = gtk.Button("...")
         self.but_title.connect("clicked", self.cb_btnLang, "Titles", self.core, "titles")
         hbox.pack_start(self.but_title, expand=False, fill=True, padding=0)
+        
+        # abstract expand
+        self.abstract = self.add_label(table, "", 1, 2, 2, 3)
+        self.extend = self.add_label(table, "", 1, 2, 3, 4)
+
+        #version
+        self.version = self.add_label(table, "", 1, 2, 4, 5)
+
+
 
         #description
         hbox = gtk.HBox()
         self.description = gtk.Label()
         self.description.set_alignment(0, 0.5)
-        table.attach(hbox, 1, 2, 4, 5,gtk.EXPAND|gtk.FILL,gtk.FILL, 0, 3)
+        table.attach(hbox, 1, 2, 5, 6,gtk.EXPAND|gtk.FILL,gtk.FILL, 0, 3)
         #table.attach(hbox, 1, 2, 4, 5,gtk.EXPAND|gtk.FILL,gtk.EXPAND|gtk.FILL, 0, 3)
         hbox.pack_start(self.description, expand=True, fill=True, padding=0)
         self.but_description = gtk.Button("...")
