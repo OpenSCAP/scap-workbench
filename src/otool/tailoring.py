@@ -93,6 +93,31 @@ class DepsList(abstract.List):
             (model, iter) = selection.get_selected( )
             if iter: self.core.selected_deps = model.get_value(iter, 0)
 
+class ValuesList(abstract.List):
+    
+    def __init__(self, core=None):
+        self.core = core
+        self.data_model = commands.DHValues(core)
+        abstract.List.__init__(self, "gui:tailoring:refines:values_list", core)
+        self.get_TreeView().set_enable_tree_lines(True)
+
+        selection = self.get_TreeView().get_selection()
+        selection.set_mode(gtk.SELECTION_SINGLE)
+
+        # actions
+        self.add_receiver("gui:tailoring:refines:item_list", "update", self.__update)
+        selection.connect("changed", self.cb_item_changed, self.get_TreeView())
+
+    def __update(self):
+        self.data_model.fill()
+
+    def cb_item_changed(self, widget, treeView):
+
+        selection = treeView.get_selection( )
+        if selection != None: 
+            (model, iter) = selection.get_selected( )
+            if iter: self.core.selected_deps = model.get_value(iter, 0)
+            
 class ProfileList(abstract.List):
     
     def __init__(self, core=None):
@@ -310,7 +335,7 @@ class ProfileDetails(EventObject):
                     self.guiProfiles.set_description(details["descriptions"][lang])
                     break
         else:
-            self.guiProfiles.set_info("", "")
+            self.guiProfiles.set_info("", "", "")
             self.guiProfiles.set_version("")
             self.guiProfiles.set_title("")
             self.guiProfiles.set_description("")
@@ -584,12 +609,12 @@ class MenuButtonRefines(abstract.MenuButton):
         self.cB_severity = gtk.combo_box_entry_new_text()
         alig.add(self.cB_severity)
         
-        self.values_c = self.add_frame_cBox(vbox_refines, "<b>Values</b>", False)
-        list_values = []
-        list_values.append(Value("pokus1", 1, ["34","35","36","37"], 1))
-        list_values.append(Value("pokus2", 1, ["34","35","36","37"], 1))
-        list_values.append(Value("pokus3", 1, ["34","35","36","37"], 1))
-        self.set_values(list_values)
+        #self.values_c = self.add_frame_cBox(vbox_refines, "<b>Values</b>", False)
+        #list_values = []
+        #list_values.append(Value("pokus1", 1, ["34","35","36","37"], 1))
+        #list_values.append(Value("pokus2", 1, ["34","35","36","37"], 1))
+        #list_values.append(Value("pokus3", 1, ["34","35","36","37"], 1))
+        #self.set_values(list_values)
 
         # box for dependecies and something else
         box = gtk.HBox()
@@ -600,15 +625,10 @@ class MenuButtonRefines(abstract.MenuButton):
         self.dependencies = DepsList(core=self.core)
         alig.add(self.dependencies.get_widget())
         
-
-        # smothing else
-        alig = self.add_frame_cBox(box, "<b>Something else</b>",2)
-        sw = gtk.ScrolledWindow()
-        sw.set_shadow_type(gtk.SHADOW_IN)
-        sw.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
-        self.d = gtk.TextView()
-        alig.add(sw)
-        sw.add(self.d)
+        # values
+        alig = self.add_frame_cBox(box, "<b>Values</b>", 2)
+        self.values = ValuesList(core=self.core)
+        alig.add(self.values.get_widget())
         
         body.show_all()
         body.hide()

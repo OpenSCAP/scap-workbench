@@ -236,7 +236,98 @@ class DHDependencies(DataHandler):
             logger.error("No item '%s' in benchmark", id)
             return None
 
+class DHValues(DataHandler):
 
+    def __init__(self, core):
+        
+        DataHandler.__init__(self, core)
+
+    def render(self, treeView):
+        """Make a model ListStore of Dependencies object"""
+
+        self.model = gtk.ListStore(str, str, str)
+        treeView.set_model(self.model)
+
+        """This Cell is used to be first hidden column of tree view
+        to identify the item in list"""
+        txtcell = gtk.CellRendererText()
+        column = gtk.TreeViewColumn("Unique ID", txtcell, text=0)
+        column.set_visible(False)
+        treeView.append_column(column)
+
+        #Cell that contains name values of rule item with values for select.
+
+        # Text
+        txtcell = gtk.CellRendererText()
+        column.pack_start(txtcell, False)
+        column.set_attributes(txtcell, text=1)
+        column = gtk.TreeViewColumn("Value Name", txtcell, text=1) 
+        treeView.append_column(column)
+        
+        #combo
+        lsmodel = gtk.ListStore(str)
+        
+        self.com = ("item 1",
+           "item 2",
+           "item 3",
+           "item 4",
+           "item 5")
+           
+        for m in self.com:
+          lsmodel.append([m])
+          
+        cellcombo = gtk.CellRendererCombo()
+        cellcombo.set_property("text-column", 0)
+        cellcombo.set_property("editable", True)
+        cellcombo.set_property("has-entry", False)
+        cellcombo.set_property("model", lsmodel)
+        cellcombo.connect("edited", self.cellcombo_edited)
+        column = gtk.TreeViewColumn("Values", cellcombo, text=2)
+        treeView.append_column(column)
+
+    def fill(self, item=None):
+
+        # !!!!
+        self.selected_profile   = self.core.selected_profile
+        self.selected_item      = self.core.selected_item
+
+        """If item is None, then this is first call and we need to get the item
+        from benchmark. Otherwise it's recursive call and the item is already
+        set up and we recursively add the parent till we hit the benchmark
+        """
+        if item == None:
+            self.model.clear()
+            if self.selected_item != None:
+                item = self.benchmark.get_item(self.selected_item)
+                if item == None: 
+                    logger.error("XCCDF Item \"%s\" does not exists. Can't fill data", self.selected_item)
+                    raise Error, "XCCDF Item \"%s\" does not exists. Can't fill data", self.selected_item
+            else: return
+        
+        # Append a couple of rows.
+        self.model.prepend(["er", "More text", "Click here to select an item."])
+        self.model.append(["er", "More text", "Click here to select an item."])
+        self.model.append(["er", "More text", "Click here to select an item."])
+        self.model.append(["er", "More text", "Click here to select an item."])
+        # TODO: Add requires / conflicts
+
+        """let's go recursively through parents and add them. This should be more 
+        complex and check if all parents meet their requirements
+        """
+        #if item.parent.type != openscap.OSCAP.XCCDF_BENCHMARK:
+            #selected = [gtk.STOCK_CANCEL, gtk.STOCK_APPLY][self.get_selected(item.parent)]
+            #logger.info("Added line %s | %s | %s", item.parent.id, "Group: "+item.parent.title[0].text, selected)
+            #item_it = self.model.prepend([item.parent.id, gtk.STOCK_DND_MULTIPLE, "Group: "+item.parent.title[0].text, selected])
+            #self.fill(item.parent)
+
+        return True
+
+    
+    def cellcombo_edited(self, cellrenderertext, path, new_text):
+        treeviewmodel = self.treeview.get_model()
+        iter = treeviewmodel.get_iter(path)
+        treeviewmodel.set_value(iter, 1, new_text)
+        
 class DHItemsTree(DataHandler):
 
     def __init__(self, core):
