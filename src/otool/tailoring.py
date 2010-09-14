@@ -191,11 +191,18 @@ class ItemDetails(EventObject):
         self.description.realize()
         self.description.set_redraw_on_allocate(True)
         
-        referencies = ""
-        for ref in details["references"]:
-               referencies += "%s: %s\n" % (ref[0], ref[1])
-        self.ref.set_text(referencies)
-        
+        for i, ref in enumerate(details["references"]):
+            text = "%d) <a href= '%s' > %s </a>" % (i+1, ref[1], ref[0])
+            label = gtk.Label(text)
+            label.set_tooltip_text(ref[1])
+            label.set_use_markup(True)
+            label.set_track_visited_links(True)
+            label.set_line_wrap(True)
+            label.set_line_wrap_mode(pango.WRAP_WORD) 
+            label.set_alignment(0,0)
+            label.show()
+            self.refBox.pack_start(label, True, True)
+            
         if "fixes" in details: self.fixes.set_text(details["fixes"] or "")
         else: self.fixes.set_text("")
 
@@ -272,15 +279,10 @@ class ItemDetails(EventObject):
         label.set_use_markup(True)
         alig = gtk.Alignment(0.5, 0.5, 1, 1)
         alig.set_padding(0,0,12,4)
-        vbox = gtk.VBox()
-        alig.add(vbox)
-        vbox.pack_start(gtk.HSeparator(), expand=True, fill=True, padding=3)
-        self.ref = gtk.Label()
-        self.ref.set_line_wrap(True)
-        self.ref.set_line_wrap_mode(pango.WRAP_WORD) 
-        self.ref.set_alignment(0,0)
-        vbox.pack_start(self.ref, expand=False, fill=True, padding=1)
         expander.add(alig)
+        self.refBox = gtk.VBox()
+        alig.add(self.refBox)
+        self.refBox.pack_start(gtk.HSeparator(), expand=True, fill=True, padding=3)
         self.box_details.pack_start(expander, expand=False, fill=False, padding=1)
 
         #fixes
