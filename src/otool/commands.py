@@ -58,6 +58,15 @@ class DataHandler:
                     return False
             return item.selected
 
+    def get_item_values(self, id):
+
+        if self.selected_profile == None:
+            policy = self.lib["policy_model"].policies[0]
+        else: policy = self.lib["policy_model"].get_policy_by_id(self.selected_profile)
+
+        print policy.get_values_by_rule_id(id)
+        return policy.get_values_by_rule_id(id)
+
     def get_item_details(self, id):
         """get_item_details -- get details of XCCDF_ITEM"""
 
