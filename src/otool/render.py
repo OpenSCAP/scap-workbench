@@ -26,6 +26,7 @@ import pygtk
 import gtk
 import gobject
 import logging
+import pango
 
 import core
 import abstract
@@ -34,6 +35,30 @@ import logging
 import commands
 
 logger = logging.getLogger("OSCAPEditor")
+
+def label_set_autowrap(widget): 
+    "Make labels automatically re-wrap if their containers are resized.  Accepts label or container widgets."
+    # For this to work the label in the glade file must be set to wrap on words.
+    if isinstance(widget, gtk.Container):
+        children = widget.get_children()
+        for i in xrange(len(children)):
+            label_set_autowrap(children[i])
+    elif isinstance(widget, gtk.Label) and widget.get_line_wrap():
+        widget.connect_after("size-allocate", label_size_allocate)
+
+
+def label_size_allocate(widget, allocation):
+    "Callback which re-allocates the size of a label."
+    layout = widget.get_layout()
+    lw_old, lh_old = layout.get_size()
+    # fixed width labels
+    if lw_old / pango.SCALE == allocation.width:
+        return
+    # set wrap width to the pango.Layout of the labels
+    layout.set_width(allocation.width * pango.SCALE)
+    lw, lh = layout.get_size()  # lw is unused.
+    if lh_old != lh:
+        widget.set_size_request(-1, lh / pango.SCALE)
 
 class MenuButtonXCCDF(abstract.MenuButton):
     """
@@ -261,6 +286,7 @@ class MainWindow(abstract.Window):
         
         self.window.show()
         self.menu.show()
+        label_set_autowrap(self.window)
 
     def delete_event(self, widget, event, data=None):
         """ close the window and quit

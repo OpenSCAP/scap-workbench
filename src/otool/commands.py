@@ -220,10 +220,34 @@ class DataHandler:
         return None
         
     def __rule_get_fixes(self, item):
-        return None
+        fixes = []
+        for fix in item.fixes:
+            fx = {}
+            fx["id"] = fix.id
+            fx["complexity"] = fix.complexity
+            fx["disruption"] = fix.disruption
+            fx["platform"] = fix.platform
+            fx["reboot"] = fix.reboot
+            fx["strategy"] = fix.strategy
+            fx["system"] = fix.system
+            fx["text"] = fix.content
+            fixes.append(fx)
+
+        return fixes
 
     def __rule_get_fixtexts(self, item):
-        return None
+        fixtexts = []
+        for fixtext in item.fixtexts:
+            ft = {}
+            ft["fixref"] = fixtext.fixref
+            ft["reboot"] = fixtext.reboot
+            ft["strategy"] = fixtext.strategy
+            ft["text"] = fixtext.text.text
+            ft["comlexity"] = fixtext.complexity
+            ft["disruption"] = fixtext.disruption
+            fixtexts.append(ft)
+
+        return fixtexts
 
 
 class DHDependencies(DataHandler):

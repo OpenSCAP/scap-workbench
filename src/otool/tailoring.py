@@ -34,6 +34,7 @@ from events import EventObject
 
 import commands
 import filter
+import render
 
 logger = logging.getLogger("OSCAPEditor")
 
@@ -174,37 +175,67 @@ class ItemDetails(EventObject):
         self.type.set_text(details["typetext"])
         self.weight.set_text(str(details["weight"]))
 
+        # clear
+        self.description.set_text("")
+        self.description.set_tooltip_text("")
+        self.title.set_text("")
+        for child in self.refBox.get_children():
+            child.destroy()
+        for child in self.fixBox.get_children():
+            child.destroy()
+        fixes = []
+
         if self.core.selected_lang in details["titles"]: 
             self.title.set_text(details["titles"][self.core.selected_lang])
         else: 
             for lang in details["titles"]:
                 self.title.set_text(details["titles"][lang])
                 break
-                
+             
         if self.core.selected_lang in details["descriptions"]: 
-            self.description.set_text(details["descriptions"][self.core.selected_lang][:100]+" ...")
+            self.description.set_text(details["descriptions"][self.core.selected_lang][:200].strip()+" ...")
+            self.description.set_tooltip_text(details["descriptions"][self.core.selected_lang].strip())
         else: 
             for lang in details["descriptions"]:
                 self.description.set_text(details["descriptions"][lang])
                 break
         
-        self.description.realize()
-        self.description.set_redraw_on_allocate(True)
-        
         for i, ref in enumerate(details["references"]):
-            text = "%d) <a href= '%s' > %s </a>" % (i+1, ref[1], ref[0])
+            hbox = gtk.HBox()
+            counter = gtk.Label("%d) " % (i+1,))
+            counter.set_alignment(0,0)
+            hbox.pack_start(counter, False, False)
+            text = "<a href='%s'>%s</a>" % (ref[1], ref[0])
             label = gtk.Label(text)
+            hbox.pack_start(label, True, True)
             label.set_tooltip_text(ref[1])
             label.set_use_markup(True)
             label.set_track_visited_links(True)
             label.set_line_wrap(True)
             label.set_line_wrap_mode(pango.WRAP_WORD) 
             label.set_alignment(0,0)
-            label.show()
-            self.refBox.pack_start(label, True, True)
-            
-        if "fixes" in details: self.fixes.set_text(details["fixes"] or "")
-        else: self.fixes.set_text("")
+            label.connect("size-allocate", render.label_size_allocate)
+            hbox.show_all()
+            self.refBox.pack_start(hbox, True, True)
+
+        if "fixtexts" in details: fixes.extend(details["fixtexts"])
+        if "fixes" in details: fixes.extend(details["fixes"])
+        for i, fixtext in enumerate(fixes):
+            hbox = gtk.HBox()
+            counter = gtk.Label("%d) " % (i+1,))
+            counter.set_alignment(0,0)
+            hbox.pack_start(counter, False, False)
+            label = gtk.Label()
+            label.set_text(fixtext["text"])
+            label.set_tooltip_text(["", "Need reboot\n"][fixtext["reboot"]])
+            hbox.pack_start(label, True, True)
+            label.set_use_markup(True)
+            label.set_line_wrap(True)
+            label.set_line_wrap_mode(pango.WRAP_WORD) 
+            label.set_alignment(0,0)
+            label.connect("size-allocate", render.label_size_allocate)
+            hbox.show_all()
+            self.fixBox.pack_start(hbox, True, True)
 
     def draw(self):
         self.box_details = gtk.VBox()
@@ -215,7 +246,7 @@ class ItemDetails(EventObject):
         label = expander.get_label_widget()
         label.set_use_markup(True)
         alig = gtk.Alignment(0.5, 0.5, 1, 1)
-        alig.set_padding(0,0,12,4)
+        alig.set_padding(0, 10, 12, 4)
         expander.add(alig)
         vbox = gtk.VBox()
         alig.add(vbox)
@@ -259,7 +290,7 @@ class ItemDetails(EventObject):
         label = expander.get_label_widget()
         label.set_use_markup(True)
         alig = gtk.Alignment(0, 0, 1, 1)
-        alig.set_padding(0,0,12,4)
+        alig.set_padding(0, 10, 12, 4)
         vbox = gtk.VBox()
         alig.add(vbox)
         vbox.pack_start(gtk.HSeparator(), expand=True, fill=True, padding=3)
@@ -278,11 +309,13 @@ class ItemDetails(EventObject):
         label = expander.get_label_widget()
         label.set_use_markup(True)
         alig = gtk.Alignment(0.5, 0.5, 1, 1)
-        alig.set_padding(0,0,12,4)
+        alig.set_padding(0, 10, 12, 4)
         expander.add(alig)
+        vbox = gtk.VBox()
+        alig.add(vbox)
+        vbox.pack_start(gtk.HSeparator(), expand=True, fill=True, padding=3)
         self.refBox = gtk.VBox()
-        alig.add(self.refBox)
-        self.refBox.pack_start(gtk.HSeparator(), expand=True, fill=True, padding=3)
+        vbox.pack_start(self.refBox, expand=True, fill=True, padding=0)
         self.box_details.pack_start(expander, expand=False, fill=False, padding=1)
 
         #fixes
@@ -291,15 +324,12 @@ class ItemDetails(EventObject):
         label = expander.get_label_widget()
         label.set_use_markup(True)
         alig = gtk.Alignment(0.5, 0.5, 1, 1)
-        alig.set_padding(0,0,12,4)
+        alig.set_padding(0, 0, 12, 4)
         vbox = gtk.VBox()
         alig.add(vbox)
         vbox.pack_start(gtk.HSeparator(), expand=True, fill=True, padding=3)
-        self.fixes = gtk.Label()
-        self.fixes.set_line_wrap(True)
-        self.fixes.set_line_wrap_mode(pango.WRAP_WORD) 
-        self.fixes.set_alignment(0,0)
-        vbox.pack_start(self.fixes, expand=False, fill=True, padding=1)
+        self.fixBox = gtk.VBox()
+        vbox.pack_start(self.fixBox, expand=True, fill=True, padding=0)
         expander.add(alig)
         self.box_details.pack_start(expander, expand=False, fill=False, padding=1)
 
@@ -331,7 +361,8 @@ class ProfileDetails(EventObject):
                     break
                 
             if self.core.selected_lang in details["descriptions"]: 
-                self.guiProfiles.set_description(details["descriptions"][self.core.selected_lang])
+                self.description.set_text(details["descriptions"][self.core.selected_lang][:200].strip()+" ...")
+                self.description.set_tooltip_text(details["descriptions"][self.core.selected_lang].strip())
             else: 
                 for lang in details["descriptions"]:
                     self.guiProfiles.set_description(details["descriptions"][lang])
@@ -484,8 +515,6 @@ class MenuButtonProfiles(abstract.MenuButton):
 
         #version
         self.version = self.add_label(table, "", 1, 2, 4, 5)
-
-
 
         #description
         hbox = gtk.HBox()
