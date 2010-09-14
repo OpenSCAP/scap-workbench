@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import gtk, logging, sys
+import gtk, logging, sys, re
 import gobject
 logger = logging.getLogger("OSCAPEditor")
 
@@ -37,6 +37,58 @@ class DataHandler:
             logger.error("XCCDF benchmark does not exists. Can't fill data")
             raise Error, "XCCDF benchmark does not exists. Can't fill data"
 
+    def parse_value(self, value):
+
+        # get value properties
+        item = {}
+        item["id"] = value.id
+        item["lang"] = self.lib["policy_model"].benchmark.lang
+        item["titles"] = {}
+        item["descs"] = {}
+        # Titles / Questions
+        if len(value.question):
+            for question in value.question: item["titles"][question.lang] = question.text
+        else: 
+            for title in value.title: item["titles"][title.lang] = title.text
+        if item["lang"] not in item["titles"]: item["titles"][item["lang"]] = ""
+        # Descriptions
+        for desc in value.description: item["descs"][desc.lang] = desc.text
+        if item["lang"] not in item["descs"]: item["descs"][item["lang"]] = ""
+        # Type
+        item["type"] = value.type
+        # Values
+        item["options"] = {}
+        item["choices"] = {}
+        for instance in value.instances:
+            item["options"][instance.selector] = instance.value
+            if len(instance.choices): item["choices"][instance.selector] = instance.choices
+
+        #Get regexp match from match of elements
+
+        # Get regexp match from match elements
+        item["match"] = "|".join([i.match for i in value.instances if i.match])
+
+        # Get regexp match from type of value
+        if not len(item["match"]):
+            item["match"] = ["", "^[\\b]+$", "^.*$", "^[01]$"][value.type]
+
+        if self.selected_profile == None:
+            profile = self.lib["policy_model"].policies[0].profile
+        else: profile = self.lib["policy_model"].get_policy_by_id(self.selected_profile).profile
+        if profile != None:
+            for r_value in profile.refine_values:
+                if r_value.item == value.id:
+                    item["selected"] = (r_value.selector, item["options"][r_value.selector])
+            for s_value in profile.setvalues:
+                if s_value.item == value.id:
+                    item["selected"] = ('', s_value.value)
+
+        if "selected" not in item:
+            if "" in item["options"]: item["selected"] = ('', item["options"][""])
+            else: item["selected"] = ('', '')
+
+        return item
+
     def get_languages(self):
         """Get available languages from XCCDF Benchmark"""
         return [self.lib["policy_model"].benchmark.lang]
@@ -65,8 +117,18 @@ class DataHandler:
             policy = self.lib["policy_model"].policies[0]
         else: policy = self.lib["policy_model"].get_policy_by_id(self.selected_profile)
 
-        print policy.get_values_by_rule_id(id)
-        return policy.get_values_by_rule_id(id)
+        values = []
+        item = self.benchmark.item(id)
+        if item.type == openscap.OSCAP.XCCDF_RULE:
+            return policy.get_values_by_rule_id(id)
+        else:
+            item = item.to_group()
+            values.extend( [self.parse_value(i) for i in item.values] )
+            for i in item.content:
+                if i.type == openscap.OSCAP.XCCDF_GROUP:
+                    values.extend( self.get_item_values(i.id) )
+
+        return values
 
     def get_item_details(self, id):
         """get_item_details -- get details of XCCDF_ITEM"""
@@ -309,23 +371,47 @@ class DHValues(DataHandler):
         
         # Append a couple of rows.
         item = self.benchmark.get_item(self.selected_item)
-        if item.type == openscap.OSCAP.XCCDF_RULE:
-            values = self.get_item_values(self.selected_item)
-            for value in values:
-                lang = value["lang"]
-                model = gtk.ListStore(str, str)
-                for key in value["options"].keys():
-                    if key != '': model.append([key, value["options"][key]])
-                self.model.append([value["id"], value["titles"][lang], value["selected"][1], model])
-
+        values = self.get_item_values(self.selected_item)
+        for value in values:
+            lang = value["lang"]
+            model = gtk.ListStore(str, str)
+            selected = "Unknown value"
+            for key in value["options"].keys():
+                if key != '': model.append([key, value["options"][key]])
+                if value["options"][key] == value["selected"][1]: selected = key
+            self.model.append([value["id"], value["titles"][lang], selected, model])
+        self.treeView.columns_autosize()
+        
         return True
 
-    
-    def cellcombo_edited(self, cellrenderertext, path, new_text):
-        treeviewmodel = self.treeView.get_model()
-        iter = treeviewmodel.get_iter(path)
-        treeviewmodel.set_value(iter, 2, new_text)
+    def cellcombo_edited(self, cell, path, new_text):
+
+        if self.selected_profile == None:
+            policy = self.lib["policy_model"].policies[0]
+        else: policy = self.lib["policy_model"].get_policy_by_id(self.selected_profile)
+
+        model = self.treeView.get_model()
+        iter = model.get_iter(path)
+        id = model.get_value(iter, 0)
+        logger.info("Altering value %s", id)
+        val = self.benchmark.item(id).to_value()
+        value = self.parse_value(val)
+        logger.info("Matching %s agains %s or %s", new_text, value["choices"], value["match"])
+        # Match against pattern as "choices or match"
+        choices = ""
+        if value["selected"][0] in value["choices"]:
+            choices = "|".join(value["choices"][value["selected"][0]])
+            print choices
+            pattern = re.compile(value["match"]+"|"+choices)
+        else: pattern = re.compile(value["match"])
+        if pattern.match(new_text):
+            model.set_value(iter, 2, new_text)
+            logger.error("Regexp matched: text %s match %s", new_text, "|".join([value["match"], choices]))
+            policy.set_tailor_items([{"id":id, "value":new_text}])
+        else: logger.error("Failed regexp match: text %s does not match %s", new_text, "|".join([value["match"], choices]))
+
         
+
 class DHItemsTree(DataHandler):
 
     def __init__(self, core):
