@@ -608,13 +608,6 @@ class MenuButtonRefines(abstract.MenuButton):
         alig = self.add_frame_cBox(vbox_refines, "<b>Severity</b>", False)
         self.cB_severity = gtk.combo_box_entry_new_text()
         alig.add(self.cB_severity)
-        
-        #self.values_c = self.add_frame_cBox(vbox_refines, "<b>Values</b>", False)
-        #list_values = []
-        #list_values.append(Value("pokus1", 1, ["34","35","36","37"], 1))
-        #list_values.append(Value("pokus2", 1, ["34","35","36","37"], 1))
-        #list_values.append(Value("pokus3", 1, ["34","35","36","37"], 1))
-        #self.set_values(list_values)
 
         # box for dependecies and something else
         box = gtk.HBox()
@@ -831,7 +824,6 @@ class NewProfileWindow(abstract.Window):
         self.window.destroy()
 
 
-
 class Language_form():
     """
     Form for show information in accessible languages
@@ -862,14 +854,3 @@ class Language_form():
             label_text.set_text("no " + data)
         
         self.window.show_all()
-
-class Value(abstract.EventObject):
-    """
-    Structre for create iformation for value
-    """
-    def __init__(self, name, id, list_values, default, old_value=None):
-        self.name = name
-        self.id = id
-        self.list_values = list_values
-        self.default = default
-        self.old_value = old_value

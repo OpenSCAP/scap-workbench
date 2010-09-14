@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import gtk, logging, sys
+import gobject
 logger = logging.getLogger("OSCAPEditor")
 
 sys.path.append("/tmp/scap/usr/local/lib64/python2.6/site-packages")
@@ -253,47 +254,40 @@ class DHValues(DataHandler):
 
     def render(self, treeView):
         """Make a model ListStore of Dependencies object"""
-
-        self.model = gtk.ListStore(str, str, str)
-        treeView.set_model(self.model)
+        self.treeView = treeView
+        self.model = gtk.ListStore(str, str, str, gtk.TreeModel)
+        self.treeView.set_model(self.model)
 
         """This Cell is used to be first hidden column of tree view
         to identify the item in list"""
         txtcell = gtk.CellRendererText()
         column = gtk.TreeViewColumn("Unique ID", txtcell, text=0)
         column.set_visible(False)
-        treeView.append_column(column)
-
-        #Cell that contains name values of rule item with values for select.
+        self.treeView.append_column(column)
 
         # Text
         txtcell = gtk.CellRendererText()
+        txtcell.set_property("editable", False)
         column.pack_start(txtcell, False)
         column.set_attributes(txtcell, text=1)
         column = gtk.TreeViewColumn("Value Name", txtcell, text=1) 
-        treeView.append_column(column)
-        
-        #combo
-        lsmodel = gtk.ListStore(str)
-        
-        self.com = ("item 1",
-           "item 2",
-           "item 3",
-           "item 4",
-           "item 5")
-           
-        for m in self.com:
-          lsmodel.append([m])
-          
-        cellcombo = gtk.CellRendererCombo()
-        cellcombo.set_property("text-column", 0)
-        cellcombo.set_property("editable", True)
-        cellcombo.set_property("has-entry", False)
-        cellcombo.set_property("model", lsmodel)
-        cellcombo.connect("edited", self.cellcombo_edited)
-        column = gtk.TreeViewColumn("Values", cellcombo, text=2)
-        treeView.append_column(column)
+        self.treeView.append_column(column)
 
+        #combo
+        cellcombo = gtk.CellRendererCombo()
+        cellcombo.set_property("editable", True)
+        cellcombo.set_property("text-column", 0)
+        cellcombo.connect("edited", self.cellcombo_edited)
+        column = gtk.TreeViewColumn("Values", cellcombo, text=2, model=3)
+        self.treeView.append_column(column)
+
+        
+    # renderer cell comboBox with owen model
+    def set_modelCombo(self, column, cell, model, iter):
+        model =  model.get_value(iter, 3)
+        cell.set_property("model", model)
+        return
+        
     def fill(self, item=None):
 
         # !!!!
@@ -314,28 +308,23 @@ class DHValues(DataHandler):
             else: return
         
         # Append a couple of rows.
-        self.model.prepend(["er", "More text", "Click here to select an item."])
-        self.model.append(["er", "More text", "Click here to select an item."])
-        self.model.append(["er", "More text", "Click here to select an item."])
-        self.model.append(["er", "More text", "Click here to select an item."])
-        # TODO: Add requires / conflicts
-
-        """let's go recursively through parents and add them. This should be more 
-        complex and check if all parents meet their requirements
-        """
-        #if item.parent.type != openscap.OSCAP.XCCDF_BENCHMARK:
-            #selected = [gtk.STOCK_CANCEL, gtk.STOCK_APPLY][self.get_selected(item.parent)]
-            #logger.info("Added line %s | %s | %s", item.parent.id, "Group: "+item.parent.title[0].text, selected)
-            #item_it = self.model.prepend([item.parent.id, gtk.STOCK_DND_MULTIPLE, "Group: "+item.parent.title[0].text, selected])
-            #self.fill(item.parent)
+        item = self.benchmark.get_item(self.selected_item)
+        if item.type == openscap.OSCAP.XCCDF_RULE:
+            values = self.get_item_values(self.selected_item)
+            for value in values:
+                lang = value["lang"]
+                model = gtk.ListStore(str, str)
+                for key in value["options"].keys():
+                    if key != '': model.append([key, value["options"][key]])
+                self.model.append([value["id"], value["titles"][lang], value["selected"][1], model])
 
         return True
 
     
     def cellcombo_edited(self, cellrenderertext, path, new_text):
-        treeviewmodel = self.treeview.get_model()
+        treeviewmodel = self.treeView.get_model()
         iter = treeviewmodel.get_iter(path)
-        treeviewmodel.set_value(iter, 1, new_text)
+        treeviewmodel.set_value(iter, 2, new_text)
         
 class DHItemsTree(DataHandler):
 
