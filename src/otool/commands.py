@@ -367,13 +367,6 @@ class DHValues(DataHandler):
         column = gtk.TreeViewColumn("Values", cellcombo, text=2, model=3)
         self.treeView.append_column(column)
 
-        
-    # renderer cell comboBox with owen model
-    def set_modelCombo(self, column, cell, model, iter):
-        model =  model.get_value(iter, 3)
-        cell.set_property("model", model)
-        return
-        
     def fill(self, item=None):
 
         # !!!!

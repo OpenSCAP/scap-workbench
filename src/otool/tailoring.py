@@ -541,57 +541,16 @@ class MenuButtonRefines(abstract.MenuButton):
         abstract.MenuButton.__init__(self, "gui:btn:tailoring:refines", "Refines", None, c_body, sensitivity)
         self.core = core
         self.c_body = c_body
-        
-        #referencies
-        self.label_abstract = None
-        self.label_extend = None
-        self.details = None
-        self.defendecies = None
+
         #draw body
         self.body = self.draw_body()
 
         # set signals
         self.add_sender(self.id, "update")
-        
-    #set functions
-        
-    def set_values(self, list_values):
-        """ 
-        The function create comboBoxs for set values
-        @param list_values list of objects with name, id, list of values for selection
-        """
-        radek = 0
-        self.vbox = gtk.VBox()
-        for value in list_values:
-            label = gtk.Label(value.name+": ")
-            label.set_alignment(0, 0.5)
-            self.vbox.pack_start(label, expand=False, fill=True, padding=0)
-            comboBox = gtk.combo_box_entry_new_text()
-            for val in value.list_values:
-                comboBox.append_text(val)
-            comboBox.connect('changed', self.cb_values)
-            self.vbox.pack_start(comboBox, expand=False, fill=True, padding=0)
-        self.values_c.add(self.vbox)
-        
-    def destroy_values(self):
-        """
-        The function destroy table with values
-        """
-        self.table.destroy()
-        
-    #callBack functions
 
-    def cb_values(self, widget):
-        logger.info("Changed value %s", widget)
-        pass
-
+    #draw
     def draw_body(self):
         body = gtk.VBox()
-    
-        # label info with profile name
-        #self.label_info = gtk.Label("None")
-        #body.pack_start(self.label_info, expand=False, fill=True, padding=0)
-        #body.pack_start(gtk.HSeparator(), expand=False, fill=True, padding=4)
         
         #main body
         vpaned_main = gtk.VPaned()
@@ -640,7 +599,7 @@ class MenuButtonRefines(abstract.MenuButton):
         self.cB_severity = gtk.combo_box_entry_new_text()
         alig.add(self.cB_severity)
 
-        # box for dependecies and something else
+        # box for dependecies and values
         box = gtk.HBox()
         vpaned_main.pack2(box, False, False)
         
