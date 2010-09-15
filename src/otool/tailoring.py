@@ -32,6 +32,7 @@ import logging
 import core
 from events import EventObject
 
+    
 import commands
 import filter
 import render
@@ -342,6 +343,93 @@ class ItemDetails(EventObject):
         expander.add(alig)
         self.box_details.pack_start(expander, expand=False, fill=True, padding=1)
 
+class RefineDetails(EventObject):
+    
+    def __init__(self, core):
+        #create view
+        self.core = core
+        EventObject.__init__(self, self.core)
+        self.data_model = commands.DataHandler(self.core)
+
+        self.add_receiver("gui:tailoring:refines:item_list", "update", self.__update)
+        self.add_receiver("gui:tailoring:refines:item_list", "changed", self.__update)
+
+        self.draw()
+
+    def __update(self):
+
+        details = self.data_model.get_item_details(self.core.selected_item)
+
+        if details["typetext"] == "Rule":
+
+            self.combo_role.set_model(self.model_role)
+            if "role" in details:
+                self.combo_role.set_active(details["role"])
+            else:
+                self.combo_role.set_active(0)
+
+            self.combo_severity.set_model(self.model_severity)
+            if "severity" in details:
+                self.combo_severity.set_active(details["severity"])
+            else:
+                self.combo_severity.set_active(0)
+        else:
+            self.combo_role.set_model(gtk.ListStore(str))
+            self.combo_severity.set_model(gtk.ListStore(str))
+
+    def draw(self):
+        
+        self.vbox_refines = gtk.VBox()
+        
+        #alig = self.add_frame_cBox(self.vbox_refines, "<b>Operator</b>", False)
+        #self.cB_operator = gtk.combo_box_entry_new_text()
+        #alig.add(self.cB_operator)
+        
+        #alig = self.add_frame_cBox(self.vbox_refines, "<b>Check</b>", False)
+        #self.cB_check = gtk.combo_box_entry_new_text()
+        #alig.add(self.cB_check)
+        
+        self.model_role = self.create_model(["Full", "Unscored", "Unchecked"])
+        self.combo_role = self.add_cBox(self.vbox_refines, "<b>Role</b>", False)
+        self.combo_role.connect('changed', self.cb_changed, "role")
+        
+        
+        self.model_severity = self.create_model(["Unkonown", "Info", "Low", "Medium", "High"])
+        self.combo_severity = self.add_cBox(self.vbox_refines, "<b>Severity</b>", False)
+        self.combo_severity.connect('changed', self.cb_changed, "severity")
+        
+
+    def create_model(self, data):
+        model = gtk.ListStore(str)
+        for item in data:
+            print item
+            model.append([item])
+        return model
+        
+    def add_cBox(self, body, text, expand):
+        
+        combo = gtk.ComboBox()
+        cell = gtk.CellRendererText()
+        combo.pack_start(cell)
+        combo.add_attribute(cell, 'text', 0)
+        
+        frame = gtk.Frame(text)
+        label = frame.get_label_widget()
+        label.set_use_markup(True)        
+        frame.set_shadow_type(gtk.SHADOW_NONE)
+        if expand: body.pack_start(frame, True, True)
+        else: body.pack_start(frame, False, True)
+        alig = gtk.Alignment(0.5, 0.5, 1, 1)
+        alig.set_padding(0, 0, 12, 0)
+        frame.add(alig)
+        alig.add(combo)
+        return combo
+        
+    def cb_changed(self, widget, data):
+        pass
+        #TODO
+    
+    
 class ProfileDetails(EventObject):
 
     def __init__(self, core, guiProfiles):
@@ -589,24 +677,8 @@ class MenuButtonRefines(abstract.MenuButton):
         notebook.append_page(box_details.box_details, gtk.Label("Details"))
 
         #set refines
-        vbox_refines = gtk.VBox()
-        notebook.append_page(vbox_refines, gtk.Label("Refines"))
-        
-        alig = self.add_frame_cBox(vbox_refines, "<b>Operator</b>", False)
-        self.cB_operator = gtk.combo_box_entry_new_text()
-        alig.add(self.cB_operator)
-        
-        alig = self.add_frame_cBox(vbox_refines, "<b>Check</b>", False)
-        self.cB_check = gtk.combo_box_entry_new_text()
-        alig.add(self.cB_check)
-        
-        alig = self.add_frame_cBox(vbox_refines, "<b>Role</b>", False)
-        self.cB_role = gtk.combo_box_entry_new_text()
-        alig.add(self.cB_role)
-        
-        alig = self.add_frame_cBox(vbox_refines, "<b>Severity</b>", False)
-        self.cB_severity = gtk.combo_box_entry_new_text()
-        alig.add(self.cB_severity)
+        redDetails = RefineDetails(self.core)
+        notebook.append_page(redDetails.vbox_refines, gtk.Label("Refines"))
 
         # box for dependecies and values
         box = gtk.HBox()
