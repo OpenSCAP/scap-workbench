@@ -196,17 +196,14 @@ class ItemDetails(EventObject):
 
         description = ""
         if self.core.selected_lang in details["descriptions"]: 
-            #self.description.set_text(details["descriptions"][self.core.selected_lang].strip())
-            #self.description.set_tooltip_text(details["descriptions"][self.core.selected_lang].strip())
             description = details["descriptions"][self.core.selected_lang].replace("xhtml:","")
             description = description.replace("xmlns:", "")
         else: 
             for lang in details["descriptions"]:
-                #self.description.set_text(details["descriptions"][lang])
                 description = details["descriptions"][lang]
                 break
         if description == "": description = "No description"
-        description = "<html><body>"+description+"</body></html>"
+        description = "<body>"+description+"</body>"
         self.description.display_html(description)
         
         for i, ref in enumerate(details["references"]):
@@ -221,7 +218,7 @@ class ItemDetails(EventObject):
             label.set_use_markup(True)
             label.set_track_visited_links(True)
             label.set_line_wrap(True)
-            label.set_line_wrap_mode(gtk.WRAP_WORD) 
+            label.set_line_wrap_mode(pango.WRAP_WORD) 
             label.set_alignment(0,0)
             label.connect("size-allocate", render.label_size_allocate)
             hbox.show_all()
@@ -240,7 +237,7 @@ class ItemDetails(EventObject):
             hbox.pack_start(label, True, True)
             label.set_use_markup(True)
             label.set_line_wrap(True)
-            label.set_line_wrap_mode(gtk.WRAP_WORD) 
+            label.set_line_wrap_mode(pango.WRAP_WORD) 
             label.set_alignment(0,0)
             label.connect("size-allocate", render.label_size_allocate)
             hbox.show_all()
@@ -259,7 +256,7 @@ class ItemDetails(EventObject):
         expander.add(alig)
         vbox = gtk.VBox()
         alig.add(vbox)
-        vbox.pack_start(gtk.HSeparator(), expand=False, fill=True, padding=1)
+        vbox.pack_start(gtk.HSeparator(), expand=False, fill=False, padding=1)
         self.box_details.pack_start(expander, expand=False, fill=False, padding=1)
 
         #id
@@ -267,23 +264,23 @@ class ItemDetails(EventObject):
         hbox.pack_start(gtk.Label("ID: "), expand=False, fill=False, padding=1)
         self.id = gtk.Label("")
         hbox.pack_start(self.id, expand=False, fill=False, padding=1)
-        vbox.pack_start(hbox, expand=False, fill=True, padding=1)
+        vbox.pack_start(hbox, expand=False, fill=False, padding=1)
 
         #title
         hbox = gtk.HBox()
         hbox.pack_start(gtk.Label("Title: "), expand=False, fill=False, padding=1)
         self.title = gtk.Label("")
         self.title.set_line_wrap(True)
-        self.title.set_line_wrap_mode(gtk.WRAP_WORD)
+        self.title.set_line_wrap_mode(pango.WRAP_WORD)
         self.title.set_alignment(0,0)
         hbox.pack_start(self.title, expand=False, fill=False, padding=1)
-        vbox.pack_start(hbox, expand=False, fill=True, padding=1)
+        vbox.pack_start(hbox, expand=False, fill=False, padding=1)
 
         #type
         hbox = gtk.HBox()
         hbox.pack_start(gtk.Label("Type: "), expand=False, fill=False, padding=1)
         self.type = gtk.Label("")
-        hbox.pack_start(self.type, expand=False, fill=False, padding=1)
+        hbox.pack_start(self.type, expand=False, fill=True, padding=1)
         vbox.pack_start(hbox, expand=False, fill=True, padding=1)
         
         #weight
@@ -291,7 +288,7 @@ class ItemDetails(EventObject):
         hbox.pack_start(gtk.Label("Weight: "), expand=False, fill=False, padding=1)
         self.weight = gtk.Label("")
         hbox.pack_start(self.weight, expand=False, fill=False, padding=1)
-        vbox.pack_start(hbox, expand=False, fill=True, padding=1)
+        vbox.pack_start(hbox, expand=False, fill=False, padding=1)
         
         #description
         expander = gtk.Expander("<b>Description</b>")
@@ -302,23 +299,18 @@ class ItemDetails(EventObject):
         alig.set_padding(0, 10, 12, 4)
         vbox = gtk.VBox()
         alig.add(vbox)
-        vbox.pack_start(gtk.HSeparator(), expand=True, fill=True, padding=3)
+        vbox.pack_start(gtk.HSeparator(), expand=False, fill=False, padding=3)
         self.description = HtmlTextView()
         self.description.set_wrap_mode(gtk.WRAP_WORD)
-        #sw = gtk.ScrolledWindow()
-        #sw.set_property("hscrollbar-policy", gtk.POLICY_AUTOMATIC)
-        #sw.set_property("vscrollbar-policy", gtk.POLICY_AUTOMATIC)
-        #sw.set_property("border-width", 0)
-        #sw.add(self.description)
-        #sw.show()
-        #self.description = gtk.Label()
-        #self.description.set_line_wrap(True)
-        #self.description.set_line_wrap_mode(pango.WRAP_WORD)
-        #self.description.set_alignment(0,0)
-
-        vbox.pack_start(self.description, expand=True, fill=True, padding=1)
+        sw = gtk.ScrolledWindow()
+        sw.set_property("hscrollbar-policy", gtk.POLICY_AUTOMATIC)
+        sw.set_property("vscrollbar-policy", gtk.POLICY_AUTOMATIC)
+        sw.set_property("border-width", 0)
+        sw.add(self.description)
+        sw.show()
         expander.add(alig)
-        self.box_details.pack_start(expander, expand=False, fill=False, padding=1)
+        vbox.pack_start(sw, expand=True, fill=True, padding=1)
+        self.box_details.pack_start(expander, expand=True, fill=True, padding=1)
         
         #References
         expander = gtk.Expander("<b>References</b>")
@@ -330,10 +322,10 @@ class ItemDetails(EventObject):
         expander.add(alig)
         vbox = gtk.VBox()
         alig.add(vbox)
-        vbox.pack_start(gtk.HSeparator(), expand=True, fill=True, padding=3)
+        vbox.pack_start(gtk.HSeparator(), expand=False, fill=True, padding=3)
         self.refBox = gtk.VBox()
-        vbox.pack_start(self.refBox, expand=True, fill=True, padding=0)
-        self.box_details.pack_start(expander, expand=False, fill=False, padding=1)
+        vbox.pack_start(self.refBox, expand=False, fill=True, padding=0)
+        self.box_details.pack_start(expander, expand=False, fill=True, padding=1)
 
         #fixes
         expander = gtk.Expander("<b>Fixes</b>")
@@ -341,14 +333,14 @@ class ItemDetails(EventObject):
         label = expander.get_label_widget()
         label.set_use_markup(True)
         alig = gtk.Alignment(0.5, 0.5, 1, 1)
-        alig.set_padding(0, 0, 12, 4)
+        alig.set_padding(0, 10, 12, 4)
         vbox = gtk.VBox()
         alig.add(vbox)
-        vbox.pack_start(gtk.HSeparator(), expand=True, fill=True, padding=3)
+        vbox.pack_start(gtk.HSeparator(), expand=False, fill=True, padding=3)
         self.fixBox = gtk.VBox()
-        vbox.pack_start(self.fixBox, expand=True, fill=True, padding=0)
+        vbox.pack_start(self.fixBox, expand=False, fill=True, padding=0)
         expander.add(alig)
-        self.box_details.pack_start(expander, expand=False, fill=False, padding=1)
+        self.box_details.pack_start(expander, expand=False, fill=True, padding=1)
 
 class ProfileDetails(EventObject):
 
@@ -590,11 +582,11 @@ class MenuButtonRefines(abstract.MenuButton):
         
         # notebook for details and refines
         notebook = gtk.Notebook()
-        hpaned.pack2(notebook, False, False)
+        hpaned.pack2(notebook, True, True)
  
         #Details 
         box_details = ItemDetails(self.core)
-        notebook.append_page(box_details.box_details, gtk.Label("Detail"))
+        notebook.append_page(box_details.box_details, gtk.Label("Details"))
 
         #set refines
         vbox_refines = gtk.VBox()
