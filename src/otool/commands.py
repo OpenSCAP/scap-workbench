@@ -15,7 +15,7 @@ except Exception as ex:
     logger.error("OpenScap library initialization failed")
     openscap=None
 
-
+from core import thread as threading
 
 class DataHandler:
     """DataHandler Class implements handling data from Openscap library,
@@ -375,7 +375,7 @@ class DHValues(DataHandler):
 
         """If item is None, then this is first call and we need to get the item
         from benchmark. Otherwise it's recursive call and the item is already
-        set up and we recursively add the parent till we hit the benchmark
+        eet up and we recursively add the parent till we hit the benchmark
         """
         if item == None:
             self.model.clear()
@@ -438,6 +438,7 @@ class DHItemsTree(DataHandler):
     def render(self, treeView):
         """Make a model ListStore of Dependencies object"""
 
+        self.treeView = treeView
         self.model = gtk.TreeStore(str, str, str, str)
         treeView.set_model(self.model)
 
@@ -470,9 +471,8 @@ class DHItemsTree(DataHandler):
         column = gtk.TreeViewColumn("Selected", render, stock_id=3)
         treeView.append_column(column)
 
-    def fill(self, item=None, parent=None):
+    def __recursive_fill(self, item=None, parent=None):
 
-        # !!!!
         self.selected_profile   = self.core.selected_profile
         self.selected_item      = self.core.selected_item
 
@@ -485,23 +485,37 @@ class DHItemsTree(DataHandler):
             else: selected = None
             # If item is group, store it ..
             if item.type == openscap.OSCAP.XCCDF_GROUP:
+                gtk.gdk.threads_enter()
                 item_it = self.model.append(parent, [item.id, gtk.STOCK_DND_MULTIPLE, "Group: "+item.title[0].text, selected])
+                self.treeView.queue_draw()
+                gtk.gdk.threads_leave()
                 # .. call recursive
                 for i in item.content:
-                    self.fill(i, item_it)
+                    self.__recursive_fill(i, item_it)
             # item is rule, store it to model
             elif item.type == openscap.OSCAP.XCCDF_RULE:
+                gtk.gdk.threads_enter()
                 item_it = self.model.append(parent, [item.id, gtk.STOCK_DND, "Rule: "+item.title[0].text, selected])
+                self.treeView.queue_draw()
+                gtk.gdk.threads_leave()
             else: logger.warning("Unknown type of %s, should be Rule or Group (got %s)", item.type, item.id)
 
             return # we need to return otherwise it would continue to next block
+        else: return # TODO
 
-        """We don't know item so it's first call and we need to clear
+    @threading
+    def fill(self, item=None, parent=None):
+
+        # !!!!
+        self.selected_profile   = self.core.selected_profile
+        self.selected_item      = self.core.selected_item
+
+        """we don't know item so it's first call and we need to clear
         the model, get the item from benchmark and continue recursively
         through content to fill the tree"""
         self.model.clear()
         for item in self.benchmark.content:
-            self.fill(item)
+            self.__recursive_fill(item)
 
         return True
 

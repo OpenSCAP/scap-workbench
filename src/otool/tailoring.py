@@ -70,6 +70,7 @@ class ItemList(abstract.List):
         if selection != None: 
             (model, iter) = selection.get_selected( )
             if iter: self.core.selected_item = model.get_value(iter, 0)
+        treeView.columns_autosize()
         self.emit("update")
 
 class DepsList(abstract.List):

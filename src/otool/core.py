@@ -23,9 +23,8 @@
 #      Vladimir Oberreiter  <xoberr01@stud.fit.vutbr.cz>
 
 import logging, logging.config
-import sys, gtk, gobject
+import sys, gtk, gobject, threading
 from events import EventObject, EventHandler
-import render
 
 logging.config.fileConfig("logger.conf")
 logger = logging.getLogger("OSCAPEditor")
@@ -38,6 +37,7 @@ try:
 except Exception as ex:
     print ex
     openscap=None
+
 
 class OECore:
 
@@ -62,18 +62,11 @@ class OECore:
         self.selected_deps      = None
         self.selected_lang      = "en"
 
-    def render(self):
-        self.mainWindow = render.MainWindow(self)
-
     def set_sender(self, signal, sender):
         self.eventHandler.set_sender(signal, sender)
 
     def set_receiver(self, sender_id, signal, callback, position):
         self.eventHandler.register_receiver(sender_id, signal, callback, position)
-
-    def run(self):
-        self.render()
-        gtk.main()
 
     def set_callback(self, action, callback, position=None):
         pass
@@ -86,4 +79,35 @@ class OECore:
             model.free()
         for sess in self.lib["sessions"]:
             sess.free()
+
+class ThreadHandler(threading.Thread):
+    """
+    """
+    
+    def __init__(self, func, *args):
+        """ Initializing variables """
+        
+        self.running = False
+        self.__func = func
+        self.args = args
+
+        threading.Thread.__init__(self)
+        self.__stopthread = threading.Event()
+ 
+    def __call__(self, *args):
+        self.start()
+
+    def run(self):
+        """ Run method, this is the code that runs while thread is alive """
+        self.runnung = True
+        logger.debug("Running thread handler ...")
+        self.__func(*self.args)
+        self.running = False
+
+def thread(func):
+    def callback(self, *args):
+        handler = ThreadHandler(func, self, *args)
+        handler.start()
+    return callback
+
 

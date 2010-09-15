@@ -22,7 +22,10 @@
 #      Maros Barabas        <mbarabas@redhat.com>
 #      Vladimir Oberreiter  <xoberr01@stud.fit.vutbr.cz>
 
+import gtk
 import cProfile
-from core import OECore
+from render import MainWindow
 
-cProfile.run('OECore().run()')
+#cProfile.run('MainWindow().run()')
+gtk.gdk.threads_init()
+MainWindow().start()

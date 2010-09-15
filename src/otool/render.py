@@ -27,6 +27,7 @@ import gtk
 import gobject
 import logging
 import pango
+import threading
 
 import core
 import abstract
@@ -217,13 +218,15 @@ class MenuButtonOVAL(abstract.MenuButton):
         self.c_body.add(body)
         return body
 
-class MainWindow(abstract.Window):
+class MainWindow(abstract.Window, threading.Thread):
     """TODO:
     """
 
-    def __init__(self, core):
+    def __init__(self):
+
+        threading.Thread.__init__(self)
         logger = logging.getLogger(self.__class__.__name__)
-        self.core = core
+        self.core = core.OECore()
         # Create a new window
         self.window = gtk.Window(gtk.WINDOW_TOPLEVEL)
         self.window.set_title("Main window")
@@ -309,3 +312,6 @@ class MainWindow(abstract.Window):
         """
         gtk.main_quit()
         return False
+
+    def run(self):
+        gtk.main()
