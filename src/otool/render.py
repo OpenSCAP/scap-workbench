@@ -240,26 +240,26 @@ class MainWindow(abstract.Window, threading.Thread):
         vbox_body = gtk.VBox()
         
         # main menu
-        vbox_menu = gtk.Toolbar()
-        self.vbox_main.pack_start(vbox_menu, expand=False, fill=True, padding=0)
-        self.menu = abstract.Menu("gui:menu", vbox_menu)
+        self.menu = abstract.Menu("gui:menu")
+        self.vbox_main.pack_start(self.menu.widget, expand=False, fill=True, padding=0)
         menu1_but1 = abstract.MenuButton("gui:btn:menu:main", "Main", gtk.STOCK_HOME, vbox_body)
         self.menu.add_item(menu1_but1)
         menu1_but2 = abstract.MenuButton("gui:btn:menu:tailoring", "Tailoring", gtk.STOCK_FIND_AND_REPLACE, vbox_body)
         self.menu.add_item(menu1_but2)
         menu1_but3 = abstract.MenuButton("gui:btn:menu:edit", "Edit", gtk.STOCK_EDIT, vbox_body)
+        menu1_but3.widget.set_sensitive(False)
         self.menu.add_item(menu1_but3)
         menu1_but4 = scan.MenuButtonScan(vbox_body, core=self.core)
         #menu1_but4 = scan.MenuButtonXCCDF(vbox_body, core=self.core)
         self.menu.add_item(menu1_but4)
         menu1_but5 = abstract.MenuButton("gui:btn:menu:reports", "Reports", gtk.STOCK_DIALOG_INFO, vbox_body)
+        menu1_but5.widget.set_sensitive(False)
         self.menu.add_item(menu1_but5)
         
         
         # subMenu_but_main
-        vbox_submenu = gtk.Toolbar()
-        self.vbox_main.pack_start(vbox_submenu, expand=False, fill=True, padding=0)
-        self.submenu = abstract.Menu("gui:menu:main", vbox_submenu)
+        self.submenu = abstract.Menu("gui:menu:main")
+        self.vbox_main.pack_start(self.submenu.widget, expand=False, fill=True, padding=0)
         menu2_but1 = MenuButtonXCCDF(vbox_body, core=self.core)
         self.submenu.add_item(menu2_but1)
         menu2_but2 = MenuButtonOVAL(vbox_body, core=self.core)
@@ -267,13 +267,14 @@ class MainWindow(abstract.Window, threading.Thread):
         menu1_but1.set_menu(self.submenu)
 
         # subMenu_but_tailoring
-        vbox_submenu1 = gtk.Toolbar()
-        self.vbox_main.pack_start(vbox_submenu1, expand=False, fill=True, padding=0)
-        self.submenu1 = abstract.Menu("gui:menu:tailoring", vbox_submenu1)
+        self.submenu1 = abstract.Menu("gui:menu:tailoring")
+        self.vbox_main.pack_start(self.submenu1.widget, expand=False, fill=True, padding=0)
         menu3_but1 = tailoring.MenuButtonProfiles(vbox_body, core=self.core)
         self.submenu1.add_item(menu3_but1)
         menu3_but2 = tailoring.MenuButtonRefines(vbox_body, core=self.core)
         self.submenu1.add_item(menu3_but2)
+        #self.progress = abstract.ProgressBar("gui:menu:progress", core=self.core)
+        #self.submenu1.add_item(self.progress)
         menu1_but2.set_menu(self.submenu1)
 
         # subMenu_but_edit

@@ -92,8 +92,8 @@ class MenuButtonScan(abstract.MenuButton):
         vbox_main.pack_start(gtk.HSeparator(), False, True, 2)
         
         #Progress Bar
-        self.progerss = gtk.ProgressBar()
-        vbox_main.pack_start(self.progerss, False, True, 2)
+        self.progress = gtk.ProgressBar()
+        vbox_main.pack_start(self.progress, False, True, 2)
         
         #Buttons
         btnBox = gtk.HButtonBox()

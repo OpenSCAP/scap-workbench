@@ -36,17 +36,16 @@ class Menu(EventObject):
     """ 
     Create Main item for TreeToolBar_toggleButtonGroup and draw all tree Menu
     """
-    def __init__(self, id, c_toolBar):
+    def __init__(self, id):
         """
         @param id
-        @param c_toolBar Conteiner for menu.
         """
         self.id = id
         super(Menu, self).__init__()
         self.btnList = []
         self.active_item = None
         self.default_item = None
-        self.c_toolBar = c_toolBar
+        self.widget = gtk.Toolbar()
 	
     def add_item(self, item, position=None):
         """ 
@@ -60,10 +59,10 @@ class Menu(EventObject):
         self.btnList.append(item)
         # vizual
         if position != None: 
-            self.c_toolBar.insert_space((position*2)+1)
-            self.c_toolBar.insert(item.widget, position)
+            self.widget.insert_space((position*2)+1)
+            self.widget.insert(item.widget, position)
         else: 
-            self.c_toolBar.insert(item.widget, self.c_toolBar.get_n_items())
+            self.widget.insert(item.widget, self.widget.get_n_items())
 
         item.parent = self
 
@@ -71,7 +70,7 @@ class Menu(EventObject):
         """
         Show the menu and set active itme.
         """
-        self.c_toolBar.show()
+        self.widget.show()
         self.toggle_button(self.active_item)
 
     def set_active(self, active):
@@ -80,7 +79,7 @@ class Menu(EventObject):
         @param active True/False - Show/Hide 
         """
         if active: self.show()
-        else: self.c_toolBar.hide()
+        else: self.widget.hide()
 
     def set_default(self, item):
         """
@@ -256,4 +255,16 @@ class List(EventObject):
     def render(self):
         assert self.data_model, "Data model of %s does not exist !" % (self.id,)
         self.data_model.render(self.get_TreeView())
+
+class ProgressBar(EventObject):
+
+    def __init__(self, id, core=None):
+
+        self.core = core
+        self.widget_btn = gtk.ProgressBar()
+        self.widget_btn.show()
+        self.widget = gtk.ToolItem()
+        self.widget.add(self.widget_btn)
+        self.widget.set_is_important(True)
+        self.widget.show()
 

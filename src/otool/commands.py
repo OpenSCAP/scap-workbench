@@ -514,8 +514,14 @@ class DHItemsTree(DataHandler):
         the model, get the item from benchmark and continue recursively
         through content to fill the tree"""
         self.model.clear()
+        self.treeView.set_sensitive(False)
+        child_win = self.treeView.get_window()
+        cursor = child_win.get_cursor()
+        child_win.set_cursor(gtk.gdk.Cursor(gtk.gdk.WATCH))
         for item in self.benchmark.content:
             self.__recursive_fill(item)
+        self.treeView.set_sensitive(True)
+        child_win.set_cursor(cursor)
 
         return True
 
