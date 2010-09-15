@@ -36,6 +36,8 @@ import commands
 import filter
 import render
 
+from htmltextview import HtmlTextView
+
 logger = logging.getLogger("OSCAPEditor")
 
 class ItemList(abstract.List):
@@ -176,8 +178,8 @@ class ItemDetails(EventObject):
         self.weight.set_text(str(details["weight"]))
 
         # clear
-        self.description.set_text("")
-        self.description.set_tooltip_text("")
+        self.description.get_buffer().set_text("")
+        #self.description.set_tooltip_text("")
         self.title.set_text("")
         for child in self.refBox.get_children():
             child.destroy()
@@ -191,14 +193,21 @@ class ItemDetails(EventObject):
             for lang in details["titles"]:
                 self.title.set_text(details["titles"][lang])
                 break
-             
+
+        description = ""
         if self.core.selected_lang in details["descriptions"]: 
-            self.description.set_text(details["descriptions"][self.core.selected_lang][:200].strip()+" ...")
-            self.description.set_tooltip_text(details["descriptions"][self.core.selected_lang].strip())
+            #self.description.set_text(details["descriptions"][self.core.selected_lang].strip())
+            #self.description.set_tooltip_text(details["descriptions"][self.core.selected_lang].strip())
+            description = details["descriptions"][self.core.selected_lang].replace("xhtml:","")
+            description = description.replace("xmlns:", "")
         else: 
             for lang in details["descriptions"]:
-                self.description.set_text(details["descriptions"][lang])
+                #self.description.set_text(details["descriptions"][lang])
+                description = details["descriptions"][lang]
                 break
+        if description == "": description = "No description"
+        description = "<html><body>"+description+"</body></html>"
+        self.description.display_html(description)
         
         for i, ref in enumerate(details["references"]):
             hbox = gtk.HBox()
@@ -212,7 +221,7 @@ class ItemDetails(EventObject):
             label.set_use_markup(True)
             label.set_track_visited_links(True)
             label.set_line_wrap(True)
-            label.set_line_wrap_mode(pango.WRAP_WORD) 
+            label.set_line_wrap_mode(gtk.WRAP_WORD) 
             label.set_alignment(0,0)
             label.connect("size-allocate", render.label_size_allocate)
             hbox.show_all()
@@ -231,7 +240,7 @@ class ItemDetails(EventObject):
             hbox.pack_start(label, True, True)
             label.set_use_markup(True)
             label.set_line_wrap(True)
-            label.set_line_wrap_mode(pango.WRAP_WORD) 
+            label.set_line_wrap_mode(gtk.WRAP_WORD) 
             label.set_alignment(0,0)
             label.connect("size-allocate", render.label_size_allocate)
             hbox.show_all()
@@ -265,7 +274,7 @@ class ItemDetails(EventObject):
         hbox.pack_start(gtk.Label("Title: "), expand=False, fill=False, padding=1)
         self.title = gtk.Label("")
         self.title.set_line_wrap(True)
-        self.title.set_line_wrap_mode(pango.WRAP_WORD)
+        self.title.set_line_wrap_mode(gtk.WRAP_WORD)
         self.title.set_alignment(0,0)
         hbox.pack_start(self.title, expand=False, fill=False, padding=1)
         vbox.pack_start(hbox, expand=False, fill=True, padding=1)
@@ -294,12 +303,20 @@ class ItemDetails(EventObject):
         vbox = gtk.VBox()
         alig.add(vbox)
         vbox.pack_start(gtk.HSeparator(), expand=True, fill=True, padding=3)
-        self.description = gtk.Label()
-        self.description.set_line_wrap(True)
-        self.description.set_line_wrap_mode(pango.WRAP_WORD)
-        self.description.set_alignment(0,0)
+        self.description = HtmlTextView()
+        self.description.set_wrap_mode(gtk.WRAP_WORD)
+        #sw = gtk.ScrolledWindow()
+        #sw.set_property("hscrollbar-policy", gtk.POLICY_AUTOMATIC)
+        #sw.set_property("vscrollbar-policy", gtk.POLICY_AUTOMATIC)
+        #sw.set_property("border-width", 0)
+        #sw.add(self.description)
+        #sw.show()
+        #self.description = gtk.Label()
+        #self.description.set_line_wrap(True)
+        #self.description.set_line_wrap_mode(pango.WRAP_WORD)
+        #self.description.set_alignment(0,0)
 
-        vbox.pack_start(self.description, expand=False, fill=True, padding=1)
+        vbox.pack_start(self.description, expand=True, fill=True, padding=1)
         expander.add(alig)
         self.box_details.pack_start(expander, expand=False, fill=False, padding=1)
         
