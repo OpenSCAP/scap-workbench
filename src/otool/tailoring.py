@@ -382,22 +382,27 @@ class RefineDetails(EventObject):
     def draw(self):
         
         self.vbox_refines = gtk.VBox()
+        alig = gtk.Alignment(0, 0)
+        alig.set_padding(10, 10, 10, 10)
+        self.vbox_refines.pack_start(alig, True, True)
+        vbox_refines = gtk.VBox()
+        alig.add(vbox_refines)
         
-        #alig = self.add_frame_cBox(self.vbox_refines, "<b>Operator</b>", False)
+        #alig = self.add_frame_cBox(vbox_refines, "<b>Operator</b>", False)
         #self.cB_operator = gtk.combo_box_entry_new_text()
         #alig.add(self.cB_operator)
         
-        #alig = self.add_frame_cBox(self.vbox_refines, "<b>Check</b>", False)
+        #alig = self.add_frame_cBox(vbox_refines, "<b>Check</b>", False)
         #self.cB_check = gtk.combo_box_entry_new_text()
         #alig.add(self.cB_check)
         
         self.model_role = self.create_model(["Full", "Unscored", "Unchecked"])
-        self.combo_role = self.add_cBox(self.vbox_refines, "<b>Role</b>", False)
+        self.combo_role = self.add_cBox(vbox_refines, "<b>Role</b>", False)
         self.combo_role.connect('changed', self.cb_changed, "role")
         
         
         self.model_severity = self.create_model(["Unkonown", "Info", "Low", "Medium", "High"])
-        self.combo_severity = self.add_cBox(self.vbox_refines, "<b>Severity</b>", False)
+        self.combo_severity = self.add_cBox(vbox_refines, "<b>Severity</b>", False)
         self.combo_severity.connect('changed', self.cb_changed, "severity")
         
 
