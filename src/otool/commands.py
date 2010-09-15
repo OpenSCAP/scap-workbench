@@ -547,3 +547,42 @@ class DHProfiles(DataHandler):
             self.model.append([item.id, "Profile: "+item.title[0].text])
 
         return True
+
+
+class DHScan(DataHandler):
+
+    def __init__(self, core):
+        
+        DataHandler.__init__(self, core)
+
+    def render(self, treeView):
+        """ define treeView"""
+
+        self.model = gtk.ListStore(str, str, str, str)
+        treeView.set_model(self.model)
+
+        # ID Rule
+        txtcell = gtk.CellRendererText()
+        column = gtk.TreeViewColumn("Role ID", txtcell, text=0)
+        treeView.append_column(column)
+
+        #Result
+        txtcell = gtk.CellRendererText()
+        column = gtk.TreeViewColumn("Result", txtcell, text=1)
+        treeView.append_column(column)
+        
+        # Fix
+        txtcell = gtk.CellRendererText()
+        column = gtk.TreeViewColumn("Fix", txtcell, text=1)
+        treeView.append_column(column)
+        
+        # Description
+        txtcell = gtk.CellRendererText()
+        column = gtk.TreeViewColumn("Description", txtcell, text=1)
+        treeView.append_column(column)
+
+    def fill(self, item=None):
+
+       #TODO
+
+        return True

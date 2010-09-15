@@ -31,6 +31,7 @@ import pango
 import core
 import abstract
 import tailoring
+import scan
 import logging
 import commands
 
@@ -245,7 +246,8 @@ class MainWindow(abstract.Window):
         self.menu.add_item(menu1_but2)
         menu1_but3 = abstract.MenuButton("gui:btn:menu:edit", "Edit", gtk.STOCK_EDIT, vbox_body)
         self.menu.add_item(menu1_but3)
-        menu1_but4 = abstract.MenuButton("gui:btn:menu:scan", "Scan", gtk.STOCK_DIALOG_AUTHENTICATION, vbox_body)
+        menu1_but4 = scan.MenuButtonScan(vbox_body, core=self.core)
+        #menu1_but4 = scan.MenuButtonXCCDF(vbox_body, core=self.core)
         self.menu.add_item(menu1_but4)
         menu1_but5 = abstract.MenuButton("gui:btn:menu:reports", "Reports", gtk.STOCK_DIALOG_INFO, vbox_body)
         self.menu.add_item(menu1_but5)
