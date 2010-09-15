@@ -167,11 +167,9 @@ class MenuButtonXCCDF(abstract.MenuButton):
         self.set_language(data_model.get_languages(), 0)
 
         
-        # generator for oval
-        alig = self.add_frame(body, "<b>Generator for OVAL</b>")
-
         # operations
         alig = self.add_frame(body, "<b>Operations</b>", False)
+        alig.set_padding(10,10,10,10)
         box = gtk.HButtonBox()
         box.set_layout(gtk.BUTTONBOX_START)
         
@@ -236,10 +234,7 @@ class MainWindow(abstract.Window):
         
         # container for body
         vbox_body = gtk.VBox()
-        vbox_body.show()
         
-        #create menu
-
         # main menu
         vbox_menu = gtk.Toolbar()
         self.vbox_main.pack_start(vbox_menu, expand=False, fill=True, padding=0)
@@ -283,10 +278,29 @@ class MainWindow(abstract.Window):
         # subMenu_but_reports
 
         self.vbox_main.pack_start(vbox_body, expand=True, fill=True, padding=0)
+
+        # bottom navigation
+        bottom_box = gtk.HBox()
+        self.vbox_main.pack_start(bottom_box, expand=False, fill=False, padding=10)
+        alig = gtk.Alignment()
+        bottom_box.pack_start(alig, expand=True, fill=True)
+
+        alig = gtk.Alignment(0, 0)
+        button = gtk.Button(stock=gtk.STOCK_GO_BACK)
+        alig.set_padding(0,0,0,12)
+        alig.add(button)
+        bottom_box.pack_start(alig, expand=False, fill=True)
         
+        alig = gtk.Alignment(0, 0)
+        button = gtk.Button(stock=gtk.STOCK_GO_FORWARD)
+        alig.add(button)
+        alig.set_padding(0,0,0,10)
+        bottom_box.pack_start(alig, expand=False, fill=True)
+
         self.window.show()
         self.menu.show()
-        label_set_autowrap(self.window)
+        vbox_body.show()
+        bottom_box.show_all()
 
     def delete_event(self, widget, event, data=None):
         """ close the window and quit

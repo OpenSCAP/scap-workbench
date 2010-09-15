@@ -104,7 +104,7 @@ class DataHandler:
             policy = self.lib["policy_model"].get_policy_by_id(self.selected_profile)
             if policy == None: raise Exception, "Policy %s does not exist" % (self.selected_profile,)
             # Get selector from policy
-            for select in policy.selected_rules:
+            for select in policy.selects:
                 if select.item == item.id:
                     if select.selected: 
                         return True
@@ -480,7 +480,9 @@ class DHItemsTree(DataHandler):
         item and add it to model. If the item is Group continue more deep with
         recursion to get all items to the tree"""
         if item != None:
-            selected = [None, gtk.STOCK_APPLY][self.get_selected(item)]
+            if item.type == openscap.OSCAP.XCCDF_RULE:
+                selected = [None, gtk.STOCK_APPLY][self.get_selected(item)]
+            else: selected = None
             # If item is group, store it ..
             if item.type == openscap.OSCAP.XCCDF_GROUP:
                 item_it = self.model.append(parent, [item.id, gtk.STOCK_DND_MULTIPLE, "Group: "+item.title[0].text, selected])

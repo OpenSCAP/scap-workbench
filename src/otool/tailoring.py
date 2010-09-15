@@ -302,6 +302,8 @@ class ItemDetails(EventObject):
         alig.add(vbox)
         vbox.pack_start(gtk.HSeparator(), expand=False, fill=False, padding=3)
         self.description = HtmlTextView()
+        for child in self.description.get_children():
+            print "Child:",child
         self.description.set_wrap_mode(gtk.WRAP_WORD)
         sw = gtk.ScrolledWindow()
         sw.set_property("hscrollbar-policy", gtk.POLICY_AUTOMATIC)
@@ -339,7 +341,7 @@ class ItemDetails(EventObject):
         alig.add(vbox)
         vbox.pack_start(gtk.HSeparator(), expand=False, fill=True, padding=3)
         self.fixBox = gtk.VBox()
-        vbox.pack_start(self.fixBox, expand=False, fill=True, padding=0)
+        vbox.pack_start(self.fixBox, expand=True, fill=True, padding=0)
         expander.add(alig)
         self.box_details.pack_start(expander, expand=False, fill=True, padding=1)
 
@@ -447,7 +449,7 @@ class ProfileDetails(EventObject):
     def __update(self):
         details = self.data_model.get_profile_details(self.core.selected_profile)
         if details != None:
-            self.guiProfiles.set_info(details["id"], str(details["abstract"]), str(details["extends"]))
+            self.guiProfiles.set_info(details["id"], str(details["abstract"]), str(details["extends"] or ""))
             self.guiProfiles.set_version(details["version"])
 
             if self.core.selected_lang in details["titles"]: 
@@ -458,8 +460,7 @@ class ProfileDetails(EventObject):
                     break
                 
             if self.core.selected_lang in details["descriptions"]: 
-                self.description.set_text(details["descriptions"][self.core.selected_lang][:200].strip()+" ...")
-                self.description.set_tooltip_text(details["descriptions"][self.core.selected_lang].strip())
+                self.guiProfiles.set_description(details["descriptions"][self.core.selected_lang][:200]+" ...")
             else: 
                 for lang in details["descriptions"]:
                     self.guiProfiles.set_description(details["descriptions"][lang])
@@ -488,7 +489,7 @@ class MenuButtonProfiles(abstract.MenuButton):
         """
         Set abstract and extend information.
         """
-        self.id_profil.set_text(id)
+        self.id_profile.set_text(id)
         self.abstract.set_text(abstract)
         self.extend.set_text(extend)
 
@@ -594,7 +595,7 @@ class MenuButtonProfiles(abstract.MenuButton):
         self.add_label(table, "Description: ", 0, 1, 5, 6)
 
         #id
-        self.id_profil = self.add_label(table, "", 1, 2, 0, 1)
+        self.id_profile = self.add_label(table, "", 1, 2, 0, 1)
         
         #title
         hbox = gtk.HBox()

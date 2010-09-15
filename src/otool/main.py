@@ -22,6 +22,7 @@
 #      Maros Barabas        <mbarabas@redhat.com>
 #      Vladimir Oberreiter  <xoberr01@stud.fit.vutbr.cz>
 
+import cProfile
 from core import OECore
 
-OECore().run()
+cProfile.run('OECore().run()')
