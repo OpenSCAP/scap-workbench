@@ -68,10 +68,14 @@ class MenuButtonXCCDF(abstract.MenuButton):
     """
     def __init__(self, c_body=None, sensitivity=True, core=None):
         logger = logging.getLogger(self.__class__.__name__)
+        self.data_model = commands.DataHandler(core)
         abstract.MenuButton.__init__(self,"gui:btn:main:xccdf", "XCCDF", None, c_body, sensitivity)
         self.c_body = c_body
         self.core = core
         
+        self.add_sender(self.id, "load")
+        self.add_sender(self.id, "lang_changed")
+
         # referencies
         self.label_title = None
         self.label_description = None
@@ -107,7 +111,13 @@ class MenuButtonXCCDF(abstract.MenuButton):
         
     # callBack functions
     def cb_btn(self, btn, data=None):
-        logger.debug("clicked = ", data)
+        if data == "load": 
+            file = self.data_model.file_browse("Load XCCDF file", action=gtk.FILE_CHOOSER_ACTION_OPEN)
+            if file != "":
+                logger.debug("Loading XCCDF file %s", file)
+                self.core.init(file)
+                self.emit("load")
+                self.set_language(self.data_model.get_languages(), 0)
 
     def cb_changed(self, combobox, core):
         
@@ -164,11 +174,6 @@ class MenuButtonXCCDF(abstract.MenuButton):
         self.cBox_language.set_active(0)
         table.attach(self.cBox_language, 1, 2, 4, 5,gtk.FILL,gtk.FILL)
 
-        data_model = commands.DataHandler(self.core)
-        self.add_sender(self.id, "lang_changed")
-        self.set_language(data_model.get_languages(), 0)
-
-        
         # operations
         alig = self.add_frame(body, "<b>Operations</b>", False)
         alig.set_padding(10,10,10,10)
@@ -180,13 +185,18 @@ class MenuButtonXCCDF(abstract.MenuButton):
         box.add(btn)
         
         btn = gtk.Button("Save Changes")
+        btn.set_sensitive(False)
         btn.connect("clicked", self.cb_btn, "save")        
         box.add(btn)
         
         btn = gtk.Button("Validate")
+        btn.set_sensitive(False)
         btn.connect("clicked", self.cb_btn, "valid")
         box.add(btn)
         alig.add(box)
+
+        if self.core.lib != None: 
+            self.set_language(self.data_model.get_languages(), 0)
 
         # add to conteiner
         body.show_all()
@@ -250,7 +260,6 @@ class MainWindow(abstract.Window, threading.Thread):
         menu1_but3.widget.set_sensitive(False)
         self.menu.add_item(menu1_but3)
         menu1_but4 = scan.MenuButtonScan(vbox_body, core=self.core)
-        #menu1_but4 = scan.MenuButtonXCCDF(vbox_body, core=self.core)
         self.menu.add_item(menu1_but4)
         menu1_but5 = abstract.MenuButton("gui:btn:menu:reports", "Reports", gtk.STOCK_DIALOG_INFO, vbox_body)
         menu1_but5.widget.set_sensitive(False)

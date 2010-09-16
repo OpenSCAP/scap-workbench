@@ -43,24 +43,29 @@ class OECore:
 
     def __init__(self):
 
+        self.lib = None
         if len(sys.argv) > 1:
-            XCCDF = sys.argv[1]
-        else: XCCDF = None
+            logger.debug("Loading XCCDF file %s", sys.argv[1])
+            self.init(sys.argv[1])
 
+        self.eventHandler = EventHandler(self)
+        self.selected_profile   = None
+        self.selected_item      = None
+        self.selected_deps      = None
+        self.selected_lang      = "en"
+
+    def init(self, XCCDF):
         if openscap == None:
             logger.error("Can't initialize openscap library.")
             raise Exception("Can't initialize openscap library")
         self.lib = openscap.xccdf.init(XCCDF)
         if self.lib != None: 
             logger.info("Initialization done.")
+            benchmark = self.lib["policy_model"].benchmark
+            if benchmark == None or benchmark.instance == None:
+                logger.error("XCCDF benchmark does not exists. Can't fill data")
+                raise Error, "XCCDF benchmark does not exists. Can't fill data"
         else: logger.error("Initialization failed.")
-
-        self.eventHandler = EventHandler(self)
-
-        self.selected_profile   = None
-        self.selected_item      = None
-        self.selected_deps      = None
-        self.selected_lang      = "en"
 
     def set_sender(self, signal, sender):
         self.eventHandler.set_sender(signal, sender)

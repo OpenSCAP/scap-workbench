@@ -29,21 +29,15 @@ class DataHandler:
         library => openscap library"""
 
         self.core = core
-        self.lib = core.lib
         self.selected_profile = None
         self.selected_item = None
-
-        self.benchmark = self.lib["policy_model"].benchmark
-        if self.benchmark == None or self.benchmark.instance == None:
-            logger.error("XCCDF benchmark does not exists. Can't fill data")
-            raise Error, "XCCDF benchmark does not exists. Can't fill data"
 
     def parse_value(self, value):
 
         # get value properties
         item = {}
         item["id"] = value.id
-        item["lang"] = self.lib["policy_model"].benchmark.lang
+        item["lang"] = self.core.lib["policy_model"].benchmark.lang
         item["titles"] = {}
         item["descs"] = {}
         # Titles / Questions
@@ -74,8 +68,8 @@ class DataHandler:
             item["match"] = ["", "^[\\b]+$", "^.*$", "^[01]$"][value.type]
 
         if self.selected_profile == None:
-            profile = self.lib["policy_model"].policies[0].profile
-        else: profile = self.lib["policy_model"].get_policy_by_id(self.selected_profile).profile
+            profile = self.core.lib["policy_model"].policies[0].profile
+        else: profile = self.core.lib["policy_model"].get_policy_by_id(self.selected_profile).profile
         if profile != None:
             for r_value in profile.refine_values:
                 if r_value.item == value.id:
@@ -92,7 +86,8 @@ class DataHandler:
 
     def get_languages(self):
         """Get available languages from XCCDF Benchmark"""
-        return [self.lib["policy_model"].benchmark.lang]
+        if self.core.lib == None: return []
+        return [self.core.lib["policy_model"].benchmark.lang]
 
     def get_selected(self, item):
         """DataHandler.get_selected -- get selction of rule/group
@@ -102,7 +97,7 @@ class DataHandler:
             return item.selected
 
         else:
-            policy = self.lib["policy_model"].get_policy_by_id(self.selected_profile)
+            policy = self.core.lib["policy_model"].get_policy_by_id(self.selected_profile)
             if policy == None: raise Exception, "Policy %s does not exist" % (self.selected_profile,)
             # Get selector from policy
             for select in policy.selects:
@@ -115,11 +110,11 @@ class DataHandler:
     def get_item_values(self, id):
 
         if self.selected_profile == None:
-            policy = self.lib["policy_model"].policies[0]
-        else: policy = self.lib["policy_model"].get_policy_by_id(self.selected_profile)
+            policy = self.core.lib["policy_model"].policies[0]
+        else: policy = self.core.lib["policy_model"].get_policy_by_id(self.selected_profile)
 
         values = []
-        item = self.benchmark.item(id)
+        item = self.core.lib["policy_model"].benchmark.item(id)
         if item.type == openscap.OSCAP.XCCDF_RULE:
             return policy.get_values_by_rule_id(id)
         else:
@@ -134,7 +129,7 @@ class DataHandler:
     def get_item_details(self, id):
         """get_item_details -- get details of XCCDF_ITEM"""
 
-        item = self.benchmark.item(id or self.selected_item)
+        item = self.core.lib["policy_model"].benchmark.item(id or self.selected_item)
         if item != None:
             values = {
                     "id":               item.id,
@@ -196,7 +191,7 @@ class DataHandler:
     def get_profile_details(self, id):
         """get_profile_details -- get details of Profiles"""
         if id != None or self.selected_profile != None:
-            item = self.benchmark.item(id or self.selected_profile)
+            item = self.core.lib["policy_model"].benchmark.item(id or self.selected_profile)
             if item != None:
                 values = {
                         "id":               item.id,
@@ -250,13 +245,17 @@ class DataHandler:
 
         return fixtexts
 
-    def file_browse(self, file_name=""):
-        dialog_buttons = (gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL, gtk.STOCK_SAVE, gtk.RESPONSE_OK)
-        file_dialog = gtk.FileChooserDialog(title="Save results",
+    def file_browse(self, title, file="", action=gtk.FILE_CHOOSER_ACTION_SAVE):
+
+        if action == gtk.FILE_CHOOSER_ACTION_SAVE:
+            dialog_buttons = (gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL, gtk.STOCK_SAVE, gtk.RESPONSE_OK)
+        else: dialog_buttons = (gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL, gtk.STOCK_OPEN, gtk.RESPONSE_OK)
+ 
+        file_dialog = gtk.FileChooserDialog(title,
                 action=gtk.FILE_CHOOSER_ACTION_SAVE,
                 buttons=dialog_buttons)
 
-        file_dialog.set_current_name(file_name)
+        file_dialog.set_current_name(file)
 
         """Init the return value"""
         result = ""
@@ -324,7 +323,7 @@ class DHDependencies(DataHandler):
         if item == None:
             self.model.clear()
             if self.selected_item != None:
-                item = self.benchmark.get_item(self.selected_item)
+                item = self.core.lib["policy_model"].benchmark.get_item(self.selected_item)
                 if item == None: 
                     logger.error("XCCDF Item \"%s\" does not exists. Can't fill data", self.selected_item)
                     raise Error, "XCCDF Item \"%s\" does not exists. Can't fill data", self.selected_item
@@ -345,7 +344,7 @@ class DHDependencies(DataHandler):
 
     def get_item_dependencies(self):
         
-        item = self.benchmark.item(id)
+        item = self.core.lib["policy_model"].benchmark.item(id)
         if item != None:
             pass
         else:
@@ -403,14 +402,14 @@ class DHValues(DataHandler):
         if item == None:
             self.model.clear()
             if self.selected_item != None:
-                item = self.benchmark.get_item(self.selected_item)
+                item = self.core.lib["policy_model"].benchmark.get_item(self.selected_item)
                 if item == None: 
                     logger.error("XCCDF Item \"%s\" does not exists. Can't fill data", self.selected_item)
                     raise Error, "XCCDF Item \"%s\" does not exists. Can't fill data", self.selected_item
             else: return
         
         # Append a couple of rows.
-        item = self.benchmark.get_item(self.selected_item)
+        item = self.core.lib["policy_model"].benchmark.get_item(self.selected_item)
         values = self.get_item_values(self.selected_item)
         for value in values:
             lang = value["lang"]
@@ -427,14 +426,14 @@ class DHValues(DataHandler):
     def cellcombo_edited(self, cell, path, new_text):
 
         if self.selected_profile == None:
-            policy = self.lib["policy_model"].policies[0]
-        else: policy = self.lib["policy_model"].get_policy_by_id(self.selected_profile)
+            policy = self.core.lib["policy_model"].policies[0]
+        else: policy = self.core.lib["policy_model"].get_policy_by_id(self.selected_profile)
 
         model = self.treeView.get_model()
         iter = model.get_iter(path)
         id = model.get_value(iter, 0)
         logger.info("Altering value %s", id)
-        val = self.benchmark.item(id).to_value()
+        val = self.core.lib["policy_model"].benchmark.item(id).to_value()
         value = self.parse_value(val)
         logger.info("Matching %s agains %s or %s", new_text, value["choices"], value["match"])
         # Match against pattern as "choices or match"
@@ -550,7 +549,7 @@ class DHItemsTree(DataHandler):
             cursor = child_win.get_cursor()
             child_win.set_cursor(gtk.gdk.Cursor(gtk.gdk.WATCH))
 
-            for item in self.benchmark.content:
+            for item in self.core.lib["policy_model"].benchmark.content:
                 self.__recursive_fill(item)
 
             gtk.gdk.threads_enter()
@@ -600,7 +599,7 @@ class DHProfiles(DataHandler):
         logger.debug("Adding profile (Default document)")
         self.model.append([None, "(Default document)"])
 
-        for item in self.benchmark.profiles:
+        for item in self.core.lib["policy_model"].benchmark.profiles:
             logger.debug("Adding profile %s", item.id)
             self.model.append([item.id, "Profile: "+item.title[0].text])
 
@@ -623,6 +622,7 @@ class DHScan(DataHandler):
         self.__progress=progress
         self.__prepaired = False
         self.__cancel = False
+        self.__last = 0
 
     def render(self, treeView):
         """ define treeView"""
@@ -749,7 +749,6 @@ class DHScan(DataHandler):
 
         if self.__progress != None:
             gtk.gdk.threads_enter()
-            logger.debug("Setting fraction %s", self.__progress.get_fraction()+step)
             self.__progress.set_fraction(self.__progress.get_fraction()+step)
             self.__progress.set_text("Scanning rule %s ... (%s/%s)" % (msg.user1str, int(self.__progress.get_fraction()/step), self.__rules_count))
             gtk.gdk.threads_leave()
@@ -773,12 +772,13 @@ class DHScan(DataHandler):
 
         if self.__progress != None:
             gtk.gdk.threads_enter()
+            self.__progress.set_fraction(0.0)
             self.__progress.set_text("Prepairing ...")
             gtk.gdk.threads_leave()
 
         if self.__prepaired == False:
-            self.lib["policy_model"].register_start_callback(self.__callback_start, self)
-            self.lib["policy_model"].register_output_callback(self.__callback_end, self)
+            self.core.lib["policy_model"].register_start_callback(self.__callback_start, self)
+            self.core.lib["policy_model"].register_output_callback(self.__callback_end, self)
         else: 
             self.model.clear()
             self.__cancel = False
@@ -786,20 +786,19 @@ class DHScan(DataHandler):
 
         self.selected_profile = self.core.selected_profile
         if self.selected_profile == None:
-            self.policy = self.lib["policy_model"].policies[0]
-        else: self.policy = self.lib["policy_model"].get_policy_by_id(self.selected_profile)
+            self.policy = self.core.lib["policy_model"].policies[0]
+        else: self.policy = self.core.lib["policy_model"].get_policy_by_id(self.selected_profile)
 
         self.__rules_count = len(self.policy.selected_rules)
-        logger.debug("We are going to evaluate %s rules", self.__rules_count)
         self.__prepaired = True
         
     def cancel(self):
         self.__cancel = True
 
     def export(self):
-        file_name = self.file_browse("results.xml")
+        file_name = self.file_browse("Save results", file="results.xml")
         if file_name != "":
-            files = self.policy.export(self.__result, self.lib, "LockDown Test Result", file_name, file_name)
+            files = self.policy.export(self.__result, self.core.lib, "LockDown Test Result", file_name, file_name)
             md = gtk.MessageDialog(self.core.main_window, 
                     gtk.DIALOG_MODAL, gtk.MESSAGE_INFO, 
                     gtk.BUTTONS_OK, "Results were exported successfuly")
