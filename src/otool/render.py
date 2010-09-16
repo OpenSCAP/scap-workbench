@@ -303,6 +303,7 @@ class MainWindow(abstract.Window, threading.Thread):
         alig.set_padding(0,0,0,10)
         bottom_box.pack_start(alig, expand=False, fill=True)
 
+        self.core.main_window = self.window
         self.window.show()
         self.menu.show()
         vbox_body.show()

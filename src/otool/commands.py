@@ -250,6 +250,22 @@ class DataHandler:
 
         return fixtexts
 
+    def file_browse(self, file_name=""):
+        dialog_buttons = (gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL, gtk.STOCK_SAVE, gtk.RESPONSE_OK)
+        file_dialog = gtk.FileChooserDialog(title="Save results",
+                action=gtk.FILE_CHOOSER_ACTION_SAVE,
+                buttons=dialog_buttons)
+
+        file_dialog.set_current_name(file_name)
+
+        """Init the return value"""
+        result = ""
+        if file_dialog.run() == gtk.RESPONSE_OK:
+                result = file_dialog.get_filename()
+        file_dialog.destroy()
+
+        return result
+
 
 class DHDependencies(DataHandler):
 
@@ -601,24 +617,20 @@ class DHScan(DataHandler):
     COLUMN_COLOR_BACKG = 5 #Color of cell
     COLUMN_COLOR_TEXT_RES = 6 #Color of text result
     
-    list_model = [
-                        # id rule,  result,         fix,        description 
-            ('1', 1,             True,           'adasd' ),
-            ('2', 2,             True,           'asdasd' ),
-            ('3', 3,       False,          'rasdasd' ),
-            ('4', 4,       False,          'rasdasd' )
-
-    ]
-    def __init__(self, core):
+    def __init__(self, core, progress=None):
         
         DataHandler.__init__(self, core)
+        self.__progress=progress
         self.__prepaired = False
+        self.__cancel = False
 
     def render(self, treeView):
         """ define treeView"""
          
+        self.treeView = treeView
+
         #model: id rule, result, fix, description, color text desc, color background, color text res
-        self.model = gtk.ListStore(str, str, str, str, str, str, str)
+        self.model = gtk.ListStore(str, str, str, str, str, str)
         treeView.set_model(self.model)
         #treeView.set_grid_lines(gtk.TREE_VIEW_GRID_LINES_BOTH)
         #treeView.set_property("tree-line-width", 10)
@@ -631,8 +643,7 @@ class DHScan(DataHandler):
 
         #Result
         txtcell = gtk.CellRendererText()
-        column = gtk.TreeViewColumn("Result", txtcell, text=DHScan.COLUMN_RESULT)
-        column.add_attribute(txtcell, 'foreground', DHScan.COLUMN_COLOR_TEXT_RES)
+        column = gtk.TreeViewColumn("     Result     ", txtcell, text=DHScan.COLUMN_RESULT)
         column.add_attribute(txtcell, 'background', DHScan.COLUMN_COLOR_BACKG)
         column.set_resizable(True)
         treeView.append_column(column)
@@ -641,6 +652,7 @@ class DHScan(DataHandler):
         txtcell = gtk.CellRendererText()
         column = gtk.TreeViewColumn("Fix", txtcell, text=DHScan.COLUMN_FIX)
         column.set_resizable(True)
+        column.set_visible(False)
         treeView.append_column(column)
 
         # Description
@@ -650,119 +662,158 @@ class DHScan(DataHandler):
         column.set_resizable(True)
         treeView.append_column(column)
 
-    def fill(self, item=None):
+    def fill(self, item):
 
         
         backG_red = "#F29D9D"
+        backG_err = "red"
         backG_green = "#9DF29D"
         backG_white = "white"
+        backG_gray = "gray"
         
         text_gray = "gray"
         text_black = "black"
         text_grren = "green"
         
-        #initialization
-        colorText_desc = text_black
-        colorText_res = text_black
-        color_backG = backG_white
-        text = ""
+        # choose color for cell, and text of result
+        if  item[DHScan.COLUMN_RESULT] == openscap.OSCAP.XCCDF_RESULT_PASS:
+            text = "PASS" # The test passed
+            color_backG = backG_green
+            colorText_desc = text_gray
         
-        for i in DHScan.list_model:
+        elif  item[DHScan.COLUMN_RESULT] == openscap.OSCAP.XCCDF_RESULT_FAIL:
+            text = "FAIL" # The test failed
+            color_backG = backG_red
+            colorText_desc = text_black
+        
+        elif  item[DHScan.COLUMN_RESULT] == openscap.OSCAP.XCCDF_RESULT_ERROR:
+            color_text = text_black
+            text = "ERROR" # An error occurred and test could not complete
+            color_backG = backG_err
+            colorText_desc = text_black
             
-            # choose color for cell, and text of result
-            if  i[DHScan.COLUMN_RESULT] == 1:
-                text = "XCCDF_RESULT_PASS" # The test passed
-                color_backG = backG_green
-                colorText_desc = text_gray
+        elif  item[DHScan.COLUMN_RESULT] == openscap.OSCAP.XCCDF_RESULT_UNKNOWN:
+            text = "UNKNOWN" #  Could not tell what happened
+            color_backG = backG_gray
+            colorText_desc = text_black
+        
+        elif  item[DHScan.COLUMN_RESULT] == openscap.OSCAP.XCCDF_RESULT_NOT_APPLICABLE:
+            text = "NOT_APPLICABLE" # Rule did not apply to test target
+            color_backG = backG_green
+            colorText_desc = text_gray
             
-            elif  i[DHScan.COLUMN_RESULT] == 2:
-                text = "XCCDF_RESULT_FAIL" # The test failed
-                color_backG = backG_green
-                colorText_desc = text_gray
-            
-            elif  i[DHScan.COLUMN_RESULT] == 3:
-                color_text = text_black
-                text = "XCCDF_RESULT_ERROR" # An error occurred and test could not complete
-                color_backG = backG_red
-                colorText_desc = text_black
-                
-            elif  i[DHScan.COLUMN_RESULT] == 4:
-                text = "XCCDF_RESULT_UNKNOWN" #  Could not tell what happened
-                color_backG = backG_green
-                colorText_desc = text_gray
-            
-            elif  i[DHScan.COLUMN_RESULT] == 5:
-                text = "XCCDF_RESULT_NOT_APPLICABLE" # Rule did not apply to test target
-                color_backG = backG_green
-                colorText_desc = text_gray
-                
-            elif  i[DHScan.COLUMN_RESULT] == 6:
-                text = "XCCDF_RESULT_NOT_CHECKE" # Rule did not cause any evaluation by the checking engine
-                color_backG = backG_green
-                colorText_desc = text_gray                
+        elif  item[DHScan.COLUMN_RESULT] == openscap.OSCAP.XCCDF_RESULT_NOT_CHECKED:
+            text = "NOT_CHECKED" # Rule did not cause any evaluation by the checking engine
+            color_backG = backG_green
+            colorText_desc = text_gray                
 
-            elif  i[DHScan.COLUMN_RESULT] == 7:
-                text = "XCCDF_RESULT_NOT_SELECTED" #Rule was not selected in the @link xccdf_benchmark Benchmark@endlink
-                color_backG = backG_green
-                colorText_desc = text_gray                
-                
-            elif  i[DHScan.COLUMN_RESULT] == 8:
-                text = "XCCDF_RESULT_INFORMATIONAL" # Rule was evaluated by the checking engine, but isn't to be scored
-                color_backG = backG_green
-                colorText_desc = text_gray                
+        elif  item[DHScan.COLUMN_RESULT] == openscap.OSCAP.XCCDF_RESULT_NOT_SELECTED:
+            text = "NOT_SELECTED" #Rule was not selected in the @link xccdf_benchmark Benchmark@endlink
+            color_backG = backG_green
+            colorText_desc = text_gray                
+            
+        elif  item[DHScan.COLUMN_RESULT] == openscap.OSCAP.XCCDF_RESULT_INFORMATIONAL:
+            text = "INFORMATIONAL" # Rule was evaluated by the checking engine, but isn't to be scored
+            color_backG = backG_green
+            colorText_desc = text_gray                
 
-            elif  i[DHScan.COLUMN_RESULT] == 9:
-                text = "XCCDF_RESULT_FIXED" # Rule failed, but was later fixed
-                color_backG = backG_green
-                colorText_desc = text_gray 
+        elif  item[DHScan.COLUMN_RESULT] == openscap.OSCAP.XCCDF_RESULT_FIXED:
+            text = "FIXED" # Rule failed, but was later fixed
+            color_backG = backG_green
+            colorText_desc = text_gray 
+        else:
+            #initialization
+            colorText_desc = text_black
+            colorText_res = text_black
+            color_backG = backG_err
+            text = ""
 
 
-            iter = self.model.append()
-            self.model.set(iter,
-                    DHScan.COLUMN_ID,   i[DHScan.COLUMN_ID],
-                    DHScan.COLUMN_RESULT,    text,
-                    DHScan.COLUMN_FIX,    i[DHScan.COLUMN_FIX], 
-                    DHScan.COLUMN_DESC,  i[DHScan.COLUMN_DESC],
-                    DHScan.COLUMN_COLOR_TEXT_DESC,  colorText_desc,
-                    DHScan.COLUMN_COLOR_BACKG,  color_backG,
-                    DHScan.COLUMN_COLOR_TEXT_RES,  colorText_res,
-                    )
+        iter = self.model.append()
+        self.model.set(iter,
+                DHScan.COLUMN_ID,   item[DHScan.COLUMN_ID],
+                DHScan.COLUMN_RESULT,   text,
+                DHScan.COLUMN_FIX,    item[DHScan.COLUMN_FIX], 
+                DHScan.COLUMN_DESC,  item[DHScan.COLUMN_DESC],
+                DHScan.COLUMN_COLOR_TEXT_DESC,  colorText_desc,
+                DHScan.COLUMN_COLOR_BACKG,  color_backG,
+                )
         return True
 
     def __callback_start(self, msg, plugin):
         result = msg.user2num
         if result == openscap.OSCAP.XCCDF_RESULT_NOT_SELECTED: 
-            return False
+            return self.__cancel
 
-        print "\nRule ID:", "\r\t\t", msg.user1str
-        print "Title:", "\r\t\t", msg.user3str
-        print "Descroption:", "\r\t\t", msg.string
-        print "Result:", "\r\t\t",
-        sys.stdout.flush()
-        return False
+        step = (100.0/(self.__rules_count or 1.0))/100.0
+
+        if self.__progress != None:
+            gtk.gdk.threads_enter()
+            logger.debug("Setting fraction %s", self.__progress.get_fraction()+step)
+            self.__progress.set_fraction(self.__progress.get_fraction()+step)
+            self.__progress.set_text("Scanning rule %s ... (%s/%s)" % (msg.user1str, int(self.__progress.get_fraction()/step), self.__rules_count))
+            gtk.gdk.threads_leave()
+
+        self.__last = int(self.__progress.get_fraction()/step)
+        return self.__cancel
 
     def __callback_end(self, msg, plugin):
         result = msg.user2num
         if result == openscap.OSCAP.XCCDF_RESULT_NOT_SELECTED: 
-            return False
+            return self.__cancel
 
-        print openscap.xccdf.test_result_type.get_text(msg.user2num)
-        return False
+        gtk.gdk.threads_enter()
+        self.fill([msg.user1str, msg.user2num, False, msg.user3str])
+        self.treeView.queue_draw()
+        gtk.gdk.threads_leave()
+
+        return self.__cancel
 
     def __prepaire(self):
 
-        if self.__prepaired == True: return
+        if self.__progress != None:
+            gtk.gdk.threads_enter()
+            self.__progress.set_text("Prepairing ...")
+            gtk.gdk.threads_leave()
+
+        if self.__prepaired == False:
+            self.lib["policy_model"].register_start_callback(self.__callback_start, self)
+            self.lib["policy_model"].register_output_callback(self.__callback_end, self)
+        else: 
+            self.model.clear()
+            self.__cancel = False
+            self.__last = 0
+
         self.selected_profile = self.core.selected_profile
-        self.lib["policy_model"].register_start_callback(self.__callback_start, self)
-        self.lib["policy_model"].register_output_callback(self.__callback_end, self)
         if self.selected_profile == None:
             self.policy = self.lib["policy_model"].policies[0]
         else: self.policy = self.lib["policy_model"].get_policy_by_id(self.selected_profile)
+
+        self.__rules_count = len(self.policy.selected_rules)
+        logger.debug("We are going to evaluate %s rules", self.__rules_count)
         self.__prepaired = True
         
+    def cancel(self):
+        self.__cancel = True
 
+    def export(self):
+        file_name = self.file_browse("results.xml")
+        if file_name != "":
+            files = self.policy.export(self.__result, self.lib, "LockDown Test Result", file_name, file_name)
+            md = gtk.MessageDialog(self.core.main_window, 
+                    gtk.DIALOG_MODAL, gtk.MESSAGE_INFO, 
+                    gtk.BUTTONS_OK, "Results were exported successfuly")
+            md.run()
+            md.destroy()
+            for file in files:
+                logger.debug("Exported: %s", file)
+
+    @threadSave
     def scan(self):
         self.__prepaire()
-        print "Scanning.."
-        self.result = self.policy.evaluate()
-        print "Finished"
+        logger.debug("Scanning %s ..", self.policy.id)
+        self.__result = self.policy.evaluate()
+        if self.__progress: 
+            self.__progress.set_fraction(1.0)
+            self.__progress.set_text("Finished %s of %s rules" % (self.__last, self.__rules_count))
+        logger.debug("Finished scanning")

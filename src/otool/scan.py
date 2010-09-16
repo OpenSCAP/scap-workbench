@@ -38,9 +38,9 @@ import render
 
 class ScanList(abstract.List):
     
-    def __init__(self, core=None):
+    def __init__(self, core=None, progress=None):
         self.core = core
-        self.data_model = commands.DHScan(core)
+        self.data_model = commands.DHScan(core, progress=progress)
         abstract.List.__init__(self, "gui:scan:scan_list", core)
         self.get_TreeView().set_enable_tree_lines(True)
 
@@ -49,7 +49,14 @@ class ScanList(abstract.List):
 
         # actions
         self.add_receiver("gui:btn:menu:scan", "scan", self.__scan)
-        self.data_model.fill()
+        self.add_receiver("gui:btn:menu:scan", "cancel", self.__cancel)
+        self.add_receiver("gui:btn:menu:scan", "export", self.__export)
+
+    def __export(self):
+        self.data_model.export()
+
+    def __cancel(self):
+        self.data_model.cancel()
 
     def __scan(self):
         self.data_model.scan()
@@ -68,22 +75,18 @@ class MenuButtonScan(abstract.MenuButton):
 
         # set signals
         self.add_sender(self.id, "scan")
+        self.add_sender(self.id, "cancel")
+        self.add_sender(self.id, "export")
 
     #callback function
     def cb_btnStart(self, widget):
         self.emit("scan")
 
-    def cb_btnPause(self, widget):
-        pass
-
     def cb_btnCancel(self, widget):
-        pass
+        self.emit("cancel")
 
     def cb_btnExpXccdf(self, widget):
-        pass
-
-    def cb_btnExpOval(self, widget):
-        pass
+        self.emit("export")
 
     #draw
     def draw_body(self):
@@ -95,15 +98,15 @@ class MenuButtonScan(abstract.MenuButton):
         
         vbox_main = gtk.VBox()
         alig.add(vbox_main)
-        
+        self.progress = gtk.ProgressBar()
+
         # Scan list
-        self.scanList = ScanList(core=self.core)
+        self.scanList = ScanList(core=self.core, progress=self.progress)
         vbox_main.pack_start(self.scanList.get_widget(), True, True, 2)
         
         vbox_main.pack_start(gtk.HSeparator(), False, True, 2)
         
         #Progress Bar
-        self.progress = gtk.ProgressBar()
         vbox_main.pack_start(self.progress, False, True, 2)
         
         #Buttons
@@ -115,20 +118,12 @@ class MenuButtonScan(abstract.MenuButton):
         btn.connect("clicked", self.cb_btnStart)
         btnBox.add(btn)
         
-        btn = gtk.Button("Pause")
-        btn.connect("clicked", self.cb_btnPause)
-        btnBox.add(btn)
-        
-        btn = gtk.Button("Cancel")
+        btn = gtk.Button("Stop")
         btn.connect("clicked", self.cb_btnCancel)
         btnBox.add(btn)
         
-        btn = gtk.Button("Export XCCDF")
+        btn = gtk.Button("Export results")
         btn.connect("clicked", self.cb_btnExpXccdf)
-        btnBox.add(btn)
-        
-        btn = gtk.Button("Export OVAL")
-        btn.connect("clicked", self.cb_btnExpOval)
         btnBox.add(btn)
         
         body.show_all()
