@@ -597,15 +597,16 @@ class DHScan(DataHandler):
     COLUMN_RESULT = 1 #Result of scan
     COLUMN_FIX = 2 #fix
     COLUMN_DESC = 3 #Description of rule
-    COLUMN_COLOR_TEXT = 4 #Color of cell
+    COLUMN_COLOR_TEXT_DESC = 4 #Color of text description
     COLUMN_COLOR_BACKG = 5 #Color of cell
+    COLUMN_COLOR_TEXT_RES = 6 #Color of text result
     
     list_model = [
                         # id rule,  result,         fix,        description 
-            ('1', 'XCCDF_RESULT_ERROR',             True,           'adasd' ),
-            ('2', 'XCCDF_RESULT_ERROR',             True,           'asdasd' ),
-            ('3', 'XCCDF_RESULT_NOT_CHECKED',       False,          'rasdasd' ),
-            ('4', 'XCCDF_RESULT_NOT_CHECKED',       False,          'rasdasd' )
+            ('1', 1,             True,           'adasd' ),
+            ('2', 2,             True,           'asdasd' ),
+            ('3', 3,       False,          'rasdasd' ),
+            ('4', 4,       False,          'rasdasd' )
 
     ]
     def __init__(self, core):
@@ -615,8 +616,8 @@ class DHScan(DataHandler):
     def render(self, treeView):
         """ define treeView"""
          
-        #model: id rule, result, fix, description, color text, color background
-        self.model = gtk.ListStore(str, str, str, str, str, gtk.gdk.Color)
+        #model: id rule, result, fix, description, color text desc, color background, color text res
+        self.model = gtk.ListStore(str, str, str, str, str, str, str)
         treeView.set_model(self.model)
         #treeView.set_grid_lines(gtk.TREE_VIEW_GRID_LINES_BOTH)
         #treeView.set_property("tree-line-width", 10)
@@ -624,60 +625,106 @@ class DHScan(DataHandler):
         # ID Rule
         txtcell = gtk.CellRendererText()
         column = gtk.TreeViewColumn("Role ID", txtcell, text=DHScan.COLUMN_ID)
-        column.add_attribute(txtcell, 'foreground', DHScan.COLUMN_COLOR_TEXT)
-        column.add_attribute(txtcell, 'background-gdk', DHScan.COLUMN_COLOR_BACKG)
         column.set_resizable(True)
         treeView.append_column(column)
 
         #Result
         txtcell = gtk.CellRendererText()
         column = gtk.TreeViewColumn("Result", txtcell, text=DHScan.COLUMN_RESULT)
-        column.add_attribute(txtcell, 'foreground', DHScan.COLUMN_COLOR_TEXT)
-        column.add_attribute(txtcell, 'background-gdk', DHScan.COLUMN_COLOR_BACKG)
-        column.set_spacing(15)
+        column.add_attribute(txtcell, 'foreground', DHScan.COLUMN_COLOR_TEXT_RES)
+        column.add_attribute(txtcell, 'background', DHScan.COLUMN_COLOR_BACKG)
         column.set_resizable(True)
         treeView.append_column(column)
 
         # Fix
         txtcell = gtk.CellRendererText()
         column = gtk.TreeViewColumn("Fix", txtcell, text=DHScan.COLUMN_FIX)
-        column.add_attribute(txtcell, 'foreground', DHScan.COLUMN_COLOR_TEXT)
-        column.add_attribute(txtcell, 'background-gdk', DHScan.COLUMN_COLOR_BACKG)
         column.set_resizable(True)
         treeView.append_column(column)
 
         # Description
         txtcell = gtk.CellRendererText()
         column = gtk.TreeViewColumn("Description", txtcell, text=DHScan.COLUMN_DESC)
-        column.add_attribute(txtcell, 'foreground', DHScan.COLUMN_COLOR_TEXT)
-        column.add_attribute(txtcell, 'background-gdk', DHScan.COLUMN_COLOR_BACKG)
+        column.add_attribute(txtcell, 'foreground', DHScan.COLUMN_COLOR_TEXT_DESC)
         column.set_resizable(True)
         treeView.append_column(column)
 
     def fill(self, item=None):
 
-        backG_red = gtk.gdk.Color(red=65500, green=15303, blue=10453, pixel=0)
-        backG_green = gtk.gdk.Color(red=20200, green=65535, blue=41500, pixel=0)
+        
+        backG_red = "#F29D9D"
+        backG_green = "#9DF29D"
+        backG_white = "white"
+        
         text_gray = "gray"
         text_black = "black"
-
-        #TODO
+        text_grren = "green"
+        
+        #initialization
+        colorText_desc = text_black
+        colorText_res = text_black
+        color_backG = backG_white
+        text = ""
+        
         for i in DHScan.list_model:
-            # choose color for widget
-            iter = self.model.append()
-            if  i[DHScan.COLUMN_RESULT] == "XCCDF_RESULT_ERROR":
-                color_text = text_black
-                color_backG = backG_red
-            else:
-                color_text = text_gray
-                color_backG = backG_green
             
+            # choose color for cell, and text of result
+            if  i[DHScan.COLUMN_RESULT] == 1:
+                text = "XCCDF_RESULT_PASS" # The test passed
+                color_backG = backG_green
+                colorText_desc = text_gray
+            
+            elif  i[DHScan.COLUMN_RESULT] == 2:
+                text = "XCCDF_RESULT_FAIL" # The test failed
+                color_backG = backG_green
+                colorText_desc = text_gray
+            
+            elif  i[DHScan.COLUMN_RESULT] == 3:
+                color_text = text_black
+                text = "XCCDF_RESULT_ERROR" # An error occurred and test could not complete
+                color_backG = backG_red
+                colorText_desc = text_black
+                
+            elif  i[DHScan.COLUMN_RESULT] == 4:
+                text = "XCCDF_RESULT_UNKNOWN" #  Could not tell what happened
+                color_backG = backG_green
+                colorText_desc = text_gray
+            
+            elif  i[DHScan.COLUMN_RESULT] == 5:
+                text = "XCCDF_RESULT_NOT_APPLICABLE" # Rule did not apply to test target
+                color_backG = backG_green
+                colorText_desc = text_gray
+                
+            elif  i[DHScan.COLUMN_RESULT] == 6:
+                text = "XCCDF_RESULT_NOT_CHECKE" # Rule did not cause any evaluation by the checking engine
+                color_backG = backG_green
+                colorText_desc = text_gray                
+
+            elif  i[DHScan.COLUMN_RESULT] == 7:
+                text = "XCCDF_RESULT_NOT_SELECTED" #Rule was not selected in the @link xccdf_benchmark Benchmark@endlink
+                color_backG = backG_green
+                colorText_desc = text_gray                
+                
+            elif  i[DHScan.COLUMN_RESULT] == 8:
+                text = "XCCDF_RESULT_INFORMATIONAL" # Rule was evaluated by the checking engine, but isn't to be scored
+                color_backG = backG_green
+                colorText_desc = text_gray                
+
+            elif  i[DHScan.COLUMN_RESULT] == 9:
+                text = "XCCDF_RESULT_FIXED" # Rule failed, but was later fixed
+                color_backG = backG_green
+                colorText_desc = text_gray 
+
+
+            iter = self.model.append()
             self.model.set(iter,
                     DHScan.COLUMN_ID,   i[DHScan.COLUMN_ID],
-                    DHScan.COLUMN_RESULT,    i[DHScan.COLUMN_RESULT],
+                    DHScan.COLUMN_RESULT,    text,
                     DHScan.COLUMN_FIX,    i[DHScan.COLUMN_FIX], 
                     DHScan.COLUMN_DESC,  i[DHScan.COLUMN_DESC],
-                    DHScan.COLUMN_COLOR_TEXT,  color_text,
-                    DHScan.COLUMN_COLOR_BACKG,  color_backG
+                    DHScan.COLUMN_COLOR_TEXT_DESC,  colorText_desc,
+                    DHScan.COLUMN_COLOR_BACKG,  color_backG,
+                    DHScan.COLUMN_COLOR_TEXT_RES,  colorText_res,
                     )
         return True
+
