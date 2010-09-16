@@ -571,38 +571,87 @@ class DHProfiles(DataHandler):
 
 class DHScan(DataHandler):
 
+    COLUMN_ID = 0 #id of rule
+    COLUMN_RESULT = 1 #Result of scan
+    COLUMN_FIX = 2 #fix
+    COLUMN_DESC = 3 #Description of rule
+    COLUMN_COLOR_TEXT = 4 #Color of cell
+    COLUMN_COLOR_BACKG = 5 #Color of cell
+    
+    list_model = [
+                        # id rule,  result,         fix,        description 
+            ('1', 'XCCDF_RESULT_ERROR',             True,           'adasd' ),
+            ('2', 'XCCDF_RESULT_ERROR',             True,           'asdasd' ),
+            ('3', 'XCCDF_RESULT_NOT_CHECKED',       False,          'rasdasd' ),
+            ('4', 'XCCDF_RESULT_NOT_CHECKED',       False,          'rasdasd' )
+
+    ]
     def __init__(self, core):
         
         DataHandler.__init__(self, core)
 
     def render(self, treeView):
         """ define treeView"""
-
-        self.model = gtk.ListStore(str, str, str, str)
+         
+        #model: id rule, result, fix, description, color text, color background
+        self.model = gtk.ListStore(str, str, str, str, str, gtk.gdk.Color)
         treeView.set_model(self.model)
+        #treeView.set_grid_lines(gtk.TREE_VIEW_GRID_LINES_BOTH)
+        #treeView.set_property("tree-line-width", 10)
 
         # ID Rule
         txtcell = gtk.CellRendererText()
-        column = gtk.TreeViewColumn("Role ID", txtcell, text=0)
+        column = gtk.TreeViewColumn("Role ID", txtcell, text=DHScan.COLUMN_ID)
+        column.add_attribute(txtcell, 'foreground', DHScan.COLUMN_COLOR_TEXT)
+        column.add_attribute(txtcell, 'background-gdk', DHScan.COLUMN_COLOR_BACKG)
         treeView.append_column(column)
 
         #Result
         txtcell = gtk.CellRendererText()
-        column = gtk.TreeViewColumn("Result", txtcell, text=1)
+        column = gtk.TreeViewColumn("Result", txtcell, text=DHScan.COLUMN_RESULT)
+        column.add_attribute(txtcell, 'foreground', DHScan.COLUMN_COLOR_TEXT)
+        column.add_attribute(txtcell, 'background-gdk', DHScan.COLUMN_COLOR_BACKG)
+        column.set_spacing(15)
         treeView.append_column(column)
-        
+
         # Fix
         txtcell = gtk.CellRendererText()
-        column = gtk.TreeViewColumn("Fix", txtcell, text=1)
+        column = gtk.TreeViewColumn("Fix", txtcell, text=DHScan.COLUMN_FIX)
+        column.add_attribute(txtcell, 'foreground', DHScan.COLUMN_COLOR_TEXT)
+        column.add_attribute(txtcell, 'background-gdk', DHScan.COLUMN_COLOR_BACKG)
         treeView.append_column(column)
-        
+
         # Description
         txtcell = gtk.CellRendererText()
-        column = gtk.TreeViewColumn("Description", txtcell, text=1)
+        column = gtk.TreeViewColumn("Description", txtcell, text=DHScan.COLUMN_DESC)
+        column.add_attribute(txtcell, 'foreground', DHScan.COLUMN_COLOR_TEXT)
+        column.add_attribute(txtcell, 'background-gdk', DHScan.COLUMN_COLOR_BACKG)
         treeView.append_column(column)
 
     def fill(self, item=None):
 
-       #TODO
+        backG_red = gtk.gdk.Color(red=65500, green=15303, blue=10453, pixel=0)
+        backG_green = gtk.gdk.Color(red=20200, green=65535, blue=41500, pixel=0)
+        text_gray = "gray"
+        text_black = "black"
 
+        #TODO
+        for i in DHScan.list_model:
+            # choose color for widget
+            iter = self.model.append()
+            if  i[DHScan.COLUMN_RESULT] == "XCCDF_RESULT_ERROR":
+                color_text = text_black
+                color_backG = backG_red
+            else:
+                color_text = text_gray
+                color_backG = backG_green
+            
+            self.model.set(iter,
+                    DHScan.COLUMN_ID,   i[DHScan.COLUMN_ID],
+                    DHScan.COLUMN_RESULT,    i[DHScan.COLUMN_RESULT],
+                    DHScan.COLUMN_FIX,    i[DHScan.COLUMN_FIX], 
+                    DHScan.COLUMN_DESC,  i[DHScan.COLUMN_DESC],
+                    DHScan.COLUMN_COLOR_TEXT,  color_text,
+                    DHScan.COLUMN_COLOR_BACKG,  color_backG
+                    )
         return True

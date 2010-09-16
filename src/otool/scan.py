@@ -49,7 +49,7 @@ class ScanList(abstract.List):
 
         # actions
         #self.add_receiver()
-
+        self.data_model.fill()
 
     def __update(self):
         self.data_model.fill()
@@ -70,10 +70,21 @@ class MenuButtonScan(abstract.MenuButton):
         self.add_sender(self.id, "update")
 
     #call back function
-    def cb_btnScan(self, widget, data):
+    def cb_btnStart(self, widget):
         pass
-        #TODO
-        
+
+    def cb_btnPause(self, widget):
+        pass
+
+    def cb_btnCancel(self, widget):
+        pass
+
+    def cb_btnExpXccdf(self, widget):
+        pass
+
+    def cb_btnExpOval(self, widget):
+        pass
+
     #draw
     def draw_body(self):
         body = gtk.VBox()
@@ -101,23 +112,23 @@ class MenuButtonScan(abstract.MenuButton):
         vbox_main.pack_start(btnBox, False, True, 2)
         
         btn = gtk.Button("Scan")
-        btn.connect("clicked", self.cb_btnScan, "scan")
+        btn.connect("clicked", self.cb_btnStart)
         btnBox.add(btn)
         
         btn = gtk.Button("Pause")
-        btn.connect("clicked", self.cb_btnScan, "stop")
+        btn.connect("clicked", self.cb_btnPause)
         btnBox.add(btn)
         
         btn = gtk.Button("Cancel")
-        btn.connect("clicked", self.cb_btnScan, "cancel")
+        btn.connect("clicked", self.cb_btnCancel)
         btnBox.add(btn)
         
         btn = gtk.Button("Export XCCDF")
-        btn.connect("clicked", self.cb_btnScan, "exp_xccdf")
+        btn.connect("clicked", self.cb_btnExpXccdf)
         btnBox.add(btn)
         
         btn = gtk.Button("Export OVAL")
-        btn.connect("clicked", self.cb_btnScan, "exp_oval")
+        btn.connect("clicked", self.cb_btnExpOval)
         btnBox.add(btn)
         
         body.show_all()
