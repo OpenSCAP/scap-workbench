@@ -302,10 +302,18 @@ class ItemDetails(EventObject):
         vbox = gtk.VBox()
         alig.add(vbox)
         vbox.pack_start(gtk.HSeparator(), expand=False, fill=False, padding=3)
+        # Get the background color from window and destroy it
+        window = gtk.Window()
+        nb = gtk.Notebook()
+        window.add(nb)
+        window.realize()
+        nb.realize()
+        bg_color = nb.get_style().bg[gtk.STATE_NORMAL]
+        window.destroy()
+
         self.description = HtmlTextView()
-        for child in self.description.get_children():
-            print "Child:",child
         self.description.set_wrap_mode(gtk.WRAP_WORD)
+        self.description.modify_base(gtk.STATE_NORMAL, bg_color)
         sw = gtk.ScrolledWindow()
         sw.set_property("hscrollbar-policy", gtk.POLICY_AUTOMATIC)
         sw.set_property("vscrollbar-policy", gtk.POLICY_AUTOMATIC)
@@ -410,7 +418,6 @@ class RefineDetails(EventObject):
     def create_model(self, data):
         model = gtk.ListStore(str)
         for item in data:
-            print item
             model.append([item])
         return model
         
@@ -528,20 +535,6 @@ class MenuButtonProfiles(abstract.MenuButton):
         
     def cb_btnLang(self, widget, name, core, data):
         window = Language_form(name, core, data)
-
-    # draw function
-    def add_frame_vp(self,body, text,pos = 1):
-        frame = gtk.Frame(text)
-        label = frame.get_label_widget()
-        label.set_use_markup(True)
-        frame.set_shadow_type(gtk.SHADOW_NONE)
-        frame.set_border_width(5)
-        if pos == 1: body.pack1(frame,  resize=False, shrink=False)
-        else: body.pack2(frame,  resize=False, shrink=False)
-        alig = gtk.Alignment(0.5, 0.5, 1, 1)
-        alig.set_padding(0, 0, 12, 0)
-        frame.add(alig)
-        return alig
         
     def add_label(self,table, text, left, right, top, bottom):
         label = gtk.Label(text)
@@ -554,7 +547,7 @@ class MenuButtonProfiles(abstract.MenuButton):
         body = gtk.VPaned()
 
         # List of profiles
-        alig = self.add_frame_vp(body, "<b>Profiles</b>")
+        frame, alig = self.add_frame_vp(body, "<b>Profiles</b>")
         hbox = gtk.HBox()
         alig.add(hbox)
         self.profiles_list = ProfileList(self.core)
@@ -588,7 +581,7 @@ class MenuButtonProfiles(abstract.MenuButton):
         # edit profiles
         #body.pack_start(gtk.HSeparator(), expand=False, fill=True, padding=10)
         
-        alig = self.add_frame_vp(body, "<b>Details</b>",2)
+        frame, alig = self.add_frame_vp(body, "<b>Details</b>",2)
 
         table = gtk.Table(5 ,2)
         alig.add(table)
@@ -671,7 +664,7 @@ class MenuButtonRefines(abstract.MenuButton):
         box_main.pack_start(hpaned, True, True)
         
         # tree
-        alig = self.add_frame_vp(hpaned, "<b>Rules and Groups</b>",1)
+        frame, alig = self.add_frame_vp(hpaned, "<b>Rules and Groups</b>",1)
         self.rules_list = ItemList(core=self.core)
         alig.add(self.rules_list.get_widget())
         
@@ -686,6 +679,10 @@ class MenuButtonRefines(abstract.MenuButton):
         #set refines
         redDetails = RefineDetails(self.core)
         notebook.append_page(redDetails.vbox_refines, gtk.Label("Refines"))
+        page = notebook.get_nth_page(0)
+        notebook.realize()
+        page.realize()
+        print page.get_style().bg[gtk.STATE_NORMAL]
 
         # box for dependecies and values
         box = gtk.HBox()
@@ -861,8 +858,6 @@ class NewProfileWindow(abstract.Window):
         self.cBox_language.connect('changed', self.cb_language)
         table.attach(self.cBox_language, 1, 2, 3, 4,gtk.FILL,gtk.FILL)
 
-        self.set_language(["English", "Czech", "Russian"], 0)
-        
         sw = gtk.ScrolledWindow()
         sw.set_shadow_type(gtk.SHADOW_IN)
         sw.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)

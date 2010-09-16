@@ -84,30 +84,31 @@ class ThreadHandler(threading.Thread):
     """
     """
     
-    def __init__(self, func, *args):
+    def __init__(self, func, obj, *args):
         """ Initializing variables """
         
         self.running = False
         self.__func = func
         self.args = args
+        self.obj = obj
 
         threading.Thread.__init__(self)
         self.__stopthread = threading.Event()
  
-    def __call__(self, *args):
+    def __call__(self):
         self.start()
 
     def run(self):
         """ Run method, this is the code that runs while thread is alive """
-        self.runnung = True
+
         logger.debug("Running thread handler ...")
-        self.__func(*self.args)
-        self.running = False
+
+        # Run the function
+        self.__func(self.obj, *self.args)
+
 
 def thread(func):
     def callback(self, *args):
         handler = ThreadHandler(func, self, *args)
         handler.start()
     return callback
-
-

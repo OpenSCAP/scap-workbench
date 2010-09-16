@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import gtk, logging, sys, re
+import gtk, logging, sys, re, time
 import gobject
 logger = logging.getLogger("OSCAPEditor")
 
@@ -15,7 +15,8 @@ except Exception as ex:
     logger.error("OpenScap library initialization failed")
     openscap=None
 
-from core import thread as threading
+from core import thread as threadSave
+import threading
 
 class DataHandler:
     """DataHandler Class implements handling data from Openscap library,
@@ -267,6 +268,7 @@ class DHDependencies(DataHandler):
         txtcell = gtk.CellRendererText()
         column = gtk.TreeViewColumn("Unique ID", txtcell, text=0)
         column.set_visible(False)
+        column.set_resizable(True)
         treeView.append_column(column)
 
         """Cell that contains title of showed item with picture as prefix.
@@ -283,12 +285,14 @@ class DHDependencies(DataHandler):
         txtcell = gtk.CellRendererText()
         column.pack_start(txtcell, True)
         column.set_attributes(txtcell, text=2)
+        column.set_resizable(True)
         treeView.append_column(column)
 
         """Cell with picture representing if the item is selected or not
         """
         render = gtk.CellRendererPixbuf()
         column = gtk.TreeViewColumn("Selected", render, stock_id=3)
+        column.set_resizable(True)
         treeView.append_column(column)
 
     def fill(self, item=None):
@@ -349,6 +353,7 @@ class DHValues(DataHandler):
         txtcell = gtk.CellRendererText()
         column = gtk.TreeViewColumn("Unique ID", txtcell, text=0)
         column.set_visible(False)
+        column.set_resizable(True)
         self.treeView.append_column(column)
 
         # Text
@@ -357,6 +362,7 @@ class DHValues(DataHandler):
         column.pack_start(txtcell, False)
         column.set_attributes(txtcell, text=1)
         column = gtk.TreeViewColumn("Value Name", txtcell, text=1) 
+        column.set_resizable(True)
         self.treeView.append_column(column)
 
         #combo
@@ -365,6 +371,7 @@ class DHValues(DataHandler):
         cellcombo.set_property("text-column", 0)
         cellcombo.connect("edited", self.cellcombo_edited)
         column = gtk.TreeViewColumn("Values", cellcombo, text=2, model=3)
+        column.set_resizable(True)
         self.treeView.append_column(column)
 
     def fill(self, item=None):
@@ -418,7 +425,6 @@ class DHValues(DataHandler):
         choices = ""
         if value["selected"][0] in value["choices"]:
             choices = "|".join(value["choices"][value["selected"][0]])
-            print choices
             pattern = re.compile(value["match"]+"|"+choices)
         else: pattern = re.compile(value["match"])
         if pattern.match(new_text):
@@ -438,6 +444,7 @@ class DHItemsTree(DataHandler):
     def render(self, treeView):
         """Make a model ListStore of Dependencies object"""
 
+        self.lock = threading.Lock()
         self.treeView = treeView
         self.model = gtk.TreeStore(str, str, str, str)
         treeView.set_model(self.model)
@@ -463,12 +470,14 @@ class DHItemsTree(DataHandler):
         txtcell = gtk.CellRendererText()
         column.pack_start(txtcell, True)
         column.set_attributes(txtcell, text=2)
+        column.set_resizable(True)
         treeView.append_column(column)
 
         """Cell with picture representing if the item is selected or not
         """
         render = gtk.CellRendererPixbuf()
         column = gtk.TreeViewColumn("Selected", render, stock_id=3)
+        column.set_resizable(True)
         treeView.append_column(column)
 
     def __recursive_fill(self, item=None, parent=None):
@@ -503,7 +512,7 @@ class DHItemsTree(DataHandler):
             return # we need to return otherwise it would continue to next block
         else: return # TODO
 
-    @threading
+    @threadSave
     def fill(self, item=None, parent=None):
 
         # !!!!
@@ -513,15 +522,27 @@ class DHItemsTree(DataHandler):
         """we don't know item so it's first call and we need to clear
         the model, get the item from benchmark and continue recursively
         through content to fill the tree"""
-        self.model.clear()
-        self.treeView.set_sensitive(False)
-        child_win = self.treeView.get_window()
-        cursor = child_win.get_cursor()
-        child_win.set_cursor(gtk.gdk.Cursor(gtk.gdk.WATCH))
-        for item in self.benchmark.content:
-            self.__recursive_fill(item)
-        self.treeView.set_sensitive(True)
-        child_win.set_cursor(cursor)
+
+        self.lock.acquire()
+        try:
+            gtk.gdk.threads_enter()
+            self.model.clear()
+            self.treeView.set_sensitive(False)
+            gtk.gdk.threads_leave()
+
+            child_win = self.treeView.get_window()
+            cursor = child_win.get_cursor()
+            child_win.set_cursor(gtk.gdk.Cursor(gtk.gdk.WATCH))
+
+            for item in self.benchmark.content:
+                self.__recursive_fill(item)
+
+            gtk.gdk.threads_enter()
+            self.treeView.set_sensitive(True)
+            gtk.gdk.threads_leave()
+            child_win.set_cursor(cursor)
+        finally:
+            self.lock.release()
 
         return True
 
@@ -554,6 +575,7 @@ class DHProfiles(DataHandler):
         txtcell = gtk.CellRendererText()
         column.pack_start(txtcell, True)
         column.set_attributes(txtcell, text=1)
+        column.set_resizable(True)
         treeView.append_column(column)
 
     def fill(self, item=None, parent=None):
@@ -604,6 +626,7 @@ class DHScan(DataHandler):
         column = gtk.TreeViewColumn("Role ID", txtcell, text=DHScan.COLUMN_ID)
         column.add_attribute(txtcell, 'foreground', DHScan.COLUMN_COLOR_TEXT)
         column.add_attribute(txtcell, 'background-gdk', DHScan.COLUMN_COLOR_BACKG)
+        column.set_resizable(True)
         treeView.append_column(column)
 
         #Result
@@ -612,6 +635,7 @@ class DHScan(DataHandler):
         column.add_attribute(txtcell, 'foreground', DHScan.COLUMN_COLOR_TEXT)
         column.add_attribute(txtcell, 'background-gdk', DHScan.COLUMN_COLOR_BACKG)
         column.set_spacing(15)
+        column.set_resizable(True)
         treeView.append_column(column)
 
         # Fix
@@ -619,6 +643,7 @@ class DHScan(DataHandler):
         column = gtk.TreeViewColumn("Fix", txtcell, text=DHScan.COLUMN_FIX)
         column.add_attribute(txtcell, 'foreground', DHScan.COLUMN_COLOR_TEXT)
         column.add_attribute(txtcell, 'background-gdk', DHScan.COLUMN_COLOR_BACKG)
+        column.set_resizable(True)
         treeView.append_column(column)
 
         # Description
@@ -626,6 +651,7 @@ class DHScan(DataHandler):
         column = gtk.TreeViewColumn("Description", txtcell, text=DHScan.COLUMN_DESC)
         column.add_attribute(txtcell, 'foreground', DHScan.COLUMN_COLOR_TEXT)
         column.add_attribute(txtcell, 'background-gdk', DHScan.COLUMN_COLOR_BACKG)
+        column.set_resizable(True)
         treeView.append_column(column)
 
     def fill(self, item=None):

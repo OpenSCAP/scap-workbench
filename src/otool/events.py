@@ -87,8 +87,6 @@ class EventHandler(EventObject):
 
     def propagate(self, sender, signal):
         if sender.id in self.receivers:
-            logger.info("Recieved signal %s from sender %s and sending to:\n %s", signal, sender.id, self.receivers[sender.id])
-        if sender.id in self.receivers:
             if signal in self.receivers[sender.id]:
                 for cb in self.receivers[sender.id][signal]:
                     if callable(cb): cb()

@@ -155,7 +155,7 @@ class MenuButton(EventObject):
         alig = gtk.Alignment(0.5, 0.5, 1, 1)
         alig.set_padding(0, 0, 12, 0)
         frame.add(alig)
-        return alig
+        return frame, alig
 
     #draw functions
     def add_frame_cBox(self, body, text, expand):
@@ -231,6 +231,7 @@ class List(EventObject):
         self.scrolledWindow.set_shadow_type(gtk.SHADOW_IN)
         self.scrolledWindow.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
         self.treeView = gtk.TreeView()
+        self.treeView.set_headers_clickable(True)
         self.scrolledWindow.add(self.treeView)
         self.add_sender(id, "update")
         self.render()
