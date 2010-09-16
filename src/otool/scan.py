@@ -48,11 +48,11 @@ class ScanList(abstract.List):
         selection.set_mode(gtk.SELECTION_SINGLE)
 
         # actions
-        #self.add_receiver()
+        self.add_receiver("gui:btn:menu:scan", "scan", self.__scan)
         self.data_model.fill()
 
-    def __update(self):
-        self.data_model.fill()
+    def __scan(self):
+        self.data_model.scan()
 
 class MenuButtonScan(abstract.MenuButton):
     """
@@ -67,11 +67,11 @@ class MenuButtonScan(abstract.MenuButton):
         self.body = self.draw_body()
 
         # set signals
-        self.add_sender(self.id, "update")
+        self.add_sender(self.id, "scan")
 
-    #call back function
+    #callback function
     def cb_btnStart(self, widget):
-        pass
+        self.emit("scan")
 
     def cb_btnPause(self, widget):
         pass

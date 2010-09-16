@@ -612,6 +612,7 @@ class DHScan(DataHandler):
     def __init__(self, core):
         
         DataHandler.__init__(self, core)
+        self.__prepaired = False
 
     def render(self, treeView):
         """ define treeView"""
@@ -728,3 +729,40 @@ class DHScan(DataHandler):
                     )
         return True
 
+    def __callback_start(self, msg, plugin):
+        result = msg.user2num
+        if result == openscap.OSCAP.XCCDF_RESULT_NOT_SELECTED: 
+            return False
+
+        print "\nRule ID:", "\r\t\t", msg.user1str
+        print "Title:", "\r\t\t", msg.user3str
+        print "Descroption:", "\r\t\t", msg.string
+        print "Result:", "\r\t\t",
+        sys.stdout.flush()
+        return False
+
+    def __callback_end(self, msg, plugin):
+        result = msg.user2num
+        if result == openscap.OSCAP.XCCDF_RESULT_NOT_SELECTED: 
+            return False
+
+        print openscap.xccdf.test_result_type.get_text(msg.user2num)
+        return False
+
+    def __prepaire(self):
+
+        if self.__prepaired == True: return
+        self.selected_profile = self.core.selected_profile
+        self.lib["policy_model"].register_start_callback(self.__callback_start, self)
+        self.lib["policy_model"].register_output_callback(self.__callback_end, self)
+        if self.selected_profile == None:
+            self.policy = self.lib["policy_model"].policies[0]
+        else: self.policy = self.lib["policy_model"].get_policy_by_id(self.selected_profile)
+        self.__prepaired = True
+        
+
+    def scan(self):
+        self.__prepaire()
+        print "Scanning.."
+        self.result = self.policy.evaluate()
+        print "Finished"

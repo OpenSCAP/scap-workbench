@@ -679,11 +679,7 @@ class MenuButtonRefines(abstract.MenuButton):
         #set refines
         redDetails = RefineDetails(self.core)
         notebook.append_page(redDetails.vbox_refines, gtk.Label("Refines"))
-        page = notebook.get_nth_page(0)
-        notebook.realize()
-        page.realize()
-        print page.get_style().bg[gtk.STATE_NORMAL]
-
+        
         # box for dependecies and values
         box = gtk.HBox()
         vpaned_main.pack2(box, False, False)
