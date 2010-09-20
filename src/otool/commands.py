@@ -608,14 +608,28 @@ class DHProfiles(DataHandler):
 
 class DHScan(DataHandler):
 
-    COLUMN_ID = 0 #id of rule
-    COLUMN_RESULT = 1 #Result of scan
-    COLUMN_FIX = 2 #fix
-    COLUMN_DESC = 3 #Description of rule
-    COLUMN_COLOR_TEXT_DESC = 4 #Color of text description
-    COLUMN_COLOR_BACKG = 5 #Color of cell
-    COLUMN_COLOR_TEXT_RES = 6 #Color of text result
+    COLUMN_ID = 0               # id of rule
+    COLUMN_RESULT = 1           # Result of scan
+    COLUMN_FIX = 2              # fix
+    COLUMN_TITLE = 3            # Description of rule
+    COLUMN_DESC = 4             # Description of rule
+    COLUMN_COLOR_TEXT_TITLE = 5 # Color of text description
+    COLUMN_COLOR_BACKG = 6      # Color of cell
+    COLUMN_COLOR_TEXT_ID = 7    # Color of text ID
     
+    BG_RED      = "#F29D9D"
+    BG_ERR      = "red"
+    BG_GREEN    = "#9DF29D"
+    BG_LGREEN   = "#ADFFAD"
+    BG_FIXED    = "green"
+    BG_WHITE    = "white"
+    BG_GRAY     = "gray"
+    
+    FG_GRAY   = "gray"
+    FG_BLACK  = "black"
+    FG_GREEN  = "green"
+    FG_RED    = "red"
+
     def __init__(self, core, progress=None):
         
         DataHandler.__init__(self, core)
@@ -630,7 +644,7 @@ class DHScan(DataHandler):
         self.treeView = treeView
 
         #model: id rule, result, fix, description, color text desc, color background, color text res
-        self.model = gtk.ListStore(str, str, str, str, str, str)
+        self.model = gtk.ListStore(str, str, str, str, str, str, str, str)
         treeView.set_model(self.model)
         #treeView.set_grid_lines(gtk.TREE_VIEW_GRID_LINES_BOTH)
         #treeView.set_property("tree-line-width", 10)
@@ -638,6 +652,7 @@ class DHScan(DataHandler):
         # ID Rule
         txtcell = gtk.CellRendererText()
         column = gtk.TreeViewColumn("Role ID", txtcell, text=DHScan.COLUMN_ID)
+        column.add_attribute(txtcell, 'foreground', DHScan.COLUMN_COLOR_TEXT_ID)
         column.set_resizable(True)
         treeView.append_column(column)
 
@@ -655,78 +670,85 @@ class DHScan(DataHandler):
         column.set_visible(False)
         treeView.append_column(column)
 
-        # Description
+        # Title
         txtcell = gtk.CellRendererText()
-        column = gtk.TreeViewColumn("Description", txtcell, text=DHScan.COLUMN_DESC)
-        column.add_attribute(txtcell, 'foreground', DHScan.COLUMN_COLOR_TEXT_DESC)
+        column = gtk.TreeViewColumn("Title", txtcell, text=DHScan.COLUMN_TITLE)
+        column.add_attribute(txtcell, 'foreground', DHScan.COLUMN_COLOR_TEXT_TITLE)
         column.set_resizable(True)
         treeView.append_column(column)
 
+        # Description
+        txtcell = gtk.CellRendererText()
+        column = gtk.TreeViewColumn("Description", txtcell, text=DHScan.COLUMN_DESC)
+        column.set_resizable(True)
+        column.set_visible(False)
+        id = treeView.append_column(column)
+        treeView.set_tooltip_column(id-1)
+
     def fill(self, item):
 
-        
-        backG_red = "#F29D9D"
-        backG_err = "red"
-        backG_green = "#9DF29D"
-        backG_white = "white"
-        backG_gray = "gray"
-        
-        text_gray = "gray"
-        text_black = "black"
-        text_grren = "green"
+        #initialization
+        colorText_title = DHScan.FG_BLACK
+        colorText_res = DHScan.FG_BLACK
+        color_backG = DHScan.BG_ERR
+        colorText_ID = DHScan.FG_BLACK
+        text = ""
         
         # choose color for cell, and text of result
         if  item[DHScan.COLUMN_RESULT] == openscap.OSCAP.XCCDF_RESULT_PASS:
             text = "PASS" # The test passed
-            color_backG = backG_green
-            colorText_desc = text_gray
+            color_backG = DHScan.BG_GREEN
+            colorText_title = DHScan.FG_GRAY
+            colorText_ID = DHScan.FG_BLACK
         
         elif  item[DHScan.COLUMN_RESULT] == openscap.OSCAP.XCCDF_RESULT_FAIL:
             text = "FAIL" # The test failed
-            color_backG = backG_red
-            colorText_desc = text_black
+            color_backG = DHScan.BG_RED
+            colorText_title = DHScan.FG_BLACK
+            colorText_ID = DHScan.FG_BLACK
         
         elif  item[DHScan.COLUMN_RESULT] == openscap.OSCAP.XCCDF_RESULT_ERROR:
-            color_text = text_black
+            color_text = DHScan.FG_BLACK
             text = "ERROR" # An error occurred and test could not complete
-            color_backG = backG_err
-            colorText_desc = text_black
+            color_backG = DHScan.BG_ERR
+            colorText_title = DHScan.FG_RED
+            colorText_ID = DHScan.FG_RED
             
         elif  item[DHScan.COLUMN_RESULT] == openscap.OSCAP.XCCDF_RESULT_UNKNOWN:
             text = "UNKNOWN" #  Could not tell what happened
-            color_backG = backG_gray
-            colorText_desc = text_black
+            color_backG = DHScan.BG_GRAY
+            colorText_title = DHScan.FG_BLACK
+            colorText_ID = DHScan.FG_BLACK
         
         elif  item[DHScan.COLUMN_RESULT] == openscap.OSCAP.XCCDF_RESULT_NOT_APPLICABLE:
             text = "NOT_APPLICABLE" # Rule did not apply to test target
-            color_backG = backG_green
-            colorText_desc = text_gray
+            color_backG = DHScan.BG_WHITE
+            colorText_title = DHScan.FG_GRAY
+            colorText_ID = DHScan.FG_BLACK
             
         elif  item[DHScan.COLUMN_RESULT] == openscap.OSCAP.XCCDF_RESULT_NOT_CHECKED:
             text = "NOT_CHECKED" # Rule did not cause any evaluation by the checking engine
-            color_backG = backG_green
-            colorText_desc = text_gray                
+            color_backG = DHScan.BG_WHITE
+            colorText_title = DHScan.FG_GRAY                
+            colorText_ID = DHScan.FG_BLACK
 
         elif  item[DHScan.COLUMN_RESULT] == openscap.OSCAP.XCCDF_RESULT_NOT_SELECTED:
             text = "NOT_SELECTED" #Rule was not selected in the @link xccdf_benchmark Benchmark@endlink
-            color_backG = backG_green
-            colorText_desc = text_gray                
+            color_backG = DHScan.BG_WHITE
+            colorText_title = DHScan.FG_GRAY                
+            colorText_ID = DHScan.FG_BLACK
             
         elif  item[DHScan.COLUMN_RESULT] == openscap.OSCAP.XCCDF_RESULT_INFORMATIONAL:
             text = "INFORMATIONAL" # Rule was evaluated by the checking engine, but isn't to be scored
-            color_backG = backG_green
-            colorText_desc = text_gray                
+            color_backG = DHScan.BG_LGREEN
+            colorText_title = DHScan.FG_GRAY                
+            colorText_ID = DHScan.FG_BLACK
 
         elif  item[DHScan.COLUMN_RESULT] == openscap.OSCAP.XCCDF_RESULT_FIXED:
             text = "FIXED" # Rule failed, but was later fixed
-            color_backG = backG_green
-            colorText_desc = text_gray 
-        else:
-            #initialization
-            colorText_desc = text_black
-            colorText_res = text_black
-            color_backG = backG_err
-            text = ""
+            color_backG = DHScan.BG_FIXED
+            colorText_title = DHScan.FG_GRAY 
+            colorText_ID = DHScan.FG_BLACK
 
 
         iter = self.model.append()
@@ -734,9 +756,11 @@ class DHScan(DataHandler):
                 DHScan.COLUMN_ID,   item[DHScan.COLUMN_ID],
                 DHScan.COLUMN_RESULT,   text,
                 DHScan.COLUMN_FIX,    item[DHScan.COLUMN_FIX], 
+                DHScan.COLUMN_TITLE,  item[DHScan.COLUMN_TITLE],
                 DHScan.COLUMN_DESC,  item[DHScan.COLUMN_DESC],
-                DHScan.COLUMN_COLOR_TEXT_DESC,  colorText_desc,
+                DHScan.COLUMN_COLOR_TEXT_TITLE,  colorText_title,
                 DHScan.COLUMN_COLOR_BACKG,  color_backG,
+                DHScan.COLUMN_COLOR_TEXT_ID,  colorText_ID,
                 )
         return True
 
@@ -762,7 +786,7 @@ class DHScan(DataHandler):
             return self.__cancel
 
         gtk.gdk.threads_enter()
-        self.fill([msg.user1str, msg.user2num, False, msg.user3str])
+        self.fill([msg.user1str, msg.user2num, False, msg.user3str, msg.string])
         self.treeView.queue_draw()
         gtk.gdk.threads_leave()
 
