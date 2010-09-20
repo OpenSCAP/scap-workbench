@@ -48,6 +48,7 @@ class OECore:
             logger.debug("Loading XCCDF file %s", sys.argv[1])
             self.init(sys.argv[1])
 
+        self.__objects = {}
         self.eventHandler = EventHandler(self)
         self.selected_profile   = None
         self.selected_item      = None
@@ -84,6 +85,18 @@ class OECore:
             model.free()
         for sess in self.lib["sessions"]:
             sess.free()
+
+    def get_item(self, id):
+        if id not in self.__objects:
+            raise Exception, "FATAL: Object %s not registered" % (id,)
+        return self.__objects[id]
+
+    def register(self, id, object):
+
+        if id in self.__objects:
+            raise Exception, "FATAL: Object %s already registered" % (id,)
+        logger.debug("Registering object %s done.", id)
+        self.__objects[id] = object
 
 class ThreadHandler(threading.Thread):
     """

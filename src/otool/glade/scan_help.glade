@@ -1,0 +1,44 @@
+<?xml version="1.0"?>
+<interface>
+  <requires lib="gtk+" version="2.16"/>
+  <!-- interface-naming-policy project-wide -->
+  <object class="GtkWindow" id="scan:help:window">
+    <property name="title" translatable="yes">Scan Help</property>
+    <property name="window_position">center-on-parent</property>
+    <property name="default_width">650</property>
+    <property name="default_height">400</property>
+    <property name="destroy_with_parent">True</property>
+    <property name="icon_name">help-browser</property>
+    <property name="type_hint">dialog</property>
+    <signal name="delete_event" handler="delete_event"/>
+    <child>
+      <object class="GtkScrolledWindow" id="scan:help:scrolled_window">
+        <property name="visible">True</property>
+        <property name="can_focus">True</property>
+        <property name="hscrollbar_policy">automatic</property>
+        <property name="vscrollbar_policy">automatic</property>
+        <property name="shadow_type">in</property>
+        <child>
+          <object class="GtkTreeView" id="scan:help:treeview">
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <property name="model">scan:help:treeview:model</property>
+            <property name="headers_visible">False</property>
+            <property name="headers_clickable">False</property>
+            <property name="search_column">0</property>
+          </object>
+        </child>
+      </object>
+    </child>
+  </object>
+  <object class="GtkListStore" id="scan:help:treeview:model">
+    <columns>
+      <!-- column-name result -->
+      <column type="gchararray"/>
+      <!-- column-name bg_color -->
+      <column type="gchararray"/>
+      <!-- column-name definition -->
+      <column type="gchararray"/>
+    </columns>
+  </object>
+</interface>

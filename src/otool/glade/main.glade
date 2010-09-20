@@ -1,0 +1,279 @@
+<?xml version="1.0"?>
+<interface>
+  <requires lib="gtk+" version="2.16"/>
+  <!-- interface-naming-policy project-wide -->
+  <object class="GtkWindow" id="main:window">
+    <property name="title" translatable="yes">Main</property>
+    <property name="window_position">center</property>
+    <property name="default_width">900</property>
+    <property name="default_height">700</property>
+    <signal name="delete_event" handler="delete_event"/>
+    <child>
+      <object class="GtkVBox" id="main:window_box">
+        <property name="visible">True</property>
+        <property name="orientation">vertical</property>
+        <child>
+          <object class="GtkToolbar" id="main:toolbar">
+            <property name="visible">True</property>
+            <property name="toolbar_style">both</property>
+            <property name="show_arrow">False</property>
+            <property name="tooltips">False</property>
+            <property name="icon_size_set">True</property>
+            <child>
+              <object class="GtkToggleToolButton" id="main:toolbar:main">
+                <property name="visible">True</property>
+                <property name="label" translatable="yes">_Main</property>
+                <property name="use_underline">True</property>
+                <property name="icon_name">go-home</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="homogeneous">True</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkToggleToolButton" id="main:toolbar:tailoring">
+                <property name="visible">True</property>
+                <property name="label" translatable="yes">_Tailoring</property>
+                <property name="use_underline">True</property>
+                <property name="icon_name">document-properties</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="homogeneous">True</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkToggleToolButton" id="main:toolbar:edit">
+                <property name="visible">True</property>
+                <property name="sensitive">False</property>
+                <property name="label" translatable="yes">_Edit</property>
+                <property name="use_underline">True</property>
+                <property name="icon_name">edit-select-all</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="homogeneous">True</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkToggleToolButton" id="main:toolbar:scan">
+                <property name="visible">True</property>
+                <property name="label" translatable="yes">_Scan</property>
+                <property name="use_underline">True</property>
+                <property name="icon_name">edit-find</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="homogeneous">True</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkToggleToolButton" id="main:toolbar:reports">
+                <property name="visible">True</property>
+                <property name="sensitive">False</property>
+                <property name="label" translatable="yes">_Reports</property>
+                <property name="use_underline">True</property>
+                <property name="icon_name">software-update-available</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="homogeneous">True</property>
+              </packing>
+            </child>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="position">0</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkToolbar" id="main:sub:main">
+            <property name="toolbar_style">text</property>
+            <child>
+              <object class="GtkToggleToolButton" id="main:sub:main:xccdf">
+                <property name="visible">True</property>
+                <property name="label" translatable="yes">XCCDF</property>
+                <property name="active">True</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="homogeneous">True</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkToggleToolButton" id="main:sub:main:oval">
+                <property name="visible">True</property>
+                <property name="is_important">True</property>
+                <property name="label" translatable="yes">OVAL</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="homogeneous">True</property>
+              </packing>
+            </child>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="position">1</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkToolbar" id="main:sub:tailoring">
+            <property name="toolbar_style">text</property>
+            <child>
+              <object class="GtkToggleToolButton" id="main:sub:tailoring:profiles">
+                <property name="visible">True</property>
+                <property name="label" translatable="yes">Profiles</property>
+                <property name="use_underline">True</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="homogeneous">True</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkToggleToolButton" id="main:sub:tailoring:refines">
+                <property name="visible">True</property>
+                <property name="label" translatable="yes">Refines</property>
+                <property name="use_underline">True</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="homogeneous">True</property>
+              </packing>
+            </child>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="position">2</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkVBox" id="main:box">
+            <property name="visible">True</property>
+            <property name="orientation">vertical</property>
+            <child>
+              <object class="GtkVBox" id="scan:box">
+                <property name="orientation">vertical</property>
+                <child>
+                  <object class="GtkAlignment" id="alignment2">
+                    <property name="visible">True</property>
+                    <property name="xalign">0</property>
+                    <property name="yalign">0</property>
+                    <property name="top_padding">12</property>
+                    <property name="bottom_padding">12</property>
+                    <property name="left_padding">12</property>
+                    <property name="right_padding">12</property>
+                    <child>
+                      <object class="GtkVBox" id="scan:box:body">
+                        <property name="visible">True</property>
+                        <property name="orientation">vertical</property>
+                        <child>
+                          <object class="GtkTreeView" id="scan:treeview">
+                            <property name="visible">True</property>
+                            <property name="can_focus">True</property>
+                            <property name="model">scan:treeview:model</property>
+                            <property name="tooltip_column">7</property>
+                          </object>
+                          <packing>
+                            <property name="position">0</property>
+                          </packing>
+                        </child>
+                        <child>
+                          <placeholder/>
+                        </child>
+                        <child>
+                          <placeholder/>
+                        </child>
+                      </object>
+                    </child>
+                  </object>
+                  <packing>
+                    <property name="position">0</property>
+                  </packing>
+                </child>
+              </object>
+              <packing>
+                <property name="position">0</property>
+              </packing>
+            </child>
+          </object>
+          <packing>
+            <property name="position">3</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkAlignment" id="alignment1">
+            <property name="visible">True</property>
+            <property name="top_padding">12</property>
+            <property name="bottom_padding">12</property>
+            <property name="left_padding">12</property>
+            <property name="right_padding">12</property>
+            <child>
+              <object class="GtkHButtonBox" id="main:button_box">
+                <property name="visible">True</property>
+                <property name="spacing">12</property>
+                <property name="homogeneous">True</property>
+                <property name="layout_style">end</property>
+                <child>
+                  <object class="GtkButton" id="main:button_back">
+                    <property name="label">gtk-go-back</property>
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <property name="receives_default">True</property>
+                    <property name="use_stock">True</property>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="fill">False</property>
+                    <property name="position">0</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkButton" id="main:button_forward">
+                    <property name="label">gtk-go-forward</property>
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <property name="receives_default">True</property>
+                    <property name="use_stock">True</property>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="fill">False</property>
+                    <property name="position">1</property>
+                  </packing>
+                </child>
+              </object>
+            </child>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="pack_type">end</property>
+            <property name="position">4</property>
+          </packing>
+        </child>
+      </object>
+    </child>
+  </object>
+  <object class="GtkListStore" id="scan:treeview:model">
+    <columns>
+      <!-- column-name Role ID -->
+      <column type="gchararray"/>
+      <!-- column-name id_fg -->
+      <column type="gchararray"/>
+      <!-- column-name Result -->
+      <column type="gchararray"/>
+      <!-- column-name result_bg -->
+      <column type="gchararray"/>
+      <!-- column-name Fix -->
+      <column type="gchararray"/>
+      <!-- column-name Title -->
+      <column type="gchararray"/>
+      <!-- column-name title_fg -->
+      <column type="gchararray"/>
+      <!-- column-name Description -->
+      <column type="gchararray"/>
+    </columns>
+  </object>
+</interface>

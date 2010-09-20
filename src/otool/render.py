@@ -66,11 +66,11 @@ class MenuButtonXCCDF(abstract.MenuButton):
     """
     GUI for operations with xccdf file.
     """
-    def __init__(self, c_body=None, sensitivity=True, core=None):
+    def __init__(self, box, widget, core):
         logger = logging.getLogger(self.__class__.__name__)
         self.data_model = commands.DataHandler(core)
-        abstract.MenuButton.__init__(self,"gui:btn:main:xccdf", "XCCDF", None, c_body, sensitivity)
-        self.c_body = c_body
+        abstract.MenuButton.__init__(self, "gui:btn:main:xccdf", widget, core)
+        self.box = box
         self.core = core
         
         self.add_sender(self.id, "load")
@@ -201,17 +201,17 @@ class MenuButtonXCCDF(abstract.MenuButton):
         # add to conteiner
         body.show_all()
         body.hide()
-        self.c_body.add(body)
+        self.box.add(body)
         return body
 
 
     
 class MenuButtonOVAL(abstract.MenuButton):
 
-    def __init__(self, c_body=None, sensitivity=None ,core=None):
+    def __init__(self, box, widget, core):
         logger = logging.getLogger(self.__class__.__name__)
-        abstract.MenuButton.__init__(self,"gui:btn:main:oval", "Oval", None, c_body, sensitivity)
-        self.c_body = c_body
+        abstract.MenuButton.__init__(self, "gui:btn:main:oval", widget, core)
+        self.box = box
         self.title = None
         self.description = None
         self.version = None
@@ -225,7 +225,7 @@ class MenuButtonOVAL(abstract.MenuButton):
 
         body.show_all()
         body.hide()
-        self.c_body.add(body)
+        self.box.add(body)
         return body
 
 class MainWindow(abstract.Window, threading.Thread):
@@ -237,86 +237,37 @@ class MainWindow(abstract.Window, threading.Thread):
         threading.Thread.__init__(self)
         logger = logging.getLogger(self.__class__.__name__)
         self.core = core.OECore()
-        # Create a new window
-        self.window = gtk.Window(gtk.WINDOW_TOPLEVEL)
-        self.window.set_title("Main window")
-        self.window.set_size_request(900, 700)
-        self.window.connect("delete_event", self.delete_event)
-        self.vbox_main = gtk.VBox()
-        self.vbox_main.show()
-        self.window.add(self.vbox_main)
-        
-        # container for body
-        vbox_body = gtk.VBox()
-        
-        # main menu
-        self.menu = abstract.Menu("gui:menu")
-        self.vbox_main.pack_start(self.menu.widget, expand=False, fill=True, padding=0)
-        menu1_but1 = abstract.MenuButton("gui:btn:menu:main", "Main", gtk.STOCK_HOME, vbox_body)
-        self.menu.add_item(menu1_but1)
-        menu1_but2 = abstract.MenuButton("gui:btn:menu:tailoring", "Tailoring", gtk.STOCK_FIND_AND_REPLACE, vbox_body)
-        self.menu.add_item(menu1_but2)
-        menu1_but3 = abstract.MenuButton("gui:btn:menu:edit", "Edit", gtk.STOCK_EDIT, vbox_body)
-        menu1_but3.widget.set_sensitive(False)
-        self.menu.add_item(menu1_but3)
-        menu1_but4 = scan.MenuButtonScan(vbox_body, core=self.core)
-        self.menu.add_item(menu1_but4)
-        menu1_but5 = abstract.MenuButton("gui:btn:menu:reports", "Reports", gtk.STOCK_DIALOG_INFO, vbox_body)
-        menu1_but5.widget.set_sensitive(False)
-        self.menu.add_item(menu1_but5)
-        
+        assert self.core != None, "Initialization failed, core is None"
+        self.builder = gtk.Builder()
+        self.builder.add_from_file("glade/main.glade")
+        self.builder.connect_signals(self)
+
+        self.window = self.builder.get_object("main:window")
+        self.main_box = self.builder.get_object("main:box")
+
+        # abstract the main menu
+        self.menu = abstract.Menu("gui:menu", self.builder.get_object("main:toolbar"), self.core)
+        self.menu.add_item(abstract.MenuButton("gui:btn:menu:main", self.builder.get_object("main:toolbar:main"), self.core))
+        self.menu.add_item(abstract.MenuButton("gui:btn:menu:tailoring", self.builder.get_object("main:toolbar:tailoring"), self.core))
+        self.menu.add_item(abstract.MenuButton("gui:btn:menu:edit",  self.builder.get_object("main:toolbar:edit"), self.core))
+        self.menu.add_item(scan.MenuButtonScan(self.main_box, self.builder.get_object("main:toolbar:scan"), self.core))
+        self.menu.add_item(abstract.MenuButton("gui:btn:menu:reports", self.builder.get_object("main:toolbar:reports"), self.core))
         
         # subMenu_but_main
-        self.submenu = abstract.Menu("gui:menu:main")
-        self.vbox_main.pack_start(self.submenu.widget, expand=False, fill=True, padding=0)
-        menu2_but1 = MenuButtonXCCDF(vbox_body, core=self.core)
-        self.submenu.add_item(menu2_but1)
-        menu2_but2 = MenuButtonOVAL(vbox_body, core=self.core)
-        self.submenu.add_item(menu2_but2)
-        menu1_but1.set_menu(self.submenu)
+        submenu = abstract.Menu("gui:menu:main", self.builder.get_object("main:sub:main"), self.core)
+        submenu.add_item(MenuButtonXCCDF(self.main_box, self.builder.get_object("main:sub:main:xccdf"), self.core))
+        submenu.add_item(MenuButtonOVAL(self.main_box, self.builder.get_object("main:sub:main:oval"), self.core))
+        self.core.get_item("gui:btn:menu:main").set_menu(submenu)
 
-        # subMenu_but_tailoring
-        self.submenu1 = abstract.Menu("gui:menu:tailoring")
-        self.vbox_main.pack_start(self.submenu1.widget, expand=False, fill=True, padding=0)
-        menu3_but1 = tailoring.MenuButtonProfiles(vbox_body, core=self.core)
-        self.submenu1.add_item(menu3_but1)
-        menu3_but2 = tailoring.MenuButtonRefines(vbox_body, core=self.core)
-        self.submenu1.add_item(menu3_but2)
-        #self.progress = abstract.ProgressBar("gui:menu:progress", core=self.core)
-        #self.submenu1.add_item(self.progress)
-        menu1_but2.set_menu(self.submenu1)
-
-        # subMenu_but_edit
-
-        # subMenu_but_scan
-
-        # subMenu_but_reports
-
-        self.vbox_main.pack_start(vbox_body, expand=True, fill=True, padding=0)
-
-        # bottom navigation
-        bottom_box = gtk.HBox()
-        self.vbox_main.pack_start(bottom_box, expand=False, fill=False, padding=10)
-        alig = gtk.Alignment()
-        bottom_box.pack_start(alig, expand=True, fill=True)
-
-        alig = gtk.Alignment(0, 0)
-        button = gtk.Button(stock=gtk.STOCK_GO_BACK)
-        alig.set_padding(0,0,0,12)
-        alig.add(button)
-        bottom_box.pack_start(alig, expand=False, fill=True)
-        
-        alig = gtk.Alignment(0, 0)
-        button = gtk.Button(stock=gtk.STOCK_GO_FORWARD)
-        alig.add(button)
-        alig.set_padding(0,0,0,10)
-        bottom_box.pack_start(alig, expand=False, fill=True)
+        ## subMenu_but_tailoring
+        submenu = abstract.Menu("gui:menu:tailoring", self.builder.get_object("main:sub:tailoring"), self.core)
+        submenu.add_item(tailoring.MenuButtonProfiles(self.main_box, self.builder.get_object("main:sub:tailoring:profiles"), self.core))
+        submenu.add_item(tailoring.MenuButtonRefines(self.main_box, self.builder.get_object("main:sub:tailoring:refines"), self.core))
+        self.core.get_item("gui:btn:menu:tailoring").set_menu(submenu)
 
         self.core.main_window = self.window
         self.window.show()
-        self.menu.show()
-        vbox_body.show()
-        bottom_box.show_all()
+        self.builder.get_object("main:toolbar:main").set_active(True)
 
     def delete_event(self, widget, event, data=None):
         """ close the window and quit

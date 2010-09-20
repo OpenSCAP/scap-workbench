@@ -65,10 +65,10 @@ class MenuButtonScan(abstract.MenuButton):
     """
     GUI for refines.
     """
-    def __init__(self, c_body=None, sensitivity=None, core=None):
-        abstract.MenuButton.__init__(self, "gui:btn:menu:scan",  "Scan", gtk.STOCK_DIALOG_AUTHENTICATION, c_body, sensitivity)
+    def __init__(self, box, widget, core):
+        abstract.MenuButton.__init__(self, "gui:btn:menu:scan", widget, core)
         self.core = core
-        self.c_body = c_body
+        self.box = box
 
         #draw body
         self.body = self.draw_body()
@@ -135,7 +135,7 @@ class MenuButtonScan(abstract.MenuButton):
 
         body.show_all()
         body.hide()
-        self.c_body.add(body)
+        self.box.add(body)
         return body
         
 
@@ -143,19 +143,9 @@ class HelpWindow(abstract.Window):
 
     def __init__(self, core=None):
         self.core = core
+        self.builder = gtk.Builder()
+        self.builder.add_from_file("glade/scan_help.glade")
         self.draw_window()
-
-    def add_label(self, table, text, left, right, top, bottom, color=None, x=gtk.EXPAND|gtk.FILL, y=gtk.EXPAND|gtk.FILL):
-        eb = gtk.EventBox()
-        alig = gtk.Alignment(0, 0.5)
-        alig.set_padding(4, 4, 4, 40)
-        label = gtk.Label(text)
-        label.set_justify(gtk.JUSTIFY_LEFT)
-        label.set_line_wrap(True)
-        if color != None: eb.modify_bg(gtk.STATE_NORMAL, gtk.gdk.Color(color))
-        alig.add(label)
-        eb.add(alig)
-        table.attach(eb, left, right, top, bottom, x, y)
 
     def delete_event(self, widget, event):
         self.window.destroy()
@@ -168,23 +158,15 @@ class HelpWindow(abstract.Window):
     def draw_window(self):
         # Create a new window
         self.window = gtk.Window(gtk.WINDOW_TOPLEVEL)
-        self.window.set_title("Help")
-        self.window.connect("delete_event", self.delete_event)
-
-        sw = gtk.ScrolledWindow()
-        sw.set_shadow_type(gtk.SHADOW_IN)
-        sw.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
-
-        treeView = gtk.TreeView()
-        self.help_model = gtk.ListStore(str, str, str)
-        treeView.set_model(self.help_model)
-        #treeView.set_grid_lines(gtk.TREE_VIEW_GRID_LINES_BOTH)
-        #treeView.set_property("tree-line-width", 10)
+        self.window = self.builder.get_object("scan:help:window")
+        self.treeView = self.builder.get_object("scan:help:treeview")
+        self.help_model = self.builder.get_object("scan:help:treeview:model")
+        self.builder.connect_signals(self)
 
         txtcell = gtk.CellRendererText()
         column = gtk.TreeViewColumn("Result", txtcell, text=0)
         column.add_attribute(txtcell, 'background', 1)
-        treeView.append_column(column)
+        self.treeView.append_column(column)
 
         txtcell = gtk.CellRendererText()
         txtcell.set_property('wrap-mode', pango.WRAP_WORD)
@@ -193,41 +175,21 @@ class HelpWindow(abstract.Window):
         column.set_resizable(True)
         column.set_expand(True)
         column.connect("notify", self.__notify)
-        treeView.append_column(column)
-        sw.add(treeView)
+        self.treeView.append_column(column)
 
-        selection = treeView.get_selection()
+        selection = self.treeView.get_selection()
         selection.set_mode(gtk.SELECTION_NONE)
 
- 
         self.help_model.append(["PASS", commands.DHScan.BG_GREEN, "The target system or system component satisfied all the conditions of the Rule. A pass result contributes to the weighted score and maximum possible score."])
-
         self.help_model.append(["FAIL", commands.DHScan.BG_RED, "The target system or system component did not satisfy all the conditions of the Rule. A fail result contributes to the maximum possible score."])
-
         self.help_model.append(["ERROR", commands.DHScan.BG_ERR, "The checking engine encountered a system error and could not complete the test, therefore the status of the target’s compliance with the Rule is not certain. This could happen, for example, if a Benchmark testing tool were run with insufficient privileges."])
-        
         self.help_model.append(["UNKNOWN", commands.DHScan.BG_GRAY, "The testing tool encountered some problem and the result is unknown. For example, a result of ‘unknown’ might be given if the Benchmark testing tool were unable to interpret the output of the checking engine."])
-
         self.help_model.append(["NOT APPLICABLE", commands.DHScan.BG_GRAY, "The Rule was not applicable to the target of the test. For example, the Rule might have been specific to a different version of the target OS, or it might have been a test against a platform feature that was not installed. Results with this status do not contribute to the Benchmark score."])
-
         self.help_model.append(["NOT CHECKED", commands.DHScan.BG_GRAY, "The Rule was not evaluated by the checking engine. This status is designed for Rules that have no check properties. It may also correspond to a status returned by a checking engine. Results with this status do not contribute to the Benchmark score."])
-
         self.help_model.append(["NOT SELECTED", commands.DHScan.BG_GRAY, "The Rule was not selected in the Benchmark. Results with this status do not contribute to the Benchmark score."])
-
         self.help_model.append(["INFORMATIONAL", commands.DHScan.BG_LGREEN, "The Rule was checked, but the output from the checking engine is simply information for auditor or administrator; it is not a compliance category. This status value is designed for Rules whose main purpose is to extract information from the target rather than test compliance. Results with this status do not contribute to the Benchmark score."])
-
         self.help_model.append(["FIXED", commands.DHScan.BG_FIXED, "The Rule had failed, but was then fixed (possibly by a tool that can automatically apply remediation, or possibly by the human auditor). Results with this status should be scored the same as pass."])
 
-        #operations
-        #box = gtk.HButtonBox()
-        #box.set_layout(gtk.BUTTONBOX_END)
-        #btn = gtk.Button("OK")
-        #btn.connect("clicked", self.destroy_window)
-        #box.add(btn)
-
-        self.window.add(sw)
-        self.window.set_size_request(650, 400)
-        self.window.set_modal(True)
         self.window.show_all()
 
     def destroy_window(self, widget):

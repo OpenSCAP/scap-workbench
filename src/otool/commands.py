@@ -104,7 +104,7 @@ class DataHandler:
                 if select.item == item.id:
                     if select.selected: 
                         return True
-                    return False
+                    else: return False
             return item.selected
 
     def get_item_values(self, id):
@@ -461,7 +461,7 @@ class DHItemsTree(DataHandler):
 
         self.lock = threading.Lock()
         self.treeView = treeView
-        self.model = gtk.TreeStore(str, str, str, str)
+        self.model = gtk.TreeStore(str, str, str, str, str)
         treeView.set_model(self.model)
 
         """This Cell is used to be first hidden column of tree view
@@ -485,6 +485,7 @@ class DHItemsTree(DataHandler):
         txtcell = gtk.CellRendererText()
         column.pack_start(txtcell, True)
         column.set_attributes(txtcell, text=2)
+        column.add_attribute(txtcell, 'foreground', 4)
         column.set_resizable(True)
         treeView.append_column(column)
 
@@ -503,14 +504,17 @@ class DHItemsTree(DataHandler):
         """This is recusive call (item is not None) so let's get type of 
         item and add it to model. If the item is Group continue more deep with
         recursion to get all items to the tree"""
+        color = "black"
         if item != None:
             if item.type == openscap.OSCAP.XCCDF_RULE:
                 selected = [None, gtk.STOCK_APPLY][self.get_selected(item)]
             else: selected = None
+            if selected != None:
+                color = "green"
             # If item is group, store it ..
             if item.type == openscap.OSCAP.XCCDF_GROUP:
                 gtk.gdk.threads_enter()
-                item_it = self.model.append(parent, [item.id, gtk.STOCK_DND_MULTIPLE, "Group: "+item.title[0].text, selected])
+                item_it = self.model.append(parent, [item.id, gtk.STOCK_DND_MULTIPLE, "Group: "+item.title[0].text, selected, color])
                 self.treeView.queue_draw()
                 gtk.gdk.threads_leave()
                 # .. call recursive
@@ -519,7 +523,7 @@ class DHItemsTree(DataHandler):
             # item is rule, store it to model
             elif item.type == openscap.OSCAP.XCCDF_RULE:
                 gtk.gdk.threads_enter()
-                item_it = self.model.append(parent, [item.id, gtk.STOCK_DND, "Rule: "+item.title[0].text, selected])
+                item_it = self.model.append(parent, [item.id, gtk.STOCK_DND, "Rule: "+item.title[0].text, selected, color])
                 self.treeView.queue_draw()
                 gtk.gdk.threads_leave()
             else: logger.warning("Unknown type of %s, should be Rule or Group (got %s)", item.type, item.id)

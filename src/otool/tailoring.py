@@ -486,10 +486,11 @@ class MenuButtonProfiles(abstract.MenuButton):
     """
     GUI for profiles.
     """
-    def __init__(self, c_body=None, sensitivity=None, core=None):
-        abstract.MenuButton.__init__(self,"gui:btn:tailoring:profiles", "Profiles", None, c_body, sensitivity)
+    def __init__(self, box, widget, core):
+        abstract.MenuButton.__init__(self, "gui:btn:tailoring:profiles", widget, core)
         self.core = core
-        self.c_body = c_body
+        self.widget = widget
+        self.box = box
         
         # draw body
         self.body = self.draw_body()
@@ -624,7 +625,7 @@ class MenuButtonProfiles(abstract.MenuButton):
 
         body.show_all()
         body.hide()
-        self.c_body.add(body)
+        self.box.add(body)
         return body
 
 
@@ -632,10 +633,10 @@ class MenuButtonRefines(abstract.MenuButton):
     """
     GUI for refines.
     """
-    def __init__(self, c_body=None, sensitivity=None, core=None):
-        abstract.MenuButton.__init__(self, "gui:btn:tailoring:refines", "Refines", None, c_body, sensitivity)
+    def __init__(self, box, widget, core):
+        abstract.MenuButton.__init__(self, "gui:btn:tailoring:refines", widget, core)
         self.core = core
-        self.c_body = c_body
+        self.box = box
 
         #draw body
         self.body = self.draw_body()
@@ -694,7 +695,7 @@ class MenuButtonRefines(abstract.MenuButton):
         
         body.show_all()
         body.hide()
-        self.c_body.add(body)
+        self.box.add(body)
         self.filter.expander.cb_changed(None)
         return body
 

@@ -36,16 +36,18 @@ class Menu(EventObject):
     """ 
     Create Main item for TreeToolBar_toggleButtonGroup and draw all tree Menu
     """
-    def __init__(self, id):
+    def __init__(self, id, widget, core):
         """
         @param id
         """
         self.id = id
+        self.core = core
         super(Menu, self).__init__()
         self.btnList = []
         self.active_item = None
         self.default_item = None
-        self.widget = gtk.Toolbar()
+        self.widget = widget
+        core.register(id, self)
 	
     def add_item(self, item, position=None):
         """ 
@@ -58,12 +60,6 @@ class Menu(EventObject):
             self.set_default(item)
         self.btnList.append(item)
         # vizual
-        if position != None: 
-            self.widget.insert_space((position*2)+1)
-            self.widget.insert(item.widget, position)
-        else: 
-            self.widget.insert(item.widget, self.widget.get_n_items())
-
         item.parent = self
 
     def show(self):
@@ -110,7 +106,7 @@ class MenuButton(EventObject):
     """ Class for tree of toogleBar with toggleButtons in group
     """
 
-    def __init__(self, id, name, image=None, c_body=None, sensitivity=True):
+    def __init__(self, id, widget, core):
         """
         @param id
         @param name Name of MenuButton
@@ -118,31 +114,18 @@ class MenuButton(EventObject):
         @param sensitivity Filter function for set sensitivity of MenuButton
         """
         # structure
+        self.core = core
+        self.id = id
         super(MenuButton, self).__init__()
         self.add_sender(id, "update")
-        self.id = id
-        self.name = name        # dependent menu of MenuButton object
-        self.sensitivity = sensitivity
         self.parent = None      #menu for this MenuButton
-        self.c_body = c_body
         self.menu = None
         self.body = None
+        self.widget = widget
+        core.register(id, self)
 
         # setings
-        self.widget_btn = gtk.ToggleButton()
-        self.widget = gtk.ToolItem()
-        self.widget.add(self.widget_btn)
-        self.widget.set_is_important(True)
-        self.widget_btn.set_label(name)
-        if image: 
-            img = gtk.image_new_from_stock(image, gtk.ICON_SIZE_MENU)
-            self.widget_btn.set_image(img)
-            self.widget_btn.set_image_position(gtk.POS_TOP)
-        self.widget_btn.set_sensitive(True)
-        self.widget_btn.set_relief(gtk.RELIEF_NONE)
-        self.widget.show()
-        self.widget_btn.show()
-        self.widget_btn.connect("toggled", self.cb_toggle)
+        self.widget.connect("toggled", self.cb_toggle)
 
     def add_frame_vp(self,body, text,pos = 1):
         frame = gtk.Frame(text)
@@ -178,14 +161,15 @@ class MenuButton(EventObject):
         Show or hide MenuButton object and dependent menu, body.
         @param active True/False - Show/Hide 
         """
-        self.widget_btn.handler_block_by_func(self.cb_toggle)
-        self.widget_btn.set_active(active)
+        if active: logger.debug("Switching active button to %s", self.id)
+        self.widget.handler_block_by_func(self.cb_toggle)
+        self.widget.set_active(active)
         self.set_body(active)
         if self.menu: 
             self.menu.set_active(active)
             if self.menu.active_item and not active:
                 self.menu.active_item.set_active(active)
-        self.widget_btn.handler_unblock_by_func(self.cb_toggle)
+        self.widget.handler_unblock_by_func(self.cb_toggle)
         if active: 
             self.emit("update")
             self.update()
@@ -220,20 +204,22 @@ class Window(EventObject):
 
 class List(EventObject):
     
-    def __init__(self, id, core=None):
+    def __init__(self, id, core=None, widget=None):
         
         #create view
         self.core = core
-        super(List, self).__init__(core)
         self.id = id
+        self.core.register(id, self)
+        super(List, self).__init__(core)
 
-        self.scrolledWindow = gtk.ScrolledWindow()
-        self.scrolledWindow.set_shadow_type(gtk.SHADOW_IN)
-        self.scrolledWindow.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
-        self.treeView = gtk.TreeView()
-        self.treeView.set_headers_clickable(True)
-        self.scrolledWindow.add(self.treeView)
-        self.add_sender(id, "update")
+        if not widget:
+            self.scrolledWindow = gtk.ScrolledWindow()
+            self.scrolledWindow.set_shadow_type(gtk.SHADOW_IN)
+            self.scrolledWindow.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
+            self.treeView = gtk.TreeView()
+            self.treeView.set_headers_clickable(True)
+            self.scrolledWindow.add(self.treeView)
+            self.add_sender(id, "update")
         self.render()
 
     def set_selected(self, model, path, iter, usr):
@@ -262,6 +248,7 @@ class ProgressBar(EventObject):
     def __init__(self, id, core=None):
 
         self.core = core
+        self.core.register(id, self)
         self.widget_btn = gtk.ProgressBar()
         self.widget_btn.show()
         self.widget = gtk.ToolItem()
