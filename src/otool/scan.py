@@ -30,6 +30,7 @@ import pango
 import abstract
 import logging
 import core
+import filter
 from events import EventObject
 
 import commands
@@ -38,11 +39,10 @@ import render
 
 class ScanList(abstract.List):
     
-    def __init__(self, core=None, progress=None):
+    def __init__(self, widget, core, progress):
         self.core = core
         self.data_model = commands.DHScan(core, progress=progress)
-        abstract.List.__init__(self, "gui:scan:scan_list", core)
-        self.get_TreeView().set_enable_tree_lines(True)
+        abstract.List.__init__(self, "gui:scan:scan_list", core, widget=widget)
 
         selection = self.get_TreeView().get_selection()
         selection.set_mode(gtk.SELECTION_SINGLE)
@@ -65,13 +65,22 @@ class MenuButtonScan(abstract.MenuButton):
     """
     GUI for refines.
     """
-    def __init__(self, box, widget, core):
+    def __init__(self, builder, widget, core):
+        self.builder = builder
         abstract.MenuButton.__init__(self, "gui:btn:menu:scan", widget, core)
         self.core = core
-        self.box = box
 
         #draw body
-        self.body = self.draw_body()
+        self.body = self.builder.get_object("scan:box")
+        self.progress = self.builder.get_object("scan:progress")
+        self.scanlist = ScanList(self.builder.get_object("scan:treeview"), core=self.core, progress=self.progress)
+        self.filter = filter.Renderer(self.core, self.builder.get_object("scan:box_filter"))
+        self.filter.expander.cb_changed()
+
+        self.builder.get_object("scan:btn_scan").connect("clicked", self.__cb_start)
+        self.builder.get_object("scan:btn_stop").connect("clicked", self.__cb_cancel)
+        self.builder.get_object("scan:btn_export").connect("clicked", self.__cb_export)
+        self.builder.get_object("scan:btn_help").connect("clicked", self.__cb_help)
 
         # set signals
         self.add_sender(self.id, "scan")
@@ -79,65 +88,18 @@ class MenuButtonScan(abstract.MenuButton):
         self.add_sender(self.id, "export")
 
     #callback function
-    def cb_btnStart(self, widget):
+    def __cb_start(self, widget):
         self.emit("scan")
 
-    def cb_btnCancel(self, widget):
+    def __cb_cancel(self, widget):
         self.emit("cancel")
 
-    def cb_btnExpXccdf(self, widget):
+    def __cb_export(self, widget):
         self.emit("export")
 
-    def cb_btnHelp(self, widget):
+    def __cb_help(self, widget):
         window = HelpWindow(self.core)
 
-    #draw
-    def draw_body(self):
-        body = gtk.VBox()
-        
-        alig = gtk.Alignment(0.5, 0.5, 1, 1)
-        alig.set_padding(10, 10, 10, 10)
-        body.add(alig)
-        
-        vbox_main = gtk.VBox()
-        alig.add(vbox_main)
-        self.progress = gtk.ProgressBar()
-
-        # Scan list
-        self.scanList = ScanList(core=self.core, progress=self.progress)
-        vbox_main.pack_start(self.scanList.get_widget(), True, True, 2)
-        
-        vbox_main.pack_start(gtk.HSeparator(), False, True, 2)
-        
-        #Progress Bar
-        vbox_main.pack_start(self.progress, False, True, 2)
-        
-        #Buttons
-        btnBox = gtk.HButtonBox()
-        btnBox.set_layout(gtk.BUTTONBOX_START)
-        vbox_main.pack_start(btnBox, False, True, 2)
-        
-        btn = gtk.Button("Scan")
-        btn.connect("clicked", self.cb_btnStart)
-        btnBox.add(btn)
-        
-        btn = gtk.Button("Stop")
-        btn.connect("clicked", self.cb_btnCancel)
-        btnBox.add(btn)
-        
-        btn = gtk.Button("Export results")
-        btn.connect("clicked", self.cb_btnExpXccdf)
-        btnBox.add(btn)
-        
-        btn = gtk.Button("Help")
-        btn.connect("clicked", self.cb_btnHelp)
-        btnBox.add(btn)
-
-        body.show_all()
-        body.hide()
-        self.box.add(body)
-        return body
-        
 
 class HelpWindow(abstract.Window):
 

@@ -336,7 +336,7 @@ class DHDependencies(DataHandler):
         """
         if item.parent.type != openscap.OSCAP.XCCDF_BENCHMARK:
             selected = [gtk.STOCK_CANCEL, gtk.STOCK_APPLY][self.get_selected(item.parent)]
-            logger.info("Added line %s | %s | %s", item.parent.id, "Group: "+item.parent.title[0].text, selected)
+            logger.info("Added line %s | %s | %s", item.parent.id, "Group: "+item.parent.title[0].text, selected != None)
             item_it = self.model.prepend([item.parent.id, gtk.STOCK_DND_MULTIPLE, "Group: "+item.parent.title[0].text, selected])
             self.fill(item.parent)
 
@@ -360,7 +360,7 @@ class DHValues(DataHandler):
     def render(self, treeView):
         """Make a model ListStore of Dependencies object"""
         self.treeView = treeView
-        self.model = gtk.ListStore(str, str, str, gtk.TreeModel)
+        self.model = gtk.ListStore(str, str, str, str, gtk.TreeModel)
         self.treeView.set_model(self.model)
 
         """This Cell is used to be first hidden column of tree view
@@ -377,6 +377,7 @@ class DHValues(DataHandler):
         column.pack_start(txtcell, False)
         column.set_attributes(txtcell, text=1)
         column = gtk.TreeViewColumn("Value Name", txtcell, text=1) 
+        column.add_attribute(txtcell, 'foreground', 3)
         column.set_resizable(True)
         self.treeView.append_column(column)
 
@@ -385,7 +386,7 @@ class DHValues(DataHandler):
         cellcombo.set_property("editable", True)
         cellcombo.set_property("text-column", 0)
         cellcombo.connect("edited", self.cellcombo_edited)
-        column = gtk.TreeViewColumn("Values", cellcombo, text=2, model=3)
+        column = gtk.TreeViewColumn("Values", cellcombo, text=2, model=4)
         column.set_resizable(True)
         self.treeView.append_column(column)
 
@@ -411,6 +412,7 @@ class DHValues(DataHandler):
         # Append a couple of rows.
         item = self.core.lib["policy_model"].benchmark.get_item(self.selected_item)
         values = self.get_item_values(self.selected_item)
+        color = "black" #["gray", "black"][self.get_selected(item)]
         for value in values:
             lang = value["lang"]
             model = gtk.ListStore(str, str)
@@ -418,7 +420,7 @@ class DHValues(DataHandler):
             for key in value["options"].keys():
                 if key != '': model.append([key, value["options"][key]])
                 if value["options"][key] == value["selected"][1]: selected = key
-            self.model.append([value["id"], value["titles"][lang], selected, model])
+            self.model.append([value["id"], value["titles"][lang], selected, color, model])
         self.treeView.columns_autosize()
         
         return True
@@ -452,9 +454,12 @@ class DHValues(DataHandler):
 
 class DHItemsTree(DataHandler):
 
-    def __init__(self, core):
+    def __init__(self, core, progress=None):
         
         DataHandler.__init__(self, core)
+        self.__progress = progress
+        self.__total = None
+        self.__step = None
 
     def render(self, treeView):
         """Make a model ListStore of Dependencies object"""
@@ -496,7 +501,7 @@ class DHItemsTree(DataHandler):
         column.set_resizable(True)
         treeView.append_column(column)
 
-    def __recursive_fill(self, item=None, parent=None):
+    def __recursive_fill(self, item=None, parent=None, pselected=True):
 
         self.selected_profile   = self.core.selected_profile
         self.selected_item      = self.core.selected_item
@@ -504,24 +509,29 @@ class DHItemsTree(DataHandler):
         """This is recusive call (item is not None) so let's get type of 
         item and add it to model. If the item is Group continue more deep with
         recursion to get all items to the tree"""
-        color = "black"
+        if pselected == False: color = "gray"
+        else: color = None
+
+        if self.__progress != None:
+            gtk.gdk.threads_enter()
+            self.__progress.set_fraction(self.__progress.get_fraction()+self.__step)
+            self.__progress.set_text("Adding items %s/%s" % (int(self.__progress.get_fraction()/self.__step), self.__total))
+            gtk.gdk.threads_leave()
+
         if item != None:
-            if item.type == openscap.OSCAP.XCCDF_RULE:
-                selected = [None, gtk.STOCK_APPLY][self.get_selected(item)]
-            else: selected = None
-            if selected != None:
-                color = "green"
             # If item is group, store it ..
             if item.type == openscap.OSCAP.XCCDF_GROUP:
+                selected = [None, gtk.STOCK_APPLY][pselected and item.selected]
                 gtk.gdk.threads_enter()
                 item_it = self.model.append(parent, [item.id, gtk.STOCK_DND_MULTIPLE, "Group: "+item.title[0].text, selected, color])
                 self.treeView.queue_draw()
                 gtk.gdk.threads_leave()
                 # .. call recursive
                 for i in item.content:
-                    self.__recursive_fill(i, item_it)
+                    self.__recursive_fill(i, item_it, selected != None)
             # item is rule, store it to model
             elif item.type == openscap.OSCAP.XCCDF_RULE:
+                selected = [None, gtk.STOCK_APPLY][self.get_selected(item)]
                 gtk.gdk.threads_enter()
                 item_it = self.model.append(parent, [item.id, gtk.STOCK_DND, "Rule: "+item.title[0].text, selected, color])
                 self.treeView.queue_draw()
@@ -529,18 +539,35 @@ class DHItemsTree(DataHandler):
             else: logger.warning("Unknown type of %s, should be Rule or Group (got %s)", item.type, item.id)
 
             return # we need to return otherwise it would continue to next block
-        else: return # TODO
+        else: 
+            raise Exception, "Can't get data to fill. Expected XCCDF Item (got %s)" % (item,)
+
+    def __item_count(self, item):
+
+        number = 0
+        if item.type == openscap.OSCAP.XCCDF_GROUP or item.to_item().type == openscap.OSCAP.XCCDF_BENCHMARK:
+            for child in item.content:
+                number += 1
+                if child.type == openscap.OSCAP.XCCDF_GROUP:
+                    number += self.__item_count(child)
+        return number
 
     @threadSave
     def fill(self, item=None, parent=None):
 
-        # !!!!
         self.selected_profile   = self.core.selected_profile
         self.selected_item      = self.core.selected_item
 
         """we don't know item so it's first call and we need to clear
         the model, get the item from benchmark and continue recursively
         through content to fill the tree"""
+
+        # Get number of all items
+        if self.__progress:
+            self.__progress.set_fraction(0.0)
+            self.__progress.show()
+            self.__total = self.__item_count(self.core.lib["policy_model"].benchmark)
+        self.__step = (100.0/(self.__total or 1.0))/100.0
 
         self.lock.acquire()
         try:
@@ -554,6 +581,11 @@ class DHItemsTree(DataHandler):
             child_win.set_cursor(gtk.gdk.Cursor(gtk.gdk.WATCH))
 
             for item in self.core.lib["policy_model"].benchmark.content:
+                if self.__progress != None:
+                    gtk.gdk.threads_enter()
+                    self.__progress.set_fraction(self.__progress.get_fraction()+self.__step)
+                    self.__progress.set_text("Adding items %s/%s" % (int(self.__progress.get_fraction()/self.__step), self.__total))
+                    gtk.gdk.threads_leave()
                 self.__recursive_fill(item)
 
             gtk.gdk.threads_enter()
@@ -561,6 +593,11 @@ class DHItemsTree(DataHandler):
             gtk.gdk.threads_leave()
             child_win.set_cursor(cursor)
         finally:
+            if self.__progress != None:
+                gtk.gdk.threads_enter()
+                self.__progress.set_fraction(1.0)
+                self.__progress.hide()
+                gtk.gdk.threads_leave()
             self.lock.release()
 
         return True

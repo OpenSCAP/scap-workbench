@@ -43,10 +43,10 @@ logger = logging.getLogger("OSCAPEditor")
 
 class ItemList(abstract.List):
     
-    def __init__(self, core=None):
+    def __init__(self, widget, core, progress=None):
         self.core = core
-        self.data_model = commands.DHItemsTree(core)
-        abstract.List.__init__(self, "gui:tailoring:refines:item_list", core)
+        self.data_model = commands.DHItemsTree(core, progress)
+        abstract.List.__init__(self, "gui:tailoring:refines:item_list", core, widget)
         self.get_TreeView().set_enable_tree_lines(True)
 
         selection = self.get_TreeView().get_selection()
@@ -100,10 +100,10 @@ class DepsList(abstract.List):
 
 class ValuesList(abstract.List):
     
-    def __init__(self, core=None):
+    def __init__(self, widget, core):
         self.core = core
         self.data_model = commands.DHValues(core)
-        abstract.List.__init__(self, "gui:tailoring:refines:values_list", core)
+        abstract.List.__init__(self, "gui:tailoring:refines:values_list", core, widget)
         self.get_TreeView().set_enable_tree_lines(True)
 
         selection = self.get_TreeView().get_selection()
@@ -125,10 +125,10 @@ class ValuesList(abstract.List):
             
 class ProfileList(abstract.List):
     
-    def __init__(self, core=None):
+    def __init__(self, widget, core):
         self.core = core
         self.data_model = commands.DHProfiles(core)
-        abstract.List.__init__(self, "gui:tailoring:profiles:profile_list", core)
+        abstract.List.__init__(self, "gui:tailoring:profiles:profile_list", core, widget)
 
         selection = self.get_TreeView().get_selection()
         selection.set_mode(gtk.SELECTION_SINGLE)
@@ -451,225 +451,112 @@ class ProfileDetails(EventObject):
         self.core = core
         self.guiProfiles = guiProfiles
         EventObject.__init__(self, self.core)
-        self.data_model = commands.DataHandler(self.core)
-
-        self.add_receiver("gui:tailoring:profiles:profile_list", "update", self.__update)
-        self.add_receiver("gui:tailoring:profiles:profile_list", "changed", self.__update)
-        self.add_receiver("gui:btn:main:xccdf", "lang_changed", self.__update)
-        
-    def __update(self):
-        details = self.data_model.get_profile_details(self.core.selected_profile)
-        if details != None:
-            self.guiProfiles.set_info(details["id"], str(details["abstract"]), str(details["extends"] or ""))
-            self.guiProfiles.set_version(details["version"])
-
-            if self.core.selected_lang in details["titles"]: 
-                self.guiProfiles.set_title(details["titles"][self.core.selected_lang])
-            else: 
-                for lang in details["titles"]:
-                    self.guiProfiles.set_title(details["titles"][lang])
-                    break
-                
-            if self.core.selected_lang in details["descriptions"]: 
-                self.guiProfiles.set_description(details["descriptions"][self.core.selected_lang][:200]+" ...")
-            else: 
-                for lang in details["descriptions"]:
-                    self.guiProfiles.set_description(details["descriptions"][lang])
-                    break
-        else:
-            self.guiProfiles.set_info("", "", "")
-            self.guiProfiles.set_version("")
-            self.guiProfiles.set_title("")
-            self.guiProfiles.set_description("")
         
 class MenuButtonProfiles(abstract.MenuButton):
     """
     GUI for profiles.
     """
-    def __init__(self, box, widget, core):
+    def __init__(self, builder, widget, core):
         abstract.MenuButton.__init__(self, "gui:btn:tailoring:profiles", widget, core)
+        self.builder = builder
         self.core = core
         self.widget = widget
-        self.box = box
+        self.data_model = commands.DataHandler(self.core)
         
         # draw body
-        self.body = self.draw_body()
+        self.body = self.builder.get_object("tailoring:profiles:box")
+
+        self.profiles_list = ProfileList(self.builder.get_object("tailoring:profiles:treeview"), self.core)
+        self.profile_details = ProfileDetails(self.core, self)
+
+        self.profile_id = self.builder.get_object("tailoring:profiles:details:lbl_id")
+        self.profile_abstract = self.builder.get_object("tailoring:profiles:details:lbl_abstract")
+        self.profile_extend = self.builder.get_object("tailoring:profiles:details:lbl_extend")
+        self.profile_version = self.builder.get_object("tailoring:profiles:details:lbl_version")
+        self.profile_title = self.builder.get_object("tailoring:profiles:details:lbl_title")
+
+        self.profile_description = HtmlTextView()
+        self.profile_description.show()
+        box = self.builder.get_object("tailoring:profiles:details:box_description")
+        self.builder.get_object("tailoring:profiles:details:btn_description").realize()
+        bg_color = self.builder.get_object("tailoring:profiles:details:btn_description").get_style().bg[gtk.STATE_NORMAL]
+        self.profile_description.set_wrap_mode(gtk.WRAP_WORD)
+        self.profile_description.modify_base(gtk.STATE_NORMAL, bg_color)
+        box.pack_start(self.profile_description, True, True)
+
         self.add_sender(self.id, "update")
+        self.add_receiver("gui:tailoring:profiles:profile_list", "update", self.__update)
+        self.add_receiver("gui:tailoring:profiles:profile_list", "changed", self.__update)
+        self.add_receiver("gui:btn:main:xccdf", "lang_changed", self.__update)
+        
+    def __update(self):
+
+        details = self.data_model.get_profile_details(self.core.selected_profile)
+        if details != None:
+            self.profile_id.set_text(details["id"])
+            self.profile_abstract.set_text(str(details["abstract"]))
+            self.profile_extend.set_text(str(details["extends"] or ""))
+            self.profile_version.set_text(details["version"] or "")
+
+            if self.core.selected_lang in details["titles"]: 
+                self.profile_title.set_text(details["titles"][self.core.selected_lang] or "")
+            else: self.profile_title.set_text(details["titles"][details["titles"].keys()[0]] or "")
+                
+            if self.core.selected_lang in details["descriptions"]: 
+                self.__set_description(details["descriptions"][self.core.selected_lang])
+            else: self.__set_description(details["descriptions"][details["descriptions"].keys()[0]])
+
+        else:
+            self.profile_id.set_text("")
+            self.profile_abstract.set_text("")
+            self.profile_extend.set_text("")
+            self.profile_version.set_text("")
+            self.profile_title.set_text("")
+            self.__set_description("")
     
     #set functions
-    def set_info(self, id, abstract, extend):
-        """
-        Set abstract and extend information.
-        """
-        self.id_profile.set_text(id)
-        self.abstract.set_text(abstract)
-        self.extend.set_text(extend)
-
-    def set_version(self, version):
-        """
-        Set version of profile.
-        """
-        if version == None:
-            version = ""
-        self.version.set_text(version)
-    
-    def set_title(self, text):
-        """
-        Set title to the textView.
-        @param text Text with title
-        """
-        self.title.set_text(text)
-        
-    def set_description(self, text):
+    def __set_description(self, description):
         """
         Set description to the textView.
         @param text Text with description
         """
-        self.description.set_text(text)
+        self.profile_description.get_buffer().set_text("")
+        if description == "": description = "No description"
+        description = "<body>"+description+"</body>"
+        self.profile_description.display_html(description)
         
     #callBack functions
     def cb_btnProfiles(self, button, data=None):
         self.profile = NewProfileWindow(data)
-        pass
-        
-    def cb_btnLang(self, widget, name, core, data):
-        window = Language_form(name, core, data)
-        
-    def add_label(self,table, text, left, right, top, bottom):
-        label = gtk.Label(text)
-        #table.attach(hbox, 1, 2, 3, 4,gtk.EXPAND|gtk.FILL,gtk.EXPAND|gtk.FILL, 0, 3)
-        table.attach(label, left, right, top, bottom,gtk.FILL,gtk.FILL)
-        label.set_alignment(0, 0.5)
-        return label
-        
-    def draw_body(self):
-        body = gtk.VPaned()
-
-        # List of profiles
-        frame, alig = self.add_frame_vp(body, "<b>Profiles</b>")
-        hbox = gtk.HBox()
-        alig.add(hbox)
-        self.profiles_list = ProfileList(self.core)
-        hbox.pack_start(self.profiles_list.get_widget(), expand=True, fill=True, padding=3)
-        
-        ProfileDetails(self.core, self)
-        
-        # operations with profiles
-        hbox.pack_start(gtk.VSeparator(), expand=False, fill=True, padding=10)
-        box = gtk.VButtonBox()
-        box.set_layout(gtk.BUTTONBOX_START)
-        
-        btn = gtk.Button("Add")
-        btn.connect("clicked", self.cb_btnProfiles, "add")
-        box.add(btn)
-        
-        btn = gtk.Button("Extend")
-        btn.connect("clicked", self.cb_btnProfiles, "extend")
-        box.add(btn)
-        
-        btn = gtk.Button("Copy")
-        btn.connect("clicked", self.cb_btnProfiles, "copy")
-        box.add(btn)
-        
-        btn = gtk.Button("Delete")
-        btn.connect("clicked", self.cb_btnProfiles, "del")
-        box.add(btn)
-        
-        hbox.pack_start(box, expand=False, fill=True, padding=0)
-
-        # edit profiles
-        #body.pack_start(gtk.HSeparator(), expand=False, fill=True, padding=10)
-        
-        frame, alig = self.add_frame_vp(body, "<b>Details</b>",2)
-
-        table = gtk.Table(5 ,2)
-        alig.add(table)
-
-        self.add_label(table, "ID: ", 0, 1, 0, 1)
-        self.add_label(table, "Title: ", 0, 1, 1, 2)
-        self.add_label(table, "Abstract: ", 0, 1, 2, 3)
-        self.add_label(table, "Extend: ", 0, 1, 3, 4)
-        self.add_label(table, "Version: ", 0, 1, 4, 5)
-        self.add_label(table, "Description: ", 0, 1, 5, 6)
-
-        #id
-        self.id_profile = self.add_label(table, "", 1, 2, 0, 1)
-        
-        #title
-        hbox = gtk.HBox()
-        self.title = gtk.Label()
-        self.title.set_alignment(0, 0.5)
-        table.attach(hbox, 1, 2, 1, 2,gtk.FILL,gtk.FILL, 0, 3)
-        hbox.pack_start(self.title, expand=True, fill=True, padding=0)
-        self.but_title = gtk.Button("...")
-        self.but_title.connect("clicked", self.cb_btnLang, "Titles", self.core, "titles")
-        hbox.pack_start(self.but_title, expand=False, fill=True, padding=0)
-        
-        # abstract expand
-        self.abstract = self.add_label(table, "", 1, 2, 2, 3)
-        self.extend = self.add_label(table, "", 1, 2, 3, 4)
-
-        #version
-        self.version = self.add_label(table, "", 1, 2, 4, 5)
-
-        #description
-        hbox = gtk.HBox()
-        self.description = gtk.Label()
-        self.description.set_alignment(0, 0.5)
-        table.attach(hbox, 1, 2, 5, 6,gtk.EXPAND|gtk.FILL,gtk.FILL, 0, 3)
-        #table.attach(hbox, 1, 2, 4, 5,gtk.EXPAND|gtk.FILL,gtk.EXPAND|gtk.FILL, 0, 3)
-        hbox.pack_start(self.description, expand=True, fill=True, padding=0)
-        self.but_description = gtk.Button("...")
-        self.but_description.connect("clicked", self.cb_btnLang, "Descriptions", self.core, "descriptions")
-        hbox.pack_start(self.but_description, expand=False, fill=True, padding=0)
-
-        body.show_all()
-        body.hide()
-        self.box.add(body)
-        return body
 
 
 class MenuButtonRefines(abstract.MenuButton):
     """
     GUI for refines.
     """
-    def __init__(self, box, widget, core):
+    def __init__(self, builder, widget, core):
         abstract.MenuButton.__init__(self, "gui:btn:tailoring:refines", widget, core)
+        self.builder = builder
         self.core = core
-        self.box = box
 
         #draw body
-        self.body = self.draw_body()
+        self.body = self.builder.get_object("tailoring:refines:box")
+        self.draw_nb(self.builder.get_object("tailoring:refines:box_nb"))
+        self.progress = self.builder.get_object("tailoring:refines:progress")
+        self.progress.hide()
+        self.filter = filter.Renderer(self.core, self.builder.get_object("tailoring:refines:box_filter"))
+        self.filter.expander.cb_changed()
+        self.rules_list = ItemList(self.builder.get_object("tailoring:refines:tw_items"), self.core, self.progress)
+        self.values = ValuesList(self.builder.get_object("tailoring:refines:tw_values"), self.core)
 
         # set signals
         self.add_sender(self.id, "update")
 
-    #draw
-    def draw_body(self):
-        body = gtk.VBox()
-        
-        #main body
-        vpaned_main = gtk.VPaned()
-        body.pack_start(vpaned_main, expand=True, fill=True, padding=10)
-        box_main = gtk.HBox()
-        vpaned_main.pack1(box_main, resize=False, shrink=False)
-
-        # filters
-        self.filter = filter.Renderer(self.core, box_main)
-        
-        box_main.pack_start(gtk.VSeparator(), expand=False, fill=True, padding=0)
-        hpaned = gtk.HPaned()
-        hpaned.set_position(600)
-        box_main.pack_start(hpaned, True, True)
-        
-        # tree
-        frame, alig = self.add_frame_vp(hpaned, "<b>Rules and Groups</b>",1)
-        self.rules_list = ItemList(core=self.core)
-        alig.add(self.rules_list.get_widget())
-        
+    # draw notebook
+    def draw_nb(self, box):
         # notebook for details and refines
         notebook = gtk.Notebook()
-        hpaned.pack2(notebook, True, True)
+        box.pack_start(notebook, True, True)
  
         #Details 
         box_details = ItemDetails(self.core)
@@ -678,27 +565,8 @@ class MenuButtonRefines(abstract.MenuButton):
         #set refines
         redDetails = RefineDetails(self.core)
         notebook.append_page(redDetails.vbox_refines, gtk.Label("Refines"))
+        notebook.show_all()
         
-        # box for dependecies and values
-        box = gtk.HBox()
-        vpaned_main.pack2(box, False, False)
-        
-        #Defendecies
-        alig = self.add_frame_cBox(box, "<b>Dependencies</b>", 2)
-        self.dependencies = DepsList(core=self.core)
-        alig.add(self.dependencies.get_widget())
-        
-        # values
-        alig = self.add_frame_cBox(box, "<b>Values</b>", 2)
-        self.values = ValuesList(core=self.core)
-        alig.add(self.values.get_widget())
-        
-        body.show_all()
-        body.hide()
-        self.box.add(body)
-        self.filter.expander.cb_changed(None)
-        return body
-
 
 class NewProfileWindow(abstract.Window):
     """

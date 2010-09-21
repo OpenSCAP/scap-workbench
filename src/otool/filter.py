@@ -98,6 +98,7 @@ class Renderer(abstract.MenuButton):
         alig_filters = self.add_frame_cBox(filter_box, "<u>Active filters                                   </u>", False)
         self.add_filter(Filter("Filter 1"))
         self.add_filter(Filter("Filter 2"))
+        box.show_all()
         
     def add_filter(self, filter):
         
@@ -124,14 +125,13 @@ class ExpandBox(abstract.EventObject):
         
         # body for expandBox
         rollBox = gtk.HBox()
-        box.pack_start(rollBox, False, True)
+        box.pack_start(rollBox, True, True)
 
         alig = gtk.Alignment()
         alig.set_padding(5, 5, 5, 5) # top, bottom, left, right
         self.frameContent = gtk.VBox()
         alig.add(self.frameContent)
         rollBox.pack_start(alig, True, True)
-        rollBox.pack_start(gtk.VSeparator(), False, True)
         
         # create icons
         self.arrowTop = gtk.Image()
@@ -155,7 +155,7 @@ class ExpandBox(abstract.EventObject):
         rollBox.pack_start(btn, False, True)
         btn.connect("clicked", self.cb_changed)
 
-    def cb_changed(self, widget):
+    def cb_changed(self, widget=None):
         logger.debug("Expander switched to %s", self.frameContent.get_visible())
         if self.frameContent.get_visible():
             self.frameContent.hide_all()

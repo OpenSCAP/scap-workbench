@@ -24,7 +24,8 @@ import pango
 import gtk
 import xml.sax, xml.sax.handler
 import re
-import warnings
+import logging
+logger = logging.getLogger("OSCAPEditor")
 from cStringIO import StringIO
 import urllib2
 import operator
@@ -161,7 +162,7 @@ class HtmlHandler(xml.sax.handler.ContentHandler):
             callback(int(value[:-2]), *args)
 
         else:
-            warnings.warn("Unable to parse length value '%s'" % value)
+            logger.warning("Unable to parse length value '%s'" % value)
         
     def __parse_font_size_cb(length, tag):
         tag.set_property("size-points", length/display_resolution)
@@ -200,7 +201,7 @@ class HtmlHandler(xml.sax.handler.ContentHandler):
                 "oblique": pango.STYLE_OBLIQUE,
                 } [value]
         except KeyError:
-            warnings.warn("unknown font-style %s" % value)
+            logger.warning("unknown font-style %s" % value)
         else:
             tag.set_property("style", style)
 
@@ -233,7 +234,7 @@ class HtmlHandler(xml.sax.handler.ContentHandler):
                 'bold': pango.WEIGHT_BOLD,
                 } [value]
         except KeyError:
-            warnings.warn("unknown font-style %s" % value)
+            logger.warning("unknown font-style %s" % value)
         else:
             tag.set_property("weight", weight)
 
@@ -249,7 +250,7 @@ class HtmlHandler(xml.sax.handler.ContentHandler):
                 'justify': gtk.JUSTIFY_FILL,
                 } [value]
         except KeyError:
-            warnings.warn("Invalid text-align:%s requested" % value)
+            logger.warning("Invalid text-align:%s requested" % value)
         else:
             tag.set_property("justification", align)
     
@@ -261,16 +262,16 @@ class HtmlHandler(xml.sax.handler.ContentHandler):
             tag.set_property("underline", pango.UNDERLINE_SINGLE)
             tag.set_property("strikethrough", False)
         elif value == "overline":
-            warnings.warn("text-decoration:overline not implemented")
+            logger.warning("text-decoration:overline not implemented")
             tag.set_property("underline", pango.UNDERLINE_NONE)
             tag.set_property("strikethrough", False)
         elif value == "line-through":
             tag.set_property("underline", pango.UNDERLINE_NONE)
             tag.set_property("strikethrough", True)
         elif value == "blink":
-            warnings.warn("text-decoration:blink not implemented")
+            logger.warning("text-decoration:blink not implemented")
         else:
-            warnings.warn("text-decoration:%s not implemented" % value)
+            logger.warning("text-decoration:%s not implemented" % value)
         
 
     ## build a dictionary mapping styles to methods, for greater speed
@@ -281,7 +282,7 @@ class HtmlHandler(xml.sax.handler.ContentHandler):
         try:
             method = locals()["_parse_style_%s" % style.replace('-', '_')]
         except KeyError:
-            warnings.warn("Style attribute '%s' not yet implemented" % style)
+            logger.warning("Style attribute '%s' not yet implemented" % style)
         else:
             __style_methods[style] = method
 
@@ -300,7 +301,7 @@ class HtmlHandler(xml.sax.handler.ContentHandler):
             try:
                 method = self.__style_methods[attr]
             except KeyError:
-                warnings.warn("Style attribute '%s' requested "
+                logger.warning("Style attribute '%s' requested "
                               "but not yet implemented" % attr)
             else:
                 method(self, tag, val)
@@ -416,7 +417,7 @@ class HtmlHandler(xml.sax.handler.ContentHandler):
         elif name == 'a':
             pass
         else:
-            warnings.warn("Unhandled element '%s'" % name)
+            logger.warning("Unhandled element '%s'" % name)
 
     def endElement(self, name):
         self._flush_text()
@@ -443,7 +444,7 @@ class HtmlHandler(xml.sax.handler.ContentHandler):
         elif name == 'a':
             pass
         else:
-            warnings.warn("Unhandled element '%s'" % name)
+            logger.warning("Unhandled element '%s'" % name)
         self._end_span()
 
 

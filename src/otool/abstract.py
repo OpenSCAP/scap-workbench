@@ -219,7 +219,9 @@ class List(EventObject):
             self.treeView = gtk.TreeView()
             self.treeView.set_headers_clickable(True)
             self.scrolledWindow.add(self.treeView)
-            self.add_sender(id, "update")
+        else:
+            self.treeView = widget
+        self.add_sender(id, "update")
         self.render()
 
     def set_selected(self, model, path, iter, usr):

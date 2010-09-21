@@ -98,6 +98,40 @@ class OECore:
         logger.debug("Registering object %s done.", id)
         self.__objects[id] = object
 
+
+class Wizard:
+
+    def __init__(self, core):
+
+        self.__core = core
+        self.__list = [ "gui:btn:main:xccdf",
+                        "gui:menu:tailoring",
+                        "gui:btn:tailoring:refines",
+                        "gui:btn:menu:scan" ]
+        self.__active = 0
+
+    def forward(self, widget):
+        if self.__active+1 > len(self.__list):
+            raise Exception, "Wizard list out of range"
+        self.__core.get_item(self.__list[self.__active]).set_active(False)
+        self.__core.get_item("main:button_back").set_sensitive(True)
+        self.__active += 1
+        if self.__active == len(self.__list):
+            widget.set_sensitive(False)
+        self.__core.get_item(self.__list[self.__active]).set_active(True)
+
+
+    def back(self, widget):
+        if self.__active-1 < 0:
+            raise Exception, "Wizard list out of range"
+        self.__core.get_item(self.__list[self.__active]).set_active(False)
+        self.__core.get_item("main:button_forward").set_sensitive(True)
+        self.__active -= 1
+        if self.__active == 0:
+            widget.set_sensitive(False)
+        self.__core.get_item(self.__list[self.__active]).set_active(True)
+
+
 class ThreadHandler(threading.Thread):
     """
     """
