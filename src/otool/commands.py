@@ -301,6 +301,7 @@ class DHValues(DataHandler):
         cellcombo.set_property("text-column", 0)
         cellcombo.connect("edited", self.cellcombo_edited)
         column = gtk.TreeViewColumn("Values", cellcombo, text=2, model=4)
+        column.add_attribute(txtcell, 'foreground', 3)
         column.set_resizable(True)
         self.treeView.append_column(column)
 
@@ -326,7 +327,7 @@ class DHValues(DataHandler):
         # Append a couple of rows.
         item = self.core.lib["policy_model"].benchmark.get_item(self.selected_item)
         values = self.get_item_values(self.selected_item)
-        color = "black" #["gray", "black"][self.get_selected(item)]
+        color = ["gray", "black"][self.get_selected(item)]
         for value in values:
             lang = value["lang"]
             model = gtk.ListStore(str, str)
@@ -483,7 +484,7 @@ class DHItemsTree(DataHandler):
 
         # Check select status of item
         selected = self.get_selected(item)
-        color = ["gray", None][selected]
+        color = ["gray", None][selected and pselected]
 
         if item != None:
             # If item is group, store it ..
@@ -494,7 +495,7 @@ class DHItemsTree(DataHandler):
                 gtk.gdk.threads_leave()
                 # .. call recursive
                 for i in item.content:
-                    self.__recursive_fill(i, item_it, selected)
+                    self.__recursive_fill(i, item_it, selected and pselected)
             # item is rule, store it to model
             elif item.type == openscap.OSCAP.XCCDF_RULE:
                 gtk.gdk.threads_enter()
