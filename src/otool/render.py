@@ -66,49 +66,79 @@ class MenuButtonXCCDF(abstract.MenuButton):
     """
     GUI for operations with xccdf file.
     """
-    def __init__(self, box, widget, core):
+    def __init__(self, builder, widget, core):
+        self.builder = builder
         logger = logging.getLogger(self.__class__.__name__)
-        self.data_model = commands.DataHandler(core)
+        self.data_model = commands.DHXccdf(core)
         abstract.MenuButton.__init__(self, "gui:btn:main:xccdf", widget, core)
-        self.box = box
+        self.widget = widget
         self.core = core
         
+        self.body = self.builder.get_object("xccdf:box")
+
+        # referencies
+        self.label_title = self.builder.get_object("xccdf:lbl_title")
+        self.label_version = self.builder.get_object("xccdf:lbl_version")
+        self.label_url = self.builder.get_object("xccdf:lbl_file")
+        self.label_resolved = self.builder.get_object("xccdf:lbl_resolved")
+        self.label_language = self.builder.get_object("xccdf:lbl_language")
+        self.label_description = self.builder.get_object("xccdf:lbl_description")
+        self.label_status_current = self.builder.get_object("xccdf:lbl_status_current")
+        self.label_warnings = self.builder.get_object("xccdf:lbl_warnings")
+        self.label_notices = self.builder.get_object("xccdf:lbl_notices")
+        self.label_file_references = self.builder.get_object("xccdf:lbl_file_references")
+        self.box_references = self.builder.get_object("xccdf:box_references")
+
+        self.btn_import = self.builder.get_object("xccdf:btn_import")
+        self.btn_import.connect("clicked", self.cb_btn, "load")
+
+        self.add_sender(self.id, "update")
         self.add_sender(self.id, "load")
         self.add_sender(self.id, "lang_changed")
 
-        # referencies
-        self.label_title = None
-        self.label_description = None
-        self.label_version = None
-        self.label_url = None
-        self.cBox_language = None
+        details = self.data_model.get_details()
+        try:
+            self.set_detail(details)
+        except KeyError: pass
 
-        # draw body
-        self.body = self.draw_body()
-        
-        
+        label_set_autowrap(self.label_title)
+        label_set_autowrap(self.label_description)
+        label_set_autowrap(self.label_warnings)
+        label_set_autowrap(self.label_notices)
+
     # set functions
-    def set_detail(self, tile, description, version, url):
+    def set_detail(self, details):
         """
         Set information about file.
         """
-        self.label_title.set_text(title)
-        self.label_description.set_text(description)
-        self.label_version.set_text(version)
-        self.label_url.set_text(url)
+        STATUS_CURRENT = ["not specified", "accepted", "deprecated", "draft", "incomplet", "interim"]
+        lang = details["lang"]
+        self.label_title.set_text(details["titles"][lang] or "")
+        self.label_description.set_text(details["descs"][lang] or "")
+        self.label_version.set_text(details["version"] or "")
+        self.label_url.set_text(details["id"] or "")
+        self.label_status_current.set_text(STATUS_CURRENT[details["status_current"]] or "")
+        self.label_resolved.set_text(["no", "yes"][details["resolved"]])
+        self.label_warnings.set_text("\n".join(details["warnings"]) or "None")
+        self.label_notices.set_text("\n".join(details["notices"]) or "None")
+        self.label_file_references.set_text("\n".join(details["files"]) or "None")
+        self.label_language.set_text(lang)
         
-    def set_language(self, languages, active):
-        """
-        Set list of languades for comboBox and set active.
-        @param languages List of laguages name.
-        @param active Number of active item in list
-        """
-        model = self.cBox_language.get_model()
-        model.clear()
-        for lan in languages:
-            model.append([lan])
-        self.cBox_language.set_active(active)
+        # References
         
+        for i, ref in enumerate(details["references"]):
+            text = "%d) %s [<a href='%s'>link</a>]" % (i+1, ref[0], ref[1])
+            label = gtk.Label(text)
+            self.box_references.pack_start(label, True, True)
+            label.set_tooltip_text(ref[1])
+            label.set_use_markup(True)
+            label.set_track_visited_links(True)
+            label.set_line_wrap(True)
+            label.set_line_wrap_mode(pango.WRAP_WORD) 
+            label.set_alignment(0,0)
+            label.connect("size-allocate", label_size_allocate)
+            label.show()
+
     # callBack functions
     def cb_btn(self, btn, data=None):
         if data == "load": 
@@ -117,7 +147,10 @@ class MenuButtonXCCDF(abstract.MenuButton):
                 logger.debug("Loading XCCDF file %s", file)
                 self.core.init(file)
                 self.emit("load")
-                self.set_language(self.data_model.get_languages(), 0)
+                details = self.data_model.get_details()
+                try:
+                    self.set_detail(details)
+                except KeyError: pass
 
     def cb_changed(self, combobox, core):
         
@@ -129,82 +162,6 @@ class MenuButtonXCCDF(abstract.MenuButton):
         self.emit("lang_changed")
         return
         
-    # draw functions
-    def add_label(self,table, text, left, right, top, bottom, x=gtk.FILL, y=gtk.FILL):
-        label = gtk.Label(text)
-        table.attach(label, left, right, top, bottom, x, y)
-        label.set_alignment(0, 0.5)
-        return label
-        
-    def add_frame(self, body, text, expand = True):
-        frame = gtk.Frame(text)
-        label = frame.get_label_widget()
-        label.set_use_markup(True)
-        if expand: body.pack_start(frame, expand=True, fill=True, padding=0)
-        else: body.pack_start(frame, expand=False, fill=True, padding=0)
-        alig = gtk.Alignment(0.5, 0.5, 1, 1)
-        alig.set_padding(0, 0, 12, 0)
-        frame.add(alig)
-        return alig
-
-    def draw_body(self):
-        body = gtk.VBox()
-        alig = self.add_frame(body, "<b>List</b>")
-        table = gtk.Table(5 ,2)
-        alig.add(table)
-
-        self.add_label(table, "Name: ", 0, 1, 0, 1)
-        self.add_label(table, "Description: ", 0, 1, 1, 2)
-        self.add_label(table, "Version: ", 0, 1, 2, 3)
-        self.add_label(table, "URL: ", 0, 1, 3, 4)
-        self.add_label(table, "Prefered Language: ", 0, 1, 4, 5)
-
-        self.label_title = self.add_label(table, "None ", 1, 2, 0, 1)
-        self.label_description = self.add_label(table, "None ", 1, 2, 1, 2)
-        self.label_version = self.add_label(table, "None", 1, 2, 2, 3)
-        self.label_url = self.add_label(table, "None ", 1, 2, 3, 4)
-
-        self.cBox_language = gtk.ComboBox()
-        model = gtk.ListStore(str)
-        cell = gtk.CellRendererText()
-        self.cBox_language.pack_start(cell)
-        self.cBox_language.add_attribute(cell, 'text', 0)
-        self.cBox_language.set_model(model)
-        self.cBox_language.connect('changed', self.cb_changed, self.core)
-        self.cBox_language.set_active(0)
-        table.attach(self.cBox_language, 1, 2, 4, 5,gtk.FILL,gtk.FILL)
-
-        # operations
-        alig = self.add_frame(body, "<b>Operations</b>", False)
-        alig.set_padding(10,10,10,10)
-        box = gtk.HButtonBox()
-        box.set_layout(gtk.BUTTONBOX_START)
-        
-        btn = gtk.Button("Load File")
-        btn.connect("clicked", self.cb_btn, "load")
-        box.add(btn)
-        
-        btn = gtk.Button("Save Changes")
-        btn.set_sensitive(False)
-        btn.connect("clicked", self.cb_btn, "save")        
-        box.add(btn)
-        
-        btn = gtk.Button("Validate")
-        btn.set_sensitive(False)
-        btn.connect("clicked", self.cb_btn, "valid")
-        box.add(btn)
-        alig.add(box)
-
-        if self.core.lib != None: 
-            self.set_language(self.data_model.get_languages(), 0)
-
-        # add to conteiner
-        body.show_all()
-        body.hide()
-        self.box.add(body)
-        return body
-
-
     
 class MenuButtonOVAL(abstract.MenuButton):
 
@@ -255,7 +212,7 @@ class MainWindow(abstract.Window, threading.Thread):
         
         # subMenu_but_main
         submenu = abstract.Menu("gui:menu:main", self.builder.get_object("main:sub:main"), self.core)
-        submenu.add_item(MenuButtonXCCDF(self.main_box, self.builder.get_object("main:sub:main:xccdf"), self.core))
+        submenu.add_item(MenuButtonXCCDF(self.builder, self.builder.get_object("main:sub:main:xccdf"), self.core))
         submenu.add_item(MenuButtonOVAL(self.main_box, self.builder.get_object("main:sub:main:oval"), self.core))
         self.core.get_item("gui:btn:menu:main").set_menu(submenu)
 

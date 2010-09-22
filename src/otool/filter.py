@@ -80,6 +80,33 @@ class Filter:
     def get_widget(self):
         return self.eb
 
+class Search:
+
+    def __init__(self):
+        self.__render()
+
+    def __render(self):
+        self.box = gtk.HBox()
+
+        entry = gtk.Entry()
+        alig = gtk.Alignment(0.0, 0.0, 1.0, 1.0)
+        alig.set_padding(5, 5, 10, 5)
+        alig.add(entry)
+        self.box.pack_start(alig, True, True)
+
+        self.button = gtk.Button()
+        self.button.set_relief(gtk.RELIEF_NONE)
+        self.button.set_label("Search")
+        alig = gtk.Alignment(0.0, 0.0, 1.0, 1.0)
+        alig.set_padding(5, 5, 10, 5)
+        alig.add(self.button)
+        self.box.pack_start(alig, True, True)
+
+        self.box.show_all()
+
+    def get_widget(self):
+        return self.box
+
 
 class Renderer(abstract.MenuButton):
 
@@ -95,7 +122,8 @@ class Renderer(abstract.MenuButton):
 
         self.expander = ExpandBox(box, "Search / Filters", self.core)
         filter_box = self.expander.get_widget()
-        alig_filters = self.add_frame_cBox(filter_box, "<u>Active filters                                   </u>", False)
+        self.add_filter(Search())
+        alig_filters = self.add_frame(filter_box, "Active filters")
         self.add_filter(Filter("Filter 1"))
         self.add_filter(Filter("Filter 2"))
         box.show_all()

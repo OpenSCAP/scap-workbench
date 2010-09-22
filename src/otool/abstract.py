@@ -140,6 +140,17 @@ class MenuButton(EventObject):
         frame.add(alig)
         return frame, alig
 
+    def add_frame(self, body, text):
+        label = gtk.Label(text)
+        label.set_use_markup(True)
+        label.set_justify(gtk.JUSTIFY_LEFT)
+        body.pack_start(label, True, True, padding=4)
+        body.pack_start(gtk.HSeparator(), False, False, padding=2)
+        alig = gtk.Alignment(0, 0, 1, 1)
+        alig.set_padding(0, 0, 12, 0)
+        body.pack_start(alig, False, False)
+        return alig
+
     #draw functions
     def add_frame_cBox(self, body, text, expand):
         frame = gtk.Frame(text)
