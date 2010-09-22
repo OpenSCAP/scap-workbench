@@ -73,31 +73,6 @@ class ItemList(abstract.List):
         treeView.columns_autosize()
         self.emit("update")
 
-class DepsList(abstract.List):
-    
-    def __init__(self, core=None):
-        self.core = core
-        self.data_model = commands.DHDependencies(core)
-        abstract.List.__init__(self, "gui:tailoring:refines:deps_list", core)
-        self.get_TreeView().set_enable_tree_lines(True)
-
-        selection = self.get_TreeView().get_selection()
-        selection.set_mode(gtk.SELECTION_SINGLE)
-
-        # actions
-        self.add_receiver("gui:tailoring:refines:item_list", "update", self.__update)
-        selection.connect("changed", self.cb_item_changed, self.get_TreeView())
-
-    def __update(self):
-        self.data_model.fill()
-
-    def cb_item_changed(self, widget, treeView):
-
-        selection = treeView.get_selection( )
-        if selection != None: 
-            (model, iter) = selection.get_selected( )
-            if iter: self.core.selected_deps = model.get_value(iter, 0)
-
 class ValuesList(abstract.List):
     
     def __init__(self, widget, core):
