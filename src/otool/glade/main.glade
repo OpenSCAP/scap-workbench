@@ -689,7 +689,7 @@
                       <object class="GtkHPaned" id="tailoring:refines:hpaned1">
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
-                        <property name="position">500</property>
+                        <property name="position">600</property>
                         <property name="position_set">True</property>
                         <child>
                           <object class="GtkHBox" id="tailoring:refines:hbox1">

@@ -179,11 +179,9 @@ class ItemDetails(EventObject):
 
         # clear
         self.description.get_buffer().set_text("")
-        #self.description.set_tooltip_text("")
+        self.fixes.get_buffer().set_text("")
         self.title.set_text("")
         for child in self.refBox.get_children():
-            child.destroy()
-        for child in self.fixBox.get_children():
             child.destroy()
         fixes = []
 
@@ -204,7 +202,10 @@ class ItemDetails(EventObject):
                 break
         if description == "": description = "No description"
         description = "<body>"+description+"</body>"
-        self.description.display_html(description)
+        try:
+            self.description.display_html(description)
+        except Exception as err:
+            logger.error("Exception: %s", err)
         
         for i, ref in enumerate(details["references"]):
             hbox = gtk.HBox()
@@ -226,22 +227,17 @@ class ItemDetails(EventObject):
 
         if "fixtexts" in details: fixes.extend(details["fixtexts"])
         if "fixes" in details: fixes.extend(details["fixes"])
+        text = None
         for i, fixtext in enumerate(fixes):
+            if text == None: text = ""
             hbox = gtk.HBox()
-            counter = gtk.Label("%d) " % (i+1,))
-            counter.set_alignment(0,0)
-            hbox.pack_start(counter, False, False)
-            label = gtk.Label()
-            label.set_text(fixtext["text"])
-            label.set_tooltip_text(["", "Need reboot\n"][fixtext["reboot"]])
-            hbox.pack_start(label, True, True)
-            label.set_use_markup(True)
-            label.set_line_wrap(True)
-            label.set_line_wrap_mode(pango.WRAP_WORD) 
-            label.set_alignment(0,0)
-            label.connect("size-allocate", render.label_size_allocate)
-            hbox.show_all()
-            self.fixBox.pack_start(hbox, True, True)
+            text += "    "+fixtext["text"].replace("xhtml:", "").replace("xmlns:", "")+"<br>"
+        if text == None: text = "No fixes specified"
+        text = "<body>"+text+"</body>"
+        try:
+            self.fixes.display_html(text)
+        except Exception as err:
+            logger.error("Exception: %s", err)
 
     def draw(self):
         self.box_details = gtk.VBox()
@@ -342,15 +338,23 @@ class ItemDetails(EventObject):
         expander.set_expanded(True)
         label = expander.get_label_widget()
         label.set_use_markup(True)
-        alig = gtk.Alignment(0.5, 0.5, 1, 1)
+        alig = gtk.Alignment(0, 0, 1, 1)
         alig.set_padding(0, 10, 12, 4)
         vbox = gtk.VBox()
         alig.add(vbox)
-        vbox.pack_start(gtk.HSeparator(), expand=False, fill=True, padding=3)
-        self.fixBox = gtk.VBox()
-        vbox.pack_start(self.fixBox, expand=True, fill=True, padding=0)
+        vbox.pack_start(gtk.HSeparator(), expand=False, fill=False, padding=3)
+        self.fixes = HtmlTextView()
+        self.fixes.set_wrap_mode(gtk.WRAP_WORD)
+        self.fixes.modify_base(gtk.STATE_NORMAL, bg_color)
+        sw = gtk.ScrolledWindow()
+        sw.set_property("hscrollbar-policy", gtk.POLICY_AUTOMATIC)
+        sw.set_property("vscrollbar-policy", gtk.POLICY_AUTOMATIC)
+        sw.set_property("border-width", 0)
+        sw.add(self.fixes)
+        sw.show()
         expander.add(alig)
-        self.box_details.pack_start(expander, expand=False, fill=True, padding=1)
+        vbox.pack_start(sw, expand=True, fill=True, padding=1)
+        self.box_details.pack_start(expander, expand=True, fill=True, padding=1)
 
 class RefineDetails(EventObject):
     

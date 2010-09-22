@@ -99,13 +99,12 @@ class DataHandler:
         else:
             policy = self.core.lib["policy_model"].get_policy_by_id(self.selected_profile)
             if policy == None: raise Exception, "Policy %s does not exist" % (self.selected_profile,)
+
             # Get selector from policy
-            for select in policy.selects:
-                if select.item == item.id:
-                    if select.selected: 
-                        return True
-                    else: return False
-            return item.selected
+            select = policy.get_select_by_id(item.id)
+            if select == None: 
+                return item.selected
+            else: return select.selected
 
     def get_item_values(self, id):
 
@@ -466,7 +465,8 @@ class DHItemsTree(DataHandler):
 
         self.lock = threading.Lock()
         self.treeView = treeView
-        self.model = gtk.TreeStore(str, str, str, str, str)
+        # ID, Picture, Text, Font color, selected, parent-selected
+        self.model = gtk.TreeStore(str, str, str, str, bool, bool)
         treeView.set_model(self.model)
 
         """This Cell is used to be first hidden column of tree view
@@ -490,16 +490,63 @@ class DHItemsTree(DataHandler):
         txtcell = gtk.CellRendererText()
         column.pack_start(txtcell, True)
         column.set_attributes(txtcell, text=2)
-        column.add_attribute(txtcell, 'foreground', 4)
+        column.add_attribute(txtcell, 'foreground', 3)
         column.set_resizable(True)
         treeView.append_column(column)
 
         """Cell with picture representing if the item is selected or not
         """
-        render = gtk.CellRendererPixbuf()
-        column = gtk.TreeViewColumn("Selected", render, stock_id=3)
+        render = gtk.CellRendererToggle()
+        column = gtk.TreeViewColumn("Selected", render, active=4, sensitive=5, activatable=5)
+        render.connect('toggled', self.__cb_toggled, self.model)
         column.set_resizable(True)
         treeView.append_column(column)
+
+    def __set_sensitive(self, policy, child, path, model):
+
+        benchmark = policy.model.benchmark
+        iter = model[child.path].iterchildren()
+        while iter != None:
+            try:
+                child = iter.next()
+                model[child.path][5] = model[path][4]
+                model[child.path][3] = ["gray", None][model[path][4]]
+
+                # Alter selector
+                if benchmark.item(model[child.path][0]).type == openscap.OSCAP.XCCDF_RULE:
+                    select = policy.get_select_by_id(model[child.path][0])
+                    if select == None:
+                        newselect = openscap.xccdf.select()
+                        newselect.item = model[child.path][0]
+                        newselect.selected = (model[child.path][4] and model[path][4])
+                        policy.select = newselect
+                    else:
+                        select.selected = (model[child.path][4] and model[path][4])
+
+                self.__set_sensitive(policy, child, path, model)
+            except StopIteration:
+                break
+
+
+    def __cb_toggled(self, cell, path, model):
+        #for cell in cells:
+        model[path][4] = not model[path][4]
+        model[path][3] = ["gray", None][model[path][4]]
+
+        policy = self.core.lib["policy_model"].get_policy_by_id(self.selected_profile)
+        if policy == None: raise Exception, "Policy %s does not exist" % (self.selected_profile,)
+
+        # Get selector from policy
+        select = policy.get_select_by_id(model[path][0])
+        if select == None:
+            newselect = openscap.xccdf.select()
+            newselect.item = model[path][0]
+            newselect.selected = model[path][4]
+            policy.select = newselect
+        else:
+            select.selected = model[path][4]
+
+        self.__set_sensitive(policy, model[path], path, model)
 
     def __recursive_fill(self, item=None, parent=None, pselected=True):
 
@@ -509,31 +556,34 @@ class DHItemsTree(DataHandler):
         """This is recusive call (item is not None) so let's get type of 
         item and add it to model. If the item is Group continue more deep with
         recursion to get all items to the tree"""
-        if pselected == False: color = "gray"
-        else: color = None
+        color = None
 
         if self.__progress != None:
             gtk.gdk.threads_enter()
-            self.__progress.set_fraction(self.__progress.get_fraction()+self.__step)
+            value = self.__progress.get_fraction()+self.__step
+            if value > 1.0: value = 1.0
+            self.__progress.set_fraction(value)
             self.__progress.set_text("Adding items %s/%s" % (int(self.__progress.get_fraction()/self.__step), self.__total))
             gtk.gdk.threads_leave()
+
+        # Check select status of item
+        selected = self.get_selected(item)
+        color = ["gray", None][selected]
 
         if item != None:
             # If item is group, store it ..
             if item.type == openscap.OSCAP.XCCDF_GROUP:
-                selected = [None, gtk.STOCK_APPLY][pselected and item.selected]
                 gtk.gdk.threads_enter()
-                item_it = self.model.append(parent, [item.id, gtk.STOCK_DND_MULTIPLE, "Group: "+item.title[0].text, selected, color])
+                item_it = self.model.append(parent, [item.id, gtk.STOCK_DND_MULTIPLE, "Group: "+item.title[0].text, color, selected, pselected])
                 self.treeView.queue_draw()
                 gtk.gdk.threads_leave()
                 # .. call recursive
                 for i in item.content:
-                    self.__recursive_fill(i, item_it, selected != None)
+                    self.__recursive_fill(i, item_it, selected)
             # item is rule, store it to model
             elif item.type == openscap.OSCAP.XCCDF_RULE:
-                selected = [None, gtk.STOCK_APPLY][self.get_selected(item)]
                 gtk.gdk.threads_enter()
-                item_it = self.model.append(parent, [item.id, gtk.STOCK_DND, "Rule: "+item.title[0].text, selected, color])
+                item_it = self.model.append(parent, [item.id, gtk.STOCK_DND, "Rule: "+item.title[0].text, color, selected, pselected])
                 self.treeView.queue_draw()
                 gtk.gdk.threads_leave()
             else: logger.warning("Unknown type of %s, should be Rule or Group (got %s)", item.type, item.id)
@@ -816,6 +866,7 @@ class DHScan(DataHandler):
             gtk.gdk.threads_enter()
             self.__progress.set_fraction(self.__progress.get_fraction()+step)
             self.__progress.set_text("Scanning rule %s ... (%s/%s)" % (msg.user1str, int(self.__progress.get_fraction()/step), self.__rules_count))
+            self.__progress.set_tooltip_text("Scanning rule %s" % (msg.user3str,))
             gtk.gdk.threads_leave()
 
         self.__last = int(self.__progress.get_fraction()/step)
@@ -854,7 +905,11 @@ class DHScan(DataHandler):
             self.policy = self.core.lib["policy_model"].policies[0]
         else: self.policy = self.core.lib["policy_model"].get_policy_by_id(self.selected_profile)
 
-        self.__rules_count = len(self.policy.selected_rules)
+        self.__rules_count = 0
+        for item in self.policy.selected_rules:
+            if item.selected: self.__rules_count += 1
+        # TODO: library bug
+        #self.__rules_count = len(self.policy.selected_rules)
         self.__prepaired = True
         
     def cancel(self):
@@ -880,4 +935,5 @@ class DHScan(DataHandler):
         if self.__progress: 
             self.__progress.set_fraction(1.0)
             self.__progress.set_text("Finished %s of %s rules" % (self.__last, self.__rules_count))
+            self.__progress.set_has_tooltip(False)
         logger.debug("Finished scanning")
