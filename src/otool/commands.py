@@ -251,7 +251,7 @@ class DataHandler:
         else: dialog_buttons = (gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL, gtk.STOCK_OPEN, gtk.RESPONSE_OK)
  
         file_dialog = gtk.FileChooserDialog(title,
-                action=gtk.FILE_CHOOSER_ACTION_SAVE,
+                action=action,
                 buttons=dialog_buttons)
 
         file_dialog.set_current_name(file)
