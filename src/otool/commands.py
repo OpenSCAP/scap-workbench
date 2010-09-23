@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import gtk, logging, sys, re, time
+import gtk, logging, sys, re, time, os
 import gobject
 logger = logging.getLogger("OSCAPEditor")
 
@@ -254,7 +254,8 @@ class DataHandler:
                 action=action,
                 buttons=dialog_buttons)
 
-        file_dialog.set_current_name(file)
+        file_dialog.set_current_folder(os.path.dirname(file))
+        file_dialog.set_current_name(os.path.basename(file))
 
         """Init the return value"""
         result = ""
@@ -290,6 +291,34 @@ class DHXccdf(DataHandler):
                 }
 
         return details
+
+    def export(self):
+
+        if self.core.lib == None:
+            return False
+
+        file_name = self.file_browse("Save XCCDF file", file=self.core.xccdf_file)
+        if file_name != "":
+            self.core.lib["policy_model"].benchmark.export(file_name)
+            md = gtk.MessageDialog(self.core.main_window, 
+                    gtk.DIALOG_MODAL, gtk.MESSAGE_INFO, 
+                    gtk.BUTTONS_OK, "Benchmark were exported successfuly")
+            md.run()
+            md.destroy()
+            logger.debug("Exported benchmark: %s", file_name)
+        return True
+
+    def validate(self):
+        if self.core.xccdf_file == None: 
+            return False
+
+        try:
+            return openscap.common.validate_document(self.core.xccdf_file, openscap.OSCAP.OSCAP_DOCUMENT_XCCDF, None, self.__cb_report, None)
+        except Exception:
+            return 2
+
+    def __cb_report(self, msg, plugin):
+        print "Reported", msg.string
 
 class DHValues(DataHandler):
 
@@ -653,6 +682,25 @@ class DHProfiles(DataHandler):
             self.model.append([item.id, "Profile: "+item.title[0].text])
 
         return True
+
+    def save(self):
+
+        policy = self.core.lib["policy_model"].get_policy_by_id(self.core.selected_profile)
+        rules = dict([(select.item, select.selected) for select in policy.selects])
+
+        profile = policy.profile
+        for select in profile.selects:
+            if select.item in rules.keys():
+                select.selected = rules[select.item]
+                rules[select.item] = None
+            else: select.selected = policy.model.benchmark.item(select.item).selected
+        for item in rules.keys():
+            if rules[item] == None: continue
+            sel = openscap.xccdf.select()
+            sel.item = item
+            selected = rules[item]
+            sel.selected = selected
+            profile.add_select(sel)
 
 
 class DHScan(DataHandler):

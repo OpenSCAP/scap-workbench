@@ -440,7 +440,7 @@ class MenuButtonProfiles(abstract.MenuButton):
         self.builder = builder
         self.core = core
         self.widget = widget
-        self.data_model = commands.DataHandler(self.core)
+        self.data_model = commands.DHProfiles(self.core)
         
         # draw body
         self.body = self.builder.get_object("tailoring:profiles:box")
@@ -448,11 +448,26 @@ class MenuButtonProfiles(abstract.MenuButton):
         self.profiles_list = ProfileList(self.builder.get_object("tailoring:profiles:treeview"), self.core)
         self.profile_details = ProfileDetails(self.core, self)
 
+        """Get labels for details
+        """
         self.profile_id = self.builder.get_object("tailoring:profiles:details:lbl_id")
         self.profile_abstract = self.builder.get_object("tailoring:profiles:details:lbl_abstract")
         self.profile_extend = self.builder.get_object("tailoring:profiles:details:lbl_extend")
         self.profile_version = self.builder.get_object("tailoring:profiles:details:lbl_version")
         self.profile_title = self.builder.get_object("tailoring:profiles:details:lbl_title")
+
+        """Get buttons from Builder and connect callbacks
+        """
+        self.btn_add = self.builder.get_object("tailoring:profiles:btn_add")
+        self.btn_add.connect("clicked", self.__cb_add)
+        self.btn_extend = self.builder.get_object("tailoring:profiles:btn_extend")
+        self.btn_extend.connect("clicked", self.__cb_extend)
+        self.btn_copy = self.builder.get_object("tailoring:profiles:btn_copy")
+        self.btn_copy.connect("clicked", self.__cb_copy)
+        self.btn_delete = self.builder.get_object("tailoring:profiles:btn_delete")
+        self.btn_delete.connect("clicked", self.__cb_delete)
+        self.btn_save = self.builder.get_object("tailoring:profiles:btn_save")
+        self.btn_save.connect("clicked", self.__cb_save)
 
         self.profile_description = HtmlTextView()
         self.profile_description.show()
@@ -505,8 +520,20 @@ class MenuButtonProfiles(abstract.MenuButton):
         self.profile_description.display_html(description)
         
     #callBack functions
-    def cb_btnProfiles(self, button, data=None):
-        self.profile = NewProfileWindow(data)
+    def __cb_add(self, widget):
+        pass
+
+    def __cb_extend(self, widget):
+        pass
+
+    def __cb_copy(self, widget):
+        pass
+
+    def __cb_delete(self, widget):
+        pass
+
+    def __cb_save(self, widget):
+        self.data_model.save()
 
 
 class MenuButtonRefines(abstract.MenuButton):

@@ -54,8 +54,10 @@ class OECore:
         self.selected_item      = None
         self.selected_deps      = None
         self.selected_lang      = "en"
+        self.xcccdf_file        = None
 
     def init(self, XCCDF):
+        self.xccdf_file = XCCDF
         if openscap == None:
             logger.error("Can't initialize openscap library.")
             raise Exception("Can't initialize openscap library")

@@ -76,7 +76,7 @@ class MenuButtonXCCDF(abstract.MenuButton):
         
         self.body = self.builder.get_object("xccdf:box")
 
-        # referencies
+        # info
         self.label_title = self.builder.get_object("xccdf:lbl_title")
         self.label_version = self.builder.get_object("xccdf:lbl_version")
         self.label_url = self.builder.get_object("xccdf:lbl_file")
@@ -90,7 +90,13 @@ class MenuButtonXCCDF(abstract.MenuButton):
         self.box_references = self.builder.get_object("xccdf:box_references")
 
         self.btn_import = self.builder.get_object("xccdf:btn_import")
-        self.btn_import.connect("clicked", self.cb_btn, "load")
+        self.btn_import.connect("clicked", self.__cb_import)
+
+        self.btn_validate = self.builder.get_object("xccdf:btn_validate")
+        self.btn_validate.connect("clicked", self.__cb_validate)
+
+        self.btn_export = self.builder.get_object("xccdf:btn_export")
+        self.btn_export.connect("clicked", self.__cb_export)
 
         self.add_sender(self.id, "update")
         self.add_sender(self.id, "load")
@@ -143,17 +149,28 @@ class MenuButtonXCCDF(abstract.MenuButton):
             label.show()
 
     # callBack functions
-    def cb_btn(self, btn, data=None):
-        if data == "load": 
-            file = self.data_model.file_browse("Load XCCDF file", action=gtk.FILE_CHOOSER_ACTION_OPEN)
-            if file != "":
-                logger.debug("Loading XCCDF file %s", file)
-                self.core.init(file)
-                self.emit("load")
-                details = self.data_model.get_details()
-                try:
-                    self.set_detail(details)
-                except KeyError: pass
+    def __cb_import(self, widget):
+        file = self.data_model.file_browse("Load XCCDF file", action=gtk.FILE_CHOOSER_ACTION_OPEN)
+        if file != "":
+            logger.debug("Loading XCCDF file %s", file)
+            self.core.init(file)
+            self.emit("load")
+            details = self.data_model.get_details()
+            try:
+                self.set_detail(details)
+            except KeyError: pass
+
+    def __cb_validate(self, widget):
+        validate = self.data_model.validate()
+        md = gtk.MessageDialog(self.core.main_window, 
+                gtk.DIALOG_MODAL, [gtk.MESSAGE_WARNING, gtk.MESSAGE_INFO, gtk.MESSAGE_ERROR][validate],
+                gtk.BUTTONS_OK, ["Document is not validate !", "Document is validate", 
+                    "Validation process failed, check for error in log file."][validate])
+        md.run()
+        md.destroy()
+
+    def __cb_export(self, widget):
+        self.data_model.export()
 
     def cb_changed(self, combobox, core):
         
