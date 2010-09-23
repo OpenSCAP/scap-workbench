@@ -144,6 +144,7 @@ class MenuButton(EventObject):
         label = gtk.Label(text)
         label.set_use_markup(True)
         label.set_justify(gtk.JUSTIFY_LEFT)
+        label.set_alignment(0, 0)
         body.pack_start(label, True, True, padding=4)
         body.pack_start(gtk.HSeparator(), False, False, padding=2)
         alig = gtk.Alignment(0, 0, 1, 1)

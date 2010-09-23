@@ -46,6 +46,7 @@ class ScanList(abstract.List):
 
         selection = self.get_TreeView().get_selection()
         selection.set_mode(gtk.SELECTION_SINGLE)
+        self.get_TreeView().set_search_column(3)
 
         # actions
         self.add_receiver("gui:btn:menu:scan", "scan", self.__scan)

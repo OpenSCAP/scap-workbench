@@ -122,6 +122,7 @@ class Renderer(abstract.MenuButton):
 
         self.expander = ExpandBox(box, "Search / Filters", self.core)
         filter_box = self.expander.get_widget()
+        alig_filters = self.add_frame(filter_box, "Search")
         self.add_filter(Search())
         alig_filters = self.add_frame(filter_box, "Active filters")
         self.add_filter(Filter("Filter 1"))
