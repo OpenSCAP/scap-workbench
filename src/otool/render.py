@@ -119,13 +119,16 @@ class MenuButtonXCCDF(abstract.MenuButton):
         self.label_url.set_text(details["id"] or "")
         self.label_status_current.set_text(STATUS_CURRENT[details["status_current"]] or "")
         self.label_resolved.set_text(["no", "yes"][details["resolved"]])
-        self.label_warnings.set_text("\n".join(details["warnings"]) or "None")
-        self.label_notices.set_text("\n".join(details["notices"]) or "None")
+        self.label_warnings.set_text("\n".join(["%s: %s" % (warn[0], warn[1].text) for warn in details["warnings"]]) or "None")
+        self.label_notices.set_text("\n".join(["%s: %s" % (notice[0], notice[1].text) for notice in details["notices"]]) or "None")
+        self.label_file_references.set_text("")
         self.label_file_references.set_text("\n".join(details["files"]) or "None")
         self.label_language.set_text(lang)
         
         # References
-        
+        for child in self.box_references.get_children():
+            child.destroy()
+
         for i, ref in enumerate(details["references"]):
             text = "%d) %s [<a href='%s'>link</a>]" % (i+1, ref[0], ref[1])
             label = gtk.Label(text)

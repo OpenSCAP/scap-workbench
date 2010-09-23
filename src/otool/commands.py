@@ -279,12 +279,12 @@ class DHXccdf(DataHandler):
                 "descs":            dict([(desc.lang, desc.text) for desc in benchmark.description]),
                 "id":               benchmark.id,
                 "lang":             benchmark.lang,
-                "notices":          benchmark.notices,
+                "notices":          [(notice.id, notice.text) for notice in benchmark.notices],
                 "resolved":         benchmark.resolved,
                 "status_current":   benchmark.status_current,
                 "titles":           dict([(desc.lang, desc.text) for desc in benchmark.title]),
                 "version":          benchmark.version,
-                "warnings":         benchmark.warnings,
+                "warnings":         [(warn.category, warn.text) for warn in benchmark.warnings],
                 "references":       [(ref.text.text, ref.href) for ref in benchmark.references],
                 "files":            self.core.lib["policy_model"].files.strings
                 }
