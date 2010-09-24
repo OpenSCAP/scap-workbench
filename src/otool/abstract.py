@@ -277,7 +277,7 @@ class List(EventObject):
         while iter:
             # If all data was searched, stop the search. 
             if iter_start == model.get_string_from_iter(iter):
-                return iter
+                return None
 
             if self.__match_func(model, iter, data):
                 return iter
@@ -294,11 +294,13 @@ class List(EventObject):
         model, iter =  selection.get_selected()
         iter_old = iter
         
-        # move to next node
         if iter == None:
+            # nothing selected
             iter = model.get_iter_root()
-            iter_start = model.get_string_from_iter(iter)
+            iter = self.search_branch(model, iter, None, (column, key))
+
         else:
+            # row selected move to next node
             iter_start = model.get_string_from_iter(iter)
             iter = model.iter_children(iter)
             if iter == None:
@@ -312,30 +314,31 @@ class List(EventObject):
                         iter_parent = model.iter_parent(iter_parent)
                     else:
                         iter = model.get_iter_root()
-        
-        # for search in parent node and search from end to start
-        if iter != None:
-            iter_old = iter
-            iter = self.search_branch(model, iter, iter_start, (column, key))
-            while iter == None:
-                iter_parent = model.iter_parent(iter_old)
-                while iter_parent != None:
-                    iter = model.iter_next(iter_parent)
-                    if iter != None:
-                        iter_old = iter
-                        iter = self.search_branch(model, iter, iter_start, (column, key))
-                        break
-                    else:
-                        iter_parent = model.iter_parent(iter_parent)
-                if iter_parent == None:
-                    # search to end (not find) and search from start 
-                    iter = self.search_branch(model, model.get_iter_root(), iter_start, (column, key))
 
-            # find pattern
+            # for search in parent node and search from end to start
             if iter != None:
-                path = model.get_path(iter)
-                self.get_TreeView().expand_to_path(path)
-                selection.select_path(path)
+                iter_old = iter
+                iter = self.search_branch(model, iter, iter_start, (column, key))
+                while iter == None:
+                    iter_parent = model.iter_parent(iter_old)
+                    while iter_parent != None:
+                        iter = model.iter_next(iter_parent)
+                        if iter != None:
+                            iter_old = iter
+                            iter = self.search_branch(model, iter, iter_start, (column, key))
+                            break
+                        else:
+                            iter_parent = model.iter_parent(iter_parent)
+                    if iter_parent == None:
+                        # searched to end (not found) and will go to search from start 
+                        iter = self.search_branch(model, model.get_iter_root(), iter_start, (column, key))
+                        break
+
+        # find pattern
+        if iter != None:
+            path = model.get_path(iter)
+            self.get_TreeView().expand_to_path(path)
+            selection.select_path(path)
 
 
 class ProgressBar(EventObject):

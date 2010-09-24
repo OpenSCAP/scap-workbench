@@ -54,12 +54,12 @@ class ItemList(abstract.List):
         selection.set_mode(gtk.SELECTION_SINGLE)
 
         # actions
-        Updated upstream
+
         self.add_receiver("gui:btn:menu:tailoring", "update", self.__update)
 
         self.add_receiver("gui:btn:tailoring:refines", "update", self.__update)
         self.add_receiver("gui:btn:tailoring:refines:filter", "search", self.__search)
-        Stashed changes
+
         selection.connect("changed", self.cb_item_changed, self.get_TreeView())
         self.add_sender(self.id, "item_changed")
 
