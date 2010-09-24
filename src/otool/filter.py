@@ -185,8 +185,8 @@ class ExpandBox(abstract.EventObject):
         btn.connect("clicked", self.cb_changed)
 
     def cb_changed(self, widget=None):
-        logger.debug("Expander switched to %s", self.frameContent.get_visible())
-        if self.frameContent.get_visible():
+        logger.debug("Expander switched to %s", self.frameContent.get_property("visible"))
+        if self.frameContent.get_property("visible"):
             self.frameContent.hide_all()
             self.arrowTop.set_from_pixbuf(self.pixbufShow)
             self.arrowBottom.set_from_pixbuf(self.pixbufShow)

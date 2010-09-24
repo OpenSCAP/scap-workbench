@@ -590,6 +590,8 @@ class DHItemsTree(DataHandler):
     @threadSave
     def fill(self, item=None, parent=None):
 
+        if not self.core.lib: return False
+
         self.selected_profile   = self.core.selected_profile
         self.selected_item      = self.core.selected_item
 
@@ -671,6 +673,7 @@ class DHProfiles(DataHandler):
 
     def fill(self, item=None, parent=None):
 
+        if not self.core.lib: return False
         self.model.clear()
         logger.debug("Adding profile (Default document)")
         self.model.append([None, "(Default document)"])
