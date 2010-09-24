@@ -142,7 +142,9 @@ class MenuButtonXCCDF(abstract.MenuButton):
             self.box_references.pack_start(label, True, True)
             label.set_tooltip_text(ref[1])
             label.set_use_markup(True)
-            label.set_track_visited_links(True)
+	    try:
+                label.set_track_visited_links(True)
+	    except AttributeError: pass
             label.set_line_wrap(True)
             label.set_line_wrap_mode(pango.WRAP_WORD) 
             label.set_alignment(0,0)
