@@ -49,12 +49,17 @@ class OECore:
             self.init(sys.argv[1])
 
         self.__objects = {}
+        self.changed_profiles = []
+        self.force_reload_items = False
+        self.force_reload_profiles = False
         self.eventHandler = EventHandler(self)
         self.selected_profile   = None
         self.selected_item      = None
         self.selected_deps      = None
         self.selected_lang      = "en"
         self.xcccdf_file        = None
+
+        self.set_receiver("gui:btn:main:xccdf", "load", self.__set_force)
 
     def init(self, XCCDF):
         self.xccdf_file = XCCDF
@@ -73,11 +78,15 @@ class OECore:
     def set_sender(self, signal, sender):
         self.eventHandler.set_sender(signal, sender)
 
-    def set_receiver(self, sender_id, signal, callback, position):
+    def set_receiver(self, sender_id, signal, callback, position=-1):
         self.eventHandler.register_receiver(sender_id, signal, callback, position)
 
     def set_callback(self, action, callback, position=None):
         pass
+
+    def __set_force(self):
+        self.force_reload_items = True
+        self.force_reload_profiles = True
 
     def __destroy__(self):
         if self.lib == None: return

@@ -32,6 +32,7 @@ import threading
 import core
 import abstract
 import tailoring
+import profiles
 import scan
 import logging
 import commands
@@ -225,10 +226,11 @@ class MainWindow(abstract.Window, threading.Thread):
         # abstract the main menu
         self.menu = abstract.Menu("gui:menu", self.builder.get_object("main:toolbar"), self.core)
         self.menu.add_item(abstract.MenuButton("gui:btn:menu:main", self.builder.get_object("main:toolbar:main"), self.core))
-        self.menu.add_item(abstract.MenuButton("gui:btn:menu:tailoring", self.builder.get_object("main:toolbar:tailoring"), self.core))
         self.menu.add_item(abstract.MenuButton("gui:btn:menu:edit",  self.builder.get_object("main:toolbar:edit"), self.core))
-        self.menu.add_item(scan.MenuButtonScan(self.builder, self.builder.get_object("main:toolbar:scan"), self.core))
         self.menu.add_item(abstract.MenuButton("gui:btn:menu:reports", self.builder.get_object("main:toolbar:reports"), self.core))
+        self.menu.add_item(profiles.MenuButtonProfiles(self.builder, self.builder.get_object("main:toolbar:profiles"), self.core))
+        self.menu.add_item(tailoring.MenuButtonTailoring(self.builder, self.builder.get_object("main:toolbar:tailoring"), self.core))
+        self.menu.add_item(scan.MenuButtonScan(self.builder, self.builder.get_object("main:toolbar:scan"), self.core))
         
         # subMenu_but_main
         submenu = abstract.Menu("gui:menu:main", self.builder.get_object("main:sub:main"), self.core)
@@ -237,10 +239,10 @@ class MainWindow(abstract.Window, threading.Thread):
         self.core.get_item("gui:btn:menu:main").set_menu(submenu)
 
         ## subMenu_but_tailoring
-        submenu = abstract.Menu("gui:menu:tailoring", self.builder.get_object("main:sub:tailoring"), self.core)
-        submenu.add_item(tailoring.MenuButtonProfiles(self.builder, self.builder.get_object("main:sub:tailoring:profiles"), self.core))
-        submenu.add_item(tailoring.MenuButtonRefines(self.builder, self.builder.get_object("main:sub:tailoring:refines"), self.core))
-        self.core.get_item("gui:btn:menu:tailoring").set_menu(submenu)
+        #submenu = abstract.Menu("gui:menu:tailoring", self.builder.get_object("main:sub:tailoring"), self.core)
+        #submenu.add_item(tailoring.MenuButtonProfiles(self.builder, self.builder.get_object("main:sub:tailoring:profiles"), self.core))
+        #submenu.add_item(tailoring.MenuButtonRefines(self.builder, self.builder.get_object("main:sub:tailoring:refines"), self.core))
+        #self.core.get_item("gui:btn:menu:tailoring").set_menu(submenu)
 
         self.core.register("main:button_forward", self.builder.get_object("main:button_forward"))
         self.core.register("main:button_back", self.builder.get_object("main:button_back"))

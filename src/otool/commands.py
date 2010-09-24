@@ -189,30 +189,28 @@ class DataHandler:
 
     def get_profile_details(self, id):
         """get_profile_details -- get details of Profiles"""
-        if id != None or self.selected_profile != None:
-            item = self.core.lib["policy_model"].benchmark.item(id or self.selected_profile)
-            if item != None:
-                values = {
-                        "id":               item.id,
-                        "titles":           dict([(title.lang, title.text) for title in item.title]),
-                        "descriptions":     dict([(desc.lang, desc.text) for desc in item.description]),
-                        "abstract":         item.abstract,
-                        "extends":          item.extends,
-                        "platforms":        [platform.text for platform in item.platforms],
-                        "prohibit_changes": item.prohibit_changes,
-                        "rationale":        [rationale.text for rationale in item.rationale],
-                        "references":       [(ref.text.text, ref.href) for ref in item.references],
-                        "statuses":         [(status.date, status.text) for status in item.statuses],
-                        "version":          item.version,
-                        "version_time":     item.version_time,
-                        "version_update":   item.version_update
-                        }
-            else:
-                logger.error("No item '%s' in benchmark", id)
-                return None
+        policy = self.core.lib["policy_model"].get_policy_by_id(id or self.selected_profile)
+        item = policy.profile
+        if item != None:
+            values = {
+                    "id":               item.id,
+                    "titles":           dict([(title.lang, title.text) for title in item.title]),
+                    "descriptions":     dict([(desc.lang, desc.text) for desc in item.description]),
+                    "abstract":         item.abstract,
+                    "extends":          item.extends,
+                    "platforms":        [platform.text for platform in item.platforms],
+                    "prohibit_changes": item.prohibit_changes,
+                    "references":       [(ref.text.text, ref.href) for ref in item.references],
+                    "statuses":         [(status.date, status.text) for status in item.statuses],
+                    "version":          item.version,
+                    "version_time":     item.version_time,
+                    "version_update":   item.version_update
+                    }
+        else:
+            logger.error("No item '%s' in benchmark", id)
+            return None
 
-            return values
-        return None
+        return values
         
     def __rule_get_fixes(self, item):
         fixes = []
