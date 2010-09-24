@@ -25,6 +25,7 @@
 import pygtk
 import gtk
 import gobject
+import re
 
 from events import EventObject
 import core
@@ -256,6 +257,86 @@ class List(EventObject):
     def render(self):
         assert self.data_model, "Data model of %s does not exist !" % (self.id,)
         self.data_model.render(self.get_TreeView())
+
+    def __match_func(self, model, iter, data):
+        """ search pattern in column of model"""
+        column, key = data # data is a tuple containing column number, key
+        pattern = re.compile(key,re.IGNORECASE)
+        if pattern.search(model.get_value(iter, column)) != None:
+            return True
+        else:
+            return False
+
+    def search_branch(self, model, iter, iter_start, data):
+        """ Search data in model from iter next. Search terminates when a row is found. 
+            @param model is gttk.treeModel
+            @param iter is start position
+            @param data is a tuple containing column number, key
+            @return iter or None
+        """
+        while iter:
+            # If all data was searched, stop the search. 
+            if iter_start == model.get_string_from_iter(iter):
+                return iter
+
+            if self.__match_func(model, iter, data):
+                return iter
+
+            result = self.search_branch(model, model.iter_children(iter), iter_start, data)
+            if result: 
+                return result
+            iter = model.iter_next(iter)
+        return None
+
+    def search(self, view, key, column):
+        """ search in treeview"""
+        selection = view.get_selection()
+        model, iter =  selection.get_selected()
+        iter_old = iter
+        
+        # move to next node
+        if iter == None:
+            iter = model.get_iter_root()
+            iter_start = model.get_string_from_iter(iter)
+        else:
+            iter_start = model.get_string_from_iter(iter)
+            iter = model.iter_children(iter)
+            if iter == None:
+                iter = model.iter_next(iter_old)
+                if iter == None:
+                    iter_parent = model.iter_parent(iter_old)
+                    while iter_parent != None:
+                        iter = model.iter_next(iter_parent)
+                        if iter != None:
+                            break
+                        iter_parent = model.iter_parent(iter_parent)
+                    else:
+                        iter = model.get_iter_root()
+        
+        # for search in parent node and search from end to start
+        if iter != None:
+            iter_old = iter
+            iter = self.search_branch(model, iter, iter_start, (column, key))
+            while iter == None:
+                iter_parent = model.iter_parent(iter_old)
+                while iter_parent != None:
+                    iter = model.iter_next(iter_parent)
+                    if iter != None:
+                        iter_old = iter
+                        iter = self.search_branch(model, iter, iter_start, (column, key))
+                        break
+                    else:
+                        iter_parent = model.iter_parent(iter_parent)
+                if iter_parent == None:
+                    # search to end (not find) and search from start 
+                    iter = self.search_branch(model, model.get_iter_root(), iter_start, (column, key))
+
+            # find pattern
+            if iter != None:
+                path = model.get_path(iter)
+                self.get_TreeView().expand_to_path(path)
+                selection.select_path(path)
+
 
 class ProgressBar(EventObject):
 

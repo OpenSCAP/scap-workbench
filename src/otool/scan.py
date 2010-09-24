@@ -75,7 +75,7 @@ class MenuButtonScan(abstract.MenuButton):
         self.body = self.builder.get_object("scan:box")
         self.progress = self.builder.get_object("scan:progress")
         self.scanlist = ScanList(self.builder.get_object("scan:treeview"), core=self.core, progress=self.progress)
-        self.filter = filter.Renderer(self.core, self.builder.get_object("scan:box_filter"))
+        self.filter = filter.Renderer("gui:btn:menu:scan:filter", self.core, self.builder.get_object("scan:box_filter"))
         self.filter.expander.cb_changed()
 
         self.builder.get_object("scan:btn_scan").connect("clicked", self.__cb_start)

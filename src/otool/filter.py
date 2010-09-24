@@ -4,6 +4,7 @@
 import gtk
 import abstract
 import logging
+from events import EventObject
 
 logger = logging.getLogger("OSCAPEditor")
 
@@ -80,41 +81,50 @@ class Filter:
     def get_widget(self):
         return self.eb
 
-class Search:
+class Search(EventObject):
 
-    def __init__(self):
+    def __init__(self, render):
+
+        self.render = render
+        self.render.add_sender(id, "search")
         self.__render()
 
     def __render(self):
         self.box = gtk.HBox()
 
-        entry = gtk.Entry()
+        self.entry = gtk.Entry()
         alig = gtk.Alignment(0.0, 0.0, 1.0, 1.0)
         alig.set_padding(5, 5, 10, 5)
-        alig.add(entry)
+        alig.add(self.entry)
         self.box.pack_start(alig, True, True)
 
         self.button = gtk.Button()
         self.button.set_relief(gtk.RELIEF_NONE)
         self.button.set_label("Search")
+        self.button.connect("clicked", self.cb_search)
         alig = gtk.Alignment(0.0, 0.0, 1.0, 1.0)
         alig.set_padding(5, 5, 10, 5)
         alig.add(self.button)
         self.box.pack_start(alig, True, True)
+        
 
         self.box.show_all()
 
     def get_widget(self):
         return self.box
 
+    def cb_search(self, widget):
+        self.render.emit("search")
 
-class Renderer(abstract.MenuButton):
+class Renderer(abstract.MenuButton,EventObject):
 
-    def __init__(self, core, box):
+    def __init__(self,id, core, box):
 
         self.core = core
         self.filters = []
-
+        self.id = id
+        EventObject.__init__(self, self.core)
+        self.core.register(id, self)
         self.render(box)
 
     def render(self, box):
@@ -123,7 +133,8 @@ class Renderer(abstract.MenuButton):
         self.expander = ExpandBox(box, "Search / Filters", self.core)
         filter_box = self.expander.get_widget()
         alig_filters = self.add_frame(filter_box, "Search")
-        self.add_filter(Search())
+        self.search = Search(self)
+        self.add_filter(self.search)
         alig_filters = self.add_frame(filter_box, "Active filters")
         self.add_filter(Filter("Filter 1"))
         self.add_filter(Filter("Filter 2"))
@@ -138,6 +149,8 @@ class Renderer(abstract.MenuButton):
     def del_filter(self, filter):
         raise NotImplementedError
 
+    def get_search_text(self):
+        return self.search.entry.get_text()
 
 class ExpandBox(abstract.EventObject):
     """

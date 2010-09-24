@@ -43,8 +43,9 @@ logger = logging.getLogger("OSCAPEditor")
 
 class ItemList(abstract.List):
     
-    def __init__(self, widget, core, progress=None):
+    def __init__(self, widget, core, progress=None, filter = None):
         self.core = core
+        self.filter = filter
         self.data_model = commands.DHItemsTree(core, progress)
         abstract.List.__init__(self, "gui:tailoring:refines:item_list", core, widget)
         self.get_TreeView().set_enable_tree_lines(True)
@@ -53,7 +54,12 @@ class ItemList(abstract.List):
         selection.set_mode(gtk.SELECTION_SINGLE)
 
         # actions
+        Updated upstream
         self.add_receiver("gui:btn:menu:tailoring", "update", self.__update)
+
+        self.add_receiver("gui:btn:tailoring:refines", "update", self.__update)
+        self.add_receiver("gui:btn:tailoring:refines:filter", "search", self.__search)
+        Stashed changes
         selection.connect("changed", self.cb_item_changed, self.get_TreeView())
         self.add_sender(self.id, "item_changed")
 
@@ -65,6 +71,10 @@ class ItemList(abstract.List):
             self.get_TreeView().get_model().foreach(self.set_selected, (self.core.selected_item, self.get_TreeView()))
             self.core.force_reload_items = False
 
+    def __search(self):
+        self.search(self.get_TreeView(), self.filter.get_search_text(),1)
+
+            
     def cb_item_changed(self, widget, treeView):
 
         selection = treeView.get_selection( )
@@ -406,9 +416,9 @@ class MenuButtonTailoring(abstract.MenuButton):
         self.draw_nb(self.builder.get_object("tailoring:refines:box_nb"))
         self.progress = self.builder.get_object("tailoring:refines:progress")
         self.progress.hide()
-        self.filter = filter.Renderer(self.core, self.builder.get_object("tailoring:refines:box_filter"))
+        self.filter = filter.Renderer("gui:btn:tailoring:refines:filter", self.core, self.builder.get_object("tailoring:refines:box_filter"))
         self.filter.expander.cb_changed()
-        self.rules_list = ItemList(self.builder.get_object("tailoring:refines:tw_items"), self.core, self.progress)
+        self.rules_list = ItemList(self.builder.get_object("tailoring:refines:tw_items"), self.core, self.progress, self.filter)
         self.values = ValuesList(self.builder.get_object("tailoring:refines:tw_values"), self.core)
 
         # set signals

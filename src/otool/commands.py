@@ -444,7 +444,7 @@ class DHItemsTree(DataHandler):
         # ID, Name, Picture, Text, Font color, selected, parent-selected
         self.model = gtk.TreeStore(str, str, str, str, str, bool, bool)
         treeView.set_model(self.model)
-
+                
         """This Cell is used to be first hidden column of tree view
         to identify the item in list"""
         txtcell = gtk.CellRendererText()
