@@ -416,6 +416,10 @@ class HtmlHandler(xml.sax.handler.ContentHandler):
             pass
         elif name == 'a':
             pass
+        elif name == 'code':
+            pass
+        elif name == 'sub':
+            pass
         else:
             logger.warning("Unhandled element '%s'" % name)
 

@@ -613,12 +613,12 @@ class DHItemsTree(DataHandler):
             self.treeView.set_sensitive(False)
             gtk.gdk.threads_leave()
 
-	    cursor = None
-	    try:
-	        child_win = self.treeView.get_window()
-		cursor = child_win.get_cursor()
-		child_win.set_cursor(gtk.gdk.Cursor(gtk.gdk.WATCH))
-            except AttributeError: pass
+	    #cursor = None
+	    #try:
+	        #child_win = self.treeView.get_window()
+		#cursor = child_win.get_cursor()
+		#child_win.set_cursor(gtk.gdk.Cursor(gtk.gdk.WATCH))
+            #except AttributeError: pass
 
             for item in self.core.lib["policy_model"].benchmark.content:
                 if self.__progress != None:
@@ -631,7 +631,7 @@ class DHItemsTree(DataHandler):
             gtk.gdk.threads_enter()
             self.treeView.set_sensitive(True)
             gtk.gdk.threads_leave()
-            if cursor: child_win.set_cursor(cursor)
+            #if cursor: child_win.set_cursor(cursor)
         finally:
             if self.__progress != None:
                 gtk.gdk.threads_enter()
