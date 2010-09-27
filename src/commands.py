@@ -73,7 +73,10 @@ class DataHandler:
         if profile != None:
             for r_value in profile.refine_values:
                 if r_value.item == value.id:
-                    item["selected"] = (r_value.selector, item["options"][r_value.selector])
+                    try:
+                        item["selected"] = (r_value.selector, item["options"][r_value.selector])
+                    except KeyError:
+                        logger.error("No selector \"%s\" available in rule %s" % (r_value.selector, item["id"]))
             for s_value in profile.setvalues:
                 if s_value.item == value.id:
                     item["selected"] = ('', s_value.value)
@@ -133,7 +136,7 @@ class DataHandler:
             values = {
                     "id":               item.id,
                     "type":             item.type,
-                    "titles":           dict([(title.lang, title.text) for title in item.title]),
+                    "titles":           dict([(title.lang, " ".join(title.text.split())) for title in item.title]),
                     "descriptions":     dict([(desc.lang, desc.text) for desc in item.description]),
                     "abstract":         item.abstract,
                     "cluster_id":       item.cluster_id,
@@ -194,7 +197,7 @@ class DataHandler:
         if item != None:
             values = {
                     "id":               item.id,
-                    "titles":           dict([(title.lang, title.text) for title in item.title]),
+                    "titles":           dict([(title.lang, " ".join(title.text.split())) for title in item.title]),
                     "descriptions":     dict([(desc.lang, desc.text) for desc in item.description]),
                     "abstract":         item.abstract,
                     "extends":          item.extends,
@@ -253,7 +256,8 @@ class DataHandler:
                 buttons=dialog_buttons)
 
         file_dialog.set_current_folder(os.path.dirname(file))
-        file_dialog.set_current_name(os.path.basename(file))
+        if action == gtk.FILE_CHOOSER_ACTION_SAVE: 
+            file_dialog.set_current_name(os.path.basename(file))
 
         """Init the return value"""
         result = ""
@@ -281,7 +285,7 @@ class DHXccdf(DataHandler):
                 "notices":          [(notice.id, notice.text) for notice in benchmark.notices],
                 "resolved":         benchmark.resolved,
                 "status_current":   benchmark.status_current,
-                "titles":           dict([(desc.lang, desc.text) for desc in benchmark.title]),
+                "titles":           dict([(title.lang, " ".join(title.text.split())) for title in benchmark.title]),
                 "version":          benchmark.version,
                 "warnings":         [(warn.category, warn.text) for warn in benchmark.warnings],
                 "references":       [(ref.text.text, ref.href) for ref in benchmark.references],
@@ -557,9 +561,12 @@ class DHItemsTree(DataHandler):
 
         if item != None:
             # If item is group, store it ..
+            titles = dict([(title.lang, " ".join(title.text.split())) for title in item.title])
+            if self.core.selected_lang in titles.keys(): title = titles[self.core.selected_lang]
+            else: title = titles[titles.keys()[0]]
             if item.type == openscap.OSCAP.XCCDF_GROUP:
                 gtk.gdk.threads_enter()
-                item_it = self.model.append(parent, [item.id, item.title[0].text, gtk.STOCK_DND_MULTIPLE, "Group: "+item.title[0].text, color, selected, pselected])
+                item_it = self.model.append(parent, [item.id, title, gtk.STOCK_DND_MULTIPLE, "Group: "+title, color, selected, pselected])
                 self.treeView.queue_draw()
                 gtk.gdk.threads_leave()
                 # .. call recursive
@@ -568,7 +575,7 @@ class DHItemsTree(DataHandler):
             # item is rule, store it to model
             elif item.type == openscap.OSCAP.XCCDF_RULE:
                 gtk.gdk.threads_enter()
-                item_it = self.model.append(parent, [item.id, item.title[0].text, gtk.STOCK_DND, "Rule: "+item.title[0].text, color, selected, pselected])
+                item_it = self.model.append(parent, [item.id, title, gtk.STOCK_DND, "Rule: "+title, color, selected, pselected])
                 self.treeView.queue_draw()
                 gtk.gdk.threads_leave()
             else: logger.warning("Unknown type of %s, should be Rule or Group (got %s)", item.type, item.id)
@@ -874,7 +881,9 @@ class DHScan(DataHandler):
 
         if self.__progress != None:
             gtk.gdk.threads_enter()
-            self.__progress.set_fraction(self.__progress.get_fraction()+step)
+            fract = self.__progress.get_fraction()+step
+            if fract < 1.0: self.__progress.set_fraction(fract)
+            else: self.__progress.set_fraction(1.0)
             self.__progress.set_text("Scanning rule %s ... (%s/%s)" % (msg.user1str, int(self.__progress.get_fraction()/step), self.__rules_count))
             self.__progress.set_tooltip_text("Scanning rule %s" % (msg.user3str,))
             gtk.gdk.threads_leave()
@@ -888,7 +897,7 @@ class DHScan(DataHandler):
             return self.__cancel
 
         gtk.gdk.threads_enter()
-        self.fill([msg.user1str, msg.user2num, False, msg.user3str, msg.string])
+        self.fill([msg.user1str, msg.user2num, False, " ".join(msg.user3str.split()), " ".join(msg.string.split())])
         self.treeView.queue_draw()
         gtk.gdk.threads_leave()
 

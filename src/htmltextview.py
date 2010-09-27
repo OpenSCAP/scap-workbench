@@ -416,8 +416,13 @@ class HtmlHandler(xml.sax.handler.ContentHandler):
             pass
         elif name == 'a':
             pass
+        elif name == 'em':
+            style = 'italic'
         elif name == 'code':
-            pass
+            tag = self.textbuf.create_tag()
+            tag.set_property('foreground', '#0000ff')
+            tag.set_property('underline', pango.UNDERLINE_SINGLE)
+
         elif name == 'sub':
             pass
         else:
@@ -446,6 +451,10 @@ class HtmlHandler(xml.sax.handler.ContentHandler):
         elif name == 'body':
             pass
         elif name == 'a':
+            pass
+        elif name == 'code':
+            pass
+        elif name == 'em':
             pass
         else:
             logger.warning("Unhandled element '%s'" % name)

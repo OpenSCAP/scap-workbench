@@ -128,6 +128,8 @@ class ItemDetails(EventObject):
         self.id.set_text(details["id"])
         self.type.set_text(details["typetext"])
         self.weight.set_text(str(details["weight"]))
+        if "idents" in details: 
+            self.idents.set_text(str("\n".join([ident[0] for ident in details["idents"]])))
 
         # clear
         self.description.get_buffer().set_text("")
@@ -150,7 +152,7 @@ class ItemDetails(EventObject):
             description = description.replace("xmlns:", "")
         else: 
             for lang in details["descriptions"]:
-                description = details["descriptions"][lang]
+                description = details["descriptions"][lang].replace("xhtml:","")
                 break
         if description == "": description = "No description"
         description = "<body>"+description+"</body>"
@@ -206,38 +208,52 @@ class ItemDetails(EventObject):
         expander.add(alig)
         vbox = gtk.VBox()
         alig.add(vbox)
-        vbox.pack_start(gtk.HSeparator(), expand=False, fill=False, padding=1)
-        self.box_details.pack_start(expander, expand=False, fill=False, padding=1)
+        vbox.pack_start(gtk.HSeparator(), expand=False, fill=True, padding=1)
+        self.box_details.pack_start(expander, expand=False, fill=True, padding=1)
 
         #id
         hbox = gtk.HBox()
-        hbox.pack_start(gtk.Label("ID: "), expand=False, fill=False, padding=1)
+        hbox.pack_start(gtk.Label("ID: "), expand=False, fill=True, padding=1)
         self.id = gtk.Label("")
-        hbox.pack_start(self.id, expand=False, fill=False, padding=1)
+        self.id.set_alignment(0,0)
+        hbox.pack_start(self.id, expand=True, fill=True, padding=1)
         vbox.pack_start(hbox, expand=False, fill=False, padding=1)
 
         #title
         hbox = gtk.HBox()
-        hbox.pack_start(gtk.Label("Title: "), expand=False, fill=False, padding=1)
+        label = gtk.Label("Title: ")
+        label.set_alignment(0,0)
+        hbox.pack_start(label, expand=False, fill=True, padding=1)
         self.title = gtk.Label("")
         self.title.set_line_wrap(True)
         self.title.set_line_wrap_mode(pango.WRAP_WORD)
+        render.label_set_autowrap(self.title)
         self.title.set_alignment(0,0)
-        hbox.pack_start(self.title, expand=False, fill=False, padding=1)
+        hbox.pack_start(self.title, expand=True, fill=True, padding=1)
         vbox.pack_start(hbox, expand=False, fill=False, padding=1)
 
         #type
         hbox = gtk.HBox()
-        hbox.pack_start(gtk.Label("Type: "), expand=False, fill=False, padding=1)
+        hbox.pack_start(gtk.Label("Type: "), expand=False, fill=True, padding=1)
         self.type = gtk.Label("")
-        hbox.pack_start(self.type, expand=False, fill=False, padding=1)
+        self.type.set_alignment(0,0)
+        hbox.pack_start(self.type, expand=True, fill=True, padding=1)
         vbox.pack_start(hbox, expand=False, fill=False, padding=1)
         
         #weight
         hbox = gtk.HBox()
-        hbox.pack_start(gtk.Label("Weight: "), expand=False, fill=False, padding=1)
+        hbox.pack_start(gtk.Label("Weight: "), expand=False, fill=True, padding=1)
         self.weight = gtk.Label("")
-        hbox.pack_start(self.weight, expand=False, fill=False, padding=1)
+        self.weight.set_alignment(0,0)
+        hbox.pack_start(self.weight, expand=True, fill=True, padding=1)
+        vbox.pack_start(hbox, expand=False, fill=False, padding=1)
+
+        #CCE
+        hbox = gtk.HBox()
+        hbox.pack_start(gtk.Label("Idents: "), expand=False, fill=False, padding=1)
+        self.idents = gtk.Label("")
+        self.idents.set_alignment(0,0)
+        hbox.pack_start(self.idents, expand=True, fill=True, padding=1)
         vbox.pack_start(hbox, expand=False, fill=False, padding=1)
         
         #References
@@ -327,6 +343,7 @@ class RefineDetails(EventObject):
     def __update(self):
 
         details = self.data_model.get_item_details(self.core.selected_item)
+        if details == None: return
 
         if details["typetext"] == "Rule":
 
