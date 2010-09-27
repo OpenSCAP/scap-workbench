@@ -39,8 +39,9 @@ import render
 
 class ScanList(abstract.List):
     
-    def __init__(self, widget, core, progress):
+    def __init__(self, widget, core, progress, filter):
         self.core = core
+        self.filter = filter
         self.data_model = commands.DHScan(core, progress=progress)
         abstract.List.__init__(self, "gui:scan:scan_list", core, widget=widget)
 
@@ -52,6 +53,7 @@ class ScanList(abstract.List):
         self.add_receiver("gui:btn:menu:scan", "scan", self.__scan)
         self.add_receiver("gui:btn:menu:scan", "cancel", self.__cancel)
         self.add_receiver("gui:btn:menu:scan", "export", self.__export)
+        self.add_receiver("gui:btn:menu:scan:filter", "search", self.__search)
 
     def __export(self):
         self.data_model.export()
@@ -61,6 +63,9 @@ class ScanList(abstract.List):
 
     def __scan(self):
         self.data_model.scan()
+
+    def __search(self):
+        self.search(self.get_TreeView(), self.filter.get_search_text(),3)
 
 class MenuButtonScan(abstract.MenuButton):
     """
@@ -74,8 +79,8 @@ class MenuButtonScan(abstract.MenuButton):
         #draw body
         self.body = self.builder.get_object("scan:box")
         self.progress = self.builder.get_object("scan:progress")
-        self.scanlist = ScanList(self.builder.get_object("scan:treeview"), core=self.core, progress=self.progress)
         self.filter = filter.Renderer("gui:btn:menu:scan:filter", self.core, self.builder.get_object("scan:box_filter"))
+        self.scanlist = ScanList(self.builder.get_object("scan:treeview"), core=self.core, progress=self.progress, filter = self.filter)
         self.filter.expander.cb_changed()
 
         self.builder.get_object("scan:btn_scan").connect("clicked", self.__cb_start)
