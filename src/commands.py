@@ -885,7 +885,7 @@ class DHScan(DataHandler):
             if fract < 1.0: self.__progress.set_fraction(fract)
             else: self.__progress.set_fraction(1.0)
             self.__progress.set_text("Scanning rule %s ... (%s/%s)" % (msg.user1str, int(self.__progress.get_fraction()/step), self.__rules_count))
-            self.__progress.set_tooltip_text("Scanning rule %s" % (msg.user3str,))
+            self.__progress.set_tooltip_text("Scanning rule %s" % (" ".join(msg.user3str.split()),))
             gtk.gdk.threads_leave()
 
         self.__last = int(self.__progress.get_fraction()/step)
