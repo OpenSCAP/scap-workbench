@@ -354,6 +354,26 @@ class HtmlHandler(xml.sax.handler.ContentHandler):
                 type_ = None
             tag.connect('event', self._anchor_event, attrs['href'], type_)
             tag.is_anchor = True
+        elif name == 'thead':
+            tag = self.textbuf.create_tag()
+            tag.set_property("background", '#000000')
+            tag.set_property("foreground", '#ffffff')
+        elif name == 'b':
+            tag = self.textbuf.create_tag()
+            tag.set_property("weight", pango.WEIGHT_BOLD)
+        elif name == 'i':
+            tag = self.textbuf.create_tag()
+            tag.set_property("style", pango.STYLE_ITALIC)
+        elif name == 'u':
+            tag = self.textbuf.create_tag()
+            tag.set_property("underline", pango.UNDERLINE_SINGLE)
+        elif name == 'code':
+            tag = self.textbuf.create_tag()
+            tag.set_property("family", "Monospace")
+            tag.set_property("background", '#cccccc')
+        elif name == 'em':
+            tag = self.textbuf.create_tag()
+            tag.set_property("underline", pango.UNDERLINE_SINGLE)
         
         self._begin_span(style, tag)
 
@@ -366,6 +386,15 @@ class HtmlHandler(xml.sax.handler.ContentHandler):
             if not self.iter.starts_line():
                 self._insert_text("\n")
         elif name == 'span':
+            pass
+        elif name == 'table':
+            if not self.iter.starts_line():
+                self._insert_text("\n")
+            self.list_counters.insert(0, None)
+
+        elif name == 'td':
+            self.text = "| "
+        elif name == 'tr':
             pass
         elif name == 'ul':
             if not self.iter.starts_line():
@@ -417,13 +446,16 @@ class HtmlHandler(xml.sax.handler.ContentHandler):
         elif name == 'a':
             pass
         elif name == 'em':
-            style = 'italic'
+            pass
         elif name == 'code':
-            tag = self.textbuf.create_tag()
-            tag.set_property('foreground', '#0000ff')
-            tag.set_property('underline', pango.UNDERLINE_SINGLE)
-
-        elif name == 'sub':
+            pass
+        elif name == 'u':
+            pass
+        elif name == 'i':
+            pass
+        elif name == 'b':
+            pass
+        elif name == 'thead':
             pass
         else:
             logger.warning("Unhandled element '%s'" % name)
@@ -440,6 +472,14 @@ class HtmlHandler(xml.sax.handler.ContentHandler):
             pass
         elif name == 'br':
             self._insert_text("\n")
+        elif name == 'table':
+            self.list_counters.pop()
+        elif name == 'thead':
+            pass
+        elif name == 'td':
+            self._insert_text(" ")
+        elif name == 'tr':
+            self._insert_text("|\n")
         elif name == 'ul':
             self.list_counters.pop()
         elif name == 'ol':
