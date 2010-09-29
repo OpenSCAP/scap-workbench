@@ -54,6 +54,7 @@ class OECore:
         self.force_reload_items = False
         self.force_reload_profiles = False
         self.eventHandler = EventHandler(self)
+        self.registered_callbacks = False
         self.selected_profile   = None
         self.selected_item      = None
         self.selected_deps      = None
@@ -63,6 +64,14 @@ class OECore:
         self.set_receiver("gui:btn:main:xccdf", "load", self.__set_force)
 
     def init(self, XCCDF):
+        if self.lib:
+            if self.lib["policy_model"] != None:
+                self.lib["policy_model"].free()
+            for model in self.lib["def_models"]:
+                model.free()
+            for sess in self.lib["sessions"]:
+                sess.free()
+
         self.xccdf_file = XCCDF
         if openscap == None:
             logger.error("Can't initialize openscap library.")
@@ -86,6 +95,7 @@ class OECore:
         pass
 
     def __set_force(self):
+        self.registered_callbacks = False
         self.force_reload_items = True
         self.force_reload_profiles = True
 

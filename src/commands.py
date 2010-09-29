@@ -29,7 +29,6 @@ class DataHandler:
         library => openscap library"""
 
         self.core = core
-        self.selected_profile = None
         self.selected_item = None
 
     def parse_value(self, value):
@@ -67,9 +66,9 @@ class DataHandler:
         if not len(item["match"]):
             item["match"] = ["", "^[\\b]+$", "^.*$", "^[01]$"][value.type]
 
-        if self.selected_profile == None:
+        if self.core.selected_profile == None:
             profile = self.core.lib["policy_model"].policies[0].profile
-        else: profile = self.core.lib["policy_model"].get_policy_by_id(self.selected_profile).profile
+        else: profile = self.core.lib["policy_model"].get_policy_by_id(self.core.selected_profile).profile
         if profile != None:
             for r_value in profile.refine_values:
                 if r_value.item == value.id:
@@ -96,12 +95,12 @@ class DataHandler:
         """DataHandler.get_selected -- get selction of rule/group
         returns boolean value"""
 
-        if self.selected_profile == None:
+        if self.core.selected_profile == None:
             return item.selected
 
         else:
-            policy = self.core.lib["policy_model"].get_policy_by_id(self.selected_profile)
-            if policy == None: raise Exception, "Policy %s does not exist" % (self.selected_profile,)
+            policy = self.core.lib["policy_model"].get_policy_by_id(self.core.selected_profile)
+            if policy == None: raise Exception, "Policy %s does not exist" % (self.core.selected_profile,)
 
             # Get selector from policy
             select = policy.get_select_by_id(item.id)
@@ -111,9 +110,9 @@ class DataHandler:
 
     def get_item_values(self, id):
 
-        if self.selected_profile == None:
+        if self.core.selected_profile == None:
             policy = self.core.lib["policy_model"].policies[0]
-        else: policy = self.core.lib["policy_model"].get_policy_by_id(self.selected_profile)
+        else: policy = self.core.lib["policy_model"].get_policy_by_id(self.core.selected_profile)
 
         values = []
         item = self.core.lib["policy_model"].benchmark.item(id)
@@ -202,7 +201,7 @@ class DataHandler:
 
     def get_profile_details(self, id):
         """get_profile_details -- get details of Profiles"""
-        policy = self.core.lib["policy_model"].get_policy_by_id(id or self.selected_profile)
+        policy = self.core.lib["policy_model"].get_policy_by_id(id or self.core.selected_profile)
         item = policy.profile
         if item != None:
             values = {
@@ -373,7 +372,6 @@ class DHValues(DataHandler):
     def fill(self, item=None):
 
         # !!!!
-        self.selected_profile   = self.core.selected_profile
         self.selected_item      = self.core.selected_item
 
         """If item is None, then this is first call and we need to get the item
@@ -407,9 +405,9 @@ class DHValues(DataHandler):
 
     def cellcombo_edited(self, cell, path, new_text):
 
-        if self.selected_profile == None:
+        if self.core.selected_profile == None:
             policy = self.core.lib["policy_model"].policies[0]
-        else: policy = self.core.lib["policy_model"].get_policy_by_id(self.selected_profile)
+        else: policy = self.core.lib["policy_model"].get_policy_by_id(self.core.selected_profile)
 
         model = self.treeView.get_model()
         iter = model.get_iter(path)
@@ -532,8 +530,8 @@ class DHItemsTree(DataHandler):
         model[path][DHItemsTree.COLUMN_SELECTED] = not model[path][DHItemsTree.COLUMN_SELECTED]
         model[path][DHItemsTree.COLUMN_COLOR] = ["gray", None][model[path][DHItemsTree.COLUMN_SELECTED]]
 
-        policy = self.core.lib["policy_model"].get_policy_by_id(self.selected_profile)
-        if policy == None: raise Exception, "Policy %s does not exist" % (self.selected_profile,)
+        policy = self.core.lib["policy_model"].get_policy_by_id(self.core.selected_profile)
+        if policy == None: raise Exception, "Policy %s does not exist" % (self.core.selected_profile,)
 
         # Get selector from policy
         select = policy.get_select_by_id(model[path][DHItemsTree.COLUMN_ID])
@@ -549,7 +547,6 @@ class DHItemsTree(DataHandler):
 
     def __recursive_fill(self, item=None, parent=None, pselected=True):
 
-        self.selected_profile   = self.core.selected_profile
         self.selected_item      = self.core.selected_item
 
         """This is recusive call (item is not None) so let's get type of 
@@ -609,7 +606,6 @@ class DHItemsTree(DataHandler):
 
         if not self.core.lib: return False
 
-        self.selected_profile   = self.core.selected_profile
         self.selected_item      = self.core.selected_item
 
         """we don't know item so it's first call and we need to clear
@@ -769,7 +765,6 @@ class DHScan(DataHandler):
         
         DataHandler.__init__(self, core)
         self.__progress=progress
-        self.__prepaired = False
         self.__cancel = False
         self.__last = 0
 
@@ -938,25 +933,25 @@ class DHScan(DataHandler):
             self.__progress.set_text("Prepairing ...")
             gtk.gdk.threads_leave()
 
-        if self.__prepaired == False:
+        if self.core.registered_callbacks == False:
             self.core.lib["policy_model"].register_start_callback(self.__callback_start, self)
             self.core.lib["policy_model"].register_output_callback(self.__callback_end, self)
         else: 
-            self.model.clear()
             self.__cancel = False
             self.__last = 0
 
-        self.selected_profile = self.core.selected_profile
-        if self.selected_profile == None:
+        self.model.clear()
+
+        if self.core.selected_profile == None:
             self.policy = self.core.lib["policy_model"].policies[0]
-        else: self.policy = self.core.lib["policy_model"].get_policy_by_id(self.selected_profile)
+        else: self.policy = self.core.lib["policy_model"].get_policy_by_id(self.core.selected_profile)
 
         self.__rules_count = 0
         for item in self.policy.selected_rules:
             if item.selected: self.__rules_count += 1
         # TODO: library bug
         #self.__rules_count = len(self.policy.selected_rules)
-        self.__prepaired = True
+        self.core.registered_callbacks = True
         
     def cancel(self):
         self.__cancel = True
