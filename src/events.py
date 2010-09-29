@@ -35,8 +35,8 @@ class EventObject(gobject.GObject):
         gobject.type_register(EventObject)
         self.object = self
 
-    def emit_signal(self, signal, id):
-        logger.debug("Emiting signal %s from %s", signal, id)
+    def emit_signal(self, signal):
+        logger.debug("Emiting signal %s from %s", signal, self.id)
         self.emit(signal)
 
     def add_sender(self, id, signal, *args):

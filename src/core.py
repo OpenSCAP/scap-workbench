@@ -49,6 +49,7 @@ class OECore:
             self.init(sys.argv[1])
 
         self.__objects = {}
+        self.main_window = None
         self.changed_profiles = []
         self.force_reload_items = False
         self.force_reload_profiles = False

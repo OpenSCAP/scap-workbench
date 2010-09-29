@@ -190,6 +190,16 @@ class DataHandler:
 
         return values
 
+    def get_profiles(self):
+        
+        if self.core.lib == None: return None
+        profiles = []
+        for item in self.core.lib["policy_model"].benchmark.profiles:
+            if len(item.title) > 0: profiles.append((item.id, item.title[0].text)) # TODO
+            else: profiles.append((item.id, "Unknown profile"))
+
+        return profiles
+
     def get_profile_details(self, id):
         """get_profile_details -- get details of Profiles"""
         policy = self.core.lib["policy_model"].get_policy_by_id(id or self.selected_profile)
@@ -620,13 +630,6 @@ class DHItemsTree(DataHandler):
             self.treeView.set_sensitive(False)
             gtk.gdk.threads_leave()
 
-	    #cursor = None
-	    #try:
-	        #child_win = self.treeView.get_window()
-		#cursor = child_win.get_cursor()
-		#child_win.set_cursor(gtk.gdk.Cursor(gtk.gdk.WATCH))
-            #except AttributeError: pass
-
             for item in self.core.lib["policy_model"].benchmark.content:
                 if self.__progress != None:
                     gtk.gdk.threads_enter()
@@ -638,7 +641,6 @@ class DHItemsTree(DataHandler):
             gtk.gdk.threads_enter()
             self.treeView.set_sensitive(True)
             gtk.gdk.threads_leave()
-            #if cursor: child_win.set_cursor(cursor)
         finally:
             if self.__progress != None:
                 gtk.gdk.threads_enter()
@@ -681,6 +683,30 @@ class DHProfiles(DataHandler):
         column.set_resizable(True)
         treeView.append_column(column)
 
+    def add(self, item):
+        logger.debug("Adding new profile: \"%s\"", item["id"])
+        if not self.core.lib: 
+            logger.error("Library not initialized. Returning")
+            return False
+
+        profile = openscap.xccdf.profile()
+        profile.id = item["id"]
+        profile.abstract = item["abstract"]
+        profile.version = item["version"]
+        if item["extends"] != None: profile.extends = item["extends"]
+        for detail in item["details"]:
+            title = openscap.common.text()
+            title.text = detail["title"]
+            title.lang = detail["lang"]
+            profile.title = title
+            description = openscap.common.text()
+            description.text = detail["description"]
+            title.lang = detail["lang"]
+            profile.description = description
+
+        self.core.lib["policy_model"].benchmark.add_profile(profile)
+        self.core.lib["policy_model"].add_policy(openscap.xccdf.policy(self.core.lib["policy_model"], profile))
+
     def fill(self, item=None, parent=None):
 
         if not self.core.lib: return False
@@ -689,8 +715,9 @@ class DHProfiles(DataHandler):
         self.model.append([None, "(Default document)"])
 
         for item in self.core.lib["policy_model"].benchmark.profiles:
-            logger.debug("Adding profile %s", item.id)
-            self.model.append([item.id, "Profile: "+item.title[0].text])
+            logger.debug("Adding profile \"%s\"", item.id)
+            if len(item.title) > 0: self.model.append([item.id, "Profile: "+item.title[0].text]) #TODO
+            else: self.model.append([item.id, "Profile: Unknown"])
 
         return True
 

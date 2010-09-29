@@ -102,7 +102,6 @@ class MenuButtonProfiles(abstract.MenuButton):
         self.body = self.builder.get_object("tailoring:profiles:box")
 
         self.profiles_list = ProfileList(self.builder.get_object("tailoring:profiles:treeview"), self.core)
-        #self.profile_details = ProfileDetails(self.core, self)
 
         """Get labels for details
         """
@@ -117,8 +116,6 @@ class MenuButtonProfiles(abstract.MenuButton):
         """
         self.btn_add = self.builder.get_object("tailoring:profiles:btn_add")
         self.btn_add.connect("clicked", self.__cb_add)
-        self.btn_extend = self.builder.get_object("tailoring:profiles:btn_extend")
-        self.btn_extend.connect("clicked", self.__cb_extend)
         self.btn_copy = self.builder.get_object("tailoring:profiles:btn_copy")
         self.btn_copy.connect("clicked", self.__cb_copy)
         self.btn_delete = self.builder.get_object("tailoring:profiles:btn_delete")
@@ -180,11 +177,16 @@ class MenuButtonProfiles(abstract.MenuButton):
         self.profile_description.display_html(description)
         
     #callBack functions
-    def __cb_add(self, widget):
-        pass
+    def __cb_add(self, widget, values=None):
+        window = NewProfileWindow(self.core, self.__cb_add_profile, values)
+        window.show()
 
-    def __cb_extend(self, widget):
-        pass
+    def __cb_add_profile(self, values):
+        logger.debug("New profile window returned: %s", values)
+        # TODO: Add profile and emit update ?
+        self.data_model.add(values)
+        self.core.force_reload_profiles = True
+        self.emit_signal("update")
 
     def __cb_copy(self, widget):
         pass
@@ -200,191 +202,125 @@ class NewProfileWindow(abstract.Window):
     """
     GUI for create new profile.
     """
-    def __init__(self, action="add", core=None):
+    def __init__(self, core, cb, values=None):
         """
         @param action type of creating profile (copy, extend, new)
         """
         self.core = core
-        self.action = action
-        self.draw_window()
+        self.__cb = cb
+        self.__values = values
+        self.data_model = commands.DataHandler(core)
 
-    #set function
-    def set_abstract(self, abstract):
-        """
-        Set if new profal is abstract or not.
-        @param abstract True/False - Yes/No
-        """
-        if abstract == True:
-            self.label_abstract = "Yes"
-        else:
-            self.label_abstract = "No"
-    
-    def set_extend(self, text):
-        """
-        Set id profile.
-        @param text
-        """
-        self.label_extend = text
+        self.builder = gtk.Builder()
+        self.builder.add_from_file("glade/new_profile.glade")
 
-    def set_version(self, text):
-        """
-        Set version of profile.
-        @param text
-        """
-        self.entry_version = text
-        
-    def set_language(self, languages, active):
-        """
-        Set list of languades for comboBox and set active.
-        @param languages List of laguages name.
-        @param active Number of active item in list
-        """
-        model = self.cBox_language.get_model()
-        model.clear()
-        for lan in languages:
-            model.append([lan])
-        self.cBox_language.set_active(active)
+        self.btn_add = self.builder.get_object("btn_add")
+        self.btn_add.connect("clicked", self.__cb_add)
+        self.btn_cancel = self.builder.get_object("btn_cancel")
+        self.btn_cancel.connect("clicked", self.__delete_event)
+        self.btn_ok = self.builder.get_object("btn_ok")
+        self.btn_ok.connect("clicked", self.__cb_ok)
 
-    def set_title(self, text):
-        """
-        Set title to the textView.
-        @param text Text with title
-        """
-        textbuffer = self.texView_title.get_buffer()
-        textbuffer.set_text(text)
-        
-    def set_descriprion(self, text):
-        """
-        Set description to the textView.
-        @param text Text with description
-        """
-        textbuffer = self.texView_description.get_buffer()
-        textbuffer.set_text(text)
+        self.entry_id = self.builder.get_object("entry_id")
+        self.entry_lang = self.builder.get_object("entry_lang")
+        self.entry_title = self.builder.get_object("entry_title")
+        self.entry_version = self.builder.get_object("entry_version")
+        self.entry_description = self.builder.get_object("entry_description")
+        self.cbox_abstract = self.builder.get_object("cbox_abstract")
+        self.cbox_abstract.set_tooltip_text("You can't add abstract profile in tailoring")
 
-    #callBack function
-    def cb_abstract(self, combobox):
-        model = combobox.get_model()
-        index = combobox.get_active()
+        self.cb_extends = self.builder.get_object("cb_extends")
 
-    def cb_version(self, entry):
-        pass
-    
-    def cb_language(self, combobox):
-        model = combobox.get_model()
-        index = combobox.get_active()
-
-    def cb_textView(self, widget, data=None):
-        print data
-
-    def cb_btn(self, button, data=None):
-        pass
-    
-    def delete_event(self, widget, event, data=None):
-        self.window.destroy()
-    
-    # draw function
-    def add_frame_cBox(self, body, text, expand):
-        frame = gtk.Frame(text)
-        label = frame.get_label_widget()
-        label.set_use_markup(True)        
-        frame.set_shadow_type(gtk.SHADOW_NONE)
-        if expand: body.pack_start(frame, True, True)
-        else: body.pack_start(frame, False, True)
-        alig = gtk.Alignment(0.5, 0.5, 1, 1)
-        alig.set_padding(0, 0, 12, 0)
-        frame.add(alig)
-        return alig
-
-    def add_label(self,table, text, left, right, top, bottom, x=gtk.FILL, y=gtk.FILL):
-        label = gtk.Label(text)
-        table.attach(label, left, right, top, bottom, x, y)
-        label.set_alignment(0, 0.5)
-        return label
-        
-    def draw_window(self):
-        # Create a new window
-        self.window = gtk.Window(gtk.WINDOW_TOPLEVEL)
-        self.window.set_title("New profile")
-        self.window.set_size_request(600, 400)
-        self.window.set_modal(True)
-        self.window.connect("delete_event", self.delete_event)
-        
-        # for insert data
-        vbox = gtk.VBox()
-        alig = self.add_frame_cBox(vbox, "<b>New</b>", True)
-        table = gtk.Table()
-        table.set_row_spacings(4)
-        
-        self.add_label(table, "Abstract: ", 0, 1, 0, 1)
-        self.add_label(table, "Extend: ", 0, 1, 1, 2)
-        self.add_label(table, "Version: ", 0, 1, 2, 3)
-        self.add_label(table, "Language: ", 0, 1, 3, 4)
-        self.add_label(table, "Title: ", 0, 1, 4, 5)
-        self.add_label(table, "Description: ", 0, 1, 5, 6)
-        
-        if self.action == "add":
-            self.cBox_language = gtk.ComboBox()
-            model = gtk.ListStore(str)
-            cell = gtk.CellRendererText()
-            self.cBox_language.pack_start(cell)
-            self.cBox_language.add_attribute(cell, 'text', 0)
-            self.cBox_language.set_model(model)
-            self.cBox_language.connect('changed', self.cb_abstract)
-            table.attach(self.cBox_language, 1, 2, 0, 1,gtk.FILL,gtk.FILL)
-            self.set_language(["No", "Yes"], 0)
-        else:
-            self.label_abstract = self.add_label(table, "None ", 1, 2, 0, 1)
-        self.label_extend = self.add_label(table, "None ", 1, 2, 1, 2)
-
-        self.entry_version = gtk.Entry()
-        self.entry_version.connect("selection-notify-event", self.cb_version, "version")
-        table.attach(self.entry_version, 1, 2, 2, 3, gtk.EXPAND|gtk.FILL, gtk.FILL)
-
-        self.cBox_language = gtk.ComboBox()
-        model = gtk.ListStore(str)
+        self.profiles_model = gtk.ListStore(str, str)
+        self.cb_extends.set_model(self.profiles_model)
         cell = gtk.CellRendererText()
-        self.cBox_language.pack_start(cell)
-        self.cBox_language.add_attribute(cell, 'text', 0)
-        self.cBox_language.set_model(model)
-        self.cBox_language.connect('changed', self.cb_language)
-        table.attach(self.cBox_language, 1, 2, 3, 4,gtk.FILL,gtk.FILL)
+        self.cb_extends.pack_start(cell, False)
+        self.cb_extends.add_attribute(cell, 'text', 0)
+        cell = gtk.CellRendererText()
+        self.cb_extends.pack_start(cell, True)
+        self.cb_extends.add_attribute(cell, 'text', 1)
 
-        sw = gtk.ScrolledWindow()
-        sw.set_shadow_type(gtk.SHADOW_IN)
-        sw.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
-        self.texView_title = gtk.TextView()
-        self.texView_title.connect("selection-notify-event", self.cb_textView, "title")
-        sw.add(self.texView_title)
-        table.attach(sw, 1, 2, 4, 5, gtk.EXPAND|gtk.FILL, gtk.EXPAND|gtk.FILL)
+        model = self.cb_extends.get_model()
+        profiles = self.data_model.get_profiles()
+        model.append([None, ''])
+        for profile in profiles:
+            logger.debug("Appending \"%s\" model", profiles[0])
+            model.append(profile)
+
+        self.tw_langs = self.builder.get_object("tw_langs")
+        selection = self.tw_langs.get_selection()
+        selection.connect("changed", self.__cb_lang_changed)
+
+        self.langs_model = gtk.ListStore(str, str, str)
+        self.tw_langs.set_model(self.langs_model)
+        self.tw_langs.append_column(gtk.TreeViewColumn("Lang", gtk.CellRendererText(), text=0))
+        self.tw_langs.append_column(gtk.TreeViewColumn("Title", gtk.CellRendererText(), text=1))
+        self.tw_langs.append_column(gtk.TreeViewColumn("Description", gtk.CellRendererText(), text=2))
+
+        self.window = self.builder.get_object("new_profile:dialog")
+        self.window.connect("delete-event", self.__delete_event)
+
+    def __cb_lang_changed(self, widget):
+        selection = self.tw_langs.get_selection( )
+        if selection != None: 
+            (model, iter) = selection.get_selected( )
+            if iter: 
+                self.entry_lang.set_text(model.get_value(iter, 0))
+                self.entry_title.set_text(model.get_value(iter, 1))
+                self.entry_description.get_buffer().set_text(model.get_value(iter, 2))
         
-        sw = gtk.ScrolledWindow()
-        sw.set_shadow_type(gtk.SHADOW_IN)
-        sw.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
-        self.texView_description = gtk.TextView()
-        self.texView_title.connect("selection-notify-event", self.cb_textView, "description")
-        sw.add(self.texView_description)
-        table.attach(sw, 1, 2, 5, 6, gtk.EXPAND|gtk.FILL, gtk.EXPAND|gtk.FILL)
 
-        alig.add(table)
-        #operationes
-        box = gtk.HButtonBox()
-        box.set_layout(gtk.BUTTONBOX_END)
+    def __cb_add(self, widget):
 
-        btn = gtk.Button("Create")
-        btn.connect("clicked", self.cb_btn, "create")
-        box.add(btn)
+        result = None
+        for row in self.langs_model:
+            if row[0] == self.entry_lang.get_text():
+                md = gtk.MessageDialog(self.window, 
+                        gtk.DIALOG_MODAL, gtk.MESSAGE_QUESTION,
+                        gtk.BUTTONS_YES_NO, "Language \"%s\" already specified.\n\nRewrite stored data ?" % (row[0],))
+                md.set_title("Language found")
+                result = md.run()
+                md.destroy()
+                if result == gtk.RESPONSE_NO: 
+                    return
+                else: self.langs_model.remove(row.iter)
 
-        btn = gtk.Button("Cancel")
-        btn.connect("clicked", self.cb_btn, "cancel")
-        box.add(btn)
+        buffer = self.entry_description.get_buffer()
+        self.langs_model.append([self.entry_lang.get_text(), 
+            self.entry_title.get_text(),
+            buffer.get_text(buffer.get_start_iter(), buffer.get_end_iter(), False)])
+        self.entry_lang.set_text("")
+        self.entry_title.set_text("")
+        self.entry_description.get_buffer().set_text("")
 
-        vbox.pack_start(box, False, True)
-
-        vbox.pack_start(gtk.Statusbar(), False, True)
-        self.window.add(vbox)
+    def show(self):
+        self.window.set_transient_for(self.core.main_window)
         self.window.show_all()
 
-    def destroy_window(self):
+    def __cb_ok(self, widget):
+        if self.entry_id.get_text() == "":
+            logger.error("No ID specified")
+            md = gtk.MessageDialog(self.window, 
+                    gtk.DIALOG_MODAL, gtk.MESSAGE_ERROR,
+                    gtk.BUTTONS_OK, "ID of profile has to be specified !")
+            md.run()
+            md.destroy()
+            return
+        values = {}
+        values["id"] = self.entry_id.get_text()
+        values["abstract"] = self.cbox_abstract.get_active()
+        values["version"] = self.entry_version.get_text()
+        if self.cb_extends.get_active() >= 0: values["extends"] = self.cb_extends.get_model()[self.cb_extends.get_active()][0]
+        else: values["extends"] = None
+        values["details"] = []
+        for row in self.langs_model:
+            item = {"lang": row[0],
+                    "title": row[1],
+                    "description": row[2]}
+            values["details"].append(item)
+
         self.window.destroy()
+        self.__cb(values)
 
-
+    def __delete_event(self, widget, event=None):
+        self.window.destroy()
