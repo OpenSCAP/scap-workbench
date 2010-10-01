@@ -31,11 +31,13 @@ import abstract
 import logging
 import core
 import filter
-from events import EventObject
-
 import commands
 import render
 
+import logging
+from events import EventObject
+
+logger = logging.getLogger("scap-workbench")
 
 class ScanList(abstract.List):
     
@@ -112,7 +114,7 @@ class HelpWindow(abstract.Window):
     def __init__(self, core=None):
         self.core = core
         self.builder = gtk.Builder()
-        self.builder.add_from_file("glade/scan_help.glade")
+        self.builder.add_from_file("/usr/share/scap-workbench/scan_help.glade")
         self.draw_window()
 
     def delete_event(self, widget, event):

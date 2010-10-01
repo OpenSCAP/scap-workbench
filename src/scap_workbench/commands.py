@@ -3,10 +3,7 @@
 
 import gtk, logging, sys, re, time, os
 import gobject
-logger = logging.getLogger("OSCAPEditor")
-
-sys.path.append("/tmp/scap/usr/local/lib64/python2.6/site-packages")
-sys.path.append("/tmp/scap/usr/local/lib/python2.6/site-packages")
+logger = logging.getLogger("scap-workbench")
 
 try:
     import openscap_api as openscap
@@ -88,7 +85,9 @@ class DataHandler:
 
     def get_languages(self):
         """Get available languages from XCCDF Benchmark"""
-        if self.core.lib == None: return []
+        if not self.core.lib:
+            logger.error("Library not initialized or XCCDF file not specified")
+            return []
         return [self.core.lib["policy_model"].benchmark.lang]
 
     def get_selected(self, item):
@@ -130,6 +129,9 @@ class DataHandler:
     def get_item_details(self, id):
         """get_item_details -- get details of XCCDF_ITEM"""
 
+        if not self.core.lib:
+            logger.error("Library not initialized or XCCDF file not specified")
+            return None
         item = self.core.lib["policy_model"].benchmark.item(id or self.selected_item)
         if item != None:
             values = {
@@ -191,7 +193,9 @@ class DataHandler:
 
     def get_profiles(self):
         
-        if self.core.lib == None: return None
+        if not self.core.lib:
+            logger.error("Library not initialized or XCCDF file not specified")
+            return None
         profiles = []
         for item in self.core.lib["policy_model"].benchmark.profiles:
             if len(item.title) > 0: profiles.append((item.id, item.title[0].text)) # TODO
@@ -284,7 +288,9 @@ class DHXccdf(DataHandler):
 
     def get_details(self):
     
-        if self.core.lib == None: return {}
+        if not self.core.lib:
+            logger.error("Library not initialized or XCCDF file not specified")
+            return {}
         benchmark = self.core.lib["policy_model"].benchmark
         details = {}
         details = {
@@ -305,8 +311,9 @@ class DHXccdf(DataHandler):
 
     def export(self):
 
-        if self.core.lib == None:
-            return False
+        if not self.core.lib:
+            logger.error("Library not initialized or XCCDF file not specified")
+            return None
 
         file_name = self.file_browse("Save XCCDF file", file=self.core.xccdf_file)
         if file_name != "":
@@ -320,16 +327,16 @@ class DHXccdf(DataHandler):
         return True
 
     def validate(self):
-        if self.core.xccdf_file == None: 
-            return False
-
-        try:
-            return openscap.common.validate_document(self.core.xccdf_file, openscap.OSCAP.OSCAP_DOCUMENT_XCCDF, None, self.__cb_report, None)
-        except Exception:
+        if not self.core.lib or self.core.xccdf_file == None:
+            logger.error("Library not initialized or XCCDF file not specified")
             return 2
 
+        retval = openscap.common.validate_document(self.core.xccdf_file, openscap.OSCAP.OSCAP_DOCUMENT_XCCDF, None, self.__cb_report, None)
+        return retval
+
     def __cb_report(self, msg, plugin):
-        print "Reported", msg.string
+        print "[Validation report]", msg.string
+        return True
 
 class DHValues(DataHandler):
 
@@ -373,6 +380,9 @@ class DHValues(DataHandler):
 
         # !!!!
         self.selected_item      = self.core.selected_item
+        if not self.core.lib:
+            logger.error("Library not initialized or XCCDF file not specified")
+            return None
 
         """If item is None, then this is first call and we need to get the item
         from benchmark. Otherwise it's recursive call and the item is already
@@ -405,6 +415,9 @@ class DHValues(DataHandler):
 
     def cellcombo_edited(self, cell, path, new_text):
 
+        if not self.core.lib:
+            logger.error("Library not initialized or XCCDF file not specified")
+            return None
         if self.core.selected_profile == None:
             policy = self.core.lib["policy_model"].policies[0]
         else: policy = self.core.lib["policy_model"].get_policy_by_id(self.core.selected_profile)
@@ -527,6 +540,9 @@ class DHItemsTree(DataHandler):
 
     def __cb_toggled(self, cell, path, model):
         #for cell in cells:
+        if not self.core.lib:
+            logger.error("Library not initialized or XCCDF file not specified")
+            return None
         model[path][DHItemsTree.COLUMN_SELECTED] = not model[path][DHItemsTree.COLUMN_SELECTED]
         model[path][DHItemsTree.COLUMN_COLOR] = ["gray", None][model[path][DHItemsTree.COLUMN_SELECTED]]
 
@@ -548,6 +564,9 @@ class DHItemsTree(DataHandler):
     def __recursive_fill(self, item=None, parent=None, pselected=True):
 
         self.selected_item      = self.core.selected_item
+        if not self.core.lib:
+            logger.error("Library not initialized or XCCDF file not specified")
+            return None
 
         """This is recusive call (item is not None) so let's get type of 
         item and add it to model. If the item is Group continue more deep with
@@ -604,7 +623,9 @@ class DHItemsTree(DataHandler):
     @threadSave
     def fill(self, item=None, parent=None):
 
-        if not self.core.lib: return False
+        if not self.core.lib:
+            logger.error("Library not initialized or XCCDF file not specified")
+            return None
 
         self.selected_item      = self.core.selected_item
 
@@ -681,9 +702,9 @@ class DHProfiles(DataHandler):
 
     def add(self, item):
         logger.debug("Adding new profile: \"%s\"", item["id"])
-        if not self.core.lib: 
-            logger.error("Library not initialized. Returning")
-            return False
+        if not self.core.lib:
+            logger.error("Library not initialized or XCCDF file not specified")
+            return None
 
         profile = openscap.xccdf.profile()
         profile.id = item["id"]
@@ -705,7 +726,9 @@ class DHProfiles(DataHandler):
 
     def fill(self, item=None, parent=None):
 
-        if not self.core.lib: return False
+        if not self.core.lib:
+            logger.error("Library not initialized or XCCDF file not specified")
+            return None
         self.model.clear()
         logger.debug("Adding profile (Default document)")
         self.model.append([None, "(Default document)"])
@@ -767,6 +790,7 @@ class DHScan(DataHandler):
         self.__progress=progress
         self.__cancel = False
         self.__last = 0
+        self.__result = None
 
     def render(self, treeView):
         """ define treeView"""
@@ -957,6 +981,7 @@ class DHScan(DataHandler):
         self.__cancel = True
 
     def export(self):
+        if not self.core.lib or self.__result == None: return False
         file_name = self.file_browse("Save results", file="results.xml")
         if file_name != "":
             files = self.policy.export(self.__result, self.core.lib, "LockDown Test Result", file_name, file_name)
@@ -970,6 +995,9 @@ class DHScan(DataHandler):
 
     @threadSave
     def scan(self):
+        if not self.core.lib:
+            logger.error("Library not initialized or XCCDF file not specified")
+            return None
         self.__prepaire()
         logger.debug("Scanning %s ..", self.policy.id)
         self.__result = self.policy.evaluate()

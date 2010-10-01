@@ -39,7 +39,7 @@ import render
 
 from htmltextview import HtmlTextView
 
-logger = logging.getLogger("OSCAPEditor")
+logger = logging.getLogger("scap-workbench")
 
 class ProfileList(abstract.List):
     
@@ -178,6 +178,9 @@ class MenuButtonProfiles(abstract.MenuButton):
         
     #callBack functions
     def __cb_add(self, widget, values=None):
+        if not self.core.lib:
+            logger.error("Library not initialized or XCCDF file not specified")
+            return False
         window = NewProfileWindow(self.core, self.__cb_add_profile, values)
         window.show()
 
@@ -195,6 +198,9 @@ class MenuButtonProfiles(abstract.MenuButton):
         pass
 
     def __cb_save(self, widget):
+        if not self.core.lib:
+            logger.error("Library not initialized or XCCDF file not specified")
+            return False
         self.data_model.save()
 
 
@@ -212,7 +218,7 @@ class NewProfileWindow(abstract.Window):
         self.data_model = commands.DataHandler(core)
 
         self.builder = gtk.Builder()
-        self.builder.add_from_file("glade/new_profile.glade")
+        self.builder.add_from_file("/usr/share/scap-workbench/new_profile.glade")
 
         self.btn_add = self.builder.get_object("btn_add")
         self.btn_add.connect("clicked", self.__cb_add)

@@ -25,7 +25,7 @@
 import gobject
 import logging
 
-logger = logging.getLogger("OSCAPEditor")
+logger = logging.getLogger("scap-workbench")
 
 class EventObject(gobject.GObject):
 

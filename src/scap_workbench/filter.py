@@ -6,7 +6,7 @@ import abstract
 import logging
 from events import EventObject
 
-logger = logging.getLogger("OSCAPEditor")
+logger = logging.getLogger("scap-workbench")
 
 class Filter:
     """Abstract class for defining filters"""

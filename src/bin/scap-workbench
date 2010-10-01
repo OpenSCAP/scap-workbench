@@ -22,10 +22,14 @@
 #      Maros Barabas        <mbarabas@redhat.com>
 #      Vladimir Oberreiter  <xoberr01@stud.fit.vutbr.cz>
 
-import gtk
-import cProfile
-from render import MainWindow
+import gtk, sys
+from scap_workbench import MainWindow
 
-#cProfile.run('MainWindow().run()')
-gtk.gdk.threads_init()
-MainWindow().start()
+
+def main():
+    gtk.gdk.threads_init()
+    MainWindow().start()
+
+
+if __name__ == '__main__':
+    main()

@@ -31,7 +31,7 @@ from events import EventObject
 import core
 import logging
 
-logger = logging.getLogger("OSCAPEditor")
+logger = logging.getLogger("scap-workbench")
 
 class Menu(EventObject):
     """ 
@@ -174,7 +174,7 @@ class MenuButton(EventObject):
         Show or hide MenuButton object and dependent menu, body.
         @param active True/False - Show/Hide 
         """
-        if active: logger.debug("Switching active button to %s", self.id)
+        if active: logger.debug("Switching active button to %s" % (self.id))
         self.widget.handler_block_by_func(self.cb_toggle)
         self.widget.set_active(active)
         self.set_body(active)

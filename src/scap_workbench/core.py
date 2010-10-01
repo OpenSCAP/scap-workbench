@@ -26,8 +26,9 @@ import logging, logging.config
 import sys, gtk, gobject, threading
 from events import EventObject, EventHandler
 
-logging.config.fileConfig("logger.conf")
-logger = logging.getLogger("OSCAPEditor")
+LOGGER_CONFIG_FILE='/etc/scap-workbench/logger.conf'
+logging.config.fileConfig(LOGGER_CONFIG_FILE)
+logger = logging.getLogger("scap-workbench")
 
 sys.path.append("/tmp/scap/usr/local/lib64/python2.6/site-packages")
 sys.path.append("/tmp/scap/usr/local/lib/python2.6/site-packages")

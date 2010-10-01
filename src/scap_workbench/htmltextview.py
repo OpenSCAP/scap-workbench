@@ -25,7 +25,7 @@ import gtk
 import xml.sax, xml.sax.handler
 import re
 import logging
-logger = logging.getLogger("OSCAPEditor")
+logger = logging.getLogger("scap-workbench")
 from cStringIO import StringIO
 import urllib2
 import operator

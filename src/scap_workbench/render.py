@@ -37,7 +37,7 @@ import scan
 import logging
 import commands
 
-logger = logging.getLogger("OSCAPEditor")
+logger = logging.getLogger("scap-workbench")
 
 def label_set_autowrap(widget): 
     "Make labels automatically re-wrap if their containers are resized.  Accepts label or container widgets."
@@ -219,7 +219,7 @@ class MainWindow(abstract.Window, threading.Thread):
         self.core = core.OECore()
         assert self.core != None, "Initialization failed, core is None"
         self.builder = gtk.Builder()
-        self.builder.add_from_file("glade/main.glade")
+        self.builder.add_from_file("/usr/share/scap-workbench/main.glade")
         self.builder.connect_signals(self)
 
         self.window = self.builder.get_object("main:window")
