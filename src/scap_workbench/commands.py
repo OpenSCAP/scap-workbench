@@ -480,14 +480,17 @@ class DHItemsTree(DataHandler):
         self.__progress = progress
         self.__total = None
         self.__step = None
-
+        
+    def new_model(self):
+        return gtk.TreeStore(str, str, str, str, str, bool, bool)
+        
     def render(self, treeView):
         """Make a model ListStore of Dependencies object"""
 
         self.lock = threading.Lock()
         self.treeView = treeView
         # ID, Name, Picture, Text, Font color, selected, parent-selected
-        self.model = gtk.TreeStore(str, str, str, str, str, bool, bool)
+        self.model = self.new_model()
         treeView.set_model(self.model)
                 
         """This Cell is used to be first hidden column of tree view
@@ -526,7 +529,7 @@ class DHItemsTree(DataHandler):
         column = gtk.TreeViewColumn("Selected", render, active=DHItemsTree.COLUMN_SELECTED,
                                                         sensitive=DHItemsTree.COLUMN_PARENT,
                                                         activatable=DHItemsTree.COLUMN_PARENT)
-        render.connect('toggled', self.__cb_toggled, self.model)
+        render.connect('toggled', self.__cb_toggled)
         column.set_resizable(True)
         treeView.append_column(column)
 
@@ -558,28 +561,28 @@ class DHItemsTree(DataHandler):
                 break
 
 
-    def __cb_toggled(self, cell, path, model):
+    def __cb_toggled(self, cell, path):
         #for cell in cells:
         if not self.core.lib:
             logger.error("Library not initialized or XCCDF file not specified")
             return None
-        model[path][DHItemsTree.COLUMN_SELECTED] = not model[path][DHItemsTree.COLUMN_SELECTED]
-        model[path][DHItemsTree.COLUMN_COLOR] = ["gray", None][model[path][DHItemsTree.COLUMN_SELECTED]]
+        self.model[path][DHItemsTree.COLUMN_SELECTED] = not self.model[path][DHItemsTree.COLUMN_SELECTED]
+        self.model[path][DHItemsTree.COLUMN_COLOR] = ["gray", None][self.model[path][DHItemsTree.COLUMN_SELECTED]]
 
         policy = self.core.lib["policy_model"].get_policy_by_id(self.core.selected_profile)
         if policy == None: raise Exception, "Policy %s does not exist" % (self.core.selected_profile,)
 
         # Get selector from policy
-        select = policy.get_select_by_id(model[path][DHItemsTree.COLUMN_ID])
+        select = policy.get_select_by_id(self.model[path][DHItemsTree.COLUMN_ID])
         if select == None:
             newselect = openscap.xccdf.select()
-            newselect.item = model[path][DHItemsTree.COLUMN_ID]
-            newselect.selected = model[path][DHItemsTree.COLUMN_SELECTED]
+            newselect.item = self.model[path][DHItemsTree.COLUMN_ID]
+            newselect.selected = self.model[path][DHItemsTree.COLUMN_SELECTED]
             policy.select = newselect
         else:
-            select.selected = model[path][DHItemsTree.COLUMN_SELECTED]
+            select.selected = self.model[path][DHItemsTree.COLUMN_SELECTED]
 
-        self.__set_sensitive(policy, model[path], model, model[path][DHItemsTree.COLUMN_SELECTED])
+        self.__set_sensitive(policy, self.model[path], self.model, self.model[path][DHItemsTree.COLUMN_SELECTED])
 
     def __recursive_fill(self, item=None, parent=None, pselected=True):
 

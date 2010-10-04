@@ -223,7 +223,8 @@ class List(EventObject):
         self.id = id
         self.core.register(id, self)
         super(List, self).__init__(core)
-
+        self.filter_model = None
+        
         if not widget:
             self.scrolledWindow = gtk.ScrolledWindow()
             self.scrolledWindow.set_shadow_type(gtk.SHADOW_IN)
@@ -268,7 +269,7 @@ class List(EventObject):
 
     def search_branch(self, model, iter, iter_start, data):
         """ Search data in model from iter next. Search terminates when a row is found. 
-            @param model is gttk.treeModel
+            @param model is gtk.treeModel
             @param iter is start position
             @param data is a tuple containing column number, key
             @return iter or None
@@ -287,9 +288,9 @@ class List(EventObject):
             iter = model.iter_next(iter)
         return None
 
-    def search(self, view, key, column):
+    def search(self, key, column):
         """ search in treeview"""
-        selection = view.get_selection()
+        selection = self.treeView.get_selection()
         model, iter =  selection.get_selected()
         iter_old = iter
         
@@ -338,8 +339,115 @@ class List(EventObject):
             path = model.get_path(iter)
             self.get_TreeView().expand_to_path(path)
             selection.select_path(path)
+            self.get_TreeView().scroll_to_cell(path)
+
+    def copy_row(self, model, iter , new_model, iter_parent, n_columns):
+        row = []
+        for i in range(n_columns):
+            row.append(model.get_value(iter,i))
+        return new_model.append(iter_parent, row)
+
+    def match_fiter(self, filters, model, iter):
+        vys = True
+        for item in filters:
+            func = item["filtr_info"]["func"]
+            param = item["filtr_info"]["param"]
+            vys = vys and func(model, iter, param)
+        return vys
+
+    def filtering_list(self, model, iter, new_model, filters, n_column):
+        """ 
+        Filter data to list
+        """
+        while iter:
+            if self.match_fiter(filters, model, iter):
+                iter_to = self.copy_row(model, iter, new_model, None, n_column)
+                self.map_filter.update({iter_to: iter})
+            self.filtering_list(model, model.iter_children(iter), new_model, filters, n_column)
+            iter = model.iter_next(iter)
 
 
+    def filtering_tree(self, model, iter, new_model, iter_parent, filters, n_column):
+        """
+        Filter data to tree
+        """
+        vys_branch = False
+
+        while iter:
+            iter_self = self.copy_row(model, iter, new_model, iter_parent, n_column)
+
+            vys = self.match_fiter(filters, model, iter)
+            vys_child = self.filtering_tree(model, model.iter_children(iter), new_model, iter_self, filters, n_column)
+
+            vys_branch = vys_branch or vys_child  or vys
+
+            if not (vys_child or vys):
+                new_model.remove(iter_self)
+            else:
+                self.map_filter.update({iter_self:iter})
+            iter = model.iter_next(iter)
+
+        return vys_branch
+
+    def init_filters(self, new_model):
+        self.filter_model = new_model
+        self.use_filter = False
+        
+    def filter_add(self, filters):
+        """ function add filter on model"""
+
+        # if filtering is set
+        if self.filter_model == None:
+            logger.error("filters not init use function init.filters(new_model)")
+
+        #init first filtering
+        if not self.use_filter:
+            self.ref_model =  self.treeView.get_model()
+            self.use_filter = True
+            
+        # if filters are empty
+        if filters == []:
+            self.treeView.set_model(self.ref_model)
+            logger.info("Filter is empty.")
+            return
+
+        # clean maping from filter model to ref
+        self.map_filter = {}
+
+        iter = self.ref_model.get_iter_root()
+        n_column = self.ref_model.get_n_columns()
+        self.filter_model.clear()
+        
+        # get final struct (tree or list)
+        struct = True
+        for item in filters:
+            struct = struct and item["filtr_info"]["result_tree"]
+        if struct:
+            self.filtering_tree(self.ref_model, iter, self.filter_model, None, filters, n_column)
+        else:
+           self.filtering_list(self.ref_model, iter, self.filter_model, filters, n_column)
+
+        self.treeView.set_model(self.filter_model)
+        return filters
+
+    def filter_del(self, filters, propagate_changes = []):
+        """find a deleted filter
+        @propagate_change is list of column wich should be control and propagate
+        """
+        if len(propagate_changes) > 0:
+            for key in self.map_filter.keys():
+                iter = self.map_filter[key]
+                for column in propagate_changes:
+                    if self.ref_model.get_value(iter, column) <> self.filter_model.get_value(key, column):
+                        self.ref_model.set(iter, column, self.filter_model.get_value(key, column))
+
+        # refilter filters after deleted filter
+        return self.filter_add(filters)
+
+    def filter_refresh(self, filters):
+        self.use_filter = False
+        return self.filter_add(filters)
+        
 class ProgressBar(EventObject):
 
     def __init__(self, id, core=None):

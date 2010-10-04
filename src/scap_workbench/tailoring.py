@@ -53,14 +53,16 @@ class ItemList(abstract.List):
         selection.set_mode(gtk.SELECTION_SINGLE)
 
         # actions
-
         self.add_receiver("gui:btn:menu:tailoring", "update", self.__update)
-
         self.add_receiver("gui:btn:tailoring:refines", "update", self.__update)
         self.add_receiver("gui:btn:tailoring:refines:filter", "search", self.__search)
+        self.add_receiver("gui:btn:tailoring:refines:filter", "filter_add", self.__filter_add)
+        self.add_receiver("gui:btn:tailoring:refines:filter", "filter_del", self.__filter_del)
 
         selection.connect("changed", self.cb_item_changed, self.get_TreeView())
         self.add_sender(self.id, "item_changed")
+
+        self.init_filters(self.data_model.new_model())
 
     def __update(self):
         if "profile" not in self.__dict__ or self.profile != self.core.selected_profile or self.core.force_reload_items:
@@ -69,19 +71,37 @@ class ItemList(abstract.List):
             # Select the last one selected if there is one
             self.get_TreeView().get_model().foreach(self.set_selected, (self.core.selected_item, self.get_TreeView()))
             self.core.force_reload_items = False
+            
+            self.filter_refresh(self.filter.filters)
+            self.data_model.model = self.get_TreeView().get_model()
 
     def __search(self):
-        self.search(self.get_TreeView(), self.filter.get_search_text(),1)
+        self.search(self.filter.get_search_text(),1)
+        
+    def __filter_add(self):
+        self.filter_add(self.filter.filters)
+        self.data_model.model = self.get_TreeView().get_model()
 
-            
+        self.get_TreeView().get_model().foreach(self.set_selected, (self.core.selected_item, self.get_TreeView()))
+
+    def __filter_del(self):
+        self.filter_del(self.filter.filters,[4, 5, 6])
+        self.data_model.model = self.get_TreeView().get_model()
+        
+        self.get_TreeView().get_model().foreach(self.set_selected, (self.core.selected_item, self.get_TreeView()))
+
+
+
     def cb_item_changed(self, widget, treeView):
 
         selection = treeView.get_selection( )
         if selection != None: 
             (model, iter) = selection.get_selected( )
-            if iter: self.core.selected_item = model.get_value(iter, 0)
+            if iter: 
+                self.core.selected_item = model.get_value(iter, 0)
+                self.emit("update")
         treeView.columns_autosize()
-        self.emit("update")
+
 
 class ValuesList(abstract.List):
     
@@ -432,8 +452,7 @@ class MenuButtonTailoring(abstract.MenuButton):
         self.draw_nb(self.builder.get_object("tailoring:refines:box_nb"))
         self.progress = self.builder.get_object("tailoring:refines:progress")
         self.progress.hide()
-        self.filter = filter.Renderer("gui:btn:tailoring:refines:filter", self.core, self.builder.get_object("tailoring:refines:box_filter"))
-        self.filter.expander.cb_changed()
+        self.filter = filter.ItemFilter(self.core, self.builder)
         self.rules_list = ItemList(self.builder.get_object("tailoring:refines:tw_items"), self.core, self.progress, self.filter)
         self.values = ValuesList(self.builder.get_object("tailoring:refines:tw_values"), self.core)
 

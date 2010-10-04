@@ -66,7 +66,7 @@ class ScanList(abstract.List):
         self.data_model.scan()
 
     def __search(self):
-        self.search(self.get_TreeView(), self.filter.get_search_text(),3)
+        self.search(self.filter.get_search_text(),3)
 
 class MenuButtonScan(abstract.MenuButton):
     """
