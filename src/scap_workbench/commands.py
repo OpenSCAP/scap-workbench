@@ -583,8 +583,8 @@ class DHItemsTree(DataHandler):
             else:
                 # filter is using must change ref model
                 model = self.ref_model
-                iter = model.get_iter(path)
-                path = model.get_path(iter)
+                iter = model_view.get_iter(path)
+                path = model_view.get_path(iter)
                 path = map_filter[path]
 
          #for cell in cells:
