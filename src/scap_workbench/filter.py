@@ -216,23 +216,32 @@ class Renderer(abstract.MenuButton,EventObject):
         return False
 
     def add_filter(self, filtr_info):
+        """ Add filter to list active filter and emit signal filter was added"""
         filtr_info["active"] = True
         filter = Filter(filtr_info["name"], self)
         self.expander.get_widget().pack_start(filter.get_widget(), True, True)
         self.filters.append({   "id":           filter,
                                 "ref_model":    None,                       # model before filtering
-                                "filtr_info":   filtr_info               # if is False filter will be remuved form active filter
+                                "filtr_info":   filtr_info
                             })
         self.emit("filter_add")
 
     def del_filter(self, filter):
-
+        """ remove filter from active filters and emit signal deleted"""
         filter.eb.destroy()
         for item in self.filters:
             if item["id"] == filter:
                 item["filtr_info"]["active"] = False
                 self.filters.remove(item)
         self.emit("filter_del")
+        
+    def init_filter(self):
+        """ clean all acive filters"""
+        for item in self.filters:
+            item["filtr_info"]["active"] = False
+            item["id"].eb.destroy()
+        self.filters = []
+        
 
 class ExpandBox(abstract.EventObject):
     """
@@ -310,11 +319,11 @@ class ItemFilter(Renderer):
                   "result_tree":    False,               # if result shoul be in tree or list
                   }
                   
-        filter1 = {"name":           "Select rule/group with ensure",
+        filter1 = {"name":           "Select rule/group with s",
                   "description":    "Select rule/group end get them to list.",
                   "func":           self.search_pokus1,        # func for metch row in model func(model, iter)
                   "param":           [],                    # param tu function
-                  "result_tree":    False,               # if result shoul be in tree or list
+                  "result_tree":    True,               # if result shoul be in tree or list
                   }
 
         filter2 = {"name":          "Select rule Tree",
@@ -338,16 +347,95 @@ class ItemFilter(Renderer):
             return False
             
     def search_pokus1(self, model, iter, params):
-        pattern = re.compile("ensure",re.IGNORECASE)
+        pattern = re.compile("how to",re.IGNORECASE)
         if pattern.search(model.get_value(iter, 3)) != None:
             return True
         else:
             return False
 #-------------------------------------------------------------------------------
-            
+
     def render_filter(self):
         self.window = gtk.Window(gtk.WINDOW_TOPLEVEL)
-        self.window.set_title("Own filter")
+        self.window.set_title("User filter")
+        self.window.set_size_request(400, 400)
+        self.window.connect("delete_event", self.delete_event)
+
+        btn_filter = gtk.Button("test")
+        btn_filter.connect("clicked", self.cb_setFilter)
+        box = gtk.VBox()
+        box.pack_start(btn_filter, False, False)
+        self.window.add(box)
+        self.window.show_all()
+        return self.window
+
+    def cb_setFilter(self, widget):
+        
+        filter = {"name": "pokus window",
+                  "description": "popis",
+                  "func": self.search,
+                  "active": True}
+        self.add_filter(filter)
+        self.window.destroy()
+
+    def delete_event(self, widget, event):
+        self.window.destroy()
+
+class ScanFilter(Renderer):
+    
+    COLUMN_ID = 0               # id of rule
+    COLUMN_RESULT = 1           # Result of scan
+    COLUMN_FIX = 2              # fix
+    COLUMN_TITLE = 3            # Description of rule
+    COLUMN_DESC = 4             # Description of rule
+    COLUMN_COLOR_TEXT_TITLE = 5 # Color of text description
+    COLUMN_COLOR_BACKG = 6      # Color of cell
+    COLUMN_COLOR_TEXT_ID = 7    # Color of text ID
+
+    def __init__(self, core, builder):
+        self.id_filter = 0
+        objectBild = builder.get_object("scan:box_filter")
+        Renderer.__init__(self, "gui:btn:menu:scan:filter", core, objectBild)
+        self.expander.cb_changed()
+#-------------------------------------------------------------------------------
+ 
+        filter = {"name":           "Pass",
+                  "description":    "Select result pass.",
+                  "func":           self.search_result,        # func for metch row in model func(model, iter)
+                  "param":           ["Pass"],                    # param tu function
+                  "result_tree":    False,               # if result shoul be in tree or list
+                  }
+                  
+        filter1 = {"name":          "ERROR",
+                  "description":    "Select result error.",
+                  "func":           self.search_result,        # func for metch row in model func(model, iter)
+                  "param":           ["error"],                    # param tu function
+                  "result_tree":    False,               # if result shoul be in tree or list
+                  }
+
+        filter2 = {"name":          "FAIL",
+                  "description":    "Select result fail.",
+                  "func":           self.search_result,        # func for metch row in model func(model, iter)
+                  "param":           ["fail"],                    # param tu function
+                  "result_tree":    False,                       # if result shoul be in tree or list
+                  }
+                  
+        self.add_filter_to_menu(filter)
+        self.add_filter_to_menu(filter1)
+        self.add_filter_to_menu(filter2) 
+        self.add_filter_to_menu(None)
+
+    #filter
+    def search_result(self, model, iter, params):
+        pattern = re.compile(params[0],re.IGNORECASE)
+        if pattern.search(model.get_value(iter, ScanFilter.COLUMN_RESULT)) != None:
+            return True
+        else:
+            return False
+#-------------------------------------------------------------------------------
+
+    def render_filter(self):
+        self.window = gtk.Window(gtk.WINDOW_TOPLEVEL)
+        self.window.set_title("User filter Scan")
         self.window.set_size_request(400, 400)
         self.window.connect("delete_event", self.delete_event)
 

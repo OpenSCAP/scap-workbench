@@ -334,7 +334,7 @@ class List(EventObject):
                         iter = self.search_branch(model, model.get_iter_root(), iter_start, (column, key))
                         break
 
-        # find pattern
+        # if find search text
         if iter != None:
             path = model.get_path(iter)
             self.get_TreeView().expand_to_path(path)
@@ -362,7 +362,7 @@ class List(EventObject):
         while iter:
             if self.match_fiter(filters, model, iter):
                 iter_to = self.copy_row(model, iter, new_model, None, n_column)
-                self.map_filter.update({iter_to: iter})
+                self.map_filter.update({new_model.get_path(iter_to):model.get_path(iter)})
             self.filtering_list(model, model.iter_children(iter), new_model, filters, n_column)
             iter = model.iter_next(iter)
 
@@ -384,32 +384,29 @@ class List(EventObject):
             if not (vys_child or vys):
                 new_model.remove(iter_self)
             else:
-                self.map_filter.update({iter_self:iter})
+                self.map_filter.update({new_model.get_path(iter_self):model.get_path(iter)})
             iter = model.iter_next(iter)
 
         return vys_branch
 
-    def init_filters(self, new_model):
-        self.filter_model = new_model
-        self.use_filter = False
-        
+    def init_filters(self, filter, ref_filter, filter_model):
+        """ init filter for first use or model changed"""
+        self.filter_model = filter_model
+        filter.init_filter()
+        self.ref_model = ref_filter
+
     def filter_add(self, filters):
         """ function add filter on model"""
 
         # if filtering is set
         if self.filter_model == None:
-            logger.error("filters not init use function init.filters(new_model)")
+            logger.error("filter is not init use function init.filters(new_model)")
 
-        #init first filtering
-        if not self.use_filter:
-            self.ref_model =  self.treeView.get_model()
-            self.use_filter = True
-            
         # if filters are empty
         if filters == []:
+            self.map_filter = {}
             self.treeView.set_model(self.ref_model)
-            logger.info("Filter is empty.")
-            return
+            return (self.map_filter,True)
 
         # clean maping from filter model to ref
         self.map_filter = {}
@@ -428,25 +425,23 @@ class List(EventObject):
            self.filtering_list(self.ref_model, iter, self.filter_model, filters, n_column)
 
         self.treeView.set_model(self.filter_model)
-        return filters
+        return (self.map_filter,struct)
 
-    def filter_del(self, filters, propagate_changes = []):
+    def filter_del(self, filters, propagate_changes = None):
         """find a deleted filter
         @propagate_change is list of column wich should be control and propagate
         """
-        if len(propagate_changes) > 0:
+        if propagate_changes != None:
             for key in self.map_filter.keys():
-                iter = self.map_filter[key]
+                path = self.map_filter[key]
+                iter = self.ref_model.get_iter(path)
                 for column in propagate_changes:
-                    if self.ref_model.get_value(iter, column) <> self.filter_model.get_value(key, column):
-                        self.ref_model.set(iter, column, self.filter_model.get_value(key, column))
+                    if self.ref_model[path][column] <> self.filter_model [key][column]:
+                        self.ref_model.set(iter, column, self.filter_model [key][column])
 
-        # refilter filters after deleted filter
+        #refilter filters after deleted filter
         return self.filter_add(filters)
 
-    def filter_refresh(self, filters):
-        self.use_filter = False
-        return self.filter_add(filters)
         
 class ProgressBar(EventObject):
 

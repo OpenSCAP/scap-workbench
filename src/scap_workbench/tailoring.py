@@ -62,8 +62,6 @@ class ItemList(abstract.List):
         selection.connect("changed", self.cb_item_changed, self.get_TreeView())
         self.add_sender(self.id, "item_changed")
 
-        self.init_filters(self.data_model.new_model())
-
     def __update(self):
         if "profile" not in self.__dict__ or self.profile != self.core.selected_profile or self.core.force_reload_items:
             self.profile = self.core.selected_profile
@@ -71,23 +69,17 @@ class ItemList(abstract.List):
             # Select the last one selected if there is one
             self.get_TreeView().get_model().foreach(self.set_selected, (self.core.selected_item, self.get_TreeView()))
             self.core.force_reload_items = False
-            
-            self.filter_refresh(self.filter.filters)
-            self.data_model.model = self.get_TreeView().get_model()
+            self.init_filters(self.filter, self.data_model.model, self.data_model.new_model())
 
     def __search(self):
         self.search(self.filter.get_search_text(),1)
         
     def __filter_add(self):
-        self.filter_add(self.filter.filters)
-        self.data_model.model = self.get_TreeView().get_model()
-
+        self.data_model.map_filter = self.filter_add(self.filter.filters)
         self.get_TreeView().get_model().foreach(self.set_selected, (self.core.selected_item, self.get_TreeView()))
 
     def __filter_del(self):
-        self.filter_del(self.filter.filters,[4, 5, 6])
-        self.data_model.model = self.get_TreeView().get_model()
-        
+        self.data_model.map_filter = self.filter_del(self.filter.filters,[4, 5, 6])
         self.get_TreeView().get_model().foreach(self.set_selected, (self.core.selected_item, self.get_TreeView()))
 
 

@@ -460,7 +460,6 @@ class DHValues(DataHandler):
             policy.set_tailor_items([{"id":id, "value":new_text}])
         else: logger.error("Failed regexp match: text %s does not match %s", new_text, "|".join([value["match"], choices]))
 
-        
 
 class DHItemsTree(DataHandler):
 
@@ -479,8 +478,10 @@ class DHItemsTree(DataHandler):
         self.__progress = progress
         self.__total = None
         self.__step = None
+        self.map_filter = None
         
     def new_model(self):
+        # ID, Name, Picture, Text, Font color, selected, parent-selected
         return gtk.TreeStore(str, str, str, str, str, bool, bool)
         
     def render(self, treeView):
@@ -488,8 +489,10 @@ class DHItemsTree(DataHandler):
 
         self.lock = threading.Lock()
         self.treeView = treeView
-        # ID, Name, Picture, Text, Font color, selected, parent-selected
+        
+        # priperin model for view and filtering
         self.model = self.new_model()
+        self.ref_model = self.model
         treeView.set_model(self.model)
                 
         """This Cell is used to be first hidden column of tree view
@@ -528,7 +531,10 @@ class DHItemsTree(DataHandler):
         column = gtk.TreeViewColumn("Selected", render, active=DHItemsTree.COLUMN_SELECTED,
                                                         sensitive=DHItemsTree.COLUMN_PARENT,
                                                         activatable=DHItemsTree.COLUMN_PARENT)
-        render.connect('toggled', self.__cb_toggled)
+        #cb call for filter_model and ref_model
+        render.connect('toggled', self.__cb_toggled, True)
+        render.connect('toggled', self.__cb_toggled, False)
+        
         column.set_resizable(True)
         treeView.append_column(column)
 
@@ -560,28 +566,48 @@ class DHItemsTree(DataHandler):
                 break
 
 
-    def __cb_toggled(self, cell, path):
-        #for cell in cells:
+    def __cb_toggled(self, cell, path, flag):
+        
+        map_filter, struct = self.map_filter
+        model_view = self.treeView.get_model()
+        # if is filter in List nothing to change
+        if not struct: return
+        
+        if flag:
+            # cb for current model
+            model = model_view
+        else:
+            # if current model is filter
+            if self.ref_model == model_view:
+                return
+            else:
+                # filter is using must change ref model
+                model = self.ref_model
+                iter = model.get_iter(path)
+                path = model.get_path(iter)
+                path = map_filter[path]
+
+         #for cell in cells:
         if not self.core.lib:
             logger.error("Library not initialized or XCCDF file not specified")
             return None
-        self.model[path][DHItemsTree.COLUMN_SELECTED] = not self.model[path][DHItemsTree.COLUMN_SELECTED]
-        self.model[path][DHItemsTree.COLUMN_COLOR] = ["gray", None][self.model[path][DHItemsTree.COLUMN_SELECTED]]
+        model[path][DHItemsTree.COLUMN_SELECTED] = not model[path][DHItemsTree.COLUMN_SELECTED]
+        model[path][DHItemsTree.COLUMN_COLOR] = ["gray", None][model[path][DHItemsTree.COLUMN_SELECTED]]
 
         policy = self.core.lib["policy_model"].get_policy_by_id(self.core.selected_profile)
         if policy == None: raise Exception, "Policy %s does not exist" % (self.core.selected_profile,)
 
         # Get selector from policy
-        select = policy.get_select_by_id(self.model[path][DHItemsTree.COLUMN_ID])
+        select = policy.get_select_by_id(model[path][DHItemsTree.COLUMN_ID])
         if select == None:
             newselect = openscap.xccdf.select()
-            newselect.item = self.model[path][DHItemsTree.COLUMN_ID]
-            newselect.selected = self.model[path][DHItemsTree.COLUMN_SELECTED]
+            newselect.item = model[path][DHItemsTree.COLUMN_ID]
+            newselect.selected = model[path][DHItemsTree.COLUMN_SELECTED]
             policy.select = newselect
         else:
-            select.selected = self.model[path][DHItemsTree.COLUMN_SELECTED]
+            select.selected = model[path][DHItemsTree.COLUMN_SELECTED]
 
-        self.__set_sensitive(policy, self.model[path], self.model, self.model[path][DHItemsTree.COLUMN_SELECTED])
+        self.__set_sensitive(policy, model[path], model, model[path][DHItemsTree.COLUMN_SELECTED])
 
     def __recursive_fill(self, item=None, parent=None, pselected=True):
 
@@ -817,6 +843,9 @@ class DHScan(DataHandler):
         self.__cancel = False
         self.__last = 0
         self.__result = None
+    
+    def new_model(self):
+        return gtk.TreeStore(str, str, str, str, str, str, str, str)
 
     def render(self, treeView):
         """ define treeView"""
@@ -824,7 +853,7 @@ class DHScan(DataHandler):
         self.treeView = treeView
 
         #model: id rule, result, fix, description, color text desc, color background, color text res
-        self.model = gtk.ListStore(str, str, str, str, str, str, str, str)
+        self.model = self.new_model()
         treeView.set_model(self.model)
         #treeView.set_grid_lines(gtk.TREE_VIEW_GRID_LINES_BOTH)
         #treeView.set_property("tree-line-width", 10)
@@ -931,7 +960,7 @@ class DHScan(DataHandler):
             colorText_ID = DHScan.FG_BLACK
 
 
-        iter = self.model.append()
+        iter = self.model.append(None)
         self.model.set(iter,
                 DHScan.COLUMN_ID,   item[DHScan.COLUMN_ID],
                 DHScan.COLUMN_RESULT,   text,
