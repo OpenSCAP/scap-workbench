@@ -57,7 +57,10 @@ class ScanList(abstract.List):
         self.add_receiver("gui:btn:menu:scan:filter", "search", self.__search)
 
     def __export(self):
-        self.data_model.export()
+        exported_file = self.data_model.export()
+        #if exported_file: 
+            #self.results_btn.set_uri(exported_file)
+            #self.results_btn.set_sensitive(True)
 
     def __cancel(self):
         self.data_model.cancel()
@@ -88,6 +91,8 @@ class MenuButtonScan(abstract.MenuButton):
         self.builder.get_object("scan:btn_stop").connect("clicked", self.__cb_cancel)
         self.builder.get_object("scan:btn_export").connect("clicked", self.__cb_export)
         self.builder.get_object("scan:btn_help").connect("clicked", self.__cb_help)
+        self.results_btn = self.builder.get_object("scan:btn_results")
+        self.results_btn.set_relief(gtk.RELIEF_NORMAL)
 
         # set signals
         self.add_sender(self.id, "scan")

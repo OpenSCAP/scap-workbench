@@ -22,8 +22,10 @@
 #      Vladimir Oberreiter  <xoberr01@stud.fit.vutbr.cz>
 
 import logging, logging.config
-import sys, gtk, gobject, threading
+import sys, gtk, gobject, threading, time
 from events import EventObject, EventHandler
+
+import render #TODO
 
 LOGGER_CONFIG_FILE='/etc/scap-workbench/logger.conf'
 logging.config.fileConfig(LOGGER_CONFIG_FILE)
@@ -38,16 +40,66 @@ except Exception as ex:
     print ex
     openscap=None
 
+def thread(func):
+    def callback(self, *args):
+        handler = ThreadHandler(func, self, *args)
+        logger.debug("Running thread handler \"%s:%s\"", func, args)
+        handler.start()
+    return callback
 
-class OECore:
+class Notification:
 
-    def __init__(self):
+    IMG = ["dialog-information", "dialog-warning", "dialog-error"]
+    COLOR = ["#C0C0FF", "#FFFFC0", "#FFC0C0" ]
+    DEFAULT_SIZE = gtk.ICON_SIZE_LARGE_TOOLBAR
+    DEFAULT_TIME = 10
+    HIDE_LVLS = [0, 1]
 
+    def __init__(self, text, lvl=0):
+
+        if lvl > 2: lvl = 2
+        if lvl < 0: lvl = 0
+
+        logger.debug("Notification: %s", text)
+        box = gtk.HBox()
+        box.set_spacing(10)
+        self.img = gtk.Image()
+        self.img.set_from_icon_name(Notification.IMG[lvl], Notification.DEFAULT_SIZE)
+        box.pack_start(self.img, False, False)
+        self.label = gtk.Label(text)
+        self.label.set_alignment(0, 0.5)
+        render.label_set_autowrap(self.label)
+        box.pack_start(self.label, True, True)
+        self.btn = gtk.Button()
+        self.btn.set_relief(gtk.RELIEF_NONE)
+        self.btn.connect("clicked", self.__cb_destroy)
+        self.btn.set_label("x")
+        box.pack_start(self.btn, False, False)
+        self.widget = gtk.EventBox()
+        self.widget.modify_bg(gtk.STATE_NORMAL, gtk.gdk.Color(Notification.COLOR[lvl]))
+        self.widget.add(box)
+    
+        """
+        if lvl in Notification.HIDE_LVLS: 
+            self.destroy_timeout(self.widget)
+        """
+        self.widget.show_all()
+
+    def __cb_destroy(self, widget):
+        widget.parent.parent.destroy()
+
+    @thread
+    def destroy_timeout(self, widget):
+        time.sleep(Notification.DEFAULT_TIME)
+        self.__cb_destroy(widget)
+        
+
+class SWBCore:
+
+    def __init__(self, builder):
+
+        self.builder = builder
         self.lib = None
-        if len(sys.argv) > 1:
-            logger.debug("Loading XCCDF file %s", sys.argv[1])
-            self.init(sys.argv[1])
-
         self.__objects = {}
         self.main_window = None
         self.changed_profiles = []
@@ -58,8 +110,16 @@ class OECore:
         self.selected_profile   = None
         self.selected_item      = None
         self.selected_deps      = None
-        self.selected_lang      = "en"
+        self.selected_lang      = ""
+        self.langs              = []
         self.xcccdf_file        = None
+
+        # Info Box
+        self.info_box = self.builder.get_object("info_box")
+
+        if len(sys.argv) > 1:
+            logger.debug("Loading XCCDF file %s", sys.argv[1])
+            self.init(sys.argv[1])
 
         self.set_receiver("gui:btn:main:xccdf", "load", self.__set_force)
 
@@ -71,6 +131,8 @@ class OECore:
                 model.free()
             for sess in self.lib["sessions"]:
                 sess.free()
+        for child in self.info_box:
+            child.destroy()
 
         self.xccdf_file = XCCDF
         if openscap == None:
@@ -84,6 +146,20 @@ class OECore:
                 logger.error("XCCDF benchmark does not exists. Can't fill data")
                 raise Error, "XCCDF benchmark does not exists. Can't fill data"
         else: logger.error("Initialization failed.")
+
+        # Language of benchmark should be in languages
+        benchmark = self.lib["policy_model"].benchmark
+        if benchmark == None:
+            logger.error("FATAL: Benchmark does not exist")
+            raise Exception("Can't initialize openscap library")
+        if not benchmark.lang in self.langs: 
+            self.selected_lang = benchmark.lang
+            self.langs.append(benchmark.lang)
+        if benchmark.lang == None:
+            self.notify("XCCDF Benchmark: No language specified.", 2)
+
+    def notify(self, text, lvl=0):
+        self.info_box.pack_start(Notification(text, lvl).widget)
 
     def set_sender(self, signal, sender):
         self.eventHandler.set_sender(signal, sender)
@@ -175,14 +251,6 @@ class ThreadHandler(threading.Thread):
     def run(self):
         """ Run method, this is the code that runs while thread is alive """
 
-        logger.debug("Running thread handler ...")
-
         # Run the function
         self.__func(self.obj, *self.args)
 
-
-def thread(func):
-    def callback(self, *args):
-        handler = ThreadHandler(func, self, *args)
-        handler.start()
-    return callback

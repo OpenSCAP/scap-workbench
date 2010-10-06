@@ -164,12 +164,14 @@ class MenuButtonXCCDF(abstract.MenuButton):
 
     def __cb_validate(self, widget):
         validate = self.data_model.validate()
-        md = gtk.MessageDialog(self.core.main_window, 
-                gtk.DIALOG_MODAL, [gtk.MESSAGE_WARNING, gtk.MESSAGE_INFO, gtk.MESSAGE_ERROR][validate],
-                gtk.BUTTONS_OK, ["Document is not validate !", "Document is validate", 
-                    "Validation process failed, check for error in log file."][validate])
-        md.run()
-        md.destroy()
+        #md = gtk.MessageDialog(self.core.main_window, 
+                #gtk.DIALOG_MODAL, [gtk.MESSAGE_WARNING, gtk.MESSAGE_INFO, gtk.MESSAGE_ERROR][validate],
+                #gtk.BUTTONS_OK, ["Document is not validate !", "Document is validate", 
+                    #"Validation process failed, check for error in log file."][validate])
+        #md.run()
+        #md.destroy()
+        self.core.notify(["Document is not valid !", "Document is valid.", 
+            "Validation process failed, check for error in log file."][validate], [1, 0, 2][validate])
 
     def __cb_export(self, widget):
         self.data_model.export()
@@ -215,11 +217,11 @@ class MainWindow(abstract.Window, threading.Thread):
 
         threading.Thread.__init__(self)
         logger = logging.getLogger(self.__class__.__name__)
-        self.core = core.OECore()
-        assert self.core != None, "Initialization failed, core is None"
         self.builder = gtk.Builder()
         self.builder.add_from_file("/usr/share/scap-workbench/main.glade")
         self.builder.connect_signals(self)
+        self.core = core.SWBCore(self.builder)
+        assert self.core != None, "Initialization failed, core is None"
 
         self.window = self.builder.get_object("main:window")
         self.main_box = self.builder.get_object("main:box")
@@ -239,12 +241,6 @@ class MainWindow(abstract.Window, threading.Thread):
         submenu.add_item(MenuButtonOVAL(self.main_box, self.builder.get_object("main:sub:main:oval"), self.core))
         self.core.get_item("gui:btn:menu:main").set_menu(submenu)
 
-        ## subMenu_but_tailoring
-        #submenu = abstract.Menu("gui:menu:tailoring", self.builder.get_object("main:sub:tailoring"), self.core)
-        #submenu.add_item(tailoring.MenuButtonProfiles(self.builder, self.builder.get_object("main:sub:tailoring:profiles"), self.core))
-        #submenu.add_item(tailoring.MenuButtonRefines(self.builder, self.builder.get_object("main:sub:tailoring:refines"), self.core))
-        #self.core.get_item("gui:btn:menu:tailoring").set_menu(submenu)
-
         self.core.register("main:button_forward", self.builder.get_object("main:button_forward"))
         self.core.register("main:button_back", self.builder.get_object("main:button_back"))
         self.builder.get_object("main:button_back").set_sensitive(False)
@@ -257,9 +253,13 @@ class MainWindow(abstract.Window, threading.Thread):
         self.window.show()
         self.builder.get_object("main:toolbar:main").set_active(True)
 
+    def __cb_info_close(self, widget):
+        self.core.info_box.hide()
+
     def delete_event(self, widget, event, data=None):
         """ close the window and quit
         """
+        gtk.gdk.threads_leave()
         gtk.main_quit()
         return False
 

@@ -461,3 +461,4 @@ class ProgressBar(EventObject):
         self.widget.set_is_important(True)
         self.widget.show()
 
+

@@ -157,25 +157,25 @@ class DataHandler:
             values = {
                     "id":               item.id,
                     "type":             item.type,
-                    "titles":           dict([(title.lang, " ".join(title.text.split())) for title in item.title]),
-                    "descriptions":     dict([(desc.lang, desc.text) for desc in item.description]),
+                    "titles":           dict([(title.lang, " ".join(title.text.split())) for title in item.title or []]),
+                    "descriptions":     dict([(desc.lang, desc.text) for desc in item.description or []]),
                     "abstract":         item.abstract,
                     "cluster_id":       item.cluster_id,
-                    "conflicts":        [conflict.text for conflict in item.conflicts],
+                    "conflicts":        [conflict.text for conflict in item.conflicts or []],
                     "extends":          item.extends,
                     "hidden":           item.hidden,
                     "platforms":        [platform.text for platform in item.platforms],
                     "prohibit_changes": item.prohibit_changes,
-                    "questions":        dict([(question.lang, question.text) for question in item.question]),
-                    "rationale":        [rationale.text for rationale in item.rationale],
-                    "references":       [(ref.text.text, ref.href) for ref in item.references],
+                    "questions":        dict([(question.lang, question.text) for question in item.question or []]),
+                    "rationale":        [rationale.text for rationale in item.rationale or []],
+                    "references":       [(ref.text.text, ref.href) for ref in item.references or []],
                     "requires":         item.requires,
                     "selected":         item.selected,
-                    "statuses":         [(status.date, status.text) for status in item.statuses],
+                    "statuses":         [(status.date, status.text) for status in item.statuses or []],
                     "version":          item.version,
                     "version_time":     item.version_time,
                     "version_update":   item.version_update,
-                    "warnings":         [(warning.category, warning.text) for warning in item.warnings],
+                    "warnings":         [(warning.category, warning.text) for warning in item.warnings or []],
                     "weight":           item.weight,
                     "selected":         self.get_selected(item)
                     }
@@ -194,10 +194,10 @@ class DataHandler:
                     "typetext":         "Rule",
                     "fixes":            self.__rule_get_fixes(item),
                     "fixtexts":         self.__rule_get_fixtexts(item),
-                    "idents":           [(ident.id, ident.system) for ident in item.idents],
+                    "idents":           [(ident.id, ident.system) for ident in item.idents or []],
                     "imapct_metric":    item.impact_metric,
                     "multiple":         item.multiple,
-                    "profile_notes":    [(note.reftag, note.text) for note in item.profile_notes],
+                    "profile_notes":    [(note.reftag, note.text) for note in item.profile_notes or []],
                     "role":             item.role,
                     "severity":         item.severity,
                     "status_current":   item.status_current
@@ -218,8 +218,11 @@ class DataHandler:
             return None
         profiles = []
         for item in self.core.lib["policy_model"].benchmark.profiles:
-            if len(item.title) > 0: profiles.append((item.id, item.title[0].text)) # TODO
-            else: profiles.append((item.id, "Unknown profile"))
+            pvalues = self.get_profile_details(item.id)
+            if self.core.selected_lang in pvalues["titles"]: 
+                profiles.append((item.id, pvalues["titles"][self.core.selected_lang].text)) 
+            else: 
+                profiles.append((item.id, "Unknown profile"))
 
         return profiles
 
@@ -230,14 +233,14 @@ class DataHandler:
         if item != None:
             values = {
                     "id":               item.id,
-                    "titles":           dict([(title.lang, " ".join(title.text.split())) for title in item.title]),
-                    "descriptions":     dict([(desc.lang, desc.text) for desc in item.description]),
+                    "titles":           dict([(title.lang, " ".join(title.text.split())) for title in item.title or []]),
+                    "descriptions":     dict([(desc.lang, desc.text) for desc in item.description or []]),
                     "abstract":         item.abstract,
                     "extends":          item.extends,
-                    "platforms":        [platform.text for platform in item.platforms],
+                    "platforms":        [platform.text for platform in item.platforms or []],
                     "prohibit_changes": item.prohibit_changes,
-                    "references":       [(ref.text.text, ref.href) for ref in item.references],
-                    "statuses":         [(status.date, status.text) for status in item.statuses],
+                    "references":       [(ref.text.text, ref.href) for ref in item.references or []],
+                    "statuses":         [(status.date, status.text) for status in item.statuses or []],
                     "version":          item.version,
                     "version_time":     item.version_time,
                     "version_update":   item.version_update
@@ -741,7 +744,7 @@ class DHProfiles(DataHandler):
             profile.title = title
             description = openscap.common.text()
             description.text = detail["description"]
-            title.lang = detail["lang"]
+            description.lang = detail["lang"]
             profile.description = description
 
         self.core.lib["policy_model"].benchmark.add_profile(profile)
@@ -758,8 +761,12 @@ class DHProfiles(DataHandler):
 
         for item in self.core.lib["policy_model"].benchmark.profiles:
             logger.debug("Adding profile \"%s\"", item.id)
-            if len(item.title) > 0: self.model.append([item.id, "Profile: "+item.title[0].text]) #TODO
-            else: self.model.append([item.id, "Profile: Unknown"])
+            pvalues = self.get_profile_details(item.id)
+            if self.core.selected_lang in pvalues["titles"]:
+                self.model.append([item.id, "Profile: "+pvalues["titles"][self.core.selected_lang]])
+            else:
+                self.core.notify("No title with \"%s\" language in \"%s\" profile. Change language to proper view." % (self.core.selected_lang, item.id), 1)
+                self.model.append([item.id, "Profile: Unknown"])
 
         return True
 
@@ -1008,13 +1015,16 @@ class DHScan(DataHandler):
         file_name = self.file_browse("Save results", file="results.xml")
         if file_name != "":
             files = self.policy.export(self.__result, self.core.lib, "LockDown Test Result", file_name, file_name)
-            md = gtk.MessageDialog(self.core.main_window, 
-                    gtk.DIALOG_MODAL, gtk.MESSAGE_INFO, 
-                    gtk.BUTTONS_OK, "Results were exported successfuly")
-            md.run()
-            md.destroy()
+            #md = gtk.MessageDialog(self.core.main_window, 
+                    #gtk.DIALOG_MODAL, gtk.MESSAGE_INFO, 
+                    #gtk.BUTTONS_OK, "Results were exported successfuly")
+            #md.run()
+            #md.destroy()
             for file in files:
                 logger.debug("Exported: %s", file)
+            self.core.notify("Results exported successfuly. You can see them by pushing the \"Results\" button.", 0)
+            return file_name
+        else: return None
 
     @threadSave
     def scan(self):

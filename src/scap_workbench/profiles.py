@@ -147,14 +147,14 @@ class MenuButtonProfiles(abstract.MenuButton):
 
             if self.core.selected_lang in details["titles"]: 
                 self.profile_title.set_text(details["titles"][self.core.selected_lang] or "")
-            else: self.profile_title.set_text(details["titles"][details["titles"].keys()[0]] or "")
+            else: self.profile_title.set_text("Unknown")
          
             if len(details["descriptions"]) == 0:
                  self.__set_description("")
             else:
                 if self.core.selected_lang in details["descriptions"]: 
                     self.__set_description(details["descriptions"][self.core.selected_lang])
-                else: self.__set_description(details["descriptions"][details["descriptions"].keys()[0]])
+                else: self.__set_description("Unknown")
 
         else:
             self.profile_id.set_text("")
@@ -226,8 +226,16 @@ class NewProfileWindow(abstract.Window):
         self.btn_ok = self.builder.get_object("btn_ok")
         self.btn_ok.connect("clicked", self.__cb_ok)
 
+        # info box
+        self.info_box = self.builder.get_object("info_box:alig")
+        self.builder.get_object("info_box:eb").modify_bg(gtk.STATE_NORMAL, gtk.gdk.Color("#FFFFC0"))
+        self.builder.get_object("info_box:btn").connect("clicked", self.__cb_info_close)
+        self.info_box_lbl = self.builder.get_object("info_box:lbl")
+
         self.entry_id = self.builder.get_object("entry_id")
-        self.entry_lang = self.builder.get_object("entry_lang")
+        self.cbentry_lang = self.builder.get_object("cbentry_lang")
+        for lang in self.core.langs:
+            self.cbentry_lang.get_model().append([lang])
         self.entry_title = self.builder.get_object("entry_title")
         self.entry_version = self.builder.get_object("entry_version")
         self.entry_description = self.builder.get_object("entry_description")
@@ -235,6 +243,9 @@ class NewProfileWindow(abstract.Window):
         self.cbox_abstract.set_tooltip_text("You can't add abstract profile in tailoring")
 
         self.cb_extends = self.builder.get_object("cb_extends")
+        self.cb_extends.connect("changed", self.__cb_extends_changed)
+        self.cb_extends.set_sensitive(False)
+        self.cb_extends.set_tooltip_text("You can't extend profile in tailoring")
 
         self.profiles_model = gtk.ListStore(str, str)
         self.cb_extends.set_model(self.profiles_model)
@@ -265,12 +276,21 @@ class NewProfileWindow(abstract.Window):
         self.window = self.builder.get_object("new_profile:dialog")
         self.window.connect("delete-event", self.__delete_event)
 
+    def __cb_extends_changed(self, widget):
+        if widget.get_active() == 0: self.info_box.hide()
+        else:
+            self.info_box_lbl.set_text("For all attributes will be set \"overide\" parameter.")
+            self.info_box.show_all()
+
+    def __cb_info_close(self, widget):
+        self.info_box.hide()
+
     def __cb_lang_changed(self, widget):
         selection = self.tw_langs.get_selection( )
         if selection != None: 
             (model, iter) = selection.get_selected( )
             if iter: 
-                self.entry_lang.set_text(model.get_value(iter, 0))
+                self.cbentry_lang.set_text(model.get_value(iter, 0))
                 self.entry_title.set_text(model.get_value(iter, 1))
                 self.entry_description.get_buffer().set_text(model.get_value(iter, 2))
         
@@ -279,7 +299,7 @@ class NewProfileWindow(abstract.Window):
 
         result = None
         for row in self.langs_model:
-            if row[0] == self.entry_lang.get_text():
+            if row[0] == self.cbentry_lang.get_active_text():
                 md = gtk.MessageDialog(self.window, 
                         gtk.DIALOG_MODAL, gtk.MESSAGE_QUESTION,
                         gtk.BUTTONS_YES_NO, "Language \"%s\" already specified.\n\nRewrite stored data ?" % (row[0],))
@@ -291,16 +311,28 @@ class NewProfileWindow(abstract.Window):
                 else: self.langs_model.remove(row.iter)
 
         buffer = self.entry_description.get_buffer()
-        self.langs_model.append([self.entry_lang.get_text(), 
+        self.langs_model.append([self.cbentry_lang.get_active_text(), 
             self.entry_title.get_text(),
             buffer.get_text(buffer.get_start_iter(), buffer.get_end_iter(), False)])
-        self.entry_lang.set_text("")
+
+        # Add lang to combo box model
+        found = False
+        for item in self.cbentry_lang.get_model():
+            if item[0] == self.cbentry_lang.get_active_text(): 
+                found = True
+        if not found: 
+            self.cbentry_lang.get_model().append([self.cbentry_lang.get_active_text()])
+            self.cbentry_lang.set_active_iter(self.cbentry_lang.get_model()[-1].iter)
+            self.core.langs.append(self.cbentry_lang.get_active_text())
+
+        # Clear
+        self.cbentry_lang.set_active(-1)
         self.entry_title.set_text("")
         self.entry_description.get_buffer().set_text("")
 
     def show(self):
         self.window.set_transient_for(self.core.main_window)
-        self.window.show_all()
+        self.window.show()
 
     def __cb_ok(self, widget):
         if self.entry_id.get_text() == "":
