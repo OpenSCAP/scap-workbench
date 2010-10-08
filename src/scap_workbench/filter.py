@@ -354,31 +354,172 @@ class ItemFilter(Renderer):
             return False
 #-------------------------------------------------------------------------------
 
+    def label_to_table(self, name, table, x, x1, y, y1):
+        label = gtk.Label(name)
+        label.set_use_markup(True)
+        table.attach(label, x, x1, y, y1, xoptions=gtk.EXPAND|gtk.FILL, yoptions=gtk.EXPAND|gtk.FILL)
+
+    def add_to_label(self, widget, table, x, x1, y, y1):
+        table.attach(widget, x, x1, y, y1, xoptions=gtk.EXPAND|gtk.FILL, yoptions=gtk.EXPAND|gtk.FILL)
+
+    def fill_comoBox(self, combo, list, active = 0):
+        for item in list:
+            combo.append_text(item)
+            combo.set_active(active)
+
+    def get_active_text(self, combobox):
+        model = combobox.get_model()
+        active = combobox.get_active()
+        if active < 0:
+            return None
+        return model[active][0]
+
     def render_filter(self):
         self.window = gtk.Window(gtk.WINDOW_TOPLEVEL)
         self.window.set_title("User filter")
-        self.window.set_size_request(400, 400)
+        #self.window.set_size_request(325, 240)
         self.window.connect("delete_event", self.delete_event)
+        self.window.set_modal(True)
+        self.window.set_property("resizable", False)
+        
+        alig = gtk.Alignment()
+        alig.set_padding(10, 0, 10, 10)
 
-        btn_filter = gtk.Button("test")
+        box_main = gtk.VBox()
+        alig.add(box_main)
+        
+        #information for filter
+        table = gtk.Table()
+       
+        self.label_to_table("Name filter:", table,  0, 1, 0, 1)
+        self.label_to_table("Search in rule/group:", table,  0, 1, 2, 3)
+        self.label_to_table("Search text in:", table,  0, 1, 3, 4)
+        self.label_to_table("Serch text:", table,  0, 1, 4, 5)
+        self.label_to_table("Selected:", table,  0, 1, 5, 6)
+        self.label_to_table("Result structure:", table,  0, 1, 6, 7)
+        
+        self.name = gtk.Entry()
+        self.name.set_text("None")
+        self.add_to_label(self.name, table, 1, 2, 0, 1)
+        
+        self.searchIn = gtk.combo_box_new_text()
+        self.fill_comoBox(self.searchIn, ["Role/Group", "Role", "Group"] )
+        self.add_to_label(self.searchIn, table, 1, 2, 2, 3)
+        
+        self.searchColumn = gtk.combo_box_new_text()
+        self.fill_comoBox(self.searchColumn, ["ID", "Text"] )
+        self.add_to_label(self.searchColumn, table, 1, 2, 3, 4)
+        
+        self.text = gtk.Entry()
+        self.add_to_label(self.text, table, 1, 2, 4, 5)
+        
+        self.selected = gtk.combo_box_new_text()
+        self.fill_comoBox(self.selected, ["False/True", "False", "True"])
+        self.add_to_label(self.selected, table, 1, 2, 5, 6)
+
+        self.struct = gtk.combo_box_new_text()
+        self.fill_comoBox(self.struct, ["Tree", "List"])
+        self.add_to_label(self.struct, table, 1, 2, 6, 7)
+        
+        box_main.pack_start(table,True,True)
+        
+        
+        #buttons
+        box_btn = gtk.HButtonBox()
+        box_btn.set_layout(gtk.BUTTONBOX_END)
+        btn_filter = gtk.Button("Add filter")
         btn_filter.connect("clicked", self.cb_setFilter)
-        box = gtk.VBox()
-        box.pack_start(btn_filter, False, False)
-        self.window.add(box)
+        box_btn.pack_start(btn_filter)
+        btn_filter = gtk.Button("Cancel")
+        btn_filter.connect("clicked", self.cb_cancel)
+        box_btn.pack_start(btn_filter)
+        box_main.pack_start(box_btn, True, True, 20)
+        
+        self.window.add(alig)
         self.window.show_all()
         return self.window
 
     def cb_setFilter(self, widget):
         
-        filter = {"name": "pokus window",
-                  "description": "popis",
-                  "func": self.search,
-                  "active": True}
+        filter = {"name":          self.name.get_text(),
+                  "description":   "",
+                  "func":           self.filter_func,        # func for metch row in model func(model, iter)
+                  "param":           {},                    # param tu function
+                  "result_tree":    self.get_active_text(self.struct)   # if result shoul be in tree or list
+                  }
+        params = {"searchIn": self.searchIn.get_active(),
+                  "seachrData": self.searchColumn.get_active(),
+                  "selected": self.selected.get_active(),
+                  "text":      self.text.get_text()}
+        filter["param"] = params
         self.add_filter(filter)
+        self.window.destroy()
+
+    def filter_func(self, model, iter, params):
+
+        #search in
+        ROLE_GROUP = 0
+        ROLE = 1
+        GROUP = 2
+
+        #search data
+        ID = 0
+        TEXT = 1
+
+        #selected
+        TRUE_FALSE = 0
+        FALSE = 1
+        TRUE = 2
+
+        #data in model
+        COLUMN_ID       = 0
+        COLUMN_NAME     = 1
+        COLUMN_PICTURE  = 2
+        COLUMN_TEXT     = 3
+        COLUMN_COLOR    = 4
+        COLUMN_SELECTED = 5
+        COLUMN_PARENT   = 6
+        
+        column = [COLUMN_ID,COLUMN_NAME]
+        
+        vys = True
+        
+        # if is role or group
+        if params["searchIn"] == ROLE_GROUP:
+            vys = True
+        else:
+            pattern = re.compile("role",re.IGNORECASE)
+            if pattern.search(model.get_value(iter, COLUMN_TEXT), 0, 4) != None:
+                r_g = True 
+            else:
+                r_g = False
+
+            if params["searchIn"] == ROLE:
+                vys = vys and r_g
+            if params["searchIn"] == GROUP:
+                vys = vys and not r_g
+            
+        if params["text"] <> "":
+            pattern = re.compile(params["text"],re.IGNORECASE)
+            if pattern.search(model.get_value(iter, column[params["seachrData"]])) != None:
+                vys = vys and True 
+            else:
+                vys = vys and False
+
+        if params["selected"] == TRUE_FALSE:
+            return vys
+        elif params["selected"] == FALSE:
+            return vys and (model.get_value(iter, COLUMN_SELECTED) == False)
+        elif params["selected"] == TRUE:
+            return vys and (model.get_value(iter, COLUMN_SELECTED) == True)
+  
+
+    def cb_cancel(self, widget):
         self.window.destroy()
 
     def delete_event(self, widget, event):
         self.window.destroy()
+
 
 class ScanFilter(Renderer):
     
