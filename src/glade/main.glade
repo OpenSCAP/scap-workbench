@@ -341,12 +341,12 @@
                                   </packing>
                                 </child>
                                 <child>
-                                  <object class="GtkLinkButton" id="scan:btn_results">
+                                  <object class="GtkButton" id="scan:btn_results">
                                     <property name="label" translatable="yes">Results</property>
                                     <property name="visible">True</property>
                                     <property name="can_focus">True</property>
                                     <property name="receives_default">True</property>
-                                    <property name="has_tooltip">True</property>
+                                    <property name="image">scan:btn_resutls</property>
                                   </object>
                                   <packing>
                                     <property name="expand">False</property>
@@ -1498,5 +1498,9 @@
   <object class="GtkImage" id="xccdf:btn_validate:img">
     <property name="visible">True</property>
     <property name="stock">gtk-about</property>
+  </object>
+  <object class="GtkImage" id="scan:btn_resutls">
+    <property name="visible">True</property>
+    <property name="stock">gtk-print-preview</property>
   </object>
 </interface>

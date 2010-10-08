@@ -341,12 +341,8 @@ class DHXccdf(DataHandler):
         file_name = self.file_browse("Save XCCDF file", file=self.core.xccdf_file)
         if file_name != "":
             self.core.lib["policy_model"].benchmark.export(file_name)
-            md = gtk.MessageDialog(self.core.main_window, 
-                    gtk.DIALOG_MODAL, gtk.MESSAGE_INFO, 
-                    gtk.BUTTONS_OK, "Benchmark were exported successfuly")
-            md.run()
-            md.destroy()
             logger.debug("Exported benchmark: %s", file_name)
+            self.core.notify("Benchmark has been exported to \"%s\"" % (file_name,), 0)
         return True
 
     def validate(self):
@@ -1015,11 +1011,6 @@ class DHScan(DataHandler):
         file_name = self.file_browse("Save results", file="results.xml")
         if file_name != "":
             files = self.policy.export(self.__result, self.core.lib, "LockDown Test Result", file_name, file_name)
-            #md = gtk.MessageDialog(self.core.main_window, 
-                    #gtk.DIALOG_MODAL, gtk.MESSAGE_INFO, 
-                    #gtk.BUTTONS_OK, "Results were exported successfuly")
-            #md.run()
-            #md.destroy()
             for file in files:
                 logger.debug("Exported: %s", file)
             self.core.notify("Results exported successfuly. You can see them by pushing the \"Results\" button.", 0)

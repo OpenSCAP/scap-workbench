@@ -164,12 +164,6 @@ class MenuButtonXCCDF(abstract.MenuButton):
 
     def __cb_validate(self, widget):
         validate = self.data_model.validate()
-        #md = gtk.MessageDialog(self.core.main_window, 
-                #gtk.DIALOG_MODAL, [gtk.MESSAGE_WARNING, gtk.MESSAGE_INFO, gtk.MESSAGE_ERROR][validate],
-                #gtk.BUTTONS_OK, ["Document is not validate !", "Document is validate", 
-                    #"Validation process failed, check for error in log file."][validate])
-        #md.run()
-        #md.destroy()
         self.core.notify(["Document is not valid !", "Document is valid.", 
             "Validation process failed, check for error in log file."][validate], [1, 0, 2][validate])
 

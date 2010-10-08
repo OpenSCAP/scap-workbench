@@ -40,10 +40,10 @@ logger = logging.getLogger("scap-workbench")
 
 class ScanList(abstract.List):
     
-    def __init__(self, widget, core, progress, filter):
+    def __init__(self, widget, core, filter, data_model):
         self.core = core
         self.filter = filter
-        self.data_model = commands.DHScan(core, progress=progress)
+        self.data_model = data_model
         abstract.List.__init__(self, "gui:scan:scan_list", core, widget=widget)
 
         selection = self.get_TreeView().get_selection()
@@ -53,14 +53,7 @@ class ScanList(abstract.List):
         # actions
         self.add_receiver("gui:btn:menu:scan", "scan", self.__scan)
         self.add_receiver("gui:btn:menu:scan", "cancel", self.__cancel)
-        self.add_receiver("gui:btn:menu:scan", "export", self.__export)
         self.add_receiver("gui:btn:menu:scan:filter", "search", self.__search)
-
-    def __export(self):
-        exported_file = self.data_model.export()
-        #if exported_file: 
-            #self.results_btn.set_uri(exported_file)
-            #self.results_btn.set_sensitive(True)
 
     def __cancel(self):
         self.data_model.cancel()
@@ -84,7 +77,8 @@ class MenuButtonScan(abstract.MenuButton):
         self.body = self.builder.get_object("scan:box")
         self.progress = self.builder.get_object("scan:progress")
         self.filter = filter.Renderer("gui:btn:menu:scan:filter", self.core, self.builder.get_object("scan:box_filter"))
-        self.scanlist = ScanList(self.builder.get_object("scan:treeview"), core=self.core, progress=self.progress, filter = self.filter)
+        self.data_model = commands.DHScan(core, progress=self.progress)
+        self.scanlist = ScanList(self.builder.get_object("scan:treeview"), core=self.core, filter=self.filter, data_model=self.data_model)
         self.filter.expander.cb_changed()
 
         self.builder.get_object("scan:btn_scan").connect("clicked", self.__cb_start)
@@ -92,14 +86,20 @@ class MenuButtonScan(abstract.MenuButton):
         self.builder.get_object("scan:btn_export").connect("clicked", self.__cb_export)
         self.builder.get_object("scan:btn_help").connect("clicked", self.__cb_help)
         self.results_btn = self.builder.get_object("scan:btn_results")
-        self.results_btn.set_relief(gtk.RELIEF_NORMAL)
+        self.results_btn.set_sensitive(False)
 
         # set signals
         self.add_sender(self.id, "scan")
         self.add_sender(self.id, "cancel")
         self.add_sender(self.id, "export")
+        self.add_receiver("gui:btn:menu:scan", "export", self.__export)
 
     #callback function
+    def __export(self):
+        exported_file = self.data_model.export()
+        if exported_file: 
+            self.results_btn.set_sensitive(True)
+
     def __cb_start(self, widget):
         self.emit("scan")
 
