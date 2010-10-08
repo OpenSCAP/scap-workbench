@@ -407,7 +407,7 @@ class ItemFilter(Renderer):
         self.add_to_label(self.searchIn, table, 1, 2, 2, 3)
         
         self.searchColumn = gtk.combo_box_new_text()
-        self.fill_comoBox(self.searchColumn, ["ID", "Text"] )
+        self.fill_comoBox(self.searchColumn, ["Text", "ID"] )
         self.add_to_label(self.searchColumn, table, 1, 2, 3, 4)
         
         self.text = gtk.Entry()
@@ -463,8 +463,8 @@ class ItemFilter(Renderer):
         GROUP = 2
 
         #search data
-        ID = 0
-        TEXT = 1
+        TEXT = 0
+        ID = 1
 
         #selected
         TRUE_FALSE = 0
@@ -480,7 +480,7 @@ class ItemFilter(Renderer):
         COLUMN_SELECTED = 5
         COLUMN_PARENT   = 6
         
-        column = [COLUMN_ID,COLUMN_NAME]
+        column = [COLUMN_NAME, COLUMN_ID]
         
         vys = True
         
@@ -498,14 +498,20 @@ class ItemFilter(Renderer):
                 vys = vys and r_g
             if params["searchIn"] == GROUP:
                 vys = vys and not r_g
-            
+            if not vys:
+                return vys
+        
+        # search text if is set
         if params["text"] <> "":
             pattern = re.compile(params["text"],re.IGNORECASE)
             if pattern.search(model.get_value(iter, column[params["seachrData"]])) != None:
                 vys = vys and True 
             else:
                 vys = vys and False
-
+            if not vys:
+                return vys
+        
+        # if is selected, not selected or bouth
         if params["selected"] == TRUE_FALSE:
             return vys
         elif params["selected"] == FALSE:
@@ -522,7 +528,8 @@ class ItemFilter(Renderer):
 
 
 class ScanFilter(Renderer):
-    
+
+    #data in model
     COLUMN_ID = 0               # id of rule
     COLUMN_RESULT = 1           # Result of scan
     COLUMN_FIX = 2              # fix
@@ -531,14 +538,13 @@ class ScanFilter(Renderer):
     COLUMN_COLOR_TEXT_TITLE = 5 # Color of text description
     COLUMN_COLOR_BACKG = 6      # Color of cell
     COLUMN_COLOR_TEXT_ID = 7    # Color of text ID
-
+        
     def __init__(self, core, builder):
         self.id_filter = 0
         objectBild = builder.get_object("scan:box_filter")
         Renderer.__init__(self, "gui:btn:menu:scan:filter", core, objectBild)
         self.expander.cb_changed()
-#-------------------------------------------------------------------------------
- 
+#-------------------------------------------------------------------------------        
         filter = {"name":           "Pass",
                   "description":    "Select result pass.",
                   "func":           self.search_result,        # func for metch row in model func(model, iter)
@@ -573,29 +579,201 @@ class ScanFilter(Renderer):
         else:
             return False
 #-------------------------------------------------------------------------------
+    def label_to_table(self, name, table, x, x1, y, y1):
+        label = gtk.Label(name)
+        label.set_use_markup(True)
+        table.attach(label, x, x1, y, y1, xoptions=gtk.EXPAND|gtk.FILL, yoptions=gtk.EXPAND|gtk.FILL)
 
+    def add_to_label(self, widget, table, x, x1, y, y1):
+        table.attach(widget, x, x1, y, y1, xoptions=gtk.EXPAND|gtk.FILL, yoptions=gtk.EXPAND|gtk.FILL)
+
+    def fill_comoBox(self, combo, list, active = 0):
+        for item in list:
+            combo.append_text(item)
+            combo.set_active(active)
+            
     def render_filter(self):
         self.window = gtk.Window(gtk.WINDOW_TOPLEVEL)
-        self.window.set_title("User filter Scan")
-        self.window.set_size_request(400, 400)
+        self.window.set_title("User filter")
+        #self.window.set_size_request(325, 240)
         self.window.connect("delete_event", self.delete_event)
+        self.window.set_modal(True)
+        self.window.set_property("resizable", False)
+        
+        alig = gtk.Alignment()
+        alig.set_padding(10, 0, 10, 10)
 
-        btn_filter = gtk.Button("test")
-        btn_filter.connect("clicked", self.cb_setFilter)
+        box_main = gtk.VBox()
+        alig.add(box_main)
+
+        #information for filter
+        table = gtk.Table()
+       
+        self.label_to_table("Name filter:", table,  0, 1, 0, 1)
+        self.label_to_table("Search text in:", table,  0, 1, 1, 2)
+        self.label_to_table("Serch text:", table,  0, 1, 2, 3)
+
         box = gtk.VBox()
-        box.pack_start(btn_filter, False, False)
-        self.window.add(box)
+        label = gtk.Label("Result:")
+        box.pack_start(label, True, True)
+        but = gtk.Button("changed")
+        but.connect("clicked", self.cb_changed)
+        box.pack_start(but, True, False)
+        self.add_to_label(box, table, 0, 1, 3, 12)
+        
+        self.name = gtk.Entry()
+        self.name.set_text("None")
+        self.add_to_label(self.name, table, 1, 2, 0, 1)
+        
+        self.searchColumn = gtk.combo_box_new_text()
+        self.fill_comoBox(self.searchColumn, ["Title", "ID", "Decription"] )
+        self.add_to_label(self.searchColumn, table, 1, 2, 1, 2)
+        
+        self.text = gtk.Entry()
+        self.add_to_label(self.text, table, 1, 2, 2, 3)
+
+        self.res_pass = gtk.CheckButton("PASS")
+        self.res_pass.set_active(True)
+        self.add_to_label(self.res_pass, table, 1, 2, 3, 4)
+        
+        self.res_error = gtk.CheckButton("ERROR")
+        self.res_error.set_active(True)
+        self.add_to_label(self.res_error, table, 1, 2, 4, 5)
+        
+        self.res_fail = gtk.CheckButton("FAIL")
+        self.res_fail.set_active(True)
+        self.add_to_label(self.res_fail, table, 1, 2, 5, 6)
+        
+        self.res_unknown = gtk.CheckButton("UNKNOWN")
+        self.res_unknown.set_active(True)
+        self.add_to_label(self.res_unknown, table, 1, 2, 6, 7)
+
+        self.res_not_app = gtk.CheckButton("NOT APPLICABLE")
+        self.res_not_app.set_active(True)
+        self.add_to_label(self.res_not_app, table, 1, 2, 7, 8)
+        
+        self.res_not_check = gtk.CheckButton("NOT CHECKED")
+        self.res_not_check.set_active(True)
+        self.add_to_label(self.res_not_check, table, 1, 2, 8, 9)
+        
+        self.res_not_select = gtk.CheckButton("NOT SELECTED")
+        self.res_not_select.set_active(True)
+        self.add_to_label(self.res_not_select, table, 1, 2, 9, 10)
+        
+        self.res_info = gtk.CheckButton("INFORMATIONAL")
+        self.res_info.set_active(True)
+        self.add_to_label(self.res_info, table, 1, 2, 10, 11)
+        
+        self.res_fix = gtk.CheckButton("FIXED")
+        self.res_fix.set_active(True)
+        self.add_to_label(self.res_fix, table, 1, 2, 11, 12)
+        
+        
+        box_main.pack_start(table,True,True)
+        #buttons
+        box_btn = gtk.HButtonBox()
+        box_btn.set_layout(gtk.BUTTONBOX_END)
+        btn_filter = gtk.Button("Add filter")
+        btn_filter.connect("clicked", self.cb_setFilter)
+        box_btn.pack_start(btn_filter)
+        btn_filter = gtk.Button("Cancel")
+        btn_filter.connect("clicked", self.cb_cancel)
+        box_btn.pack_start(btn_filter)
+        box_main.pack_start(box_btn, True, True, 20)
+        
+        self.window.add(alig)
         self.window.show_all()
         return self.window
 
+    def cb_changed(self, widget):
+        
+        self.res_pass.set_active(not self.res_pass.get_active())
+        self.res_error.set_active(not self.res_error.get_active())
+        self.res_fail.set_active(not self.res_fail.get_active())
+        self.res_unknown.set_active(not self.res_unknown.get_active())
+        self.res_not_app.set_active(not self.res_not_app.get_active())
+        self.res_not_check.set_active(not self.res_not_check.get_active())
+        self.res_not_select.set_active(not self.res_not_select.get_active())
+        self.res_info.set_active(not self.res_info.get_active())
+        self.res_fix.set_active(not self.res_fix.get_active())
+        
     def cb_setFilter(self, widget):
         
-        filter = {"name": "pokus window",
-                  "description": "popis",
-                  "func": self.search,
-                  "active": True}
+        filter = {"name":          self.name.get_text(),
+                  "description":   "",
+                  "func":           self.filter_func,        # func for metch row in model func(model, iter)
+                  "param":           {},                    # param tu function
+                  "result_tree":    False   # if result shoul be in tree or list
+                  }
+        
+        res = []
+        if not self.res_pass.get_active():
+            res.append("PASS")
+        if not self.res_error.get_active():
+            res.append("ERROR")
+        if not self.res_fail.get_active():
+            res.append("FAIL")
+        if not self.res_unknown.get_active():
+            res.append("UNKNOWN")
+        if not self.res_not_app.get_active():
+            res.append("NOT APPLICABLE")
+        if not self.res_not_check.get_active():
+            res.append("NOT CHECKED")
+        if not self.res_not_select.get_active():
+            res.append("NOT SELECTED")
+        if not self.res_info.get_active():
+            res.append("INFORMATIONAL")
+        if not self.res_fix.get_active():
+            res.append("FIXED")
+
+        params = {"seachrData": self.searchColumn.get_active(),
+                  "text":       self.text.get_text(),
+                  "res":        res}
+
+        filter["param"] = params
         self.add_filter(filter)
         self.window.destroy()
 
+
+
+    def filter_func(self, model, iter, params):
+
+        #search data
+        TITLE = 0
+        ID = 1
+        DESC = 3
+
+        #data in model
+        COLUMN_ID = 0               # id of rule
+        COLUMN_RESULT = 1           # Result of scan
+        COLUMN_FIX = 2              # fix
+        COLUMN_TITLE = 3            # Description of rule
+        COLUMN_DESC = 4             # Description of rule
+        COLUMN_COLOR_TEXT_TITLE = 5 # Color of text description
+        COLUMN_COLOR_BACKG = 6      # Color of cell
+        COLUMN_COLOR_TEXT_ID = 7    # Color of text ID
+        
+        column = [COLUMN_TITLE, COLUMN_ID, COLUMN_DESC]
+        
+        vys = True
+        # search text if is set
+        if params["text"] <> "":
+            pattern = re.compile(params["text"],re.IGNORECASE)
+            if pattern.search(model.get_value(iter, column[params["seachrData"]])) != None:
+                vys = vys and True 
+            else:
+                vys = vys and False
+            if not vys:
+                return vys
+        
+        #type of result
+        if len(params["res"]) > 0:
+            if model.get_value(iter, COLUMN_RESULT) in params["res"]:
+                vys = vys and False
+        return vys
+  
+    def cb_cancel(self, widget):
+        self.window.destroy()
+        
     def delete_event(self, widget, event):
         self.window.destroy()
