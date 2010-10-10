@@ -980,6 +980,7 @@ class DHScan(DataHandler):
 
         step = (100.0/(self.__rules_count or 1.0))/100.0
 
+        logger.debug("[%s/%s] Scanning rule %s" % (int(self.__progress.get_fraction()/step), self.__rules_count, msg.user1str))
         if self.__progress != None:
             gtk.gdk.threads_enter()
             fract = self.__progress.get_fraction()+step

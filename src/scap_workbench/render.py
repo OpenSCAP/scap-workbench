@@ -129,7 +129,7 @@ class MenuButtonXCCDF(abstract.MenuButton):
         self.label_notices.set_text("\n".join(["%s: %s" % (notice[0], notice[1].text) for notice in details["notices"]]) or "None")
         self.label_file_references.set_text("")
         self.label_file_references.set_text("\n".join(details["files"]) or "None")
-        self.label_language.set_text(lang)
+        self.label_language.set_text(lang or "")
         
         # References
         for child in self.box_references.get_children():
