@@ -389,11 +389,11 @@ class List(EventObject):
 
         return vys_branch
 
-    def init_filters(self, filter, filter_model):
+    def init_filters(self, filter, ref_model, filter_model):
         """ init filter for first use or model changed"""
         self.filter_model = filter_model
         filter.init_filter()
-        self.ref_model = ref_filter
+        self.ref_model = ref_model
 
     def filter_add(self, filters):
         """ function add filter on model"""
