@@ -58,9 +58,6 @@ class ScanList(abstract.List):
         self.add_receiver("gui:btn:menu:scan:filter", "filter_del", self.__filter_del)
         self.init_filters(self.filter, self.data_model.model, self.data_model.new_model())
         
-    def __export(self):
-        self.data_model.export()
-
     def __cancel(self):
         self.data_model.cancel()
 
@@ -86,11 +83,13 @@ class MenuButtonScan(abstract.MenuButton):
         abstract.MenuButton.__init__(self, "gui:btn:menu:scan", widget, core)
         self.core = core
 
+        self.progress = self.builder.get_object("scan:progress")
+        self.data_model = commands.DHScan(core, self.progress)
+
         #draw body
         self.body = self.builder.get_object("scan:box")
-        self.progress = self.builder.get_object("scan:progress")
         self.filter = filter.ScanFilter(self.core, self.builder)
-        self.scanlist = ScanList(self.builder.get_object("scan:treeview"), core=self.core, progress=self.progress, filter = self.filter)
+        self.scanlist = ScanList(self.builder.get_object("scan:treeview"), core=self.core, filter=self.filter, data_model=self.data_model)
         self.filter.expander.cb_changed()
 
         self.builder.get_object("scan:btn_scan").connect("clicked", self.__cb_start)

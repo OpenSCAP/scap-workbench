@@ -568,10 +568,10 @@ class DHItemsTree(DataHandler):
 
     def __cb_toggled(self, cell, path, flag):
         
-        map_filter, struct = self.map_filter
+        map_filter, struct = self.map_filter or [None, None]
         model_view = self.treeView.get_model()
         # if is filter in List nothing to change
-        if not struct: return
+        #if not struct: return
         
         if flag:
             # cb for current model
@@ -585,7 +585,7 @@ class DHItemsTree(DataHandler):
                 model = self.ref_model
                 iter = model_view.get_iter(path)
                 path = model_view.get_path(iter)
-                path = map_filter[path]
+                if map_filter: path = map_filter[path]
 
          #for cell in cells:
         if not self.core.lib:
