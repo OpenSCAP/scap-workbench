@@ -348,12 +348,10 @@ class List(EventObject):
         return new_model.append(iter_parent, row)
 
     def match_fiter(self, filters, model, iter):
-        vys = True
+        res = True
         for item in filters:
-            func = item["filtr_info"]["func"]
-            param = item["filtr_info"]["param"]
-            vys = vys and func(model, iter, param)
-        return vys
+            res = res and item.func(model, iter, item.params)
+        return res
 
     def filtering_list(self, model, iter, new_model, filters, n_column):
         """ 
@@ -371,23 +369,23 @@ class List(EventObject):
         """
         Filter data to tree
         """
-        vys_branch = False
+        res_branch = False
 
         while iter:
             iter_self = self.copy_row(model, iter, new_model, iter_parent, n_column)
 
-            vys = self.match_fiter(filters, model, iter)
-            vys_child = self.filtering_tree(model, model.iter_children(iter), new_model, iter_self, filters, n_column)
+            res = self.match_fiter(filters, model, iter)
+            res_child = self.filtering_tree(model, model.iter_children(iter), new_model, iter_self, filters, n_column)
 
-            vys_branch = vys_branch or vys_child  or vys
+            res_branch = res_branch or res_child  or res
 
-            if not (vys_child or vys):
+            if not (res_child or res):
                 new_model.remove(iter_self)
             else:
                 self.map_filter.update({new_model.get_path(iter_self):model.get_path(iter)})
             iter = model.iter_next(iter)
 
-        return vys_branch
+        return res_branch
 
     def init_filters(self, filter, ref_model, filter_model):
         """ init filter for first use or model changed"""
@@ -418,7 +416,7 @@ class List(EventObject):
         # get final struct (tree or list)
         struct = True
         for item in filters:
-            struct = struct and item["filtr_info"]["result_tree"]
+            struct = struct and item.istree
         if struct:
             self.filtering_tree(self.ref_model, iter, self.filter_model, None, filters, n_column)
         else:
@@ -441,19 +439,3 @@ class List(EventObject):
 
         #refilter filters after deleted filter
         return self.filter_add(filters)
-
-        
-class ProgressBar(EventObject):
-
-    def __init__(self, id, core=None):
-
-        self.core = core
-        self.core.register(id, self)
-        self.widget_btn = gtk.ProgressBar()
-        self.widget_btn.show()
-        self.widget = gtk.ToolItem()
-        self.widget.add(self.widget_btn)
-        self.widget.set_is_important(True)
-        self.widget.show()
-
-

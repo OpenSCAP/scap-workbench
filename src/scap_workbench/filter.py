@@ -27,15 +27,23 @@ import abstract
 import logging
 from events import EventObject
 
+import sys, os
+
 logger = logging.getLogger("scap-workbench")
 
 class Filter:
     """Abstract class for defining filters"""
 
-    def __init__(self, name, render):
+    def __init__(self, name, description="", params={}, istree=True, renderer=None, func=None):
+
         self.name = name
+        self.description = ""
+        self.func = func
+        self.params = params
+        self.istree = istree
+        self.renderer = renderer
+        self.model = None
         self.active = False
-        self.render = render
 
         self.__render()
 
@@ -63,52 +71,27 @@ class Filter:
         self.eb = gtk.EventBox()
         self.eb.add(self.box)
         self.eb.set_border_width(2)
-        """
-        self.eb.modify_bg(gtk.STATE_NORMAL, gtk.gdk.color_parse("white"))
-        self.eb.modify_bg(gtk.STATE_ACTIVE, gtk.gdk.color_parse("yellow"))
-        self.eb.connect("enter-notify-event", self.__cb_enter)
-        self.eb.connect("leave-notify-event", self.__cb_leave)
-        self.eb.connect("button-press-event", self.__cb_btn_press)
-        """
         self.eb.set_state(gtk.STATE_SELECTED)
-        self.eb.show_all()
-    
-    """
-    def __cb_enter(self, widget, event):
-        if widget.get_state() == gtk.STATE_NORMAL: widget.set_state(gtk.STATE_ACTIVE)
-
-    def __cb_leave(self, widget, event):
-        if widget.get_state() == gtk.STATE_ACTIVE: widget.set_state(gtk.STATE_NORMAL)
-    """
 
     def __cb_btn_press(self, widget, event):
         if event.button == 1:
             if  widget.get_state() == gtk.STATE_SELECTED: widget.set_state(gtk.STATE_ACTIVE)
             else: widget.set_state(gtk.STATE_SELECTED)
 
-
     def __cb_button(self, widget, event):
-        self.active = not self.active
-        if self.active: 
-            self.eb.hide()
-            stock = gtk.STOCK_APPLY
-            self.render.del_filter(self)
-        else: 
-            self.eb.show()
-            stock = gtk.STOCK_CANCEL
-
-        #pic = self.button.render_icon(stock, size=gtk.ICON_SIZE_MENU, detail=None)
-        #self.button.set_from_pixbuf(pic)
+        if self.renderer: self.renderer.del_filter(self)
+        self.eb.hide()
+        self.active = False
 
     def get_widget(self):
         return self.eb
 
 class Search(EventObject):
 
-    def __init__(self, render):
+    def __init__(self, renderer):
 
-        self.render = render
-        self.render.add_sender(id, "search")
+        self.renderer = renderer
+        self.renderer.add_sender(id, "search")
         self.__render()
 
     def __render(self):
@@ -135,7 +118,7 @@ class Search(EventObject):
         return self.box
 
     def cb_search(self, widget):
-        self.render.emit("search")
+        self.renderer.emit("search")
 
 class Renderer(abstract.MenuButton,EventObject):
 
@@ -175,71 +158,52 @@ class Renderer(abstract.MenuButton,EventObject):
     def get_search_text(self):
         return self.search.entry.get_text()
 
-    def add_filter_to_menu(self, filter_info):
+    def add_filter_to_menu(self, filter):
         """ Function add filter tu popup menu
-            If filter_info == None set own filter and callBack function is render_filter which
-            create window for set own filter. Must def in child.
         """
+        assert filter != None, "Can't add None filter"
         tooltips = gtk.Tooltips()
-        if filter_info != None:
-            menu_items = gtk.MenuItem(filter_info["name"])
-            tooltips.set_tip(menu_items, filter_info["description"])
-            filter_info.update({"active":False})     # if filter is active
-        else:
-            menu_items = gtk.MenuItem("User filter...")
+        menu_item = gtk.MenuItem(filter.name)
+        tooltips.set_tip(menu_item, filter.description)
             
-        menu_items.show()
-        self.menu.append(menu_items)
-        menu_items.connect("activate", self.cb_menu, filter_info)
+        menu_item.show()
+        self.menu.append(menu_item)
+        menu_item.connect("activate", self.__cb_menu, filter)
     
-    def cb_menu(self, widget, filter_info):
+    def __cb_menu(self, widget, filter):
         
-        if filter_info != None:
-            # if filter is activated yet
-            if  filter_info["active"] == False:
-                self.add_filter(filter_info)
-            else:
-                 msg = gtk.MessageDialog()
-                 msg.set_markup("Filter is olready active.")
-                 msg.show()
+        # if filter is activated yet
+        if filter.active == False:
+            self.add_filter(filter)
         else:
-            self.render_filter()
+            self.core.notify("Filter is already active.", 1)
         
-    def render_filter(self):
-        """abstract"""
-        pass
-
     def cb_chooseFilter(self, menu, event):
         if event.type == gtk.gdk.BUTTON_PRESS:
             menu.popup(None, None, None, event.button, event.time)
             return True
         return False
 
-    def add_filter(self, filtr_info):
+    def add_filter(self, filter):
         """ Add filter to list active filter and emit signal filter was added"""
-        filtr_info["active"] = True
-        filter = Filter(filtr_info["name"], self)
+        filter.active = True
         self.expander.get_widget().pack_start(filter.get_widget(), True, True)
-        self.filters.append({   "id":           filter,
-                                "ref_model":    None,                       # model before filtering
-                                "filtr_info":   filtr_info
-                            })
+        filter.get_widget().show_all()
+        self.filters.append(filter)
         self.emit("filter_add")
 
     def del_filter(self, filter):
         """ remove filter from active filters and emit signal deleted"""
-        filter.eb.destroy()
-        for item in self.filters:
-            if item["id"] == filter:
-                item["filtr_info"]["active"] = False
-                self.filters.remove(item)
-        self.emit("filter_del")
+        if filter in self.filters: 
+            self.filters.remove(filter)
+            self.emit("filter_del")
+        else: self.core.notify("Removing not existed filter !", 2)
         
     def init_filter(self):
         """ clean all acive filters"""
-        for item in self.filters:
-            item["filtr_info"]["active"] = False
-            item["id"].eb.destroy()
+        for filter in self.filters:
+            filter.active = False
+            filter.eb.destroy()
         self.filters = []
         
 
@@ -280,22 +244,23 @@ class ExpandBox(abstract.EventObject):
 
         #create button
         hbox = gtk.VBox()
-        hbox.pack_start(self.arrowTop, False, True)        
+        hbox.pack_start(self.arrowTop, False, True)
         hbox.pack_start(self.label, True, True)
         hbox.pack_start(self.arrowBottom, False, True)
         btn = gtk.Button()
         btn.add(hbox)
         rollBox.pack_start(btn, False, True)
         btn.connect("clicked", self.cb_changed)
+        self.frameContent.show_all()
 
     def cb_changed(self, widget=None):
-        logger.debug("Expander switched to %s", self.frameContent.get_property("visible"))
+        logger.debug("Expander switched to %s", not self.frameContent.get_property("visible"))
         if self.frameContent.get_property("visible"):
-            self.frameContent.hide_all()
+            self.frameContent.hide()
             self.arrowTop.set_from_pixbuf(self.pixbufShow)
             self.arrowBottom.set_from_pixbuf(self.pixbufShow)
         else:
-            self.frameContent.show_all()
+            self.frameContent.show()
             self.arrowTop.set_from_pixbuf(self.pixbufHide)
             self.arrowBottom.set_from_pixbuf(self.pixbufHide)
 
@@ -306,171 +271,86 @@ class ItemFilter(Renderer):
     
     def __init__(self, core, builder):
 
+        self.core = core
         self.id_filter = 0
-        objectBild = builder.get_object("tailoring:refines:box_filter")
-        Renderer.__init__(self, "gui:btn:tailoring:refines:filter", core, objectBild)
-        self.expander.cb_changed()
-#-------------------------------------------------------------------------------
- 
-        filter = {"name":           "Select rule List",
-                  "description":    "Select rule end get them to list.",
-                  "func":           self.search_pokus,        # func for metch row in model func(model, iter)
-                  "param":           [],                    # param tu function
-                  "result_tree":    False,               # if result shoul be in tree or list
-                  }
-                  
-        filter1 = {"name":           "Select rule/group with s",
-                  "description":    "Select rule/group end get them to list.",
-                  "func":           self.search_pokus1,        # func for metch row in model func(model, iter)
-                  "param":           [],                    # param tu function
-                  "result_tree":    True,               # if result shoul be in tree or list
-                  }
+        self.builder = builder
+        self.box_filter = self.builder.get_object("tailoring:refines:box_filter")
+        self.user_filter_builder = gtk.Builder()
+        self.user_filter_builder.add_from_file("/usr/share/scap-workbench/filter_tailoring.glade")
+        self.user_filter_window = self.user_filter_builder.get_object("user_filter:dialog")
+        self.user_filter_window.connect("delete-event", self.__cb_cancel)
+        Renderer.__init__(self, "gui:btn:tailoring:refines:filter", core, self.box_filter)
 
-        filter2 = {"name":          "Select rule Tree",
-                  "description":    "Select rule end get them to tree.",
-                  "func":           self.search_pokus,        # func for metch row in model func(model, iter)
-                  "param":           [],                    # param tu function
-                  "result_tree":    True,                       # if result shoul be in tree or list
-                  }
-                  
+        # get objects from glade
+        self.user_filter_id = self.user_filter_builder.get_object("entry_id")
+        self.user_filter_description = self.user_filter_builder.get_object("entry_description")
+        self.user_filter_selected = self.user_filter_builder.get_object("cb_selected")
+        self.user_filter_structure = self.user_filter_builder.get_object("cb_structure")
+        self.user_filter_rule_group = self.user_filter_builder.get_object("search:cb_rule_group")
+        self.user_filter_column = self.user_filter_builder.get_object("search:cb_column")
+        self.user_filter_text = self.user_filter_builder.get_object("search:entry_text")
+        self.info_box = self.user_filter_builder.get_object("info_box")
+
+        self.user_filter_builder.get_object("btn_ok").connect("clicked", self.__cb_add)
+        self.user_filter_builder.get_object("btn_cancel").connect("clicked", self.__cb_cancel)
+
+        # import filters
+        self.importer = Loader(self.core)
+        self.importer.import_filters()
+
+        # fill example filters
+        filter = Filter("Hide groups", "Show all rules in list, hide groups.", istree=False, renderer=self, func=self.__search_func)
+        filter1 = Filter("Show only groups with rules", "Hide all groups that has no rules.", istree=True, renderer=self, func=self.__search_func)
+        filter2 = Filter("Show only selected rules/groups", "Hide all groups and rules that are not selected.", params={"selected": True}, istree=True, renderer=self, func=self.__search_func)
+
         self.add_filter_to_menu(filter)
         self.add_filter_to_menu(filter1)
-        self.add_filter_to_menu(filter2) 
-        self.add_filter_to_menu(None)
+        self.add_filter_to_menu(filter2)
 
-       #test filter
-    def search_pokus(self, model, iter, params):
-        pattern = re.compile("rule",re.IGNORECASE)
-        if pattern.search(model.get_value(iter, 3),0,4) != None:
+        menu_item = gtk.MenuItem("User filter ...")
+        menu_item.show()
+        self.menu.append(menu_item)
+        menu_item.connect("activate", self.__user_filter_new)
+
+    def __search_func(self, model, iter, params):
+        pattern = re.compile("rule", re.IGNORECASE)
+        if pattern.search(model.get_value(iter, 3), 0, 4) != None:
             return True
         else:
             return False
-            
-    def search_pokus1(self, model, iter, params):
-        pattern = re.compile("how to",re.IGNORECASE)
-        if pattern.search(model.get_value(iter, 3)) != None:
-            return True
-        else:
-            return False
-#-------------------------------------------------------------------------------
 
-    def label_to_table(self, name, table, x, x1, y, y1):
-        label = gtk.Label(name)
-        label.set_use_markup(True)
-        table.attach(label, x, x1, y, y1, xoptions=gtk.EXPAND|gtk.FILL, yoptions=gtk.EXPAND|gtk.FILL)
+    def __user_filter_new(self, widget):
+        self.user_filter_window.set_transient_for(self.core.main_window)
+        self.user_filter_window.show_all()
 
-    def add_to_label(self, widget, table, x, x1, y, y1):
-        table.attach(widget, x, x1, y, y1, xoptions=gtk.EXPAND|gtk.FILL, yoptions=gtk.EXPAND|gtk.FILL)
+    def __cb_cancel(self, widget, event=None):
+        self.user_filter_window.hide()
 
-    def fill_comoBox(self, combo, list, active = 0):
-        for item in list:
-            combo.append_text(item)
-            combo.set_active(active)
-
-    def get_active_text(self, combobox):
-        model = combobox.get_model()
-        active = combobox.get_active()
-        if active < 0:
-            return None
-        return model[active][0]
-
-    def render_filter(self):
-        self.window = gtk.Window(gtk.WINDOW_TOPLEVEL)
-        self.window.set_title("User filter")
-        #self.window.set_size_request(325, 240)
-        self.window.connect("delete_event", self.delete_event)
-        self.window.set_modal(True)
-        self.window.set_property("resizable", False)
+    def __cb_add(self, widget):
         
-        alig = gtk.Alignment()
-        alig.set_padding(10, 0, 10, 10)
-
-        box_main = gtk.VBox()
-        alig.add(box_main)
-        
-        #information for filter
-        table = gtk.Table()
-       
-        self.label_to_table("Name filter:", table,  0, 1, 0, 1)
-        self.label_to_table("Search in rule/group:", table,  0, 1, 2, 3)
-        self.label_to_table("Search text in:", table,  0, 1, 3, 4)
-        self.label_to_table("Serch text:", table,  0, 1, 4, 5)
-        self.label_to_table("Selected:", table,  0, 1, 5, 6)
-        self.label_to_table("Result structure:", table,  0, 1, 6, 7)
-        
-        self.name = gtk.Entry()
-        self.name.set_text("None")
-        self.add_to_label(self.name, table, 1, 2, 0, 1)
-        
-        self.searchIn = gtk.combo_box_new_text()
-        self.fill_comoBox(self.searchIn, ["Role/Group", "Role", "Group"] )
-        self.add_to_label(self.searchIn, table, 1, 2, 2, 3)
-        
-        self.searchColumn = gtk.combo_box_new_text()
-        self.fill_comoBox(self.searchColumn, ["Text", "ID"] )
-        self.add_to_label(self.searchColumn, table, 1, 2, 3, 4)
-        
-        self.text = gtk.Entry()
-        self.add_to_label(self.text, table, 1, 2, 4, 5)
-        
-        self.selected = gtk.combo_box_new_text()
-        self.fill_comoBox(self.selected, ["False/True", "False", "True"])
-        self.add_to_label(self.selected, table, 1, 2, 5, 6)
-
-        self.struct = gtk.combo_box_new_text()
-        self.fill_comoBox(self.struct, ["Tree", "List"])
-        self.add_to_label(self.struct, table, 1, 2, 6, 7)
-        
-        box_main.pack_start(table,True,True)
-        
-        
-        #buttons
-        box_btn = gtk.HButtonBox()
-        box_btn.set_layout(gtk.BUTTONBOX_END)
-        btn_filter = gtk.Button("Add filter")
-        btn_filter.connect("clicked", self.cb_setFilter)
-        box_btn.pack_start(btn_filter)
-        btn_filter = gtk.Button("Cancel")
-        btn_filter.connect("clicked", self.cb_cancel)
-        box_btn.pack_start(btn_filter)
-        box_main.pack_start(box_btn, True, True, 20)
-        
-        self.window.add(alig)
-        self.window.show_all()
-        return self.window
-
-    def cb_setFilter(self, widget):
-        
-        filter = {"name":          self.name.get_text(),
-                  "description":   "",
-                  "func":           self.filter_func,        # func for metch row in model func(model, iter)
-                  "param":           {},                    # param tu function
-                  "result_tree":    self.get_active_text(self.struct)   # if result shoul be in tree or list
-                  }
-        params = {"searchIn": self.searchIn.get_active(),
-                  "seachrData": self.searchColumn.get_active(),
-                  "selected": self.selected.get_active(),
-                  "text":      self.text.get_text()}
-        filter["param"] = params
+        params = {"searchIn": self.user_filter_rule_group.get_active(),
+                  "searchData": self.user_filter_column.get_active(),
+                  "selected": self.user_filter_selected.get_active(),
+                  "text":      self.user_filter_text.get_text()}
+        print params
+        filter = Filter(self.user_filter_id.get_text(), self.user_filter_description.get_text(), params, istree=self.user_filter_structure.get_active() is 0, renderer=self)
+        filter.func = self.__filter_func
         self.add_filter(filter)
-        self.window.destroy()
+        self.user_filter_window.hide()
 
-    def filter_func(self, model, iter, params):
+    def __filter_func(self, model, iter, params):
 
         #search in
-        ROLE_GROUP = 0
-        ROLE = 1
+        RULE_GROUP = 0
+        RULE = 1
         GROUP = 2
-
         #search data
         TEXT = 0
         ID = 1
-
         #selected
         TRUE_FALSE = 0
-        FALSE = 1
-        TRUE = 2
-
+        TRUE = 1
+        FALSE = 2
         #data in model
         COLUMN_ID       = 0
         COLUMN_NAME     = 1
@@ -479,52 +359,27 @@ class ItemFilter(Renderer):
         COLUMN_COLOR    = 4
         COLUMN_SELECTED = 5
         COLUMN_PARENT   = 6
-        
         column = [COLUMN_NAME, COLUMN_ID]
         
-        vys = True
-        
-        # if is role or group
-        if params["searchIn"] == ROLE_GROUP:
-            vys = True
-        else:
-            pattern = re.compile("role",re.IGNORECASE)
-            if pattern.search(model.get_value(iter, COLUMN_TEXT), 0, 4) != None:
-                r_g = True 
-            else:
-                r_g = False
+        res = True
+        # if is rule or group
+        if params["searchIn"] != RULE_GROUP:
+            pattern = re.compile("rule",re.IGNORECASE)
+            type = [GROUP, RULE] [pattern.search(model.get_value(iter, COLUMN_TEXT), 0, 4) != None]
 
-            if params["searchIn"] == ROLE:
-                vys = vys and r_g
-            if params["searchIn"] == GROUP:
-                vys = vys and not r_g
-            if not vys:
-                return vys
+            if params["searchIn"] != type:
+                return False
         
         # search text if is set
-        if params["text"] <> "":
+        if params["text"] != "":
             pattern = re.compile(params["text"],re.IGNORECASE)
-            if pattern.search(model.get_value(iter, column[params["seachrData"]])) != None:
-                vys = vys and True 
-            else:
-                vys = vys and False
-            if not vys:
-                return vys
+            if pattern.search(model.get_value(iter, column[params["searchData"]])) == None: 
+                return False
         
-        # if is selected, not selected or bouth
+        # if is selected, not selected or both
         if params["selected"] == TRUE_FALSE:
-            return vys
-        elif params["selected"] == FALSE:
-            return vys and (model.get_value(iter, COLUMN_SELECTED) == False)
-        elif params["selected"] == TRUE:
-            return vys and (model.get_value(iter, COLUMN_SELECTED) == True)
-  
-
-    def cb_cancel(self, widget):
-        self.window.destroy()
-
-    def delete_event(self, widget, event):
-        self.window.destroy()
+            return True
+        else: return (model.get_value(iter, COLUMN_SELECTED) == [0,1,0][params["selected"]])
 
 
 class ScanFilter(Renderer):
@@ -541,58 +396,39 @@ class ScanFilter(Renderer):
         
     def __init__(self, core, builder):
         self.id_filter = 0
-        objectBild = builder.get_object("scan:box_filter")
-        Renderer.__init__(self, "gui:btn:menu:scan:filter", core, objectBild)
-        self.expander.cb_changed()
-#-------------------------------------------------------------------------------        
-        filter = {"name":           "Pass",
-                  "description":    "Select result pass.",
-                  "func":           self.search_result,        # func for metch row in model func(model, iter)
-                  "param":           ["Pass"],                    # param tu function
-                  "result_tree":    False,               # if result shoul be in tree or list
-                  }
-                  
-        filter1 = {"name":          "ERROR",
-                  "description":    "Select result error.",
-                  "func":           self.search_result,        # func for metch row in model func(model, iter)
-                  "param":           ["error"],                    # param tu function
-                  "result_tree":    False,               # if result shoul be in tree or list
-                  }
+        self.builder = builder
+        self.box_filter = self. builder.get_object("scan:box_filter")
+        self.user_filter_builder = gtk.Builder()
+        self.user_filter_builder.add_from_file("/usr/share/scap-workbench/filter_scan.glade")
+        self.user_filter_window = self.user_filter_builder.get_object("user_filter:dialog")
+        self.user_filter_window.connect("delete-event", self.__cb_cancel)
+        Renderer.__init__(self, "gui:btn:menu:scan:filter", core, self.box_filter)
 
-        filter2 = {"name":          "FAIL",
-                  "description":    "Select result fail.",
-                  "func":           self.search_result,        # func for metch row in model func(model, iter)
-                  "param":           ["fail"],                    # param tu function
-                  "result_tree":    False,                       # if result shoul be in tree or list
-                  }
-                  
+        filter = Filter("Only tests with result PASS", "Show tests that has result PASS", params=["Pass"], istree=False, renderer=self, func=self.__filter_func)
+        filter1 = Filter("Only tests with result ERROR", "Show tests that has result ERROR", params=["error"], istree=False, renderer=self, func=self.__filter_func)
+        filter2 = Filter("Only tests with result FAIL", "Show tests that has result FAIL", params=["fail"], istree=False, renderer=self, func=self.__filter_func)
+
         self.add_filter_to_menu(filter)
         self.add_filter_to_menu(filter1)
-        self.add_filter_to_menu(filter2) 
-        self.add_filter_to_menu(None)
+        self.add_filter_to_menu(filter2)
+
+        menu_item = gtk.MenuItem("User filter ...")
+        menu_item.show()
+        self.menu.append(menu_item)
+        menu_item.connect("activate", self.render_filter)
 
     #filter
-    def search_result(self, model, iter, params):
+    def __filter_func(self, model, iter, params):
         pattern = re.compile(params[0],re.IGNORECASE)
         if pattern.search(model.get_value(iter, ScanFilter.COLUMN_RESULT)) != None:
             return True
         else:
             return False
-#-------------------------------------------------------------------------------
-    def label_to_table(self, name, table, x, x1, y, y1):
-        label = gtk.Label(name)
-        label.set_use_markup(True)
-        table.attach(label, x, x1, y, y1, xoptions=gtk.EXPAND|gtk.FILL, yoptions=gtk.EXPAND|gtk.FILL)
 
-    def add_to_label(self, widget, table, x, x1, y, y1):
-        table.attach(widget, x, x1, y, y1, xoptions=gtk.EXPAND|gtk.FILL, yoptions=gtk.EXPAND|gtk.FILL)
-
-    def fill_comoBox(self, combo, list, active = 0):
-        for item in list:
-            combo.append_text(item)
-            combo.set_active(active)
+    def __cb_cancel(self, widget, event=None):
+        self.user_filter_window.hide()
             
-    def render_filter(self):
+    def render_filter(self, widget=None):
         self.window = gtk.Window(gtk.WINDOW_TOPLEVEL)
         self.window.set_title("User filter")
         #self.window.set_size_request(325, 240)
@@ -726,7 +562,7 @@ class ScanFilter(Renderer):
         if not self.res_fix.get_active():
             res.append("FIXED")
 
-        params = {"seachrData": self.searchColumn.get_active(),
+        params = {"searchData": self.searchColumn.get_active(),
                   "text":       self.text.get_text(),
                   "res":        res}
 
@@ -759,7 +595,7 @@ class ScanFilter(Renderer):
         # search text if is set
         if params["text"] <> "":
             pattern = re.compile(params["text"],re.IGNORECASE)
-            if pattern.search(model.get_value(iter, column[params["seachrData"]])) != None:
+            if pattern.search(model.get_value(iter, column[params["searchData"]])) != None:
                 vys = vys and True 
             else:
                 vys = vys and False
@@ -777,3 +613,36 @@ class ScanFilter(Renderer):
         
     def delete_event(self, widget, event):
         self.window.destroy()
+
+
+class Loader:
+
+    def __init__(self, core):
+
+        self.core = core
+
+    def import_filters(self):
+
+        dpath = self.core.filter_directory
+
+        if os.path.isdir(dpath):
+            sys.path.append(dpath)
+        else:
+            logger.error("%s is not a directory. Can't import filter modules !" % (dpath,))
+            return []
+
+        list = []
+
+        for f in os.listdir(os.path.abspath(dpath)):
+            name, ext = os.path.splitext(f)
+            if ext == '.py':
+                 logger.info("Imported filter module: %s" % (name,))
+                 module = __import__(name)
+                 for obj in dir(module):
+                     try:
+                         if issubclass(module.__getattribute__(obj), Filter):
+                             list.append(module.__getattribute__(obj))
+                     except TypeError:
+                         pass
+
+        return list

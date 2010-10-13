@@ -42,7 +42,7 @@ logger = logging.getLogger("OSCAPEditor")
 
 class ItemList(abstract.List):
     
-    def __init__(self, widget, core, progress=None, filter = None):
+    def __init__(self, widget, core, progress=None, filter=None):
         self.core = core
         self.filter = filter
         self.data_model = commands.DHItemsTree(core, progress)
@@ -81,8 +81,6 @@ class ItemList(abstract.List):
     def __filter_del(self):
         self.data_model.map_filter = self.filter_del(self.filter.filters,[4, 5, 6])
         self.get_TreeView().get_model().foreach(self.set_selected, (self.core.selected_item, self.get_TreeView()))
-
-
 
     def cb_item_changed(self, widget, treeView):
 
@@ -189,7 +187,7 @@ class ItemDetails(EventObject):
             label.set_line_wrap_mode(pango.WRAP_WORD) 
             label.set_alignment(0,0)
             label.connect("size-allocate", render.label_size_allocate)
-            hbox.show_all()
+            hbox.show()
             self.refBox.pack_start(hbox, True, True)
 
         if "fixtexts" in details: fixes.extend(details["fixtexts"])
@@ -447,6 +445,7 @@ class MenuButtonTailoring(abstract.MenuButton):
         self.filter = filter.ItemFilter(self.core, self.builder)
         self.rules_list = ItemList(self.builder.get_object("tailoring:refines:tw_items"), self.core, self.progress, self.filter)
         self.values = ValuesList(self.builder.get_object("tailoring:refines:tw_values"), self.core)
+        self.filter.expander.cb_changed()
 
         # set signals
         self.add_sender(self.id, "update")

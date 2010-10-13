@@ -113,6 +113,7 @@ class SWBCore:
         self.selected_lang      = ""
         self.langs              = []
         self.xcccdf_file        = None
+        self.filter_directory   = "/usr/share/scap-workbench/filters"
 
         # Info Box
         self.info_box = self.builder.get_object("info_box")
@@ -158,8 +159,9 @@ class SWBCore:
         if benchmark.lang == None:
             self.notify("XCCDF Benchmark: No language specified.", 2)
 
-    def notify(self, text, lvl=0):
-        self.info_box.pack_start(Notification(text, lvl).widget)
+    def notify(self, text, lvl=0, info_box=None):
+        if info_box: info_box.pack_start(Notification(text, lvl).widget)
+        else: self.info_box.pack_start(Notification(text, lvl).widget)
 
     def set_sender(self, signal, sender):
         self.eventHandler.set_sender(signal, sender)

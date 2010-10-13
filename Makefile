@@ -29,10 +29,12 @@ install:
 	test -d $(DATADIR)/$(PKG) || $(INSTALL) $(MODE_DIR) -d $(DATADIR)/$(PKG)
 	test -d $(PYTHON_LIB) || $(INSTALL) $(MODE_DIR) -d $(PYTHON_LIB)
 	test -d $(PYTHON_LIB_PKG) || $(INSTALL) $(MODE_DIR) -d $(PYTHON_LIB_PKG)
+	test -d $(DATADIR)/$(PKG)/filters || $(INSTALL) $(MODE_DIR) -d $(DATADIR)/$(PKG)/filters
 	$(INSTALL) $(MODE_EXEC) src/bin/$(PKG) $(BINDIR)/$(PKG)
 	$(INSTALL) $(MODE_REG) src/$(WRK_PKG)/*.py $(PYTHON_LIB_PKG)
 	$(INSTALL) $(MODE_REG) src/etc/logger.conf $(SYSCONFDIR)/$(PKG)/logger.conf
 	$(INSTALL) $(MODE_REG) src/glade/*.glade $(DATADIR)/$(PKG)
+	$(INSTALL) $(MODE_REG) src/$(WRK_PKG)/filters/*.py $(DATADIR)/$(PKG)/filters
 
 archive: clean
 	@rm -rf $(PKG)-$(VERSION).tar.bz2
