@@ -259,18 +259,15 @@ class List(EventObject):
 
     def __match_func(self, model, iter, data):
         """ search pattern in column of model"""
-        column, key = data # data is a tuple containing column number, key
+        column, key = data # data is a tuple containing column number and key
         pattern = re.compile(key,re.IGNORECASE)
-        if pattern.search(model.get_value(iter, column)) != None:
-            return True
-        else:
-            return False
+        return pattern.search(model.get_value(iter, column)) != None
 
     def search_branch(self, model, iter, iter_start, data):
         """ Search data in model from iter next. Search terminates when a row is found. 
             @param model is gtk.treeModel
             @param iter is start position
-            @param data is a tuple containing column number, key
+            @param data is a tuple containing column number and key
             @return iter or None
         """
         while iter:
@@ -284,6 +281,7 @@ class List(EventObject):
             result = self.search_branch(model, model.iter_children(iter), iter_start, data)
             if result: 
                 return result
+
             iter = model.iter_next(iter)
         return None
 
@@ -349,7 +347,12 @@ class List(EventObject):
     def match_fiter(self, filters, model, iter):
         res = True
         for item in filters:
-            res = res and item.func(model, iter, item.params)
+            try:
+                res = res and item.func(model, iter, item.params)
+            except Exception, e:
+                #self.core.notify("Can't filter items: %s" % (e,), 3)
+                logger.error("Can't filter items: %s" % (e,))
+
         return res
 
     def filtering_list(self, model, iter, new_model, filters, n_column):

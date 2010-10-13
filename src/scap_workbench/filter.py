@@ -33,7 +33,7 @@ logger = logging.getLogger("scap-workbench")
 class Filter:
     """Abstract class for defining filters"""
 
-    def __init__(self, name, description="", params={}, istree=True, renderer=None, func=None):
+    def __init__(self, name="", description="", params={}, istree=True, renderer=None, func=None):
 
         self.name = name
         self.description = ""
@@ -43,43 +43,41 @@ class Filter:
         self.renderer = renderer
         self.model = None
         self.active = False
+        self.fg_color = "#000000"
+        self.bg_color = "#FFFFFF"
 
-        self.__render()
-
-    def __render(self):
+    def render(self):
         self.box = gtk.HBox()
         label = gtk.Label(self.name)
         label.set_justify(gtk.JUSTIFY_LEFT)
+        label.modify_fg(gtk.STATE_NORMAL, gtk.gdk.Color(self.fg_color))
 
         alig = gtk.Alignment(0.0, 0.0, 1.0, 1.0)
         alig.set_padding(5, 5, 10, 5)
         alig.add(label)
         self.box.pack_start(alig, True, True)
 
-        self.button = gtk.Image()
-        pic = self.button.render_icon(gtk.STOCK_CANCEL, size=gtk.ICON_SIZE_MENU, detail=None)
-        self.button.set_from_pixbuf(pic)
+        self.button = gtk.Button("x")
+        self.button.set_relief(gtk.RELIEF_NONE)
+        self.button.set_tooltip_text("Remove this filter")
+        self.button.connect("clicked", self.__cb_button)
         alig = gtk.Alignment(0.0, 0.0, 1.0, 1.0)
-        alig.set_padding(5, 5, 10, 5)
+        alig.set_padding(0, 0, 10, 0)
         alig.add(self.button)
         eb = gtk.EventBox()
-        eb.connect("button-press-event", self.__cb_button)
         eb.add(alig)
+        eb.modify_bg(gtk.STATE_NORMAL, gtk.gdk.Color(self.bg_color))
         self.box.pack_end(eb, False, False)
 
         self.eb = gtk.EventBox()
         self.eb.add(self.box)
         self.eb.set_border_width(2)
-        self.eb.set_state(gtk.STATE_SELECTED)
+        self.eb.modify_bg(gtk.STATE_NORMAL, gtk.gdk.Color(self.bg_color))
+        self.eb.set_tooltip_text(self.description)
+        self.eb.show_all()
 
-    def __cb_btn_press(self, widget, event):
-        if event.button == 1:
-            if  widget.get_state() == gtk.STATE_SELECTED: widget.set_state(gtk.STATE_ACTIVE)
-            else: widget.set_state(gtk.STATE_SELECTED)
-
-    def __cb_button(self, widget, event):
+    def __cb_button(self, widget):
         if self.renderer: self.renderer.del_filter(self)
-        self.eb.hide()
         self.active = False
 
     def get_widget(self):
@@ -97,6 +95,7 @@ class Search(EventObject):
         self.box = gtk.HBox()
 
         self.entry = gtk.Entry()
+        self.entry.connect("key-press-event", self.__cb_entry_btn)
         alig = gtk.Alignment(0.0, 0.0, 1.0, 1.0)
         alig.set_padding(5, 5, 10, 5)
         alig.add(self.entry)
@@ -105,7 +104,7 @@ class Search(EventObject):
         self.button = gtk.Button()
         self.button.set_relief(gtk.RELIEF_NONE)
         self.button.set_label("Search")
-        self.button.connect("clicked", self.cb_search)
+        self.button.connect("clicked", self.__cb_search)
         alig = gtk.Alignment(0.0, 0.0, 1.0, 1.0)
         alig.set_padding(5, 5, 10, 5)
         alig.add(self.button)
@@ -113,11 +112,15 @@ class Search(EventObject):
 
         self.box.show_all()
 
+    def __cb_entry_btn(self, widget, event):
+        if gtk.gdk.keyval_name(event.keyval) == "Return":
+            self.__cb_search()
+
+    def __cb_search(self, widget=None):
+        self.renderer.emit("search")
+
     def get_widget(self):
         return self.box
-
-    def cb_search(self, widget):
-        self.renderer.emit("search")
 
 class Renderer(abstract.MenuButton,EventObject):
 
@@ -140,6 +143,7 @@ class Renderer(abstract.MenuButton,EventObject):
         filter_box = self.expander.get_widget()
         alig_filters = self.add_frame(filter_box, "Search")
         self.search = Search(self)
+        self.expander.focus_widget = self.search.entry
         self.expander.get_widget().pack_start(self.search.get_widget(), True, True)
 
         #filter
@@ -150,25 +154,10 @@ class Renderer(abstract.MenuButton,EventObject):
         button = gtk.Button()
         button.set_relief(gtk.RELIEF_NONE)
         button.set_label("Add filter")
-        button.connect_object("event", self.cb_chooseFilter, self.menu)
+        button.connect_object("event", self.__cb_show_menu, self.menu)
         filter_box.pack_end(button, False, True)
         box.show_all()
 
-    def get_search_text(self):
-        return self.search.entry.get_text()
-
-    def add_filter_to_menu(self, filter):
-        """ Function add filter tu popup menu
-        """
-        assert filter != None, "Can't add None filter"
-        tooltips = gtk.Tooltips()
-        menu_item = gtk.MenuItem(filter.name)
-        tooltips.set_tip(menu_item, filter.description)
-            
-        menu_item.show()
-        self.menu.append(menu_item)
-        menu_item.connect("activate", self.__cb_menu, filter)
-    
     def __cb_menu(self, widget, filter):
         
         # if filter is activated yet
@@ -177,17 +166,31 @@ class Renderer(abstract.MenuButton,EventObject):
         else:
             self.core.notify("Filter is already active.", 1)
         
-    def cb_chooseFilter(self, menu, event):
+    def __cb_show_menu(self, menu, event):
         if event.type == gtk.gdk.BUTTON_PRESS:
             menu.popup(None, None, None, event.button, event.time)
             return True
         return False
 
+    def get_search_text(self):
+        return self.search.entry.get_text()
+
+    def add_filter_to_menu(self, filter):
+        """ Function add filter tu popup menu
+        """
+        assert filter != None, "Can't add None filter"
+        menu_item = gtk.MenuItem(filter.name)
+        menu_item.set_tooltip_text(filter.description or "")
+            
+        menu_item.show()
+        self.menu.append(menu_item)
+        menu_item.connect("activate", self.__cb_menu, filter)
+    
     def add_filter(self, filter):
         """ Add filter to list active filter and emit signal filter was added"""
         filter.active = True
+        filter.render()
         self.expander.get_widget().pack_start(filter.get_widget(), True, True)
-        filter.get_widget().show_all()
         self.filters.append(filter)
         self.emit("filter_add")
 
@@ -195,11 +198,13 @@ class Renderer(abstract.MenuButton,EventObject):
         """ remove filter from active filters and emit signal deleted"""
         if filter in self.filters: 
             self.filters.remove(filter)
+            filter.get_widget().destroy()
             self.emit("filter_del")
         else: self.core.notify("Removing not existed filter !", 2)
         
     def init_filter(self):
         """ clean all acive filters"""
+        return
         for filter in self.filters:
             filter.active = False
             filter.eb.destroy()
@@ -218,6 +223,7 @@ class ExpandBox(abstract.EventObject):
         @param show If ExpanBox should be hidden/showed False/True
         """
         self.core = core
+        self.focus_widget = None
         
         # body for expandBox
         rollBox = gtk.HBox()
@@ -262,6 +268,10 @@ class ExpandBox(abstract.EventObject):
             self.frameContent.show()
             self.arrowTop.set_from_pixbuf(self.pixbufHide)
             self.arrowBottom.set_from_pixbuf(self.pixbufHide)
+            try:
+                if self.focus_widget: self.focus_widget.grab_focus()
+            except Exception, e:
+                logger.warning("Couldn't grab focus: %s" %(e,))
 
     def get_widget(self):
         return self.frameContent
@@ -295,28 +305,15 @@ class ItemFilter(Renderer):
 
         # import filters
         self.importer = Loader(self.core)
-        self.importer.import_filters()
-
-        # fill example filters
-        filter = Filter("Hide groups", "Show all rules in list, hide groups.", istree=False, renderer=self, func=self.__search_func)
-        filter1 = Filter("Show only groups with rules", "Hide all groups that has no rules.", istree=True, renderer=self, func=self.__search_func)
-        filter2 = Filter("Show only selected rules/groups", "Hide all groups and rules that are not selected.", params={"selected": True}, istree=True, renderer=self, func=self.__search_func)
-
-        self.add_filter_to_menu(filter)
-        self.add_filter_to_menu(filter1)
-        self.add_filter_to_menu(filter2)
+        filters = self.importer.import_filters()
+        for filter in filters:
+            if filter.TYPE == self.id: self.add_filter_to_menu(filter(self))
 
         menu_item = gtk.MenuItem("User filter ...")
+        menu_item.set_tooltip_text("Specify new filter by list parameters")
         menu_item.show()
         self.menu.append(menu_item)
         menu_item.connect("activate", self.__user_filter_new)
-
-    def __search_func(self, model, iter, params):
-        pattern = re.compile("rule", re.IGNORECASE)
-        if pattern.search(model.get_value(iter, 3), 0, 4) != None:
-            return True
-        else:
-            return False
 
     def __user_filter_new(self, widget):
         self.user_filter_window.set_transient_for(self.core.main_window)
@@ -421,13 +418,11 @@ class ScanFilter(Renderer):
         self.user_filter_builder.get_object("btn_ok").connect("clicked", self.__cb_add)
         self.user_filter_builder.get_object("btn_cancel").connect("clicked", self.__cb_cancel)
 
-        filter = Filter("Only tests with result PASS", "Show tests that has result PASS", params=["Pass"], istree=False, renderer=self, func=self.__filter_func)
-        filter1 = Filter("Only tests with result ERROR", "Show tests that has result ERROR", params=["error"], istree=False, renderer=self, func=self.__filter_func)
-        filter2 = Filter("Only tests with result FAIL", "Show tests that has result FAIL", params=["fail"], istree=False, renderer=self, func=self.__filter_func)
-
-        self.add_filter_to_menu(filter)
-        self.add_filter_to_menu(filter1)
-        self.add_filter_to_menu(filter2)
+        # import filters
+        self.importer = Loader(self.core)
+        filters = self.importer.import_filters()
+        for filter in filters:
+            if filter.TYPE == self.id: self.add_filter_to_menu(filter(self))
 
         menu_item = gtk.MenuItem("User filter ...")
         menu_item.show()
@@ -452,13 +447,6 @@ class ScanFilter(Renderer):
 
     def __cb_cancel(self, widget, event=None):
         self.user_filter_window.hide()
-
-    def __search_func(self, model, iter, params):
-        pattern = re.compile(params[0],re.IGNORECASE)
-        if pattern.search(model.get_value(iter, ScanFilter.COLUMN_RESULT)) != None:
-            return True
-        else:
-            return False
 
     def __user_filter_new(self, widget):
         self.user_filter_window.set_transient_for(self.core.main_window)

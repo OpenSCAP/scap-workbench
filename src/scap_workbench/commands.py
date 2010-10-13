@@ -45,7 +45,6 @@ class DataHandler:
         library => openscap library"""
 
         self.core = core
-        self.selected_item = None
 
     def parse_value(self, value):
 
@@ -151,7 +150,7 @@ class DataHandler:
         if not self.core.lib:
             logger.error("Library not initialized or XCCDF file not specified")
             return None
-        item = self.core.lib["policy_model"].benchmark.item(id or self.selected_item)
+        item = self.core.lib["policy_model"].benchmark.item(id or self.core.selected_item)
         if item != None:
             values = {
                     "id":               item.id,
@@ -396,8 +395,6 @@ class DHValues(DataHandler):
 
     def fill(self, item=None):
 
-        # !!!!
-        self.selected_item      = self.core.selected_item
         if not self.core.lib:
             logger.error("Library not initialized or XCCDF file not specified")
             return None
@@ -408,16 +405,16 @@ class DHValues(DataHandler):
         """
         if item == None:
             self.model.clear()
-            if self.selected_item != None:
-                item = self.core.lib["policy_model"].benchmark.get_item(self.selected_item)
+            if self.core.selected_item != None:
+                item = self.core.lib["policy_model"].benchmark.get_item(self.core.selected_item)
                 if item == None: 
-                    logger.error("XCCDF Item \"%s\" does not exists. Can't fill data", self.selected_item)
-                    raise Error, "XCCDF Item \"%s\" does not exists. Can't fill data", self.selected_item
+                    logger.error("XCCDF Item \"%s\" does not exists. Can't fill data", self.core.selected_item)
+                    raise Error, "XCCDF Item \"%s\" does not exists. Can't fill data", self.core.selected_item
             else: return
         
         # Append a couple of rows.
-        item = self.core.lib["policy_model"].benchmark.get_item(self.selected_item)
-        values = self.get_item_values(self.selected_item)
+        item = self.core.lib["policy_model"].benchmark.get_item(self.core.selected_item)
+        values = self.get_item_values(self.core.selected_item)
         color = ["gray", "black"][self.get_selected(item)]
         for value in values:
             lang = value["lang"]
@@ -486,7 +483,6 @@ class DHItemsTree(DataHandler):
     def render(self, treeView):
         """Make a model ListStore of Dependencies object"""
 
-        self.lock = threading.Lock()
         self.treeView = treeView
         
         # priperin model for view and filtering
@@ -531,8 +527,7 @@ class DHItemsTree(DataHandler):
                                                         sensitive=DHItemsTree.COLUMN_PARENT,
                                                         activatable=DHItemsTree.COLUMN_PARENT)
         #cb call for filter_model and ref_model
-        render.connect('toggled', self.__cb_toggled, True)
-        render.connect('toggled', self.__cb_toggled, False)
+        render.connect('toggled', self.__cb_toggled)
         
         column.set_resizable(True)
         treeView.append_column(column)
@@ -540,6 +535,11 @@ class DHItemsTree(DataHandler):
         treeView.set_enable_search(False)
 
     def __set_sensitive(self, policy, child, model, pselected):
+        """Recursive function init-called from __cb_toggled. Function iterate throught
+        all children and check change the foreground color and sensitivity by value
+        of pselected attribute. This should give better experience to users when all
+        children of unselected group are insensitive and gray colored. Function will
+        alter policy selectors when parent group is (de)selected."""
 
         benchmark = policy.model.benchmark
         iter = model[child.path].iterchildren()
@@ -549,7 +549,9 @@ class DHItemsTree(DataHandler):
                 model[child.path][DHItemsTree.COLUMN_PARENT] = pselected
                 model[child.path][DHItemsTree.COLUMN_COLOR] = ["gray", None][model[child.path][DHItemsTree.COLUMN_SELECTED] and pselected]
 
-                # Alter selector
+                """Alter the policy. All underneath rules/groups should 
+                be deselected when parent group is deselected.
+                """
                 if benchmark.item(model[child.path][DHItemsTree.COLUMN_ID]).type == openscap.OSCAP.XCCDF_RULE:
                     select = policy.get_select_by_id(model[child.path][DHItemsTree.COLUMN_ID])
                     if select == None:
@@ -560,42 +562,51 @@ class DHItemsTree(DataHandler):
                     else:
                         select.selected = (model[child.path][DHItemsTree.COLUMN_SELECTED] and pselected)
 
+                """Recursive call for all children
+                """
                 self.__set_sensitive(policy, child, model, pselected and model[child.path][DHItemsTree.COLUMN_SELECTED])
             except StopIteration:
                 break
 
 
-    def __cb_toggled(self, cell, path, flag):
+    def __cb_toggled(self, cell, path, model=None):
+        """Function is called from GTK when checkbox of treeView item is toggled. 
+        Function will alter present and previous models (if filters are applied) and
+        change the selection of rule/group in policy. At the end is called __set_sensitive
+        function for all childs for better user experience with altering the rule/group model"""
 
-        model_view = self.treeView.get_model()
-
-        if flag:
-            # cb for current model
-            model = model_view
-        else:
-            map_filter, struct = self.map_filter or [None, None]
-
-            # if current model is filter
-            if self.ref_model == model_view:
-                return
-            else:
-                # filter is using must change ref model
-                model = self.ref_model
-                iter = model_view.get_iter(path)
-                path = model_view.get_path(iter)
-                if map_filter: path = map_filter[path]
-
-         #for cell in cells:
+        """Check if library is initialized, 
+        return otherwise"""
         if not self.core.lib:
             logger.error("Library not initialized or XCCDF file not specified")
             return None
+
+        """model is alternative attribute for previous
+        model if filters were applied"""
+        if not model: 
+            model = self.treeView.get_model()
+
+            """If there is a reference model and filters are applied
+            do this for present  model and call it again for previous model"""
+            if self.ref_model != model:
+                map_filter, struct = self.map_filter or [None, None]
+                iter = model.get_iter(path)
+                alt_path = model.get_path(iter)
+                if map_filter: alt_path = map_filter[alt_path]
+                self.__cb_toggled(cell, alt_path, self.ref_model)
+
         model[path][DHItemsTree.COLUMN_SELECTED] = not model[path][DHItemsTree.COLUMN_SELECTED]
         model[path][DHItemsTree.COLUMN_COLOR] = ["gray", None][model[path][DHItemsTree.COLUMN_SELECTED]]
 
+        """OpenSCAP library block:
+           1) Get selected policy and raise exception if there is no policy - how could this happened ?
+           2) Get selector by ID from selected item in treeView
+           3) If there is no selector create one and set up by attributes from treeView
+           """
         policy = self.core.lib["policy_model"].get_policy_by_id(self.core.selected_profile)
-        if policy == None: raise Exception, "Policy %s does not exist" % (self.core.selected_profile,)
+        if policy == None: 
+            raise Exception, "Policy %s does not exist" % (self.core.selected_profile,)
 
-        # Get selector from policy
         select = policy.get_select_by_id(model[path][DHItemsTree.COLUMN_ID])
         if select == None:
             newselect = openscap.xccdf.select()
@@ -605,20 +616,19 @@ class DHItemsTree(DataHandler):
         else:
             select.selected = model[path][DHItemsTree.COLUMN_SELECTED]
 
+        """This could be a group and we need set the sensitivity
+        for all childs."""
         self.__set_sensitive(policy, model[path], model, model[path][DHItemsTree.COLUMN_SELECTED])
 
     def __recursive_fill(self, item=None, parent=None, pselected=True):
-
-        self.selected_item      = self.core.selected_item
-        if not self.core.lib:
-            logger.error("Library not initialized or XCCDF file not specified")
-            return None
+        """Function to fill the treeModel. Recursive call through benchmark items
+        for constructing the tree structure. Select attribute is from selected policy (profile).
+        See profiles."""
 
         """This is recusive call (item is not None) so let's get type of 
         item and add it to model. If the item is Group continue more deep with
         recursion to get all items to the tree"""
         color = None
-
         if self.__progress != None:
             gtk.gdk.threads_enter()
             value = self.__progress.get_fraction()+self.__step
@@ -657,7 +667,8 @@ class DHItemsTree(DataHandler):
             raise Exception, "Can't get data to fill. Expected XCCDF Item (got %s)" % (item,)
 
     def __item_count(self, item):
-
+        """Recursive function returning count of children.
+        if item is RULE return 0"""
         number = 0
         if item.type == openscap.OSCAP.XCCDF_GROUP or item.to_item().type == openscap.OSCAP.XCCDF_BENCHMARK:
             for child in item.content:
@@ -668,12 +679,10 @@ class DHItemsTree(DataHandler):
 
     @threadSave
     def fill(self, item=None, parent=None):
-
+        """Thread save function to fill the treeView."""
         if not self.core.lib:
             logger.error("Library not initialized or XCCDF file not specified")
             return None
-
-        self.selected_item      = self.core.selected_item
 
         """we don't know item so it's first call and we need to clear
         the model, get the item from benchmark and continue recursively
@@ -686,7 +695,6 @@ class DHItemsTree(DataHandler):
             self.__total = self.__item_count(self.core.lib["policy_model"].benchmark)
         self.__step = (100.0/(self.__total or 1.0))/100.0
 
-        self.lock.acquire()
         try:
             gtk.gdk.threads_enter()
             self.model.clear()
@@ -710,7 +718,6 @@ class DHItemsTree(DataHandler):
                 self.__progress.set_fraction(1.0)
                 self.__progress.hide()
                 gtk.gdk.threads_leave()
-            self.lock.release()
 
         return True
 
