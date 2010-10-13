@@ -9,7 +9,7 @@ Name: scap-workbench
 URL: https://fedorahosted.org/scap-workbench/
 Version: 0.0.1
 Release: 1%{?dist}
-License: GPLv2+
+License: GPLv3
 Group: System Environment/Base
 Source0: https://fedorahosted.org/releases/s/c/scap-workbench/%{name}-%{version}.tar.bz2
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}
