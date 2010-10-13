@@ -36,6 +36,7 @@ import filter
 import render
 
 from htmltextview import HtmlTextView
+from threads import thread as threadSave
 
 logger = logging.getLogger("OSCAPEditor")
 
@@ -58,7 +59,7 @@ class ItemList(abstract.List):
         self.add_receiver("gui:btn:tailoring:refines:filter", "filter_add", self.__filter_add)
         self.add_receiver("gui:btn:tailoring:refines:filter", "filter_del", self.__filter_del)
 
-        selection.connect("changed", self.cb_item_changed, self.get_TreeView())
+        selection.connect("changed", self.__cb_item_changed, self.get_TreeView())
         self.add_sender(self.id, "item_changed")
 
     def __update(self):
@@ -81,8 +82,13 @@ class ItemList(abstract.List):
         self.data_model.map_filter = self.filter_del(self.filter.filters,[4, 5, 6])
         self.get_TreeView().get_model().foreach(self.set_selected, (self.core.selected_item, self.get_TreeView()))
 
-    def cb_item_changed(self, widget, treeView):
+    @threadSave
+    def __cb_item_changed(self, widget, treeView):
+        """Make all changes in application in separate threads: workaround for annoying
+        blinking when redrawing treeView
+        """
 
+        gtk.gdk.threads_enter()
         selection = treeView.get_selection( )
         if selection != None: 
             (model, iter) = selection.get_selected( )
@@ -90,6 +96,7 @@ class ItemList(abstract.List):
                 self.core.selected_item = model.get_value(iter, 0)
                 self.emit("update")
         treeView.columns_autosize()
+        gtk.gdk.threads_leave()
 
 
 class ValuesList(abstract.List):
@@ -105,12 +112,12 @@ class ValuesList(abstract.List):
 
         # actions
         self.add_receiver("gui:tailoring:refines:item_list", "update", self.__update)
-        selection.connect("changed", self.cb_item_changed, self.get_TreeView())
+        selection.connect("changed", self.__cb_item_changed, self.get_TreeView())
 
     def __update(self):
         self.data_model.fill()
 
-    def cb_item_changed(self, widget, treeView):
+    def __cb_item_changed(self, widget, treeView):
 
         selection = treeView.get_selection( )
         if selection != None: 

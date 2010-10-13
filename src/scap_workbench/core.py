@@ -21,9 +21,10 @@
 #      Vladimir Oberreiter  <xoberr01@stud.fit.vutbr.cz>
 
 import logging, logging.config
-import sys, gtk, gobject, threading, time
-from events import EventObject, EventHandler
+import sys, gtk, gobject, time
+from events import EventHandler
 
+from threads import thread
 import render #TODO
 
 LOGGER_CONFIG_FILE='/etc/scap-workbench/logger.conf'
@@ -38,13 +39,6 @@ try:
 except Exception as ex:
     print ex
     openscap=None
-
-def thread(func):
-    def callback(self, *args):
-        handler = ThreadHandler(func, self, *args)
-        logger.debug("Running thread handler \"%s:%s\"", func, args)
-        handler.start()
-    return callback
 
 class Notification:
 
@@ -229,29 +223,3 @@ class Wizard:
         if self.__active == 0:
             widget.set_sensitive(False)
         self.__core.get_item(self.__list[self.__active]).set_active(True)
-
-
-class ThreadHandler(threading.Thread):
-    """
-    """
-    
-    def __init__(self, func, obj, *args):
-        """ Initializing variables """
-        
-        self.running = False
-        self.__func = func
-        self.args = args
-        self.obj = obj
-
-        threading.Thread.__init__(self)
-        self.__stopthread = threading.Event()
- 
-    def __call__(self):
-        self.start()
-
-    def run(self):
-        """ Run method, this is the code that runs while thread is alive """
-
-        # Run the function
-        self.__func(self.obj, *self.args)
-

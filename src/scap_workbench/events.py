@@ -20,7 +20,7 @@
 #      Maros Barabas        <mbarabas@redhat.com>
 #      Vladimir Oberreiter  <xoberr01@stud.fit.vutbr.cz>
 
-import gobject
+import gobject, gtk
 import logging
 
 logger = logging.getLogger("scap-workbench")
@@ -32,7 +32,7 @@ class EventObject(gobject.GObject):
         self.core = core
         gobject.type_register(EventObject)
         self.object = self
-
+    
     def emit_signal(self, signal):
         logger.debug("Emiting signal %s from %s", signal, self.id)
         self.emit(signal)

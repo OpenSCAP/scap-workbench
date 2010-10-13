@@ -31,8 +31,7 @@ except Exception as ex:
     logger.error("OpenScap library initialization failed")
     openscap=None
 
-from core import thread as threadSave
-import threading
+from threads import thread as threadSave
 
 class DataHandler:
     """DataHandler Class implements handling data from Openscap library,
