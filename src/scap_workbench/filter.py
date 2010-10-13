@@ -331,7 +331,6 @@ class ItemFilter(Renderer):
                   "searchData": self.user_filter_column.get_active(),
                   "selected": self.user_filter_selected.get_active(),
                   "text":      self.user_filter_text.get_text()}
-        print params
         filter = Filter(self.user_filter_id.get_text(), self.user_filter_description.get_text(), params, istree=self.user_filter_structure.get_active() is 0, renderer=self)
         filter.func = self.__filter_func
         self.add_filter(filter)
@@ -403,6 +402,25 @@ class ScanFilter(Renderer):
         self.user_filter_window.connect("delete-event", self.__cb_cancel)
         Renderer.__init__(self, "gui:btn:menu:scan:filter", core, self.box_filter)
 
+        self.user_filter_id = self.user_filter_builder.get_object("entry_id")
+        self.user_filter_description = self.user_filter_builder.get_object("entry_description")
+        self.user_filter_column = self.user_filter_builder.get_object("search:cb_column")
+        self.user_filter_text = self.user_filter_builder.get_object("search:entry_text")
+        self.info_box = self.user_filter_builder.get_object("info_box")
+
+        self.user_filter_results = [("PASS", self.user_filter_builder.get_object("ch_pass")),
+                ("ERROR", self.user_filter_builder.get_object("ch_error")),
+                ("FAIL", self.user_filter_builder.get_object("ch_fail")),
+                ("UNKNOWN", self.user_filter_builder.get_object("ch_unknown")),
+                ("NOT APPLICABLE", self.user_filter_builder.get_object("ch_not_applicable")),
+                ("NOT CHECKED", self.user_filter_builder.get_object("ch_not_checked")),
+                ("NOT SELECTED", self.user_filter_builder.get_object("ch_not_selected")),
+                ("INFORMATIONAL", self.user_filter_builder.get_object("ch_informational")),
+                ("FIXED", self.user_filter_builder.get_object("ch_fixed"))]
+
+        self.user_filter_builder.get_object("btn_ok").connect("clicked", self.__cb_add)
+        self.user_filter_builder.get_object("btn_cancel").connect("clicked", self.__cb_cancel)
+
         filter = Filter("Only tests with result PASS", "Show tests that has result PASS", params=["Pass"], istree=False, renderer=self, func=self.__filter_func)
         filter1 = Filter("Only tests with result ERROR", "Show tests that has result ERROR", params=["error"], istree=False, renderer=self, func=self.__filter_func)
         filter2 = Filter("Only tests with result FAIL", "Show tests that has result FAIL", params=["fail"], istree=False, renderer=self, func=self.__filter_func)
@@ -414,164 +432,39 @@ class ScanFilter(Renderer):
         menu_item = gtk.MenuItem("User filter ...")
         menu_item.show()
         self.menu.append(menu_item)
-        menu_item.connect("activate", self.render_filter)
+        menu_item.connect("activate", self.__user_filter_new)
 
     #filter
-    def __filter_func(self, model, iter, params):
+    def __cb_add(self, widget):
+        
+        res = []
+        for item in self.user_filter_results:
+            if item[1].get_active(): res.append(item[0])
+
+        params = {"searchData": self.user_filter_column.get_active(),
+                  "text":       self.user_filter_text.get_text(),
+                  "results":    res}
+
+        filter = Filter(self.user_filter_id.get_text(), self.user_filter_description.get_text(), params, renderer=self)
+        filter.func = self.__filter_func
+        self.add_filter(filter)
+        self.user_filter_window.hide()
+
+    def __cb_cancel(self, widget, event=None):
+        self.user_filter_window.hide()
+
+    def __search_func(self, model, iter, params):
         pattern = re.compile(params[0],re.IGNORECASE)
         if pattern.search(model.get_value(iter, ScanFilter.COLUMN_RESULT)) != None:
             return True
         else:
             return False
 
-    def __cb_cancel(self, widget, event=None):
-        self.user_filter_window.hide()
-            
-    def render_filter(self, widget=None):
-        self.window = gtk.Window(gtk.WINDOW_TOPLEVEL)
-        self.window.set_title("User filter")
-        #self.window.set_size_request(325, 240)
-        self.window.connect("delete_event", self.delete_event)
-        self.window.set_modal(True)
-        self.window.set_property("resizable", False)
-        
-        alig = gtk.Alignment()
-        alig.set_padding(10, 0, 10, 10)
+    def __user_filter_new(self, widget):
+        self.user_filter_window.set_transient_for(self.core.main_window)
+        self.user_filter_window.show_all()
 
-        box_main = gtk.VBox()
-        alig.add(box_main)
-
-        #information for filter
-        table = gtk.Table()
-       
-        self.label_to_table("Name filter:", table,  0, 1, 0, 1)
-        self.label_to_table("Search text in:", table,  0, 1, 1, 2)
-        self.label_to_table("Serch text:", table,  0, 1, 2, 3)
-
-        box = gtk.VBox()
-        label = gtk.Label("Result:")
-        box.pack_start(label, True, True)
-        but = gtk.Button("changed")
-        but.connect("clicked", self.cb_changed)
-        box.pack_start(but, True, False)
-        self.add_to_label(box, table, 0, 1, 3, 12)
-        
-        self.name = gtk.Entry()
-        self.name.set_text("None")
-        self.add_to_label(self.name, table, 1, 2, 0, 1)
-        
-        self.searchColumn = gtk.combo_box_new_text()
-        self.fill_comoBox(self.searchColumn, ["Title", "ID", "Decription"] )
-        self.add_to_label(self.searchColumn, table, 1, 2, 1, 2)
-        
-        self.text = gtk.Entry()
-        self.add_to_label(self.text, table, 1, 2, 2, 3)
-
-        self.res_pass = gtk.CheckButton("PASS")
-        self.res_pass.set_active(True)
-        self.add_to_label(self.res_pass, table, 1, 2, 3, 4)
-        
-        self.res_error = gtk.CheckButton("ERROR")
-        self.res_error.set_active(True)
-        self.add_to_label(self.res_error, table, 1, 2, 4, 5)
-        
-        self.res_fail = gtk.CheckButton("FAIL")
-        self.res_fail.set_active(True)
-        self.add_to_label(self.res_fail, table, 1, 2, 5, 6)
-        
-        self.res_unknown = gtk.CheckButton("UNKNOWN")
-        self.res_unknown.set_active(True)
-        self.add_to_label(self.res_unknown, table, 1, 2, 6, 7)
-
-        self.res_not_app = gtk.CheckButton("NOT APPLICABLE")
-        self.res_not_app.set_active(True)
-        self.add_to_label(self.res_not_app, table, 1, 2, 7, 8)
-        
-        self.res_not_check = gtk.CheckButton("NOT CHECKED")
-        self.res_not_check.set_active(True)
-        self.add_to_label(self.res_not_check, table, 1, 2, 8, 9)
-        
-        self.res_not_select = gtk.CheckButton("NOT SELECTED")
-        self.res_not_select.set_active(True)
-        self.add_to_label(self.res_not_select, table, 1, 2, 9, 10)
-        
-        self.res_info = gtk.CheckButton("INFORMATIONAL")
-        self.res_info.set_active(True)
-        self.add_to_label(self.res_info, table, 1, 2, 10, 11)
-        
-        self.res_fix = gtk.CheckButton("FIXED")
-        self.res_fix.set_active(True)
-        self.add_to_label(self.res_fix, table, 1, 2, 11, 12)
-        
-        
-        box_main.pack_start(table,True,True)
-        #buttons
-        box_btn = gtk.HButtonBox()
-        box_btn.set_layout(gtk.BUTTONBOX_END)
-        btn_filter = gtk.Button("Add filter")
-        btn_filter.connect("clicked", self.cb_setFilter)
-        box_btn.pack_start(btn_filter)
-        btn_filter = gtk.Button("Cancel")
-        btn_filter.connect("clicked", self.cb_cancel)
-        box_btn.pack_start(btn_filter)
-        box_main.pack_start(box_btn, True, True, 20)
-        
-        self.window.add(alig)
-        self.window.show_all()
-        return self.window
-
-    def cb_changed(self, widget):
-        
-        self.res_pass.set_active(not self.res_pass.get_active())
-        self.res_error.set_active(not self.res_error.get_active())
-        self.res_fail.set_active(not self.res_fail.get_active())
-        self.res_unknown.set_active(not self.res_unknown.get_active())
-        self.res_not_app.set_active(not self.res_not_app.get_active())
-        self.res_not_check.set_active(not self.res_not_check.get_active())
-        self.res_not_select.set_active(not self.res_not_select.get_active())
-        self.res_info.set_active(not self.res_info.get_active())
-        self.res_fix.set_active(not self.res_fix.get_active())
-        
-    def cb_setFilter(self, widget):
-        
-        filter = {"name":          self.name.get_text(),
-                  "description":   "",
-                  "func":           self.filter_func,        # func for metch row in model func(model, iter)
-                  "param":           {},                    # param tu function
-                  "result_tree":    False   # if result shoul be in tree or list
-                  }
-        
-        res = []
-        if not self.res_pass.get_active():
-            res.append("PASS")
-        if not self.res_error.get_active():
-            res.append("ERROR")
-        if not self.res_fail.get_active():
-            res.append("FAIL")
-        if not self.res_unknown.get_active():
-            res.append("UNKNOWN")
-        if not self.res_not_app.get_active():
-            res.append("NOT APPLICABLE")
-        if not self.res_not_check.get_active():
-            res.append("NOT CHECKED")
-        if not self.res_not_select.get_active():
-            res.append("NOT SELECTED")
-        if not self.res_info.get_active():
-            res.append("INFORMATIONAL")
-        if not self.res_fix.get_active():
-            res.append("FIXED")
-
-        params = {"searchData": self.searchColumn.get_active(),
-                  "text":       self.text.get_text(),
-                  "res":        res}
-
-        filter["param"] = params
-        self.add_filter(filter)
-        self.window.destroy()
-
-
-
-    def filter_func(self, model, iter, params):
+    def __filter_func(self, model, iter, params):
 
         #search data
         TITLE = 0
@@ -590,29 +483,19 @@ class ScanFilter(Renderer):
         
         column = [COLUMN_TITLE, COLUMN_ID, COLUMN_DESC]
         
-        vys = True
         # search text if is set
-        if params["text"] <> "":
-            pattern = re.compile(params["text"],re.IGNORECASE)
-            if pattern.search(model.get_value(iter, column[params["searchData"]])) != None:
-                vys = vys and True 
-            else:
-                vys = vys and False
-            if not vys:
-                return vys
+        if params["text"] != "":
+            pattern = re.compile(params["text"], re.IGNORECASE)
+            if pattern.search(model.get_value(iter, column[params["searchData"]])) == None:
+                return False
         
         #type of result
-        if len(params["res"]) > 0:
-            if model.get_value(iter, COLUMN_RESULT) in params["res"]:
-                vys = vys and False
-        return vys
-  
-    def cb_cancel(self, widget):
-        self.window.destroy()
-        
-    def delete_event(self, widget, event):
-        self.window.destroy()
+        if len(params["results"]) > 0:
+            if model.get_value(iter, COLUMN_RESULT) not in params["results"]:
+                return False
 
+        return True
+  
 
 class Loader:
 
