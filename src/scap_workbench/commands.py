@@ -1038,7 +1038,9 @@ class DHScan(DataHandler):
         self.core.registered_callbacks = True
         
     def cancel(self):
-        self.__cancel = True
+        if not self.__cancel:
+            self.__cancel = True
+            self.__cancel_notify = self.core.notify("Scanning canceled. Please wait for openscap to finish started tasks.", 0)
 
     def export(self):
         if not self.core.lib or self.__result == None: return False
@@ -1064,3 +1066,4 @@ class DHScan(DataHandler):
             self.__progress.set_text("Finished %s of %s rules" % (self.__last, self.__rules_count))
             self.__progress.set_has_tooltip(False)
         logger.debug("Finished scanning")
+        self.__cancel_notify.destroy()

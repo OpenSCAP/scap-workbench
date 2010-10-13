@@ -62,7 +62,7 @@ class ScanList(abstract.List):
 
     def __scan(self):
         self.data_model.scan()
-        self.init_filters(self.filter, self.data_model.new_model())
+        #self.init_filters(self.filter, self.data_model.new_model())
 
     def __search(self):
         self.search(self.filter.get_search_text(),3)

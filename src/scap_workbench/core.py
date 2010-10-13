@@ -21,7 +21,7 @@
 #      Vladimir Oberreiter  <xoberr01@stud.fit.vutbr.cz>
 
 import logging, logging.config
-import sys, gtk, gobject, time
+import sys, gtk, gobject
 from events import EventHandler
 
 from threads import thread
@@ -80,11 +80,11 @@ class Notification:
 
     def __cb_destroy(self, widget):
         widget.parent.parent.destroy()
+        self.widget = None
 
-    @thread
-    def destroy_timeout(self, widget):
-        time.sleep(Notification.DEFAULT_TIME)
-        self.__cb_destroy(widget)
+    def destroy(self):
+        if self.widget: 
+            self.widget.destroy()
         
 
 class SWBCore:
@@ -153,8 +153,10 @@ class SWBCore:
             self.notify("XCCDF Benchmark: No language specified.", 2)
 
     def notify(self, text, lvl=0, info_box=None):
-        if info_box: info_box.pack_start(Notification(text, lvl).widget)
-        else: self.info_box.pack_start(Notification(text, lvl).widget)
+        notification = Notification(text, lvl)
+        if info_box: info_box.pack_start(notifycation.widget)
+        else: self.info_box.pack_start(notification.widget)
+        return notification
 
     def set_sender(self, signal, sender):
         self.eventHandler.set_sender(signal, sender)

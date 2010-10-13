@@ -167,6 +167,7 @@
             <child>
               <object class="GtkToggleToolButton" id="main:sub:main:oval">
                 <property name="visible">True</property>
+                <property name="sensitive">False</property>
                 <property name="is_important">True</property>
                 <property name="label" translatable="yes">OVAL</property>
               </object>
