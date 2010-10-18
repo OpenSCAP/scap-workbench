@@ -45,7 +45,7 @@ class ItemList(abstract.List):
     def __init__(self, widget, core, progress=None, filter=None):
         self.core = core
         self.filter = filter
-        self.data_model = commands.DHItemsTree(core, progress)
+        self.data_model = commands.DHItemsTree("gui:tailoring:refines:DHItemsTree", core, progress)
         abstract.List.__init__(self, "gui:tailoring:refines:item_list", core, widget)
         self.get_TreeView().set_enable_tree_lines(True)
 
@@ -58,18 +58,21 @@ class ItemList(abstract.List):
         self.add_receiver("gui:btn:tailoring:refines:filter", "search", self.__search)
         self.add_receiver("gui:btn:tailoring:refines:filter", "filter_add", self.__filter_add)
         self.add_receiver("gui:btn:tailoring:refines:filter", "filter_del", self.__filter_del)
-
+        self.add_receiver("gui:tailoring:refines:DHItemsTree", "filled", self.__filter_refresh)
+        
         selection.connect("changed", self.__cb_item_changed, self.get_TreeView())
         self.add_sender(self.id, "item_changed")
+
+        self.init_filters(self.filter, self.data_model.model, self.data_model.new_model())
 
     def __update(self):
         if "profile" not in self.__dict__ or self.profile != self.core.selected_profile or self.core.force_reload_items:
             self.profile = self.core.selected_profile
+            self.get_TreeView().set_model(self.data_model.model)
             self.data_model.fill()
             # Select the last one selected if there is one
             self.get_TreeView().get_model().foreach(self.set_selected, (self.core.selected_item, self.get_TreeView()))
             self.core.force_reload_items = False
-            self.init_filters(self.filter, self.data_model.model, self.data_model.new_model())
 
     def __search(self):
         self.search(self.filter.get_search_text(),1)
@@ -79,9 +82,13 @@ class ItemList(abstract.List):
         self.get_TreeView().get_model().foreach(self.set_selected, (self.core.selected_item, self.get_TreeView()))
 
     def __filter_del(self):
-        self.data_model.map_filter = self.filter_del(self.filter.filters,[4, 5, 6])
+        self.data_model.map_filter = self.filter_del(self.filter.filters)
         self.get_TreeView().get_model().foreach(self.set_selected, (self.core.selected_item, self.get_TreeView()))
 
+    def __filter_refresh(self):
+        self.data_model.map_filter = self.filter_del(self.filter.filters)
+        self.get_TreeView().get_model().foreach(self.set_selected, (self.core.selected_item, self.get_TreeView()))
+        
     @threadSave
     def __cb_item_changed(self, widget, treeView):
         """Make all changes in application in separate threads: workaround for annoying

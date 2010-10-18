@@ -55,14 +55,16 @@ class ScanList(abstract.List):
         self.add_receiver("gui:btn:menu:scan:filter", "search", self.__search)
         self.add_receiver("gui:btn:menu:scan:filter", "filter_add", self.__filter_add)
         self.add_receiver("gui:btn:menu:scan:filter", "filter_del", self.__filter_del)
+        self.add_receiver("gui:scan:DHScan", "filled", self.__filter_refresh)
+        
         self.init_filters(self.filter, self.data_model.model, self.data_model.new_model())
         
     def __cancel(self):
         self.data_model.cancel()
 
     def __scan(self):
+        self.get_TreeView().set_model(self.data_model.model)
         self.data_model.scan()
-        #self.init_filters(self.filter, self.data_model.new_model())
 
     def __search(self):
         self.search(self.filter.get_search_text(),3)
@@ -73,6 +75,9 @@ class ScanList(abstract.List):
     def __filter_del(self):
         self.filter_del(self.filter.filters)
 
+    def __filter_refresh(self):
+        self.filter_del(self.filter.filters)
+        
 class MenuButtonScan(abstract.MenuButton):
     """
     GUI for refines.
@@ -83,7 +88,7 @@ class MenuButtonScan(abstract.MenuButton):
         self.core = core
 
         self.progress = self.builder.get_object("scan:progress")
-        self.data_model = commands.DHScan(core, self.progress)
+        self.data_model = commands.DHScan("gui:scan:DHScan", core, self.progress)
 
         #draw body
         self.body = self.builder.get_object("scan:box")

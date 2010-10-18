@@ -22,6 +22,8 @@
 
 import gtk, logging, sys, re, time, os
 import gobject
+from events import EventObject
+
 logger = logging.getLogger("scap-workbench")
 
 try:
@@ -456,7 +458,7 @@ class DHValues(DataHandler):
         else: logger.error("Failed regexp match: text %s does not match %s", new_text, "|".join([value["match"], choices]))
 
 
-class DHItemsTree(DataHandler):
+class DHItemsTree(DataHandler, EventObject):
 
 
     COLUMN_ID       = 0
@@ -467,9 +469,14 @@ class DHItemsTree(DataHandler):
     COLUMN_SELECTED = 5
     COLUMN_PARENT   = 6
 
-    def __init__(self, core, progress=None):
+    def __init__(self, id, core, progress=None):
         
+        self.id = id
+        EventObject.__init__(self)
         DataHandler.__init__(self, core)
+        
+        core.register(id, self)
+        self.add_sender(self.id, "filled")
         self.__progress = progress
         self.__total = None
         self.__step = None
@@ -718,6 +725,7 @@ class DHItemsTree(DataHandler):
                 self.__progress.hide()
                 gtk.gdk.threads_leave()
 
+        self.emit("filled")
         return True
 
 
@@ -816,7 +824,7 @@ class DHProfiles(DataHandler):
             profile.add_select(sel)
 
 
-class DHScan(DataHandler):
+class DHScan(DataHandler, EventObject):
 
     COLUMN_ID = 0               # id of rule
     COLUMN_RESULT = 1           # Result of scan
@@ -840,13 +848,18 @@ class DHScan(DataHandler):
     FG_GREEN  = "green"
     FG_RED    = "red"
 
-    def __init__(self, core, progress=None):
-        
+    def __init__(self, id, core, progress=None):
+
+        self.id = id
+        EventObject.__init__(self)
         DataHandler.__init__(self, core)
         self.__progress=progress
         self.__cancel = False
         self.__last = 0
         self.__result = None
+
+        core.register(id, self)
+        self.add_sender(self.id, "filled")
     
     def new_model(self):
         return gtk.TreeStore(str, str, str, str, str, str, str, str)
@@ -1041,6 +1054,7 @@ class DHScan(DataHandler):
         if not self.__cancel:
             self.__cancel = True
             self.__cancel_notify = self.core.notify("Scanning canceled. Please wait for openscap to finish started tasks.", 0)
+            self.emit("filled")
 
     def export(self):
         if not self.core.lib or self.__result == None: return False
@@ -1066,4 +1080,5 @@ class DHScan(DataHandler):
             self.__progress.set_text("Finished %s of %s rules" % (self.__last, self.__rules_count))
             self.__progress.set_has_tooltip(False)
         logger.debug("Finished scanning")
+        self.emit("filled")
         self.__cancel_notify.destroy()

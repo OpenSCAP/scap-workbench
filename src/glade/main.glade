@@ -851,63 +851,70 @@
                           </packing>
                         </child>
                         <child>
-                          <object class="GtkVPaned" id="vpaned1">
+                          <object class="GtkViewport" id="viewport1">
                             <property name="visible">True</property>
-                            <property name="can_focus">True</property>
-                            <property name="orientation">vertical</property>
+                            <property name="resize_mode">queue</property>
+                            <property name="shadow_type">none</property>
                             <child>
-                              <object class="GtkVBox" id="tailoring:refines:box_nb">
+                              <object class="GtkVPaned" id="vpaned1">
                                 <property name="visible">True</property>
+                                <property name="can_focus">True</property>
                                 <property name="orientation">vertical</property>
                                 <child>
-                                  <placeholder/>
-                                </child>
-                              </object>
-                              <packing>
-                                <property name="resize">True</property>
-                                <property name="shrink">False</property>
-                              </packing>
-                            </child>
-                            <child>
-                              <object class="GtkFrame" id="frame1">
-                                <property name="visible">True</property>
-                                <property name="label_xalign">0</property>
-                                <property name="shadow_type">none</property>
-                                <child>
-                                  <object class="GtkAlignment" id="alignment1">
+                                  <object class="GtkVBox" id="tailoring:refines:box_nb">
                                     <property name="visible">True</property>
+                                    <property name="orientation">vertical</property>
                                     <child>
-                                      <object class="GtkScrolledWindow" id="scrolledwindow2">
+                                      <placeholder/>
+                                    </child>
+                                  </object>
+                                  <packing>
+                                    <property name="resize">True</property>
+                                    <property name="shrink">False</property>
+                                  </packing>
+                                </child>
+                                <child>
+                                  <object class="GtkFrame" id="frame1">
+                                    <property name="visible">True</property>
+                                    <property name="label_xalign">0</property>
+                                    <property name="shadow_type">none</property>
+                                    <child>
+                                      <object class="GtkAlignment" id="alignment1">
                                         <property name="visible">True</property>
-                                        <property name="can_focus">True</property>
-                                        <property name="hscrollbar_policy">automatic</property>
-                                        <property name="vscrollbar_policy">automatic</property>
-                                        <property name="shadow_type">in</property>
                                         <child>
-                                          <object class="GtkTreeView" id="tailoring:refines:tw_values">
+                                          <object class="GtkScrolledWindow" id="scrolledwindow2">
                                             <property name="visible">True</property>
                                             <property name="can_focus">True</property>
-                                            <property name="model">tailoring:refines:tw_values:model</property>
-                                            <property name="search_column">0</property>
+                                            <property name="hscrollbar_policy">automatic</property>
+                                            <property name="vscrollbar_policy">automatic</property>
+                                            <property name="shadow_type">in</property>
+                                            <child>
+                                              <object class="GtkTreeView" id="tailoring:refines:tw_values">
+                                                <property name="visible">True</property>
+                                                <property name="can_focus">True</property>
+                                                <property name="model">tailoring:refines:tw_values:model</property>
+                                                <property name="search_column">0</property>
+                                              </object>
+                                            </child>
                                           </object>
                                         </child>
                                       </object>
                                     </child>
+                                    <child type="label">
+                                      <object class="GtkLabel" id="label10">
+                                        <property name="visible">True</property>
+                                        <property name="ypad">5</property>
+                                        <property name="label" translatable="yes">&lt;b&gt;Values&lt;/b&gt;</property>
+                                        <property name="use_markup">True</property>
+                                      </object>
+                                    </child>
                                   </object>
-                                </child>
-                                <child type="label">
-                                  <object class="GtkLabel" id="label10">
-                                    <property name="visible">True</property>
-                                    <property name="ypad">5</property>
-                                    <property name="label" translatable="yes">&lt;b&gt;Values&lt;/b&gt;</property>
-                                    <property name="use_markup">True</property>
-                                  </object>
+                                  <packing>
+                                    <property name="resize">True</property>
+                                    <property name="shrink">False</property>
+                                  </packing>
                                 </child>
                               </object>
-                              <packing>
-                                <property name="resize">True</property>
-                                <property name="shrink">False</property>
-                              </packing>
                             </child>
                           </object>
                           <packing>
