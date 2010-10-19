@@ -22,6 +22,7 @@
 
 import gtk, logging, sys, re, time, os
 import gobject
+import webbrowser
 from events import EventObject
 
 logger = logging.getLogger("scap-workbench")
@@ -29,8 +30,7 @@ logger = logging.getLogger("scap-workbench")
 try:
     import openscap_api as openscap
 except Exception as ex:
-    print ex
-    logger.error("OpenScap library initialization failed")
+    logger.error("OpenScap library initialization failed: %s", ex)
     openscap=None
 
 from threads import thread as threadSave
@@ -314,7 +314,6 @@ class DHXccdf(DataHandler):
             logger.error("Library not initialized or XCCDF file not specified")
             return {}
         benchmark = self.core.lib["policy_model"].benchmark
-        details = {}
         details = {
                 "descs":            dict([(desc.lang, desc.text) for desc in benchmark.description]),
                 "id":               benchmark.id,
@@ -353,7 +352,6 @@ class DHXccdf(DataHandler):
         return retval
 
     def __cb_report(self, msg, plugin):
-        print "[Validation report]", msg.string
         return True
 
 class DHValues(DataHandler):
@@ -848,6 +846,9 @@ class DHScan(DataHandler, EventObject):
     FG_GREEN  = "green"
     FG_RED    = "red"
 
+
+    RESULT_NAME = "LockDown Test Result"
+
     def __init__(self, id, core, progress=None):
 
         self.id = id
@@ -857,6 +858,7 @@ class DHScan(DataHandler, EventObject):
         self.__cancel = False
         self.__last = 0
         self.__result = None
+        self.__cancel_notify = None
 
         core.register(id, self)
         self.add_sender(self.id, "filled")
@@ -1060,12 +1062,22 @@ class DHScan(DataHandler, EventObject):
         if not self.core.lib or self.__result == None: return False
         file_name = self.file_browse("Save results", file="results.xml")
         if file_name != "":
-            files = self.policy.export(self.__result, self.core.lib, "LockDown Test Result", file_name, file_name)
+            files = self.policy.export(self.__result, self.core.lib, DHScan.RESULT_NAME, file_name, file_name)
             for file in files:
                 logger.debug("Exported: %s", file)
-            self.core.notify("Results exported successfuly. You can see them by pushing the \"Results\" button.", 0)
             return file_name
         else: return None
+
+    def export_report(self, file):
+        params = [ 
+            "result-id",         "OSCAP-Test-F14-Desktop",
+            "profile",           self.core.selected_profile,
+            "verbosity",         "1", None]
+
+        retval = openscap.common.oscap_apply_xslt(file, "xccdf-report.xsl", "report.xhtml", params)
+        logger.info("Export report file %s" % (["failed: %s" % (openscap.common.err_desc(),), "done"][retval],))
+        browser_val = webbrowser.open("report.xhtml")
+        if not browser_val: self.core.notify("Failed to open browser \"%s\". Report file is saved in \"%s\"" % (webbrowser.get().name, "report.xhtml"), 1)
 
     @threadSave
     def scan(self):
@@ -1081,4 +1093,4 @@ class DHScan(DataHandler, EventObject):
             self.__progress.set_has_tooltip(False)
         logger.debug("Finished scanning")
         self.emit("filled")
-        self.__cancel_notify.destroy()
+        if self.__cancel_notify: self.__cancel_notify.destroy()

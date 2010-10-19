@@ -88,11 +88,12 @@ class ItemList(abstract.List):
     def __filter_refresh(self):
         self.data_model.map_filter = self.filter_del(self.filter.filters)
         self.get_TreeView().get_model().foreach(self.set_selected, (self.core.selected_item, self.get_TreeView()))
-        
+     
     @threadSave
     def __cb_item_changed(self, widget, treeView):
         """Make all changes in application in separate threads: workaround for annoying
         blinking when redrawing treeView
+        TODO: Make this with idle function, not with new thread
         """
 
         gtk.gdk.threads_enter()

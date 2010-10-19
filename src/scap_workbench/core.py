@@ -28,16 +28,19 @@ from threads import thread
 import render #TODO
 
 LOGGER_CONFIG_FILE='/etc/scap-workbench/logger.conf'
+FILTER_DIR="/usr/share/scap-workbench/filters"
 logging.config.fileConfig(LOGGER_CONFIG_FILE)
 logger = logging.getLogger("scap-workbench")
 
 sys.path.append("/tmp/scap/usr/local/lib64/python2.6/site-packages")
 sys.path.append("/tmp/scap/usr/local/lib/python2.6/site-packages")
+#sys.path.append("/usr/lib64/python2.6/site-packages")
+#sys.path.append("/usr/lib/python2.6/site-packages")
 
 try:
     import openscap_api as openscap
 except Exception as ex:
-    print ex
+    logger.error("OPENSCAP: %s", ex)
     openscap=None
 
 class Notification:
@@ -105,8 +108,8 @@ class SWBCore:
         self.selected_deps      = None
         self.selected_lang      = ""
         self.langs              = []
-        self.xcccdf_file        = None
-        self.filter_directory   = "/usr/share/scap-workbench/filters"
+        self.xccdf_file        = None
+        self.filter_directory   = FILTER_DIR
 
         # Info Box
         self.info_box = self.builder.get_object("info_box")

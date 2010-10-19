@@ -86,6 +86,7 @@ class MenuButtonScan(abstract.MenuButton):
         self.builder = builder
         abstract.MenuButton.__init__(self, "gui:btn:menu:scan", widget, core)
         self.core = core
+        self.__export_notify = None
 
         self.progress = self.builder.get_object("scan:progress")
         self.data_model = commands.DHScan("gui:scan:DHScan", core, self.progress)
@@ -102,6 +103,7 @@ class MenuButtonScan(abstract.MenuButton):
         self.builder.get_object("scan:btn_help").connect("clicked", self.__cb_help)
         self.results_btn = self.builder.get_object("scan:btn_results")
         self.results_btn.set_sensitive(False)
+        self.results_btn.connect("clicked", self.__cb_export_report)
 
         # set signals
         self.add_sender(self.id, "scan")
@@ -110,9 +112,14 @@ class MenuButtonScan(abstract.MenuButton):
         self.add_receiver("gui:btn:menu:scan", "export", self.__export)
 
     #callback function
+    def __cb_export_report(self, widget):
+        self.data_model.export_report(self.exported_file)
+        if self.__export_notify: self.__export_notify.destroy()
+
     def __export(self):
-        exported_file = self.data_model.export()
-        if exported_file: 
+        self.exported_file = self.data_model.export()
+        if self.exported_file: 
+            self.__export_notify = self.core.notify("Results exported successfuly. You can see them by pushing the \"Results\" button.", 0)
             self.results_btn.set_sensitive(True)
 
     def __cb_start(self, widget):
