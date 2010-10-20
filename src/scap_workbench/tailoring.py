@@ -189,10 +189,10 @@ class ItemDetails(EventObject):
             counter = gtk.Label("%d) " % (i+1,))
             counter.set_alignment(0,0)
             hbox.pack_start(counter, False, False)
-            text = "<a href='%s'>%s</a>" % (ref[1], ref[0])
+            text = "<a href='%s'>%s</a>" % (ref["identifier"], " ".join((ref["title"] or "").split()))
             label = gtk.Label(text)
             hbox.pack_start(label, True, True)
-            label.set_tooltip_text(ref[1])
+            label.set_tooltip_text(ref["title"])
             label.set_use_markup(True)
 	    try:
                 label.set_track_visited_links(True)
@@ -201,7 +201,7 @@ class ItemDetails(EventObject):
             label.set_line_wrap_mode(pango.WRAP_WORD) 
             label.set_alignment(0,0)
             label.connect("size-allocate", render.label_size_allocate)
-            hbox.show()
+            hbox.show_all()
             self.refBox.pack_start(hbox, True, True)
 
         if "fixtexts" in details: fixes.extend(details["fixtexts"])

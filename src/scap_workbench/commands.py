@@ -167,7 +167,7 @@ class DataHandler:
                     "prohibit_changes": item.prohibit_changes,
                     "questions":        dict([(question.lang, question.text) for question in item.question or []]),
                     "rationale":        [rationale.text for rationale in item.rationale or []],
-                    "references":       [(ref.text.text, ref.href) for ref in item.references or []],
+                    "references":       self.parse_refs(item.references),
                     "requires":         item.requires,
                     "selected":         item.selected,
                     "statuses":         [(status.date, status.text) for status in item.statuses or []],
@@ -228,6 +228,7 @@ class DataHandler:
     def get_profile_details(self, id):
         """get_profile_details -- get details of Profiles"""
         policy = self.core.lib["policy_model"].get_policy_by_id(id or self.core.selected_profile)
+        if not policy: return None
         item = policy.profile
         if item != None:
             values = {
@@ -238,7 +239,7 @@ class DataHandler:
                     "extends":          item.extends,
                     "platforms":        [platform.text for platform in item.platforms or []],
                     "prohibit_changes": item.prohibit_changes,
-                    "references":       [(ref.text.text, ref.href) for ref in item.references or []],
+                    "references":       self.parse_refs(item.references),
                     "statuses":         [(status.date, status.text) for status in item.statuses or []],
                     "version":          item.version,
                     "version_time":     item.version_time,
@@ -302,6 +303,30 @@ class DataHandler:
 
         return result
 
+    def parse_refs(self, references):
+        refs = []
+        for ref in references:
+            tmpref = {
+                    "isdc": ref.is_dublincore,
+                    "contributor": ref.contributor,
+                    "coverage": ref.coverage,
+                    "creator": ref.creator,
+                    "date": ref.date,
+                    "description": ref.description,
+                    "format": ref.format,
+                    "identifier": ref.identifier,
+                    "lang": ref.lang,
+                    "publisher": ref.publisher,
+                    "relation": ref.relation,
+                    "rights": ref.rights,
+                    "source": ref.source,
+                    "subject": ref.subject,
+                    "title": ref.title,
+                    "type": ref.type,
+                    }
+            refs.append(tmpref)
+        return refs
+
 class DHXccdf(DataHandler):
 
     def __init__(self, core):
@@ -323,10 +348,11 @@ class DHXccdf(DataHandler):
                 "status_current":   benchmark.status_current,
                 "titles":           dict([(title.lang, " ".join(title.text.split())) for title in benchmark.title]),
                 "version":          benchmark.version,
+                "references":       self.parse_refs(benchmark.references),
                 "warnings":         [(warn.category, warn.text) for warn in benchmark.warnings],
-                "references":       [(ref.text.text, ref.href) for ref in benchmark.references],
                 "files":            self.core.lib["policy_model"].files.strings
                 }
+
 
         return details
 
@@ -859,6 +885,7 @@ class DHScan(DataHandler, EventObject):
         self.__last = 0
         self.__result = None
         self.__cancel_notify = None
+        self.__lock = False
 
         core.register(id, self)
         self.add_sender(self.id, "filled")
@@ -1035,7 +1062,9 @@ class DHScan(DataHandler, EventObject):
         if self.core.registered_callbacks == False:
             self.core.lib["policy_model"].register_start_callback(self.__callback_start, self)
             self.core.lib["policy_model"].register_output_callback(self.__callback_end, self)
-        else: 
+        else:
+            for sess in self.core.lib["sessions"]:
+                openscap.OSCAP.oval_agent_reset_session(sess.instance)
             self.__cancel = False
             self.__last = 0
 
@@ -1055,7 +1084,7 @@ class DHScan(DataHandler, EventObject):
     def cancel(self):
         if not self.__cancel:
             self.__cancel = True
-            self.__cancel_notify = self.core.notify("Scanning canceled. Please wait for openscap to finish started tasks.", 0)
+            self.__cancel_notify = self.core.notify("Scanning canceled. Please wait for openscap to finish current task.", 0)
             self.emit("filled")
 
     def export(self):
@@ -1079,8 +1108,15 @@ class DHScan(DataHandler, EventObject):
         browser_val = webbrowser.open("report.xhtml")
         if not browser_val: self.core.notify("Failed to open browser \"%s\". Report file is saved in \"%s\"" % (webbrowser.get().name, "report.xhtml"), 1)
 
-    @threadSave
     def scan(self):
+        if self.__lock: 
+            logger.error("Scan already running")
+        else: 
+            self.__lock = True
+            self.th_scan()
+
+    @threadSave
+    def th_scan(self):
         if not self.core.lib:
             logger.error("Library not initialized or XCCDF file not specified")
             return None
@@ -1094,3 +1130,4 @@ class DHScan(DataHandler, EventObject):
         logger.debug("Finished scanning")
         self.emit("filled")
         if self.__cancel_notify: self.__cancel_notify.destroy()
+        self.__lock = False

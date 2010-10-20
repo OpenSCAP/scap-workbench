@@ -135,7 +135,7 @@ class MenuButtonXCCDF(abstract.MenuButton):
             child.destroy()
 
         for i, ref in enumerate(details["references"]):
-            text = "%d) %s [<a href='%s'>link</a>]" % (i+1, ref[0].strip(' \n'), ref[1])
+            text = "%d) %s [<a href='%s'>link</a>]" % (i+1, " ".join((ref["title"] or "").split()), ref["identifier"])
             label = gtk.Label(text)
             self.box_references.pack_start(label, True, True)
             label.set_tooltip_text(ref[1])

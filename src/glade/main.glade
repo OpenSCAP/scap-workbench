@@ -23,7 +23,7 @@
     </columns>
   </object>
   <object class="GtkWindow" id="main:window">
-    <property name="title" translatable="yes">OSCAP GUI Tool</property>
+    <property name="title" translatable="yes">SCAP Work-bench</property>
     <property name="window_position">center</property>
     <property name="default_width">900</property>
     <property name="default_height">700</property>
@@ -42,6 +42,8 @@
             <child>
               <object class="GtkToggleToolButton" id="main:toolbar:main">
                 <property name="visible">True</property>
+                <property name="has_tooltip">True</property>
+                <property name="tooltip_text" translatable="yes">Import, export and validate SCAP documents.</property>
                 <property name="label" translatable="yes">_Main</property>
                 <property name="use_underline">True</property>
                 <property name="icon_name">go-home</property>
@@ -54,6 +56,8 @@
             <child>
               <object class="GtkToggleToolButton" id="main:toolbar:profiles">
                 <property name="visible">True</property>
+                <property name="has_tooltip">True</property>
+                <property name="tooltip_text" translatable="yes">Add, remove and edit profiles in XCCDF document</property>
                 <property name="label" translatable="yes">Profiles</property>
                 <property name="use_underline">True</property>
                 <property name="icon_name">emblem-documents</property>
@@ -66,6 +70,8 @@
             <child>
               <object class="GtkToggleToolButton" id="main:toolbar:tailoring">
                 <property name="visible">True</property>
+                <property name="has_tooltip">True</property>
+                <property name="tooltip_text" translatable="yes">Select and refine groups, rules and variables</property>
                 <property name="label" translatable="yes">_Tailoring</property>
                 <property name="use_underline">True</property>
                 <property name="icon_name">document-properties</property>
@@ -78,6 +84,8 @@
             <child>
               <object class="GtkToggleToolButton" id="main:toolbar:scan">
                 <property name="visible">True</property>
+                <property name="has_tooltip">True</property>
+                <property name="tooltip_text" translatable="yes">Scan local computer against rules.</property>
                 <property name="label" translatable="yes">_Scan</property>
                 <property name="use_underline">True</property>
                 <property name="icon_name">edit-find</property>
@@ -91,6 +99,8 @@
               <object class="GtkToggleToolButton" id="main:toolbar:reports">
                 <property name="visible">True</property>
                 <property name="sensitive">False</property>
+                <property name="has_tooltip">True</property>
+                <property name="tooltip_text" translatable="yes">This feature is not available yet.</property>
                 <property name="label" translatable="yes">_Reports</property>
                 <property name="use_underline">True</property>
                 <property name="icon_name">software-update-available</property>
@@ -113,6 +123,8 @@
               <object class="GtkToggleToolButton" id="main:toolbar:edit">
                 <property name="visible">True</property>
                 <property name="sensitive">False</property>
+                <property name="has_tooltip">True</property>
+                <property name="tooltip_text" translatable="yes">This feature is not available yet.</property>
                 <property name="label" translatable="yes">_Edit</property>
                 <property name="use_underline">True</property>
                 <property name="icon_name">edit-select-all</property>
@@ -135,6 +147,8 @@
               <object class="GtkToolButton" id="main:toolbar:settings">
                 <property name="visible">True</property>
                 <property name="sensitive">False</property>
+                <property name="has_tooltip">True</property>
+                <property name="tooltip_text" translatable="yes">This feature is not available yet.</property>
                 <property name="label" translatable="yes">Settings</property>
                 <property name="use_underline">True</property>
                 <property name="stock_id">gtk-preferences</property>
@@ -156,6 +170,8 @@
             <child>
               <object class="GtkToggleToolButton" id="main:sub:main:xccdf">
                 <property name="visible">True</property>
+                <property name="has_tooltip">True</property>
+                <property name="tooltip_text" translatable="yes">Load, export, validate and show information about XCCDF document.</property>
                 <property name="label" translatable="yes">XCCDF</property>
                 <property name="active">True</property>
               </object>
@@ -168,6 +184,7 @@
               <object class="GtkToggleToolButton" id="main:sub:main:oval">
                 <property name="visible">True</property>
                 <property name="sensitive">False</property>
+                <property name="tooltip_text" translatable="yes">This feature is not available yet.</property>
                 <property name="is_important">True</property>
                 <property name="label" translatable="yes">OVAL</property>
               </object>
