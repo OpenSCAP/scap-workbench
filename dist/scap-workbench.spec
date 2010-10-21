@@ -7,7 +7,7 @@
 Summary: Scanning, tailoring, editing and validation tool for SCAP content
 Name: scap-workbench
 URL: https://fedorahosted.org/scap-workbench/
-Version: 0.0.1
+Version: 0.1.0
 Release: 1%{?dist}
 License: GPLv3
 Group: System Environment/Base
@@ -19,7 +19,8 @@ Requires: openscap-python
 
 %description
 scap-workbench is GUI tool that provides scanning, tailoring, 
-editing and validation functionality for SCAP content. 
+editing and validation functionality for SCAP content. The tool 
+is based on OpenSCAP library.
 
 %prep
 %setup -q
@@ -44,6 +45,6 @@ rm -rf $RPM_BUILD_ROOT
 /usr/share/scap-workbench/*
 
 %changelog
-* Mon Oct 4 2010 Peter Vrabec <pvrabec@redhat.com> 0.0.1-1
-- hello spec file
+* Thu Oct 21 2010 Peter Vrabec <pvrabec@redhat.com> 0.1.0-1
+- the first official release
 
