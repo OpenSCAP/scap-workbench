@@ -11,11 +11,11 @@ Version: 0.1.0
 Release: 1%{?dist}
 License: GPLv3
 Group: System Environment/Base
-Source0: https://fedorahosted.org/releases/s/c/scap-workbench/%{name}-%{version}.tar.bz2
+Source0: https://fedorahosted.org/released/scap-workbench/%{name}-%{version}.tar.bz2
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}
 BuildArch: noarch
 BuildRequires: python2-devel
-Requires: openscap-python
+Requires: openscap-python >= 0.6.4
 
 %description
 scap-workbench is GUI tool that provides scanning, tailoring, 
