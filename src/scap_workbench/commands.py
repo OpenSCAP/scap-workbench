@@ -219,7 +219,7 @@ class DataHandler:
         for item in self.core.lib["policy_model"].benchmark.profiles:
             pvalues = self.get_profile_details(item.id)
             if self.core.selected_lang in pvalues["titles"]: 
-                profiles.append((item.id, pvalues["titles"][self.core.selected_lang].text)) 
+                profiles.append((item.id, pvalues["titles"][self.core.selected_lang])) 
             else: 
                 profiles.append((item.id, "Unknown profile"))
 
