@@ -3,7 +3,7 @@ import re
 
 class TailoringFilter1(filter.Filter):
 
-    TYPE="gui:btn:tailoring:refines:filter"
+    TYPE="gui:btn:tailoring:filter"
 
     def __init__(self, renderer):
         
@@ -21,7 +21,7 @@ class TailoringFilter1(filter.Filter):
 
 class TailoringFilter2(filter.Filter):
 
-    TYPE="gui:btn:tailoring:refines:filter"
+    TYPE="gui:btn:tailoring:filter"
 
     def __init__(self, renderer):
         
@@ -40,7 +40,7 @@ class TailoringFilter2(filter.Filter):
 
 class TailoringFilter3(filter.Filter):
 
-    TYPE="gui:btn:tailoring:refines:filter"
+    TYPE="gui:btn:tailoring:filter"
 
     def __init__(self, renderer):
         

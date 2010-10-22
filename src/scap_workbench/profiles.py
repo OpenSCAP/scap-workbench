@@ -44,7 +44,7 @@ class ProfileList(abstract.List):
     def __init__(self, widget, core):
         self.core = core
         self.data_model = commands.DHProfiles(core)
-        abstract.List.__init__(self, "gui:tailoring:profiles:profile_list", core, widget)
+        abstract.List.__init__(self, "gui:profiles:profile_list", core, widget)
 
         selection = self.get_TreeView().get_selection()
         selection.set_mode(gtk.SELECTION_SINGLE)
@@ -52,8 +52,8 @@ class ProfileList(abstract.List):
         # actions
         self.add_sender(self.id, "show")
         self.add_sender(self.id, "profile_changed")
-        self.add_receiver("gui:btn:tailoring:profiles", "update", self.__update)
-        self.add_receiver("gui:tailoring:profiles:profile_list", "update", self.__show)
+        self.add_receiver("gui:btn:profiles", "update", self.__update)
+        self.add_receiver("gui:profiles:profile_list", "update", self.__show)
         selection.connect("changed", self.cb_item_changed, self.get_TreeView())
 
     def __show(self):
@@ -90,40 +90,40 @@ class MenuButtonProfiles(abstract.MenuButton):
     GUI for profiles.
     """
     def __init__(self, builder, widget, core):
-        abstract.MenuButton.__init__(self, "gui:btn:tailoring:profiles", widget, core)
+        abstract.MenuButton.__init__(self, "gui:btn:profiles", widget, core)
         self.builder = builder
         self.core = core
         self.widget = widget
         self.data_model = commands.DHProfiles(self.core)
         
         # draw body
-        self.body = self.builder.get_object("tailoring:profiles:box")
+        self.body = self.builder.get_object("profiles:box")
 
-        self.profiles_list = ProfileList(self.builder.get_object("tailoring:profiles:treeview"), self.core)
+        self.profiles_list = ProfileList(self.builder.get_object("profiles:treeview"), self.core)
 
         """Get labels for details
         """
-        self.profile_id = self.builder.get_object("tailoring:profiles:details:lbl_id")
-        self.profile_abstract = self.builder.get_object("tailoring:profiles:details:lbl_abstract")
-        self.profile_extend = self.builder.get_object("tailoring:profiles:details:lbl_extend")
-        self.profile_version = self.builder.get_object("tailoring:profiles:details:lbl_version")
-        self.profile_title = self.builder.get_object("tailoring:profiles:details:lbl_title")
+        self.profile_id = self.builder.get_object("profiles:details:lbl_id")
+        self.profile_abstract = self.builder.get_object("profiles:details:lbl_abstract")
+        self.profile_extend = self.builder.get_object("profiles:details:lbl_extend")
+        self.profile_version = self.builder.get_object("profiles:details:lbl_version")
+        self.profile_title = self.builder.get_object("profiles:details:lbl_title")
         render.label_set_autowrap(self.profile_title)
 
         """Get buttons from Builder and connect callbacks
         """
-        self.btn_add = self.builder.get_object("tailoring:profiles:btn_add")
+        self.btn_add = self.builder.get_object("profiles:btn_add")
         self.btn_add.connect("clicked", self.__cb_add)
-        self.btn_copy = self.builder.get_object("tailoring:profiles:btn_copy")
+        self.btn_copy = self.builder.get_object("profiles:btn_copy")
         self.btn_copy.connect("clicked", self.__cb_copy)
-        self.btn_delete = self.builder.get_object("tailoring:profiles:btn_delete")
+        self.btn_delete = self.builder.get_object("profiles:btn_delete")
         self.btn_delete.connect("clicked", self.__cb_delete)
-        self.btn_save = self.builder.get_object("tailoring:profiles:btn_save")
+        self.btn_save = self.builder.get_object("profiles:btn_save")
         self.btn_save.connect("clicked", self.__cb_save)
 
         self.profile_description = HtmlTextView()
         self.profile_description.show()
-        box = self.builder.get_object("tailoring:profiles:details:box_description")
+        box = self.builder.get_object("profiles:details:box_description")
         self.builder.get_object("label1").realize()
         bg_color = self.builder.get_object("label1").get_style().bg[gtk.STATE_NORMAL]
         self.profile_description.set_wrap_mode(gtk.WRAP_WORD)
@@ -131,8 +131,8 @@ class MenuButtonProfiles(abstract.MenuButton):
         box.pack_start(self.profile_description, True, True)
 
         self.add_sender(self.id, "update")
-        self.add_receiver("gui:tailoring:profiles:profile_list", "update", self.__update)
-        self.add_receiver("gui:tailoring:profiles:profile_list", "changed", self.__update)
+        self.add_receiver("gui:profiles:profile_list", "update", self.__update)
+        self.add_receiver("gui:profiles:profile_list", "changed", self.__update)
         self.add_receiver("gui:btn:main:xccdf", "lang_changed", self.__update)
         
     def __update(self):

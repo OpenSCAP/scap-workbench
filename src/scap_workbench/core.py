@@ -204,7 +204,7 @@ class Wizard:
         self.__core = core
         self.__list = [ "gui:btn:main:xccdf",
                         "gui:menu:tailoring",
-                        "gui:btn:tailoring:refines",
+                        "gui:btn:tailoring",
                         "gui:btn:menu:scan" ]
         self.__active = 0
 

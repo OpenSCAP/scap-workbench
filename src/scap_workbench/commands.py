@@ -743,13 +743,14 @@ class DHItemsTree(DataHandler, EventObject):
             self.treeView.set_sensitive(True)
             gtk.gdk.threads_leave()
         finally:
+            gtk.gdk.threads_enter()
             if self.__progress != None:
-                gtk.gdk.threads_enter()
+                self.__progress.set_text("Applying filters ...")
                 self.__progress.set_fraction(1.0)
                 self.__progress.hide()
-                gtk.gdk.threads_leave()
+            self.emit("filled")
+            gtk.gdk.threads_leave()
 
-        self.emit("filled")
         return True
 
 
@@ -1046,6 +1047,7 @@ class DHScan(DataHandler, EventObject):
 
         gtk.gdk.threads_enter()
         self.fill([msg.user1str, msg.user2num, False, " ".join(msg.user3str.split()), " ".join(msg.string.split())])
+        self.emit("filled")
         self.treeView.queue_draw()
         gtk.gdk.threads_leave()
 
@@ -1085,7 +1087,6 @@ class DHScan(DataHandler, EventObject):
         if not self.__cancel:
             self.__cancel = True
             self.__cancel_notify = self.core.notify("Scanning canceled. Please wait for openscap to finish current task.", 0)
-            self.emit("filled")
 
     def export(self):
         if not self.core.lib or self.__result == None: return False
@@ -1128,6 +1129,5 @@ class DHScan(DataHandler, EventObject):
             self.__progress.set_text("Finished %s of %s rules" % (self.__last, self.__rules_count))
             self.__progress.set_has_tooltip(False)
         logger.debug("Finished scanning")
-        self.emit("filled")
         if self.__cancel_notify: self.__cancel_notify.destroy()
         self.__lock = False

@@ -45,8 +45,8 @@ class ItemList(abstract.List):
     def __init__(self, widget, core, progress=None, filter=None):
         self.core = core
         self.filter = filter
-        self.data_model = commands.DHItemsTree("gui:tailoring:refines:DHItemsTree", core, progress)
-        abstract.List.__init__(self, "gui:tailoring:refines:item_list", core, widget)
+        self.data_model = commands.DHItemsTree("gui:tailoring:DHItemsTree", core, progress)
+        abstract.List.__init__(self, "gui:tailoring:item_list", core, widget)
         self.get_TreeView().set_enable_tree_lines(True)
 
         selection = self.get_TreeView().get_selection()
@@ -54,11 +54,11 @@ class ItemList(abstract.List):
 
         # actions
         self.add_receiver("gui:btn:menu:tailoring", "update", self.__update)
-        self.add_receiver("gui:btn:tailoring:refines", "update", self.__update)
-        self.add_receiver("gui:btn:tailoring:refines:filter", "search", self.__search)
-        self.add_receiver("gui:btn:tailoring:refines:filter", "filter_add", self.__filter_add)
-        self.add_receiver("gui:btn:tailoring:refines:filter", "filter_del", self.__filter_del)
-        self.add_receiver("gui:tailoring:refines:DHItemsTree", "filled", self.__filter_refresh)
+        self.add_receiver("gui:btn:tailoring", "update", self.__update)
+        self.add_receiver("gui:btn:tailoring:filter", "search", self.__search)
+        self.add_receiver("gui:btn:tailoring:filter", "filter_add", self.__filter_add)
+        self.add_receiver("gui:btn:tailoring:filter", "filter_del", self.__filter_del)
+        self.add_receiver("gui:tailoring:DHItemsTree", "filled", self.__filter_refresh)
         
         selection.connect("changed", self.__cb_item_changed, self.get_TreeView())
         self.add_sender(self.id, "item_changed")
@@ -112,14 +112,14 @@ class ValuesList(abstract.List):
     def __init__(self, widget, core):
         self.core = core
         self.data_model = commands.DHValues(core)
-        abstract.List.__init__(self, "gui:tailoring:refines:values_list", core, widget)
+        abstract.List.__init__(self, "gui:tailoring:values_list", core, widget)
         self.get_TreeView().set_enable_tree_lines(True)
 
         selection = self.get_TreeView().get_selection()
         selection.set_mode(gtk.SELECTION_SINGLE)
 
         # actions
-        self.add_receiver("gui:tailoring:refines:item_list", "update", self.__update)
+        self.add_receiver("gui:tailoring:item_list", "update", self.__update)
         selection.connect("changed", self.__cb_item_changed, self.get_TreeView())
 
     def __update(self):
@@ -142,8 +142,8 @@ class ItemDetails(EventObject):
         EventObject.__init__(self, self.core)
         self.data_model = commands.DataHandler(self.core)
 
-        self.add_receiver("gui:tailoring:refines:item_list", "update", self.__update)
-        self.add_receiver("gui:tailoring:refines:item_list", "changed", self.__update)
+        self.add_receiver("gui:tailoring:item_list", "update", self.__update)
+        self.add_receiver("gui:tailoring:item_list", "changed", self.__update)
         self.draw()
 
     def __update(self):
@@ -358,8 +358,8 @@ class RefineDetails(EventObject):
         EventObject.__init__(self, self.core)
         self.data_model = commands.DataHandler(self.core)
 
-        self.add_receiver("gui:tailoring:refines:item_list", "update", self.__update)
-        self.add_receiver("gui:tailoring:refines:item_list", "changed", self.__update)
+        self.add_receiver("gui:tailoring:item_list", "update", self.__update)
+        self.add_receiver("gui:tailoring:item_list", "changed", self.__update)
 
         self.draw()
 
@@ -452,13 +452,13 @@ class MenuButtonTailoring(abstract.MenuButton):
         self.core = core
 
         #draw body
-        self.body = self.builder.get_object("tailoring:refines:box")
-        self.draw_nb(self.builder.get_object("tailoring:refines:box_nb"))
-        self.progress = self.builder.get_object("tailoring:refines:progress")
+        self.body = self.builder.get_object("tailoring:box")
+        self.draw_nb(self.builder.get_object("tailoring:box_nb"))
+        self.progress = self.builder.get_object("tailoring:progress")
         self.progress.hide()
         self.filter = filter.ItemFilter(self.core, self.builder)
-        self.rules_list = ItemList(self.builder.get_object("tailoring:refines:tw_items"), self.core, self.progress, self.filter)
-        self.values = ValuesList(self.builder.get_object("tailoring:refines:tw_values"), self.core)
+        self.rules_list = ItemList(self.builder.get_object("tailoring:tw_items"), self.core, self.progress, self.filter)
+        self.values = ValuesList(self.builder.get_object("tailoring:tw_values"), self.core)
         self.filter.expander.cb_changed()
 
         # set signals
