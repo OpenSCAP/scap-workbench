@@ -32,6 +32,7 @@ import abstract
 import tailoring
 import profiles
 import scan
+import edit
 import logging
 import commands
 
@@ -222,7 +223,7 @@ class MainWindow(abstract.Window, threading.Thread):
         # abstract the main menu
         self.menu = abstract.Menu("gui:menu", self.builder.get_object("main:toolbar"), self.core)
         self.menu.add_item(abstract.MenuButton("gui:btn:menu:main", self.builder.get_object("main:toolbar:main"), self.core))
-        self.menu.add_item(abstract.MenuButton("gui:btn:menu:edit",  self.builder.get_object("main:toolbar:edit"), self.core))
+        self.menu.add_item(edit.MenuButtonEdit(self.builder, self.builder.get_object("main:toolbar:edit"), self.core))
         self.menu.add_item(abstract.MenuButton("gui:btn:menu:reports", self.builder.get_object("main:toolbar:reports"), self.core))
         self.menu.add_item(profiles.MenuButtonProfiles(self.builder, self.builder.get_object("main:toolbar:profiles"), self.core))
         self.menu.add_item(tailoring.MenuButtonTailoring(self.builder, self.builder.get_object("main:toolbar:tailoring"), self.core))

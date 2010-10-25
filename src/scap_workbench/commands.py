@@ -109,11 +109,11 @@ class DataHandler:
             return []
         return [self.core.lib["policy_model"].benchmark.lang]
 
-    def get_selected(self, item):
+    def get_selected(self, item, items_model):
         """DataHandler.get_selected -- get selction of rule/group
         returns boolean value"""
 
-        if self.core.selected_profile == None:
+        if self.core.selected_profile == None or items_model == True:
             return item.selected
 
         else:
@@ -145,7 +145,7 @@ class DataHandler:
 
         return values
 
-    def get_item_details(self, id):
+    def get_item_details(self, id, items_model=False):
         """get_item_details -- get details of XCCDF_ITEM"""
 
         if not self.core.lib:
@@ -176,7 +176,7 @@ class DataHandler:
                     "version_update":   item.version_update,
                     "warnings":         [(warning.category, warning.text) for warning in item.warnings or []],
                     "weight":           item.weight,
-                    "selected":         self.get_selected(item)
+                    "selected":         self.get_selected(item, items_model)
                     }
             if item.type == openscap.OSCAP.XCCDF_GROUP:
                 item = item.to_group()
@@ -382,7 +382,8 @@ class DHXccdf(DataHandler):
 
 class DHValues(DataHandler):
 
-    def __init__(self, core):
+    def __init__(self, core, items_model=False):
+        self.items_model = items_model
         
         DataHandler.__init__(self, core)
 
@@ -440,7 +441,7 @@ class DHValues(DataHandler):
         # Append a couple of rows.
         item = self.core.lib["policy_model"].benchmark.get_item(self.core.selected_item)
         values = self.get_item_values(self.core.selected_item)
-        color = ["gray", "black"][self.get_selected(item)]
+        color = ["gray", "black"][self.get_selected(item, self.items_model)]
         for value in values:
             lang = value["lang"]
             model = gtk.ListStore(str, str)
@@ -493,8 +494,9 @@ class DHItemsTree(DataHandler, EventObject):
     COLUMN_SELECTED = 5
     COLUMN_PARENT   = 6
 
-    def __init__(self, id, core, progress=None):
+    def __init__(self, id, core, progress=None, items_model=False):
         
+        self.items_model = items_model
         self.id = id
         EventObject.__init__(self)
         DataHandler.__init__(self, core)
@@ -668,7 +670,7 @@ class DHItemsTree(DataHandler, EventObject):
             gtk.gdk.threads_leave()
 
         # Check select status of item
-        selected = self.get_selected(item)
+        selected = self.get_selected(item, self.items_model)
         color = ["gray", None][selected and pselected]
 
         if item != None:

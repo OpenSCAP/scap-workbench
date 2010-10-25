@@ -105,6 +105,7 @@ class SWBCore:
         self.registered_callbacks = False
         self.selected_profile   = None
         self.selected_item      = None
+        self.selected_item_edit = None
         self.selected_deps      = None
         self.selected_lang      = ""
         self.langs              = []

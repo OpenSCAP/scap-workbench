@@ -278,17 +278,17 @@ class ExpandBox(abstract.EventObject):
 
 class ItemFilter(Renderer):
     
-    def __init__(self, core, builder):
+    def __init__(self, core, builder, widget, signal):
 
         self.core = core
         self.id_filter = 0
         self.builder = builder
-        self.box_filter = self.builder.get_object("tailoring:box_filter")
+        self.box_filter = self.builder.get_object(widget)
         self.user_filter_builder = gtk.Builder()
         self.user_filter_builder.add_from_file("/usr/share/scap-workbench/filter_tailoring.glade")
         self.user_filter_window = self.user_filter_builder.get_object("user_filter:dialog")
         self.user_filter_window.connect("delete-event", self.__cb_cancel)
-        Renderer.__init__(self, "gui:btn:tailoring:filter", core, self.box_filter)
+        Renderer.__init__(self, signal, core, self.box_filter)
 
         # get objects from glade
         self.user_filter_id = self.user_filter_builder.get_object("entry_id")

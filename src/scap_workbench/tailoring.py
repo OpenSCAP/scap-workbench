@@ -456,7 +456,7 @@ class MenuButtonTailoring(abstract.MenuButton):
         self.draw_nb(self.builder.get_object("tailoring:box_nb"))
         self.progress = self.builder.get_object("tailoring:progress")
         self.progress.hide()
-        self.filter = filter.ItemFilter(self.core, self.builder)
+        self.filter = filter.ItemFilter(self.core, self.builder, "tailoring:box_filter", "gui:btn:tailoring:filter")
         self.rules_list = ItemList(self.builder.get_object("tailoring:tw_items"), self.core, self.progress, self.filter)
         self.values = ValuesList(self.builder.get_object("tailoring:tw_values"), self.core)
         self.filter.expander.cb_changed()
