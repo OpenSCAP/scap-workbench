@@ -441,3 +441,52 @@ class List(EventObject):
 
         #refilter filters after deleted filter
         return self.filter_add(filters)
+
+class EnterList(EventObject):
+    """
+    Abstrac class for enter listView
+    """
+    COLUMN_MARK_ROW = 0
+    
+    def __init__(self, core, id, model, treeView):
+        self.core = core
+        self.id = id
+        super(EnterList, self).__init__(core)
+        self.core.register(id, self)
+        self.add_sender(id, "del")
+
+        self.model = model
+        self.treeView = treeView
+        self.treeView.set_grid_lines(gtk.TREE_VIEW_GRID_LINES_BOTH)
+        self.treeView.set_model(self.model)
+        self.treeView.connect("key-press-event", self.__cb_del_row)
+        txtcell = gtk.CellRendererText()
+        column = gtk.TreeViewColumn("", txtcell, text=EnterList.COLUMN_MARK_ROW)
+        self.treeView.append_column(column)
+        
+    def set_insertColumn(self, name, column):
+        
+        txtcell = gtk.CellRendererText()
+        column = gtk.TreeViewColumn(name, txtcell, text=column)
+        column.set_resizable(True)
+        self.treeView.append_column(column)
+        txtcell.set_property("editable",True)
+        txtcell.connect("edited", self.__cd_edit, column)
+        return txtcell
+
+    def __cd_edit(self, cellrenderertext, path, new_text, column):
+        if self.model[path][EnterList.COLUMN_MARK_ROW] == "*":
+            self.model[path][EnterList.COLUMN_MARK_ROW] = ""
+            iter = self.model.append(None)
+            self.model.set(iter,EnterList.COLUMN_MARK_ROW,"*")
+            
+    def __cb_del_row(self, widget, event):
+
+        keyname = gtk.gdk.keyval_name(event.keyval)
+        if keyname == "Delete":
+            selection = self.treeView.get_selection( )
+            if selection != None: 
+                (model, iter) = selection.get_selected( )
+                if  iter != None and self.model.get_value(iter, EnterList.COLUMN_MARK_ROW) != "*":
+                    self.iter_del = iter
+                    self.emit("del")

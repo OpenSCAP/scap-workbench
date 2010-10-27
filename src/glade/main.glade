@@ -1765,7 +1765,7 @@
                                                         <property name="vscrollbar_policy">automatic</property>
                                                         <property name="shadow_type">in</property>
                                                         <child>
-                                                          <object class="GtkTreeView" id="edit:general:lv_guestion">
+                                                          <object class="GtkTreeView" id="edit:general:lv_question">
                                                             <property name="visible">True</property>
                                                             <property name="can_focus">True</property>
                                                           </object>
@@ -1783,7 +1783,7 @@
                                                         <property name="visible">True</property>
                                                         <property name="xalign">0</property>
                                                         <property name="yalign">0</property>
-                                                        <property name="label" translatable="yes">Guestion:</property>
+                                                        <property name="label" translatable="yes">Question:</property>
                                                       </object>
                                                       <packing>
                                                         <property name="top_attach">7</property>
@@ -1990,7 +1990,7 @@
                                                             <property name="vscrollbar_policy">automatic</property>
                                                             <property name="shadow_type">in</property>
                                                             <child>
-                                                            <object class="GtkTextView" id="edit:general:entry_description">
+                                                            <object class="GtkTreeView" id="edit:general:entry_description">
                                                             <property name="visible">True</property>
                                                             <property name="can_focus">True</property>
                                                             </object>

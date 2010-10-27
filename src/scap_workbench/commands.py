@@ -23,6 +23,7 @@
 import gtk, logging, sys, re, time, os
 import gobject
 import webbrowser
+import abstract
 from events import EventObject
 
 logger = logging.getLogger("scap-workbench")
@@ -1133,3 +1134,85 @@ class DHScan(DataHandler, EventObject):
         logger.debug("Finished scanning")
         if self.__cancel_notify: self.__cancel_notify.destroy()
         self.__lock = False
+
+
+                    
+class DHEditDescription(DataHandler, abstract.EnterList):
+    
+    COLUMN_MARK_ROW = 0
+    COLUMN_LANG = 1
+    COLUMN_DES = 2
+    
+    def __init__(self, core, treeView):
+        DataHandler.__init__(self, core)
+        self.core = core
+        self.treeView = treeView
+        self.iter_del=None
+        self.model = gtk.ListStore(str, str, str)
+        abstract.EnterList.__init__(self, core, "DHEditDescription",self.model, self.treeView)
+        
+        self.add_receiver("DHEditDescription", "del", self.__del_row)
+        
+        cell = self.set_insertColumn("Language", DHEditDescription.COLUMN_LANG)
+        cell.connect("edited", self.__cd_editLang, DHEditDescription.COLUMN_LANG)
+        cell = self.set_insertColumn("Description", DHEditDescription.COLUMN_DES)
+        cell.connect("edited", self.__cd_editDes, DHEditDescription.COLUMN_DES)
+        
+    def __del_row(self):
+        self.model.remove(self.iter_del)
+        
+    def __cd_editLang(self, cellrenderertext, path, new_text, column):
+        self.model[path][column] = new_text
+
+    def __cd_editDes(self, cellrenderertext, path, new_text, column):
+        self.model[path][column] = new_text
+    
+    def fill(self,data):
+
+        self.model.clear()
+        if data != None:
+            for key in data.keys():
+                self.model.append(["", key, data[key]])
+            iter = self.model.append(None)
+            self.model.set(iter,DHEditDescription.COLUMN_MARK_ROW,"*")
+                
+class DHEditReferences(DataHandler, abstract.EnterList):
+    
+    COLUMN_MARK_ROW = 0
+    COLUMN_TITLE = 1
+    COLUMN_URL = 2
+    
+    def __init__(self, core, treeView):
+        DataHandler.__init__(self, core)
+        self.core = core
+        self.treeView = treeView
+        self.iter_del=None
+        self.model = gtk.ListStore(str, str, str)
+        abstract.EnterList.__init__(self, core, "DHEditReferences",self.model, self.treeView)
+        
+        self.add_receiver("DHEditReferences", "del", self.__del_row)
+        
+        cell = self.set_insertColumn("Title", DHEditReferences.COLUMN_TITLE)
+        cell.connect("edited", self.__cd_editTitle, DHEditReferences.COLUMN_TITLE)
+        cell = self.set_insertColumn("URL", DHEditReferences.COLUMN_URL)
+        cell.connect("edited", self.__cd_editUrl, DHEditReferences.COLUMN_URL)
+        
+    def __del_row(self):
+        self.model.remove(self.iter_del)
+        
+    def __cd_editTitle(self, cellrenderertext, path, new_text, column):
+        self.model[path][column] = new_text
+
+    def __cd_editUrl(self, cellrenderertext, path, new_text, column):
+        self.model[path][column] = new_text
+    
+    def fill(self, data):
+
+        self.model.clear()
+        #references
+        if data != None:
+            self.model.clear()
+            for ref in data:
+                self.model.append(["", ref["title"],ref["identifier"]])
+            iter = self.model.append(None)
+            self.model.set(iter,DHEditReferences.COLUMN_MARK_ROW,"*")
