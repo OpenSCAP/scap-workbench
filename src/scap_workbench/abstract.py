@@ -26,6 +26,7 @@ import gobject
 import re
 
 from events import EventObject
+from htmltextview import HtmlTextView
 import core
 import logging
 
@@ -442,6 +443,18 @@ class List(EventObject):
         #refilter filters after deleted filter
         return self.filter_add(filters)
 
+class CellRendererHtmlTextView(gtk.CellRenderer):
+    """ pokus asi nebude pouzito necham najindy pozeji smazu"""
+    def __init__(self):
+        gtk.CellRenderer.__init__(self)
+        self.textView = gtk.TextView()
+        
+        
+    def do_render(self, window, wid, bg_area, cell_area, expose_area, flags):
+       pass
+
+gobject.type_register( CellRendererHtmlTextView )
+
 class EnterList(EventObject):
     """
     Abstrac class for enter listView
@@ -463,19 +476,39 @@ class EnterList(EventObject):
         txtcell = gtk.CellRendererText()
         column = gtk.TreeViewColumn("", txtcell, text=EnterList.COLUMN_MARK_ROW)
         self.treeView.append_column(column)
-        
-    def set_insertColumn(self, name, column):
+    
+    def set_insertColumnHtmlTextView(self, name, column):
+        """ jenom test nepodarilo se rochodit poydeji smazu"""
+        txtcell = CellRendererHtmlTextView()
+        column = gtk.TreeViewColumn(name, txtcell, text=column)
+        self.treeView.append_column(column)
+        return txtcell
+    
+    def set_insertColumnText(self, name, column):
         
         txtcell = gtk.CellRendererText()
         column = gtk.TreeViewColumn(name, txtcell, text=column)
         column.set_resizable(True)
         self.treeView.append_column(column)
         txtcell.set_property("editable",True)
-        txtcell.connect("edited", self.__cd_edit, column)
+        txtcell.connect("edited", self.__cb_edit, column)
+
         return txtcell
 
-    def __cd_edit(self, cellrenderertext, path, new_text, column):
-        if self.model[path][EnterList.COLUMN_MARK_ROW] == "*":
+    def set_insertColumnInfo(self, name, column):
+        
+        txtcell = gtk.CellRendererText()
+        column = gtk.TreeViewColumn(name, txtcell, text=column)
+        column.set_resizable(True)
+        self.treeView.append_column(column)
+        return txtcell
+    
+
+        
+        
+        
+    def __cb_edit(self, cellrenderertext, path, new_text, column):
+        if self.model[path][EnterList.COLUMN_MARK_ROW] == "*" and new_text != "":
             self.model[path][EnterList.COLUMN_MARK_ROW] = ""
             iter = self.model.append(None)
             self.model.set(iter,EnterList.COLUMN_MARK_ROW,"*")
@@ -488,5 +521,14 @@ class EnterList(EventObject):
             if selection != None: 
                 (model, iter) = selection.get_selected( )
                 if  iter != None and self.model.get_value(iter, EnterList.COLUMN_MARK_ROW) != "*":
+                    md = gtk.MessageDialog(self.core.main_window, 
+                        gtk.DIALOG_MODAL, gtk.MESSAGE_QUESTION,
+                        gtk.BUTTONS_YES_NO, "Do you want delete selected row?")
+                md.set_title("Delete row")
+                result = md.run()
+                md.destroy()
+                if result == gtk.RESPONSE_NO: 
+                    return
+                else: 
                     self.iter_del = iter
                     self.emit("del")
