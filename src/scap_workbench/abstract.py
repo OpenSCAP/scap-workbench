@@ -464,10 +464,12 @@ class EnterList(EventObject):
     def __init__(self, core, id, model, treeView):
         self.core = core
         self.id = id
+        self.control_empty = []
+        self.selected_old = None
         super(EnterList, self).__init__(core)
         self.core.register(id, self)
         self.add_sender(id, "del")
-
+        
         self.model = model
         self.treeView = treeView
         self.treeView.set_grid_lines(gtk.TREE_VIEW_GRID_LINES_BOTH)
@@ -476,23 +478,53 @@ class EnterList(EventObject):
         txtcell = gtk.CellRendererText()
         column = gtk.TreeViewColumn("", txtcell, text=EnterList.COLUMN_MARK_ROW)
         self.treeView.append_column(column)
-    
-    def set_insertColumnHtmlTextView(self, name, column):
+
+        self.selection = self.treeView.get_selection()
+        self.selection.set_mode(gtk.SELECTION_SINGLE)
+        self.hendler_item_changed = self.selection.connect("changed", self.__cb_item_changed_control)
+        
+    def __cb_item_changed_control(self, widget):
+        
+        if self.selected_old != None:
+            (model, iter) = self.selected_old
+            if iter != None:
+                status = model.get_value(iter, 0)
+                if status != "*":
+                    for cell in self.control_empty:
+                        column, name = cell
+                        data = model.get_value(iter, column)
+                        if data == "" or data == None:
+                            md = gtk.MessageDialog(self.core.main_window, 
+                                    gtk.DIALOG_MODAL, gtk.MESSAGE_INFO,
+                                    gtk.BUTTONS_OK, " Column %s can't be empty." % (name))
+                            md.set_title("Info")
+                            md.run()
+                            md.destroy()
+                            self.selection.handler_block(self.hendler_item_changed)
+                            self.selection.select_path(model.get_path(iter))
+                            self.selection.handler_unblock(self.hendler_item_changed)
+                            return
+        self.selected_old = self.selection.get_selected()
+
+    def set_insertColumnHtmlTextView(self, name, column, control=False):
         """ jenom test nepodarilo se rochodit poydeji smazu"""
         txtcell = CellRendererHtmlTextView()
         column = gtk.TreeViewColumn(name, txtcell, text=column)
         self.treeView.append_column(column)
         return txtcell
     
-    def set_insertColumnText(self, name, column):
+    def set_insertColumnText(self, name, column_n, control=False):
         
         txtcell = gtk.CellRendererText()
-        column = gtk.TreeViewColumn(name, txtcell, text=column)
+        column = gtk.TreeViewColumn(name, txtcell, text=column_n)
         column.set_resizable(True)
         self.treeView.append_column(column)
         txtcell.set_property("editable",True)
         txtcell.connect("edited", self.__cb_edit, column)
-
+        
+        if control == True:
+            #for control if can not be empty
+            self.control_empty.append([column_n, name])
         return txtcell
 
     def set_insertColumnInfo(self, name, column):
@@ -504,9 +536,6 @@ class EnterList(EventObject):
         self.treeView.append_column(column)
         return txtcell
     
-
-        
-        
         
     def __cb_edit(self, cellrenderertext, path, new_text, column):
         if self.model[path][EnterList.COLUMN_MARK_ROW] == "*" and new_text != "":
@@ -525,11 +554,12 @@ class EnterList(EventObject):
                     md = gtk.MessageDialog(self.core.main_window, 
                         gtk.DIALOG_MODAL, gtk.MESSAGE_QUESTION,
                         gtk.BUTTONS_YES_NO, "Do you want delete selected row?")
-                md.set_title("Delete row")
-                result = md.run()
-                md.destroy()
-                if result == gtk.RESPONSE_NO: 
-                    return
-                else: 
-                    self.iter_del = iter
-                    self.emit("del")
+                    md.set_title("Delete row")
+                    result = md.run()
+                    md.destroy()
+                    if result == gtk.RESPONSE_NO: 
+                        return
+                    else: 
+                        self.selected_old = None
+                        self.iter_del = iter
+                        self.emit("del")

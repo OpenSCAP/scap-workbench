@@ -1151,15 +1151,14 @@ class DHEditDescription(DataHandler, abstract.EnterList):
         self.treeView = treeView
         self.iter_del=None
         self.selected_des = None
-        self.model = gtk.ListStore(str, str, str, str)
-        abstract.EnterList.__init__(self, core, "DHEditDescription",self.model, self.treeView)
+        model = gtk.ListStore(str, str, str, str)
+        abstract.EnterList.__init__(self, core, "DHEditDescription",model, self.treeView)
         
         self.add_receiver("DHEditDescription", "del", self.__del_row)
         
         cell = self.set_insertColumnText("Language", DHEditDescription.COLUMN_LANG)
         cell.connect("edited", self.__cd_editLang, DHEditDescription.COLUMN_LANG)
         cell = self.set_insertColumnInfo("Description", DHEditDescription.COLUMN_DES_INFO)
-        #cell.connect("edited", self.__cd_editDes, DHEditDescription.COLUMN_DES)
                 
         self.description = HtmlTextView()
         self.description.set_wrap_mode(gtk.WRAP_WORD)
@@ -1168,8 +1167,6 @@ class DHEditDescription(DataHandler, abstract.EnterList):
         sw_description.add(self.description)
         sw_description.show_all()
 
-        self.selection = self.treeView.get_selection()
-        self.selection.set_mode(gtk.SELECTION_SINGLE)
         self.selection.connect("changed", self.__cb_item_changed)
         
     def __cb_item_changed(self, widget):
@@ -1427,7 +1424,7 @@ class DHEditTitle(DataHandler, abstract.EnterList):
         
         cell = self.set_insertColumnText("Language", DHEditTitle.COLUMN_LAN)
         cell.connect("edited", self.__cd_editLang, DHEditTitle.COLUMN_LAN)
-        cell = self.set_insertColumnText("Title", DHEditTitle.COLUMN_TITLE)
+        cell = self.set_insertColumnText("Title", DHEditTitle.COLUMN_TITLE, True)
         cell.connect("edited", self.__cd_editTitle, DHEditTitle.COLUMN_TITLE)
         
     def __del_row(self):
@@ -1443,7 +1440,11 @@ class DHEditTitle(DataHandler, abstract.EnterList):
                 md.set_title("Language found")
                 result = md.run()
                 md.destroy()
-                if result == gtk.RESPONSE_NO: 
+                if result == gtk.RESPONSE_NO:
+                    (model, iter) = self.selected_old
+                    self.selection.handler_block(self.hendler_item_changed)
+                    self.selection.select_path(model.get_path(iter))
+                    self.selection.handler_unblock(self.hendler_item_changed)
                     return
                 else: 
                     self.model[path][column] = new_text
