@@ -1158,7 +1158,7 @@ class DHEditDescription(DataHandler, abstract.EnterList):
         
         cell = self.set_insertColumnText("Language", DHEditDescription.COLUMN_LANG)
         cell.connect("edited", self.__cd_editLang, DHEditDescription.COLUMN_LANG)
-        cell = self.set_insertColumnInfo("Description", DHEditDescription.COLUMN_DES_INFO)
+        cell = self.set_insertColumnInfo("Description", DHEditDescription.COLUMN_DES_INFO, True)
                 
         self.description = HtmlTextView()
         self.description.set_wrap_mode(gtk.WRAP_WORD)
@@ -1189,7 +1189,7 @@ class DHEditDescription(DataHandler, abstract.EnterList):
             iter_end = buff.get_end_iter()
             des = buff.get_text(iter_start, iter_end, True)
             self.model.set(self.selected_des, DHEditDescription.COLUMN_DES, "<body>"+des+"</body>")
-            self.model.set(self.selected_des, DHEditDescription.COLUMN_DES_INFO, des[:30] + "...")
+            self.model.set(self.selected_des, DHEditDescription.COLUMN_DES_INFO, des[:30])
     
     def __del_row(self):
         self.model.remove(self.iter_del)
@@ -1201,7 +1201,8 @@ class DHEditDescription(DataHandler, abstract.EnterList):
         self.model[path][column] = new_text
     
     def fill(self,data):
-
+        
+        self.selected_old = None
         self.model.clear()
         if data != []:
             for key in data.keys():
@@ -1210,7 +1211,7 @@ class DHEditDescription(DataHandler, abstract.EnterList):
                 des_info = des[:30].replace("\n","")
                 des_info = des_info.replace("\t","")
                 des = "<body>"+des+"</body>"
-                self.model.append(["", key, des_info + "...", des])
+                self.model.append(["", key, des_info, des])
         iter = self.model.append(None)
         self.model.set(iter,DHEditDescription.COLUMN_MARK_ROW,"*")
                 
@@ -1422,7 +1423,7 @@ class DHEditTitle(DataHandler, abstract.EnterList):
         
         self.add_receiver("DHEditTitle", "del", self.__del_row)
         
-        cell = self.set_insertColumnText("Language", DHEditTitle.COLUMN_LAN)
+        cell = self.set_insertColumnText("Language", DHEditTitle.COLUMN_LAN, True)
         cell.connect("edited", self.__cd_editLang, DHEditTitle.COLUMN_LAN)
         cell = self.set_insertColumnText("Title", DHEditTitle.COLUMN_TITLE, True)
         cell.connect("edited", self.__cd_editTitle, DHEditTitle.COLUMN_TITLE)
@@ -1441,9 +1442,9 @@ class DHEditTitle(DataHandler, abstract.EnterList):
                 result = md.run()
                 md.destroy()
                 if result == gtk.RESPONSE_NO:
-                    (model, iter) = self.selected_old
+                    iter = self.selected_old
                     self.selection.handler_block(self.hendler_item_changed)
-                    self.selection.select_path(model.get_path(iter))
+                    self.selection.select_path(self.model.get_path(iter))
                     self.selection.handler_unblock(self.hendler_item_changed)
                     return
                 else: 
@@ -1457,6 +1458,7 @@ class DHEditTitle(DataHandler, abstract.EnterList):
     
     def fill(self,data):
 
+        self.selected_old = None
         self.model.clear()
         if data != None:
             for key in data.keys():

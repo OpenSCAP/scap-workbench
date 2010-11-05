@@ -482,29 +482,6 @@ class EnterList(EventObject):
         self.selection = self.treeView.get_selection()
         self.selection.set_mode(gtk.SELECTION_SINGLE)
         self.hendler_item_changed = self.selection.connect("changed", self.__cb_item_changed_control)
-        
-    def __cb_item_changed_control(self, widget):
-        
-        if self.selected_old != None:
-            (model, iter) = self.selected_old
-            if iter != None:
-                status = model.get_value(iter, 0)
-                if status != "*":
-                    for cell in self.control_empty:
-                        column, name = cell
-                        data = model.get_value(iter, column)
-                        if data == "" or data == None:
-                            md = gtk.MessageDialog(self.core.main_window, 
-                                    gtk.DIALOG_MODAL, gtk.MESSAGE_INFO,
-                                    gtk.BUTTONS_OK, " Column %s can't be empty." % (name))
-                            md.set_title("Info")
-                            md.run()
-                            md.destroy()
-                            self.selection.handler_block(self.hendler_item_changed)
-                            self.selection.select_path(model.get_path(iter))
-                            self.selection.handler_unblock(self.hendler_item_changed)
-                            return
-        self.selected_old = self.selection.get_selected()
 
     def set_insertColumnHtmlTextView(self, name, column, control=False):
         """ jenom test nepodarilo se rochodit poydeji smazu"""
@@ -527,15 +504,41 @@ class EnterList(EventObject):
             self.control_empty.append([column_n, name])
         return txtcell
 
-    def set_insertColumnInfo(self, name, column):
+    def set_insertColumnInfo(self, name, column_n, control = False):
         
         txtcell = gtk.CellRendererText()
-        column = gtk.TreeViewColumn(name, txtcell, text=column)
+        column = gtk.TreeViewColumn(name, txtcell, text=column_n)
         column.set_resizable(True)
         txtcell.set_property("foreground", "gray")
         self.treeView.append_column(column)
+        
+        if control == True:
+            #for control if can not be empty
+            self.control_empty.append([column_n, name])
         return txtcell
     
+    def __cb_item_changed_control(self, widget):
+        
+        if self.selected_old != None:
+            iter = self.selected_old
+            if iter != None:
+                status = self.model.get_value(iter, 0)
+                if status != "*":
+                    for cell in self.control_empty:
+                        column, name = cell
+                        data = self.model.get_value(iter, column)
+                        if data == "" or data == None:
+                            md = gtk.MessageDialog(self.core.main_window, 
+                                    gtk.DIALOG_MODAL, gtk.MESSAGE_INFO,
+                                    gtk.BUTTONS_OK, " Column %s can't be empty." % (name))
+                            md.set_title("Info")
+                            md.run()
+                            md.destroy()
+                            self.selection.handler_block(self.hendler_item_changed)
+                            self.selection.select_path(self.model.get_path(iter))
+                            self.selection.handler_unblock(self.hendler_item_changed)
+                            return
+        model, self.selected_old = self.selection.get_selected()
         
     def __cb_edit(self, cellrenderertext, path, new_text, column):
         if self.model[path][EnterList.COLUMN_MARK_ROW] == "*" and new_text != "":
