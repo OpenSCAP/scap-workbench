@@ -1434,6 +1434,21 @@ class DHEditTitle(DataHandler, abstract.EnterList):
         self.model.remove(self.iter_del)
         
     def __cd_editLang(self, cellrenderertext, path, new_text, column):
+        path = self.model.get_path(self.model.get_iter(path))
+        for row in self.model:
+            if row[DHEditTitle.COLUMN_LAN] == new_text and self.model.get_path(row.iter) != path :
+                md = gtk.MessageDialog(self.core.main_window, 
+                        gtk.DIALOG_MODAL, gtk.MESSAGE_QUESTION,
+                        gtk.BUTTONS_YES_NO, "Language \"%s\" already specified.\n\nRewrite stored data ?" % (new_text,))
+                md.set_title("Language found")
+                result = md.run()
+                md.destroy()
+                if result == gtk.RESPONSE_NO: 
+                    return
+                else: 
+                    self.model[path][column] = new_text
+                    self.model.remove(row.iter)
+                    return
         self.model[path][column] = new_text
 
     def __cd_editTitle(self, cellrenderertext, path, new_text, column):
@@ -1447,3 +1462,90 @@ class DHEditTitle(DataHandler, abstract.EnterList):
                 self.model.append(["", key, data[key]])
         iter = self.model.append(None)
         self.model.set(iter,DHEditTitle.COLUMN_MARK_ROW,"*")
+        
+class DHEditWarning(DataHandler, abstract.EnterList):
+    
+    COLUMN_MARK_ROW = 0
+    COLUMN_CAT = 1
+    COLUMN_WARNING_INFO = 2
+    COLUMN_WARNING = 3
+
+    
+    def __init__(self, core, treeView, sw_description):
+        DataHandler.__init__(self, core)
+        self.core = core
+        self.treeView = treeView
+        self.iter_del=None
+        self.selected = None
+        self.model = gtk.ListStore(str, str, str, str)
+        abstract.EnterList.__init__(self, core, "DHEditWarning",self.model, self.treeView)
+        
+        self.add_receiver("DHEditWarning", "del", self.__del_row)
+        
+        cell = self.set_insertColumnText("Category", DHEditWarning.COLUMN_CAT)
+        cell.connect("edited", self.__cd_editCategory, DHEditWarning.COLUMN_CAT)
+        cell = self.set_insertColumnInfo("Warning", DHEditWarning.COLUMN_WARNING_INFO)
+        cell.connect("edited", self.__cd_editDes, DHEditWarning.COLUMN_WARNING_INFO)
+                
+        self.view = HtmlTextView()
+        self.view.set_wrap_mode(gtk.WRAP_WORD)
+        self.view.set_editable(True)
+        self.view.connect("key-release-event", self.__edit_view)
+        sw_description.add(self.view)
+        sw_description.show_all()
+
+        self.selection = self.treeView.get_selection()
+        self.selection.set_mode(gtk.SELECTION_SINGLE)
+        self.selection.connect("changed", self.__cb_item_changed)
+        
+    def __cb_item_changed(self, widget):
+
+        self.view.get_buffer().set_text("")
+        if self.selection != None: 
+            (model, iter) = self.selection.get_selected( )
+            if iter: 
+                self.selected = iter
+                text = self.model.get_value(iter, DHEditWarning.COLUMN_WARNING) 
+                if  text != "" and text != None:
+                    self.view.display_html(self.model.get_value(iter, DHEditWarning.COLUMN_WARNING))
+            else:
+                self.selected = None
+                
+    def __edit_view(self, widget, event):
+        if self.selected != None:
+            buff = self.view.get_buffer()
+            iter_start = buff.get_start_iter()
+            iter_end = buff.get_end_iter()
+            text = buff.get_text(iter_start, iter_end, True)
+            self.model.set(self.selected, DHEditWarning.COLUMN_WARNING, "<body>"+text+"</body>")
+            self.model.set(self.selected, DHEditWarning.COLUMN_WARNING_INFO, text[:30] + "...")
+    
+    def __del_row(self):
+        self.model.remove(self.iter_del)
+        
+    def __cd_editCategory(self, cellrenderertext, path, new_text, column):
+        self.model[path][column] = new_text
+
+    def __cd_editDes(self, cellrenderertext, path, new_text, column):
+        self.model[path][column] = new_text
+    
+    def fill(self,data):
+
+        self.model.clear()
+        if data != []:
+            for tuple in data:
+                text = tuple[1]
+                category = tuple[0]
+                print "============================"
+                print tuple
+                print text
+                print category
+                print "============================"
+                text = text.replace("xhtml:","")
+                text = des.replace("xmlns:", "")
+                text_info = text[:30].replace("\n","")
+                text_info = text_info.replace("\t","")
+                text = "<body>"+text+"</body>"
+                self.model.append(["", category, text_info + "...", text])
+        iter = self.model.append(None)
+        self.model.set(iter,DHEditWarning.COLUMN_MARK_ROW,"*")

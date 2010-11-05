@@ -500,6 +500,7 @@ class EnterList(EventObject):
         txtcell = gtk.CellRendererText()
         column = gtk.TreeViewColumn(name, txtcell, text=column)
         column.set_resizable(True)
+        txtcell.set_property("foreground", "gray")
         self.treeView.append_column(column)
         return txtcell
     
