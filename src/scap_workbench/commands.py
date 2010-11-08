@@ -1136,85 +1136,6 @@ class DHScan(DataHandler, EventObject):
         if self.__cancel_notify: self.__cancel_notify.destroy()
         self.__lock = False
 
-
-                    
-class DHEditDescription(DataHandler, abstract.EnterList):
-    
-    COLUMN_MARK_ROW = 0
-    COLUMN_LANG = 1
-    COLUMN_DES_INFO = 2
-    COLUMN_DES = 3
-    
-    def __init__(self, core, treeView, sw_description):
-        DataHandler.__init__(self, core)
-        self.core = core
-        self.treeView = treeView
-        self.iter_del=None
-        self.selected_des = None
-        model = gtk.ListStore(str, str, str, str)
-        abstract.EnterList.__init__(self, core, "DHEditDescription",model, self.treeView)
-        
-        self.add_receiver("DHEditDescription", "del", self.__del_row)
-        
-        cell = self.set_insertColumnText("Language", DHEditDescription.COLUMN_LANG)
-        cell.connect("edited", self.__cd_editLang, DHEditDescription.COLUMN_LANG)
-        cell = self.set_insertColumnInfo("Description", DHEditDescription.COLUMN_DES_INFO, True)
-                
-        self.description = HtmlTextView()
-        self.description.set_wrap_mode(gtk.WRAP_WORD)
-        self.description.set_editable(True)
-        self.description.connect("key-release-event", self.__edit_des)
-        sw_description.add(self.description)
-        sw_description.show_all()
-
-        self.selection.connect("changed", self.__cb_item_changed)
-        
-    def __cb_item_changed(self, widget):
-
-        self.description.get_buffer().set_text("")
-        if self.selection != None: 
-            (model, iter) = self.selection.get_selected( )
-            if iter: 
-                self.selected_des = iter
-                text = self.model.get_value(iter, DHEditDescription.COLUMN_DES) 
-                if  text != "" and text != None:
-                    self.description.display_html(self.model.get_value(iter, DHEditDescription.COLUMN_DES))
-            else:
-                self.selected_des = None
-                
-    def __edit_des(self, widget, event):
-        if self.selected_des != None:
-            buff = self.description.get_buffer()
-            iter_start = buff.get_start_iter()
-            iter_end = buff.get_end_iter()
-            des = buff.get_text(iter_start, iter_end, True)
-            self.model.set(self.selected_des, DHEditDescription.COLUMN_DES, "<body>"+des+"</body>")
-            self.model.set(self.selected_des, DHEditDescription.COLUMN_DES_INFO, des[:30])
-    
-    def __del_row(self):
-        self.model.remove(self.iter_del)
-        
-    def __cd_editLang(self, cellrenderertext, path, new_text, column):
-        self.model[path][column] = new_text
-
-    def __cd_editDes(self, cellrenderertext, path, new_text, column):
-        self.model[path][column] = new_text
-    
-    def fill(self,data):
-        
-        self.selected_old = None
-        self.model.clear()
-        if data != []:
-            for key in data.keys():
-                des = data[key].replace("xhtml:","")
-                des = des.replace("xmlns:", "")
-                des_info = des[:30].replace("\n","")
-                des_info = des_info.replace("\t","")
-                des = "<body>"+des+"</body>"
-                self.model.append(["", key, des_info, des])
-        iter = self.model.append(None)
-        self.model.set(iter,DHEditDescription.COLUMN_MARK_ROW,"*")
-                
 class DHEditReferences(DataHandler, abstract.EnterList):
     
     COLUMN_MARK_ROW = 0
@@ -1407,65 +1328,7 @@ class DHEditRationale(DataHandler, abstract.EnterList):
         iter = self.model.append(None)
         self.model.set(iter,DHEditRationale.COLUMN_MARK_ROW,"*")
         
-class DHEditTitle(DataHandler, abstract.EnterList):
-    
-    COLUMN_MARK_ROW = 0
-    COLUMN_LAN = 1
-    COLUMN_TITLE = 2
-    
-    def __init__(self, core, treeView):
-        DataHandler.__init__(self, core)
-        self.core = core
-        self.treeView = treeView
-        self.iter_del=None
-        self.model = gtk.ListStore(str, str, str)
-        abstract.EnterList.__init__(self, core, "DHEditTitle",self.model, self.treeView)
-        
-        self.add_receiver("DHEditTitle", "del", self.__del_row)
-        
-        cell = self.set_insertColumnText("Language", DHEditTitle.COLUMN_LAN, True)
-        cell.connect("edited", self.__cd_editLang, DHEditTitle.COLUMN_LAN)
-        cell = self.set_insertColumnText("Title", DHEditTitle.COLUMN_TITLE, True)
-        cell.connect("edited", self.__cd_editTitle, DHEditTitle.COLUMN_TITLE)
-        
-    def __del_row(self):
-        self.model.remove(self.iter_del)
-        
-    def __cd_editLang(self, cellrenderertext, path, new_text, column):
-        path = self.model.get_path(self.model.get_iter(path))
-        for row in self.model:
-            if row[DHEditTitle.COLUMN_LAN] == new_text and self.model.get_path(row.iter) != path :
-                md = gtk.MessageDialog(self.core.main_window, 
-                        gtk.DIALOG_MODAL, gtk.MESSAGE_QUESTION,
-                        gtk.BUTTONS_YES_NO, "Language \"%s\" already specified.\n\nRewrite stored data ?" % (new_text,))
-                md.set_title("Language found")
-                result = md.run()
-                md.destroy()
-                if result == gtk.RESPONSE_NO:
-                    iter = self.selected_old
-                    self.selection.handler_block(self.hendler_item_changed)
-                    self.selection.select_path(self.model.get_path(iter))
-                    self.selection.handler_unblock(self.hendler_item_changed)
-                    return
-                else: 
-                    self.model[path][column] = new_text
-                    self.model.remove(row.iter)
-                    return
-        self.model[path][column] = new_text
 
-    def __cd_editTitle(self, cellrenderertext, path, new_text, column):
-        self.model[path][column] = new_text
-    
-    def fill(self,data):
-
-        self.selected_old = None
-        self.model.clear()
-        if data != None:
-            for key in data.keys():
-                self.model.append(["", key, data[key]])
-        iter = self.model.append(None)
-        self.model.set(iter,DHEditTitle.COLUMN_MARK_ROW,"*")
-        
 class DHEditWarning(DataHandler, abstract.EnterList):
     
     COLUMN_MARK_ROW = 0
@@ -1537,7 +1400,7 @@ class DHEditWarning(DataHandler, abstract.EnterList):
         self.model.clear()
         if data != []:
             for tuple in data:
-                text = tuple[1]
+                text = tuple[1].text
                 category = tuple[0]
                 print "============================"
                 print tuple
@@ -1545,7 +1408,7 @@ class DHEditWarning(DataHandler, abstract.EnterList):
                 print category
                 print "============================"
                 text = text.replace("xhtml:","")
-                text = des.replace("xmlns:", "")
+                text = text.replace("xmlns:", "")
                 text_info = text[:30].replace("\n","")
                 text_info = text_info.replace("\t","")
                 text = "<body>"+text+"</body>"

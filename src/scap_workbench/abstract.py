@@ -443,38 +443,44 @@ class List(EventObject):
         #refilter filters after deleted filter
         return self.filter_add(filters)
 
-class CellRendererHtmlTextView(gtk.CellRenderer):
+class CellRendererTextWrap(gtk.CellRendererText):
     """ pokus asi nebude pouzito necham najindy pozeji smazu"""
     def __init__(self):
-        gtk.CellRenderer.__init__(self)
-        self.textView = gtk.TextView()
-        
+        self.__gobject_init__()
+        gtk.CellRendererText.__init__( self )
+        self.callable = None
+        self.table = None
+        self.set_property("wrap-mode", True)
         
     def do_render(self, window, wid, bg_area, cell_area, expose_area, flags):
-       pass
-
-gobject.type_register( CellRendererHtmlTextView )
+       self.set_property("wrap-width", cell_area.width )
+       gtk.CellRendererText.do_render( self, window, wid, bg_area,cell_area, expose_area, flags)
+       
+gobject.type_register(CellRendererTextWrap)
 
 class EnterList(EventObject):
     """
     Abstrac class for enter listView
     """
     COLUMN_MARK_ROW = 0
-    
+
     def __init__(self, core, id, model, treeView):
         self.core = core
         self.id = id
         self.control_empty = []
+        self.control_unique = []
         self.selected_old = None
         super(EnterList, self).__init__(core)
         self.core.register(id, self)
         self.add_sender(id, "del")
+        self.add_sender(id, "edit")
         
         self.model = model
         self.treeView = treeView
         self.treeView.set_grid_lines(gtk.TREE_VIEW_GRID_LINES_BOTH)
         self.treeView.set_model(self.model)
         self.treeView.connect("key-press-event", self.__cb_del_row)
+        self.treeView.connect("focus-out-event", self.__cb_leave_row)
         txtcell = gtk.CellRendererText()
         column = gtk.TreeViewColumn("", txtcell, text=EnterList.COLUMN_MARK_ROW)
         self.treeView.append_column(column)
@@ -482,38 +488,36 @@ class EnterList(EventObject):
         self.selection = self.treeView.get_selection()
         self.selection.set_mode(gtk.SELECTION_SINGLE)
         self.hendler_item_changed = self.selection.connect("changed", self.__cb_item_changed_control)
-
-    def set_insertColumnHtmlTextView(self, name, column, control=False):
-        """ jenom test nepodarilo se rochodit poydeji smazu"""
-        txtcell = CellRendererHtmlTextView()
-        column = gtk.TreeViewColumn(name, txtcell, text=column)
-        self.treeView.append_column(column)
-        return txtcell
     
-    def set_insertColumnText(self, name, column_n, control=False):
+    def set_insertColumnText(self, name, column_n, empty=True, unique=False ):
         
-        txtcell = gtk.CellRendererText()
+        txtcell = CellRendererTextWrap()
         column = gtk.TreeViewColumn(name, txtcell, text=column_n)
         column.set_resizable(True)
         self.treeView.append_column(column)
         txtcell.set_property("editable",True)
-        txtcell.connect("edited", self.__cb_edit, column)
+        txtcell.connect("edited", self.__cb_edit, column_n)
+
+        #for control if dat in columns should be unique
+        if unique:
+            self.control_unique.append([column_n, name])
+            return txtcell
         
-        if control == True:
-            #for control if can not be empty
+        #for control if can not be empty
+        if empty == False:
             self.control_empty.append([column_n, name])
         return txtcell
 
-    def set_insertColumnInfo(self, name, column_n, control = False):
+    def set_insertColumnInfo(self, name, column_n, empty= True):
         
-        txtcell = gtk.CellRendererText()
+        txtcell = CellRendererTextWrap()
         column = gtk.TreeViewColumn(name, txtcell, text=column_n)
         column.set_resizable(True)
         txtcell.set_property("foreground", "gray")
         self.treeView.append_column(column)
         
-        if control == True:
-            #for control if can not be empty
+        #for control if can not be empty
+        if empty == False:
             self.control_empty.append([column_n, name])
         return txtcell
     
@@ -524,28 +528,62 @@ class EnterList(EventObject):
             if iter != None:
                 status = self.model.get_value(iter, 0)
                 if status != "*":
+                    
+                    #control if is empty
                     for cell in self.control_empty:
-                        column, name = cell
+                        (column, name) = cell
                         data = self.model.get_value(iter, column)
-                        if data == "" or data == None:
+                        if (data == "" or data == None):
                             md = gtk.MessageDialog(self.core.main_window, 
                                     gtk.DIALOG_MODAL, gtk.MESSAGE_INFO,
-                                    gtk.BUTTONS_OK, " Column %s can't be empty." % (name))
+                                    gtk.BUTTONS_OK, " Column \"%s\" can't be empty." % (name))
                             md.set_title("Info")
                             md.run()
                             md.destroy()
+                            
                             self.selection.handler_block(self.hendler_item_changed)
                             self.selection.select_path(self.model.get_path(iter))
                             self.selection.handler_unblock(self.hendler_item_changed)
                             return
+                            
+                    # control is unique
+                    for cell in self.control_unique:
+                        (column, name) = cell
+                        path = self.model.get_path(iter)
+                        new_text = self.model.get_value(iter, column)
+                        for row in self.model:
+                            if row[column] == new_text and self.model.get_path(row.iter) != path:
+                                md = gtk.MessageDialog(self.core.main_window, 
+                                        gtk.DIALOG_MODAL, gtk.MESSAGE_QUESTION,
+                                        gtk.BUTTONS_YES_NO, "%s \"%s\" already specified.\n\nRewrite stored data ?" % (name, new_text,))
+                                md.set_title("Language found")
+                                result = md.run()
+                                md.destroy()
+                                if result == gtk.RESPONSE_NO:
+                                    iter = self.selected_old
+                                    self.selection.handler_block(self.hendler_item_changed)
+                                    self.selection.select_path(self.model.get_path(iter))
+                                    self.selection.handler_unblock(self.hendler_item_changed)
+                                    return
+                                else: 
+                                    self.iter_del = row.iter
+                                    self.emit("del")
+                                    return
+
         model, self.selected_old = self.selection.get_selected()
-        
+
     def __cb_edit(self, cellrenderertext, path, new_text, column):
+
+        self.edit_path = path
+        self.edit_column = column
+        self.edit_text = new_text
+        self.emit("edit")
+
         if self.model[path][EnterList.COLUMN_MARK_ROW] == "*" and new_text != "":
             self.model[path][EnterList.COLUMN_MARK_ROW] = ""
             iter = self.model.append(None)
             self.model.set(iter,EnterList.COLUMN_MARK_ROW,"*")
-            
+
     def __cb_del_row(self, widget, event):
 
         keyname = gtk.gdk.keyval_name(event.keyval)
@@ -566,3 +604,12 @@ class EnterList(EventObject):
                         self.selected_old = None
                         self.iter_del = iter
                         self.emit("del")
+
+    def __cb_leave_row(self,widget, event):
+        pass
+    
+    
+class EditControl:
+    
+    def __init__(self):
+        pass
