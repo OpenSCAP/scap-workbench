@@ -171,7 +171,7 @@ class DataHandler:
                     "references":       self.parse_refs(item.references),
                     "requires":         item.requires,
                     "selected":         item.selected,
-                    "statuses":         [(status.date, status.text) for status in item.statuses or []],
+                    "statuses":         [(status.date, status.status) for status in item.statuses or []],
                     "version":          item.version,
                     "version_time":     item.version_time,
                     "version_update":   item.version_update,
@@ -1215,7 +1215,7 @@ class DHEditItems:
         object = model.get_value(iter, COLUMN_OBJECT)
 
         if not object:
-            object = openscap.common.text()
+            object = openscap.common.text_new()
             item.add_title(object)
             model.set_value(iter, COLUMN_OBJECT, object)
         elif  not delete:
@@ -1238,7 +1238,7 @@ class DHEditItems:
         object = model.get_value(iter, COLUMN_OBJECT)
 
         if not object:
-            object = openscap.common.text()
+            object = openscap.common.text_new()
             item.add_description(object)
             model.set_value(iter, COLUMN_OBJECT, object)
         elif  not delete:
@@ -1252,3 +1252,57 @@ class DHEditItems:
             logger.info ("TODO delete Description.")
             model.remove(iter)  
 
+    def DHEditWarning(self, item, model, iter, column, value, delete = False):
+
+        COLUMN_CATEGORY_TEXT= 0
+        COLUMN_CATEGORY_ITER = 1
+        COLUMN_LAN = 2
+        COLUMN_TEXT = 3
+        COLUMN_OBJECT = 4
+
+        object = model.get_value(iter, COLUMN_OBJECT)
+
+        if not object:
+            object = openscap.xccdf.warning_new()
+            object_text = openscap.common.text_new()
+            object.set_text(object_text)
+            item.add_warning(object)
+            model.set_value(iter, COLUMN_OBJECT, object)
+        elif  not delete:
+            if column == COLUMN_CATEGORY_ITER:
+                object.set_category(value)
+            elif column == COLUMN_TEXT:
+                object_text = openscap.xccdf.warning_get_text(object)
+                object_text.set_text(value)
+            elif column == COLUMN_LAN:
+                object_text = openscap.xccdf.warning_get_text(object)
+                object_text.set_lang(value)
+            else:
+                logger.error("Bad number of column.")
+        else:
+            logger.info ("TODO delete Warningn.")
+            model.remove(iter) 
+            
+    def DHEditStatus(self, item, model, iter, column, value, delete = False):
+
+        COLUMN_STATUS_TEXT= 0
+        COLUMN_STATUS_ITER = 1
+        COLUMN_DATE = 2
+        COLUMN_OBJECT = 3
+
+        object = model.get_value(iter, COLUMN_OBJECT)
+
+        if not object:
+            object = openscap.xccdf.status_new()
+            item.add_status(object)
+            model.set_value(iter, COLUMN_OBJECT, object)
+        elif  not delete:
+            if column == COLUMN_STATUS_ITER:
+                object.set_status(value)
+            elif column == COLUMN_DATE:
+                pass
+            else:
+                logger.error("Bad number of column.")
+        else:
+            logger.info ("TODO deleteStatus.")
+            model.remove(iter) 

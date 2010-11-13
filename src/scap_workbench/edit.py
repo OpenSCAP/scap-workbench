@@ -145,10 +145,6 @@ class MenuButtonEdit(abstract.MenuButton):
         self.chbox_abstract = self.builder.get_object("edit:general:chbox_abstract")
         self.entry_cluster_id = self.builder.get_object("edit:general:entry_cluster_id")
         
-        ##status
-        #self.lv_status = self.builder.get_object("edit:general:lv_status")
-        #self.status_model = commands.DHEditStatus(self.core, self.lv_status)
-        
         ##question
         #self.lv_question = self.builder.get_object("edit:general:lv_question")
         #self.guestion_model = commands.DHEditQuestion(self.core, self.lv_question)
@@ -163,14 +159,14 @@ class MenuButtonEdit(abstract.MenuButton):
         
         self.edit_title = EditTitle(self.core, self.builder)
         self.edit_description = EditDescription(self.core, self.builder)
+        self.edit_warning = EditWarning(self.core, self.builder)
+        self.edit_status = EditStatus(self.core, self.builder)
         
-        ##warning
-        #self.lv_warning = self.builder.get_object("edit:general:lv_warning")
         #self.sw_warning = self.builder.get_object("edit:general:sw_warning")
         #self.warning_model = commands.DHEditWarning(self.core, self.lv_warning, self.sw_warning)
         
-        ##extends
-        #self.lbl_extends = self.builder.get_object("edit:dependencies:lbl_extends")
+        #extends
+        self.lbl_extends = self.builder.get_object("edit:dependencies:lbl_extends")
         
         ##Conflicts
         #self.lv_conflicts = self.builder.get_object("edit:dependencies:lv_conflicts")
@@ -239,6 +235,9 @@ class MenuButtonEdit(abstract.MenuButton):
             
             self.edit_title.fill(details["item"], details["titles"])
             self.edit_description.fill(details["item"], details["descriptions"])
+            self.edit_warning.fill(details["item"], details["warnings"])
+            self.edit_status.fill(details["item"], details["statuses"])
+            
             
             #self.ref_model.fill(details["references"])
             #self.guestion_model.fill(details["questions"])
@@ -440,6 +439,172 @@ class EditDescription(commands.DHEditItems,Edit_abs):
             for data in objects:
                 self.model.append([data.lang, data.text, data])
 
+
+class EditWarning(commands.DHEditItems,Edit_abs):
+
+    COLUMN_CATEGORY_TEXT= 0
+    COLUMN_CATEGORY_ITER = 1
+    COLUMN_LAN = 2
+    COLUMN_TEXT = 3
+    COLUMN_OBJECT = 4
+
+    CB_COLUMN_DATA = 0
+    CB_COLUMN_VIEW = 1
+    
+    def __init__(self, core, builder):
+        
+        #set listView and model
+        lv = builder.get_object("edit:general:lv_warning")
+        model = gtk.ListStore(str, gobject.TYPE_PYOBJECT, str, str, gobject.TYPE_PYOBJECT)
+        lv.set_model(model)
+        
+
+        
+        self.combo_model = gtk.ListStore(int, str, str)
+        self.combo_model.append([1, "GENERAL", "  General-purpose warning."])
+        self.combo_model.append([2, "FUNCTIONALITY", "Warning about possible impacts to functionality."])
+        self.combo_model.append([3, "PERFORMANCE", "  Warning about changes to target system performance."])
+        self.combo_model.append([4, "HARDWARE", "Warning about hardware restrictions or possible impacts to hardware."])
+        self.combo_model.append([5, "LEGAL", "Warning about legal implications."])
+        self.combo_model.append([6, "REGULATORY", "Warning about regulatory obligations."])
+        self.combo_model.append([7, "MANAGEMENT", "Warning about impacts to the mgmt or administration of the target system."])
+        self.combo_model.append([8, "AUDIT", "Warning about impacts to audit or logging."])
+        self.combo_model.append([9, "DEPENDENCY", "Warning about dependencies between this Rule and other parts of the target system."])
+        
+        #information for new/edit dialog
+        values = {
+                        "name_dialog":  "Edit title",
+                        "view":         lv,
+                        "cb":           self.DHEditWarning,
+                        "cBox":         {"name":    "Category",
+                                        "column":   self.COLUMN_CATEGORY_ITER,
+                                        "column_view":   self.COLUMN_CATEGORY_TEXT,
+                                        "cBox_view":self.CB_COLUMN_VIEW,
+                                        "cBox_data":self.CB_COLUMN_DATA,
+                                        "model":    self.combo_model,
+                                        "empty":    False, 
+                                        "unique":   False},
+                        "textEntry":    {"name":    "Language",
+                                        "column":   self.COLUMN_LAN,
+                                        "empty":    True, 
+                                        "unique":   False},
+                        "textView":     {"name":    "Warning",
+                                        "column":   self.COLUMN_TEXT,
+                                        "empty":    False, 
+                                        "unique":   False}
+                        }
+        Edit_abs.__init__(self, core, lv, values)
+        btn_add = builder.get_object("edit:general:btn_warning_add")
+        btn_edit = builder.get_object("edit:general:btn_warning_edit")
+        btn_del = builder.get_object("edit:general:btn_warning_del")
+        
+        
+        # set callBack to btn
+        btn_add.connect("clicked", self.cb_add_row)
+        btn_edit.connect("clicked", self.cb_edit_row)
+        btn_del.connect("clicked", self.cb_del_row)
+        
+        self.addColumn("Language",self.COLUMN_LAN)
+        self.addColumn("Category",self.COLUMN_CATEGORY_TEXT)
+        self.addColumn("Warning",self.COLUMN_TEXT)
+        
+    def fill(self, item, objects):
+        self.item = item
+        self.model.clear()
+        if objects != []:
+            for data in objects:
+
+                iter = self.combo_model.get_iter_first()
+                while iter:
+                    if data.category == self.combo_model.get_value(iter, self.CB_COLUMN_DATA):
+                        category = self.combo_model.get_value(iter, self.CB_COLUMN_VIEW )
+                        break
+                    iter = self.combo_model.iter_next(iter)
+                if iter == None: 
+                    logger.error("Unexpected category XCCDF_WARNING.")
+                    category = "Uknown"
+
+                self.model.append([category, iter,data.text.lang, data.text.text, data])
+
+
+class EditStatus(commands.DHEditItems,Edit_abs):
+
+    COLUMN_STATUS_TEXT= 0
+    COLUMN_STATUS_ITER = 1
+    COLUMN_DATE = 2
+    COLUMN_OBJECT = 3
+
+    CB_COLUMN_DATA = 0
+    CB_COLUMN_VIEW = 1
+    
+    def __init__(self, core, builder):
+        
+        #set listView and model
+        lv = builder.get_object("edit:general:lv_status")
+        model = gtk.ListStore(str, gobject.TYPE_PYOBJECT, str, gobject.TYPE_PYOBJECT)
+        lv.set_model(model)
+        
+        
+        self.combo_model = gtk.ListStore(int, str, str)
+        self.combo_model.append([0, "NOT SPECIFIED", "Status was not specified by benchmark."])
+        self.combo_model.append([1, "ACCEPTED", "Accepted."])
+        self.combo_model.append([2, "DEPRECATED", "Deprecated."])
+        self.combo_model.append([3, "DRAFT ", "Draft item."])
+        self.combo_model.append([4, "INCOMPLETE", "The item is not complete. "])
+        self.combo_model.append([5, "INTERIM", "Interim."])
+
+        #information for new/edit dialog
+        values = {
+                        "name_dialog":  "Edit title",
+                        "view":         lv,
+                        "cb":           self.DHEditStatus,
+                        "cBox":         {"name":    "Status",
+                                        "column":   self.COLUMN_STATUS_ITER,
+                                        "column_view":   self.COLUMN_STATUS_TEXT,
+                                        "cBox_view":self.CB_COLUMN_VIEW,
+                                        "cBox_data":self.CB_COLUMN_DATA,
+                                        "model":    self.combo_model,
+                                        "empty":    False, 
+                                        "unique":   False},
+                        "textEntry":    {"name":    "Date",
+                                        "column":   self.COLUMN_DATE,
+                                        "empty":    False, 
+                                        "unique":   False},
+
+                        }
+        Edit_abs.__init__(self, core, lv, values)
+        btn_add = builder.get_object("edit:general:btn_status_add")
+        btn_edit = builder.get_object("edit:general:btn_status_edit")
+        btn_del = builder.get_object("edit:general:btn_status_del")
+        
+        
+        # set callBack to btn
+        btn_add.connect("clicked", self.cb_add_row)
+        btn_edit.connect("clicked", self.cb_edit_row)
+        btn_del.connect("clicked", self.cb_del_row)
+        
+        self.addColumn("Date",self.COLUMN_DATE)
+        self.addColumn("Status",self.COLUMN_STATUS_TEXT)
+        
+    def fill(self, item, objects):
+        self.item = item
+        self.model.clear()
+        if objects != []:
+            for data in objects:
+                iter = self.combo_model.get_iter_first()
+                while iter:
+                    if data.status == self.combo_model.get_value(iter, self.CB_COLUMN_DATA):
+                        status = self.combo_model.get_value(iter, self.CB_COLUMN_VIEW )
+                        break
+                    iter = self.combo_model.iter_next(iter)
+                if iter == None: 
+                    logger.error("Unexpected category XCCDF_WARNING.")
+                    status = "Uknown"
+
+                self.model.append([status, iter,data.date, data])
+
+
+
 class EditDialogWindow(EventObject):
     
     def __init__(self, item, core, values, new=True):
@@ -491,13 +656,18 @@ class EditDialogWindow(EventObject):
                 buff = self.textView.get_buffer()
                 buff.set_text(self.model.get_value(self.iter,values["textView"]["column"]))
 
-        if "cbEntry" in values:
-            cbEntry = builder.get_object("cbEntry")
-            lbl_cbEntry = builder.get_object("lbl_cbEntry")
-            cbEntry.show_all()
-            lbl_cbEntry.show()
+        if "cBox" in values:
+            self.cBox = builder.get_object("cBox")
+            cell = gtk.CellRendererText()
+            self.cBox.pack_start(cell, True)
+            self.cBox.add_attribute(cell, 'text',values["cBox"]["cBox_view"])  
+            self.cBox.set_model(values["cBox"]["model"])
+            lbl_cBox = builder.get_object("lbl_cBox")
+            lbl_cBox.set_label(values["cBox"]["name"])
+            self.cBox.show_all()
+            lbl_cBox.show()
             if new == False:
-                logger.info("not implemented all yet")
+                self.cBox.set_active_iter(self.model.get_value(self.iter,values["cBox"]["column"]))
                 
 
         self.window.show()
@@ -508,7 +678,7 @@ class EditDialogWindow(EventObject):
             dest_path = None
             self.iter = None
         else:
-            dest_path = self.iter
+            dest_path = self.model.get_path(self.iter)
         
         if "textEntry" in self.values:
             text_textEntry = self.textEntry.get_text()
@@ -547,6 +717,32 @@ class EditDialogWindow(EventObject):
                 else:
                     dest_path = path
         
+        if "cBox" in self.values:
+            active = self.cBox.get_active()
+            if active < 0:
+                data_selected = ""
+                view_selected = ""
+                iter_selected = None
+            else:
+                data_selected = self.values["cBox"]["model"][active][self.values["cBox"]["cBox_data"]]
+                view_selected = self.values["cBox"]["model"][active][self.values["cBox"]["cBox_view"]]
+                iter_selected = self.cBox.get_active_iter()
+                
+            # if data should not be empty and control
+            if self.values["cBox"]["empty"] == False:
+                if not self.control_empty(data_selected, self.values["cBox"]["name"]):
+                    return
+            
+            # if data sould be unique and control
+            if self.values["cBox"]["unique"] == True:
+                path = self.control_unique(self.values["cBox"]["name"], self.model, 
+                                            self.values["cBox"]["column"], data_selected, self.iter)
+                if path == False:
+                    return
+                else:
+                    dest_path = path
+                    
+                    
         # new row and unique => add new row
         if dest_path == None:
             iter = self.model.append()
@@ -567,7 +763,12 @@ class EditDialogWindow(EventObject):
         if "textView" in self.values:
             self.model.set_value(iter,self.values["textView"]["column"], text_textView)
             self.values["cb"](self.item, self.model, iter, self.values["textView"]["column"], text_textView)
-        
+
+        if "cBox" in self.values:
+            self.model.set_value(iter,self.values["cBox"]["column"], iter_selected)
+            self.model.set_value(iter,self.values["cBox"]["column_view"], view_selected)
+            self.values["cb"](self.item, self.model, iter, self.values["cBox"]["column"], data_selected)
+            
         self.window.destroy()
 
     def __delete_event(self, widget, event=None):
