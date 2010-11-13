@@ -607,9 +607,4 @@ class EnterList(EventObject):
 
     def __cb_leave_row(self,widget, event):
         pass
-    
-    
-class EditControl:
-    
-    def __init__(self):
-        pass
+

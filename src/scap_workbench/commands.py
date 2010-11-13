@@ -23,7 +23,6 @@
 import gtk, logging, sys, re, time, os
 import gobject
 import webbrowser
-import abstract
 from events import EventObject
 from htmltextview import HtmlTextView
 
@@ -212,6 +211,72 @@ class DataHandler:
 
         return values
 
+    def get_item_objects(self, id, items_model=False):
+        """get_item_details -- get details of XCCDF_ITEM"""
+
+        if not self.core.lib:
+            logger.error("Library not initialized or XCCDF file not specified")
+            return None
+        item = self.core.lib["policy_model"].benchmark.item(id or self.core.selected_item)
+        if item != None:
+            values = {
+                    "item":             item,
+                    "id":               item.id,
+                    "type":             item.type,
+                    "titles":           [(title) for title in item.title or []],
+                    "descriptions":     [(desc) for desc in item.description or []],
+                    "abstract":         item.abstract,
+                    "cluster_id":       item.cluster_id,
+                    "conflicts":        [conflict for conflict in item.conflicts or []],
+                    "extends":          item.extends,
+                    "hidden":           item.hidden,
+                    "platforms":        [platform for platform in item.platforms],
+                    "prohibit_changes": item.prohibit_changes,
+                    "questions":        [(question) for question in item.question or []],
+                    "rationale":        [rationale for rationale in item.rationale or []],
+                    "references":       self.parse_refs(item.references),
+                    "requires":         item.requires,
+                    "selected":         item.selected,
+                    "statuses":         [(status) for status in item.statuses or []],
+                    "version":          item.version,
+                    "version_time":     item.version_time,
+                    "version_update":   item.version_update,
+                    "warnings":         [(warning) for warning in item.warnings or []],
+                    "weight":           item.weight,
+                    "selected":         self.get_selected(item, items_model)
+                    }
+            if item.type == openscap.OSCAP.XCCDF_GROUP:
+                item = item.to_group()
+                values.update({
+                    "typetext":         "Group",
+                    #"content":         item.content,
+                    #"values":           self.__item_get_values(item),
+                    "status_current":   item.status_current
+                    })
+            elif item.type == openscap.OSCAP.XCCDF_RULE:
+                item = item.to_rule()
+                values.update({
+                    #"checks":          item.checks
+                    "typetext":         "Rule",
+                    "fixes":            self.__rule_get_fixes(item),
+                    "fixtexts":         self.__rule_get_fixtexts(item),
+                    "idents":           [(ident) for ident in item.idents or []],
+                    "imapct_metric":    item.impact_metric,
+                    "multiple":         item.multiple,
+                    "profile_notes":    [(note) for note in item.profile_notes or []],
+                    "role":             item.role,
+                    "severity":         item.severity,
+                    "status_current":   item.status_current
+                    })
+            else: 
+                logger.error("Item type not supported %d", item.type)
+                return None
+        else:
+            logger.error("No item '%s' in benchmark", id)
+            return None
+
+        return values
+        
     def get_profiles(self):
         
         if not self.core.lib:
@@ -1136,282 +1201,54 @@ class DHScan(DataHandler, EventObject):
         if self.__cancel_notify: self.__cancel_notify.destroy()
         self.__lock = False
 
-class DHEditReferences(DataHandler, abstract.EnterList):
+class DHEditItems:
     
-    COLUMN_MARK_ROW = 0
-    COLUMN_TITLE = 1
-    COLUMN_URL = 2
-    
-    def __init__(self, core, treeView):
-        DataHandler.__init__(self, core)
-        self.core = core
-        self.treeView = treeView
-        self.iter_del=None
-        self.model = gtk.ListStore(str, str, str)
-        abstract.EnterList.__init__(self, core, "DHEditReferences",self.model, self.treeView)
+    def __init__(self):
+        pass
         
-        self.add_receiver("DHEditReferences", "del", self.__del_row)
-        
-        cell = self.set_insertColumnText("Title", DHEditReferences.COLUMN_TITLE)
-        cell.connect("edited", self.__cd_editTitle, DHEditReferences.COLUMN_TITLE)
-        cell = self.set_insertColumnText("URL", DHEditReferences.COLUMN_URL)
-        cell.connect("edited", self.__cd_editUrl, DHEditReferences.COLUMN_URL)
-        
-        
+    def DHEditTitle(self, item, model, iter, column, value, delete = False):
 
-    def __del_row(self):
-        self.model.remove(self.iter_del)
-        
-    def __cd_editTitle(self, cellrenderertext, path, new_text, column):
-        self.model[path][column] = new_text
+        COLUMN_LAN = 0
+        COLUMN_TEXT = 1
+        COLUMN_OBJECT = 2
 
-    def __cd_editUrl(self, cellrenderertext, path, new_text, column):
-        self.model[path][column] = new_text
-    
-    def fill(self, data):
+        object = model.get_value(iter, COLUMN_OBJECT)
 
-        self.model.clear()
-        #references
-        if data != []:
-            self.model.clear()
-            for ref in data:
-
-                self.model.append(["", ref["title"],ref["identifier"]])
-        iter = self.model.append(None)
-        self.model.set(iter,DHEditReferences.COLUMN_MARK_ROW,"*")
-            
-
-class DHEditQuestion(DataHandler, abstract.EnterList):
-    
-    COLUMN_MARK_ROW = 0
-    COLUMN_LAN = 1
-    COLUMN_QUEST = 2
-    
-    def __init__(self, core, treeView):
-        DataHandler.__init__(self, core)
-        self.core = core
-        self.treeView = treeView
-        self.iter_del=None
-        self.model = gtk.ListStore(str, str, str)
-        abstract.EnterList.__init__(self, core, "DHEditQuestion",self.model, self.treeView)
-        
-        self.add_receiver("DHEditQuestion", "del", self.__del_row)
-        
-        cell = self.set_insertColumnText("Language", DHEditQuestion.COLUMN_LAN)
-        cell.connect("edited", self.__cd_editLang, DHEditQuestion.COLUMN_LAN)
-        cell = self.set_insertColumnText("Question", DHEditQuestion.COLUMN_QUEST)
-        cell.connect("edited", self.__cd_editQuest, DHEditQuestion.COLUMN_QUEST)
-        
-    def __del_row(self):
-        self.model.remove(self.iter_del)
-        
-    def __cd_editLang(self, cellrenderertext, path, new_text, column):
-        self.model[path][column] = new_text
-
-    def __cd_editQuest(self, cellrenderertext, path, new_text, column):
-        self.model[path][column] = new_text
-    
-    def fill(self,data):
-
-        self.model.clear()
-        if data != None:
-            for key in data.keys():
-                self.model.append(["", key, data[key]])
-        iter = self.model.append(None)
-        self.model.set(iter,DHEditQuestion.COLUMN_MARK_ROW,"*")
-            
-class DHEditStatus(DataHandler, abstract.EnterList):
-    
-    COLUMN_MARK_ROW = 0
-    COLUMN_TIME = 1
-    COLUMN_STAT= 2
-    
-    def __init__(self, core, treeView):
-        DataHandler.__init__(self, core)
-        self.core = core
-        self.treeView = treeView
-        self.iter_del=None
-        self.model = gtk.ListStore(str, str, str)
-        abstract.EnterList.__init__(self, core, "DHEditStatus",self.model, self.treeView)
-        
-        self.add_receiver("DHEditQuestion", "del", self.__del_row)
-        
-        cell = self.set_insertColumnText("Time", DHEditStatus.COLUMN_TIME)
-        cell.connect("edited", self.__cd_editTime, DHEditStatus.COLUMN_TIME)
-        cell = self.set_insertColumnText("Status", DHEditStatus.COLUMN_STAT)
-        cell.connect("edited", self.__cd_editStatus, DHEditStatus.COLUMN_STAT)
-        
-    def __del_row(self):
-        self.model.remove(self.iter_del)
-        
-    def __cd_editTime(self, cellrenderertext, path, new_text, column):
-        self.model[path][column] = new_text
-
-    def __cd_editStatus(self, cellrenderertext, path, new_text, column):
-        self.model[path][column] = new_text
-    
-    def fill(self,data):
-
-        self.model.clear()
-        if data != []:
-            for tuple in data:
-                time, status = tuple
-                self.model.append(["", time, status])
-        iter = self.model.append(None)
-        self.model.set(iter,DHEditStatus.COLUMN_MARK_ROW,"*")
-            
-class DHEditConflicts(DataHandler, abstract.EnterList):
-    
-    COLUMN_MARK_ROW = 0
-    COLUMN_CONFLICT = 1
-    
-    def __init__(self, core, treeView):
-        DataHandler.__init__(self, core)
-        self.core = core
-        self.treeView = treeView
-        self.iter_del=None
-        self.model = gtk.ListStore(str, str, str)
-        abstract.EnterList.__init__(self, core, "DHEditConflicts",self.model, self.treeView)
-        
-        self.add_receiver("DHEditConflicts", "del", self.__del_row)
-        
-        cell = self.set_insertColumnText("Title", DHEditConflicts.COLUMN_CONFLICT)
-        cell.connect("edited", self.__cd_editConflict, DHEditConflicts.COLUMN_CONFLICT)
-
-    def __del_row(self):
-        self.model.remove(self.iter_del)
-        
-    def __cd_editConflict(self, cellrenderertext, path, new_text, column):
-        self.model[path][column] = new_text
-
-    def fill(self, data):
-
-        self.model.clear()
-        if data != []:
-            self.model.clear()
-            for conf in data:
-                self.model.append(["", conf])
-        iter = self.model.append(None)
-        self.model.set(iter,DHEditConflicts.COLUMN_MARK_ROW,"*")
-   
-class DHEditRationale(DataHandler, abstract.EnterList):
-    
-    COLUMN_MARK_ROW = 0
-    COLUMN_RATIONALE = 1
-    
-    def __init__(self, core, treeView):
-        DataHandler.__init__(self, core)
-        self.core = core
-        self.treeView = treeView
-        self.iter_del=None
-        self.model = gtk.ListStore(str, str, str)
-        abstract.EnterList.__init__(self, core, "DHEditRationale",self.model, self.treeView)
-        
-        self.add_receiver("DHEditRationale", "del", self.__del_row)
-        
-        cell = self.set_insertColumnText("Rationale", DHEditRationale.COLUMN_RATIONALE)
-        cell.connect("edited", self.__cd_editRationale, DHEditRationale.COLUMN_RATIONALE)
-
-    def __del_row(self):
-        self.model.remove(self.iter_del)
-        
-    def __cd_editRationale(self, cellrenderertext, path, new_text, column):
-        self.model[path][column] = new_text
-
-    def fill(self, data):
-
-        self.model.clear()
-        if data != []:
-            self.model.clear()
-            for rat in data:
-                self.model.append(["", rat])
-        iter = self.model.append(None)
-        self.model.set(iter,DHEditRationale.COLUMN_MARK_ROW,"*")
-        
-
-class DHEditWarning(DataHandler, abstract.EnterList):
-    
-    COLUMN_MARK_ROW = 0
-    COLUMN_CAT = 1
-    COLUMN_WARNING_INFO = 2
-    COLUMN_WARNING = 3
-
-    
-    def __init__(self, core, treeView, sw_description):
-        DataHandler.__init__(self, core)
-        self.core = core
-        self.treeView = treeView
-        self.iter_del=None
-        self.selected = None
-        self.model = gtk.ListStore(str, str, str, str)
-        abstract.EnterList.__init__(self, core, "DHEditWarning",self.model, self.treeView)
-        
-        self.add_receiver("DHEditWarning", "del", self.__del_row)
-        
-        cell = self.set_insertColumnText("Category", DHEditWarning.COLUMN_CAT)
-        cell.connect("edited", self.__cd_editCategory, DHEditWarning.COLUMN_CAT)
-        cell = self.set_insertColumnInfo("Warning", DHEditWarning.COLUMN_WARNING_INFO)
-        cell.connect("edited", self.__cd_editDes, DHEditWarning.COLUMN_WARNING_INFO)
-                
-        self.view = HtmlTextView()
-        self.view.set_wrap_mode(gtk.WRAP_WORD)
-        self.view.set_editable(True)
-        self.view.connect("key-release-event", self.__edit_view)
-        sw_description.add(self.view)
-        sw_description.show_all()
-
-        self.selection = self.treeView.get_selection()
-        self.selection.set_mode(gtk.SELECTION_SINGLE)
-        self.selection.connect("changed", self.__cb_item_changed)
-        
-    def __cb_item_changed(self, widget):
-
-        self.view.get_buffer().set_text("")
-        if self.selection != None: 
-            (model, iter) = self.selection.get_selected( )
-            if iter: 
-                self.selected = iter
-                text = self.model.get_value(iter, DHEditWarning.COLUMN_WARNING) 
-                if  text != "" and text != None:
-                    self.view.display_html(self.model.get_value(iter, DHEditWarning.COLUMN_WARNING))
+        if not object:
+            object = openscap.common.text()
+            item.add_title(object)
+            model.set_value(iter, COLUMN_OBJECT, object)
+        elif  not delete:
+            if column == COLUMN_LAN:
+                object.set_lang(value)
+            elif column == COLUMN_TEXT:
+                object.set_text(value)
             else:
-                self.selected = None
-                
-    def __edit_view(self, widget, event):
-        if self.selected != None:
-            buff = self.view.get_buffer()
-            iter_start = buff.get_start_iter()
-            iter_end = buff.get_end_iter()
-            text = buff.get_text(iter_start, iter_end, True)
-            self.model.set(self.selected, DHEditWarning.COLUMN_WARNING, "<body>"+text+"</body>")
-            self.model.set(self.selected, DHEditWarning.COLUMN_WARNING_INFO, text[:30] + "...")
-    
-    def __del_row(self):
-        self.model.remove(self.iter_del)
-        
-    def __cd_editCategory(self, cellrenderertext, path, new_text, column):
-        self.model[path][column] = new_text
+                logger.error("Bad number of column.")
+        else:
+            logger.info ("TODO delete Title")
+            model.remove(iter)
 
-    def __cd_editDes(self, cellrenderertext, path, new_text, column):
-        self.model[path][column] = new_text
-    
-    def fill(self,data):
+    def DHEditDescription(self, item, model, iter, column, value, delete = False):
 
-        self.model.clear()
-        if data != []:
-            for tuple in data:
-                text = tuple[1].text
-                category = tuple[0]
-                print "============================"
-                print tuple
-                print text
-                print category
-                print "============================"
-                text = text.replace("xhtml:","")
-                text = text.replace("xmlns:", "")
-                text_info = text[:30].replace("\n","")
-                text_info = text_info.replace("\t","")
-                text = "<body>"+text+"</body>"
-                self.model.append(["", category, text_info + "...", text])
-        iter = self.model.append(None)
-        self.model.set(iter,DHEditWarning.COLUMN_MARK_ROW,"*")
+        COLUMN_LAN = 0
+        COLUMN_TEXT = 1
+        COLUMN_OBJECT = 2
+
+        object = model.get_value(iter, COLUMN_OBJECT)
+
+        if not object:
+            object = openscap.common.text()
+            item.add_description(object)
+            model.set_value(iter, COLUMN_OBJECT, object)
+        elif  not delete:
+            if column == COLUMN_LAN:
+                object.set_lang(value)
+            elif column == COLUMN_TEXT:
+                object.set_text(value)
+            else:
+                logger.error("Bad number of column.")
+        else:
+            logger.info ("TODO delete Description.")
+            model.remove(iter)  
+
