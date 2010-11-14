@@ -1306,3 +1306,112 @@ class DHEditItems:
         else:
             logger.info ("TODO deleteStatus.")
             model.remove(iter) 
+            
+    def DHEditQuestion(self, item, model, iter, column, value, delete = False):
+
+        COLUMN_LAN = 0
+        COLUMN_TEXT = 1
+        COLUMN_OBJECT = 2
+
+        object = model.get_value(iter, COLUMN_OBJECT)
+
+        if not object:
+            object = openscap.common.text_new()
+            item.add_question(object)
+            model.set_value(iter, COLUMN_OBJECT, object)
+        elif  not delete:
+            if column == COLUMN_LAN:
+                object.set_lang(value)
+            elif column == COLUMN_TEXT:
+                object.set_text(value)
+            else:
+                logger.error("Bad number of column.")
+        else:
+            logger.info ("TODO delete Question.")
+            model.remove(iter)  
+            
+                
+    def DHEditRationale(self, item, model, iter, column, value, delete = False):
+
+        COLUMN_LAN = 0
+        COLUMN_TEXT = 1
+        COLUMN_OBJECT = 2
+
+        object = model.get_value(iter, COLUMN_OBJECT)
+
+        if not object:
+            object = openscap.common.text_new()
+            item.add_rationale(object)
+            model.set_value(iter, COLUMN_OBJECT, object)
+        elif  not delete:
+            if column == COLUMN_LAN:
+                object.set_lang(value)
+            elif column == COLUMN_TEXT:
+                object.set_text(value)
+            else:
+                logger.error("Bad number of column.")
+        else:
+            logger.info ("TODO delete Rationale.")
+            model.remove(iter)  
+    
+    def DHEditPlatform(self, item, model, iter, column, value, delete = False):
+
+        COLUMN_TEXT = 0
+        COLUMN_OBJECT = 1
+        if item:
+            object = model.get_value(iter, COLUMN_OBJECT)
+
+            if not object:
+                item.add_platform("init_itrText")
+            elif  not delete:
+                if column == COLUMN_TEXT:
+                    old_text = model.get_value(iter, COLUMN_TEXT)
+                    for platf in item.platforms:
+                        if platf == old_text or platf == "init_itrText":
+                            pass
+                else:
+                    logger.error("Bad number of column.")
+            else:
+                logger.info ("TODO delete Platform.")
+                model.remove(iter)  
+        else:
+            logger.error("Error: Not read item.")
+            
+            
+            
+            
+    def cb_entry_version(self, widget, event):
+        if self.item :
+            self.item.set_version(widget.get_text())
+        else:
+            logger.error("Error: Not read item.")
+
+    def cb_entry_version_time(self, widget, event):
+        if self.item :
+            self.item.set_version_time(widget.get_text())
+        else:
+            logger.error("Error: Not read item.")
+            
+    def cb_chbox_hidden(self, widget):
+        if self.item :
+            self.item.set_hidden(widget.get_active())
+        else:
+            logger.error("Error: Not read item.")
+        
+    def cb_chbox_prohibit(self, widget):
+        if self.item :
+            self.item.set_prohibit_changes(widget.get_active())
+        else:
+            logger.error("Error: Not read item.")
+            
+    def cb_chbox_abstract(self, widget):
+        if self.item :
+            self.item.set_abstract(widget.get_active())
+        else:
+            logger.error("Error: Not read item.")
+            
+    def cb_entry_cluster_id(self, widget, event):
+        if self.item:
+            self.item.set_cluster_id(widget.get_text())
+        else:
+            logger.error("Error: Not read item.")

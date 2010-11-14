@@ -103,7 +103,7 @@ class ItemList(abstract.List):
         treeView.columns_autosize()
         gtk.gdk.threads_leave()
 
-class MenuButtonEdit(abstract.MenuButton):
+class MenuButtonEdit(abstract.MenuButton, commands.DHEditItems):
     """
     GUI for refines.
     """
@@ -112,7 +112,8 @@ class MenuButtonEdit(abstract.MenuButton):
         self.builder = builder
         self.core = core
         self.data_model = commands.DataHandler(self.core)
-        
+        self.item = None
+
         #draw body
         self.body = self.builder.get_object("edit:box")
         self.progress = self.builder.get_object("edit:progress")
@@ -139,41 +140,41 @@ class MenuButtonEdit(abstract.MenuButton):
         
         #general
         self.item_id = self.builder.get_object("edit:general:lbl_id")
-        self.lv_version = self.builder.get_object("edit:general:lv_version")
+        
+        self.entry_version = self.builder.get_object("edit:general:entry_version")
+        self.entry_version.connect("focus-out-event",self.cb_entry_version)
+        
+        self.entry_version_time = self.builder.get_object("edit:general:entry_version_time")
+        self.entry_version_time.connect("focus-out-event",self.cb_entry_version_time)
+        
         self.chbox_hidden = self.builder.get_object("edit:general:chbox_hidden")
+        self.chbox_hidden.connect("toggled",self.cb_chbox_hidden)
+        
         self.chbox_prohibit = self.builder.get_object("edit:general:chbox_prohibit")
+        self.chbox_prohibit.connect("toggled",self.cb_chbox_prohibit)
+        
         self.chbox_abstract = self.builder.get_object("edit:general:chbox_abstract")
+        self.chbox_abstract.connect("toggled",self.cb_chbox_abstract)
+        
         self.entry_cluster_id = self.builder.get_object("edit:general:entry_cluster_id")
-        
-        ##question
-        #self.lv_question = self.builder.get_object("edit:general:lv_question")
-        #self.guestion_model = commands.DHEditQuestion(self.core, self.lv_question)
-        
-        ##references
-        #self.lv_reference = self.builder.get_object("edit:general:lv_reference")
-        #self.ref_model = commands.DHEditReferences(self.core, self.lv_reference)
-        
-        ##rationale
-        #self.lv_rationale = self.builder.get_object("edit:general:lv_rationale")
-        #self.rationale_model = commands.DHEditRationale(self.core, self.lv_rationale)
+        self.entry_cluster_id.connect("focus-out-event",self.cb_entry_cluster_id)
         
         self.edit_title = EditTitle(self.core, self.builder)
         self.edit_description = EditDescription(self.core, self.builder)
         self.edit_warning = EditWarning(self.core, self.builder)
         self.edit_status = EditStatus(self.core, self.builder)
-        
-        #self.sw_warning = self.builder.get_object("edit:general:sw_warning")
-        #self.warning_model = commands.DHEditWarning(self.core, self.lv_warning, self.sw_warning)
-        
-        #extends
+        self.edit_question = EditQuestion(self.core, self.builder)
+        self.edit_rationale = EditRationale(self.core, self.builder)
+
         self.lbl_extends = self.builder.get_object("edit:dependencies:lbl_extends")
         
-        ##Conflicts
+        #Dependencies
         #self.lv_conflicts = self.builder.get_object("edit:dependencies:lv_conflicts")
         #self.conflict_model = commands.DHEditConflicts(self.core, self.lv_conflicts)
         
         #self.lv_reguires = self.builder.get_object("edit:dependencies:lv_reguires")
-        #self.lv_platform = self.builder.get_object("edit:dependencies:lv_platform")
+        self.edit_platform = EditPlatform(self.core, self.builder)
+
         #self.lv_ident = self.builder.get_object("edit:dependencies:lv_ident")
         
         #operations
@@ -228,6 +229,7 @@ class MenuButtonEdit(abstract.MenuButton):
 
         details = self.data_model.get_item_objects(self.core.selected_item_edit)
         if details != None:
+            self.item = details["item"]
             self.item_id.set_text(details["id"])
             self.chbox_hidden.set_active(details["hidden"])
             self.chbox_prohibit.set_active(details["prohibit_changes"])
@@ -237,16 +239,20 @@ class MenuButtonEdit(abstract.MenuButton):
             self.edit_description.fill(details["item"], details["descriptions"])
             self.edit_warning.fill(details["item"], details["warnings"])
             self.edit_status.fill(details["item"], details["statuses"])
+            self.edit_question.fill(details["item"], details["questions"])
+            self.edit_rationale.fill(details["item"], details["rationale"])
+            self.edit_platform.fill(details["item"], details["platforms"])
             
-            
-            #self.ref_model.fill(details["references"])
-            #self.guestion_model.fill(details["questions"])
-            #self.status_model.fill(details["statuses"])
-            #self.conflict_model.fill(details["conflicts"])
-            #self.rationale_model.fill(details["rationale"])
-            
-            #self.warning_model.fill(details["warnings"])
-            
+            if details["version"] != None:
+                self.entry_version.set_text(details["version"])
+            else:
+                self.entry_version.set_text("")
+
+            if details["version_time"] != None:
+                self.entry_version_time.set_text(str(details["version_time"]))
+            else:
+                self.entry_version_time.set_text("")
+
             if details["cluster_id"] != None:
                 self.entry_cluster_id.set_text(details["cluster_id"])
             else:
@@ -255,7 +261,7 @@ class MenuButtonEdit(abstract.MenuButton):
             if details["extends"] != None:
                 self.lbl_extends.set_text(details["extends"])
             else:
-                self.lbl_extends.set_text("")
+                self.lbl_extends.set_text("None")
 
             
             # dat only for rule
@@ -270,6 +276,8 @@ class MenuButtonEdit(abstract.MenuButton):
                 self.chbox_multipl.set_active(details["multiple"])
                 
                 # clean data only group and set insensitive
+                
+                
             #data only for Group
             else:
                 
@@ -604,6 +612,145 @@ class EditStatus(commands.DHEditItems,Edit_abs):
                 self.model.append([status, iter,data.date, data])
 
 
+class EditQuestion(commands.DHEditItems,Edit_abs):
+
+    COLUMN_LAN = 0
+    COLUMN_TEXT = 1
+    COLUMN_OBJECTS = 2
+
+    def __init__(self, core, builder):
+
+        #set listView and model
+        lv = builder.get_object("edit:general:lv_question")
+        model = gtk.ListStore(str, str, gobject.TYPE_PYOBJECT)
+        lv.set_model(model)
+        
+        #information for new/edit dialog
+        values = {
+                        "name_dialog":  "Edit Question",
+                        "view":         lv,
+                        "cb":           self.DHEditQuestion,
+                        "textEntry":    {"name":    "Language",
+                                        "column":   self.COLUMN_LAN,
+                                        "empty":    True, 
+                                        "unique":   False},
+                        "textView":     {"name":    "Question",
+                                        "column":   self.COLUMN_TEXT,
+                                        "empty":    False, 
+                                        "unique":   False},
+                        }
+
+        Edit_abs.__init__(self, core, lv, values)
+        btn_add = builder.get_object("edit:general:btn_question_add")
+        btn_edit = builder.get_object("edit:general:btn_question_edit")
+        btn_del = builder.get_object("edit:general:btn_question_del")
+        
+        # set callBack
+        btn_add.connect("clicked", self.cb_add_row)
+        btn_edit.connect("clicked", self.cb_edit_row)
+        btn_del.connect("clicked", self.cb_del_row)
+
+        self.addColumn("Language",self.COLUMN_LAN)
+        self.addColumn("Question",self.COLUMN_TEXT)
+
+    def fill(self, item, objects):
+        self.item = item
+        self.model.clear()
+        if objects != []:
+            for data in objects:
+                self.model.append([data.lang, data.text, data])
+
+
+class EditRationale(commands.DHEditItems,Edit_abs):
+
+    COLUMN_LAN = 0
+    COLUMN_TEXT = 1
+    COLUMN_OBJECTS = 2
+
+    def __init__(self, core, builder):
+
+        #set listView and model
+        lv = builder.get_object("edit:general:lv_rationale")
+        model = gtk.ListStore(str, str, gobject.TYPE_PYOBJECT)
+        lv.set_model(model)
+        
+        #information for new/edit dialog
+        values = {
+                        "name_dialog":  "Edit Rationale",
+                        "view":         lv,
+                        "cb":           self.DHEditRationale,
+                        "textEntry":    {"name":    "Language",
+                                        "column":   self.COLUMN_LAN,
+                                        "empty":    True, 
+                                        "unique":   False},
+                        "textView":     {"name":    "Ratinale",
+                                        "column":   self.COLUMN_TEXT,
+                                        "empty":    False, 
+                                        "unique":   False},
+                        }
+
+        Edit_abs.__init__(self, core, lv, values)
+        btn_add = builder.get_object("edit:general:btn_rationale_add")
+        btn_edit = builder.get_object("edit:general:btn_rationale_edit")
+        btn_del = builder.get_object("edit:general:btn_rationale_del")
+        
+        # set callBack
+        btn_add.connect("clicked", self.cb_add_row)
+        btn_edit.connect("clicked", self.cb_edit_row)
+        btn_del.connect("clicked", self.cb_del_row)
+
+        self.addColumn("Language",self.COLUMN_LAN)
+        self.addColumn("Rationale",self.COLUMN_TEXT)
+
+    def fill(self, item, objects):
+        self.item = item
+        self.model.clear()
+        if objects != []:
+            for data in objects:
+                self.model.append([data.lang, data.text, data])
+
+
+class EditPlatform(commands.DHEditItems,Edit_abs):
+
+    COLUMN_TEXT = 0
+    COLUMN_OBJECTS = 1
+
+    def __init__(self, core, builder):
+
+        #set listView and model
+        lv = builder.get_object("edit:dependencies:lv_platform")
+        model = gtk.ListStore(str, gobject.TYPE_PYOBJECT)
+        lv.set_model(model)
+        
+        #information for new/edit dialog
+        values = {
+                        "name_dialog":  "Edit Platform",
+                        "view":         lv,
+                        "cb":           self.DHEditPlatform,
+                        "textView":     {"name":    "Platform",
+                                        "column":   self.COLUMN_TEXT,
+                                        "empty":    False, 
+                                        "unique":   False},
+                        }
+
+        Edit_abs.__init__(self, core, lv, values)
+        btn_add = builder.get_object("edit:dependencies:btn_platform_add")
+        btn_edit = builder.get_object("edit:dependencies:btn_platform_edit")
+        btn_del = builder.get_object("edit:dependencies:btn_platform_del")
+        
+        # set callBack
+        btn_add.connect("clicked", self.cb_add_row)
+        btn_edit.connect("clicked", self.cb_edit_row)
+        btn_del.connect("clicked", self.cb_del_row)
+
+        self.addColumn("Question",self.COLUMN_TEXT)
+
+    def fill(self, item, objects):
+        self.item = item
+        self.model.clear()
+        if objects != []:
+            for data in objects:
+                self.model.append([data, objects])
 
 class EditDialogWindow(EventObject):
     
@@ -668,12 +815,12 @@ class EditDialogWindow(EventObject):
             lbl_cBox.show()
             if new == False:
                 self.cBox.set_active_iter(self.model.get_value(self.iter,values["cBox"]["column"]))
-                
 
         self.window.show()
 
     def __cb_do(self, widget):
         
+        init_data = None
         if self.new == True:
             dest_path = None
             self.iter = None
@@ -702,6 +849,7 @@ class EditDialogWindow(EventObject):
             iter_start = buff.get_start_iter()
             iter_end = buff.get_end_iter()
             text_textView = buff.get_text(iter_start, iter_end, True)
+            init_data = text_textView
             
             # if data should not be empty and control
             if self.values["textView"]["empty"] == False:
@@ -747,7 +895,7 @@ class EditDialogWindow(EventObject):
         if dest_path == None:
             iter = self.model.append()
             self.selection.select_path(self.model.get_path(iter))
-            self.values["cb"](self.item, self.model, iter, None, text_textEntry)
+            self.values["cb"](self.item, self.model, iter, None, None)
         
         # edit row
         else:
@@ -761,8 +909,8 @@ class EditDialogWindow(EventObject):
             self.values["cb"](self.item, self.model, iter, self.values["textEntry"]["column"], text_textEntry)
                     
         if "textView" in self.values:
-            self.model.set_value(iter,self.values["textView"]["column"], text_textView)
             self.values["cb"](self.item, self.model, iter, self.values["textView"]["column"], text_textView)
+            self.model.set_value(iter,self.values["textView"]["column"], text_textView)
 
         if "cBox" in self.values:
             self.model.set_value(iter,self.values["cBox"]["column"], iter_selected)
@@ -813,8 +961,6 @@ class EditDialogWindow(EventObject):
             md.destroy()
             return False
         return True
-
-
 
 
             
