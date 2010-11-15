@@ -251,7 +251,8 @@ class DataHandler:
                     "typetext":         "Group",
                     #"content":         item.content,
                     #"values":           self.__item_get_values(item),
-                    "status_current":   item.status_current
+                    "status_current":   item.status_current,
+                    "values":           item.values
                     })
             elif item.type == openscap.OSCAP.XCCDF_RULE:
                 item = item.to_rule()
@@ -1212,46 +1213,52 @@ class DHEditItems:
         COLUMN_TEXT = 1
         COLUMN_OBJECT = 2
 
-        object = model.get_value(iter, COLUMN_OBJECT)
+        if item:
+            object = model.get_value(iter, COLUMN_OBJECT)
 
-        if not object:
-            object = openscap.common.text_new()
-            item.add_title(object)
-            model.set_value(iter, COLUMN_OBJECT, object)
-        elif  not delete:
-            if column == COLUMN_LAN:
-                object.set_lang(value)
-            elif column == COLUMN_TEXT:
-                object.set_text(value)
+            if not object:
+                object = openscap.common.text_new()
+                item.add_title(object)
+                model.set_value(iter, COLUMN_OBJECT, object)
+            elif  not delete:
+                if column == COLUMN_LAN:
+                    object.set_lang(value)
+                elif column == COLUMN_TEXT:
+                    object.set_text(value)
+                else:
+                    logger.error("Bad number of column.")
             else:
-                logger.error("Bad number of column.")
+                logger.info ("TODO delete Title")
+                model.remove(iter)
         else:
-            logger.info ("TODO delete Title")
-            model.remove(iter)
-
+            logger.error("Error: Not read item.")
+            
     def DHEditDescription(self, item, model, iter, column, value, delete = False):
 
         COLUMN_LAN = 0
         COLUMN_TEXT = 1
         COLUMN_OBJECT = 2
 
-        object = model.get_value(iter, COLUMN_OBJECT)
+        if item:
+            object = model.get_value(iter, COLUMN_OBJECT)
 
-        if not object:
-            object = openscap.common.text_new()
-            item.add_description(object)
-            model.set_value(iter, COLUMN_OBJECT, object)
-        elif  not delete:
-            if column == COLUMN_LAN:
-                object.set_lang(value)
-            elif column == COLUMN_TEXT:
-                object.set_text(value)
+            if not object:
+                object = openscap.common.text_new()
+                item.add_description(object)
+                model.set_value(iter, COLUMN_OBJECT, object)
+            elif  not delete:
+                if column == COLUMN_LAN:
+                    object.set_lang(value)
+                elif column == COLUMN_TEXT:
+                    object.set_text(value)
+                else:
+                    logger.error("Bad number of column.")
             else:
-                logger.error("Bad number of column.")
+                logger.info ("TODO delete Description.")
+                model.remove(iter)  
         else:
-            logger.info ("TODO delete Description.")
-            model.remove(iter)  
-
+            logger.error("Error: Not read item.")
+            
     def DHEditWarning(self, item, model, iter, column, value, delete = False):
 
         COLUMN_CATEGORY_TEXT= 0
@@ -1260,28 +1267,31 @@ class DHEditItems:
         COLUMN_TEXT = 3
         COLUMN_OBJECT = 4
 
-        object = model.get_value(iter, COLUMN_OBJECT)
+        if item:
+            object = model.get_value(iter, COLUMN_OBJECT)
 
-        if not object:
-            object = openscap.xccdf.warning_new()
-            object_text = openscap.common.text_new()
-            object.set_text(object_text)
-            item.add_warning(object)
-            model.set_value(iter, COLUMN_OBJECT, object)
-        elif  not delete:
-            if column == COLUMN_CATEGORY_ITER:
-                object.set_category(value)
-            elif column == COLUMN_TEXT:
-                object_text = openscap.xccdf.warning_get_text(object)
-                object_text.set_text(value)
-            elif column == COLUMN_LAN:
-                object_text = openscap.xccdf.warning_get_text(object)
-                object_text.set_lang(value)
+            if not object:
+                object = openscap.xccdf.warning_new()
+                object_text = openscap.common.text_new()
+                object.set_text(object_text)
+                item.add_warning(object)
+                model.set_value(iter, COLUMN_OBJECT, object)
+            elif  not delete:
+                if column == COLUMN_CATEGORY_ITER:
+                    object.set_category(value)
+                elif column == COLUMN_TEXT:
+                    object_text = openscap.xccdf.warning_get_text(object)
+                    object_text.set_text(value)
+                elif column == COLUMN_LAN:
+                    object_text = openscap.xccdf.warning_get_text(object)
+                    object_text.set_lang(value)
+                else:
+                    logger.error("Bad number of column.")
             else:
-                logger.error("Bad number of column.")
+                logger.info ("TODO delete Warningn.")
+                model.remove(iter) 
         else:
-            logger.info ("TODO delete Warningn.")
-            model.remove(iter) 
+            logger.error("Error: Not read item.")
             
     def DHEditStatus(self, item, model, iter, column, value, delete = False):
 
@@ -1290,22 +1300,25 @@ class DHEditItems:
         COLUMN_DATE = 2
         COLUMN_OBJECT = 3
 
-        object = model.get_value(iter, COLUMN_OBJECT)
+        if item:
+            object = model.get_value(iter, COLUMN_OBJECT)
 
-        if not object:
-            object = openscap.xccdf.status_new()
-            item.add_status(object)
-            model.set_value(iter, COLUMN_OBJECT, object)
-        elif  not delete:
-            if column == COLUMN_STATUS_ITER:
-                object.set_status(value)
-            elif column == COLUMN_DATE:
-                pass
+            if not object:
+                object = openscap.xccdf.status_new()
+                item.add_status(object)
+                model.set_value(iter, COLUMN_OBJECT, object)
+            elif  not delete:
+                if column == COLUMN_STATUS_ITER:
+                    object.set_status(value)
+                elif column == COLUMN_DATE:
+                    pass
+                else:
+                    logger.error("Bad number of column.")
             else:
-                logger.error("Bad number of column.")
+                logger.info ("TODO deleteStatus.")
+                model.remove(iter) 
         else:
-            logger.info ("TODO deleteStatus.")
-            model.remove(iter) 
+            logger.error("Error: Not read item.")
             
     def DHEditQuestion(self, item, model, iter, column, value, delete = False):
 
@@ -1313,47 +1326,52 @@ class DHEditItems:
         COLUMN_TEXT = 1
         COLUMN_OBJECT = 2
 
-        object = model.get_value(iter, COLUMN_OBJECT)
+        if item:
+            object = model.get_value(iter, COLUMN_OBJECT)
 
-        if not object:
-            object = openscap.common.text_new()
-            item.add_question(object)
-            model.set_value(iter, COLUMN_OBJECT, object)
-        elif  not delete:
-            if column == COLUMN_LAN:
-                object.set_lang(value)
-            elif column == COLUMN_TEXT:
-                object.set_text(value)
+            if not object:
+                object = openscap.common.text_new()
+                item.add_question(object)
+                model.set_value(iter, COLUMN_OBJECT, object)
+            elif  not delete:
+                if column == COLUMN_LAN:
+                    object.set_lang(value)
+                elif column == COLUMN_TEXT:
+                    object.set_text(value)
+                else:
+                    logger.error("Bad number of column.")
             else:
-                logger.error("Bad number of column.")
+                logger.info ("TODO delete Question.")
+                model.remove(iter)  
         else:
-            logger.info ("TODO delete Question.")
-            model.remove(iter)  
-            
+            logger.error("Error: Not read item.")
                 
     def DHEditRationale(self, item, model, iter, column, value, delete = False):
 
         COLUMN_LAN = 0
         COLUMN_TEXT = 1
         COLUMN_OBJECT = 2
+        
+        if item:
+            object = model.get_value(iter, COLUMN_OBJECT)
 
-        object = model.get_value(iter, COLUMN_OBJECT)
-
-        if not object:
-            object = openscap.common.text_new()
-            item.add_rationale(object)
-            model.set_value(iter, COLUMN_OBJECT, object)
-        elif  not delete:
-            if column == COLUMN_LAN:
-                object.set_lang(value)
-            elif column == COLUMN_TEXT:
-                object.set_text(value)
+            if not object:
+                object = openscap.common.text_new()
+                item.add_rationale(object)
+                model.set_value(iter, COLUMN_OBJECT, object)
+            elif  not delete:
+                if column == COLUMN_LAN:
+                    object.set_lang(value)
+                elif column == COLUMN_TEXT:
+                    object.set_text(value)
+                else:
+                    logger.error("Bad number of column.")
             else:
-                logger.error("Bad number of column.")
+                logger.info ("TODO delete Rationale.")
+                model.remove(iter)  
         else:
-            logger.info ("TODO delete Rationale.")
-            model.remove(iter)  
-    
+            logger.error("Error: Not read item.")
+            
     def DHEditPlatform(self, item, model, iter, column, value, delete = False):
 
         COLUMN_TEXT = 0
@@ -1376,10 +1394,10 @@ class DHEditItems:
                 model.remove(iter)  
         else:
             logger.error("Error: Not read item.")
-            
-            
-            
-            
+
+
+
+
     def cb_entry_version(self, widget, event):
         if self.item :
             self.item.set_version(widget.get_text())
@@ -1391,27 +1409,150 @@ class DHEditItems:
             self.item.set_version_time(widget.get_text())
         else:
             logger.error("Error: Not read item.")
-            
+
     def cb_chbox_hidden(self, widget):
         if self.item :
             self.item.set_hidden(widget.get_active())
         else:
             logger.error("Error: Not read item.")
-        
+
     def cb_chbox_prohibit(self, widget):
         if self.item :
             self.item.set_prohibit_changes(widget.get_active())
         else:
             logger.error("Error: Not read item.")
-            
+
     def cb_chbox_abstract(self, widget):
         if self.item :
             self.item.set_abstract(widget.get_active())
         else:
             logger.error("Error: Not read item.")
-            
+
     def cb_entry_cluster_id(self, widget, event):
         if self.item:
             self.item.set_cluster_id(widget.get_text())
         else:
             logger.error("Error: Not read item.")
+
+    def cb_chbox_multipl(self, widget):
+        rule = self.item.to_rule()
+        if rule:
+            rule.set_multiple(widget.get_active())
+        else:
+            logger.error("Error: Not read item.")
+
+    def  cb_cBox_severity(self, widget):
+
+        COLUMN_DATA = 0
+
+        rule = self.item.to_rule()
+        if rule:
+            active = widget.get_active()
+            if active > 0:
+                model = widget.get_model()
+                rule.set_severity(model[active][COLUMN_DATA])
+        else:
+            logger.error("Error: Not rule.")
+            
+    def  cb_cBox_role(self, widget):
+
+        COLUMN_DATA = 0
+
+        rule = self.item.to_rule()
+        if rule:
+            active = widget.get_active()
+            if active > 0:
+                model = widget.get_model()
+                rule.set_role(model[active][COLUMN_DATA])
+        else:
+            logger.error("Error: Not rule.")
+            
+    def cb_entry_impact_metric(self, widget, event):
+        
+        rule = self.item.to_rule()
+        if rule:
+            rule.set_impact_metric(widget.get_text())
+        else:
+            logger.error("Error: Not read rule.")
+
+    def DHEditValueTitle(self, item, model, iter, column, value, delete = False):
+
+        COLUMN_LAN = 0
+        COLUMN_TEXT = 1
+        COLUMN_OBJECT = 2
+
+        if item:
+            object = model.get_value(iter, COLUMN_OBJECT)
+
+            if not object:
+                object = openscap.common.text_new()
+                item.add_title(object)
+                model.set_value(iter, COLUMN_OBJECT, object)
+            elif  not delete:
+                if column == COLUMN_LAN:
+                    object.set_lang(value)
+                elif column == COLUMN_TEXT:
+                    object.set_text(value)
+                else:
+                    logger.error("Bad number of column.")
+            else:
+                logger.info ("TODO delete Value Title")
+                model.remove(iter)
+        else:
+            logger.error("Error: Not read item.")
+            
+    def DHEditValueDescription(self, item, model, iter, column, value, delete = False):
+
+        COLUMN_LAN = 0
+        COLUMN_TEXT = 1
+        COLUMN_OBJECT = 2
+
+        if item:
+            object = model.get_value(iter, COLUMN_OBJECT)
+
+            if not object:
+                object = openscap.common.text_new()
+                item.add_description(object)
+                model.set_value(iter, COLUMN_OBJECT, object)
+            elif  not delete:
+                if column == COLUMN_LAN:
+                    object.set_lang(value)
+                elif column == COLUMN_TEXT:
+                    object.set_text(value)
+                else:
+                    logger.error("Bad number of column.")
+            else:
+                logger.info ("TODO delete Value Title")
+                model.remove(iter)
+        else:
+            logger.error("Error: Not read item.")
+            
+    def DHEditValueQuestion(self, item, model, iter, column, value, delete = False):
+
+        COLUMN_LAN = 0
+        COLUMN_TEXT = 1
+        COLUMN_OBJECT = 2
+
+        if item:
+            object = model.get_value(iter, COLUMN_OBJECT)
+
+            if not object:
+                object = openscap.common.text_new()
+                item.add_question(object)
+                model.set_value(iter, COLUMN_OBJECT, object)
+            elif  not delete:
+                if column == COLUMN_LAN:
+                    object.set_lang(value)
+                elif column == COLUMN_TEXT:
+                    object.set_text(value)
+                else:
+                    logger.error("Bad number of column.")
+            else:
+                logger.info ("TODO delete Value Title")
+                model.remove(iter)
+        else:
+            logger.error("Error: Not read item.")
+            
+    def DHEditValueValue(self, item, model, iter, column, value, delete = False):
+
+        pass

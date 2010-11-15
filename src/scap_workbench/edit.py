@@ -34,6 +34,12 @@ import commands
 import filter
 import render
 
+try:
+    import openscap_api as openscap
+except Exception as ex:
+    logger.error("OpenScap library initialization failed: %s", ex)
+    openscap=None
+    
 from htmltextview import HtmlTextView
 from threads import thread as threadSave
 
@@ -169,36 +175,51 @@ class MenuButtonEdit(abstract.MenuButton, commands.DHEditItems):
         self.lbl_extends = self.builder.get_object("edit:dependencies:lbl_extends")
         
         #Dependencies
-        #self.lv_conflicts = self.builder.get_object("edit:dependencies:lv_conflicts")
-        #self.conflict_model = commands.DHEditConflicts(self.core, self.lv_conflicts)
-        
-        #self.lv_reguires = self.builder.get_object("edit:dependencies:lv_reguires")
         self.edit_platform = EditPlatform(self.core, self.builder)
-
-        #self.lv_ident = self.builder.get_object("edit:dependencies:lv_ident")
         
         #operations
         #self.chbox_selected = self.builder.get_object("edit:operations:chbox_selected")
-        self.combo_severity = self.builder.get_object("edit:operations:combo_severity")
+
+        combo_model_sev = gtk.ListStore(int, str, str)
+        combo_model_sev.append([openscap.OSCAP.XCCDF_UNKNOWN, "UNKNOWN", "Unknown."])
+        combo_model_sev.append([openscap.OSCAP.XCCDF_INFO, "INFO", "Info."])
+        combo_model_sev.append([openscap.OSCAP.XCCDF_LOW, "LOW", "Low."])
+        combo_model_sev.append([openscap.OSCAP.XCCDF_MEDIUM, "MEDIUM", "Medium."])
+        combo_model_sev.append([openscap.OSCAP.XCCDF_HIGH, "HIGH", "High."])
+        
+        self.cBox_severity = self.builder.get_object("edit:operations:combo_severity")
+        cell = gtk.CellRendererText()
+        self.cBox_severity.pack_start(cell, True)
+        self.cBox_severity.add_attribute(cell, 'text', 1)  
+        self.cBox_severity.set_model(combo_model_sev)
+        self.cBox_severity.connect( "changed", self.cb_cBox_severity)
+       
+        
         self.entry_impact_metric = self.builder.get_object("edit:operations:entry_impact_metric")
+        self.entry_impact_metric.connect("focus-out-event",self.cb_entry_impact_metric)
+        
         self.lv_fixtext = self.builder.get_object("edit:operations:lv_fixtext")
         self.lv_fix = self.builder.get_object("edit:operations:lv_fix")
-        self.lv_fix = self.builder.get_object("edit:operations:lv_check")
+        self.lv_check = self.builder.get_object("edit:operations:lv_check")
+        
+        #values
+        self.edit_values = EditValues(self.core, self.builder)
         
         #others
         self.chbox_multipl = self.builder.get_object("edit:other:chbox_multipl")
-        self.combo_role = self.builder.get_object("edit:other:combo_role")
-        self.lv_profile_note = self.builder.get_object("edit:other:lv_profile_note")
+        self.chbox_multipl.connect("toggled",self.cb_chbox_multipl)
+
+        combo_model_role = gtk.ListStore(int, str, str)
+        combo_model_sev.append([openscap.OSCAP.XCCDF_ROLE_FULL, "FULL", "Check the rule and let the result contriburte to the score and appear in reports.."])
+        combo_model_sev.append([openscap.OSCAP.XCCDF_ROLE_UNSCORED, "UNSCORED", "Check the rule and include the result in reports, but do not include it into score computations"])
+        combo_model_sev.append([openscap.OSCAP.XCCDF_ROLE_UNCHECKED, "UNCHECKED", "Don't check the rule, result will be XCCDF_RESULT_UNKNOWN."])
         
-        #values
-        self.tv_values = self.builder.get_object("edit:values:tv_values")
-        self.btn_value_edit = self.builder.get_object("edit:values:btn_edit")
-        self.btn_value_add = self.builder.get_object("edit:values:btn_add")
-        self.btn_value_remove = self.builder.get_object("edit:values:btn_remove")
-        
-        self.btn_value_edit.connect("clicked", self.__cd_value_edit)
-        self.btn_value_add.connect("clicked", self.__cd_value_add)
-        self.btn_value_remove.connect("clicked", self.__cd_value_remove)
+        self.cBox_role = self.builder.get_object("edit:other:combo_role")
+        cell = gtk.CellRendererText()
+        self.cBox_role.pack_start(cell, True)
+        self.cBox_role.add_attribute(cell, 'text', 1)  
+        self.cBox_role.set_model(combo_model_sev)
+        self.cBox_role.connect( "changed", self.cb_cBox_role)
 
         self.add_receiver("gui:edit:item_list", "update", self.__update)
         self.add_receiver("gui:edit:item_list", "changed", self.__update)
@@ -216,15 +237,6 @@ class MenuButtonEdit(abstract.MenuButton, commands.DHEditItems):
     def __cb_item_add(self, widget):
         pass
 
-    def __cd_value_edit(self, widget):
-        pass
-
-    def __cd_value_add(self, widget):
-        pass
-
-    def __cd_value_remove(self, widget):
-        pass
-
     def __update(self):
 
         details = self.data_model.get_item_objects(self.core.selected_item_edit)
@@ -234,7 +246,7 @@ class MenuButtonEdit(abstract.MenuButton, commands.DHEditItems):
             self.chbox_hidden.set_active(details["hidden"])
             self.chbox_prohibit.set_active(details["prohibit_changes"])
             self.chbox_abstract.set_active(details["abstract"])
-            
+
             self.edit_title.fill(details["item"], details["titles"])
             self.edit_description.fill(details["item"], details["descriptions"])
             self.edit_warning.fill(details["item"], details["warnings"])
@@ -242,7 +254,8 @@ class MenuButtonEdit(abstract.MenuButton, commands.DHEditItems):
             self.edit_question.fill(details["item"], details["questions"])
             self.edit_rationale.fill(details["item"], details["rationale"])
             self.edit_platform.fill(details["item"], details["platforms"])
-            
+            self.edit_values.fill(details["item"], details["values"])
+
             if details["version"] != None:
                 self.entry_version.set_text(details["version"])
             else:
@@ -266,16 +279,42 @@ class MenuButtonEdit(abstract.MenuButton, commands.DHEditItems):
             
             # dat only for rule
             if details["typetext"] == "Rule":
+
+                self.cBox_severity.set_sensitive(True)
+                if details["severity"] != None:
+                    model_sev = self.cBox_severity.get_model()
+                    iter_sev = model_sev.get_iter_first()
+                    while iter_sev:
+                        if model_sev.get_value(iter_sev, 0) == details["severity"]:
+                            self.cBox_severity.handler_block_by_func(self.cb_cBox_severity)
+                            self.cBox_severity.set_active_iter(iter_sev)
+                            self.cBox_severity.handler_unblock_by_func(self.cb_cBox_severity)
+                            break
+                        iter_sev = model_sev.iter_next(iter_sev)
+
                 self.entry_impact_metric.set_sensitive(True)
                 if details["imapct_metric"] != None:
                     self.entry_impact_metric.set_text(details["imapct_metric"])
                 else:
                     self.entry_impact_metric.set_text("")
 
+                self.cBox_role.set_sensitive(True)
+                if details["role"]:
+                    model_role = self.cBox_role.get_model()
+                    iter_role = model_role.get_iter_first()
+                    while iter_role:
+                        if model_role.get_value(iter_role, 0) == details["role"]:
+                            self.cBox_role.handler_block_by_func(self.cb_cBox_role)
+                            self.cBox_role.set_active_iter(iter_role)
+                            self.cBox_role.handler_unblock_by_func(self.cb_cBox_role)
+                            break
+                        iter_role = model_role.iter_next(iter_role)
+
+
                 self.chbox_multipl.set_sensitive(True)
                 self.chbox_multipl.set_active(details["multiple"])
                 
-                # clean data only group and set insensitive
+                # clean data only for group and set insensitive
                 
                 
             #data only for Group
@@ -284,8 +323,20 @@ class MenuButtonEdit(abstract.MenuButton, commands.DHEditItems):
                 
                 
                 # clean data only for rule and set insensitive
-                self.entry_impact_metric.set_sensitive(False)
+                self.cBox_severity.set_sensitive(False)
+                self.cBox_severity.handler_block_by_func(self.cb_cBox_severity)
+                self.cBox_severity.set_active(-1)
+                self.cBox_severity.handler_unblock_by_func(self.cb_cBox_severity)
+                
+                self.cBox_role.set_sensitive(False)
+                self.cBox_role.handler_block_by_func(self.cb_cBox_role)
+                self.cBox_role.set_active(-1)
+                self.cBox_role.handler_unblock_by_func(self.cb_cBox_role)
+                
                 self.chbox_multipl.set_sensitive(False)
+                self.chbox_multipl.set_active(False)
+                
+                self.entry_impact_metric.set_sensitive(False)
                 self.entry_impact_metric.set_text("")
         else:
             return
@@ -751,6 +802,285 @@ class EditPlatform(commands.DHEditItems,Edit_abs):
         if objects != []:
             for data in objects:
                 self.model.append([data, objects])
+
+#======================================= EDIT VALUES ==========================================
+
+class EditValues(commands.DHEditItems, Edit_abs, EventObject):
+    
+    COLUMN_ID = 0
+    COLUMN_TITLE = 1
+    COLUMN_SELECT_VAL = 2
+    COLUMN_OBJECT = 3
+    
+    def __init__(self, core, builder):
+        
+        self.id = "gui:btn:menu:edit:values"
+        self.builder = builder
+        self.core = core
+        
+        EventObject.__init__(self, core)
+        self.core.register(self.id, self)
+        self.add_sender(self.id, "item_changed")
+        
+        self.add_receiver("gui:btn:menu:edit:values", "item_changed", self.__update)
+        self.add_receiver("gui:edit:item_list", "update", self.__update)
+        self.add_receiver("gui:edit:item_list", "changed", self.__update)
+        
+        self.model = gtk.ListStore(str, str, str, gobject.TYPE_PYOBJECT)
+        lv = self.builder.get_object("edit:values:tv_values")
+        lv.set_model(self.model)
+        
+        Edit_abs.__init__(self, core, lv, None)
+        self.selection.connect("changed", self.__cb_item_changed, lv)
+        
+        #edit data of values
+        self.edit_values_title = EditValueTitle(self.core, self.builder)
+        self.edit_values_description = EditValueDescription(self.core, self.builder)
+        self.edit_values_question = EditValueQuestion(self.core, self.builder)
+        self.edit_values_value = EditValueValue(self.core, self.builder)
+        
+        btn_value_add = self.builder.get_object("edit:values:btn_add")
+        btn_value_remove = self.builder.get_object("edit:values:btn_remove")
+        
+        btn_value_add.connect("clicked", self.__cd_value_add)
+        btn_value_remove.connect("clicked", self.__cd_value_remove)
+        
+        self.addColumn("ID",self.COLUMN_ID)
+        self.addColumn("Title",self.COLUMN_TITLE)
+        
+    def fill(self, item, values):
+        self.model.clear()
+        self.item = item
+        self.values = values
+        if values:
+            for value in values:
+                lang = self.core.lib["policy_model"].benchmark.lang
+                title_lang = ""
+                for title in value.title: 
+                    if title.lang == lang:
+                        title_lang = title.text
+                        break
+                    title_lang = title.text
+                self.model.append([value.id, title_lang, "", value])
+
+
+    def __cd_value_add(self, widget):
+        pass
+
+    def __cd_value_remove(self, widget):
+        pass
+    
+    def __cb_item_changed(self, widget, treeView):
+        selection = treeView.get_selection( )
+        if selection != None: 
+            (model, iter) = selection.get_selected( )
+            if iter: 
+                self.emit("item_changed")
+        treeView.columns_autosize()
+    
+    def __update(self):
+        (model,iter) = self.selection.get_selected()
+        if iter:
+            value = model.get_value(iter, self.COLUMN_OBJECT)
+            self.edit_values_title.fill(value)
+            self.edit_values_description.fill(value)
+            self.edit_values_question.fill(value)
+            self.edit_values_value.fill(value)
+            
+        else:
+            self.edit_values_title.fill(None)
+            self.edit_values_description.fill(None)
+            self.edit_values_question.fill(None)
+            self.edit_values_value.fill(None)
+            
+class EditValueTitle(commands.DHEditItems,Edit_abs):
+
+    COLUMN_LAN = 0
+    COLUMN_TEXT = 1
+    COLUMN_OBJECT = 2
+
+    def __init__(self, core, builder):
+        
+        #set listView and model
+        lv = builder.get_object("edit:values:lv_title")
+        model = gtk.ListStore(str, str, gobject.TYPE_PYOBJECT)
+        lv.set_model(model)
+
+        #information for new/edit dialog
+        values = {
+                        "name_dialog":  "Value title",
+                        "view":         lv,
+                        "cb":           self.DHEditValueTitle,
+                        "textEntry":    {"name":    "Language",
+                                        "column":   self.COLUMN_LAN,
+                                        "empty":    False, 
+                                        "unique":   True},
+                        "textView":     {"name":    "Value title",
+                                        "column":   self.COLUMN_TEXT,
+                                        "empty":    False, 
+                                        "unique":   False}
+                        }
+        Edit_abs.__init__(self, core, lv, values)
+        btn_add = builder.get_object("edit:values:btn_title_add")
+        btn_edit = builder.get_object("edit:values:btn_title_edit")
+        btn_del = builder.get_object("edit:values:btn_title_del")
+        
+        # set callBack to btn
+        btn_add.connect("clicked", self.cb_add_row)
+        btn_edit.connect("clicked", self.cb_edit_row)
+        btn_del.connect("clicked", self.cb_del_row)
+        
+        self.addColumn("Language",self.COLUMN_LAN)
+        self.addColumn("Value title",self.COLUMN_TEXT)
+        
+    def fill(self, value):
+        self.item = value
+        self.model.clear()
+        if value:
+            for data in value.title:
+                self.model.append([data.lang, (" ".join(data.text.split())), data])
+                
+class EditValueDescription(commands.DHEditItems,Edit_abs):
+
+    COLUMN_LAN = 0
+    COLUMN_TEXT = 1
+    COLUMN_OBJECT = 2
+
+    def __init__(self, core, builder):
+        
+        #set listView and model
+        lv = builder.get_object("edit:values:lv_description")
+        model = gtk.ListStore(str, str, gobject.TYPE_PYOBJECT)
+        lv.set_model(model)
+
+        #information for new/edit dialog
+        values = {
+                        "name_dialog":  "Value description",
+                        "view":         lv,
+                        "cb":           self.DHEditValueDescription,
+                        "textEntry":    {"name":    "Language",
+                                        "column":   self.COLUMN_LAN,
+                                        "empty":    False, 
+                                        "unique":   True},
+                        "textView":     {"name":    "Value Description",
+                                        "column":   self.COLUMN_TEXT,
+                                        "empty":    False, 
+                                        "unique":   False}
+                        }
+        Edit_abs.__init__(self, core, lv, values)
+        btn_add = builder.get_object("edit:values:btn_description_add")
+        btn_edit = builder.get_object("edit:values:btn_description_edit")
+        btn_del = builder.get_object("edit:values:btn_description_del")
+        
+        # set callBack to btn
+        btn_add.connect("clicked", self.cb_add_row)
+        btn_edit.connect("clicked", self.cb_edit_row)
+        btn_del.connect("clicked", self.cb_del_row)
+        
+        self.addColumn("Language",self.COLUMN_LAN)
+        self.addColumn("Value description",self.COLUMN_TEXT)
+        
+    def fill(self, value):
+        self.item = value
+        self.model.clear()
+        if value:
+            for data in value.description:
+                self.model.append([data.lang, data.text, data])
+
+class EditValueQuestion(commands.DHEditItems,Edit_abs):
+
+    COLUMN_LAN = 0
+    COLUMN_TEXT = 1
+    COLUMN_OBJECT = 2
+
+    def __init__(self, core, builder):
+        
+        #set listView and model
+        lv = builder.get_object("edit:values:lv_question")
+        model = gtk.ListStore(str, str, gobject.TYPE_PYOBJECT)
+        lv.set_model(model)
+
+        #information for new/edit dialog
+        values = {
+                        "name_dialog":  "Value question",
+                        "view":         lv,
+                        "cb":           self.DHEditValueQuestion,
+                        "textEntry":    {"name":    "Language",
+                                        "column":   self.COLUMN_LAN,
+                                        "empty":    False, 
+                                        "unique":   True},
+                        "textView":     {"name":    "Value question",
+                                        "column":   self.COLUMN_TEXT,
+                                        "empty":    False, 
+                                        "unique":   False}
+                        }
+        Edit_abs.__init__(self, core, lv, values)
+        btn_add = builder.get_object("edit:values:btn_question_add")
+        btn_edit = builder.get_object("edit:values:btn_question_edit")
+        btn_del = builder.get_object("edit:values:btn_question_del")
+        
+        # set callBack to btn
+        btn_add.connect("clicked", self.cb_add_row)
+        btn_edit.connect("clicked", self.cb_edit_row)
+        btn_del.connect("clicked", self.cb_del_row)
+        
+        self.addColumn("Language",self.COLUMN_LAN)
+        self.addColumn("Value questionn",self.COLUMN_TEXT)
+        
+    def fill(self, value):
+        self.item = value
+        self.model.clear()
+        if value:
+            for data in value.question:
+                self.model.append([data.lang, data.text, data])
+                
+class EditValueValue(commands.DHEditItems,Edit_abs):
+
+    COLUMN_SELECTOR = 0
+    COLUMN_VALUE = 1
+    COLUMN_OBJECT = 2
+
+    def __init__(self, core, builder):
+        
+        #set listView and model
+        lv = builder.get_object("edit:values:lv_value")
+        model = gtk.ListStore(str, str, gobject.TYPE_PYOBJECT)
+        lv.set_model(model)
+
+        #information for new/edit dialog
+        values = {
+                        "name_dialog":  "Value question",
+                        "view":         lv,
+                        "cb":           self.DHEditValueValue,
+                        "textEntry":    {"name":    "Selector",
+                                        "column":   self.COLUMN_SELECTOR,
+                                        "empty":    False, 
+                                        "unique":   True},
+                        "textView":     {"name":    "Value",
+                                        "column":   self.COLUMN_VALUE,
+                                        "empty":    False, 
+                                        "unique":   False}
+                        }
+        Edit_abs.__init__(self, core, lv, values)
+        btn_add = builder.get_object("edit:values:btn_value_add")
+        btn_edit = builder.get_object("edit:values:btn_value_edit")
+        btn_del = builder.get_object("edit:values:btn_value_del")
+        
+        # set callBack to btn
+        btn_add.connect("clicked", self.cb_add_row)
+        btn_edit.connect("clicked", self.cb_edit_row)
+        btn_del.connect("clicked", self.cb_del_row)
+        
+        self.addColumn("Selector",self.COLUMN_SELECTOR)
+        self.addColumn("Value",self.COLUMN_VALUE)
+        
+    def fill(self, value):
+        self.item = value
+        self.model.clear()
+        if value:
+            for data in value.instances:
+                self.model.append([data.selector, data.value, data])
+#=========================================  End edit values ===================================
 
 class EditDialogWindow(EventObject):
     
