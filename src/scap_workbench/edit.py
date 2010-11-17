@@ -105,7 +105,9 @@ class ItemList(abstract.List):
             (model, iter) = selection.get_selected( )
             if iter: 
                 self.core.selected_item_edit = model.get_value(iter, 0)
-                self.emit("update")
+            else:
+                self.core.selected_item_edit = None
+        self.emit("update")
         treeView.columns_autosize()
         gtk.gdk.threads_leave()
 
@@ -134,6 +136,8 @@ class MenuButtonEdit(abstract.MenuButton, commands.DHEditItems):
         """Get widget for details
         """
         #main
+        self.nBook = self.builder.get_object("edit:notebook")
+        self.set_sensitive(False)
         self.btn_revert = self.builder.get_object("edit:btn_revert")
         self.btn_save = self.builder.get_object("edit:btn_save")
         self.btn_item_remove = self.builder.get_object("edit:item:btn_remove")
@@ -178,6 +182,7 @@ class MenuButtonEdit(abstract.MenuButton, commands.DHEditItems):
         self.edit_platform = EditPlatform(self.core, self.builder)
         
         #operations
+        self.edit_fixtext = EditFixtext(self.core, self.builder)
         #self.chbox_selected = self.builder.get_object("edit:operations:chbox_selected")
 
         combo_model_sev = gtk.ListStore(int, str, str)
@@ -236,11 +241,16 @@ class MenuButtonEdit(abstract.MenuButton, commands.DHEditItems):
 
     def __cb_item_add(self, widget):
         pass
-
+    
+    def set_sensitive(self, sensitive):
+        self.nBook.set_sensitive(sensitive)
+        
     def __update(self):
-
+        
         details = self.data_model.get_item_objects(self.core.selected_item_edit)
+        
         if details != None:
+            self.set_sensitive(True)
             self.item = details["item"]
             self.item_id.set_text(details["id"])
             self.chbox_hidden.set_active(details["hidden"])
@@ -254,7 +264,7 @@ class MenuButtonEdit(abstract.MenuButton, commands.DHEditItems):
             self.edit_question.fill(details["item"], details["questions"])
             self.edit_rationale.fill(details["item"], details["rationale"])
             self.edit_platform.fill(details["item"], details["platforms"])
-            self.edit_values.fill(details["item"], details["values"])
+
 
             if details["version"] != None:
                 self.entry_version.set_text(details["version"])
@@ -314,12 +324,17 @@ class MenuButtonEdit(abstract.MenuButton, commands.DHEditItems):
                 self.chbox_multipl.set_sensitive(True)
                 self.chbox_multipl.set_active(details["multiple"])
                 
-                # clean data only for group and set insensitive
+                self.edit_fixtext.set_sensitive(True)
+                self.edit_fixtext.fill(details["item"])
                 
+                # clean hide data only for group and set insensitive
+                self.edit_values.set_sensitive(False)
+                self.edit_values.fill(None, None)
                 
             #data only for Group
             else:
-                
+                self.edit_values.set_sensitive(True)
+                self.edit_values.fill(details["item"], details["values"])
                 
                 
                 # clean data only for rule and set insensitive
@@ -338,7 +353,11 @@ class MenuButtonEdit(abstract.MenuButton, commands.DHEditItems):
                 
                 self.entry_impact_metric.set_sensitive(False)
                 self.entry_impact_metric.set_text("")
+                
+                self.edit_fixtext.set_sensitive(False)
+                self.edit_fixtext.fill(None)
         else:
+            self.set_sensitive(False)
             return
 
 
@@ -402,6 +421,24 @@ class Edit_abs:
         column = gtk.TreeViewColumn(name, txtcell, text=column)
         column.set_resizable(True)
         self.lv.append_column(column)
+
+
+    def set_active_comboBox(self, comboBox, data, column):
+        """
+        Function set active row which is samae as data in column.
+        """
+        set_c = False
+        model =  comboBox.get_model()
+        iter = model.get_iter_first()
+        while iter:
+            if data == model.get_value(iter, column):
+                comboBox.set_active_iter(iter) 
+                set_c = True
+                break
+            iter = model.iter_next(iter)
+            
+        if not set_c:
+            comboBox.set_active(-1)
 
 class EditTitle(commands.DHEditItems,Edit_abs):
 
@@ -823,8 +860,6 @@ class EditValues(commands.DHEditItems, Edit_abs, EventObject):
         self.add_sender(self.id, "item_changed")
         
         self.add_receiver("gui:btn:menu:edit:values", "item_changed", self.__update)
-        self.add_receiver("gui:edit:item_list", "update", self.__update)
-        self.add_receiver("gui:edit:item_list", "changed", self.__update)
         
         self.model = gtk.ListStore(str, str, str, gobject.TYPE_PYOBJECT)
         lv = self.builder.get_object("edit:values:tv_values")
@@ -839,6 +874,8 @@ class EditValues(commands.DHEditItems, Edit_abs, EventObject):
         self.edit_values_question = EditValueQuestion(self.core, self.builder)
         self.edit_values_value = EditValueValue(self.core, self.builder)
         
+        self.sw_main = self.builder.get_object("edit:values:sw_main")
+        self.value_nbook = self.builder.get_object("edit:values:notebook")
         btn_value_add = self.builder.get_object("edit:values:btn_add")
         btn_value_remove = self.builder.get_object("edit:values:btn_remove")
         
@@ -850,6 +887,7 @@ class EditValues(commands.DHEditItems, Edit_abs, EventObject):
         
     def fill(self, item, values):
         self.model.clear()
+        self.emit("item_changed")
         self.item = item
         self.values = values
         if values:
@@ -870,17 +908,17 @@ class EditValues(commands.DHEditItems, Edit_abs, EventObject):
     def __cd_value_remove(self, widget):
         pass
     
+    def set_sensitive(self, sensitive):
+        self.sw_main.set_sensitive(sensitive)
+        
     def __cb_item_changed(self, widget, treeView):
-        selection = treeView.get_selection( )
-        if selection != None: 
-            (model, iter) = selection.get_selected( )
-            if iter: 
-                self.emit("item_changed")
+        self.emit("item_changed")
         treeView.columns_autosize()
     
     def __update(self):
         (model,iter) = self.selection.get_selected()
         if iter:
+            self.value_nbook.set_sensitive(True)
             value = model.get_value(iter, self.COLUMN_OBJECT)
             self.edit_values_title.fill(value)
             self.edit_values_description.fill(value)
@@ -888,6 +926,7 @@ class EditValues(commands.DHEditItems, Edit_abs, EventObject):
             self.edit_values_value.fill(value)
             
         else:
+            self.value_nbook.set_sensitive(False)
             self.edit_values_title.fill(None)
             self.edit_values_description.fill(None)
             self.edit_values_question.fill(None)
@@ -1038,13 +1077,14 @@ class EditValueValue(commands.DHEditItems,Edit_abs):
 
     COLUMN_SELECTOR = 0
     COLUMN_VALUE = 1
-    COLUMN_OBJECT = 2
+    COLUMN_SELECTED = 2
+    COLUMN_OBJECT = 3
 
     def __init__(self, core, builder):
         
         #set listView and model
         lv = builder.get_object("edit:values:lv_value")
-        model = gtk.ListStore(str, str, gobject.TYPE_PYOBJECT)
+        model = gtk.ListStore(str, str, bool, gobject.TYPE_PYOBJECT)
         lv.set_model(model)
 
         #information for new/edit dialog
@@ -1073,15 +1113,211 @@ class EditValueValue(commands.DHEditItems,Edit_abs):
         
         self.addColumn("Selector",self.COLUMN_SELECTOR)
         self.addColumn("Value",self.COLUMN_VALUE)
+        cell = gtk.CellRendererToggle()
+        cell.set_property('activatable', True)
+        cell.connect( 'toggled', self.__cb_toggled, self.model )
+        column = gtk.TreeViewColumn("Selected", cell )
+        column.add_attribute( cell, "active", self.COLUMN_SELECTED)
+        self.lv.append_column(column )
+
         
     def fill(self, value):
         self.item = value
         self.model.clear()
+        selected = ""
         if value:
             for data in value.instances:
-                self.model.append([data.selector, data.value, data])
+                if data.selector == "":
+                    selected = data.value
+                else:
+                    self.model.append([data.selector, data.value, False, data])
+            iter = self.model.get_iter_first()
+            while iter:
+                if self.model.get_value(iter, self.COLUMN_VALUE) == selected:
+                    self.model.set_value(iter, self.COLUMN_SELECTED, True)
+                    break
+                iter = self.model.iter_next(iter)
+                
+    def __cb_toggled(self, cell, path, model ):
+        iter = model.get_iter_first()
+        while iter:
+            model.set_value(iter, self.COLUMN_SELECTED, False)
+            iter = model.iter_next(iter)
+        model[path][self.COLUMN_SELECTED] = not model[path][self.COLUMN_SELECTED]
+            
 #=========================================  End edit values ===================================
 
+#======================================= EDIT FIXTEXT ==========================================
+
+class EditFixtext(commands.DHEditItems, Edit_abs, EventObject):
+    
+    COLUMN_TEXT = 0
+    COLUMN_OBJECT = 1
+    
+    def __init__(self, core, builder):
+        
+        self.id = "gui:btn:menu:edit:fixtext"
+        self.builder = builder
+        self.core = core
+        
+        EventObject.__init__(self, core)
+        self.core.register(self.id, self)
+        self.add_sender(self.id, "item_changed")
+        
+        self.edit_fixtext_option = EditFixtextOption(core, builder)
+        self.add_receiver("gui:btn:menu:edit:fixtext", "item_changed", self.__update)
+        
+        self.model = gtk.ListStore(str, gobject.TYPE_PYOBJECT)
+        lv = self.builder.get_object("edit:operations:lv_fixtext")
+        lv.set_model(self.model)
+        
+                #information for new/edit dialog
+        values = {
+                    "name_dialog":  "Fixtext",
+                    "view":         lv,
+                    "cb":           self.DHEditFixtextText,            
+                    "textView":     {"name":    "Value",
+                                    "column":   self.COLUMN_TEXT,
+                                    "empty":    False, 
+                                    "unique":   False}
+                        }
+        Edit_abs.__init__(self, core, lv, values)
+        btn_add = builder.get_object("edit:operations:btn_fixtext_add")
+        btn_edit = builder.get_object("edit:operations:btn_fixtext_edit")
+        btn_del = builder.get_object("edit:operations:btn_fixtext_del")
+        
+        # set callBack to btn
+        btn_add.connect("clicked", self.cb_add_row)
+        btn_edit.connect("clicked", self.cb_edit_row)
+        btn_del.connect("clicked", self.cb_del_row)
+        
+        Edit_abs.__init__(self, core, lv, values)
+        self.selection.connect("changed", self.__cb_item_changed, lv)
+        
+        self.box_main = self.builder.get_object("edit:operations:fixtext:box")
+        
+        self.addColumn("ID",self.COLUMN_TEXT)
+        
+    def fill(self, item):
+        self.model.clear()
+        self.emit("item_changed")
+        if item:
+            self.item = item
+            rule = item.to_rule()
+            if rule.fixtexts:
+                for object in rule.fixtexts:
+                    self.model.append([object.text.text, object])
+        else:
+            self.item = None
+    
+    def set_sensitive(self, sensitive):
+        self.box_main.set_sensitive(sensitive)
+        
+    def __cb_item_changed(self, widget, treeView):
+        self.emit("item_changed")
+        treeView.columns_autosize()
+    
+    def __update(self):
+        (model,iter) = self.selection.get_selected()
+ 
+        if iter:
+            self.edit_fixtext_option.fill(model.get_value(iter,self.COLUMN_OBJECT))
+        else:
+            self.edit_fixtext_option.fill(None)
+
+            
+class EditFixtextOption(commands.DHEditItems,Edit_abs):
+    
+    CB_COLUMN_DATA = 0
+    CB_COLUMN_VIEW = 1
+    
+    def __init__(self, core, builder):
+    
+        # set  models
+        self.core = core
+        self.builder = builder
+        
+        self.combo_model_level = gtk.ListStore(int, str, str)
+        self.combo_model_level.append([openscap.OSCAP.XCCDF_UNKNOWN, "UNKNOWN", "Unknown."])
+        self.combo_model_level.append([openscap.OSCAP.XCCDF_INFO, "INFO", "Info."])
+        self.combo_model_level.append([openscap.OSCAP.XCCDF_LOW, "LOW", "Low."])
+        self.combo_model_level.append([openscap.OSCAP.XCCDF_MEDIUM, "MEDIUM", "Medium"])
+        self.combo_model_level.append([openscap.OSCAP.XCCDF_HIGH, "HIGH", "High."])
+        
+        self.combo_model_strategy = gtk.ListStore(int, str, str)
+        self.combo_model_strategy.append([openscap.OSCAP.XCCDF_STRATEGY_UNKNOWN, "UNKNOWN", "Strategy not defined."])
+        self.combo_model_strategy.append([openscap.OSCAP.XCCDF_STRATEGY_CONFIGURE, "CONFIGURE", "Adjust target config or settings."])
+        self.combo_model_strategy.append([openscap.OSCAP.XCCDF_STRATEGY_DISABLE, "DISABLE", "Turn off or deinstall something."])
+        self.combo_model_strategy.append([openscap.OSCAP.XCCDF_STRATEGY_ENABLE, "ENABLE", "Turn on or install something."])
+        self.combo_model_strategy.append([openscap.OSCAP.XCCDF_STRATEGY_PATCH, "PATCH", "Apply a patch, hotfix, or update."])
+        self.combo_model_strategy.append([openscap.OSCAP.XCCDF_STRATEGY_POLICY, "POLICY", "Remediation by changing policies/procedures."])
+        self.combo_model_strategy.append([openscap.OSCAP.XCCDF_STRATEGY_RESTRICT, "RESTRICT", "Adjust permissions or ACLs."])
+        self.combo_model_strategy.append([openscap.OSCAP.XCCDF_STRATEGY_UPDATE, "UPDATE", "Install upgrade or update the system"])
+        self.combo_model_strategy.append([openscap.OSCAP.XCCDF_STRATEGY_COMBINATION, "COMBINATION", "Combo of two or more of the above."])
+        
+        #edit data of fictext
+        self.entry_reference = self.builder.get_object("edit:operations:fixtext:entry_reference")
+        self.entry_reference.connect("focus-out-event",self.cb_entry_fixtext_reference)
+        
+        self.combo_strategy = self.builder.get_object("edit:operations:fixtext:combo_strategy")
+        cell = gtk.CellRendererText()
+        self.combo_strategy.pack_start(cell, True)
+        self.combo_strategy.add_attribute(cell, 'text',self.CB_COLUMN_VIEW)  
+        self.combo_strategy.set_model(self.combo_model_strategy)
+        self.combo_strategy.connect( "changed", self.cb_combo_fixtext_strategy)
+        
+        self.combo_complexity = self.builder.get_object("edit:operations:fixtext:combo_complexity")
+        cell = gtk.CellRendererText()
+        self.combo_complexity.pack_start(cell, True)
+        self.combo_complexity.add_attribute(cell, 'text', self.CB_COLUMN_VIEW)  
+        self.combo_complexity.set_model(self.combo_model_level)
+        self.combo_complexity.connect( "changed", self.cb_combo_fixtext_complexity)
+    
+        self.combo_disruption = self.builder.get_object("edit:operations:fixtext:combo_disruption")
+        cell = gtk.CellRendererText()
+        self.combo_disruption.pack_start(cell, True)
+        self.combo_disruption.add_attribute(cell, 'text', self.CB_COLUMN_VIEW)  
+        self.combo_disruption.set_model(self.combo_model_level)
+        self.combo_disruption.connect( "changed", self.cb_combo_fixtext_disruption)
+    
+        self.chbox_reboot = self.builder.get_object("edit:operations:fixtext:chbox_reboot")
+        self.chbox_reboot.connect("toggled",self.cb_chbox_fixtext_reboot)
+
+        self.box_detail= self.builder.get_object("edit:operations:fixtext:frame")
+        
+    def fill(self, fixtext):
+        self.item = fixtext
+        self.combo_strategy.handler_block_by_func(self.cb_combo_fixtext_strategy)
+        self.combo_complexity.handler_block_by_func(self.cb_combo_fixtext_complexity)
+        self.combo_disruption.handler_block_by_func(self.cb_combo_fixtext_disruption)
+        self.chbox_reboot.handler_block_by_func(self.cb_chbox_fixtext_reboot)
+        if fixtext:
+
+            self.box_detail.set_sensitive(True)
+
+            if fixtext.fixref:
+                self.entry_reference.set_text(fixtext.fixref)
+            else:
+                self.entry_reference.set_text("")
+            
+            self.chbox_reboot.set_active(fixtext.reboot)
+            self.set_active_comboBox(self.combo_strategy, fixtext.strategy, self.CB_COLUMN_DATA)
+            self.set_active_comboBox(self.combo_complexity, fixtext.complexity, self.CB_COLUMN_DATA)
+            self.set_active_comboBox(self.combo_disruption, fixtext.disruption, self.CB_COLUMN_DATA)
+        else:
+            self.item = None
+            self.box_detail.set_sensitive(False)
+            self.entry_reference.set_text("")
+            self.chbox_reboot.set_active(False)
+            self.combo_strategy.set_active(-1)
+            self.combo_complexity.set_active(-1)
+            self.combo_disruption.set_active(-1)
+            
+        self.combo_strategy.handler_unblock_by_func(self.cb_combo_fixtext_strategy)
+        self.combo_complexity.handler_unblock_by_func(self.cb_combo_fixtext_complexity)
+        self.combo_disruption.handler_unblock_by_func(self.cb_combo_fixtext_disruption)
+        self.chbox_reboot.handler_unblock_by_func(self.cb_chbox_fixtext_reboot)
+            
 class EditDialogWindow(EventObject):
     
     def __init__(self, item, core, values, new=True):
@@ -1224,9 +1460,9 @@ class EditDialogWindow(EventObject):
         # new row and unique => add new row
         if dest_path == None:
             iter = self.model.append()
-            self.selection.select_path(self.model.get_path(iter))
             self.values["cb"](self.item, self.model, iter, None, None)
-        
+            self.selection.select_path(self.model.get_path(iter))
+
         # edit row
         else:
             iter = self.model.get_iter(dest_path)
@@ -1407,3 +1643,14 @@ class EditDialogWindow(EventObject):
                 #self.model.append(["", key, des, des])
         #iter = self.model.append(None)
         #self.model.set(iter,DHEditDescription.COLUMN_MARK_ROW,"*")
+        
+        ##self.combo_model_strategy = gtk.ListStore(int, str, str)
+        ##self.combo_model_strategy.append([openscap.OSCAP., "", ""])
+        ##self.combo_model_strategy.append([openscap.OSCAP., "", ""])
+        ##self.combo_model_strategy.append([openscap.OSCAP., "", ""])
+        ##self.combo_model_strategy.append([openscap.OSCAP., "", ""])
+        ##self.combo_model_strategy.append([openscap.OSCAP., "", ""])
+        ##self.combo_model_strategy.append([openscap.OSCAP., "", ""])
+        ##self.combo_model_strategy.append([openscap.OSCAP., "", ""])
+        ##self.combo_model_strategy.append([openscap.OSCAP., "", ""])
+        ##self.combo_model_strategy.append([openscap.OSCAP., "", ""])

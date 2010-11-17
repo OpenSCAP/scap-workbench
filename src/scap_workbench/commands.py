@@ -1556,3 +1556,78 @@ class DHEditItems:
     def DHEditValueValue(self, item, model, iter, column, value, delete = False):
 
         pass
+    
+    # DH fixtext
+    def DHEditFixtextText(self, item, model, iter, column, value, delete = False):
+        
+        COLUMN_TEXT = 0
+        COLUMN_OBJECT = 1
+
+        if item:
+            object = model.get_value(iter, COLUMN_OBJECT)
+
+            if not object:
+                object = openscap.xccdf.fixtext_new()
+                rule = item.to_rule()
+                rule.add_fixtext(object)
+                model.set_value(iter, COLUMN_OBJECT, object)
+            elif  not delete:
+                if column == COLUMN_TEXT:
+                    object_text = object.get_text()
+                    if not object_text: 
+                        object_text  = openscap.common.text_new()
+                        object.set_text(object_text) 
+                    object_text.set_text(value)
+                else:
+                    logger.error("Bad number of column.")
+            else:
+                logger.info ("TODO delete Value Title")
+                model.remove(iter)
+        else:
+            logger.error("Error: Not read item.")
+            
+    def cb_entry_fixtext_reference(self, widget, event):
+        if self.item :
+            self.item.set_fixref(widget.get_text())
+        else:
+            logger.error("Error: Not read rule.")
+
+    def cb_combo_fixtext_strategy(self, widget):
+        
+        COLUMN_DATA = 0
+        if self.item:
+            active = widget.get_active()
+            if active > 0:
+                model = widget.get_model()
+                self.item.set_strategy(model[active][COLUMN_DATA])
+        else:
+            logger.error("Error: Not fixtex.")
+
+    def cb_combo_fixtext_complexity(self, widget):
+
+        COLUMN_DATA = 0
+        if self.item:
+            active = widget.get_active()
+            if active > 0:
+                model = widget.get_model()
+                self.item.set_complexity(model[active][COLUMN_DATA])
+        else:
+            logger.error("Error: Not fixtex.")
+    
+    def cb_combo_fixtext_disruption(self, widget):
+        COLUMN_DATA = 0
+        if self.item:
+            active = widget.get_active()
+            if active > 0:
+                model = widget.get_model()
+                self.item.set_disruption(model[active][COLUMN_DATA])
+        else:
+            logger.error("Error: Not fixtex.")
+    
+    def cb_chbox_fixtext_reboot(self, widget):
+
+        if self.item:
+            self.item.set_reboot(widget.get_active())
+        else:
+            logger.error("Error: Not fixtex.")
+    
