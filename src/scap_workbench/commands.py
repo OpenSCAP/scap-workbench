@@ -1557,7 +1557,7 @@ class DHEditItems:
 
         pass
     
-    # DH fixtext
+    # DH fixtext ===============================
     def DHEditFixtextText(self, item, model, iter, column, value, delete = False):
         
         COLUMN_TEXT = 0
@@ -1581,7 +1581,7 @@ class DHEditItems:
                 else:
                     logger.error("Bad number of column.")
             else:
-                logger.info ("TODO delete Value Title")
+                logger.info ("TODO delete Fixtext")
                 model.remove(iter)
         else:
             logger.error("Error: Not read item.")
@@ -1631,3 +1631,81 @@ class DHEditItems:
         else:
             logger.error("Error: Not fixtex.")
     
+    # DH fix ======================================================
+    def DHEditFix(self, item, model, iter, column, value, delete = False):
+        
+        COLUMN_ID = 0
+        COLUMN_TEXT = 1
+        COLUMN_OBJECT = 2
+
+        if item:
+            object = model.get_value(iter, COLUMN_OBJECT)
+
+            if not object:
+                object = openscap.xccdf.fix_new()
+                rule = item.to_rule()
+                rule.add_fix(object)
+                model.set_value(iter, COLUMN_OBJECT, object)
+            elif  not delete:
+                if column == COLUMN_TEXT:
+                    object.set_content(value)
+                elif column == COLUMN_ID:
+                    object.set_id(value)
+                else:
+                    logger.error("Bad number of column.")
+            else:
+                logger.info ("TODO delete Fix")
+                model.remove(iter)
+        else:
+            logger.error("Error: Not read item.")
+           
+    def cb_entry_fix_system(self, widget, event):
+        if self.item:
+            self.item.set_system(widget.get_text())
+        else:
+            logger.error("Error: Not read fix.")
+    
+    def cb_entry_fix_platform(self, widget, event):
+        if self.item:
+            self.item.set_platform(widget.get_text())
+        else:
+            logger.error("Error: Not read fix.")
+    
+    def cb_combo_fix_strategy(self, widget):
+        
+        COLUMN_DATA = 0
+        if self.item:
+            active = widget.get_active()
+            if active > 0:
+                model = widget.get_model()
+                self.item.set_strategy(model[active][COLUMN_DATA])
+        else:
+            logger.error("Error: Not fix.")
+
+    def cb_combo_fix_complexity(self, widget):
+
+        COLUMN_DATA = 0
+        if self.item:
+            active = widget.get_active()
+            if active > 0:
+                model = widget.get_model()
+                self.item.set_complexity(model[active][COLUMN_DATA])
+        else:
+            logger.error("Error: Not fix.")
+    
+    def cb_combo_fix_disruption(self, widget):
+        COLUMN_DATA = 0
+        if self.item:
+            active = widget.get_active()
+            if active > 0:
+                model = widget.get_model()
+                self.item.set_disruption(model[active][COLUMN_DATA])
+        else:
+            logger.error("Error: Not fix.")
+            
+    def cb_chbox_fix_reboot(self, widget):
+
+        if self.item:
+            self.item.set_reboot(widget.get_active())
+        else:
+            logger.error("Error: Not fix.")

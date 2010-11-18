@@ -1738,7 +1738,7 @@
                                                             <child type="tab">
                                                             <object class="GtkLabel" id="label8">
                                                             <property name="visible">True</property>
-                                                            <property name="label" translatable="yes">Title</property>
+                                                            <property name="label" translatable="yes">Titles</property>
                                                             </object>
                                                             <packing>
                                                             <property name="tab_fill">False</property>
@@ -1834,7 +1834,7 @@
                                                             <child type="tab">
                                                             <object class="GtkLabel" id="label9">
                                                             <property name="visible">True</property>
-                                                            <property name="label" translatable="yes">Description</property>
+                                                            <property name="label" translatable="yes">Descriptions</property>
                                                             </object>
                                                             <packing>
                                                             <property name="position">1</property>
@@ -1931,7 +1931,7 @@
                                                             <child type="tab">
                                                             <object class="GtkLabel" id="label11">
                                                             <property name="visible">True</property>
-                                                            <property name="label" translatable="yes">Warning</property>
+                                                            <property name="label" translatable="yes">Warnings</property>
                                                             </object>
                                                             <packing>
                                                             <property name="position">2</property>
@@ -2028,7 +2028,7 @@
                                                             <child type="tab">
                                                             <object class="GtkLabel" id="label12">
                                                             <property name="visible">True</property>
-                                                            <property name="label" translatable="yes">Status</property>
+                                                            <property name="label" translatable="yes">Statuses</property>
                                                             </object>
                                                             <packing>
                                                             <property name="position">3</property>
@@ -2125,7 +2125,7 @@
                                                             <child type="tab">
                                                             <object class="GtkLabel" id="label13">
                                                             <property name="visible">True</property>
-                                                            <property name="label" translatable="yes">Question</property>
+                                                            <property name="label" translatable="yes">Questions</property>
                                                             </object>
                                                             <packing>
                                                             <property name="position">4</property>
@@ -3158,16 +3158,17 @@
                                                     <child type="tab">
                                                       <object class="GtkLabel" id="label19">
                                                         <property name="visible">True</property>
-                                                        <property name="label" translatable="yes">Fixtext</property>
+                                                        <property name="label" translatable="yes">Fixtexts</property>
                                                       </object>
                                                       <packing>
                                                         <property name="tab_fill">False</property>
                                                       </packing>
                                                     </child>
                                                     <child>
-                                                      <object class="GtkVBox" id="vbox17">
+                                                      <object class="GtkVBox" id="edit:operations:fix:box">
                                                         <property name="visible">True</property>
                                                         <property name="orientation">vertical</property>
+                                                        <property name="spacing">5</property>
                                                         <child>
                                                           <object class="GtkAlignment" id="alignment19">
                                                             <property name="visible">True</property>
@@ -3246,6 +3247,181 @@
                                                             <property name="position">1</property>
                                                           </packing>
                                                         </child>
+                                                        <child>
+                                                          <object class="GtkFrame" id="edit:operations:fix:frame">
+                                                            <property name="visible">True</property>
+                                                            <property name="label_xalign">0</property>
+                                                            <property name="shadow_type">none</property>
+                                                            <child>
+                                                            <object class="GtkAlignment" id="alignment24">
+                                                            <property name="visible">True</property>
+                                                            <property name="left_padding">12</property>
+                                                            <child>
+                                                            <object class="GtkTable" id="table3">
+                                                            <property name="visible">True</property>
+                                                            <property name="n_rows">6</property>
+                                                            <property name="n_columns">2</property>
+                                                            <child>
+                                                            <placeholder/>
+                                                            </child>
+                                                            <child>
+                                                            <object class="GtkLabel" id="label35">
+                                                            <property name="visible">True</property>
+                                                            <property name="xalign">0</property>
+                                                            <property name="label" translatable="yes">System:</property>
+                                                            </object>
+                                                            <packing>
+                                                            <property name="x_options">GTK_FILL</property>
+                                                            <property name="y_options">GTK_FILL</property>
+                                                            </packing>
+                                                            </child>
+                                                            <child>
+                                                            <object class="GtkCheckButton" id="edit:operations:fix:chbox_reboot">
+                                                            <property name="label" translatable="yes">Reboot</property>
+                                                            <property name="visible">True</property>
+                                                            <property name="can_focus">True</property>
+                                                            <property name="receives_default">False</property>
+                                                            <property name="draw_indicator">True</property>
+                                                            </object>
+                                                            <packing>
+                                                            <property name="left_attach">1</property>
+                                                            <property name="right_attach">2</property>
+                                                            <property name="top_attach">5</property>
+                                                            <property name="bottom_attach">6</property>
+                                                            <property name="y_options">GTK_FILL</property>
+                                                            </packing>
+                                                            </child>
+                                                            <child>
+                                                            <object class="GtkLabel" id="label40">
+                                                            <property name="visible">True</property>
+                                                            <property name="xalign">0</property>
+                                                            <property name="label" translatable="yes">Platform:</property>
+                                                            </object>
+                                                            <packing>
+                                                            <property name="top_attach">1</property>
+                                                            <property name="bottom_attach">2</property>
+                                                            <property name="x_options">GTK_FILL</property>
+                                                            <property name="y_options">GTK_FILL</property>
+                                                            </packing>
+                                                            </child>
+                                                            <child>
+                                                            <object class="GtkLabel" id="label41">
+                                                            <property name="visible">True</property>
+                                                            <property name="xalign">0</property>
+                                                            <property name="label" translatable="yes">Strategy:</property>
+                                                            </object>
+                                                            <packing>
+                                                            <property name="top_attach">2</property>
+                                                            <property name="bottom_attach">3</property>
+                                                            <property name="x_options">GTK_FILL</property>
+                                                            <property name="y_options">GTK_FILL</property>
+                                                            </packing>
+                                                            </child>
+                                                            <child>
+                                                            <object class="GtkLabel" id="label42">
+                                                            <property name="visible">True</property>
+                                                            <property name="xalign">0</property>
+                                                            <property name="label" translatable="yes">Complexity:</property>
+                                                            </object>
+                                                            <packing>
+                                                            <property name="top_attach">3</property>
+                                                            <property name="bottom_attach">4</property>
+                                                            <property name="x_options">GTK_FILL</property>
+                                                            <property name="y_options">GTK_FILL</property>
+                                                            </packing>
+                                                            </child>
+                                                            <child>
+                                                            <object class="GtkLabel" id="label46">
+                                                            <property name="visible">True</property>
+                                                            <property name="xalign">0</property>
+                                                            <property name="label" translatable="yes">Disruption:</property>
+                                                            </object>
+                                                            <packing>
+                                                            <property name="top_attach">4</property>
+                                                            <property name="bottom_attach">5</property>
+                                                            <property name="x_options">GTK_FILL</property>
+                                                            <property name="y_options">GTK_FILL</property>
+                                                            </packing>
+                                                            </child>
+                                                            <child>
+                                                            <object class="GtkComboBox" id="edit:operations:fix:combo_disruption">
+                                                            <property name="visible">True</property>
+                                                            </object>
+                                                            <packing>
+                                                            <property name="left_attach">1</property>
+                                                            <property name="right_attach">2</property>
+                                                            <property name="top_attach">4</property>
+                                                            <property name="bottom_attach">5</property>
+                                                            <property name="y_options">GTK_FILL</property>
+                                                            </packing>
+                                                            </child>
+                                                            <child>
+                                                            <object class="GtkComboBox" id="edit:operations:fix:combo_complexity">
+                                                            <property name="visible">True</property>
+                                                            </object>
+                                                            <packing>
+                                                            <property name="left_attach">1</property>
+                                                            <property name="right_attach">2</property>
+                                                            <property name="top_attach">3</property>
+                                                            <property name="bottom_attach">4</property>
+                                                            <property name="y_options">GTK_FILL</property>
+                                                            </packing>
+                                                            </child>
+                                                            <child>
+                                                            <object class="GtkComboBox" id="edit:operations:fix:combo_strategy">
+                                                            <property name="visible">True</property>
+                                                            </object>
+                                                            <packing>
+                                                            <property name="left_attach">1</property>
+                                                            <property name="right_attach">2</property>
+                                                            <property name="top_attach">2</property>
+                                                            <property name="bottom_attach">3</property>
+                                                            <property name="y_options">GTK_FILL</property>
+                                                            </packing>
+                                                            </child>
+                                                            <child>
+                                                            <object class="GtkEntry" id="edit:operations:fix:entry_platform">
+                                                            <property name="visible">True</property>
+                                                            <property name="can_focus">True</property>
+                                                            <property name="invisible_char">&#x25CF;</property>
+                                                            </object>
+                                                            <packing>
+                                                            <property name="left_attach">1</property>
+                                                            <property name="right_attach">2</property>
+                                                            <property name="top_attach">1</property>
+                                                            <property name="bottom_attach">2</property>
+                                                            <property name="y_options">GTK_FILL</property>
+                                                            </packing>
+                                                            </child>
+                                                            <child>
+                                                            <object class="GtkEntry" id="edit:operations:fix:entry_system">
+                                                            <property name="visible">True</property>
+                                                            <property name="can_focus">True</property>
+                                                            <property name="invisible_char">&#x25CF;</property>
+                                                            </object>
+                                                            <packing>
+                                                            <property name="left_attach">1</property>
+                                                            <property name="right_attach">2</property>
+                                                            <property name="y_options">GTK_FILL</property>
+                                                            </packing>
+                                                            </child>
+                                                            </object>
+                                                            </child>
+                                                            </object>
+                                                            </child>
+                                                            <child type="label">
+                                                            <object class="GtkLabel" id="label30">
+                                                            <property name="visible">True</property>
+                                                            <property name="label" translatable="yes">&lt;b&gt;Detail Fix&lt;/b&gt;</property>
+                                                            <property name="use_markup">True</property>
+                                                            </object>
+                                                            </child>
+                                                          </object>
+                                                          <packing>
+                                                            <property name="expand">False</property>
+                                                            <property name="position">2</property>
+                                                          </packing>
+                                                        </child>
                                                       </object>
                                                       <packing>
                                                         <property name="position">1</property>
@@ -3254,7 +3430,7 @@
                                                     <child type="tab">
                                                       <object class="GtkLabel" id="label21">
                                                         <property name="visible">True</property>
-                                                        <property name="label" translatable="yes">Fix</property>
+                                                        <property name="label" translatable="yes">Fixes</property>
                                                       </object>
                                                       <packing>
                                                         <property name="position">1</property>
@@ -3351,7 +3527,7 @@
                                                     <child type="tab">
                                                       <object class="GtkLabel" id="label22">
                                                         <property name="visible">True</property>
-                                                        <property name="label" translatable="yes">Check</property>
+                                                        <property name="label" translatable="yes">Checks</property>
                                                       </object>
                                                       <packing>
                                                         <property name="position">2</property>
@@ -3551,7 +3727,7 @@
                                                         <child type="tab">
                                                           <object class="GtkLabel" id="label23">
                                                             <property name="visible">True</property>
-                                                            <property name="label" translatable="yes">Title</property>
+                                                            <property name="label" translatable="yes">Titles</property>
                                                           </object>
                                                           <packing>
                                                             <property name="tab_fill">False</property>
@@ -3639,7 +3815,7 @@
                                                         <child type="tab">
                                                           <object class="GtkLabel" id="label25">
                                                             <property name="visible">True</property>
-                                                            <property name="label" translatable="yes">Description</property>
+                                                            <property name="label" translatable="yes">Descriptions</property>
                                                           </object>
                                                           <packing>
                                                             <property name="position">1</property>
@@ -3817,7 +3993,7 @@
                                                         <child type="tab">
                                                           <object class="GtkLabel" id="label27">
                                                             <property name="visible">True</property>
-                                                            <property name="label" translatable="yes">Match</property>
+                                                            <property name="label" translatable="yes">Matches</property>
                                                           </object>
                                                           <packing>
                                                             <property name="position">3</property>
@@ -3907,7 +4083,7 @@
                                                           <object class="GtkLabel" id="label28">
                                                             <property name="visible">True</property>
                                                             <property name="yalign">0.51999998092651367</property>
-                                                            <property name="label" translatable="yes">Question</property>
+                                                            <property name="label" translatable="yes">Questions</property>
                                                           </object>
                                                           <packing>
                                                             <property name="position">4</property>

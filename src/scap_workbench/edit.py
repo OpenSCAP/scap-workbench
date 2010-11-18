@@ -183,6 +183,7 @@ class MenuButtonEdit(abstract.MenuButton, commands.DHEditItems):
         
         #operations
         self.edit_fixtext = EditFixtext(self.core, self.builder)
+        self.edit_fix = EditFix(self.core, self.builder)
         #self.chbox_selected = self.builder.get_object("edit:operations:chbox_selected")
 
         combo_model_sev = gtk.ListStore(int, str, str)
@@ -327,6 +328,9 @@ class MenuButtonEdit(abstract.MenuButton, commands.DHEditItems):
                 self.edit_fixtext.set_sensitive(True)
                 self.edit_fixtext.fill(details["item"])
                 
+                self.edit_fix.set_sensitive(True)
+                self.edit_fix.fill(details["item"])
+                
                 # clean hide data only for group and set insensitive
                 self.edit_values.set_sensitive(False)
                 self.edit_values.fill(None, None)
@@ -356,22 +360,46 @@ class MenuButtonEdit(abstract.MenuButton, commands.DHEditItems):
                 
                 self.edit_fixtext.set_sensitive(False)
                 self.edit_fixtext.fill(None)
+                
+                self.edit_fix.set_sensitive(False)
+                self.edit_fix.fill(None)
+                
         else:
             self.set_sensitive(False)
             return
 
 
 class Edit_abs:
+
+    combo_model_level = gtk.ListStore(int, str, str)
+    combo_model_level.append([openscap.OSCAP.XCCDF_UNKNOWN, "UNKNOWN", "Unknown."])
+    combo_model_level.append([openscap.OSCAP.XCCDF_INFO, "INFO", "Info."])
+    combo_model_level.append([openscap.OSCAP.XCCDF_LOW, "LOW", "Low."])
+    combo_model_level.append([openscap.OSCAP.XCCDF_MEDIUM, "MEDIUM", "Medium"])
+    combo_model_level.append([openscap.OSCAP.XCCDF_HIGH, "HIGH", "High."])
     
+    combo_model_strategy = gtk.ListStore(int, str, str)
+    combo_model_strategy.append([openscap.OSCAP.XCCDF_STRATEGY_UNKNOWN, "UNKNOWN", "Strategy not defined."])
+    combo_model_strategy.append([openscap.OSCAP.XCCDF_STRATEGY_CONFIGURE, "CONFIGURE", "Adjust target config or settings."])
+    combo_model_strategy.append([openscap.OSCAP.XCCDF_STRATEGY_DISABLE, "DISABLE", "Turn off or deinstall something."])
+    combo_model_strategy.append([openscap.OSCAP.XCCDF_STRATEGY_ENABLE, "ENABLE", "Turn on or install something."])
+    combo_model_strategy.append([openscap.OSCAP.XCCDF_STRATEGY_PATCH, "PATCH", "Apply a patch, hotfix, or update."])
+    combo_model_strategy.append([openscap.OSCAP.XCCDF_STRATEGY_POLICY, "POLICY", "Remediation by changing policies/procedures."])
+    combo_model_strategy.append([openscap.OSCAP.XCCDF_STRATEGY_RESTRICT, "RESTRICT", "Adjust permissions or ACLs."])
+    combo_model_strategy.append([openscap.OSCAP.XCCDF_STRATEGY_UPDATE, "UPDATE", "Install upgrade or update the system"])
+    combo_model_strategy.append([openscap.OSCAP.XCCDF_STRATEGY_COMBINATION, "COMBINATION", "Combo of two or more of the above."])
+    
+        
     def __init__(self, core, lv, values):
         self.core = core
         self.values = values
         self.item = None
-        self.lv = lv
-        self.model = lv.get_model()
-        self.selection = lv.get_selection()
-        self.selection.set_mode(gtk.SELECTION_SINGLE)
-        
+        if lv:
+            self.lv = lv
+            self.model = lv.get_model()
+            self.selection = lv.get_selection()
+            self.selection.set_mode(gtk.SELECTION_SINGLE)
+
     def cb_edit_row(self, widget):
         (model,iter) = self.selection.get_selected()
         if iter:
@@ -439,7 +467,13 @@ class Edit_abs:
             
         if not set_c:
             comboBox.set_active(-1)
-
+        
+    def set_model_to_comboBox(self, combo, model, view_column):
+        cell = gtk.CellRendererText()
+        combo.pack_start(cell, True)
+        combo.add_attribute(cell, 'text', view_column)  
+        combo.set_model(model)
+            
 class EditTitle(commands.DHEditItems,Edit_abs):
 
     COLUMN_LAN = 0
@@ -1191,12 +1225,11 @@ class EditFixtext(commands.DHEditItems, Edit_abs, EventObject):
         btn_edit.connect("clicked", self.cb_edit_row)
         btn_del.connect("clicked", self.cb_del_row)
         
-        Edit_abs.__init__(self, core, lv, values)
         self.selection.connect("changed", self.__cb_item_changed, lv)
         
         self.box_main = self.builder.get_object("edit:operations:fixtext:box")
         
-        self.addColumn("ID",self.COLUMN_TEXT)
+        self.addColumn("Text",self.COLUMN_TEXT)
         
     def fill(self, item):
         self.model.clear()
@@ -1236,24 +1269,7 @@ class EditFixtextOption(commands.DHEditItems,Edit_abs):
         # set  models
         self.core = core
         self.builder = builder
-        
-        self.combo_model_level = gtk.ListStore(int, str, str)
-        self.combo_model_level.append([openscap.OSCAP.XCCDF_UNKNOWN, "UNKNOWN", "Unknown."])
-        self.combo_model_level.append([openscap.OSCAP.XCCDF_INFO, "INFO", "Info."])
-        self.combo_model_level.append([openscap.OSCAP.XCCDF_LOW, "LOW", "Low."])
-        self.combo_model_level.append([openscap.OSCAP.XCCDF_MEDIUM, "MEDIUM", "Medium"])
-        self.combo_model_level.append([openscap.OSCAP.XCCDF_HIGH, "HIGH", "High."])
-        
-        self.combo_model_strategy = gtk.ListStore(int, str, str)
-        self.combo_model_strategy.append([openscap.OSCAP.XCCDF_STRATEGY_UNKNOWN, "UNKNOWN", "Strategy not defined."])
-        self.combo_model_strategy.append([openscap.OSCAP.XCCDF_STRATEGY_CONFIGURE, "CONFIGURE", "Adjust target config or settings."])
-        self.combo_model_strategy.append([openscap.OSCAP.XCCDF_STRATEGY_DISABLE, "DISABLE", "Turn off or deinstall something."])
-        self.combo_model_strategy.append([openscap.OSCAP.XCCDF_STRATEGY_ENABLE, "ENABLE", "Turn on or install something."])
-        self.combo_model_strategy.append([openscap.OSCAP.XCCDF_STRATEGY_PATCH, "PATCH", "Apply a patch, hotfix, or update."])
-        self.combo_model_strategy.append([openscap.OSCAP.XCCDF_STRATEGY_POLICY, "POLICY", "Remediation by changing policies/procedures."])
-        self.combo_model_strategy.append([openscap.OSCAP.XCCDF_STRATEGY_RESTRICT, "RESTRICT", "Adjust permissions or ACLs."])
-        self.combo_model_strategy.append([openscap.OSCAP.XCCDF_STRATEGY_UPDATE, "UPDATE", "Install upgrade or update the system"])
-        self.combo_model_strategy.append([openscap.OSCAP.XCCDF_STRATEGY_COMBINATION, "COMBINATION", "Combo of two or more of the above."])
+        Edit_abs.__init__(self, core, None, None)
         
         #edit data of fictext
         self.entry_reference = self.builder.get_object("edit:operations:fixtext:entry_reference")
@@ -1318,6 +1334,166 @@ class EditFixtextOption(commands.DHEditItems,Edit_abs):
         self.combo_disruption.handler_unblock_by_func(self.cb_combo_fixtext_disruption)
         self.chbox_reboot.handler_unblock_by_func(self.cb_chbox_fixtext_reboot)
             
+            
+
+#======================================= EDIT FIX ==========================================
+
+class EditFix(commands.DHEditItems, Edit_abs, EventObject):
+    
+    COLUMN_ID = 0
+    COLUMN_TEXT = 1
+    COLUMN_OBJECT = 2
+    
+    def __init__(self, core, builder):
+        
+        self.id = "gui:btn:menu:edit:fix"
+        self.builder = builder
+        self.core = core
+        
+        EventObject.__init__(self, core)
+        self.core.register(self.id, self)
+        self.add_sender(self.id, "item_changed")
+        
+        self.edit_fix_option = EditFixOption(core, builder)
+        self.add_receiver("gui:btn:menu:edit:fix", "item_changed", self.__update)
+        
+        self.model = gtk.ListStore(str, str, gobject.TYPE_PYOBJECT)
+        lv = self.builder.get_object("edit:operations:lv_fix")
+        lv.set_model(self.model)
+        
+                #information for new/edit dialog
+        values = {
+                    "name_dialog":  "Fix",
+                    "view":         lv,
+                    "cb":           self.DHEditFix,
+                    "textEntry":    {"name":    "ID",
+                                    "column":   self.COLUMN_ID,
+                                    "empty":    False, 
+                                    "unique":   True},
+                    "textView":     {"name":    "Content",
+                                    "column":   self.COLUMN_TEXT,
+                                    "empty":    False, 
+                                    "unique":   False}
+                        }
+        Edit_abs.__init__(self, core, lv, values)
+        btn_add = builder.get_object("edit:operations:btn_fix_add")
+        btn_edit = builder.get_object("edit:operations:btn_fix_edit")
+        btn_del = builder.get_object("edit:operations:btn_fix_del")
+        
+        # set callBack to btn
+        btn_add.connect("clicked", self.cb_add_row)
+        btn_edit.connect("clicked", self.cb_edit_row)
+        btn_del.connect("clicked", self.cb_del_row)
+        
+        Edit_abs.__init__(self, core, lv, values)
+        self.selection.connect("changed", self.__cb_item_changed, lv)
+        
+        self.box_main = self.builder.get_object("edit:operations:fix:box")
+        
+        self.addColumn("ID",self.COLUMN_ID)
+        self.addColumn("Content",self.COLUMN_TEXT)
+        
+    def fill(self, item):
+        self.model.clear()
+        self.emit("item_changed")
+        if item:
+            self.item = item
+            rule = item.to_rule()
+            for object in rule.fixes:
+                self.model.append([object.id, object.content, object])
+        else:
+            self.item = None
+    
+    def set_sensitive(self, sensitive):
+        self.box_main.set_sensitive(sensitive)
+        
+    def __cb_item_changed(self, widget, treeView):
+        self.emit("item_changed")
+        treeView.columns_autosize()
+    
+    def __update(self):
+        (model,iter) = self.selection.get_selected()
+ 
+        if iter:
+            self.edit_fix_option.fill(model.get_value(iter,self.COLUMN_OBJECT))
+        else:
+            self.edit_fix_option.fill(None)
+
+            
+class EditFixOption(commands.DHEditItems,Edit_abs):
+    
+    CB_COLUMN_DATA = 0
+    CB_COLUMN_VIEW = 1
+    
+    def __init__(self, core, builder):
+    
+        # set  models
+        self.core = core
+        self.builder = builder
+
+        #edit data of fictext
+        self.entry_system = self.builder.get_object("edit:operations:fix:entry_system")
+        self.entry_system.connect("focus-out-event",self.cb_entry_fix_system)
+        
+        self.entry_platform = self.builder.get_object("edit:operations:fix:entry_platform")
+        self.entry_platform.connect("focus-out-event",self.cb_entry_fix_platform)
+        
+        self.combo_strategy = self.builder.get_object("edit:operations:fix:combo_strategy")
+        self.set_model_to_comboBox(self.combo_strategy,self.combo_model_strategy, self.CB_COLUMN_VIEW)
+        self.combo_strategy.connect( "changed", self.cb_combo_fix_strategy)
+        
+        self.combo_complexity = self.builder.get_object("edit:operations:fix:combo_complexity")
+        self.set_model_to_comboBox(self.combo_complexity, self.combo_model_level, self.CB_COLUMN_VIEW)
+        self.combo_complexity.connect( "changed", self.cb_combo_fix_complexity)
+    
+        self.combo_disruption = self.builder.get_object("edit:operations:fix:combo_disruption")
+        self.set_model_to_comboBox(self.combo_disruption, self.combo_model_level, self.CB_COLUMN_VIEW)
+        self.combo_disruption.connect( "changed", self.cb_combo_fix_disruption)
+    
+        self.chbox_reboot = self.builder.get_object("edit:operations:fix:chbox_reboot")
+        self.chbox_reboot.connect("toggled",self.cb_chbox_fix_reboot)
+
+        self.box_detail= self.builder.get_object("edit:operations:fix:frame")
+        
+    def fill(self, fix):
+        self.item = fix
+        self.combo_strategy.handler_block_by_func(self.cb_combo_fix_strategy)
+        self.combo_complexity.handler_block_by_func(self.cb_combo_fix_complexity)
+        self.combo_disruption.handler_block_by_func(self.cb_combo_fix_disruption)
+        self.chbox_reboot.handler_block_by_func(self.cb_chbox_fix_reboot)
+        if fix:
+
+            self.box_detail.set_sensitive(True)
+
+            if fix.system:
+                self.entry_system.set_text(fix.system)
+            else:
+                self.entry_system.set_text("")
+
+            if fix.platform:
+                self.entry_platform.set_text(fix.platform)
+            else:
+                self.entry_platform.set_text("")
+                
+            self.chbox_reboot.set_active(fix.reboot)
+            self.set_active_comboBox(self.combo_strategy, fix.strategy, self.CB_COLUMN_DATA)
+            self.set_active_comboBox(self.combo_complexity, fix.complexity, self.CB_COLUMN_DATA)
+            self.set_active_comboBox(self.combo_disruption, fix.disruption, self.CB_COLUMN_DATA)
+        else:
+            self.item = None
+            self.box_detail.set_sensitive(False)
+            self.entry_system.set_text("")
+            self.entry_platform.set_text("")
+            self.chbox_reboot.set_active(False)
+            self.combo_strategy.set_active(-1)
+            self.combo_complexity.set_active(-1)
+            self.combo_disruption.set_active(-1)
+            
+        self.combo_strategy.handler_unblock_by_func(self.cb_combo_fix_strategy)
+        self.combo_complexity.handler_unblock_by_func(self.cb_combo_fix_complexity)
+        self.combo_disruption.handler_unblock_by_func(self.cb_combo_fix_disruption)
+        self.chbox_reboot.handler_unblock_by_func(self.cb_chbox_fix_reboot)
+            
 class EditDialogWindow(EventObject):
     
     def __init__(self, item, core, values, new=True):
@@ -1355,8 +1531,11 @@ class EditDialogWindow(EventObject):
             lbl_entryText.set_label(values["textEntry"]["name"])
             lbl_entryText.show_all()
             if new == False:
-                self.textEntry.set_text(self.model.get_value(self.iter,values["textEntry"]["column"]))
-                
+                text_edit = self.model.get_value(self.iter,values["textEntry"]["column"])
+                if text_edit:
+                    self.textEntry.set_text(text_edit)
+                else:
+                    self.textEntry.set_text("")
 
         if "textView" in values:
             self.textView = builder.get_object("textView")
