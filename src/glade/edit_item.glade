@@ -5,7 +5,7 @@
   <object class="GtkDialog" id="dialog:edit_item">
     <property name="border_width">5</property>
     <property name="modal">True</property>
-    <property name="window_position">center-on-parent</property>
+    <property name="window_position">center</property>
     <property name="destroy_with_parent">True</property>
     <property name="type_hint">normal</property>
     <property name="has_separator">False</property>

@@ -205,9 +205,7 @@ class MenuButtonEdit(abstract.MenuButton, commands.DHEditItems):
         
         self.entry_impact_metric = self.builder.get_object("edit:operations:entry_impact_metric")
         self.entry_impact_metric.connect("focus-out-event",self.cb_entry_impact_metric)
-        
-        self.lv_fixtext = self.builder.get_object("edit:operations:lv_fixtext")
-        self.lv_fix = self.builder.get_object("edit:operations:lv_fix")
+
         self.lv_check = self.builder.get_object("edit:operations:lv_check")
         
         #values
@@ -446,9 +444,11 @@ class Edit_abs:
         md.run()
         md.destroy()
 
-    def addColumn(self, name, column):
-        txtcell = abstract.CellRendererTextWrap()
+    def addColumn(self, name, column, expand=False):
+        #txtcell = abstract.CellRendererTextWrap()
+        txtcell = gtk.CellRendererText()
         column = gtk.TreeViewColumn(name, txtcell, text=column)
+        column.set_expand(expand)
         column.set_resizable(True)
         self.lv.append_column(column)
 
@@ -1148,7 +1148,7 @@ class EditValueValue(commands.DHEditItems,Edit_abs):
         btn_del.connect("clicked", self.cb_del_row)
         
         self.addColumn("Selector",self.COLUMN_SELECTOR)
-        self.addColumn("Value",self.COLUMN_VALUE)
+        self.addColumn("Value",self.COLUMN_VALUE, expand=True)
         
         cell = gtk.CellRendererToggle()
         cell.set_property('activatable', True)
@@ -1511,6 +1511,7 @@ class EditDialogWindow(EventObject):
         self.window = builder.get_object("dialog:edit_item")
         self.window.set_keep_above(True)
         self.window.connect("delete-event", self.__delete_event)
+        self.window.resize(650, 400)
         
         btn_ok = builder.get_object("btn_ok")
         btn_ok.connect("clicked", self.__cb_do)
@@ -1564,7 +1565,8 @@ class EditDialogWindow(EventObject):
             if new == False:
                 self.cBox.set_active_iter(self.model.get_value(self.iter,values["cBox"]["column"]))
 
-        self.window.show()
+        #self.window.show()
+        self.show()
 
     def __cb_do(self, widget):
         
@@ -1670,6 +1672,10 @@ class EditDialogWindow(EventObject):
     def __delete_event(self, widget, event=None):
         self.window.destroy()
 
+    def show(self):
+        self.window.set_transient_for(self.core.main_window)
+        self.window.show()
+        
     def control_unique(self, name, model, column, data, iter):
         """
         Control if data is unique.

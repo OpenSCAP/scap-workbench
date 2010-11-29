@@ -229,7 +229,7 @@ class DataHandler:
                     "item":             item,
                     "id":               item.id,
                     "type":             item.type,
-                    "titles":           [(title) for title in item.title or []],
+                    "titles":           item.title,
                     "descriptions":     [(desc) for desc in item.description or []],
                     "abstract":         item.abstract,
                     "cluster_id":       item.cluster_id,
@@ -569,7 +569,9 @@ class DHItemsTree(DataHandler, EventObject):
     COLUMN_PARENT   = 6
 
     def __init__(self, id, core, progress=None, items_model=False):
-        
+        """
+        param items_model if False use selected profile is selected. If true use base model.
+        """
         self.items_model = items_model
         self.id = id
         EventObject.__init__(self)
@@ -628,15 +630,16 @@ class DHItemsTree(DataHandler, EventObject):
 
         """Cell with picture representing if the item is selected or not
         """
-        render = gtk.CellRendererToggle()
-        column = gtk.TreeViewColumn("Selected", render, active=DHItemsTree.COLUMN_SELECTED,
-                                                        sensitive=DHItemsTree.COLUMN_PARENT,
-                                                        activatable=DHItemsTree.COLUMN_PARENT)
-        #cb call for filter_model and ref_model
-        render.connect('toggled', self.__cb_toggled)
-        
-        column.set_resizable(True)
-        treeView.append_column(column)
+        if not self.items_model:
+            render = gtk.CellRendererToggle()
+            column = gtk.TreeViewColumn("Selected", render, active=DHItemsTree.COLUMN_SELECTED,
+                                                            sensitive=DHItemsTree.COLUMN_PARENT,
+                                                            activatable=DHItemsTree.COLUMN_PARENT)
+            #cb call for filter_model and ref_model
+            render.connect('toggled', self.__cb_toggled)
+            
+            column.set_resizable(True)
+            treeView.append_column(column)
 
         treeView.set_enable_search(False)
 
@@ -744,9 +747,12 @@ class DHItemsTree(DataHandler, EventObject):
             gtk.gdk.threads_leave()
 
         # Check select status of item
-        selected = self.get_selected(item, self.items_model)
-        color = ["gray", None][selected and pselected]
-
+        if self.items_model:
+            selected = False
+        else:
+            selected = self.get_selected(item, self.items_model)
+            color = ["gray", None][selected and pselected]
+        
         if item != None:
             # If item is group, store it ..
             titles = dict([(title.lang, " ".join(title.text.split())) for title in item.title])
