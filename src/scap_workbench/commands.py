@@ -1130,19 +1130,20 @@ class DHScan(DataHandler, EventObject):
         return self.__cancel
 
     def __prepaire(self):
-
-        if self.__progress != None:
-            gtk.gdk.threads_enter()
-            self.__progress.set_fraction(0.0)
-            self.__progress.set_text("Prepairing ...")
-            gtk.gdk.threads_leave()
+        """Prepaire system for evaluation
+        return False if something goes wrong, True otherwise
+        """
 
         if self.core.registered_callbacks == False:
             self.core.lib["policy_model"].register_start_callback(self.__callback_start, self)
             self.core.lib["policy_model"].register_output_callback(self.__callback_end, self)
         else:
             for sess in self.core.lib["sessions"]:
-                openscap.OSCAP.oval_agent_reset_session(sess.instance)
+                retval = openscap.oval.agent_reset_session(sess)
+                logger.debug("OVAL Agent session reset: %s" % (retval,))
+                if retval != 0: 
+                    raise Exception, "OVAL agent reset session failed"
+                    self.core.notify("Oval agent reset session failed.", 2)
             self.__cancel = False
             self.__last = 0
 
@@ -1158,11 +1159,15 @@ class DHScan(DataHandler, EventObject):
         # TODO: library bug
         #self.__rules_count = len(self.policy.selected_rules)
         self.core.registered_callbacks = True
+        return True
         
     def cancel(self):
         if not self.__cancel:
             self.__cancel = True
             self.__cancel_notify = self.core.notify("Scanning canceled. Please wait for openscap to finish current task.", 0)
+        for sess in self.core.lib["sessions"]:
+            retval = openscap.oval.agent_abort_session(sess)
+            logger.debug("OVAL Agent session abort: %s" % (retval,))
 
     def export(self):
         if not self.core.lib or self.__result == None: return False
@@ -1189,6 +1194,7 @@ class DHScan(DataHandler, EventObject):
         if self.__lock: 
             logger.error("Scan already running")
         else: 
+            self.__prepaire()
             self.__lock = True
             self.th_scan()
 
@@ -1197,8 +1203,13 @@ class DHScan(DataHandler, EventObject):
         if not self.core.lib:
             logger.error("Library not initialized or XCCDF file not specified")
             return None
-        self.__prepaire()
         logger.debug("Scanning %s ..", self.policy.id)
+        if self.__progress != None:
+            gtk.gdk.threads_enter()
+            self.__progress.set_fraction(0.0)
+            self.__progress.set_text("Prepairing ...")
+            gtk.gdk.threads_leave()
+
         self.__result = self.policy.evaluate()
         if self.__progress: 
             self.__progress.set_fraction(1.0)

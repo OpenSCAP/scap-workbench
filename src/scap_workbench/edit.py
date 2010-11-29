@@ -34,6 +34,8 @@ import commands
 import filter
 import render
 
+logger = logging.getLogger("scap-workbench")
+
 try:
     import openscap_api as openscap
 except Exception as ex:
