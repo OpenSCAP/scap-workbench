@@ -1147,6 +1147,7 @@ class EditValueValue(commands.DHEditItems,Edit_abs):
         
         self.addColumn("Selector",self.COLUMN_SELECTOR)
         self.addColumn("Value",self.COLUMN_VALUE)
+        
         cell = gtk.CellRendererToggle()
         cell.set_property('activatable', True)
         cell.connect( 'toggled', self.__cb_toggled, self.model )
@@ -1272,31 +1273,31 @@ class EditFixtextOption(commands.DHEditItems,Edit_abs):
         Edit_abs.__init__(self, core, None, None)
         
         #edit data of fictext
-        self.entry_reference = self.builder.get_object("edit:operations:fixtext:entry_reference")
+        self.entry_reference = self.builder.get_object("edit:operations:fixtext:entry_reference1")
         self.entry_reference.connect("focus-out-event",self.cb_entry_fixtext_reference)
         
-        self.combo_strategy = self.builder.get_object("edit:operations:fixtext:combo_strategy")
+        self.combo_strategy = self.builder.get_object("edit:operations:fixtext:combo_strategy1")
         cell = gtk.CellRendererText()
         self.combo_strategy.pack_start(cell, True)
         self.combo_strategy.add_attribute(cell, 'text',self.CB_COLUMN_VIEW)  
         self.combo_strategy.set_model(self.combo_model_strategy)
         self.combo_strategy.connect( "changed", self.cb_combo_fixtext_strategy)
         
-        self.combo_complexity = self.builder.get_object("edit:operations:fixtext:combo_complexity")
+        self.combo_complexity = self.builder.get_object("edit:operations:fixtext:combo_complexity1")
         cell = gtk.CellRendererText()
         self.combo_complexity.pack_start(cell, True)
         self.combo_complexity.add_attribute(cell, 'text', self.CB_COLUMN_VIEW)  
         self.combo_complexity.set_model(self.combo_model_level)
         self.combo_complexity.connect( "changed", self.cb_combo_fixtext_complexity)
     
-        self.combo_disruption = self.builder.get_object("edit:operations:fixtext:combo_disruption")
+        self.combo_disruption = self.builder.get_object("edit:operations:fixtext:combo_disruption1")
         cell = gtk.CellRendererText()
         self.combo_disruption.pack_start(cell, True)
         self.combo_disruption.add_attribute(cell, 'text', self.CB_COLUMN_VIEW)  
         self.combo_disruption.set_model(self.combo_model_level)
         self.combo_disruption.connect( "changed", self.cb_combo_fixtext_disruption)
     
-        self.chbox_reboot = self.builder.get_object("edit:operations:fixtext:chbox_reboot")
+        self.chbox_reboot = self.builder.get_object("edit:operations:fixtext:chbox_reboot1")
         self.chbox_reboot.connect("toggled",self.cb_chbox_fixtext_reboot)
 
         self.box_detail= self.builder.get_object("edit:operations:fixtext:frame")
@@ -1639,7 +1640,7 @@ class EditDialogWindow(EventObject):
         # new row and unique => add new row
         if dest_path == None:
             iter = self.model.append()
-            self.values["cb"](self.item, self.model, iter, None, None)
+            self.values["cb"](self.item, self.model, iter, None, None, False)
             self.selection.select_path(self.model.get_path(iter))
 
         # edit row
@@ -1651,16 +1652,16 @@ class EditDialogWindow(EventObject):
         # if insert data are correct, put them to the model
         if "textEntry" in self.values:
             self.model.set_value(iter,self.values["textEntry"]["column"], text_textEntry)
-            self.values["cb"](self.item, self.model, iter, self.values["textEntry"]["column"], text_textEntry)
+            self.values["cb"](self.item, self.model, iter, self.values["textEntry"]["column"], text_textEntry, False)
                     
         if "textView" in self.values:
-            self.values["cb"](self.item, self.model, iter, self.values["textView"]["column"], text_textView)
+            self.values["cb"](self.item, self.model, iter, self.values["textView"]["column"], text_textView, False)
             self.model.set_value(iter,self.values["textView"]["column"], text_textView)
 
         if "cBox" in self.values:
             self.model.set_value(iter,self.values["cBox"]["column"], iter_selected)
             self.model.set_value(iter,self.values["cBox"]["column_view"], view_selected)
-            self.values["cb"](self.item, self.model, iter, self.values["cBox"]["column"], data_selected)
+            self.values["cb"](self.item, self.model, iter, self.values["cBox"]["column"], data_selected, False)
             
         self.window.destroy()
 

@@ -210,7 +210,13 @@ class DataHandler:
             return None
 
         return values
-
+    
+    def get_item(self, id, items_model=False):
+        if not self.core.lib:
+            logger.error("Library not initialized or XCCDF file not specified")
+            return None
+        return self.core.lib["policy_model"].benchmark.item(id or self.core.selected_item)
+        
     def get_item_objects(self, id, items_model=False):
         """get_item_details -- get details of XCCDF_ITEM"""
 
@@ -230,7 +236,7 @@ class DataHandler:
                     "conflicts":        [conflict for conflict in item.conflicts or []],
                     "extends":          item.extends,
                     "hidden":           item.hidden,
-                    "platforms":        [platform for platform in item.platforms],
+                    "platforms":        item.platforms,
                     "prohibit_changes": item.prohibit_changes,
                     "questions":        [(question) for question in item.question or []],
                     "rationale":        [rationale for rationale in item.rationale or []],
@@ -1224,11 +1230,18 @@ class DHEditItems:
                 if column == COLUMN_LAN:
                     object.set_lang(value)
                 elif column == COLUMN_TEXT:
-                    object.set_text(value)
+                    object.text = value
+                    #object.set_text(value)
                 else:
                     logger.error("Bad number of column.")
             else:
-                logger.info ("TODO delete Title")
+                item.title.remove(object)
+                #iter_title = item.get_title()
+                #while iter_title.has_more():
+                    #object_title = iter_title.next()
+                    #if object == object_title:
+                        #iter_title.remove()
+                        #break
                 model.remove(iter)
         else:
             logger.error("Error: Not read item.")
@@ -1377,19 +1390,29 @@ class DHEditItems:
         COLUMN_TEXT = 0
         COLUMN_OBJECT = 1
         if item:
-            object = model.get_value(iter, COLUMN_OBJECT)
-
-            if not object:
-                item.add_platform("init_itrText")
-            elif  not delete:
-                if column == COLUMN_TEXT:
-                    old_text = model.get_value(iter, COLUMN_TEXT)
-                    for platf in item.platforms:
-                        if platf == old_text or platf == "init_itrText":
-                            pass
+            if not delete:
+                # column == None new data 
+                if column == None:
+                    model.set_value(iter, COLUMN_TEXT, "init_itrText")
+                    item.add_platform("init_itrText")
                 else:
-                    logger.error("Bad number of column.")
+                    if column == COLUMN_TEXT:
+                        old_text = model.get_value(iter, COLUMN_TEXT)
+                        print "old text=" + old_text
+                        i = 0
+                        for platf in item.platforms:
+                            print "search text=" + old_text
+                            if platf == old_text or platf == "init_itrText":
+                                print "sem tu value=" + value
+                                print item.platforms
+                                print item.platforms[0]
+                                print i
+                                item.platforms[0] = value
+                            i = i + 1
+                    else:
+                        logger.error("Bad number of column.")
             else:
+                item.platforms.remove(value)
                 logger.info ("TODO delete Platform.")
                 model.remove(iter)  
         else:
@@ -1555,7 +1578,32 @@ class DHEditItems:
             
     def DHEditValueValue(self, item, model, iter, column, value, delete = False):
 
-        pass
+        COLUMN_SELECTOR = 0
+        COLUMN_VALUE = 1
+        COLUMN_SELECTED = 2
+        COLUMN_OBJECT = 3
+
+        if item:
+            object = model.get_value(iter, COLUMN_OBJECT)
+
+            if not object:
+                pass
+                #object = openscap.common.text_new()
+                #item.add_question(object)
+                #model.set_value(iter, COLUMN_OBJECT, object)
+            elif  not delete:
+                pass
+                #if column == COLUMN_SELECTOR:
+                    #object.set_lang(value)
+                #elif column == COLUMN_VALUE:
+                    #object.set_text(value)
+                #else:
+                    #logger.error("Bad number of column.")
+            else:
+                logger.info ("TODO delete Value value")
+                model.remove(iter)
+        else:
+            logger.error("Error: Not read item.")
     
     # DH fixtext ===============================
     def DHEditFixtextText(self, item, model, iter, column, value, delete = False):
