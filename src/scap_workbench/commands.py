@@ -23,6 +23,9 @@
 import gtk, logging, sys, re, time, os
 import gobject
 import webbrowser
+import datetime
+import time
+
 from events import EventObject
 from htmltextview import HtmlTextView
 
@@ -1341,7 +1344,7 @@ class DHEditItems:
                 if column == COLUMN_STATUS_ITER:
                     object.set_status(value)
                 elif column == COLUMN_DATE:
-                    pass
+                    object.set_date(value)
                 else:
                     logger.error("Bad number of column.")
             else:
@@ -1435,7 +1438,11 @@ class DHEditItems:
         else:
             logger.error("Error: Not read item.")
 
-
+    def DHEditVersionTime(self, item, timestamp):
+        if item :
+            item.set_version_time(timestamp)
+        else:
+            logger.error("Error: Not read item.")
 
 
     def cb_entry_version(self, widget, event):
@@ -1444,9 +1451,9 @@ class DHEditItems:
         else:
             logger.error("Error: Not read item.")
 
-    def cb_entry_version_time(self, widget, event):
+    def cb_chbox_selected(self, widget):
         if self.item :
-            self.item.set_version_time(widget.get_text())
+            self.item.set_selected(widget.get_active())
         else:
             logger.error("Error: Not read item.")
 
@@ -1515,6 +1522,44 @@ class DHEditItems:
         else:
             logger.error("Error: Not read rule.")
 
+    def DHEditValue(self, item, model, iter, column, value, delete = False):
+
+        COLUMN_ID = 0
+        COLUMN_TITLE = 1
+        COLUMN_TYPE_ITER = 2
+        COLUMN_TYPE_TEXT = 3
+        COLUMN_OBJECT = 4
+    
+        if item:
+            if not delete:
+                # column == None new data 
+                if column == None:
+                    parent = self.item.get_parent()
+                    value = openscap.xccdf.value_new(value)
+                    if parent.type !=  openscap.OSCAP.XCCDF_GROUP:
+                        logger.error("Error: Add Value, parent of rule is not group")
+                        return
+                    parent = parent.to_group()
+                    parent.add_value(value)
+                    model.set_value(iter, COLUMN_OBJECT, value)
+                elif column == COLUMN_ID:
+                    object = model.get_value(iter, COLUMN_OBJECT)
+                    object.set_id(value)
+                    check = openscap.xccdf.check_new()
+                    check_export = openscap.xccdf.check_export_new()
+                    check_export.set_value(value)
+                    check.add_export(check_export)
+                    self.item.add_check(check)
+                elif column == COLUMN_TYPE_ITER:
+                    pass
+                else:
+                    logger.error("Bad number of column.")
+            else:
+                logger.info ("TODO delete Value.")
+                model.remove(iter)  
+        else:
+            logger.error("Error: Not read item.")
+            
     def DHEditValueTitle(self, item, model, iter, column, value, delete = False):
 
         COLUMN_LAN = 0
