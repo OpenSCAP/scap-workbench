@@ -295,7 +295,8 @@ class MenuButtonEdit(abstract.MenuButton, commands.DHEditItems, Edit_abs):
         self.progress = self.builder.get_object("edit:progress")
         self.progress.hide()
         self.filter = filter.ItemFilter(self.core, self.builder,"edit:box_filter", "gui:btn:edit:filter")
-        self.rules_list = ItemList(self.builder.get_object("edit:tw_items"), self.core, self.progress, self.filter)
+        self.tw_items = self.builder.get_object("edit:tw_items")
+        self.rules_list = ItemList(self.tw_items, self.core, self.progress, self.filter)
         self.filter.expander.cb_changed()
 
         # set signals
@@ -402,7 +403,7 @@ class MenuButtonEdit(abstract.MenuButton, commands.DHEditItems, Edit_abs):
         pass
 
     def __cb_item_add(self, widget):
-        pass
+        EditAddDialogWindow(self.core, self.item, self.tw_items )
     
     def set_sensitive(self, sensitive):
         self.nBook.set_sensitive(sensitive)
@@ -410,7 +411,7 @@ class MenuButtonEdit(abstract.MenuButton, commands.DHEditItems, Edit_abs):
     def __update(self):
         
         details = self.data_model.get_item_objects(self.core.selected_item_edit)
-        
+
         if details != None:
             self.set_sensitive(True)
             self.item = details["item"]
@@ -1572,7 +1573,45 @@ class EditFixOption(commands.DHEditItems,Edit_abs):
         self.combo_complexity.handler_unblock_by_func(self.cb_combo_fix_complexity)
         self.combo_disruption.handler_unblock_by_func(self.cb_combo_fix_disruption)
         self.chbox_reboot.handler_unblock_by_func(self.cb_chbox_fix_reboot)
-            
+
+class EditAddDialogWindow(EventObject):
+    
+    def __init__(self,core, item, view):
+        
+        self.core = core
+        self.item = item
+        self.init_data = None
+        builder = gtk.Builder()
+        builder.add_from_file("/usr/share/scap-workbench/edit_item.glade")
+        
+        self.window = builder.get_object("dialog:add_item")
+        self.window.set_keep_above(True)
+        self.window.connect("delete-event", self.__delete_event)
+        #self.window.resize(400, 150)
+        
+        btn_ok = builder.get_object("add_item:btn_ok")
+        btn_ok.connect("clicked", self.__cb_do)
+        btn_cancel = builder.get_object("add_item:btn_cancel")
+        btn_cancel.connect("clicked", self.__delete_event)
+
+        self.rb_type_group = builder.get_object("add_item:rb_type_group")
+        self.rb_type_group = builder.get_object("add_item:rb_type_group")
+        
+        self.selection = view.get_selection()
+        (self.model, self.iter) = self.selection.get_selected()
+
+        self.show()
+
+    def __cb_do(self, widget):
+        pass
+    
+    def show(self):
+        self.window.set_transient_for(self.core.main_window)
+        self.window.show()
+
+    def __delete_event(self, widget, event=None):
+        self.window.destroy()
+        
 class EditDialogWindow(EventObject):
     
     def __init__(self, item, core, values, new=True):
@@ -1645,7 +1684,7 @@ class EditDialogWindow(EventObject):
 
         #self.window.show()
         self.show()
-
+        
     def __cb_do(self, widget):
         
         if self.new == True:
