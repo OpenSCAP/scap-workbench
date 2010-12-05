@@ -32,6 +32,12 @@ import logging
 import core
 from events import EventObject
 
+try:
+    import openscap_api as openscap
+except Exception as ex:
+    logger.error("OpenScap library initialization failed: %s", ex)
+    openscap=None
+    
 import commands
 import filter
 import render
@@ -356,7 +362,6 @@ class MenuButtonEdit(abstract.MenuButton, commands.DHEditItems, Edit_abs):
         #operations
         self.edit_fixtext = EditFixtext(self.core, self.builder)
         self.edit_fix = EditFix(self.core, self.builder)
-        #self.chbox_selected = self.builder.get_object("edit:operations:chbox_selected")
         
         self.cBox_severity = self.builder.get_object("edit:operations:combo_severity")
         cell = gtk.CellRendererText()
@@ -403,15 +408,27 @@ class MenuButtonEdit(abstract.MenuButton, commands.DHEditItems, Edit_abs):
         pass
 
     def __cb_item_add(self, widget):
-        EditAddDialogWindow(self.core, self.item, self.tw_items )
+        EditAddDialogWindow(self.core, self.item, self.tw_items, self.DHEditAddItem )
     
     def set_sensitive(self, sensitive):
         self.nBook.set_sensitive(sensitive)
         
     def __update(self):
         
-        details = self.data_model.get_item_objects(self.core.selected_item_edit)
-
+        if self.core.selected_item_edit != None:
+            details = self.data_model.get_item_objects(self.core.selected_item_edit)
+        else:
+            details = None
+            self.item = None
+        
+        self.chbox_hidden.handler_block_by_func(self.cb_chbox_hidden)
+        self.chbox_selected.handler_block_by_func(self.cb_chbox_selected)
+        self.chbox_prohibit.handler_block_by_func(self.cb_chbox_prohibit)
+        self.chbox_abstract.handler_block_by_func(self.cb_chbox_abstract)
+        self.chbox_multipl.handler_block_by_func(self.cb_chbox_multipl)
+        self.cBox_severity.handler_block_by_func(self.cb_cBox_severity)
+        self.cBox_role.handler_block_by_func(self.cb_cBox_role)
+        
         if details != None:
             self.set_sensitive(True)
             self.item = details["item"]
@@ -460,9 +477,7 @@ class MenuButtonEdit(abstract.MenuButton, commands.DHEditItems, Edit_abs):
                     iter_sev = model_sev.get_iter_first()
                     while iter_sev:
                         if model_sev.get_value(iter_sev, 0) == details["severity"]:
-                            self.cBox_severity.handler_block_by_func(self.cb_cBox_severity)
                             self.cBox_severity.set_active_iter(iter_sev)
-                            self.cBox_severity.handler_unblock_by_func(self.cb_cBox_severity)
                             break
                         iter_sev = model_sev.iter_next(iter_sev)
 
@@ -478,9 +493,7 @@ class MenuButtonEdit(abstract.MenuButton, commands.DHEditItems, Edit_abs):
                     iter_role = model_role.get_iter_first()
                     while iter_role:
                         if model_role.get_value(iter_role, 0) == details["role"]:
-                            self.cBox_role.handler_block_by_func(self.cb_cBox_role)
                             self.cBox_role.set_active_iter(iter_role)
-                            self.cBox_role.handler_unblock_by_func(self.cb_cBox_role)
                             break
                         iter_role = model_role.iter_next(iter_role)
 
@@ -529,8 +542,9 @@ class MenuButtonEdit(abstract.MenuButton, commands.DHEditItems, Edit_abs):
                 
                 self.edit_fix.set_sensitive(False)
                 self.edit_fix.fill(None)
-                
+
         else:
+            self.item = None
             self.set_sensitive(False)
             self.edit_title.fill(None)
             self.edit_description.fill(None)
@@ -551,7 +565,13 @@ class MenuButtonEdit(abstract.MenuButton, commands.DHEditItems, Edit_abs):
             self.entry_cluster_id.set_text("")
             self.lbl_extends.set_text("None")
 
-
+        self.chbox_hidden.handler_unblock_by_func(self.cb_chbox_hidden)
+        self.chbox_selected.handler_unblock_by_func(self.cb_chbox_selected)
+        self.chbox_prohibit.handler_unblock_by_func(self.cb_chbox_prohibit)
+        self.chbox_abstract.handler_unblock_by_func(self.cb_chbox_abstract)
+        self.chbox_multipl.handler_unblock_by_func(self.cb_chbox_multipl)
+        self.cBox_severity.handler_unblock_by_func(self.cb_cBox_severity)
+        self.cBox_role.handler_unblock_by_func(self.cb_cBox_role)
             
 class EditTitle(commands.DHEditItems,Edit_abs):
 
@@ -963,7 +983,7 @@ class EditValues(commands.DHEditItems, Edit_abs, EventObject):
                         "textEntry":    {"name":    "ID",
                                         "column":   self.COLUMN_ID,
                                         "empty":    False, 
-                                        "unique":   True},
+                                        "unique":   False},
                         "cBox":         {"name":    "Type",
                                         "column":   self.COLUMN_TYPE_ITER,
                                         "column_view":   self.COLUMN_TYPE_TEXT,
@@ -983,6 +1003,16 @@ class EditValues(commands.DHEditItems, Edit_abs, EventObject):
         self.edit_values_description = EditValueDescription(self.core, self.builder)
         self.edit_values_question = EditValueQuestion(self.core, self.builder)
         self.edit_values_value = EditValueValue(self.core, self.builder)
+        
+        self.lbl_type = self.builder.get_object("edit:values:lbl_type")
+        self.lbl_match = self.builder.get_object("edit:values:lbl_match")
+        self.entry_match = self.builder.get_object("edit:values:entry_match")
+        
+        self.lbl_upper_bound = self.builder.get_object("edit:values:lbl_upper_bound")
+        self.lbl_entry_upper_bound = self.builder.get_object("edit:values:entry_upper_bound")
+        self.lbl_lower_bound = self.builder.get_object("edit:values:lbl_lower_bound")
+        self.entry_lower_bound = self.builder.get_object("edit:values:entry_lower_bound")
+        self.table_general= self.builder.get_object("edit:values:general:table")
         
         self.sw_main = self.builder.get_object("edit:values:sw_main")
         self.value_nbook = self.builder.get_object("edit:values:notebook")
@@ -1043,6 +1073,28 @@ class EditValues(commands.DHEditItems, Edit_abs, EventObject):
             self.edit_values_question.fill(value)
             self.edit_values_value.fill(value)
             
+            self.table_general.show_all()
+            if value.get_type()  == openscap.OSCAP.XCCDF_TYPE_NUMBER:
+                self.lbl_type.set_text("Number")
+                self.lbl_match.hide()
+                self.entry_match.hide()
+                
+            elif value.get_type()  == openscap.OSCAP.XCCDF_TYPE_STRING:
+                self.lbl_type.set_text("String")
+                self.lbl_upper_bound.hide()
+                self.lbl_entry_upper_bound.hide()
+                self.lbl_lower_bound.hide()
+                self.entry_lower_bound.hide()
+        
+            elif value.get_type()  == openscap.OSCAP.XCCDF_TYPE_BOOLEAN:
+                self.lbl_type.set_text("Boolean")
+                self.lbl_upper_bound.hide()
+                self.lbl_entry_upper_bound.hide()
+                self.lbl_lower_bound.hide()
+                self.entry_lower_bound.hide()
+                self.lbl_match.hide()
+                self.entry_match.hide()
+
         else:
             self.value_nbook.set_sensitive(False)
             self.edit_values_title.fill(None)
@@ -1574,15 +1626,32 @@ class EditFixOption(commands.DHEditItems,Edit_abs):
         self.combo_disruption.handler_unblock_by_func(self.cb_combo_fix_disruption)
         self.chbox_reboot.handler_unblock_by_func(self.cb_chbox_fix_reboot)
 
-class EditAddDialogWindow(EventObject):
+class EditAddDialogWindow(EventObject, Edit_abs):
     
-    def __init__(self,core, item, view):
+    CREATE_AS_CHILD = 0
+    CREATE_AS_SIBLING = 1
+    CREATE_AS_PARENT = 2
+
+    
+    COMBO_COLUMN_DATA = 0
+    COMBO_COLUMN_VIEW = 1
+    COMBO_COLUMN_INFO = 2
+    
+    def __init__(self,core, item, view, cb):
         
         self.core = core
         self.item = item
-        self.init_data = None
+        self.cb = cb
+        self.view = view
+        
         builder = gtk.Builder()
         builder.add_from_file("/usr/share/scap-workbench/edit_item.glade")
+
+        self.combo_model = gtk.ListStore(int, str, str)
+
+        #self.combo_model.append([self.CREATE_AS_CHILD,"Child","Create the item as a child."])
+        #self.combo_model.append([self.CREATE_AS_SIBLING,"Sibling","Create the item as a sibling."])
+        #self.combo_model.append([self.CREATE_AS_PARENT,"Parent","Create the item as a parent."])
         
         self.window = builder.get_object("dialog:add_item")
         self.window.set_keep_above(True)
@@ -1595,16 +1664,92 @@ class EditAddDialogWindow(EventObject):
         btn_cancel.connect("clicked", self.__delete_event)
 
         self.rb_type_group = builder.get_object("add_item:rb_type_group")
-        self.rb_type_group = builder.get_object("add_item:rb_type_group")
+        self.rb_type_rule = builder.get_object("add_item:rb_type_rule")
+        self.text_id = builder.get_object("add_item:text_id")
+        self.text_lang = builder.get_object("add_item:text_lang")
+        self.text_title = builder.get_object("add_item:text_title")
+        self.combo_create_as = builder.get_object("add_item:combo_create_as")
+            
+        cell = gtk.CellRendererText()
+        self.combo_create_as.set_model(self.combo_model)
+        self.combo_create_as.pack_start(cell, True)
+        self.combo_create_as.add_attribute(cell, 'text', self.COMBO_COLUMN_VIEW)
+        self.combo_create_as.set_active(self.CREATE_AS_CHILD)
         
-        self.selection = view.get_selection()
-        (self.model, self.iter) = self.selection.get_selected()
 
+        if self.item == None:
+            self.combo_model.append([self.CREATE_AS_CHILD,"Child","Create the item as a child."])
+            self.combo_create_as.set_active(0)
+            self.combo_create_as.set_sensitive(False)
+            
+        elif self.item.type == openscap.OSCAP.XCCDF_GROUP:
+            self.combo_model.append([self.CREATE_AS_CHILD,"Child","Create the item as a child."])
+            self.combo_model.append([self.CREATE_AS_SIBLING,"Sibling","Create the item as a sibling."])
+            self.combo_create_as.set_active(0)
+            self.item = self.item.to_group()
+        else:
+            self.combo_model.append([self.CREATE_AS_SIBLING,"Sibling","Create the item as a sibling."])
+            self.combo_create_as.set_sensitive(False)
+            self.combo_create_as.set_active(0)
+            self.item = self.item.to_rule()
         self.show()
 
     def __cb_do(self, widget):
-        pass
-    
+        
+        item_to_add = None
+        active = self.combo_create_as.get_active()
+        if active < 0:
+            self.dialogInfo("Set field Create as.")
+            return
+        create_as = self.combo_model[active][self.COMBO_COLUMN_DATA]
+        
+        if self.text_id.get_text() == "":
+            self.dialogInfo("Id Item can't be empty.")
+            return
+
+        if self.text_lang.get_text() == "":
+            self.dialogInfo("Title language can't be empty.")
+            return
+
+        if self.text_title.get_text() == "":
+            self.dialogInfo("Title can't be empty.")
+            return
+        
+        selection = self.view.get_selection()
+        (model ,iter) = selection.get_selected()
+        
+        if self.item != None:
+            
+            if create_as == self.CREATE_AS_CHILD:
+                item_to_add = self.item
+                
+            if create_as == self.CREATE_AS_SIBLING:
+                item_to_add = self.item.get_parent().to_group()
+                if item_to_add == None:
+                    item_to_add = self.core.lib["policy_model"].benchmark
+                    iter = None
+                else:
+                    iter = model.iter_parent(iter)
+        else:
+            item_to_add = self.core.lib["policy_model"].benchmark
+            iter = None
+        
+        type = "Rule: "
+        group = False
+        if self.rb_type_group.get_active():
+            type = "Group: "
+            group = True
+            
+        vys = self.cb(item_to_add, group, [self.text_id.get_text(),"EN", self.text_title.get_text()] )
+        if vys:
+            new_iter = model.append(iter, [self.text_id.get_text(), self.text_title.get_text(), gtk.STOCK_DND, type+self.text_title.get_text(), None, False, False])
+            self.view.expand_to_path(model.get_path(new_iter))
+            selection.select_iter(new_iter)
+            self.window.destroy()
+        else:
+            self.dialogInfo("Id item exist.")
+            return
+            
     def show(self):
         self.window.set_transient_for(self.core.main_window)
         self.window.show()

@@ -1232,6 +1232,29 @@ class DHEditItems:
     
     def __init__(self):
         pass
+
+    def DHEditAddItem(self, item_to_add, group, data):
+
+        ID = 0
+        TITLE_LANG = 1
+        TITLE = 2
+
+        if group:
+            item = openscap.xccdf.group_new()
+            item.set_id(data[ID])
+            vys = item_to_add.add_group(item)
+    
+        else:
+            item = openscap.xccdf.rule_new()
+            item.set_id(data[ID])
+            vys = item_to_add.add_rule(item)
+        if not vys:
+            return vys
+        title = openscap.common.text_new()
+        title.set_lang(data[TITLE_LANG])
+        title.set_text(data[TITLE]) 
+        item.add_title(title)
+        return vys
         
     def DHEditTitle(self, item, model, iter, column, value, delete = False):
 
