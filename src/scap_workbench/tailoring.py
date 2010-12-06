@@ -45,6 +45,7 @@ class ItemList(abstract.List):
     def __init__(self, widget, core, progress=None, filter=None):
         self.core = core
         self.filter = filter
+        self.old_selected = None
         self.data_model = commands.DHItemsTree("gui:tailoring:DHItemsTree", core, progress)
         abstract.List.__init__(self, "gui:tailoring:item_list", core, widget)
         self.get_TreeView().set_enable_tree_lines(True)
@@ -70,9 +71,11 @@ class ItemList(abstract.List):
             self.profile = self.core.selected_profile
             self.get_TreeView().set_model(self.data_model.model)
             self.data_model.fill()
+        if self.old_selected != self.core.selected_item:
             # Select the last one selected if there is one
             self.get_TreeView().get_model().foreach(self.set_selected, (self.core.selected_item, self.get_TreeView()))
             self.core.force_reload_items = False
+            self.old_selected = self.core.selected_item
 
     def __search(self):
         self.search(self.filter.get_search_text(),1)

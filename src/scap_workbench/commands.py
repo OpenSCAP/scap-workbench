@@ -1553,16 +1553,19 @@ class DHEditItems:
         COLUMN_TYPE_TEXT = 3
         COLUMN_OBJECT = 4
     
-        if item:
+        if self.item:
             if not delete:
                 # column == None new data 
                 if column == None:
                     parent = self.item.get_parent()
                     value = openscap.xccdf.value_new(value)
-                    if parent.type !=  openscap.OSCAP.XCCDF_GROUP:
-                        logger.error("Error: Add Value, parent of rule is not group")
-                        return
-                    parent = parent.to_group()
+                    
+                    # if parent si benchmark or rule
+                    if parent.type ==  openscap.OSCAP.XCCDF_GROUP:
+                        parent = parent.to_group()
+                    else:
+                        parent = self.item.get_benchmark()
+                        
                     parent.add_value(value)
                     model.set_value(iter, COLUMN_OBJECT, value)
                 elif column == COLUMN_ID:

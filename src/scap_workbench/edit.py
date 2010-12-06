@@ -224,6 +224,8 @@ class ItemList(abstract.List):
 
     def __init__(self, widget, core, progress=None, filter=None):
         self.core = core
+        self.loaded_new = True
+        self.old_selected = None
         self.filter = filter
         self.data_model = commands.DHItemsTree("gui:edit:DHItemsTree", core, progress, True)
         abstract.List.__init__(self, "gui:edit:item_list", core, widget)
@@ -239,6 +241,7 @@ class ItemList(abstract.List):
         self.add_receiver("gui:btn:edit:filter", "filter_add", self.__filter_add)
         self.add_receiver("gui:btn:edit:filter", "filter_del", self.__filter_del)
         self.add_receiver("gui:edit:DHItemsTree", "filled", self.__filter_refresh)
+        self.add_receiver("gui:btn:main:xccdf","load",self.__loaded_new_xccdf)
 
         selection.connect("changed", self.__cb_item_changed, self.get_TreeView())
         self.add_sender(self.id, "item_changed")
@@ -246,12 +249,21 @@ class ItemList(abstract.List):
         self.init_filters(self.filter, self.data_model.model, self.data_model.new_model())
 
     def __update(self):
-        self.get_TreeView().set_model(self.data_model.model)
-        self.data_model.fill()
-        # Select the last one selected if there is one
-        self.get_TreeView().get_model().foreach(self.set_selected, (self.core.selected_item_edit, self.get_TreeView()))
-        self.core.force_reload_items = False
+        if self.loaded_new == True:
+            self.get_TreeView().set_model(self.data_model.model)
+            self.data_model.fill()
+            self.loaded_new = False
+        
+        # Select the last one selected if there is one         #self.core.selected_item_edi
+        if self.old_selected != self.core.selected_item:
+            self.get_TreeView().get_model().foreach(self.set_selected, (self.core.selected_item, self.get_TreeView()))
+            self.core.force_reload_items = False
+            self.old_selected = self.core.selected_item
 
+            
+    def __loaded_new_xccdf(self):
+        self.loaded_new = True
+        
     def __search(self):
         self.search(self.filter.get_search_text(),1)
         
@@ -278,8 +290,10 @@ class ItemList(abstract.List):
         if selection != None: 
             (model, iter) = selection.get_selected( )
             if iter: 
+                self.core.selected_item = model.get_value(iter, 0)
                 self.core.selected_item_edit = model.get_value(iter, 0)
             else:
+                self.core.selected_item = None
                 self.core.selected_item_edit = None
         self.emit("update")
         treeView.columns_autosize()
@@ -1032,9 +1046,11 @@ class EditValues(commands.DHEditItems, Edit_abs, EventObject):
             self.item = item.to_rule() 
             for check in self.item.checks:
                 for export in check.exports:
-                    value = self.core.lib["policy_model"].benchmark.item(export.value)
+                    value = item.get_benchmark().item(export.value)
+                    #value = self.core.lib["policy_model"].benchmark.item(export.value)
                     value = value.to_value()
-                    lang = self.core.lib["policy_model"].benchmark.lang
+                    #lang = self.core.lib["policy_model"].benchmark.lang
+                    lang = self.core.selected_lang
                     title_lang = ""
                     
                     for title in value.title: 
