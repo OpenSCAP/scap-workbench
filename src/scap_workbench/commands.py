@@ -1256,7 +1256,7 @@ class DHEditItems:
         item.add_title(title)
         return vys
         
-    def DHEditTitle(self, item, model, iter, column, value, delete = False):
+    def DHEditTitle(self, item, model, iter, column, value, delete=False):
 
         COLUMN_LAN = 0
         COLUMN_TEXT = 1
@@ -1289,7 +1289,7 @@ class DHEditItems:
         else:
             logger.error("Error: Not read item.")
             
-    def DHEditDescription(self, item, model, iter, column, value, delete = False):
+    def DHEditDescription(self, item, model, iter, column, value, delete=False):
 
         COLUMN_LAN = 0
         COLUMN_TEXT = 1
@@ -1302,7 +1302,7 @@ class DHEditItems:
                 object = openscap.common.text_new()
                 item.add_description(object)
                 model.set_value(iter, COLUMN_OBJECT, object)
-            elif  not delete:
+            elif not delete:
                 if column == COLUMN_LAN:
                     object.set_lang(value)
                 elif column == COLUMN_TEXT:
@@ -1315,7 +1315,7 @@ class DHEditItems:
         else:
             logger.error("Error: Not read item.")
             
-    def DHEditWarning(self, item, model, iter, column, value, delete = False):
+    def DHEditWarning(self, item, model, iter, column, value, delete=False):
 
         COLUMN_CATEGORY_TEXT= 0
         COLUMN_CATEGORY_ITER = 1
@@ -1349,7 +1349,7 @@ class DHEditItems:
         else:
             logger.error("Error: Not read item.")
             
-    def DHEditStatus(self, item, model, iter, column, value, delete = False):
+    def DHEditStatus(self, item, model, iter, column, value, delete=False):
 
         COLUMN_STATUS_TEXT= 0
         COLUMN_STATUS_ITER = 1
@@ -1376,7 +1376,7 @@ class DHEditItems:
         else:
             logger.error("Error: Not read item.")
             
-    def DHEditQuestion(self, item, model, iter, column, value, delete = False):
+    def DHEditQuestion(self, item, model, iter, column, value, delete=False):
 
         COLUMN_LAN = 0
         COLUMN_TEXT = 1
@@ -1402,7 +1402,7 @@ class DHEditItems:
         else:
             logger.error("Error: Not read item.")
                 
-    def DHEditRationale(self, item, model, iter, column, value, delete = False):
+    def DHEditRationale(self, item, model, iter, column, value, delete=False):
 
         COLUMN_LAN = 0
         COLUMN_TEXT = 1
@@ -1428,7 +1428,7 @@ class DHEditItems:
         else:
             logger.error("Error: Not read item.")
             
-    def DHEditPlatform(self, item, model, iter, column, value, delete = False):
+    def DHEditPlatform(self, item, model, iter, column, value, delete=False):
 
         COLUMN_TEXT = 0
         COLUMN_OBJECT = 1
@@ -1545,7 +1545,7 @@ class DHEditItems:
         else:
             logger.error("Error: Not read rule.")
 
-    def DHEditValue(self, item, model, iter, column, value, delete = False):
+    def DHEditValue(self, item, model, iter, column, value, delete=False):
 
         COLUMN_ID = 0
         COLUMN_TITLE = 1
@@ -1586,7 +1586,7 @@ class DHEditItems:
         else:
             logger.error("Error: Not read item.")
             
-    def DHEditValueTitle(self, item, model, iter, column, value, delete = False):
+    def DHEditValueTitle(self, item, model, iter, column, value, delete=False):
 
         COLUMN_LAN = 0
         COLUMN_TEXT = 1
@@ -1612,7 +1612,7 @@ class DHEditItems:
         else:
             logger.error("Error: Not read item.")
             
-    def DHEditValueDescription(self, item, model, iter, column, value, delete = False):
+    def DHEditValueDescription(self, item, model, iter, column, value, delete=False):
 
         COLUMN_LAN = 0
         COLUMN_TEXT = 1
@@ -1638,7 +1638,7 @@ class DHEditItems:
         else:
             logger.error("Error: Not read item.")
             
-    def DHEditValueQuestion(self, item, model, iter, column, value, delete = False):
+    def DHEditValueQuestion(self, item, model, iter, column, value, delete=False):
 
         COLUMN_LAN = 0
         COLUMN_TEXT = 1
@@ -1664,7 +1664,7 @@ class DHEditItems:
         else:
             logger.error("Error: Not read item.")
             
-    def DHEditValueValue(self, item, model, iter, column, value, delete = False):
+    def DHEditValueValue(self, item, model, iter, column, value, delete=False):
 
         COLUMN_SELECTOR = 0
         COLUMN_VALUE = 1
@@ -1709,10 +1709,10 @@ class DHEditItems:
             except Exception, e:
                 logger.error("Add requires: %s" % (e,))
         else:
-            pass
+            logger.debug("Add requires: Unsupported not-add function")
         
     # DH fixtext ===============================
-    def DHEditFixtextText(self, item, model, iter, column, value, delete = False):
+    def DHEditFixtextText(self, item, model, iter, column, value, delete=False):
         
         COLUMN_TEXT = 0
         COLUMN_OBJECT = 1
@@ -1786,7 +1786,7 @@ class DHEditItems:
             logger.error("Error: Not fixtex.")
     
     # DH fix ======================================================
-    def DHEditFix(self, item, model, iter, column, value, delete = False):
+    def DHEditFix(self, item, model, iter, column, value, delete=False):
         
         COLUMN_ID = 0
         COLUMN_TEXT = 1

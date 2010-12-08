@@ -645,7 +645,6 @@ class EditConflicts(commands.DHEditItems,Edit_abs):
                 self.model.append([data])
     
     def __cb_add(self, widget):
-        
         EditSelectIdDialogWindow(self.item, self.core, self.model, self.model_item, self.DHEditConflicts)
     
     
@@ -670,7 +669,7 @@ class EditRequires(commands.DHEditItems,Edit_abs):
         btn_add.connect("clicked", self.__cb_add)
         btn_del.connect("clicked", self.__cb_del_row)
 
-        self.addColumn("ID Item",self.COLUMN_ID)
+        self.addColumn("ID Item", self.COLUMN_ID)
 
     def fill(self, item):
         self.item = item
@@ -681,7 +680,6 @@ class EditRequires(commands.DHEditItems,Edit_abs):
     
     def __cb_add(self, widget):
         EditSelectIdDialogWindow(self.item, self.core, self.model, self.model_item, self.DHEditRequires)
-    
     
     def __cb_del_row(self, widget):
         pass
@@ -781,7 +779,7 @@ class EditDescription(commands.DHEditItems,Edit_abs):
         self.model.clear()
         if item:
             for data in item.description:
-                self.model.append([data.lang, data.text, data])
+                self.model.append([data.lang, re.sub("[\t ]+" , " ", data.text).strip(), data])
 
 
 class EditWarning(commands.DHEditItems,Edit_abs):
@@ -1492,7 +1490,7 @@ class EditFixtext(commands.DHEditItems, Edit_abs, EventObject):
             rule = item.to_rule()
             if rule.fixtexts:
                 for object in rule.fixtexts:
-                    self.model.append([object.text.text, object])
+                    self.model.append([re.sub("[\t ]+" , " ", object.text.text).strip(), object])
         else:
             self.item = None
     
@@ -1942,7 +1940,6 @@ class EditDialogWindow(EventObject):
             if new == False:
                 self.cBox.set_active_iter(self.model.get_value(self.iter,values["cBox"]["column"]))
 
-        #self.window.show()
         self.show()
         
     def __cb_do(self, widget):
@@ -2229,6 +2226,7 @@ class EditSelectIdDialogWindow():
             menu.popup(None,None,None,event.button,event.time)
             
     def show(self):
+        print self.core.main_window
         self.window.set_transient_for(self.core.main_window)
         self.window.show()
 
