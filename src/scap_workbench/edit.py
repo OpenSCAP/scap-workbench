@@ -44,12 +44,6 @@ import filter
 import render
 
 logger = logging.getLogger("scap-workbench")
-
-try:
-    import openscap_api as openscap
-except Exception as ex:
-    logger.error("OpenScap library initialization failed: %s", ex)
-    openscap=None
     
 from htmltextview import HtmlTextView
 from threads import thread as threadSave
@@ -82,23 +76,23 @@ class Edit_abs:
     combo_model_strategy.append([openscap.OSCAP.XCCDF_STRATEGY_COMBINATION, "COMBINATION", "Combo of two or more of the above."])
     
     combo_model_status = gtk.ListStore(int, str, str)
-    combo_model_status.append([0, "NOT SPECIFIED", "Status was not specified by benchmark."])
-    combo_model_status.append([1, "ACCEPTED", "Accepted."])
-    combo_model_status.append([2, "DEPRECATED", "Deprecated."])
-    combo_model_status.append([3, "DRAFT ", "Draft item."])
-    combo_model_status.append([4, "INCOMPLETE", "The item is not complete. "])
-    combo_model_status.append([5, "INTERIM", "Interim."])
+    combo_model_status.append([openscap.OSCAP.XCCDF_STATUS_NOT_SPECIFIED, "NOT SPECIFIED", "Status was not specified by benchmark."])
+    combo_model_status.append([openscap.OSCAP.XCCDF_STATUS_ACCEPTED, "ACCEPTED", "Accepted."])
+    combo_model_status.append([openscap.OSCAP.XCCDF_STATUS_DEPRECATED, "DEPRECATED", "Deprecated."])
+    combo_model_status.append([openscap.OSCAP.XCCDF_STATUS_DRAFT, "DRAFT ", "Draft item."])
+    combo_model_status.append([openscap.OSCAP.XCCDF_STATUS_INCOMPLETE, "INCOMPLETE", "The item is not complete. "])
+    combo_model_status.append([openscap.OSCAP.XCCDF_STATUS_INTERIM, "INTERIM", "Interim."])
     
     combo_model_warning = gtk.ListStore(int, str, str)
-    combo_model_warning.append([1, "GENERAL", "  General-purpose warning."])
-    combo_model_warning.append([2, "FUNCTIONALITY", "Warning about possible impacts to functionality."])
-    combo_model_warning.append([3, "PERFORMANCE", "  Warning about changes to target system performance."])
-    combo_model_warning.append([4, "HARDWARE", "Warning about hardware restrictions or possible impacts to hardware."])
-    combo_model_warning.append([5, "LEGAL", "Warning about legal implications."])
-    combo_model_warning.append([6, "REGULATORY", "Warning about regulatory obligations."])
-    combo_model_warning.append([7, "MANAGEMENT", "Warning about impacts to the mgmt or administration of the target system."])
-    combo_model_warning.append([8, "AUDIT", "Warning about impacts to audit or logging."])
-    combo_model_warning.append([9, "DEPENDENCY", "Warning about dependencies between this Rule and other parts of the target system."])
+    combo_model_warning.append([openscap.OSCAP.XCCDF_WARNING_GENERAL, "GENERAL", "  General-purpose warning."])
+    combo_model_warning.append([openscap.OSCAP.XCCDF_WARNING_FUNCTIONALITY, "FUNCTIONALITY", "Warning about possible impacts to functionality."])
+    combo_model_warning.append([openscap.OSCAP.XCCDF_WARNING_PERFORMANCE, "PERFORMANCE", "  Warning about changes to target system performance."])
+    combo_model_warning.append([openscap.OSCAP.XCCDF_WARNING_HARDWARE, "HARDWARE", "Warning about hardware restrictions or possible impacts to hardware."])
+    combo_model_warning.append([openscap.OSCAP.XCCDF_WARNING_LEGAL, "LEGAL", "Warning about legal implications."])
+    combo_model_warning.append([openscap.OSCAP.XCCDF_WARNING_REGULATORY, "REGULATORY", "Warning about regulatory obligations."])
+    combo_model_warning.append([openscap.OSCAP.XCCDF_WARNING_MANAGEMENT, "MANAGEMENT", "Warning about impacts to the mgmt or administration of the target system."])
+    combo_model_warning.append([openscap.OSCAP.XCCDF_WARNING_AUDIT, "AUDIT", "Warning about impacts to audit or logging."])
+    combo_model_warning.append([openscap.OSCAP.XCCDF_WARNING_DEPENDENCY, "DEPENDENCY", "Warning about dependencies between this Rule and other parts of the target system."])
 
     combo_model_role = gtk.ListStore(int, str, str)
     combo_model_role.append([openscap.OSCAP.XCCDF_ROLE_FULL, "FULL", "Check the rule and let the result contriburte to the score and appear in reports.."])
@@ -229,7 +223,7 @@ class ItemList(abstract.List):
         self.loaded_new = True
         self.old_selected = None
         self.filter = filter
-        self.map_filter = None
+        self.map_filter = {}
         
         self.data_model = commands.DHItemsTree("gui:edit:DHItemsTree", core, progress, True)
         abstract.List.__init__(self, "gui:edit:item_list", core, widget)
@@ -245,7 +239,7 @@ class ItemList(abstract.List):
         self.add_receiver("gui:btn:edit:filter", "filter_add", self.__filter_add)
         self.add_receiver("gui:btn:edit:filter", "filter_del", self.__filter_del)
         self.add_receiver("gui:edit:DHItemsTree", "filled", self.__filter_refresh)
-        self.add_receiver("gui:btn:main:xccdf","load",self.__loaded_new_xccdf)
+        self.add_receiver("gui:btn:main:xccdf", "load", self.__loaded_new_xccdf)
 
         selection.connect("changed", self.__cb_item_changed, self.get_TreeView())
         self.add_sender(self.id, "item_changed")
@@ -321,6 +315,7 @@ class MenuButtonEdit(abstract.MenuButton, commands.DHEditItems, Edit_abs):
         self.filter = filter.ItemFilter(self.core, self.builder,"edit:box_filter", "gui:btn:edit:filter")
         self.tw_items = self.builder.get_object("edit:tw_items")
         self.list_item = ItemList(self.tw_items, self.core, self.progress, self.filter)
+        self.ref_model = self.list_item.get_TreeView().get_model() # original model (not filtered)
         
         self.filter.expander.cb_changed()
 
@@ -449,7 +444,7 @@ class MenuButtonEdit(abstract.MenuButton, commands.DHEditItems, Edit_abs):
             menu.popup(None,None,None,event.button,event.time)
         
     def __cb_item_add(self, widget):
-        EditAddDialogWindow(self.core, self.item, self.tw_items, self.DHEditAddItem )
+        EditAddDialogWindow(self.core, self.item, self.list_item, self.ref_model,self.DHEditAddItem )
     
     def set_sensitive(self, sensitive):
         self.nBook.set_sensitive(sensitive)
@@ -1750,12 +1745,14 @@ class EditAddDialogWindow(EventObject, Edit_abs):
     COMBO_COLUMN_VIEW = 1
     COMBO_COLUMN_INFO = 2
     
-    def __init__(self,core, item, view, cb):
+    def __init__(self,core, item, list_item, ref_model, cb):
         
         self.core = core
         self.item = item
         self.cb = cb
-        self.view = view
+        self.view = list_item.get_TreeView()
+        self.ref_model = ref_model#list_item.get_TreeView().get_model()
+        self.map_filterInfo = list_item.map_filter
         
         builder = gtk.Builder()
         builder.add_from_file("/usr/share/scap-workbench/edit_item.glade")
@@ -1789,17 +1786,27 @@ class EditAddDialogWindow(EventObject, Edit_abs):
         self.combo_create_as.add_attribute(cell, 'text', self.COMBO_COLUMN_VIEW)
         self.combo_create_as.set_active(self.CREATE_AS_CHILD)
         
-
-        if self.item == None:
+        struct = self.map_filterInfo[1]
+        # if is active filter_model and truct is list, can be added only child
+        if not struct:
             self.combo_model.append([self.CREATE_AS_CHILD,"Child","Create the item as a child."])
             self.combo_create_as.set_active(0)
             self.combo_create_as.set_sensitive(False)
-            
+            self.item = self.item.to_group()
+        
+        # not selected item add to root -> only child
+        elif self.item == None:
+            self.combo_model.append([self.CREATE_AS_CHILD,"Child","Create the item as a child."])
+            self.combo_create_as.set_active(0)
+            self.combo_create_as.set_sensitive(False)
+        
         elif self.item.type == openscap.OSCAP.XCCDF_GROUP:
             self.combo_model.append([self.CREATE_AS_CHILD,"Child","Create the item as a child."])
             self.combo_model.append([self.CREATE_AS_SIBLING,"Sibling","Create the item as a sibling."])
             self.combo_create_as.set_active(0)
             self.item = self.item.to_group()
+        
+        # ir rule cen by add only as sibling
         else:
             self.combo_model.append([self.CREATE_AS_SIBLING,"Sibling","Create the item as a sibling."])
             self.combo_create_as.set_sensitive(False)
@@ -1849,15 +1856,39 @@ class EditAddDialogWindow(EventObject, Edit_abs):
         
         type = "Rule: "
         group = False
+        icon = gtk.STOCK_DND
         if self.rb_type_group.get_active():
             type = "Group: "
             group = True
+            icon = gtk.STOCK_DND_MULTIPLE
             
         vys = self.cb(item_to_add, group, [self.text_id.get_text(),"EN", self.text_title.get_text()] )
         if vys:
-            new_iter = model.append(iter, [self.text_id.get_text(), self.text_title.get_text(), gtk.STOCK_DND, type+self.text_title.get_text(), None, False, False])
-            self.view.expand_to_path(model.get_path(new_iter))
-            selection.select_iter(new_iter)
+            iter_new_ref = None
+            
+            # if actual model is filter model - must change ref model too
+            if self.ref_model != model:
+                
+                map_filter = self.map_filterInfo[0]
+                #if item none add to root or iter == None
+                if self.item != None and iter != None:
+                    iter_filter = map_filter[model.get_path(iter)]
+                    iter_ref = self.ref_model.get_iter(iter_filter)
+                else:
+                    iter_ref = None
+
+                iter_new_ref = self.ref_model.append(iter_ref,[self.text_id.get_text(), self.text_title.get_text(), 
+                                            icon, type+self.text_title.get_text(), None, False, False])
+
+            iter_new = model.append(iter, [self.text_id.get_text(), self.text_title.get_text(), icon, 
+                                            type+self.text_title.get_text(), None, False, False])
+            
+            #If actual model si filter model add information to map_filter 
+            if iter_new_ref:
+                map_filter.update({model.get_path(iter_new):self.ref_model.get_path(iter_new_ref)})
+                
+            self.view.expand_to_path(model.get_path(iter_new))
+            selection.select_iter(iter_new)
             self.window.destroy()
         else:
             self.dialogInfo("Id item exist.")
