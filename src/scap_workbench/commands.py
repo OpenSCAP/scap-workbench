@@ -1692,7 +1692,25 @@ class DHEditItems:
                 model.remove(iter)
         else:
             logger.error("Error: Not read item.")
-    
+
+    def DHEditConflicts(self, item, id, add):
+        if add:
+            try:
+                item.conflicts.append(id)
+            except Exception, e:
+                logger.error("Add conflicts: %s" % (e,))
+        else:
+            pass
+        
+    def DHEditRequires(self, item, id, add):
+        if add:
+            try:
+                item.requires.append(id)
+            except Exception, e:
+                logger.error("Add requires: %s" % (e,))
+        else:
+            pass
+        
     # DH fixtext ===============================
     def DHEditFixtextText(self, item, model, iter, column, value, delete = False):
         

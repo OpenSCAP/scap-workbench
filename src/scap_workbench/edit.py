@@ -26,6 +26,7 @@ import gobject
 import pango
 import datetime
 import time
+import re
 
 import abstract
 import logging
@@ -201,23 +202,24 @@ class Edit_abs:
         Function concert sting to timestamp (gregorina). 
         If set text is incorrect format return False and show message.
         """
-        date = text.split("-")
-        if len(date) != 3:
-            self.dialogInfo("The date is in incorrect format. \n Correct format is YYYY-MM-DD.")
-            return False
-        try :
-            d = datetime.date(int(date[0]), int(date[1]), int(date[2]))
-        except Exception as ex:
-            error = "Date is incorrect format:\n" + str(ex)
-            self.dialogInfo(error)
-            return False
-        try:
-            timestamp = time.mktime(d.timetuple()) 
-        except Exception as ex:
-            error = "Date is out of range. "
-            self.dialogInfo(error)
-
-        return timestamp
+        if text != "":
+            date = text.split("-")
+            if len(date) != 3:
+                self.dialogInfo("The date is in incorrect format. \n Correct format is YYYY-MM-DD.")
+                return False
+            try :
+                d = datetime.date(int(date[0]), int(date[1]), int(date[2]))
+            except Exception as ex:
+                error = "Date is incorrect format:\n" + str(ex)
+                self.dialogInfo(error)
+                return False
+            try:
+                timestamp = time.mktime(d.timetuple()) 
+            except Exception as ex:
+                error = "Date is out of range. "
+                self.dialogInfo(error)
+            return timestamp
+        return False
             
             
 class ItemList(abstract.List):
@@ -227,6 +229,8 @@ class ItemList(abstract.List):
         self.loaded_new = True
         self.old_selected = None
         self.filter = filter
+        self.map_filter = None
+        
         self.data_model = commands.DHItemsTree("gui:edit:DHItemsTree", core, progress, True)
         abstract.List.__init__(self, "gui:edit:item_list", core, widget)
         self.get_TreeView().set_enable_tree_lines(True)
@@ -247,7 +251,7 @@ class ItemList(abstract.List):
         self.add_sender(self.id, "item_changed")
 
         self.init_filters(self.filter, self.data_model.model, self.data_model.new_model())
-
+        
     def __update(self):
         if self.loaded_new == True:
             self.get_TreeView().set_model(self.data_model.model)
@@ -268,15 +272,15 @@ class ItemList(abstract.List):
         self.search(self.filter.get_search_text(),1)
         
     def __filter_add(self):
-        self.data_model.map_filter = self.filter_add(self.filter.filters)
+        self.map_filter = self.filter_add(self.filter.filters)
         self.get_TreeView().get_model().foreach(self.set_selected, (self.core.selected_item, self.get_TreeView()))
 
     def __filter_del(self):
-        self.data_model.map_filter = self.filter_del(self.filter.filters)
+        self.map_filter = self.filter_del(self.filter.filters)
         self.get_TreeView().get_model().foreach(self.set_selected, (self.core.selected_item, self.get_TreeView()))
 
     def __filter_refresh(self):
-        self.data_model.map_filter = self.filter_del(self.filter.filters)
+        self.map_filter = self.filter_del(self.filter.filters)
         self.get_TreeView().get_model().foreach(self.set_selected, (self.core.selected_item, self.get_TreeView()))
 
 
@@ -316,9 +320,13 @@ class MenuButtonEdit(abstract.MenuButton, commands.DHEditItems, Edit_abs):
         self.progress.hide()
         self.filter = filter.ItemFilter(self.core, self.builder,"edit:box_filter", "gui:btn:edit:filter")
         self.tw_items = self.builder.get_object("edit:tw_items")
-        self.rules_list = ItemList(self.tw_items, self.core, self.progress, self.filter)
+        self.list_item = ItemList(self.tw_items, self.core, self.progress, self.filter)
+        
         self.filter.expander.cb_changed()
 
+        menu = self.create_popupMenu_tw()
+        self.tw_items.connect ("button_press_event",self.cb_popupMenu_twItem, menu)
+        
         # set signals
         self.add_sender(self.id, "update")
         
@@ -329,13 +337,13 @@ class MenuButtonEdit(abstract.MenuButton, commands.DHEditItems, Edit_abs):
         self.set_sensitive(False)
         self.btn_revert = self.builder.get_object("edit:btn_revert")
         self.btn_save = self.builder.get_object("edit:btn_save")
-        self.btn_item_remove = self.builder.get_object("edit:item:btn_remove")
-        self.btn_item_add = self.builder.get_object("edit:item:btn_add")
+        #self.btn_item_remove = self.builder.get_object("edit:item:btn_remove")
+        #self.btn_item_add = self.builder.get_object("edit:item:btn_add")
         
         self.btn_revert.connect("clicked", self.__cb_revert)
         self.btn_save.connect("clicked", self.__cb_save)
-        self.btn_item_remove.connect("clicked", self.__cb_item_remove)
-        self.btn_item_add.connect("clicked", self.__cb_item_add)
+        #self.btn_item_remove.connect("clicked", self.__cb_item_remove)
+        #self.btn_item_add.connect("clicked", self.__cb_item_add)
         
         #general
         self.item_id = self.builder.get_object("edit:general:lbl_id")
@@ -367,6 +375,8 @@ class MenuButtonEdit(abstract.MenuButton, commands.DHEditItems, Edit_abs):
         self.edit_status = EditStatus(self.core, self.builder)
         self.edit_question = EditQuestion(self.core, self.builder)
         self.edit_rationale = EditRationale(self.core, self.builder)
+        self.edit_conflicts = EditConflicts(self.core, self.builder,self.list_item.get_TreeView().get_model())
+        self.edit_requires = EditRequires(self.core, self.builder,self.list_item.get_TreeView().get_model())
 
         self.lbl_extends = self.builder.get_object("edit:dependencies:lbl_extends")
         
@@ -421,6 +431,23 @@ class MenuButtonEdit(abstract.MenuButton, commands.DHEditItems, Edit_abs):
     def __cb_item_remove(self, widget):
         pass
 
+    def create_popupMenu_tw(self):
+        menu = gtk.Menu()
+        menu_item = gtk.MenuItem("Add item")
+        menu_item.show()
+        menu.append(menu_item)
+        menu_item.connect("activate", self.__cb_item_add)
+        menu_item = gtk.MenuItem("Remove item")
+        menu_item.show()
+        menu.append(menu_item)
+        menu_item.connect("activate", self.__cb_item_remove)
+        return menu
+
+    def cb_popupMenu_twItem (self, treeview, event, menu):
+        if event.button == 3:
+            time = event.time
+            menu.popup(None,None,None,event.button,event.time)
+        
     def __cb_item_add(self, widget):
         EditAddDialogWindow(self.core, self.item, self.tw_items, self.DHEditAddItem )
     
@@ -459,7 +486,8 @@ class MenuButtonEdit(abstract.MenuButton, commands.DHEditItems, Edit_abs):
             self.edit_question.fill(details["item"])
             self.edit_rationale.fill(details["item"])
             self.edit_platform.fill(details["item"])
-
+            self.edit_conflicts.fill(details["item"])
+            self.edit_requires.fill(details["item"])
 
             if details["version"] != None:
                 self.entry_version.set_text(details["version"])
@@ -566,6 +594,8 @@ class MenuButtonEdit(abstract.MenuButton, commands.DHEditItems, Edit_abs):
             self.edit_status.fill(None)
             self.edit_question.fill(None)
             self.edit_rationale.fill(None)
+            self.edit_conflicts.fill(None)
+            self.edit_requires.fill(None)
             self.edit_platform.fill(None)
             self.edit_fix.fill(None)
             self.edit_fixtext.fill(None)
@@ -587,6 +617,75 @@ class MenuButtonEdit(abstract.MenuButton, commands.DHEditItems, Edit_abs):
         self.cBox_severity.handler_unblock_by_func(self.cb_cBox_severity)
         self.cBox_role.handler_unblock_by_func(self.cb_cBox_role)
             
+class EditConflicts(commands.DHEditItems,Edit_abs):
+    
+    COLUMN_ID = 0
+    
+    def __init__(self, core, builder, model_item):
+        self.model_item = model_item
+        lv = builder.get_object("edit:dependencies:lv_conflict")
+        model = gtk.ListStore(str)
+        lv.set_model(model)
+        
+        Edit_abs.__init__(self, core, lv, None)
+        btn_add = builder.get_object("edit:dependencies:btn_conflict_add")
+        btn_del = builder.get_object("edit:dependencies:btn_conflict_del")
+        
+        # set callBack to btn
+        btn_add.connect("clicked", self.__cb_add)
+        btn_del.connect("clicked", self.__cb_del_row)
+
+        self.addColumn("ID Item",self.COLUMN_ID)
+
+    def fill(self, item):
+        self.item = item
+        self.model.clear()
+        if item:
+            for data in item.conflicts:
+                self.model.append([data])
+    
+    def __cb_add(self, widget):
+        
+        EditSelectIdDialogWindow(self.item, self.core, self.model, self.model_item, self.DHEditConflicts)
+    
+    
+    def __cb_del_row(self, widget):
+        pass
+
+class EditRequires(commands.DHEditItems,Edit_abs):
+    
+    COLUMN_ID = 0
+    
+    def __init__(self, core, builder, model_item):
+        self.model_item = model_item
+        lv = builder.get_object("edit:dependencies:lv_requires")
+        model = gtk.ListStore(str)
+        lv.set_model(model)
+
+        Edit_abs.__init__(self, core, lv, None)
+        btn_add = builder.get_object("edit:dependencies:btn_requires_add")
+        btn_del = builder.get_object("edit:dependencies:btn_requires_del")
+        
+        # set callBack to btn
+        btn_add.connect("clicked", self.__cb_add)
+        btn_del.connect("clicked", self.__cb_del_row)
+
+        self.addColumn("ID Item",self.COLUMN_ID)
+
+    def fill(self, item):
+        self.item = item
+        self.model.clear()
+        if item:
+            for data in item.requires:
+                self.model.append([data])
+    
+    def __cb_add(self, widget):
+        EditSelectIdDialogWindow(self.item, self.core, self.model, self.model_item, self.DHEditRequires)
+    
+    
+    def __cb_del_row(self, widget):
+        pass
+    
 class EditTitle(commands.DHEditItems,Edit_abs):
 
     COLUMN_LAN = 0
@@ -954,7 +1053,7 @@ class EditPlatform(commands.DHEditItems,Edit_abs):
         btn_edit.connect("clicked", self.cb_edit_row)
         btn_del.connect("clicked", self.cb_del_row)
 
-        self.addColumn("Question",self.COLUMN_TEXT)
+        self.addColumn("Platform CPE",self.COLUMN_TEXT)
 
     def fill(self, item):
         self.item = item
@@ -1363,7 +1462,7 @@ class EditFixtext(commands.DHEditItems, Edit_abs, EventObject):
         values = {
                     "name_dialog":  "Fixtext",
                     "view":         lv,
-                    "cb":           self.DHEditFixtextText,            
+                    "cb":           self.DHEditFixtextText,
                     "textView":     {"name":    "Value",
                                     "column":   self.COLUMN_TEXT,
                                     "empty":    False, 
@@ -2003,9 +2102,216 @@ class EditDialogWindow(EventObject):
             return False
         return True
 
+class EditSelectIdDialogWindow():
+    
+    COLUMN_ID = 0
+    COLUMN_TITLE = 1
+    COLUMN_SELECTED = 2
+    
+    def __init__(self, item, core, model_conflict, model_item, cb):
+        self.core = core
+        self.item = item
+        self.cb = cb
+        self.model_conflict = model_conflict
+        self.model_item = model_item
+        
+        builder = gtk.Builder()
+        builder.add_from_file("/usr/share/scap-workbench/edit_item.glade")
 
+        self.window = builder.get_object("dialog:add_id")
+        self.window.set_keep_above(True)
+        self.window.connect("delete-event", self.__delete_event)
+        self.window.resize(800, 500)
+        
+        btn_ok = builder.get_object("add_id:btn_ok")
+        btn_ok.connect("clicked", self.__cb_do)
+        btn_cancel = builder.get_object("add_id:btn_cancel")
+        btn_cancel.connect("clicked", self.__delete_event)
+
+        self.btn_search = builder.get_object("add_id:btn_search")
+        self.btn_search.connect("clicked",self.__cb_search)
+        self.btn_search_reset = builder.get_object("add_id:btn_search_reset")
+        self.btn_search_reset.connect("clicked",self.__cb_search_reset)
+        
+        self.text_search_id = builder.get_object("add_id:text_search_id")
+        self.text_search_title = builder.get_object("add_id:text_search_title")
+        
+        #treeView for search item for select to add
+        self.model_search = gtk.TreeStore(str, str, bool)
+        self.tw_search = builder.get_object("add_id:tw_search")
+        
+        cell = gtk.CellRendererText()
+        column = gtk.TreeViewColumn("ID Item", cell, text=self.COLUMN_ID)
+        column.set_resizable(True)
+        self.tw_search.append_column(column)
+
+        cell = gtk.CellRendererText()
+        column = gtk.TreeViewColumn("Title", cell, text=self.COLUMN_TITLE)
+        column.set_expand(True)
+        column.set_resizable(True)
+        self.tw_search.append_column(column)
+
+        cell = gtk.CellRendererToggle()
+        cell.set_property('activatable', True)
+        cell.connect( 'toggled', self.__cb_toggled )
+        column = gtk.TreeViewColumn("To add", cell )
+        column.add_attribute( cell, "active", self.COLUMN_SELECTED)
+        self.tw_search.append_column(column)
+        
+        self.tw_search.set_model(self.model_search)
+        
+        #treeView for item, which will be add
+        self.model_to_add = gtk.ListStore(str, str)
+        self.tw_add = builder.get_object("add_id:tw_add")
+        
+        cell = gtk.CellRendererText()
+        column = gtk.TreeViewColumn("ID Item", cell, text=self.COLUMN_ID)
+        column.set_resizable(True)
+        self.tw_add.append_column(column)
+
+        cell = gtk.CellRendererText()
+        column = gtk.TreeViewColumn("Title", cell, text=self.COLUMN_TITLE)
+        column.set_expand(True)
+        column.set_resizable(True)
+        self.tw_add.append_column(column)
+
+        self.tw_add.set_model(self.model_to_add)
+        
+        menu = gtk.Menu()
+        menu_item = gtk.MenuItem("Remove")
+        menu_item.show()
+        menu.append(menu_item)
+        menu_item.connect("activate", self.__cb_del_row)
+        self.tw_add.connect ("button_press_event",self.cb_popupMenu_to_add, menu)
+        self.tw_add.connect("key-press-event", self.__cb_del_row1,)
+        
+        self.model_search.clear()
+        self.copy_model(model_item, model_item.get_iter_first(), self.model_search, None)
+        self.show()
+
+    def __cb_do(self, widget):
+        
+        iter_add =  self.model_to_add.get_iter_first()
+        while iter_add:
+            #add row, which not added before
+            exist = False
+            iter = self.model_conflict.get_iter_first()
+            id_add = self.model_to_add.get_value(iter_add,self.COLUMN_ID)
+            while iter:
+                if id_add == self.model_conflict.get_value(iter,self.COLUMN_ID):
+                    exist = True
+                iter = self.model_conflict.iter_next(iter)
+            if not exist:
+                self.cb(self.item, id_add, True)
+                self.model_conflict.append([id_add])
+            iter_add = self.model_to_add.iter_next(iter_add)
+        self.window.destroy()
             
             
+    def __cb_del_row1(self, widget, event):
+        keyname = gtk.gdk.keyval_name(event.keyval)
+        if keyname == "Delete":
+            selection = self.tw_add.get_selection( )
+            if selection != None: 
+                (model, iter) = selection.get_selected( )
+                if  iter != None:
+                    model.remove(iter)
+
+                        
+    def __cb_del_row(self, widget):
+        selection = self.tw_add.get_selection()
+        (model, iter) = selection.get_selected()
+        model.remove(iter)
+    
+    def cb_popupMenu_to_add (self, treeview, event, menu):
+        if event.button == 3:
+            time = event.time
+            menu.popup(None,None,None,event.button,event.time)
+            
+    def show(self):
+        self.window.set_transient_for(self.core.main_window)
+        self.window.show()
+
+    def __delete_event(self, widget, event=None):
+        self.window.destroy()
+            
+    def __cb_toggled(self, cell, path ):
+        
+        self.model_search[path][self.COLUMN_SELECTED] = not self.model_search[path][self.COLUMN_SELECTED]
+        id_item = self.model_search[path][self.COLUMN_ID]
+        if not self.model_search[path][self.COLUMN_SELECTED]:
+            # remve from model to add
+            iter = self.model_to_add.get_iter_first()
+            while iter:
+                if self.model_to_add.get_value(iter,self.COLUMN_ID) == id_item:
+                    self.model_to_add.remove(iter)
+                    break
+                iter = self.model_to_add.iter_next(iter)
+        else:
+            # move from serch model to modet for add, if not there
+            iter = self.model_to_add.get_iter_first()
+            while iter:
+                if self.model_to_add.get_value(iter,self.COLUMN_ID) == id_item:
+                    return
+                iter = self.model_to_add.iter_next(iter)
+            self.model_to_add.append([id_item,self.model_search[path][self.COLUMN_TITLE]])
+        # change state check box
+        
+        
+    def copy_model(self, model_item, iter, model_search, iter_parent):
+        """
+        copy_model to search model
+        """
+        while iter:
+            row = []
+            row.append(model_item.get_value(iter,0))
+            row.append(model_item.get_value(iter,3))
+            row.append(False)
+            iter_self = model_search.append(iter_parent, row)
+            self.copy_model(model_item, model_item.iter_children(iter), model_search, iter_self)
+            iter = model_item.iter_next(iter)
+        return
+    
+    def __cb_search(self, widget):
+        self.model_search.clear()
+        self.search(self.model_item, self.model_item.get_iter_first(), self.model_search, 
+                                self.text_search_id.get_text(), self.text_search_title.get_text())
+
+    def __cb_search_reset(self, widget):
+        self.model_search.clear()
+        self.copy_model(self.model_item, self.model_item.get_iter_first(), self.model_search, None)
+                                
+    def search(self, model_item, iter, model_search, id, title):
+        """ 
+        Filter data to list
+        """
+        while iter:
+            if self.match_fiter(id, title,  model_item, iter):
+                row = []
+                row.append(model_item.get_value(iter,0))
+                row.append(model_item.get_value(iter,3))
+                row.append(False)
+                iter_to = model_search.append(None, row)
+            self.search(model_item, model_item.iter_children(iter), model_search, id, title)
+            iter = model_item.iter_next(iter)
+    
+    
+    def match_fiter(self, id, title,  model_item, iter):
+        try:
+            pattern = re.compile(id,re.IGNORECASE)
+            res_id = pattern.search(model_item.get_value(iter,0)) 
+            pattern = re.compile(title,re.IGNORECASE)
+            res_title = pattern.search(model_item.get_value(iter,3)) 
+            
+            if res_id == None or res_title == None:
+                return False
+            return True
+        except Exception, e:
+            #self.core.notify("Can't filter items: %s" % (e,), 3)
+            logger.error("Can't filter items: %s" % (e,))
+            return False
+    
+        
 #class EditTitle(commands.DataHandler, abstract.EnterList):
     
     #COLUMN_MARK_ROW = 0

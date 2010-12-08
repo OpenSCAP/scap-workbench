@@ -1547,42 +1547,6 @@
                                         <property name="position">0</property>
                                       </packing>
                                     </child>
-                                    <child>
-                                      <object class="GtkHButtonBox" id="hbuttonbox4">
-                                        <property name="visible">True</property>
-                                        <property name="spacing">5</property>
-                                        <property name="layout_style">end</property>
-                                        <child>
-                                          <object class="GtkButton" id="edit:item:btn_add">
-                                            <property name="label" translatable="yes">Add</property>
-                                            <property name="visible">True</property>
-                                            <property name="can_focus">True</property>
-                                            <property name="receives_default">True</property>
-                                          </object>
-                                          <packing>
-                                            <property name="expand">False</property>
-                                            <property name="fill">False</property>
-                                            <property name="position">0</property>
-                                          </packing>
-                                        </child>
-                                        <child>
-                                          <object class="GtkButton" id="edit:item:btn_remove">
-                                            <property name="label" translatable="yes">Remove</property>
-                                            <property name="visible">True</property>
-                                            <property name="can_focus">True</property>
-                                            <property name="receives_default">True</property>
-                                          </object>
-                                          <packing>
-                                            <property name="expand">False</property>
-                                            <property name="fill">False</property>
-                                            <property name="position">1</property>
-                                          </packing>
-                                        </child>
-                                      </object>
-                                      <packing>
-                                        <property name="position">1</property>
-                                      </packing>
-                                    </child>
                                   </object>
                                   <packing>
                                     <property name="expand">False</property>
@@ -2541,21 +2505,11 @@
                                                             <property name="spacing">5</property>
                                                             <property name="layout_style">end</property>
                                                             <child>
-                                                            <object class="GtkButton" id="edit:dependencies:btn_conflict_add">
-                                                            <property name="label" translatable="yes">Add</property>
-                                                            <property name="visible">True</property>
-                                                            <property name="can_focus">True</property>
-                                                            <property name="receives_default">True</property>
-                                                            </object>
-                                                            <packing>
-                                                            <property name="expand">False</property>
-                                                            <property name="fill">False</property>
-                                                            <property name="position">0</property>
-                                                            </packing>
+                                                            <placeholder/>
                                                             </child>
                                                             <child>
-                                                            <object class="GtkButton" id="edit:dependencies:btn_conflict_edit">
-                                                            <property name="label" translatable="yes">Edit</property>
+                                                            <object class="GtkButton" id="edit:dependencies:btn_conflict_add">
+                                                            <property name="label" translatable="yes">Add</property>
                                                             <property name="visible">True</property>
                                                             <property name="can_focus">True</property>
                                                             <property name="receives_default">True</property>
@@ -2635,21 +2589,11 @@
                                                             <property name="spacing">5</property>
                                                             <property name="layout_style">end</property>
                                                             <child>
-                                                            <object class="GtkButton" id="edit:dependencies:btn_requires_add">
-                                                            <property name="label" translatable="yes">Add</property>
-                                                            <property name="visible">True</property>
-                                                            <property name="can_focus">True</property>
-                                                            <property name="receives_default">True</property>
-                                                            </object>
-                                                            <packing>
-                                                            <property name="expand">False</property>
-                                                            <property name="fill">False</property>
-                                                            <property name="position">0</property>
-                                                            </packing>
+                                                            <placeholder/>
                                                             </child>
                                                             <child>
-                                                            <object class="GtkButton" id="edit:dependencies:btn_requires_edit">
-                                                            <property name="label" translatable="yes">Edit</property>
+                                                            <object class="GtkButton" id="edit:dependencies:btn_requires_add">
+                                                            <property name="label" translatable="yes">Add</property>
                                                             <property name="visible">True</property>
                                                             <property name="can_focus">True</property>
                                                             <property name="receives_default">True</property>
@@ -4300,49 +4244,6 @@
                                   </object>
                                   <packing>
                                     <property name="position">4</property>
-                                    <property name="tab_fill">False</property>
-                                  </packing>
-                                </child>
-                                <child>
-                                  <object class="GtkAlignment" id="alignment33">
-                                    <property name="visible">True</property>
-                                    <property name="top_padding">12</property>
-                                    <property name="bottom_padding">12</property>
-                                    <property name="left_padding">12</property>
-                                    <property name="right_padding">12</property>
-                                    <child>
-                                      <object class="GtkVBox" id="vbox17">
-                                        <property name="visible">True</property>
-                                        <property name="orientation">vertical</property>
-                                        <child>
-                                          <object class="GtkTextView" id="textview1">
-                                            <property name="visible">True</property>
-                                            <property name="can_focus">True</property>
-                                          </object>
-                                          <packing>
-                                            <property name="position">0</property>
-                                          </packing>
-                                        </child>
-                                        <child>
-                                          <placeholder/>
-                                        </child>
-                                        <child>
-                                          <placeholder/>
-                                        </child>
-                                      </object>
-                                    </child>
-                                  </object>
-                                  <packing>
-                                    <property name="position">5</property>
-                                  </packing>
-                                </child>
-                                <child type="tab">
-                                  <object class="GtkLabel" id="label53">
-                                    <property name="visible">True</property>
-                                    <property name="label" translatable="yes">References</property>
-                                  </object>
-                                  <packing>
-                                    <property name="position">5</property>
                                     <property name="tab_fill">False</property>
                                   </packing>
                                 </child>
