@@ -1507,7 +1507,6 @@
                                 </child>
                                 <child>
                                   <object class="GtkHBox" id="hbox5">
-                                    <property name="visible">True</property>
                                     <child>
                                       <object class="GtkHButtonBox" id="edit:btn_box1">
                                         <property name="visible">True</property>

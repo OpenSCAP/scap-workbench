@@ -1671,27 +1671,39 @@ class DHEditItems:
         COLUMN_SELECTED = 2
         COLUMN_OBJECT = 3
 
-        if item:
-            object = model.get_value(iter, COLUMN_OBJECT)
-
-            if not object:
-                pass
-                #object = openscap.common.text_new()
-                #item.add_question(object)
-                #model.set_value(iter, COLUMN_OBJECT, object)
-            elif  not delete:
-                pass
-                #if column == COLUMN_SELECTOR:
-                    #object.set_lang(value)
-                #elif column == COLUMN_VALUE:
-                    #object.set_text(value)
-                #else:
-                    #logger.error("Bad number of column.")
-            else:
-                logger.info ("TODO delete Value value")
-                model.remove(iter)
-        else:
+        if not item:
             logger.error("Error: Not read item.")
+            return False
+
+        obj = model.get_value(iter, COLUMN_OBJECT)
+
+        if not obj:
+            instance = item.new_instance()
+            item.add_instance(instance)
+            model.set_value(iter, COLUMN_OBJECT, instance)
+        elif not delete:
+            if column == COLUMN_SELECTOR:
+                obj.set_selector(value)
+            elif column == COLUMN_VALUE:
+                if model.get_value(iter, COLUMN_SELECTED): 
+                    [lambda x: logger.error("Unknown type of value: %s", item.get_type()), 
+                            obj.set_defval_number,
+                            obj.set_defval_boolean,
+                            obj.set_defval_string
+                            ][item.get_type()](value)
+                else: 
+                    [lambda x: logger.error("Unknown type of value: %s", item.get_type()), 
+                            obj.set_value_number,
+                            obj.set_value_boolean,
+                            obj.set_value_string
+                            ][item.get_type()](value)
+            
+            else:
+                logger.error("Bad column number: %s", column)
+                pass
+        else:
+            logger.info ("TODO delete Value value")
+            model.remove(iter)
 
     def DHEditConflicts(self, item, id, add):
         if add:
