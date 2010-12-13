@@ -392,7 +392,8 @@ class MenuButtonEdit(abstract.MenuButton, commands.DHEditItems, Edit_abs):
         self.edit_rationale = EditRationale(self.core, self.builder)
         self.edit_conflicts = EditConflicts(self.core, self.builder,self.list_item.get_TreeView().get_model())
         self.edit_requires = EditRequires(self.core, self.builder,self.list_item.get_TreeView().get_model())
-
+        self.edit_ident = EditIdent(self.core, self.builder)
+        
         self.lbl_extends = self.builder.get_object("edit:dependencies:lbl_extends")
         
         #Dependencies
@@ -575,6 +576,9 @@ class MenuButtonEdit(abstract.MenuButton, commands.DHEditItems, Edit_abs):
                 self.edit_fix.set_sensitive(True)
                 self.edit_fix.fill(details["item"])
                 
+                self.edit_ident.set_sensitive(True)
+                self.edit_ident.fill(details["item"])
+                
                 # clean hide data only for group and set insensitive
 
                 
@@ -608,7 +612,10 @@ class MenuButtonEdit(abstract.MenuButton, commands.DHEditItems, Edit_abs):
                 
                 self.edit_fix.set_sensitive(False)
                 self.edit_fix.fill(None)
-
+                
+                self.edit_ident.set_sensitive(False)
+                self.edit_ident.fill(None)
+                
         else:
             self.item = None
             self.set_sensitive(False)
@@ -943,6 +950,58 @@ class EditStatus(commands.DHEditItems,Edit_abs):
 
                 self.model.append([status, iter,datetime.date.fromtimestamp(data.date), data])
 
+class EditIdent(commands.DHEditItems,Edit_abs):
+
+    COLUMN_ID = 0
+    COLUMN_SYSTEM = 1
+    COLUMN_OBJECTS = 2
+
+    def __init__(self, core, builder):
+
+        #set listView and model
+        lv = builder.get_object("edit:dependencies:lv_ident")
+        self.box_ident = builder.get_object("edit:dependencies:box_ident")
+        model = gtk.ListStore(str, str, gobject.TYPE_PYOBJECT)
+        lv.set_model(model)
+        
+        #information for new/edit dialog
+        values = {
+                        "name_dialog":  "Edit Question",
+                        "view":         lv,
+                        "cb":           self.DHEditIdent,
+                        "textEntry":    {"name":    "ID",
+                                        "column":   self.COLUMN_ID,
+                                        "empty":    False, 
+                                        "unique":   True},
+                        "textView":     {"name":    "System",
+                                        "column":   self.COLUMN_SYSTEM,
+                                        "empty":    False, 
+                                        "unique":   False},
+                        }
+
+        Edit_abs.__init__(self, core, lv, values)
+        btn_add = builder.get_object("edit:dependencies:btn_ident_add")
+        btn_edit = builder.get_object("edit:dependencies:btn_ident_edit")
+        btn_del = builder.get_object("edit:dependencies:btn_ident_del")
+        
+        # set callBack
+        btn_add.connect("clicked", self.cb_add_row)
+        btn_edit.connect("clicked", self.cb_edit_row)
+        btn_del.connect("clicked", self.cb_del_row)
+
+        self.addColumn("ID",self.COLUMN_ID)
+        self.addColumn("System",self.COLUMN_SYSTEM)
+
+    def fill(self, item):
+        self.item = item
+        self.model.clear()
+        if item:
+            self.item = item.to_rule()
+            for data in self.item.idents:
+                self.model.append([data.id, data.system, data])
+                
+    def set_sensitive(self, sensitive):
+        self.box_ident.set_sensitive(sensitive)
 
 class EditQuestion(commands.DHEditItems,Edit_abs):
 
@@ -2178,13 +2237,18 @@ class EditSelectIdDialogWindow():
         self.window = builder.get_object("dialog:add_id")
         self.window.set_keep_above(True)
         self.window.connect("delete-event", self.__delete_event)
-        self.window.resize(800, 500)
+        self.window.resize(800, 600)
         
         btn_ok = builder.get_object("add_id:btn_ok")
         btn_ok.connect("clicked", self.__cb_do)
         btn_cancel = builder.get_object("add_id:btn_cancel")
         btn_cancel.connect("clicked", self.__delete_event)
 
+        btn_add = builder.get_object("add_id:btn_add")
+        btn_add.connect("clicked", self.cb_btn_add)
+        btn_remove = builder.get_object("add_id:btn_remove")
+        btn_remove.connect("clicked", self.__cb_del_row)
+        
         self.btn_search = builder.get_object("add_id:btn_search")
         self.btn_search.connect("clicked",self.__cb_search)
         self.btn_search_reset = builder.get_object("add_id:btn_search_reset")
@@ -2208,12 +2272,12 @@ class EditSelectIdDialogWindow():
         column.set_resizable(True)
         self.tw_search.append_column(column)
 
-        cell = gtk.CellRendererToggle()
-        cell.set_property('activatable', True)
-        cell.connect( 'toggled', self.__cb_toggled )
-        column = gtk.TreeViewColumn("To add", cell )
-        column.add_attribute( cell, "active", self.COLUMN_SELECTED)
-        self.tw_search.append_column(column)
+        #cell = gtk.CellRendererToggle()
+        #cell.set_property('activatable', True)
+        #cell.connect( 'toggled', self.__cb_toggled )
+        #column = gtk.TreeViewColumn("To add", cell )
+        #column.add_attribute( cell, "active", self.COLUMN_SELECTED)
+        #self.tw_search.append_column(column)
         
         self.tw_search.set_model(self.model_search)
         
@@ -2235,12 +2299,20 @@ class EditSelectIdDialogWindow():
         self.tw_add.set_model(self.model_to_add)
         
         menu = gtk.Menu()
-        menu_item = gtk.MenuItem("Remove")
+        menu_item = gtk.MenuItem("Remove from add")
         menu_item.show()
         menu.append(menu_item)
         menu_item.connect("activate", self.__cb_del_row)
         self.tw_add.connect ("button_press_event",self.cb_popupMenu_to_add, menu)
         self.tw_add.connect("key-press-event", self.__cb_del_row1,)
+
+        menu_search = gtk.Menu()
+        menu_item = gtk.MenuItem("Copy to add")
+        menu_item.show()
+        menu_search.append(menu_item)
+        menu_item.connect("activate", self.cb_btn_add)
+        self.tw_search.connect ("button_press_event",self.cb_popupMenu_to_add, menu_search)
+
         
         self.model_search.clear()
         self.copy_model(model_item, model_item.get_iter_first(), self.model_search, None)
@@ -2278,7 +2350,8 @@ class EditSelectIdDialogWindow():
     def __cb_del_row(self, widget):
         selection = self.tw_add.get_selection()
         (model, iter) = selection.get_selected()
-        model.remove(iter)
+        if iter != None:
+            model.remove(iter)
     
     def cb_popupMenu_to_add (self, treeview, event, menu):
         if event.button == 3:
@@ -2286,7 +2359,6 @@ class EditSelectIdDialogWindow():
             menu.popup(None,None,None,event.button,event.time)
             
     def show(self):
-        print self.core.main_window
         self.window.set_transient_for(self.core.main_window)
         self.window.show()
 
@@ -2306,7 +2378,7 @@ class EditSelectIdDialogWindow():
                     break
                 iter = self.model_to_add.iter_next(iter)
         else:
-            # move from serch model to modet for add, if not there
+            # move from serch model to model for add, if not there
             iter = self.model_to_add.get_iter_first()
             while iter:
                 if self.model_to_add.get_value(iter,self.COLUMN_ID) == id_item:
@@ -2314,8 +2386,20 @@ class EditSelectIdDialogWindow():
                 iter = self.model_to_add.iter_next(iter)
             self.model_to_add.append([id_item,self.model_search[path][self.COLUMN_TITLE]])
         # change state check box
-        
-        
+
+    def cb_btn_add(self, widget):
+        selection = self.tw_search.get_selection( )
+        if selection != None: 
+            (model, iter_add) = selection.get_selected( )
+            if  iter_add != None:
+                id_item = self.model_search.get_value(iter_add, self.COLUMN_ID)
+                iter = self.model_to_add.get_iter_first()
+                while iter:
+                    if self.model_to_add.get_value(iter,self.COLUMN_ID) == id_item:
+                        return
+                    iter = self.model_to_add.iter_next(iter)
+                self.model_to_add.append([id_item,self.model_search.get_value(iter_add, self.COLUMN_TITLE)])
+            
     def copy_model(self, model_item, iter, model_search, iter_parent):
         """
         copy_model to search model

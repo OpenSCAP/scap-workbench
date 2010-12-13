@@ -1375,7 +1375,35 @@ class DHEditItems:
                 model.remove(iter) 
         else:
             logger.error("Error: Not read item.")
-            
+
+    def DHEditIdent(self, item, model, iter, column, value, delete=False):
+
+        COLUMN_ID = 0
+        COLUMN_SYSTEM = 1
+        COLUMN_OBJECT = 2
+
+        if item:
+            object = model.get_value(iter, COLUMN_OBJECT)
+
+            if not object:
+                object = openscap.xccdf.ident_new()
+                item.add_ident(object)
+                model.set_value(iter, COLUMN_OBJECT, object)
+            elif not delete:
+                if column == COLUMN_ID:
+                    logger.info ("TODO set id Ident.")
+                    #object.set_id(value)
+                elif column == COLUMN_SYSTEM:
+                    logger.info ("TODO set system Ident.")
+                    #object.set_system(value)
+                else:
+                    logger.error("Bad number of column.")
+            else:
+                logger.info ("TODO delete Ident.")
+                model.remove(iter)  
+        else:
+            logger.error("Error: Not read item.")
+
     def DHEditQuestion(self, item, model, iter, column, value, delete=False):
 
         COLUMN_LAN = 0

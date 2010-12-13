@@ -2725,7 +2725,7 @@
                                                       </packing>
                                                     </child>
                                                     <child>
-                                                      <object class="GtkAlignment" id="alignment17">
+                                                      <object class="GtkAlignment" id="edit:dependencies:box_ident">
                                                         <property name="visible">True</property>
                                                         <property name="top_padding">5</property>
                                                         <property name="bottom_padding">5</property>
