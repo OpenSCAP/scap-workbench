@@ -49,7 +49,8 @@ class ItemList(abstract.List):
         self.data_model = commands.DHItemsTree("gui:tailoring:DHItemsTree", core, progress)
         abstract.List.__init__(self, "gui:tailoring:item_list", core, widget)
         self.get_TreeView().set_enable_tree_lines(True)
-
+        self.model_changed = False
+        
         selection = self.get_TreeView().get_selection()
         selection.set_mode(gtk.SELECTION_SINGLE)
 
@@ -60,6 +61,7 @@ class ItemList(abstract.List):
         self.add_receiver("gui:btn:tailoring:filter", "filter_add", self.__filter_add)
         self.add_receiver("gui:btn:tailoring:filter", "filter_del", self.__filter_del)
         self.add_receiver("gui:tailoring:DHItemsTree", "filled", self.__filter_refresh)
+        self.add_receiver("edit:dialog_window:add_item", "add", self.__model_changed)
         
         selection.connect("changed", self.__cb_item_changed, self.get_TreeView())
         self.add_sender(self.id, "item_changed")
@@ -67,15 +69,32 @@ class ItemList(abstract.List):
         self.init_filters(self.filter, self.data_model.model, self.data_model.new_model())
 
     def __update(self):
+
         if "profile" not in self.__dict__ or self.profile != self.core.selected_profile or self.core.force_reload_items:
+            fill = True
+            
+        elif self.model_changed == True:
+            md = gtk.MessageDialog(self.window, 
+                    gtk.DIALOG_MODAL, gtk.MESSAGE_QUESTION,
+                    gtk.BUTTONS_YES_NO, "Some items were added or deleted. \n Do you want update profile? ")
+            md.set_title("Data changed")
+            result = md.run()
+            md.destroy()
+            if result == gtk.RESPONSE_NO:
+                fill = False
+            else: 
+                fill = True
+                
+        if fill:
+            self.model_changed == False
             self.profile = self.core.selected_profile
             self.get_TreeView().set_model(self.data_model.model)
             self.data_model.fill()
-        if self.old_selected != self.core.selected_item:
-            # Select the last one selected if there is one
-            self.get_TreeView().get_model().foreach(self.set_selected, (self.core.selected_item, self.get_TreeView()))
-            self.core.force_reload_items = False
-            self.old_selected = self.core.selected_item
+            if self.old_selected != self.core.selected_item:
+                # Select the last one selected if there is one
+                self.get_TreeView().get_model().foreach(self.set_selected, (self.core.selected_item, self.get_TreeView()))
+                self.core.force_reload_items = False
+                self.old_selected = self.core.selected_item
 
     def __search(self):
         self.search(self.filter.get_search_text(),1)
@@ -91,7 +110,11 @@ class ItemList(abstract.List):
     def __filter_refresh(self):
         self.data_model.map_filter = self.filter_del(self.filter.filters)
         self.get_TreeView().get_model().foreach(self.set_selected, (self.core.selected_item, self.get_TreeView()))
-     
+
+    def __model_changed(self):
+        self.model_changed = True
+
+        
     @threadSave
     def __cb_item_changed(self, widget, treeView):
         """Make all changes in application in separate threads: workaround for annoying

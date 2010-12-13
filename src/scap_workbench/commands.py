@@ -1537,11 +1537,12 @@ class DHEditItems:
         else:
             logger.error("Error: Not rule.")
             
-    def cb_entry_impact_metric(self, widget, event):
-        
-        rule = self.item.to_rule()
+    def DHEditImpactMetrix(self, rule, text):
         if rule:
-            rule.set_impact_metric(widget.get_text())
+            if rule != openscap.OSCAP.XCCDF_RULE:
+                rule = rule.to_rule()
+            if not rule.set_impact_metric(text):
+                logger.error("Error: Impact metrix not set.")
         else:
             logger.error("Error: Not read rule.")
 

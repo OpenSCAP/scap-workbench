@@ -215,7 +215,27 @@ class Edit_abs:
             return timestamp
         return False
             
+    def controlImpactMetric(self, text):
+        """
+        Function control impact metrix
+        """
+        #pattern = re.compile ("^AV:[L,A,N]/AC:[H,M,L]/Au:[M,S,N]/C:[N,P,C]/I:[N,P,C]/A:[N,P,C]$|^E:[U,POC,F,H,ND]/RL:[OF,TF,W,U,ND]/RC:[UC,UR,C,ND]$|^CDP:[N,L,LM,MH,H,ND]/TD:[N,L,M,H,ND]/CR:[L,M,H,ND]/ IR:[L,M,H,ND]/AR:[L,M,H,ND]$",re.IGNORECASE)
+        patternBase = re.compile("^AV:[L,A,N]/AC:[H,M,L]/Au:[M,S,N]/C:[N,P,C]/I:[N,P,C]/A:[N,P,C]$",re.IGNORECASE)
+        patternTempo = re.compile("^E:(U|(POC)|F|H|(ND))/RL:((OF)|(TF)|W|U|(ND))/RC:((UC)|(UR)|C|(ND))$",re.IGNORECASE)
+        patternEnvi = re.compile("^CDP:(N|L|H|(LM)|(MH)|(ND))/TD:(N|L|M|H|(ND))/CR:(L|M|H|(ND))/IR:(L|M|H|(ND))/AR:(L|M|H|(ND))$",re.IGNORECASE)
+        
+        if patternBase.search(text) != None or patternTempo.search(text) != None or patternEnvi.search(text) != None:
+            return True
+        else:
+            error = "Incorrec value of Impact Metrix, correct is:\n\n"
+            error = error + "Metric Value    Description \n\n"
+            error = error + "Base =    AV:[L,A,N]/AC:[H,M,L]/Au:[M,S,N]/C:[N,P,C]/I:[N,P,C]/A:[N,P,C]\n\n"
+            error = error + "Temporal =     E:[U,POC,F,H,ND]/RL:[OF,TF,W,U,ND]/RC:[UC,UR,C,ND]\n\n"
+            error = error + "Environmental =    CDP:[N,L,LM,MH,H,ND]/TD:[N,L,M,H,ND]/CR:[L,M,H,ND]/IR:[L,M,H,ND]/AR:[L,M,H,ND]"
             
+            self.dialogInfo(error)
+            return False
+
 class ItemList(abstract.List):
 
     def __init__(self, widget, core, progress=None, filter=None):
@@ -391,7 +411,7 @@ class MenuButtonEdit(abstract.MenuButton, commands.DHEditItems, Edit_abs):
        
         
         self.entry_impact_metric = self.builder.get_object("edit:operations:entry_impact_metric")
-        self.entry_impact_metric.connect("focus-out-event",self.cb_entry_impact_metric)
+        self.entry_impact_metric.connect("focus-out-event",self.cb_control_impact_metrix)
 
         self.lv_check = self.builder.get_object("edit:operations:lv_check")
         
@@ -411,7 +431,12 @@ class MenuButtonEdit(abstract.MenuButton, commands.DHEditItems, Edit_abs):
 
         self.add_receiver("gui:edit:item_list", "update", self.__update)
         self.add_receiver("gui:edit:item_list", "changed", self.__update)
-        
+
+    def cb_control_impact_metrix(self, widget, event):
+        text = widget.get_text()
+        if text != "" and self.controlImpactMetric(text):
+            self.DHEditImpactMetrix(self.item, text)
+            
     def cb_control_version_time(self, widget, event):
         timestamp = self.controlDate(widget.get_text())
         if timestamp:
@@ -517,6 +542,8 @@ class MenuButtonEdit(abstract.MenuButton, commands.DHEditItems, Edit_abs):
                             self.cBox_severity.set_active_iter(iter_sev)
                             break
                         iter_sev = model_sev.iter_next(iter_sev)
+                else:
+                    self.cBox_severity.set_active(-1)
 
                 self.entry_impact_metric.set_sensitive(True)
                 if details["imapct_metric"] != None:
@@ -533,6 +560,8 @@ class MenuButtonEdit(abstract.MenuButton, commands.DHEditItems, Edit_abs):
                             self.cBox_role.set_active_iter(iter_role)
                             break
                         iter_role = model_role.iter_next(iter_role)
+                else:
+                    self.cBox_role.set_active(-1)
 
                 self.edit_values.set_sensitive(True)
                 self.edit_values.fill(details["item"])
@@ -1745,7 +1774,7 @@ class EditAddDialogWindow(EventObject, Edit_abs):
     COMBO_COLUMN_VIEW = 1
     COMBO_COLUMN_INFO = 2
     
-    def __init__(self,core, item, list_item, ref_model, cb):
+    def __init__(self, core, item, list_item, ref_model, cb):
         
         self.core = core
         self.item = item
