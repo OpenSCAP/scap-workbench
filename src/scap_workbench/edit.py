@@ -453,15 +453,6 @@ class MenuButtonEdit(abstract.MenuButton, commands.DHEditItems, Edit_abs):
         pass
 
     def create_popupMenu_tw(self):
-        #menu = gtk.Menu()
-        #menu_item = gtk.MenuItem("Add item")
-        #menu_item.show()
-        #menu.append(menu_item)
-        #menu_item.connect("activate", self.__cb_item_add)
-        #menu_item = gtk.MenuItem("Remove item")
-        #menu_item.show()
-        #menu.append(menu_item)
-        #menu_item.connect("activate", self.__cb_item_remove)
         menu = self.builder.get_object("edit:list:popup")
         self.builder.get_object("edit:list:popup:add").connect("activate", self.__cb_item_add)
         self.builder.get_object("edit:list:popup:remove").connect("activate", self.__cb_item_remove)

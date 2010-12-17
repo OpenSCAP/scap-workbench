@@ -1131,7 +1131,12 @@ class DHScan(DataHandler, EventObject):
             return self.__cancel
 
         gtk.gdk.threads_enter()
-        self.fill([msg.user1str, msg.user2num, False, " ".join(msg.user3str.split()), " ".join(msg.string.split())])
+        #ID, Result, Fix, Title, Desc
+        if msg.user3str == None: title = ""
+        else: title = " ".join(msg.user3str.split())
+        if msg.string == None: desc = ""
+        else: desc = " ".join(msg.string.split())
+        self.fill([msg.user1str, msg.user2num, False, title, desc])
         self.emit("filled")
         self.treeView.queue_draw()
         gtk.gdk.threads_leave()
