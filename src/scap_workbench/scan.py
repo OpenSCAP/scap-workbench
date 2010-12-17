@@ -97,10 +97,16 @@ class MenuButtonScan(abstract.MenuButton):
         self.scanlist = ScanList(self.builder.get_object("scan:treeview"), core=self.core, filter=self.filter, data_model=self.data_model)
         self.filter.expander.cb_changed()
 
-        self.builder.get_object("scan:btn_scan").connect("clicked", self.__cb_start)
-        self.builder.get_object("scan:btn_stop").connect("clicked", self.__cb_cancel)
-        self.builder.get_object("scan:btn_export").connect("clicked", self.__cb_export)
-        self.builder.get_object("scan:btn_help").connect("clicked", self.__cb_help)
+        self.profile = self.builder.get_object("scan:btn_profile")
+        self.profile.connect("clicked", self.__cb_profile)
+        self.scan = self.builder.get_object("scan:btn_scan")
+        self.scan.connect("clicked", self.__cb_start)
+        self.stop = self.builder.get_object("scan:btn_stop")
+        self.stop.connect("clicked", self.__cb_cancel)
+        self.export = self.builder.get_object("scan:btn_export")
+        self.export.connect("clicked", self.__cb_export)
+        self.help = self.builder.get_object("scan:btn_help")
+        self.help.connect("clicked", self.__cb_help)
         self.results_btn = self.builder.get_object("scan:btn_results")
         self.results_btn.set_sensitive(False)
         self.results_btn.connect("clicked", self.__cb_export_report)
@@ -111,6 +117,15 @@ class MenuButtonScan(abstract.MenuButton):
         self.add_sender(self.id, "export")
         self.add_receiver("gui:btn:menu:scan", "export", self.__export)
 
+    def activate(self, active):
+        if active:
+            if self.core.selected_profile != None:
+                self.notifications.append(self.core.notify("Selected profile: \"%s\"." % (self.core.selected_profile,), 0))
+            else: self.notifications.append(self.core.notify("Selected default document profile.", 0))
+        else:
+            for notify in self.notifications:
+                notify.destroy()
+
     #callback function
     def __cb_export_report(self, widget):
         self.data_model.export_report(self.exported_file)
@@ -120,9 +135,17 @@ class MenuButtonScan(abstract.MenuButton):
         self.exported_file = self.data_model.export()
         if self.exported_file: 
             self.__export_notify = self.core.notify("Results exported successfuly. You can see them by pushing the \"Results\" button.", 0)
+            self.notifications.append(self.__export_notify)
             self.results_btn.set_sensitive(True)
 
+    def __cb_profile(self, widget):
+        for notify in self.notifications:
+            notify.destroy()
+        ProfileChooser(self.core)
+
     def __cb_start(self, widget):
+        for notify in self.notifications:
+            notify.destroy()
         self.emit("scan")
 
     def __cb_cancel(self, widget):
@@ -134,6 +157,37 @@ class MenuButtonScan(abstract.MenuButton):
     def __cb_help(self, widget):
         window = HelpWindow(self.core)
 
+
+class ProfileChooser(abstract.Window):
+    """
+    Modal window for choosing profile before scan
+    """
+
+    def __init__(self, core):
+        self.core = core
+        self.builder = gtk.Builder()
+        self.builder.add_from_file("/usr/share/scap-workbench/profile_chooser.glade")
+        self.draw_window()
+        self.profile_model = commands.DHProfiles(core)
+        self.profiles = self.builder.get_object("profile_chooser:tw")
+        self.profile_model.render(self.profiles)
+        self.profile_model.fill()
+        self.builder.get_object("profile_chooser:btn_ok").connect("clicked", self.__cb_profile_changed, self.profiles)
+
+    def __cb_profile_changed(self, widget, tw):
+        selection = tw.get_selection()
+        model, it = selection.get_selected()
+        if it == None: 
+            logger.error("Nothing selected or bug ??")
+            return
+        self.core.selected_profile = model.get_value(it, 0)
+        self.window.destroy()
+        return self.core.selected_profile
+
+    def draw_window(self):
+        self.window = self.builder.get_object("profile_chooser:window")
+        self.window.set_transient_for(self.core.main_window)
+        self.window.show_all()
 
 class HelpWindow(abstract.Window):
 
@@ -153,7 +207,6 @@ class HelpWindow(abstract.Window):
 
     def draw_window(self):
         # Create a new window
-        self.window = gtk.Window(gtk.WINDOW_TOPLEVEL)
         self.window = self.builder.get_object("scan:help:window")
         self.treeView = self.builder.get_object("scan:help:treeview")
         self.help_model = self.builder.get_object("scan:help:treeview:model")

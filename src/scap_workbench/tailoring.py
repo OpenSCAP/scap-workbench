@@ -70,6 +70,7 @@ class ItemList(abstract.List):
 
     def __update(self):
 
+        fill = False
         if "profile" not in self.__dict__ or self.profile != self.core.selected_profile or self.core.force_reload_items:
             fill = True
             
@@ -84,6 +85,7 @@ class ItemList(abstract.List):
                 fill = False
             else: 
                 fill = True
+
                 
         if fill:
             self.model_changed == False
@@ -420,14 +422,6 @@ class RefineDetails(EventObject):
         vbox_refines = gtk.VBox()
         alig.add(vbox_refines)
         
-        #alig = self.add_frame_cBox(vbox_refines, "<b>Operator</b>", False)
-        #self.cB_operator = gtk.combo_box_entry_new_text()
-        #alig.add(self.cB_operator)
-        
-        #alig = self.add_frame_cBox(vbox_refines, "<b>Check</b>", False)
-        #self.cB_check = gtk.combo_box_entry_new_text()
-        #alig.add(self.cB_check)
-        
         self.model_role = self.create_model(["Full", "Unscored", "Unchecked"])
         self.combo_role = self.add_cBox(vbox_refines, "<b>Role</b>", False)
         self.combo_role.connect('changed', self.cb_changed, "role")
@@ -477,6 +471,14 @@ class MenuButtonTailoring(abstract.MenuButton):
         self.builder = builder
         self.core = core
 
+        # Profiles combo box
+        self.profiles = self.builder.get_object("tailoring:profile")
+        self.profile_model = commands.DHProfiles(core)
+        self.profile_model.model = self.profiles.get_model()
+        self.profile_model.fill()
+        self.profiles.set_active(0)
+        self.profiles.connect("changed", self.__cb_profile_changed, self.profiles.get_model())
+
         #draw body
         self.body = self.builder.get_object("tailoring:box")
         self.draw_nb(self.builder.get_object("tailoring:box_nb"))
@@ -489,6 +491,12 @@ class MenuButtonTailoring(abstract.MenuButton):
 
         # set signals
         self.add_sender(self.id, "update")
+
+    def __cb_profile_changed(self, widget, model):
+
+        self.core.selected_profile = model[self.profiles.get_active()][0]
+        self.emit("update")
+
 
     # draw notebook
     def draw_nb(self, box):

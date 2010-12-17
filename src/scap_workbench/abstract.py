@@ -123,6 +123,7 @@ class MenuButton(EventObject):
         self.body = None
         self.widget = widget
         core.register(id, self)
+        self.notifications = []
 
         # setings
         self.widget.connect("toggled", self.cb_toggle)
@@ -168,11 +169,15 @@ class MenuButton(EventObject):
     def update(self):
         pass
 
+    def activate(self, active):
+        pass
+
     def set_active(self, active):
         """
         Show or hide MenuButton object and dependent menu, body.
         @param active True/False - Show/Hide 
         """
+        self.activate(active)
         if active: logger.debug("Switching active button to %s" % (self.id))
         self.widget.handler_block_by_func(self.cb_toggle)
         self.widget.set_active(active)

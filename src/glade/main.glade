@@ -22,6 +22,14 @@
       <column type="gchararray"/>
     </columns>
   </object>
+  <object class="GtkListStore" id="profiles:treeview:model1">
+    <columns>
+      <!-- column-name id -->
+      <column type="gchararray"/>
+      <!-- column-name Profile -->
+      <column type="gchararray"/>
+    </columns>
+  </object>
   <object class="GtkWindow" id="main:window">
     <property name="title" translatable="yes">SCAP Work-bench</property>
     <property name="window_position">center</property>
@@ -55,7 +63,6 @@
             </child>
             <child>
               <object class="GtkToggleToolButton" id="main:toolbar:profiles">
-                <property name="visible">True</property>
                 <property name="has_tooltip">True</property>
                 <property name="tooltip_text" translatable="yes">Add, remove and edit profiles in XCCDF document</property>
                 <property name="label" translatable="yes">Profiles</property>
@@ -300,6 +307,21 @@
                                 <property name="spacing">5</property>
                                 <property name="layout_style">start</property>
                                 <child>
+                                  <object class="GtkButton" id="scan:btn_profile">
+                                    <property name="label" translatable="yes">Profile ...</property>
+                                    <property name="visible">True</property>
+                                    <property name="can_focus">True</property>
+                                    <property name="receives_default">True</property>
+                                    <property name="image">scan:btn_profile:img</property>
+                                    <property name="use_underline">True</property>
+                                  </object>
+                                  <packing>
+                                    <property name="expand">False</property>
+                                    <property name="fill">False</property>
+                                    <property name="position">0</property>
+                                  </packing>
+                                </child>
+                                <child>
                                   <object class="GtkButton" id="scan:btn_scan">
                                     <property name="label" translatable="yes">Scan</property>
                                     <property name="visible">True</property>
@@ -311,7 +333,7 @@
                                   <packing>
                                     <property name="expand">False</property>
                                     <property name="fill">False</property>
-                                    <property name="position">0</property>
+                                    <property name="position">1</property>
                                   </packing>
                                 </child>
                                 <child>
@@ -325,7 +347,7 @@
                                   <packing>
                                     <property name="expand">False</property>
                                     <property name="fill">False</property>
-                                    <property name="position">1</property>
+                                    <property name="position">2</property>
                                   </packing>
                                 </child>
                                 <child>
@@ -340,7 +362,7 @@
                                   <packing>
                                     <property name="expand">False</property>
                                     <property name="fill">False</property>
-                                    <property name="position">2</property>
+                                    <property name="position">3</property>
                                   </packing>
                                 </child>
                                 <child>
@@ -354,7 +376,7 @@
                                   <packing>
                                     <property name="expand">False</property>
                                     <property name="fill">False</property>
-                                    <property name="position">3</property>
+                                    <property name="position">4</property>
                                   </packing>
                                 </child>
                                 <child>
@@ -368,7 +390,7 @@
                                   <packing>
                                     <property name="expand">False</property>
                                     <property name="fill">False</property>
-                                    <property name="position">4</property>
+                                    <property name="position">5</property>
                                   </packing>
                                 </child>
                               </object>
@@ -788,6 +810,22 @@
                                 <property name="orientation">vertical</property>
                                 <property name="spacing">5</property>
                                 <child>
+                                  <object class="GtkComboBox" id="tailoring:profile">
+                                    <property name="visible">True</property>
+                                    <property name="model">profiles:treeview:model1</property>
+                                    <child>
+                                      <object class="GtkCellRendererText" id="cellrenderertext1"/>
+                                      <attributes>
+                                        <attribute name="text">1</attribute>
+                                      </attributes>
+                                    </child>
+                                  </object>
+                                  <packing>
+                                    <property name="expand">False</property>
+                                    <property name="position">0</property>
+                                  </packing>
+                                </child>
+                                <child>
                                   <object class="GtkScrolledWindow" id="tailoring:sw1">
                                     <property name="visible">True</property>
                                     <property name="can_focus">True</property>
@@ -803,7 +841,7 @@
                                     </child>
                                   </object>
                                   <packing>
-                                    <property name="position">0</property>
+                                    <property name="position">1</property>
                                   </packing>
                                 </child>
                                 <child>
@@ -812,7 +850,7 @@
                                   </object>
                                   <packing>
                                     <property name="expand">False</property>
-                                    <property name="position">1</property>
+                                    <property name="position">2</property>
                                   </packing>
                                 </child>
                                 <child>
@@ -852,7 +890,7 @@
                                   <packing>
                                     <property name="expand">False</property>
                                     <property name="fill">False</property>
-                                    <property name="position">2</property>
+                                    <property name="position">3</property>
                                   </packing>
                                 </child>
                               </object>
@@ -1445,7 +1483,7 @@
                       <object class="GtkHPaned" id="edit:hpaned2">
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
-                        <property name="position">900</property>
+                        <property name="position">500</property>
                         <property name="position_set">True</property>
                         <child>
                           <object class="GtkHBox" id="edit:hbox2">
@@ -4337,5 +4375,41 @@
   <object class="GtkImage" id="scan:btn_resutls">
     <property name="visible">True</property>
     <property name="stock">gtk-print-preview</property>
+  </object>
+  <object class="GtkImage" id="scan:btn_profile:img">
+    <property name="visible">True</property>
+    <property name="stock">gtk-index</property>
+  </object>
+  <object class="GtkMenu" id="edit:list:popup">
+    <property name="visible">True</property>
+    <child>
+      <object class="GtkImageMenuItem" id="edit:list:popup:add">
+        <property name="label" translatable="yes">Add Group / Rule</property>
+        <property name="visible">True</property>
+        <property name="tooltip_text" translatable="yes">Add rule or group to the content.</property>
+        <property name="image">image1</property>
+        <property name="use_stock">False</property>
+        <property name="always_show_image">True</property>
+      </object>
+    </child>
+    <child>
+      <object class="GtkImageMenuItem" id="edit:list:popup:remove">
+        <property name="label" translatable="yes">Remove</property>
+        <property name="visible">True</property>
+        <property name="sensitive">False</property>
+        <property name="tooltip_text" translatable="yes">Remove this item from content</property>
+        <property name="image">image2</property>
+        <property name="use_stock">False</property>
+        <property name="always_show_image">True</property>
+      </object>
+    </child>
+  </object>
+  <object class="GtkImage" id="image1">
+    <property name="visible">True</property>
+    <property name="stock">gtk-add</property>
+  </object>
+  <object class="GtkImage" id="image2">
+    <property name="visible">True</property>
+    <property name="stock">gtk-remove</property>
   </object>
 </interface>

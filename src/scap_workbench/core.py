@@ -158,7 +158,7 @@ class SWBCore:
 
     def notify(self, text, lvl=0, info_box=None):
         notification = Notification(text, lvl)
-        if info_box: info_box.pack_start(notifycation.widget)
+        if info_box: info_box.pack_start(notification.widget)
         else: self.info_box.pack_start(notification.widget)
         return notification
 

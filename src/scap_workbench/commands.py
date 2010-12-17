@@ -1705,6 +1705,12 @@ class DHEditItems:
             return False
 
         obj = model.get_value(iter, COLUMN_OBJECT)
+        print "------------------------"
+        print "ITEM", item
+        print "OBJ", obj
+        print "VALUE", value
+        print "------------------------"
+        for inst in item.instances: print "Selector: ", inst.selector
 
         if not obj:
             instance = item.new_instance()
