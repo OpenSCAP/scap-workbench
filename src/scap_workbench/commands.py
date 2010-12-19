@@ -1619,7 +1619,26 @@ class DHEditItems:
                 model.remove(iter)  
         else:
             logger.error("Error: Not read item.")
-            
+
+    def DHEditValueOper(self, value, oper):
+
+        if value:
+            #print value
+            #print oper
+            value.set_oper(oper)
+            #openscap.xccdf.value.set_oper(value, oper)
+        else:
+            logger.error("Error: Not value.")
+    
+    def DHChBoxValueInteractive(self, value, state):
+        if value:
+            value.set_interactive(state)
+        else:
+            logger.error("Error: Not value.")
+    
+    def DHEditValueInstance(self):
+        pass
+    
     def DHEditValueTitle(self, item, model, iter, column, value, delete=False):
 
         COLUMN_LAN = 0

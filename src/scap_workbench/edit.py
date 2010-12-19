@@ -103,7 +103,23 @@ class Edit_abs:
     combo_model_type.append([openscap.OSCAP.XCCDF_TYPE_NUMBER, "NUMBER", ""])
     combo_model_type.append([openscap.OSCAP.XCCDF_TYPE_STRING, "STRING", ""])
     combo_model_type.append([openscap.OSCAP.XCCDF_TYPE_BOOLEAN, "BOOLEAN", ""])
-    
+
+    combo_model_operator_number = gtk.ListStore(int, str, str)
+    combo_model_operator_number.append([openscap.OSCAP.XCCDF_OPERATOR_EQUALS, "EQUALS", "Equality"])
+    combo_model_operator_number.append([openscap.OSCAP.XCCDF_OPERATOR_NOT_EQUAL, "NOT EQUAL", "Inequality"])
+    combo_model_operator_number.append([openscap.OSCAP.XCCDF_OPERATOR_GREATER, "GREATER", "Greater than"])
+    combo_model_operator_number.append([openscap.OSCAP.XCCDF_OPERATOR_GREATER_EQUAL, "GREATER OR EQUAL", "Greater than or equal."])
+    combo_model_operator_number.append([openscap.OSCAP.XCCDF_OPERATOR_LESS , "LESS", "Less than."])
+    combo_model_operator_number.append([openscap.OSCAP.XCCDF_OPERATOR_LESS_EQUAL, "LESS OR EQUAL", "Less than or equal."])
+
+    combo_model_operator_bool = gtk.ListStore(int, str, str)
+    combo_model_operator_bool.append([openscap.OSCAP.XCCDF_OPERATOR_EQUALS, "EQUALS", "Equality"])
+    combo_model_operator_bool.append([openscap.OSCAP.XCCDF_OPERATOR_NOT_EQUAL, "NOT EQUAL", "Inequality"])
+
+    combo_model_operator_string = gtk.ListStore(int, str, str)
+    combo_model_operator_string.append([openscap.OSCAP.XCCDF_OPERATOR_EQUALS, "EQUALS", "Equality"])
+    combo_model_operator_string.append([openscap.OSCAP.XCCDF_OPERATOR_NOT_EQUAL, "NOT EQUAL", "Inequality"])
+    combo_model_operator_string.append([openscap.OSCAP.XCCDF_OPERATOR_PATTERN_MATCH, "PATTERN_MATCH", "Match a regular expression."])
 
     def __init__(self, core, lv, values):
         self.core = core
@@ -1193,14 +1209,16 @@ class EditValues(commands.DHEditItems, Edit_abs, EventObject):
         self.edit_values_value = EditValueValue(self.core, self.builder)
         
         self.lbl_type = self.builder.get_object("edit:values:lbl_type")
-        self.lbl_match = self.builder.get_object("edit:values:lbl_match")
-        self.entry_match = self.builder.get_object("edit:values:entry_match")
         
-        self.lbl_upper_bound = self.builder.get_object("edit:values:lbl_upper_bound")
-        self.lbl_entry_upper_bound = self.builder.get_object("edit:values:entry_upper_bound")
-        self.lbl_lower_bound = self.builder.get_object("edit:values:lbl_lower_bound")
-        self.entry_lower_bound = self.builder.get_object("edit:values:entry_lower_bound")
-        self.table_general= self.builder.get_object("edit:values:general:table")
+        self.combo_operator = self.builder.get_object("edit:values:combo_operator")
+        cell = gtk.CellRendererText()
+        self.combo_operator.pack_start(cell, True)
+        self.combo_operator.add_attribute(cell, 'text', self.COMBO_COLUMN_VIEW)  
+        self.combo_operator.connect( "changed", self.cb_combo_value_operator)
+        self.combo_operator.set_model(self.combo_model_operator_number)
+        
+        self.chBox_interactive = self.builder.get_object("edit:values:chBox_interactive")
+        self.chBox_interactive.connect( "toggled",self.cb_combo_value_interactive)
         
         self.sw_main = self.builder.get_object("edit:values:sw_main")
         self.value_nbook = self.builder.get_object("edit:values:notebook")
@@ -1240,7 +1258,7 @@ class EditValues(commands.DHEditItems, Edit_abs, EventObject):
                         if value.type == self.combo_model_type.get_value(iter, self.COMBO_COLUMN_DATA):
                             type = self.combo_model_type.get_value(iter, self.COMBO_COLUMN_VIEW )
                             break
-                        iter = self.combo_model_warning.iter_next(iter)
+                        iter = self.combo_model_type.iter_next(iter)
                     self.model.append([value.id, title_lang, iter, type, value])
         
     def __cd_value_remove(self, widget):
@@ -1254,6 +1272,8 @@ class EditValues(commands.DHEditItems, Edit_abs, EventObject):
         treeView.columns_autosize()
     
     def __update(self):
+        self.combo_operator.handler_block_by_func(self.cb_combo_value_operator)
+        self.chBox_interactive.handler_block_by_func(self.cb_combo_value_interactive)
         (model,iter) = self.selection.get_selected()
         if iter:
             self.value_nbook.set_sensitive(True)
@@ -1262,36 +1282,56 @@ class EditValues(commands.DHEditItems, Edit_abs, EventObject):
             self.edit_values_description.fill(value)
             self.edit_values_question.fill(value)
             self.edit_values_value.fill(value)
-            
-            self.table_general.show_all()
+
             if value.get_type()  == openscap.OSCAP.XCCDF_TYPE_NUMBER:
                 self.lbl_type.set_text("Number")
-                self.lbl_match.hide()
-                self.entry_match.hide()
-                
+                self.combo_operator.set_model(self.combo_model_operator_number)
+                self.set_active_comboBox(self.combo_operator, value.oper, 0)
+
             elif value.get_type()  == openscap.OSCAP.XCCDF_TYPE_STRING:
                 self.lbl_type.set_text("String")
-                self.lbl_upper_bound.hide()
-                self.lbl_entry_upper_bound.hide()
-                self.lbl_lower_bound.hide()
-                self.entry_lower_bound.hide()
-        
+                self.combo_operator.set_model(self.combo_model_operator_string)
+                self.set_active_comboBox(self.combo_operator, value.oper, 0)
+                
             elif value.get_type()  == openscap.OSCAP.XCCDF_TYPE_BOOLEAN:
                 self.lbl_type.set_text("Boolean")
-                self.lbl_upper_bound.hide()
-                self.lbl_entry_upper_bound.hide()
-                self.lbl_lower_bound.hide()
-                self.entry_lower_bound.hide()
-                self.lbl_match.hide()
-                self.entry_match.hide()
-
+                self.combo_operator.set_model(self.combo_model_operator_bool)
+                self.set_active_comboBox(self.combo_operator, value.oper, 0)
+                
         else:
             self.value_nbook.set_sensitive(False)
             self.edit_values_title.fill(None)
             self.edit_values_description.fill(None)
             self.edit_values_question.fill(None)
             self.edit_values_value.fill(None)
+            self.combo_operator.set_active(-1)
+            self.chBox_interactive.set_active(False)
+            self.lbl_type.set_text("")
+        self.combo_operator.handler_unblock_by_func(self.cb_combo_value_operator)
+        self.chBox_interactive.handler_unblock_by_func(self.cb_combo_value_interactive)
+
+    def cb_combo_value_operator(self,widget):
+        COLUMN_DATA = 0
+        (model,iter) = self.selection.get_selected()
+        if iter:
+            value = model.get_value(iter, self.COLUMN_OBJECT)
+            active = widget.get_active()
+            if active > 0:
+                combo_model = widget.get_model()
+                self.DHEditValueOper(value, combo_model[active][COLUMN_DATA])
+        else:
+            logger.error("Error: Not select value.")
             
+    def cb_combo_value_interactive(self,widget):
+        COLUMN_DATA = 0
+        (model,iter) = self.selection.get_selected()
+        if iter:
+            self.value_nbook.set_sensitive(True)
+            value = model.get_value(iter, self.COLUMN_OBJECT)
+            self.DHChBoxValueInteractive(value, widget.get_active())
+        else:
+            logger.error("Error: Not select value.")
+    
 class EditValueTitle(commands.DHEditItems,Edit_abs):
 
     COLUMN_LAN = 0
@@ -1437,76 +1477,59 @@ class EditValueValue(commands.DHEditItems,Edit_abs):
 
     COLUMN_SELECTOR = 0
     COLUMN_VALUE = 1
-    COLUMN_SELECTED = 2
+    COLUMN_MODEL_CHOICES = 2
     COLUMN_OBJECT = 3
 
     def __init__(self, core, builder):
         
         #set listView and model
         lv = builder.get_object("edit:values:lv_value")
-        model = gtk.ListStore(str, str, bool, gobject.TYPE_PYOBJECT)
+        model = gtk.ListStore(str, str, gtk.TreeModel, gobject.TYPE_PYOBJECT)
         lv.set_model(model)
 
         #information for new/edit dialog
-        values = {
-                        "name_dialog":  "Value question",
-                        "view":         lv,
-                        "cb":           self.DHEditValueValue,
-                        "textEntry":    {"name":    "Selector",
-                                        "column":   self.COLUMN_SELECTOR,
-                                        "empty":    False, 
-                                        "unique":   True},
-                        "textView":     {"name":    "Value",
-                                        "column":   self.COLUMN_VALUE,
-                                        "empty":    False, 
-                                        "unique":   False}
-                        }
-        Edit_abs.__init__(self, core, lv, values)
+
+        Edit_abs.__init__(self, core, lv, None)
         btn_add = builder.get_object("edit:values:btn_value_add")
         btn_edit = builder.get_object("edit:values:btn_value_edit")
         btn_del = builder.get_object("edit:values:btn_value_del")
-        
-        # set callBack to btn
-        btn_add.connect("clicked", self.cb_add_row)
-        btn_edit.connect("clicked", self.cb_edit_row)
-        btn_del.connect("clicked", self.cb_del_row)
-        
-        self.addColumn("Selector",self.COLUMN_SELECTOR)
-        self.addColumn("Value",self.COLUMN_VALUE, expand=True)
-        
-        cell = gtk.CellRendererToggle()
-        cell.set_property('activatable', True)
-        cell.connect( 'toggled', self.__cb_toggled, self.model )
-        column = gtk.TreeViewColumn("Selected", cell )
-        column.add_attribute( cell, "active", self.COLUMN_SELECTED)
-        self.lv.append_column(column )
 
+        # set callBack to btn
+        btn_add.connect("clicked", self.__cb_add)
+        btn_edit.connect("clicked", self.__cb_edit_row)
+        btn_del.connect("clicked", self.__cb_del_row)
+
+        self.addColumn("Selector",self.COLUMN_SELECTOR)
         
+        cellcombo = gtk.CellRendererCombo()
+        cellcombo.set_property("editable", True)
+        cellcombo.set_property("text-column", 1)
+        #cellcombo.connect("edited", self.cb_cellcombo_edited)
+        column = gtk.TreeViewColumn("Choice", cellcombo, text=self.COLUMN_VALUE, model=self.COLUMN_MODEL_CHOICES)
+        column.set_resizable(True)
+        lv.append_column(column)
+
     def fill(self, value):
         self.item = value
         self.model.clear()
         selected = ""
         if value:
-            instanse = value.get_instances()
-            for data in instanse:
-                if data.selector == "":
-                    selected = data.value
-                else:
-                    self.model.append([data.selector, data.value, False, data])
-            iter = self.model.get_iter_first()
-            while iter:
-                if self.model.get_value(iter, self.COLUMN_VALUE) == selected:
-                    self.model.set_value(iter, self.COLUMN_SELECTED, True)
-                    break
-                iter = self.model.iter_next(iter)
+            instanses = value.get_instances()
+            for instance in instanses:
+                model_choices = gtk.ListStore(str,str)
+                choices = instance.choices
+                for choice in choices:
+                    iter_choice = model_choices.append(["",choice])
+                self.model.append([instance.selector, instance.value, model_choices, instance])
                 
-    def __cb_toggled(self, cell, path, model ):
-        iter = model.get_iter_first()
-        while iter:
-            model.set_value(iter, self.COLUMN_SELECTED, False)
-            iter = model.iter_next(iter)
-        model[path][self.COLUMN_SELECTED] = not model[path][self.COLUMN_SELECTED]
-            
+    def __cb_add(self, widget):
+        EditValueDialogWindow(self.item, self.core, self.lv, self.DHEditConflicts, False)
+    
+    def __cb_edit_row(self, widget):
+        EditValueDialogWindow(self.item, self.core, self.lv, self.DHEditValueInstance, True)
+    
+    def __cb_del_row(self, widget):
+        pass
 #=========================================  End edit values ===================================
 
 #======================================= EDIT FIXTEXT ==========================================
@@ -2447,7 +2470,190 @@ class EditSelectIdDialogWindow():
             logger.error("Can't filter items: %s" % (e,))
             return False
     
+
+
+class EditValueDialogWindow():
+    
+    COLUMN_SELECTOR = 0
+    COLUMN_VALUE = 1
+    COLUMN_MODEL_CHOICES = 2
+    COLUMN_OBJECT = 3
+    
+    def __init__(self, value,  core, tw_instance, cb, edit=False):
+        self.core = core
+        self.item = value
+        self.cb = cb
+        self.model_combo_choices = gtk.ListStore(str, str)
         
+        if edit:
+            selection = tw_instance.get_selection()
+            (self.model, iter) = selection.get_selected()
+            if iter:
+                self.instance= self.model.get_value(iter, self.COLUMN_OBJECT)
+                #self.model_combo_choices = self.model.get_value(iter, self.COLUMN_MODEL_CHOICES)
+
+        type = value.get_type()
+
+        builder = gtk.Builder()
+        builder.add_from_file("/usr/share/scap-workbench/edit_item.glade")
+
+        self.window = builder.get_object("dialog:edit_value")
+        self.window.set_keep_above(True)
+        self.window.connect("delete-event", self.__delete_event)
+        self.window.resize(800, 600)
+        
+        self.lbl_type = builder.get_object("edit_value:lbl_type")
+        self.text_selector = builder.get_object("edit_value:text_selector")
+        
+        self.lbl_match = builder.get_object("edit_value:lbl_match")
+        self.lbl_uper_bound = builder.get_object("edit_value:lbl_uper_bound")
+        self.lbl_lower_bound = builder.get_object("edit_value:lbl_lower_bound")
+        self.lbl_mustMatch = builder.get_object("edit_value:lbl_mustMatch")
+        self.box_choices = builder.get_object("edit_value:box_choices")
+        
+        self.text_match = builder.get_object("edit_value:text_match")
+        self.text_uper_bound = builder.get_object("edit_value:text_uper_bound")
+        self.text_lower_bound = builder.get_object("edit_value:text_lower_bound")
+        
+        self.combo_default = builder.get_object("edit_value:combo_default")
+        cell = gtk.CellRendererText()
+        self.combo_default.pack_start(cell, True)
+        self.combo_default.add_attribute(cell, 'text', 1)  
+        self.combo_default.connect( "changed", self.cb_combo_default)
+        self.combo_default.set_model(self.model_combo_choices)
+        
+        self.chBox_mustMatch = builder.get_object("edit_value:chBox_mustMatch")
+        self.tv_choices = builder.get_object("edit_value:tv_choices")
+
+        btn_ok = builder.get_object("edit_value:btn_ok")
+        btn_ok.connect("clicked", self.__cb_do)
+        btn_cancel = builder.get_object("edit_value:btn_cancel")
+        btn_cancel.connect("clicked", self.__delete_event)
+        
+        if edit:
+            self.text_selector.set_text(self.instance.selector)
+            self.chBox_mustMatch.set_active(self.instance.must_match)
+            
+        if type  == openscap.OSCAP.XCCDF_TYPE_NUMBER:
+            self.lbl_type.set_text("Number")
+            if edit:
+                self.text_uper_bound.set_text(str(self.instance.upper_bound))
+                self.text_lower_bound.set_text(str(self.instance.lower_bound))
+                for choice in self.instance.choices:
+                    self.model_combo_choices.append(["", choice])
+            # hide information for others type
+            self.lbl_match.set_sensitive(False)
+            self.text_match.set_sensitive(False)
+            
+        elif type  == openscap.OSCAP.XCCDF_TYPE_STRING:
+            self.lbl_type.set_text("String")
+            if edit:
+                if self.instance.match:
+                    self.text_match.set_text(self.instance.match)
+                for choice in self.instance.choices:
+                    self.model_combo_choices.append(["", choice])
+
+            # hide information for others type
+            self.text_uper_bound.set_sensitive(False)
+            self.lbl_uper_bound.set_sensitive(False)
+            self.text_lower_bound.set_sensitive(False)
+            self.lbl_lower_bound.set_sensitive(False)
+
+
+        elif type  == openscap.OSCAP.XCCDF_TYPE_BOOLEAN:
+            self.lbl_type.set_text("Boolean")
+
+            self.model_combo_choices.append(["", "True"])
+            self.model_combo_choices.append(["", "False"])
+
+            # hide information for others type
+            self.text_uper_bound.set_sensitive(False)
+            self.lbl_uper_bound.set_sensitive(False)
+            self.text_lower_bound.set_sensitive(False)
+            self.lbl_lower_bound.set_sensitive(False)
+            self.lbl_match.set_sensitive(False)
+            self.text_match.set_sensitive(False)
+            self.box_choices.hide()
+            self.chBox_mustMatch.hide()
+            self.lbl_mustMatch.hide()
+            self.window.resize(400, 200)
+        
+        # choices
+        EditValueChoice (core, self.model_combo_choices, self.tv_choices, self.window)
+        self.show()
+
+    def cb_combo_default(self, widget):
+        pass
+
+    def __cb_do(self, widget):
+        
+        iter_add =  self.model_to_add.get_iter_first()
+        while iter_add:
+            #add row, which not added before
+            exist = False
+            iter = self.model_conflict.get_iter_first()
+            id_add = self.model_to_add.get_value(iter_add,self.COLUMN_ID)
+            while iter:
+                if id_add == self.model_conflict.get_value(iter,self.COLUMN_ID):
+                    exist = True
+                iter = self.model_conflict.iter_next(iter)
+            if not exist:
+                self.cb(self.item, id_add, True)
+                self.model_conflict.append([id_add])
+            iter_add = self.model_to_add.iter_next(iter_add)
+        self.window.destroy()
+            
+            
+    def __cb_del_row1(self, widget, event):
+        keyname = gtk.gdk.keyval_name(event.keyval)
+        if keyname == "Delete":
+            selection = self.tw_add.get_selection( )
+            if selection != None: 
+                (model, iter) = selection.get_selected( )
+                if  iter != None:
+                    model.remove(iter)
+
+                        
+    def __cb_del_row(self, widget):
+        selection = self.tw_add.get_selection()
+        (model, iter) = selection.get_selected()
+        if iter != None:
+            model.remove(iter)
+            
+    def show(self):
+        self.window.set_transient_for(self.core.main_window)
+        self.window.show()
+
+    def __delete_event(self, widget, event=None):
+        self.window.destroy()
+
+class EditValueChoice(commands.DataHandler, abstract.EnterList):
+    
+    COLUMN_MARK_ROW = 0
+    COLUMN_CHOICE = 1
+
+    
+    def __init__(self, core, model, treeView, window):
+
+        self.model = model
+        self.treeView = treeView
+        abstract.EnterList.__init__(self, core, "EditValueCoice",self.model, self.treeView, self.cb_lv_edit , window)
+        
+        cell = self.set_insertColumnText("Choice", self.COLUMN_CHOICE, True, True)
+        iter = self.model.append(None)
+        self.model.set(iter,self.COLUMN_MARK_ROW,"*")
+
+    def cb_lv_edit(self, action):
+    
+        if action == "edit":
+            self.model[self.edit_path][self.edit_column] = self.edit_text
+        elif action == "del":
+            self.model.remove(self.iter_del)
+        elif action == "add":
+            self.model[self.edit_path][self.edit_column] = self.edit_text
+
+
+            
 #class EditTitle(commands.DataHandler, abstract.EnterList):
     
     #COLUMN_MARK_ROW = 0

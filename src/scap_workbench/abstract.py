@@ -469,17 +469,24 @@ class EnterList(EventObject):
     """
     COLUMN_MARK_ROW = 0
 
-    def __init__(self, core, id, model, treeView):
+    def __init__(self, core, id, model, treeView, cb_action=None, window=None):
+        # class send signal del and edit if not set param cb_action
         self.core = core
         self.id = id
+        self.cb_action = cb_action
+        if not cb_action:
+            self.selected_old = None
+            super(EnterList, self).__init__(core)
+            self.core.register(id, self)
+            self.add_sender(id, "del")
+            self.add_sender(id, "edit")
+        if window:
+            self.window = window
+        else:
+            self.window = self.core.main_window
+        self.selected_old = None
         self.control_empty = []
         self.control_unique = []
-        self.selected_old = None
-        super(EnterList, self).__init__(core)
-        self.core.register(id, self)
-        self.add_sender(id, "del")
-        self.add_sender(id, "edit")
-        
         self.model = model
         self.treeView = treeView
         self.treeView.set_grid_lines(gtk.TREE_VIEW_GRID_LINES_BOTH)
@@ -539,7 +546,7 @@ class EnterList(EventObject):
                         (column, name) = cell
                         data = self.model.get_value(iter, column)
                         if (data == "" or data == None):
-                            md = gtk.MessageDialog(self.core.main_window, 
+                            md = gtk.MessageDialog(self.window, 
                                     gtk.DIALOG_MODAL, gtk.MESSAGE_INFO,
                                     gtk.BUTTONS_OK, " Column \"%s\" can't be empty." % (name))
                             md.set_title("Info")
@@ -558,7 +565,7 @@ class EnterList(EventObject):
                         new_text = self.model.get_value(iter, column)
                         for row in self.model:
                             if row[column] == new_text and self.model.get_path(row.iter) != path:
-                                md = gtk.MessageDialog(self.core.main_window, 
+                                md = gtk.MessageDialog(self.window, 
                                         gtk.DIALOG_MODAL, gtk.MESSAGE_QUESTION,
                                         gtk.BUTTONS_YES_NO, "%s \"%s\" already specified.\n\nRewrite stored data ?" % (name, new_text,))
                                 md.set_title("Language found")
@@ -572,7 +579,10 @@ class EnterList(EventObject):
                                     return
                                 else: 
                                     self.iter_del = row.iter
-                                    self.emit("del")
+                                    if self.cb_action:
+                                        self.cb_action("del")
+                                    else:
+                                        self.emit("del")
                                     return
 
         model, self.selected_old = self.selection.get_selected()
@@ -582,13 +592,21 @@ class EnterList(EventObject):
         self.edit_path = path
         self.edit_column = column
         self.edit_text = new_text
-        self.emit("edit")
-
+        
         if self.model[path][EnterList.COLUMN_MARK_ROW] == "*" and new_text != "":
             self.model[path][EnterList.COLUMN_MARK_ROW] = ""
             iter = self.model.append(None)
             self.model.set(iter,EnterList.COLUMN_MARK_ROW,"*")
-
+            if self.cb_action:
+                self.cb_action("add")
+            else:
+                self.emit("add")
+        else:
+            if self.cb_action:
+                self.cb_action("edit")
+            else:
+                self.emit("edit")
+            
     def __cb_del_row(self, widget, event):
 
         keyname = gtk.gdk.keyval_name(event.keyval)
@@ -597,7 +615,7 @@ class EnterList(EventObject):
             if selection != None: 
                 (model, iter) = selection.get_selected( )
                 if  iter != None and self.model.get_value(iter, EnterList.COLUMN_MARK_ROW) != "*":
-                    md = gtk.MessageDialog(self.core.main_window, 
+                    md = gtk.MessageDialog(self.window, 
                         gtk.DIALOG_MODAL, gtk.MESSAGE_QUESTION,
                         gtk.BUTTONS_YES_NO, "Do you want delete selected row?")
                     md.set_title("Delete row")
@@ -608,7 +626,10 @@ class EnterList(EventObject):
                     else: 
                         self.selected_old = None
                         self.iter_del = iter
-                        self.emit("del")
+                        if self.cb_action:
+                            self.cb_action("del")
+                        else:
+                            self.emit("del")
 
     def __cb_leave_row(self,widget, event):
         pass
