@@ -117,11 +117,14 @@ class MenuButtonScan(abstract.MenuButton):
         self.add_sender(self.id, "export")
         self.add_receiver("gui:btn:menu:scan", "export", self.__export)
 
+    def __update_profile(self):
+        if self.core.selected_profile != None:
+            self.notifications.append(self.core.notify("Selected profile: \"%s\"." % (self.core.selected_profile,), 0))
+        else: self.notifications.append(self.core.notify("Selected default document profile.", 0))
+
     def activate(self, active):
         if active:
-            if self.core.selected_profile != None:
-                self.notifications.append(self.core.notify("Selected profile: \"%s\"." % (self.core.selected_profile,), 0))
-            else: self.notifications.append(self.core.notify("Selected default document profile.", 0))
+            self.__update_profile()
         else:
             for notify in self.notifications:
                 notify.destroy()
@@ -141,7 +144,7 @@ class MenuButtonScan(abstract.MenuButton):
     def __cb_profile(self, widget):
         for notify in self.notifications:
             notify.destroy()
-        ProfileChooser(self.core)
+        ProfileChooser(self.core, self.__update_profile)
 
     def __cb_start(self, widget):
         for notify in self.notifications:
@@ -163,7 +166,8 @@ class ProfileChooser(abstract.Window):
     Modal window for choosing profile before scan
     """
 
-    def __init__(self, core):
+    def __init__(self, core, callback=None):
+        self.callback = callback
         self.core = core
         self.builder = gtk.Builder()
         self.builder.add_from_file("/usr/share/scap-workbench/profile_chooser.glade")
@@ -174,6 +178,13 @@ class ProfileChooser(abstract.Window):
         self.profile_model.fill()
         self.builder.get_object("profile_chooser:btn_ok").connect("clicked", self.__cb_profile_changed, self.profiles)
 
+        # select profile
+        iter = self.profiles.get_model().get_iter_first()
+        for i, profile in enumerate(self.profile_model.model):
+            if self.core.selected_profile == profile[0]:
+                self.profiles.get_selection().select_iter(iter)
+            iter = self.profiles.get_model().iter_next(iter)
+
     def __cb_profile_changed(self, widget, tw):
         selection = tw.get_selection()
         model, it = selection.get_selected()
@@ -181,6 +192,7 @@ class ProfileChooser(abstract.Window):
             logger.error("Nothing selected or bug ??")
             return
         self.core.selected_profile = model.get_value(it, 0)
+        if self.callback: self.callback()
         self.window.destroy()
         return self.core.selected_profile
 

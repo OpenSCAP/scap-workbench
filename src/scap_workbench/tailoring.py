@@ -56,7 +56,6 @@ class ItemList(abstract.List):
 
         # actions
         self.add_receiver("gui:btn:menu:tailoring", "update", self.__update)
-        #self.add_receiver("gui:btn:tailoring", "update", self.__update)
         self.add_receiver("gui:btn:tailoring:filter", "search", self.__search)
         self.add_receiver("gui:btn:tailoring:filter", "filter_add", self.__filter_add)
         self.add_receiver("gui:btn:tailoring:filter", "filter_del", self.__filter_del)
@@ -487,11 +486,14 @@ class MenuButtonTailoring(abstract.MenuButton):
         # set signals
         self.add_sender(self.id, "update")
 
+    def update(self):
+        for i, profile in enumerate(self.profile_model.model):
+            if self.core.selected_profile == profile[0]:
+                self.profiles.set_active(i)
+
     def __profiles_update(self):
 
         # need update because of new file loaded
-        print "PROFILE UPDATE"
-        if self.core.force_reload_profiles: print "FORCE"
         self.profile_model.fill()
         self.profiles.set_active(0)
         self.core.selected_profile = self.profile_model.model[self.profiles.get_active()][0]
