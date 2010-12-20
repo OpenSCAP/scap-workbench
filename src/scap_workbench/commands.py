@@ -518,7 +518,9 @@ class DHValues(DataHandler):
         # Append a couple of rows.
         item = self.core.lib["policy_model"].benchmark.get_item(self.core.selected_item)
         values = self.get_item_values(self.core.selected_item)
-        color = ["gray", "black"][self.get_selected(item, self.items_model)]
+        # TODO: The 0:gray value is not working cause of error in get_selected that values stay the same color
+        # after selecting rule/group
+        color = ["black", "black"][self.get_selected(item, self.items_model)]
         for value in values:
             lang = value["lang"]
             model = gtk.ListStore(str, str)
@@ -600,7 +602,7 @@ class DHItemsTree(DataHandler, EventObject):
         self.model = self.new_model()
         self.ref_model = self.model
         treeView.set_model(self.model)
-                
+
         """This Cell is used to be first hidden column of tree view
         to identify the item in list"""
         txtcell = gtk.CellRendererText()
@@ -630,6 +632,7 @@ class DHItemsTree(DataHandler, EventObject):
         column.add_attribute(txtcell, 'foreground', DHItemsTree.COLUMN_COLOR)
         column.set_resizable(True)
         treeView.append_column(column)
+        #treeView.set_expander_column(column)
 
         """Cell with picture representing if the item is selected or not
         """
