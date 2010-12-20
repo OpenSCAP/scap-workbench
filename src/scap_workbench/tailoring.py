@@ -56,7 +56,7 @@ class ItemList(abstract.List):
 
         # actions
         self.add_receiver("gui:btn:menu:tailoring", "update", self.__update)
-        self.add_receiver("gui:btn:tailoring", "update", self.__update)
+        #self.add_receiver("gui:btn:tailoring", "update", self.__update)
         self.add_receiver("gui:btn:tailoring:filter", "search", self.__search)
         self.add_receiver("gui:btn:tailoring:filter", "filter_add", self.__filter_add)
         self.add_receiver("gui:btn:tailoring:filter", "filter_del", self.__filter_del)
@@ -70,24 +70,17 @@ class ItemList(abstract.List):
 
     def __update(self):
 
-        fill = False
         if "profile" not in self.__dict__ or self.profile != self.core.selected_profile or self.core.force_reload_items:
-            fill = True
-            
-        elif self.model_changed == True:
-            md = gtk.MessageDialog(self.window, 
-                    gtk.DIALOG_MODAL, gtk.MESSAGE_QUESTION,
-                    gtk.BUTTONS_YES_NO, "Some items were added or deleted. \n Do you want update profile? ")
-            md.set_title("Data changed")
-            result = md.run()
-            md.destroy()
-            if result == gtk.RESPONSE_NO:
-                fill = False
-            else: 
-                fill = True
-
+            if self.model_changed == True:
+                md = gtk.MessageDialog(self.window, 
+                        gtk.DIALOG_MODAL, gtk.MESSAGE_QUESTION,
+                        gtk.BUTTONS_YES_NO, "Some items were added or deleted. \n Do you want update profile? ")
+                md.set_title("Data changed")
+                result = md.run()
+                md.destroy()
+                if result == gtk.RESPONSE_NO:
+                    return
                 
-        if fill:
             self.model_changed == False
             self.profile = self.core.selected_profile
             self.get_TreeView().set_model(self.data_model.model)
@@ -479,6 +472,8 @@ class MenuButtonTailoring(abstract.MenuButton):
         self.profiles.set_active(0)
         self.profiles.connect("changed", self.__cb_profile_changed, self.profiles.get_model())
 
+        self.add_receiver("gui:btn:main:xccdf", "load", self.__profiles_update)
+
         #draw body
         self.body = self.builder.get_object("tailoring:box")
         self.draw_nb(self.builder.get_object("tailoring:box_nb"))
@@ -492,11 +487,20 @@ class MenuButtonTailoring(abstract.MenuButton):
         # set signals
         self.add_sender(self.id, "update")
 
+    def __profiles_update(self):
+
+        # need update because of new file loaded
+        print "PROFILE UPDATE"
+        if self.core.force_reload_profiles: print "FORCE"
+        self.profile_model.fill()
+        self.profiles.set_active(0)
+        self.core.selected_profile = self.profile_model.model[self.profiles.get_active()][0]
+
     def __cb_profile_changed(self, widget, model):
 
-        self.core.selected_profile = model[self.profiles.get_active()][0]
-        self.emit("update")
-
+        if self.profiles.get_active() != -1:
+            self.core.selected_profile = model[self.profiles.get_active()][0]
+            self.emit("update")
 
     # draw notebook
     def draw_nb(self, box):

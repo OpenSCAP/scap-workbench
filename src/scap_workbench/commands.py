@@ -1287,12 +1287,6 @@ class DHEditItems:
                     logger.error("Bad number of column.")
             else:
                 item.title.remove(object)
-                #iter_title = item.get_title()
-                #while iter_title.has_more():
-                    #object_title = iter_title.next()
-                    #if object == object_title:
-                        #iter_title.remove()
-                        #break
                 model.remove(iter)
         else:
             logger.error("Error: Not read item.")

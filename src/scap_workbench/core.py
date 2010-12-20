@@ -151,8 +151,8 @@ class SWBCore:
             logger.error("FATAL: Benchmark does not exist")
             raise Exception("Can't initialize openscap library")
         if not benchmark.lang in self.langs: 
-            self.selected_lang = benchmark.lang
             self.langs.append(benchmark.lang)
+        self.selected_lang = benchmark.lang
         if benchmark.lang == None:
             self.notify("XCCDF Benchmark: No language specified.", 2)
 
@@ -175,6 +175,7 @@ class SWBCore:
         self.registered_callbacks = False
         self.force_reload_items = True
         self.force_reload_profiles = True
+        self.selected_profile = None
 
     def __destroy__(self):
         if self.lib == None: return
