@@ -167,8 +167,11 @@ class Edit_abs:
         self.dialogInfo("Choose row which you want edit.")
         
         
-    def dialogInfo(self, text):
-        md = gtk.MessageDialog(self.core.main_window, 
+    def dialogInfo(self, text, window=None):
+        if not window:
+            window = self.core.main_window
+            
+        md = gtk.MessageDialog(window, 
                     gtk.DIALOG_MODAL, gtk.MESSAGE_INFO,
                     gtk.BUTTONS_OK, text)
         md.set_title("Info")
@@ -2303,13 +2306,6 @@ class EditSelectIdDialogWindow():
         column.set_expand(True)
         column.set_resizable(True)
         self.tw_search.append_column(column)
-
-        #cell = gtk.CellRendererToggle()
-        #cell.set_property('activatable', True)
-        #cell.connect( 'toggled', self.__cb_toggled )
-        #column = gtk.TreeViewColumn("To add", cell )
-        #column.add_attribute( cell, "active", self.COLUMN_SELECTED)
-        #self.tw_search.append_column(column)
         
         self.tw_search.set_model(self.model_search)
         
@@ -2367,7 +2363,6 @@ class EditSelectIdDialogWindow():
                 self.model_conflict.append([id_add])
             iter_add = self.model_to_add.iter_next(iter_add)
         self.window.destroy()
-            
             
     def __cb_del_row1(self, widget, event):
         keyname = gtk.gdk.keyval_name(event.keyval)
@@ -2487,17 +2482,18 @@ class EditSelectIdDialogWindow():
     
 
 
-class EditValueDialogWindow():
+class EditValueDialogWindow(Edit_abs):
     
     COLUMN_SELECTOR = 0
     COLUMN_VALUE = 1
     COLUMN_MODEL_CHOICES = 2
     COLUMN_OBJECT = 3
     
-    def __init__(self, value,  core, tw_instance, cb, edit=False):
+    def __init__(self, value, core, tw_instance, cb, edit=False):
         self.core = core
         self.item = value
         self.cb = cb
+        self.edit = edit
         self.model_combo_choices = gtk.ListStore(str, str)
         
         if edit:
@@ -2507,7 +2503,7 @@ class EditValueDialogWindow():
                 self.instance= self.model.get_value(iter, self.COLUMN_OBJECT)
                 #self.model_combo_choices = self.model.get_value(iter, self.COLUMN_MODEL_CHOICES)
 
-        type = value.get_type()
+        self.type = value.type
 
         builder = gtk.Builder()
         builder.add_from_file("/usr/share/scap-workbench/edit_item.glade")
@@ -2529,6 +2525,8 @@ class EditValueDialogWindow():
         self.text_match = builder.get_object("edit_value:text_match")
         self.text_uper_bound = builder.get_object("edit_value:text_uper_bound")
         self.text_lower_bound = builder.get_object("edit_value:text_lower_bound")
+        self.text_uper_bound.connect("focus-out-event", self.cb_control_bound, "upper")
+        self.text_lower_bound.connect("focus-out-event", self.cb_control_bound, "lower")
         
         self.combo_default = builder.get_object("edit_value:combo_default")
         cell = gtk.CellRendererText()
@@ -2536,8 +2534,17 @@ class EditValueDialogWindow():
         self.combo_default.add_attribute(cell, 'text', 1)  
         self.combo_default.connect( "changed", self.cb_combo_default)
         self.combo_default.set_model(self.model_combo_choices)
+
+        self.comboEntry_default = builder.get_object("edit_value:comboEntry_default")
+        #cell = gtk.CellRendererText()
+        #self.comboEntry_default.pack_start(cell, True)
+        #self.comboEntry_default.add_attribute(cell, 'text', 1)  
+        self.comboEntry_default.set_text_column(1)
+        self.comboEntry_default.connect( "changed", self.cb_combo_default)
+        self.comboEntry_default.set_model(self.model_combo_choices)
         
         self.chBox_mustMatch = builder.get_object("edit_value:chBox_mustMatch")
+        self.chBox_mustMatch.connect("toggled", self.cb_mustMatch)
         self.tv_choices = builder.get_object("edit_value:tv_choices")
 
         btn_ok = builder.get_object("edit_value:btn_ok")
@@ -2548,8 +2555,17 @@ class EditValueDialogWindow():
         if edit:
             self.text_selector.set_text(self.instance.selector)
             self.chBox_mustMatch.set_active(self.instance.must_match)
+            if self.instance.must_match:
+                self.comboEntry_default.hide()
+                self.combo_default.show()
+            else:
+                self.comboEntry_default.show()
+                self.combo_default.hide()
+        else:
+            self.comboEntry_default.show()
+            self.combo_default.hide()
             
-        if type  == openscap.OSCAP.XCCDF_TYPE_NUMBER:
+        if self.type  == openscap.OSCAP.XCCDF_TYPE_NUMBER:
             self.lbl_type.set_text("Number")
             if edit:
                 self.text_uper_bound.set_text(str(self.instance.upper_bound))
@@ -2560,7 +2576,7 @@ class EditValueDialogWindow():
             self.lbl_match.set_sensitive(False)
             self.text_match.set_sensitive(False)
             
-        elif type  == openscap.OSCAP.XCCDF_TYPE_STRING:
+        elif self.type  == openscap.OSCAP.XCCDF_TYPE_STRING:
             self.lbl_type.set_text("String")
             if edit:
                 if self.instance.match:
@@ -2575,7 +2591,7 @@ class EditValueDialogWindow():
             self.lbl_lower_bound.set_sensitive(False)
 
 
-        elif type  == openscap.OSCAP.XCCDF_TYPE_BOOLEAN:
+        elif self.type  == openscap.OSCAP.XCCDF_TYPE_BOOLEAN:
             self.lbl_type.set_text("Boolean")
 
             self.model_combo_choices.append(["", "True"])
@@ -2597,44 +2613,132 @@ class EditValueDialogWindow():
         EditValueChoice (core, self.model_combo_choices, self.tv_choices, self.window)
         self.show()
 
+    def cb_control_bound(self, widget, event, data):
+        
+        if widget.get_text() != "" and widget.get_text() != "nan":
+            try:
+                data = float(widget.get_text())
+            except:
+                self.dialogInfo("Invalid number in %s bound." % (data), self.window)
+                widget.set_text("")
+                return
+
+            upper = self.text_uper_bound.get_text()
+            lower = self.text_lower_bound.get_text()
+
+            if upper == "" or upper == "nan" or lower == "" or lower == "nan":
+                return
+            elif lower >= upper:
+                self.dialogInfo("Upper bound must be greater then lower bound.", self.window)
+                widget.set_text("")
+
     def cb_combo_default(self, widget):
-        pass
+        active = widget.get_active()
+        if widget == self.combo_default:
+            self.comboEntry_default.set_active(active)
+        else:
+            self.combo_default.set_active(active)
+
+    def cb_mustMatch(self, widget):
+        if widget.get_active():
+            self.comboEntry_default.hide()
+            self.combo_default.show()
+        else:
+            self.comboEntry_default.show()
+            self.combo_default.hide()
 
     def __cb_do(self, widget):
+        poc = 0
         
-        iter_add =  self.model_to_add.get_iter_first()
-        while iter_add:
-            #add row, which not added before
-            exist = False
-            iter = self.model_conflict.get_iter_first()
-            id_add = self.model_to_add.get_value(iter_add,self.COLUMN_ID)
-            while iter:
-                if id_add == self.model_conflict.get_value(iter,self.COLUMN_ID):
-                    exist = True
-                iter = self.model_conflict.iter_next(iter)
-            if not exist:
-                self.cb(self.item, id_add, True)
-                self.model_conflict.append([id_add])
-            iter_add = self.model_to_add.iter_next(iter_add)
-        self.window.destroy()
-            
-            
-    def __cb_del_row1(self, widget, event):
-        keyname = gtk.gdk.keyval_name(event.keyval)
-        if keyname == "Delete":
-            selection = self.tw_add.get_selection( )
-            if selection != None: 
-                (model, iter) = selection.get_selected( )
-                if  iter != None:
-                    model.remove(iter)
+        # control if selector not exist or empty
+        for ins in self.item.instances:
+            if ins.selector == self.text_selector.get_text():
+                poc = poc + 1
 
-                        
-    def __cb_del_row(self, widget):
-        selection = self.tw_add.get_selection()
-        (model, iter) = selection.get_selected()
-        if iter != None:
-            model.remove(iter)
+        if (poc == 1 and not self.edit) or (self.edit and poc == 1 and self.text_selector.get_text() != self.instance.selector):
+            self.dialogInfo("Selector already exist. \n Change selector.", self.window)
+            return
+        
+        #if self.text_selector.get_text() == "":
+            #self.dialogInfo("Selector can't be empty.", self.window)
+            #return      
+        
+        #control default
+        if (not self.chBox_mustMatch.get_active()) and self.comboEntry_default.get_active() == -1:
+            if not self.control_data(self.comboEntry_default.get_active_text(), "Default"):
+                return
             
+        # control choice must be at least, becouse remove mark row from model
+        iter_ch = self.model_combo_choices.get_iter_first()
+        while iter_ch:
+            
+            #if model has * in mark_column is it end  
+            mark = self.model_combo_choices.get_value(iter_ch, 0)
+            if mark == "*":
+                # after remove * must control finish by succead
+                self.model_combo_choices.remove(iter_ch)
+                break
+
+            #control data
+            data = self.model_combo_choices.get_value(iter_ch, 1)
+            if not self.control_data(data, "choices"):
+                return
+            iter_ch = self.model_combo_choices.iter_next(iter_ch)
+
+        #all control ready
+        selector = self.text_selector.get_text()
+        match = self.text_match.get_text()
+        upper = self.text.upper_bound.get_text()
+        lower = self.text.lower_bound.get_text()
+        mustMuch = self.chBox_mustMatch.get_active()
+
+        if not mustMuch:
+            default = self.comboEntry_default.get_active_text()
+        else:
+            default = self.combo_default.get_active_text()
+
+        if edit:
+            self.cb(self.edit, self.instance, self.type, selector, match, upper, bound, default, mustMuch, self.model_combo_choices)
+        else:
+            self.cb(self.edit, self.item, self.type, selector, match, upper, bound, default, mustMuch, self.model_combo_choices)
+
+        self.window.destroy()
+
+    def control_data(self, data, text):
+        """Control data about type and set parameter
+            param data is string
+            return False if data is incorrect
+        """
+        if data != "":
+            if self.type == openscap.OSCAP.XCCDF_TYPE_NUMBER:
+                try:
+                    data = float(data)
+                except Exception, e:
+                    self.dialogInfo("Invalid number '%s' in %s." % (data, text), self.window)
+                    return False
+                    
+                low = self.text_lower_bound.get_text()
+                uper = self.text_uper_bound.get_text()
+                # control low
+                if low != "" and low != "nan":
+                    low = float(low)
+                    if data < low:
+                        self.dialogInfo("Number %f can't be less then Lower bound." % (data), self.window)
+                        return False
+                #control uper
+                if uper != "" and uper != "nan":
+                    uper = float(uper)
+                    if data > uper:
+                        self.dialogInfo("Number %f can't be over Upper bound." % (data), self.window)
+                        return False
+
+            elif self.type == openscap.OSCAP.XCCDF_TYPE_STRING:
+                pattern = re.compile(self.text_match.get_text(),re.IGNORECASE)
+                if pattern.search(data) == None:
+                    self.dialogInfo("String '%s' isn't match with regular expression in field match." % data, self.window)
+                    return False
+        return True
+        
     def show(self):
         self.window.set_transient_for(self.core.main_window)
         self.window.show()
@@ -2647,7 +2751,6 @@ class EditValueChoice(commands.DataHandler, abstract.EnterList):
     COLUMN_MARK_ROW = 0
     COLUMN_CHOICE = 1
 
-    
     def __init__(self, core, model, treeView, window):
 
         self.model = model

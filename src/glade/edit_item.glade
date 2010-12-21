@@ -797,7 +797,8 @@
                           <object class="GtkLabel" id="edit_value:lbl_uper_bound">
                             <property name="visible">True</property>
                             <property name="xalign">0</property>
-                            <property name="label" translatable="yes">Uper bound:</property>
+                            <property name="yalign">0.49000000953674316</property>
+                            <property name="label" translatable="yes">Upper bound:</property>
                           </object>
                           <packing>
                             <property name="top_attach">3</property>
@@ -901,18 +902,6 @@
                           </packing>
                         </child>
                         <child>
-                          <object class="GtkComboBoxEntry" id="edit_value:combo_default">
-                            <property name="visible">True</property>
-                          </object>
-                          <packing>
-                            <property name="left_attach">1</property>
-                            <property name="right_attach">2</property>
-                            <property name="top_attach">5</property>
-                            <property name="bottom_attach">6</property>
-                            <property name="y_options">GTK_FILL</property>
-                          </packing>
-                        </child>
-                        <child>
                           <object class="GtkLabel" id="edit_value:lbl_mustMatch">
                             <property name="visible">True</property>
                             <property name="xalign">0</property>
@@ -949,6 +938,36 @@
                             <property name="right_attach">2</property>
                             <property name="top_attach">1</property>
                             <property name="bottom_attach">2</property>
+                          </packing>
+                        </child>
+                        <child>
+                          <object class="GtkVBox" id="vbox5">
+                            <property name="visible">True</property>
+                            <property name="orientation">vertical</property>
+                            <child>
+                              <object class="GtkComboBoxEntry" id="edit_value:comboEntry_default">
+                                <property name="visible">True</property>
+                                <property name="column_span_column">0</property>
+                                <property name="active">7</property>
+                              </object>
+                              <packing>
+                                <property name="position">0</property>
+                              </packing>
+                            </child>
+                            <child>
+                              <object class="GtkComboBox" id="edit_value:combo_default">
+                                <property name="visible">True</property>
+                              </object>
+                              <packing>
+                                <property name="position">1</property>
+                              </packing>
+                            </child>
+                          </object>
+                          <packing>
+                            <property name="left_attach">1</property>
+                            <property name="right_attach">2</property>
+                            <property name="top_attach">5</property>
+                            <property name="bottom_attach">6</property>
                           </packing>
                         </child>
                       </object>

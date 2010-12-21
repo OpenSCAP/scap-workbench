@@ -1792,6 +1792,32 @@ class DHEditItems:
                 logger.error("Add conflicts: %s" % (e,))
         else:
             pass
+
+    def DHEditValueInstance(self, edit, item, type, selector, match, upper, lower, default, mustMuch, model_combo_choices)
+        if not edit:
+            logger.error("create instance not implemented")
+        
+        instance = item
+        if type == openscap.OSCAP.XCCDF_TYPE_NUMBER:
+            instance.set_defval_number(default)
+            instance.set_lower_bound(lower)
+            instance.set_upper_bound(upper)
+            
+        elif type == openscap.OSCAP.XCCDF_TYPE_STRING:
+            instance.set_defval_string(default)
+            instance.set_match(match)
+            
+        elif type  == openscap.OSCAP.XCCDF_TYPE_BOOLEAN:
+            instance.set_defval_boolean(default)
+    
+        instance.set_must_match(mustMuch)
+        instance.set_selector(selector)
+        
+        logger.error("Delete all choices not implemented")
+        
+        iter = model_combo_choices.get_iter_first()
+        #while iter:
+        logger.error("Add choices not implemented")   
         
     def DHEditRequires(self, item, id, add):
         if add:
