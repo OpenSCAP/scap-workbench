@@ -1198,10 +1198,11 @@ class DHScan(DataHandler, EventObject):
 
     def export_report(self, file):
         params = [ 
-            "result-id",         "OSCAP-Test-F14-Desktop",
+            "result-id",         "OSCAP-Test-"+(self.core.selected_profile or "default-profile"),
             "profile",           self.core.selected_profile,
             "verbosity",         "1", None]
 
+        print params[1]
         retval = openscap.common.oscap_apply_xslt(file, "xccdf-report.xsl", "report.xhtml", params)
         logger.info("Export report file %s" % (["failed: %s" % (openscap.common.err_desc(),), "done"][retval],))
         browser_val = webbrowser.open("report.xhtml")
