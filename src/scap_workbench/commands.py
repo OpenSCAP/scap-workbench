@@ -1113,19 +1113,16 @@ class DHScan(DataHandler, EventObject):
         if result == openscap.OSCAP.XCCDF_RESULT_NOT_SELECTED: 
             return self.__cancel
 
-        step = (100.0/(self.__rules_count or 1.0))/100.0
-
-        logger.debug("[%s/%s] Scanning rule %s" % (int(self.__progress.get_fraction()/step), self.__rules_count, msg.user1str))
         if self.__progress != None:
             gtk.gdk.threads_enter()
-            fract = self.__progress.get_fraction()+step
+            fract = self.__progress.get_fraction()+self.step
             if fract < 1.0: self.__progress.set_fraction(fract)
             else: self.__progress.set_fraction(1.0)
-            self.__progress.set_text("Scanning rule %s ... (%s/%s)" % (msg.user1str, int(self.__progress.get_fraction()/step), self.__rules_count))
+            self.__progress.set_text("Scanning rule %s ... (%s/%s)" % (msg.user1str, int(self.__progress.get_fraction()/self.step), self.__rules_count))
+            logger.debug("[%s/%s] Scanning rule %s" % (int(self.__progress.get_fraction()/self.step), self.__rules_count, msg.user1str))
             self.__progress.set_tooltip_text("Scanning rule %s" % (" ".join(msg.user3str.split()),))
             gtk.gdk.threads_leave()
 
-        self.__last = int(self.__progress.get_fraction()/step)
         return self.__cancel
 
     def __callback_end(self, msg, plugin):
@@ -1142,6 +1139,7 @@ class DHScan(DataHandler, EventObject):
         self.fill([msg.user1str, msg.user2num, False, title, desc])
         self.emit("filled")
         self.treeView.queue_draw()
+        self.__last = int(round(self.__progress.get_fraction()/self.step))
         gtk.gdk.threads_leave()
 
         return self.__cancel
@@ -1170,12 +1168,12 @@ class DHScan(DataHandler, EventObject):
             self.policy = self.core.lib["policy_model"].policies[0]
         else: self.policy = self.core.lib["policy_model"].get_policy_by_id(self.core.selected_profile)
 
-        self.__rules_count = 0
-        for item in self.policy.selected_rules:
-            if item.selected: self.__rules_count += 1
-        # TODO: library bug
-        #self.__rules_count = len(self.policy.selected_rules)
+        #self.__rules_count = 0
+        #for item in self.policy.selected_rules:
+            #self.__rules_count += 1
+        self.__rules_count = len(self.policy.selected_rules)
         self.core.registered_callbacks = True
+        self.step = (100.0/(self.__rules_count or 1.0))/100.0
         return True
         
     def cancel(self):
