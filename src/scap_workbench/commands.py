@@ -1284,6 +1284,7 @@ class DHEditItems:
                 else:
                     logger.error("Bad number of column.")
             else:
+                logger.debug("Removing %s" %(object,))
                 item.title.remove(object)
                 model.remove(iter)
         else:
@@ -1310,7 +1311,8 @@ class DHEditItems:
                 else:
                     logger.error("Bad number of column.")
             else:
-                logger.info ("TODO delete Description.")
+                logger.debug("Removing %s" %(object,))
+                item.description.remove(object)
                 model.remove(iter)  
         else:
             logger.error("Error: Not read item.")
@@ -1328,8 +1330,7 @@ class DHEditItems:
 
             if not object:
                 object = openscap.xccdf.warning_new()
-                object_text = openscap.common.text_new()
-                object.set_text(object_text)
+                object.set_text(openscap.common.text_new())
                 item.add_warning(object)
                 model.set_value(iter, COLUMN_OBJECT, object)
             elif  not delete:
@@ -1344,7 +1345,8 @@ class DHEditItems:
                 else:
                     logger.error("Bad number of column.")
             else:
-                logger.info ("TODO delete Warningn.")
+                logger.debug("Removing %s" %(object,))
+                item.warnings.remove(object)
                 model.remove(iter) 
         else:
             logger.error("Error: Not read item.")
@@ -1371,7 +1373,8 @@ class DHEditItems:
                 else:
                     logger.error("Bad number of column.")
             else:
-                logger.info ("TODO deleteStatus.")
+                logger.debug("Removing %s" %(object,))
+                item.statuses.remove(object)
                 model.remove(iter) 
         else:
             logger.error("Error: Not read item.")
@@ -1399,7 +1402,8 @@ class DHEditItems:
                 else:
                     logger.error("Bad number of column.")
             else:
-                logger.info ("TODO delete Ident.")
+                logger.debug("Removing %s" %(object,))
+                item.idents.remove(object)
                 model.remove(iter)  
         else:
             logger.error("Error: Not read item.")
@@ -1425,7 +1429,8 @@ class DHEditItems:
                 else:
                     logger.error("Bad number of column.")
             else:
-                logger.info ("TODO delete Question.")
+                logger.debug("Removing %s" %(object,))
+                item.question.remove(object)
                 model.remove(iter)  
         else:
             logger.error("Error: Not read item.")
@@ -1451,7 +1456,8 @@ class DHEditItems:
                 else:
                     logger.error("Bad number of column.")
             else:
-                logger.info ("TODO delete Rationale.")
+                logger.debug("Removing %s" %(object,))
+                item.rationale.remove(object)
                 model.remove(iter)  
         else:
             logger.error("Error: Not read item.")
@@ -1483,8 +1489,8 @@ class DHEditItems:
                     else:
                         logger.error("Bad number of column.")
             else:
+                logger.debug("Removing %s" %(value,))
                 item.platforms.remove(value)
-                logger.info ("TODO delete Platform.")
                 model.remove(iter)  
         else:
             logger.error("Error: Not read item.")

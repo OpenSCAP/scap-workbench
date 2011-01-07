@@ -540,10 +540,8 @@ class MenuButtonEdit(abstract.MenuButton, commands.DHEditItems, Edit_abs):
             else:
                 self.lbl_extends.set_text("None")
 
-            
             # dat only for rule
             if details["typetext"] == "Rule":
-
                 self.cBox_severity.set_sensitive(True)
                 if details["severity"] != None:
                     model_sev = self.cBox_severity.get_model()
@@ -591,12 +589,8 @@ class MenuButtonEdit(abstract.MenuButton, commands.DHEditItems, Edit_abs):
                 
                 # clean hide data only for group and set insensitive
 
-                
             #data only for Group
             else:
-
-                
-                
                 # clean data only for rule and set insensitive
                 self.cBox_severity.set_sensitive(False)
                 self.cBox_severity.handler_block_by_func(self.cb_cBox_severity)
