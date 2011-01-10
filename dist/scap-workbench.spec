@@ -30,6 +30,9 @@ is based on OpenSCAP library.
 %install
 rm -rf $RPM_BUILD_ROOT
 make install DESTDIR=$RPM_BUILD_ROOT
+desktop-file-install					\
+	--dir $RPM_BUILD_ROOT%{_datadir}/applications	\
+	$RPM_BUILD_ROOT%{_datadir}/applications/scap-workbench.desktop
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -44,6 +47,8 @@ rm -rf $RPM_BUILD_ROOT
 %dir /usr/share/scap-workbench/
 /usr/share/scap-workbench/*
 %{_mandir}/man8/scap-workbench.8.gz
+%{_datadir}/applications/scap-workbench.desktop
+%{_datadir}/pixmaps/scap-workbench.png
 
 %changelog
 * Thu Oct 21 2010 Peter Vrabec <pvrabec@redhat.com> 0.1.0-1

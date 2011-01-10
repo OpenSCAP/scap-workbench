@@ -1,0 +1,10 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=scap-workbench
+Comment=The security auditting tool
+TryExec=scap-workbench
+Exec=scap-workbench
+Icon=scap-workbench
+Categories=System;
+X-Desktop-File-Install-Version=0.2
