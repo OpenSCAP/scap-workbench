@@ -43,6 +43,7 @@ rm -rf $RPM_BUILD_ROOT
 %{python_sitelib}/scap_workbench/*
 %dir /usr/share/scap-workbench/
 /usr/share/scap-workbench/*
+%{_mandir}/man8/scap-workbench.8.gz
 
 %changelog
 * Thu Oct 21 2010 Peter Vrabec <pvrabec@redhat.com> 0.1.0-1

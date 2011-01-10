@@ -1,0 +1,41 @@
+.TH scap-workbench "8" "Jan 2011" "Red Hat" "System Administration Utilities"
+
+.SH NAME
+scap-workbench \- graphical tool for maintaining the security of systems
+
+.SH SYNOPSIS
+\fBscap-workbench\fR [\fI-D\fR]
+
+.SH DESCRIPTION
+scap-workbench is GUI tool for maintaining the security of systems. The maintainance 
+is based on SCAP standards - specifically XCCDF and OVAL. This tool enables users to:
+.RS
+ * perform security scans driven by SCAP content \fB(scanner)\fR
+ * adjust XCCDF scanning profiles \fB(tailor)\fR
+ * create or edit existing XCCDF and OVAL content files \fB(editor)\fR
+
+.SH OPTIONS
+.TP
+\fB\-D, -\-debug\fR
+print dubugging information
+
+
+.SH SCAP CONTENT
+There is a content provided by OpenSCAP library available in \fBopenscap-content\fR package.
+
+Other sources of SCAP content are:
+.TP
+\fBNational Vulnerability Database\fR - \fIhttp://web.nvd.nist.gov/view/ncp/repository\fR
+.TP
+\fBRed Hat content repository\fR - \fIhttp://www.redhat.com/security/data/oval/\fR
+
+
+.SH AUTHOR
+Peter Vrabec <pvrabec@redhat.com>
+
+.SH NOTES
+oscap-workbench is based on OpenSCAP library - \fIhttp://www.open-scap.org\fR
+
+.SH SEE ALSO
+oscap(8)
+

@@ -26,6 +26,7 @@ MODE_REG = -m 644
 install:
 	test -d $(BINDIR) || $(INSTALL) $(MODE_DIR) -d $(BINDIR)
 	test -d $(SYSCONFDIR)/$(PKG) || $(INSTALL) $(MODE_DIR) -d $(SYSCONFDIR)/$(PKG)
+	test -d $(MANDIR)/man8 || $(INSTALL) $(MODE_DIR) -d $(MANDIR)/man8
 	test -d $(DATADIR)/$(PKG) || $(INSTALL) $(MODE_DIR) -d $(DATADIR)/$(PKG)
 	test -d $(PYTHON_LIB) || $(INSTALL) $(MODE_DIR) -d $(PYTHON_LIB)
 	test -d $(PYTHON_LIB_PKG) || $(INSTALL) $(MODE_DIR) -d $(PYTHON_LIB_PKG)
@@ -35,6 +36,8 @@ install:
 	$(INSTALL) $(MODE_REG) src/etc/logger.conf $(SYSCONFDIR)/$(PKG)/logger.conf
 	$(INSTALL) $(MODE_REG) src/glade/*.glade $(DATADIR)/$(PKG)
 	$(INSTALL) $(MODE_REG) src/$(WRK_PKG)/filters/*.py $(DATADIR)/$(PKG)/filters
+	$(INSTALL) $(MODE_REG) src/man/* $(MANDIR)/man8
+	gzip -f $(MANDIR)/man8/scap-workbench.8
 
 archive: clean
 	@rm -rf $(PKG)-$(VERSION).tar.bz2
