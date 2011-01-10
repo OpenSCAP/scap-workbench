@@ -257,6 +257,7 @@ class ItemList(abstract.List):
     def __init__(self, widget, core, builder=None, progress=None, filter=None):
 
         self.data_model = commands.DHItemsTree("gui:edit:DHItemsTree", core, progress, True)
+        self.edit_model = commands.DHEditItems()
         abstract.List.__init__(self, "gui:edit:item_list", core, widget)
         self.core = core
         self.loaded_new = True
@@ -334,8 +335,8 @@ class ItemList(abstract.List):
     def __cb_item_add(self, widget):
         selection = self.get_TreeView().get_selection()
         (model,iter) = selection.get_selected()
-        #if iter:
-            #EditAddDialogWindow(self.core, self.data_model.get_item(model[iter][0]), self, self.ref_model, self.DHEditAddItem )
+        if iter:
+            EditAddDialogWindow(self.core, self.data_model.get_item(model[iter][0]), self, self.ref_model, self.edit_model.DHEditAddItem )
 
     @threadSave
     def __cb_item_changed(self, widget, treeView):
