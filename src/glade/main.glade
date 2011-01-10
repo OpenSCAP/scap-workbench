@@ -4196,7 +4196,7 @@
                                                       </packing>
                                                     </child>
                                                     <child>
-                                                      <object class="GtkCheckButton" id="edit:other:chbox_multipl">
+                                                      <object class="GtkCheckButton" id="edit:other:chbox_multiple">
                                                         <property name="visible">True</property>
                                                         <property name="can_focus">True</property>
                                                         <property name="receives_default">False</property>

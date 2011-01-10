@@ -405,6 +405,7 @@ class DataHandler:
         return refs
 
     def get_benchmark_titles(self):
+        if not self.core.lib: return {}
         benchmark = self.core.lib["policy_model"].benchmark
         if not benchmark: return None
         titles = {}
@@ -412,8 +413,9 @@ class DataHandler:
             titles[title.lang] = title.text
         return titles
 
-    def remove_item(self, item, list_item):
-        logger.info("Removing item %s" %(item.id,))
+    def remove_item(self, id):
+        item = self.get_item(id)
+        logger.info("Removing item %s" %(id,))
         parent = item.parent
         parent.content.remove(item)
 

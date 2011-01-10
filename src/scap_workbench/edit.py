@@ -254,23 +254,28 @@ class Edit_abs:
 
 class ItemList(abstract.List):
 
-    def __init__(self, widget, core, progress=None, filter=None):
+    def __init__(self, widget, core, builder=None, progress=None, filter=None):
+
+        self.data_model = commands.DHItemsTree("gui:edit:DHItemsTree", core, progress, True)
+        abstract.List.__init__(self, "gui:edit:item_list", core, widget)
         self.core = core
         self.loaded_new = True
         self.old_selected = None
         self.filter = filter
         self.map_filter = {}
-        
-        self.data_model = commands.DHItemsTree("gui:edit:DHItemsTree", core, progress, True)
-        abstract.List.__init__(self, "gui:edit:item_list", core, widget)
+        self.builder = builder
         self.get_TreeView().set_enable_tree_lines(True)
+
+        # Popup Menu
+        self.builder.get_object("edit:list:popup:add").connect("activate", self.__cb_item_add)
+        self.builder.get_object("edit:list:popup:remove").connect("activate", self.__cb_item_remove)
+        widget.connect("button_press_event", self.__cb_button_pressed, self.builder.get_object("edit:list:popup"))
 
         selection = self.get_TreeView().get_selection()
         selection.set_mode(gtk.SELECTION_SINGLE)
 
         # actions
         self.add_receiver("gui:btn:menu:edit", "update", self.__update)
-        #self.add_receiver("gui:btn:menu:edit", "combo change", self.__reload_list)
         self.add_receiver("gui:btn:edit:filter", "search", self.__search)
         self.add_receiver("gui:btn:edit:filter", "filter_add", self.__filter_add)
         self.add_receiver("gui:btn:edit:filter", "filter_del", self.__filter_del)
@@ -281,7 +286,7 @@ class ItemList(abstract.List):
         self.add_sender(self.id, "item_changed")
 
         self.init_filters(self.filter, self.data_model.model, self.data_model.new_model())
-        
+
     def __update(self):
         if self.loaded_new == True:
             self.get_TreeView().set_model(self.data_model.model)
@@ -313,6 +318,24 @@ class ItemList(abstract.List):
         self.map_filter = self.filter_del(self.filter.filters)
         self.get_TreeView().get_model().foreach(self.set_selected, (self.core.selected_item, self.get_TreeView()))
 
+    def __cb_button_pressed(self, treeview, event, menu):
+        if event.button == 3:
+            time = event.time
+            menu.popup(None, None, None, event.button, event.time)
+
+    def __cb_item_remove(self, widget):
+        selection = self.get_TreeView().get_selection()
+        (model,iter) = selection.get_selected()
+        if iter:
+            self.data_model.remove_item(model[iter][0])
+            model.remove(iter)
+        else: raise AttributeError, "Removing non-selected item or nothing selected."
+
+    def __cb_item_add(self, widget):
+        selection = self.get_TreeView().get_selection()
+        (model,iter) = selection.get_selected()
+        #if iter:
+            #EditAddDialogWindow(self.core, self.data_model.get_item(model[iter][0]), self, self.ref_model, self.DHEditAddItem )
 
     @threadSave
     def __cb_item_changed(self, widget, treeView):
@@ -320,6 +343,10 @@ class ItemList(abstract.List):
         blinking when redrawing treeView
         """
         gtk.gdk.threads_enter()
+        details = self.data_model.get_item_objects(self.core.selected_item_edit)
+        if details != None:
+            self.item = details["item"]
+        else: self.item = None
         selection = treeView.get_selection( )
         if selection != None: 
             (model, iter) = selection.get_selected( )
@@ -332,6 +359,7 @@ class ItemList(abstract.List):
         self.emit("update")
         treeView.columns_autosize()
         gtk.gdk.threads_leave()
+
 
 class MenuButtonEdit(abstract.MenuButton, commands.DHEditItems, Edit_abs):
     """
@@ -348,20 +376,15 @@ class MenuButtonEdit(abstract.MenuButton, commands.DHEditItems, Edit_abs):
         self.body = self.builder.get_object("edit:box")
         self.progress = self.builder.get_object("edit:progress")
         self.progress.hide()
+        self.section_list = self.builder.get_object("edit:section_list")
         self.filter = filter.ItemFilter(self.core, self.builder,"edit:box_filter", "gui:btn:edit:filter")
         self.tw_items = self.builder.get_object("edit:tw_items")
-        self.section_list = self.builder.get_object("edit:section_list")
-        self.section_list.get_model().append(["XCCDF", "XCCDF: "+self.data_model.get_benchmark_titles()[self.core.selected_lang]])
-        self.section_list.get_model().append(["PROFILES", "XCCDF: "+self.data_model.get_benchmark_titles()[self.core.selected_lang]+" (Profiles)"])
-        self.section_list.set_active(0)
-        self.list_item = ItemList(self.tw_items, self.core, self.progress, self.filter)
+        titles = self.data_model.get_benchmark_titles()
+        self.list_item = ItemList(self.tw_items, self.core, builder, self.progress, self.filter)
         self.ref_model = self.list_item.get_TreeView().get_model() # original model (not filtered)
         
         self.filter.expander.cb_changed()
 
-        menu = self.create_popupMenu_tw()
-        self.tw_items.connect ("button_press_event",self.cb_popupMenu_twItem, menu)
-        
         # set signals
         self.add_sender(self.id, "update")
         
@@ -372,13 +395,9 @@ class MenuButtonEdit(abstract.MenuButton, commands.DHEditItems, Edit_abs):
         self.set_sensitive(False)
         self.btn_revert = self.builder.get_object("edit:btn_revert")
         self.btn_save = self.builder.get_object("edit:btn_save")
-        #self.btn_item_remove = self.builder.get_object("edit:item:btn_remove")
-        #self.btn_item_add = self.builder.get_object("edit:item:btn_add")
         
         self.btn_revert.connect("clicked", self.__cb_revert)
         self.btn_save.connect("clicked", self.__cb_save)
-        #self.btn_item_remove.connect("clicked", self.__cb_item_remove)
-        #self.btn_item_add.connect("clicked", self.__cb_item_add)
         
         #general
         self.item_id = self.builder.get_object("edit:general:lbl_id")
@@ -440,8 +459,8 @@ class MenuButtonEdit(abstract.MenuButton, commands.DHEditItems, Edit_abs):
         self.edit_values = EditValues(self.core, self.builder)
         
         #others
-        self.chbox_multipl = self.builder.get_object("edit:other:chbox_multipl")
-        self.chbox_multipl.connect("toggled",self.cb_chbox_multipl)
+        self.chbox_multiple = self.builder.get_object("edit:other:chbox_multiple")
+        self.chbox_multiple.connect("toggled",self.cb_chbox_multipl)
 
         self.cBox_role = self.builder.get_object("edit:other:combo_role")
         cell = gtk.CellRendererText()
@@ -452,6 +471,20 @@ class MenuButtonEdit(abstract.MenuButton, commands.DHEditItems, Edit_abs):
 
         self.add_receiver("gui:edit:item_list", "update", self.__update)
         self.add_receiver("gui:edit:item_list", "changed", self.__update)
+        self.add_receiver("gui:btn:main:xccdf", "load", self.__section_list_load)
+        self.__section_list_load() #TODO
+
+    def __section_list_load(self):
+        self.section_list.get_model().clear()
+        titles = self.data_model.get_benchmark_titles()
+        if len(titles.keys()) != 0:
+            if self.core.selected_lang in titles: 
+                title = self.data_model.get_benchmark_titles()[self.core.selected_lang]
+            else: 
+                self.data_model.get_benchmark_titles()[0]
+            self.section_list.get_model().append(["XCCDF", "XCCDF: "+title])
+            self.section_list.get_model().append(["PROFILES", "XCCDF: "+title+" (Profiles)"])
+            self.section_list.set_active(0)
 
     def cb_control_impact_metrix(self, widget, event):
         text = widget.get_text()
@@ -469,33 +502,11 @@ class MenuButtonEdit(abstract.MenuButton, commands.DHEditItems, Edit_abs):
     def __cb_save(self, widget):
         pass
 
-    def __cb_item_remove(self, widget):
-        self.data_model.remove_item(self.item, self.list_item)
-        selection = self.tw_items.get_selection()
-        (model,iter) = selection.get_selected()
-        if iter:
-            model.remove(iter)
-        else: raise AttributeError, "Removing non-selected item or nothing selected."
-
-    def create_popupMenu_tw(self):
-        menu = self.builder.get_object("edit:list:popup")
-        self.builder.get_object("edit:list:popup:add").connect("activate", self.__cb_item_add)
-        self.builder.get_object("edit:list:popup:remove").connect("activate", self.__cb_item_remove)
-        return menu
-
-    def cb_popupMenu_twItem (self, treeview, event, menu):
-        if event.button == 3:
-            time = event.time
-            menu.popup(None,None,None,event.button,event.time)
-        
-    def __cb_item_add(self, widget):
-        EditAddDialogWindow(self.core, self.item, self.list_item, self.ref_model,self.DHEditAddItem )
-    
     def set_sensitive(self, sensitive):
         self.nBook.set_sensitive(sensitive)
-        
+
     def __update(self):
-        
+ 
         if self.core.selected_item_edit != None:
             details = self.data_model.get_item_objects(self.core.selected_item_edit)
         else:
@@ -506,7 +517,7 @@ class MenuButtonEdit(abstract.MenuButton, commands.DHEditItems, Edit_abs):
         self.chbox_selected.handler_block_by_func(self.cb_chbox_selected)
         self.chbox_prohibit.handler_block_by_func(self.cb_chbox_prohibit)
         self.chbox_abstract.handler_block_by_func(self.cb_chbox_abstract)
-        self.chbox_multipl.handler_block_by_func(self.cb_chbox_multipl)
+        self.chbox_multiple.handler_block_by_func(self.cb_chbox_multipl)
         self.cBox_severity.handler_block_by_func(self.cb_cBox_severity)
         self.cBox_role.handler_block_by_func(self.cb_cBox_role)
         
@@ -584,8 +595,8 @@ class MenuButtonEdit(abstract.MenuButton, commands.DHEditItems, Edit_abs):
                 self.edit_values.set_sensitive(True)
                 self.edit_values.fill(details["item"])
 
-                self.chbox_multipl.set_sensitive(True)
-                self.chbox_multipl.set_active(details["multiple"])
+                self.chbox_multiple.set_sensitive(True)
+                self.chbox_multiple.set_active(details["multiple"])
                 
                 self.edit_fixtext.set_sensitive(True)
                 self.edit_fixtext.fill(details["item"])
@@ -614,8 +625,8 @@ class MenuButtonEdit(abstract.MenuButton, commands.DHEditItems, Edit_abs):
                 self.edit_values.set_sensitive(False)
                 self.edit_values.fill(None)
                 
-                self.chbox_multipl.set_sensitive(False)
-                self.chbox_multipl.set_active(False)
+                self.chbox_multiple.set_sensitive(False)
+                self.chbox_multiple.set_active(False)
                 
                 self.entry_impact_metric.set_sensitive(False)
                 self.entry_impact_metric.set_text("")
@@ -657,7 +668,7 @@ class MenuButtonEdit(abstract.MenuButton, commands.DHEditItems, Edit_abs):
         self.chbox_selected.handler_unblock_by_func(self.cb_chbox_selected)
         self.chbox_prohibit.handler_unblock_by_func(self.cb_chbox_prohibit)
         self.chbox_abstract.handler_unblock_by_func(self.cb_chbox_abstract)
-        self.chbox_multipl.handler_unblock_by_func(self.cb_chbox_multipl)
+        self.chbox_multiple.handler_unblock_by_func(self.cb_chbox_multipl)
         self.cBox_severity.handler_unblock_by_func(self.cb_cBox_severity)
         self.cBox_role.handler_unblock_by_func(self.cb_cBox_role)
             
