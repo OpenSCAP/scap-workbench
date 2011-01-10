@@ -270,7 +270,7 @@ class ItemList(abstract.List):
 
         # actions
         self.add_receiver("gui:btn:menu:edit", "update", self.__update)
-        #self.add_receiver("gui:btn:edit", "update", self.__update)
+        #self.add_receiver("gui:btn:menu:edit", "combo change", self.__reload_list)
         self.add_receiver("gui:btn:edit:filter", "search", self.__search)
         self.add_receiver("gui:btn:edit:filter", "filter_add", self.__filter_add)
         self.add_receiver("gui:btn:edit:filter", "filter_del", self.__filter_del)
@@ -350,6 +350,10 @@ class MenuButtonEdit(abstract.MenuButton, commands.DHEditItems, Edit_abs):
         self.progress.hide()
         self.filter = filter.ItemFilter(self.core, self.builder,"edit:box_filter", "gui:btn:edit:filter")
         self.tw_items = self.builder.get_object("edit:tw_items")
+        self.section_list = self.builder.get_object("edit:section_list")
+        self.section_list.get_model().append(["XCCDF", "XCCDF: "+self.data_model.get_benchmark_titles()[self.core.selected_lang]])
+        self.section_list.get_model().append(["PROFILES", "XCCDF: "+self.data_model.get_benchmark_titles()[self.core.selected_lang]+" (Profiles)"])
+        self.section_list.set_active(0)
         self.list_item = ItemList(self.tw_items, self.core, self.progress, self.filter)
         self.ref_model = self.list_item.get_TreeView().get_model() # original model (not filtered)
         
@@ -466,7 +470,12 @@ class MenuButtonEdit(abstract.MenuButton, commands.DHEditItems, Edit_abs):
         pass
 
     def __cb_item_remove(self, widget):
-        pass
+        self.data_model.remove_item(self.item, self.list_item)
+        selection = self.tw_items.get_selection()
+        (model,iter) = selection.get_selected()
+        if iter:
+            model.remove(iter)
+        else: raise AttributeError, "Removing non-selected item or nothing selected."
 
     def create_popupMenu_tw(self):
         menu = self.builder.get_object("edit:list:popup")

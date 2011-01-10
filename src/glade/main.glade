@@ -30,6 +30,14 @@
       <column type="gchararray"/>
     </columns>
   </object>
+  <object class="GtkListStore" id="edit:section_list:model">
+    <columns>
+      <!-- column-name ID -->
+      <column type="gchararray"/>
+      <!-- column-name Title -->
+      <column type="gchararray"/>
+    </columns>
+  </object>
   <object class="GtkWindow" id="main:window">
     <property name="title" translatable="yes">SCAP Work-bench</property>
     <property name="window_position">center</property>
@@ -1508,8 +1516,15 @@
                                 <property name="orientation">vertical</property>
                                 <property name="spacing">5</property>
                                 <child>
-                                  <object class="GtkComboBox" id="combobox2">
+                                  <object class="GtkComboBox" id="edit:section_list">
                                     <property name="visible">True</property>
+                                    <property name="model">edit:section_list:model</property>
+                                    <child>
+                                      <object class="GtkCellRendererText" id="cellrenderertext2"/>
+                                      <attributes>
+                                        <attribute name="text">1</attribute>
+                                      </attributes>
+                                    </child>
                                   </object>
                                   <packing>
                                     <property name="expand">False</property>
@@ -4325,34 +4340,6 @@
       </object>
     </child>
   </object>
-  <object class="GtkImage" id="scan:btn_scan:img">
-    <property name="visible">True</property>
-    <property name="stock">gtk-apply</property>
-  </object>
-  <object class="GtkImage" id="scan:btn_export:img">
-    <property name="visible">True</property>
-    <property name="stock">gtk-save</property>
-  </object>
-  <object class="GtkImage" id="xccdf:btn_import:img">
-    <property name="visible">True</property>
-    <property name="stock">gtk-open</property>
-  </object>
-  <object class="GtkImage" id="xccdf:btn_export:img">
-    <property name="visible">True</property>
-    <property name="stock">gtk-save-as</property>
-  </object>
-  <object class="GtkImage" id="xccdf:btn_validate:img">
-    <property name="visible">True</property>
-    <property name="stock">gtk-about</property>
-  </object>
-  <object class="GtkImage" id="scan:btn_resutls">
-    <property name="visible">True</property>
-    <property name="stock">gtk-print-preview</property>
-  </object>
-  <object class="GtkImage" id="scan:btn_profile:img">
-    <property name="visible">True</property>
-    <property name="stock">gtk-index</property>
-  </object>
   <object class="GtkMenu" id="edit:list:popup">
     <property name="visible">True</property>
     <child>
@@ -4369,7 +4356,6 @@
       <object class="GtkImageMenuItem" id="edit:list:popup:remove">
         <property name="label" translatable="yes">Remove</property>
         <property name="visible">True</property>
-        <property name="sensitive">False</property>
         <property name="tooltip_text" translatable="yes">Remove this item from content</property>
         <property name="image">image2</property>
         <property name="use_stock">False</property>
@@ -4384,5 +4370,33 @@
   <object class="GtkImage" id="image2">
     <property name="visible">True</property>
     <property name="stock">gtk-remove</property>
+  </object>
+  <object class="GtkImage" id="scan:btn_profile:img">
+    <property name="visible">True</property>
+    <property name="stock">gtk-index</property>
+  </object>
+  <object class="GtkImage" id="scan:btn_scan:img">
+    <property name="visible">True</property>
+    <property name="stock">gtk-apply</property>
+  </object>
+  <object class="GtkImage" id="scan:btn_export:img">
+    <property name="visible">True</property>
+    <property name="stock">gtk-save</property>
+  </object>
+  <object class="GtkImage" id="scan:btn_resutls">
+    <property name="visible">True</property>
+    <property name="stock">gtk-print-preview</property>
+  </object>
+  <object class="GtkImage" id="xccdf:btn_import:img">
+    <property name="visible">True</property>
+    <property name="stock">gtk-open</property>
+  </object>
+  <object class="GtkImage" id="xccdf:btn_export:img">
+    <property name="visible">True</property>
+    <property name="stock">gtk-save-as</property>
+  </object>
+  <object class="GtkImage" id="xccdf:btn_validate:img">
+    <property name="visible">True</property>
+    <property name="stock">gtk-about</property>
   </object>
 </interface>

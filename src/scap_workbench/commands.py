@@ -404,6 +404,20 @@ class DataHandler:
             refs.append(tmpref)
         return refs
 
+    def get_benchmark_titles(self):
+        benchmark = self.core.lib["policy_model"].benchmark
+        if not benchmark: return None
+        titles = {}
+        for title in benchmark.title:
+            titles[title.lang] = title.text
+        return titles
+
+    def remove_item(self, item, list_item):
+        logger.info("Removing item %s" %(item.id,))
+        parent = item.parent
+        parent.content.remove(item)
+
+
 class DHXccdf(DataHandler):
 
     def __init__(self, core):
@@ -554,10 +568,13 @@ class DHValues(DataHandler):
         if value["selected"][0] in value["choices"]:
             choices = "|".join(value["choices"][value["selected"][0]])
             pattern = re.compile(value["match"]+"|"+choices)
-        else: pattern = re.compile(value["match"])
+            logger.info("Matching %s against %s: "%(new_text, value["match"]+"|"+choices))
+        else: 
+            logger.info("Matching %s against %s: "%(new_text, value["match"]))
+            pattern = re.compile(value["match"])
         if pattern.match(new_text):
             model.set_value(iter, 2, new_text)
-            logger.error("Regexp matched: text %s match %s", new_text, "|".join([value["match"], choices]))
+            logger.info("Regexp matched: text %s match %s", new_text, "|".join([value["match"], choices]))
             policy.set_tailor_items([{"id":id, "value":new_text}])
         else: logger.error("Failed regexp match: text %s does not match %s", new_text, "|".join([value["match"], choices]))
 

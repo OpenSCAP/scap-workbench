@@ -26,16 +26,12 @@ from events import EventHandler
 
 from threads import thread
 import render #TODO
+import getopt
 
 LOGGER_CONFIG_FILE='/etc/scap-workbench/logger.conf'
 FILTER_DIR="/usr/share/scap-workbench/filters"
 logging.config.fileConfig(LOGGER_CONFIG_FILE)
 logger = logging.getLogger("scap-workbench")
-
-sys.path.append("/tmp/scap/usr/local/lib64/python2.6/site-packages")
-sys.path.append("/tmp/scap/usr/local/lib/python2.6/site-packages")
-#sys.path.append("/usr/lib64/python2.6/site-packages")
-#sys.path.append("/usr/lib/python2.6/site-packages")
 
 try:
     import openscap_api as openscap
@@ -115,9 +111,30 @@ class SWBCore:
         # Info Box
         self.info_box = self.builder.get_object("info_box")
 
-        if len(sys.argv) > 1:
+        # parse imput arguments
+        arguments = sys.argv[1:]
+
+        try:
+            opts, args = getopt.getopt(arguments, "+D", ["debug"])
+        except getopt.GetoptError, err:
+            # print help information and exit
+            print >>sys.stderr, "(ERROR)", str(err)
+            print >>sys.stderr, "Try 'scap-workbench --help' for more information."
+            sys.exit(2)
+
+        for o, a in opts:
+            if o in ("-D", "--version"):
+                print logger.level
+                logger.setLevel(logging.DEBUG)
+                logger.root.setLevel(logging.DEBUG)
+            else:
+                print >>sys.stderr, "(ERROR) Unknown option or missing mandatory argument '%s'" % (o,)
+                print >>sys.stderr, "Try 'scap-workbench --help' for more information."
+                sys.exit(2)
+
+        if len(args) > 0:
             logger.debug("Loading XCCDF file %s", sys.argv[1])
-            self.init(sys.argv[1])
+            self.init(args[0])
 
         self.set_receiver("gui:btn:main:xccdf", "load", self.__set_force)
 

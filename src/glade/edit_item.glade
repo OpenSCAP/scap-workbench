@@ -615,10 +615,11 @@
                 <property name="layout_style">center</property>
                 <child>
                   <object class="GtkButton" id="add_id:btn_add">
-                    <property name="label" translatable="yes">Copy to add</property>
+                    <property name="label">gtk-add</property>
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="receives_default">True</property>
+                    <property name="use_stock">True</property>
                   </object>
                   <packing>
                     <property name="expand">False</property>
@@ -628,10 +629,11 @@
                 </child>
                 <child>
                   <object class="GtkButton" id="add_id:btn_remove">
-                    <property name="label" translatable="yes">Remove from add</property>
+                    <property name="label">gtk-remove</property>
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="receives_default">True</property>
+                    <property name="use_stock">True</property>
                   </object>
                   <packing>
                     <property name="expand">False</property>
@@ -956,7 +958,7 @@
                 <child type="label">
                   <object class="GtkLabel" id="label11">
                     <property name="visible">True</property>
-                    <property name="label" translatable="yes">&lt;b&gt;Generla&lt;/b&gt;</property>
+                    <property name="label" translatable="yes">&lt;b&gt;General&lt;/b&gt;</property>
                     <property name="use_markup">True</property>
                   </object>
                 </child>
