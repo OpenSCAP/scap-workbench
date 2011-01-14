@@ -32,7 +32,7 @@ import abstract
 import logging
 import core
 from events import EventObject
-
+logger = logging.getLogger("scap-workbench")
 try:
     import openscap_api as openscap
 except Exception as ex:
@@ -1538,10 +1538,10 @@ class EditValueValue(commands.DHEditItems,Edit_abs):
                 choices = instance.choices
                 for choice in choices:
                     iter_choice = model_choices.append(["",choice])
-                self.model.append([instance.selector, instance.value, model_choices, instance])
+                self.model.append([instance.selector, str(instance.value), model_choices, instance])
                 
     def __cb_add(self, widget):
-        EditValueDialogWindow(self.item, self.core, self.lv, self.DHEditConflicts, False)
+        EditValueDialogWindow(self.item, self.core, self.lv, self.DHEditValueInstance, False)
     
     def __cb_edit_row(self, widget):
         EditValueDialogWindow(self.item, self.core, self.lv, self.DHEditValueInstance, True)
@@ -2494,15 +2494,17 @@ class EditValueDialogWindow(Edit_abs):
         self.item = value
         self.cb = cb
         self.edit = edit
+        self.tw_instance = tw_instance
         self.model_combo_choices = gtk.ListStore(str, str)
         
         if edit:
             selection = tw_instance.get_selection()
-            (self.model, iter) = selection.get_selected()
-            if iter:
-                self.instance= self.model.get_value(iter, self.COLUMN_OBJECT)
+            (self.model, self.iter) = selection.get_selected()
+            if self.iter:
+                self.instance= self.model.get_value(self.iter, self.COLUMN_OBJECT)
                 #self.model_combo_choices = self.model.get_value(iter, self.COLUMN_MODEL_CHOICES)
-
+        else:
+            self.model = tw_instance.get_model()
         self.type = value.type
 
         builder = gtk.Builder()
@@ -2516,18 +2518,22 @@ class EditValueDialogWindow(Edit_abs):
         self.lbl_type = builder.get_object("edit_value:lbl_type")
         self.text_selector = builder.get_object("edit_value:text_selector")
         
-        self.lbl_match = builder.get_object("edit_value:lbl_match")
+        #self.lbl_match = builder.get_object("edit_value:lbl_match")
+        self.lbl_value = builder.get_object("edit_value:lbl_value")
         self.lbl_uper_bound = builder.get_object("edit_value:lbl_uper_bound")
         self.lbl_lower_bound = builder.get_object("edit_value:lbl_lower_bound")
         self.lbl_mustMatch = builder.get_object("edit_value:lbl_mustMatch")
         self.box_choices = builder.get_object("edit_value:box_choices")
         
-        self.text_match = builder.get_object("edit_value:text_match")
+        #self.text_match = builder.get_object("edit_value:text_match")
+        self.text_value = builder.get_object("edit_value:text_value")
+        self.combo_value = builder.get_object("edit_value:combo_value")
         self.text_uper_bound = builder.get_object("edit_value:text_uper_bound")
         self.text_lower_bound = builder.get_object("edit_value:text_lower_bound")
         self.text_uper_bound.connect("focus-out-event", self.cb_control_bound, "upper")
         self.text_lower_bound.connect("focus-out-event", self.cb_control_bound, "lower")
         
+        self.lbl_default = builder.get_object("edit_value:lbl_default")
         self.combo_default = builder.get_object("edit_value:combo_default")
         cell = gtk.CellRendererText()
         self.combo_default.pack_start(cell, True)
@@ -2536,9 +2542,6 @@ class EditValueDialogWindow(Edit_abs):
         self.combo_default.set_model(self.model_combo_choices)
 
         self.comboEntry_default = builder.get_object("edit_value:comboEntry_default")
-        #cell = gtk.CellRendererText()
-        #self.comboEntry_default.pack_start(cell, True)
-        #self.comboEntry_default.add_attribute(cell, 'text', 1)  
         self.comboEntry_default.set_text_column(1)
         self.comboEntry_default.connect( "changed", self.cb_combo_default)
         self.comboEntry_default.set_model(self.model_combo_choices)
@@ -2551,66 +2554,108 @@ class EditValueDialogWindow(Edit_abs):
         btn_ok.connect("clicked", self.__cb_do)
         btn_cancel = builder.get_object("edit_value:btn_cancel")
         btn_cancel.connect("clicked", self.__delete_event)
-        
-        if edit:
-            self.text_selector.set_text(self.instance.selector)
-            self.chBox_mustMatch.set_active(self.instance.must_match)
-            if self.instance.must_match:
-                self.comboEntry_default.hide()
-                self.combo_default.show()
-            else:
-                self.comboEntry_default.show()
-                self.combo_default.hide()
-        else:
-            self.comboEntry_default.show()
-            self.combo_default.hide()
-            
+
+
         if self.type  == openscap.OSCAP.XCCDF_TYPE_NUMBER:
             self.lbl_type.set_text("Number")
+            self.combo_value.hide()
             if edit:
-                self.text_uper_bound.set_text(str(self.instance.upper_bound))
-                self.text_lower_bound.set_text(str(self.instance.lower_bound))
-                for choice in self.instance.choices:
-                    self.model_combo_choices.append(["", choice])
-            # hide information for others type
-            self.lbl_match.set_sensitive(False)
-            self.text_match.set_sensitive(False)
-            
+                if self.instance.value:
+                    self.text_value.set_text(self.instance.value)
+            #if edit:
+                #self.text_uper_bound.set_text(str(self.instance.upper_bound))
+                #self.text_lower_bound.set_text(str(self.instance.lower_bound))
+                #for choice in self.instance.choices:
+                    #self.model_combo_choices.append(["", choice])
+            ## hide information for others type
+            #self.lbl_match.set_sensitive(False)
+            #self.text_match.set_sensitive(False)
+
         elif self.type  == openscap.OSCAP.XCCDF_TYPE_STRING:
             self.lbl_type.set_text("String")
+            self.combo_value.hide()
             if edit:
-                if self.instance.match:
-                    self.text_match.set_text(self.instance.match)
-                for choice in self.instance.choices:
-                    self.model_combo_choices.append(["", choice])
+                if self.instance.value:
+                    self.text_value.set_text(self.instance.value)
+            #if edit:
+                #if self.instance.match:
+                    #self.text_match.set_text(self.instance.match)
+                #for choice in self.instance.choices:
+                    #self.model_combo_choices.append(["", choice])
 
             # hide information for others type
-            self.text_uper_bound.set_sensitive(False)
-            self.lbl_uper_bound.set_sensitive(False)
-            self.text_lower_bound.set_sensitive(False)
-            self.lbl_lower_bound.set_sensitive(False)
+            #self.text_uper_bound.set_sensitive(False)
+            #self.lbl_uper_bound.set_sensitive(False)
+            #self.text_lower_bound.set_sensitive(False)
+            #self.lbl_lower_bound.set_sensitive(False)
 
-
+            
         elif self.type  == openscap.OSCAP.XCCDF_TYPE_BOOLEAN:
             self.lbl_type.set_text("Boolean")
+            
+            self.text_value.hide()
+            self.model_bool = gtk.ListStore(bool, str)
+            self.model_bool.append([True, "True"])
+            self.model_bool.append([False, "False"])
+            
+            cell = gtk.CellRendererText()
+            self.combo_value.pack_start(cell, True)
+            self.combo_value.add_attribute(cell, 'text', 1)  
+            self.combo_value.set_model(self.model_bool)
+            
+            if self.edit:
+                if self.instance.get_value_boolean():
+                    if self.instance.get_value_boolean() == True:
+                        self.combo_value.set_active(0)
+                    elif self.instance.get_value_boolean() == False:
+                        self.combo_value.set_active(1)
+                    
+            #self.model_combo_choices.append(["", "True"])
+            #self.model_combo_choices.append(["", "False"])
 
-            self.model_combo_choices.append(["", "True"])
-            self.model_combo_choices.append(["", "False"])
+            ## hide information for others type
+            #self.text_uper_bound.set_sensitive(False)
+            #self.lbl_uper_bound.set_sensitive(False)
+            #self.text_lower_bound.set_sensitive(False)
+            #self.lbl_lower_bound.set_sensitive(False)
+            #self.lbl_match.set_sensitive(False)
+            #self.text_match.set_sensitive(False)
+            #self.box_choices.hide()
+            #self.chBox_mustMatch.hide()
+            #self.lbl_mustMatch.hide()
+            #self.window.resize(400, 200)
 
-            # hide information for others type
-            self.text_uper_bound.set_sensitive(False)
-            self.lbl_uper_bound.set_sensitive(False)
-            self.text_lower_bound.set_sensitive(False)
-            self.lbl_lower_bound.set_sensitive(False)
-            self.lbl_match.set_sensitive(False)
-            self.text_match.set_sensitive(False)
-            self.box_choices.hide()
-            self.chBox_mustMatch.hide()
-            self.lbl_mustMatch.hide()
-            self.window.resize(400, 200)
-        
-        # choices
-        EditValueChoice (core, self.model_combo_choices, self.tv_choices, self.window)
+        #hide alll
+        self.text_uper_bound.hide()
+        self.lbl_uper_bound.hide()
+        self.text_lower_bound.hide()
+        self.lbl_lower_bound.hide()
+        self.box_choices.hide()
+        self.chBox_mustMatch.hide()
+        self.lbl_mustMatch.hide()
+        self.comboEntry_default.hide()
+        self.combo_default.hide()
+        self.lbl_default.hide()
+        self.window.resize(300, 200)
+            
+        ## choices
+        #EditValueChoice (core, self.model_combo_choices, self.tv_choices, self.window)
+       
+        if edit:
+            self.text_selector.set_text(self.instance.selector)
+
+            #self.chBox_mustMatch.set_active(self.instance.must_match)
+            #if self.instance.must_match:
+                #self.comboEntry_default.hide()
+                #self.combo_default.show()
+            #else:
+                #self.comboEntry_default.show()
+                #self.combo_default.hide()
+        #else:
+            #self.comboEntry_default.show()
+            #self.combo_default.hide()
+            
+            
         self.show()
 
     def cb_control_bound(self, widget, event, data):
@@ -2659,48 +2704,68 @@ class EditValueDialogWindow(Edit_abs):
             self.dialogInfo("Selector already exist. \n Change selector.", self.window)
             return
         
-        #if self.text_selector.get_text() == "":
-            #self.dialogInfo("Selector can't be empty.", self.window)
-            #return      
-        
-        #control default
-        if (not self.chBox_mustMatch.get_active()) and self.comboEntry_default.get_active() == -1:
-            if not self.control_data(self.comboEntry_default.get_active_text(), "Default"):
-                return
+        ##control default
+        #if (not self.chBox_mustMatch.get_active()) and self.comboEntry_default.get_active() == -1:
+            #if not self.control_data(self.comboEntry_default.get_active_text(), "Default"):
+                #return
             
-        # control choice must be at least, becouse remove mark row from model
-        iter_ch = self.model_combo_choices.get_iter_first()
-        while iter_ch:
+        ## control choices must be at the end of control, becouse remove mark row from model
+        #iter_ch = self.model_combo_choices.get_iter_first()
+        #while iter_ch:
             
-            #if model has * in mark_column is it end  
-            mark = self.model_combo_choices.get_value(iter_ch, 0)
-            if mark == "*":
-                # after remove * must control finish by succead
-                self.model_combo_choices.remove(iter_ch)
-                break
+            ##if model has * in mark_column is it end  
+            #mark = self.model_combo_choices.get_value(iter_ch, 0)
+            #if mark == "*":
+                ## after remove * must control finish by succead
+                #self.model_combo_choices.remove(iter_ch)
+                #break
 
-            #control data
-            data = self.model_combo_choices.get_value(iter_ch, 1)
-            if not self.control_data(data, "choices"):
-                return
-            iter_ch = self.model_combo_choices.iter_next(iter_ch)
+            ##control data
+            #data = self.model_combo_choices.get_value(iter_ch, 1)
+            #if not self.control_data(data, "choices"):
+                #return
+            #iter_ch = self.model_combo_choices.iter_next(iter_ch)
 
         #all control ready
         selector = self.text_selector.get_text()
-        match = self.text_match.get_text()
-        upper = self.text.upper_bound.get_text()
-        lower = self.text.lower_bound.get_text()
-        mustMuch = self.chBox_mustMatch.get_active()
+        upper = None
+        lower = None
+        match = None
+        mustMuch = None
+        
+        if self.type == openscap.OSCAP.XCCDF_TYPE_BOOLEAN:
+            active = self.combo_value.get_active_iter()
+            if active:
+                value = self.model_bool.get_value(active, 0)
+            else:
+                value = None
+                
+        elif self.type == openscap.OSCAP.XCCDF_TYPE_NUMBER:
+            value = self.text_value.get_text()
+        elif self.type == openscap.OSCAP.XCCDF_TYPE_STRING:
+            value = self.text_value.get_text()
+        
+        #if self.type == openscap.OSCAP.XCCDF_TYPE_NUMBER:
+            #upper = float(self.text_uper_bound.get_text())
+            #lower = float(self.text_lower_bound.get_text())
+        #if self.type == openscap.OSCAP.XCCDF_TYPE_STRING:
+            #match = self.text_match.get_text()
+
+        #mustMuch = self.chBox_mustMatch.get_active()
 
         if not mustMuch:
             default = self.comboEntry_default.get_active_text()
         else:
             default = self.combo_default.get_active_text()
 
-        if edit:
-            self.cb(self.edit, self.instance, self.type, selector, match, upper, bound, default, mustMuch, self.model_combo_choices)
+        if self.edit:
+            if self.cb(self.edit, value, self.instance, self.type, selector, match, upper, lower, default, mustMuch, self.model_combo_choices):
+                self.model.set_value(self.iter, self.COLUMN_SELECTOR, selector)
+                self.model.set_value(self.iter, self.COLUMN_VALUE, value)
         else:
-            self.cb(self.edit, self.item, self.type, selector, match, upper, bound, default, mustMuch, self.model_combo_choices)
+            vys = self.cb(self.edit, value, self.item, self.type, selector, match, upper, lower, default, mustMuch, self.model_combo_choices)
+            if vys != -1:
+                self.model.append([selector, value, None, vys])
 
         self.window.destroy()
 

@@ -1793,31 +1793,42 @@ class DHEditItems:
         else:
             pass
 
-    def DHEditValueInstance(self, edit, item, type, selector, match, upper, lower, default, mustMuch, model_combo_choices)
-        if not edit:
-            logger.error("create instance not implemented")
+    def DHEditValueInstance(self, edit, value, item, type, selector, match, upper, lower, default, mustMuch, model_combo_choices):
         
-        instance = item
+        if not edit:
+            instance = item.new_instance()
+            item.add_instance(instance)
+        else:
+            instance = item
+            
+        
+        #choicesIter = instance.get_choices()
+        instance.set_selector(selector)
         if type == openscap.OSCAP.XCCDF_TYPE_NUMBER:
-            instance.set_defval_number(default)
-            instance.set_lower_bound(lower)
-            instance.set_upper_bound(upper)
+            if value != None and value != '':
+                instance.set_value_number(float(value))
+            else:
+                instance.set_value_number (float('nan'))
+            #instance.set_defval_number(default)
+            #instance.set_lower_bound(lower)
+            #instance.set_upper_bound(upper)
             
         elif type == openscap.OSCAP.XCCDF_TYPE_STRING:
-            instance.set_defval_string(default)
-            instance.set_match(match)
+            instance.set_value_string(value)
+            #instance.set_defval_string(default)
+            #instance.set_match(match)
             
-        elif type  == openscap.OSCAP.XCCDF_TYPE_BOOLEAN:
-            instance.set_defval_boolean(default)
+        elif type == openscap.OSCAP.XCCDF_TYPE_BOOLEAN:
+            instance.set_value_boolean(value)
+            #instance.set_defval_boolean(default)
     
-        instance.set_must_match(mustMuch)
-        instance.set_selector(selector)
+        #instance.set_must_match(mustMuch)
+        #instance.set_selector(selector)
         
-        logger.error("Delete all choices not implemented")
-        
-        iter = model_combo_choices.get_iter_first()
-        #while iter:
-        logger.error("Add choices not implemented")   
+        #for it in choicesIter:
+            #choicesIter.remove(it)
+        #logger.error("Add choices not implemented")
+        return instance
         
     def DHEditRequires(self, item, id, add):
         if add:
