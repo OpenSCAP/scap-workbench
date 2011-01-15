@@ -1186,6 +1186,7 @@ class EditValues(commands.DHEditItems, Edit_abs, EventObject):
         self.id = "gui:btn:menu:edit:values"
         self.builder = builder
         self.core = core
+        self.selector_empty = None
         
         EventObject.__init__(self, core)
         self.core.register(self.id, self)
@@ -1234,6 +1235,16 @@ class EditValues(commands.DHEditItems, Edit_abs, EventObject):
         self.combo_operator.add_attribute(cell, 'text', self.COMBO_COLUMN_VIEW)  
         self.combo_operator.connect( "changed", self.cb_combo_value_operator)
         self.combo_operator.set_model(self.combo_model_operator_number)
+        
+        self.lbl_match = self.builder.get_object("edit:values:lbl_match")
+        self.lbl_upper_bound = self.builder.get_object("edit:values:lbl_upper_bound")
+        self.lbl_lower_bound = self.builder.get_object("edit:values:lbl_lower_bound")
+        self.text_match = self.builder.get_object("edit:values:text_match")
+        self.text_upper_bound = self.builder.get_object("edit:values:text_upper_bound")
+        self.text_lower_bound = self.builder.get_object("edit:values:text_lower_bound")
+        self.text_upper_bound.connect("focus-out-event", self.cb_control_bound, "upper")
+        self.text_lower_bound.connect("focus-out-event", self.cb_control_bound, "lower")
+        self.text_match.connect("focus-out-event", self.cb_match)
         
         self.chBox_interactive = self.builder.get_object("edit:values:chBox_interactive")
         self.chBox_interactive.connect( "toggled",self.cb_combo_value_interactive)
@@ -1296,26 +1307,64 @@ class EditValues(commands.DHEditItems, Edit_abs, EventObject):
         if iter:
             self.value_nbook.set_sensitive(True)
             value = model.get_value(iter, self.COLUMN_OBJECT)
+            self.value_akt = value
             self.edit_values_title.fill(value)
             self.edit_values_description.fill(value)
             self.edit_values_question.fill(value)
             self.edit_values_value.fill(value)
+            
+            # if exist instance without selector take bound and match from this instance
+            self.selector_empty = None
+            for ins in value.instances:
+                if ins.selector == "" or ins.selector == None:
+                    self.selector_empty = ins
+                    break
 
+            #show bound and match
+            self.text_lower_bound.set_sensitive(True)
+            self.text_upper_bound.set_sensitive(True)
+            self.text_match.set_sensitive(True)
+            self.lbl_lower_bound.set_sensitive(True)
+            self.lbl_upper_bound.set_sensitive(True)
+            self.lbl_match.set_sensitive(True)
+            self.text_lower_bound.set_text("")
+            self.text_upper_bound.set_text("")
+            self.text_match.set_text("")
+            
             if value.get_type()  == openscap.OSCAP.XCCDF_TYPE_NUMBER:
                 self.lbl_type.set_text("Number")
                 self.combo_operator.set_model(self.combo_model_operator_number)
                 self.set_active_comboBox(self.combo_operator, value.oper, 0)
+                if self.selector_empty:
+                    if str(self.selector_empty.get_lower_bound()) != "nan":
+                        self.text_lower_bound.set_text(str(self.selector_empty.get_lower_bound()))
+                    if str(self.selector_empty.get_upper_bound()) != "nan":
+                        self.text_upper_bound.set_text(str(self.selector_empty.get_upper_bound()))
+                    if self.selector_empty.get_match() != None:
+                        self.text_match.set_text(self.selector_empty.get_match())
 
             elif value.get_type()  == openscap.OSCAP.XCCDF_TYPE_STRING:
                 self.lbl_type.set_text("String")
                 self.combo_operator.set_model(self.combo_model_operator_string)
                 self.set_active_comboBox(self.combo_operator, value.oper, 0)
+                if self.selector_empty:
+                    if self.selector_empty.get_match() != None:
+                        self.text_match.set_text(self.selector_empty.get_match())
+                self.text_lower_bound.set_sensitive(False)
+                self.text_upper_bound.set_sensitive(False)
+                self.lbl_lower_bound.set_sensitive(False)
+                self.lbl_upper_bound.set_sensitive(False)
                 
             elif value.get_type()  == openscap.OSCAP.XCCDF_TYPE_BOOLEAN:
                 self.lbl_type.set_text("Boolean")
                 self.combo_operator.set_model(self.combo_model_operator_bool)
                 self.set_active_comboBox(self.combo_operator, value.oper, 0)
-                
+                self.text_lower_bound.set_sensitive(False)
+                self.text_upper_bound.set_sensitive(False)
+                self.text_match.set_sensitive(False)
+                self.lbl_lower_bound.set_sensitive(False)
+                self.lbl_upper_bound.set_sensitive(False)
+                self.lbl_match.set_sensitive(False)
         else:
             self.value_nbook.set_sensitive(False)
             self.edit_values_title.fill(None)
@@ -1325,6 +1374,10 @@ class EditValues(commands.DHEditItems, Edit_abs, EventObject):
             self.combo_operator.set_active(-1)
             self.chBox_interactive.set_active(False)
             self.lbl_type.set_text("")
+            self.text_lower_bound.set_text("")
+            self.text_upper_bound.set_text("")
+            self.text_match.set_text("")
+            
         self.combo_operator.handler_unblock_by_func(self.cb_combo_value_operator)
         self.chBox_interactive.handler_unblock_by_func(self.cb_combo_value_interactive)
 
@@ -1349,7 +1402,64 @@ class EditValues(commands.DHEditItems, Edit_abs, EventObject):
             self.DHChBoxValueInteractive(value, widget.get_active())
         else:
             logger.error("Error: Not select value.")
-    
+
+    def cb_match(self, widget, event):
+
+        vys = self.DHEditBoundMatch(self.value_akt, self.selector_empty, None, None, widget.get_text())
+        if not vys:
+            logger.error("Not changed value match")
+        elif vys != self.selector_empty:
+            self.emit("item_changed")
+            
+    def cb_control_bound(self, widget, event, type):
+        
+        if widget.get_text() == "":
+            data = "nan"
+        else:
+            data = widget.get_text()
+            
+        try:
+            data = float(data)
+        except:
+            self.dialogInfo("Invalid number in %s bound." % (type))
+            if self.selector_empty:
+                if type == "lower":
+                    if str(self.selector_empty.get_lower_bound()) != "nan":
+                        widget.set_text(str(self.selector_empty.get_lower_bound()))
+                else:
+                    if str(self.selector_empty.get_upper_bound()) != "nan":
+                        widget.set_text(str(self.selector_empty.get_upper_bound()))
+            else:
+                widget.set_text("")
+            return
+
+        upper = self.text_upper_bound.get_text()
+        lower = self.text_lower_bound.get_text()
+
+        if upper != "" and upper != "nan" and lower != "" and lower != "nan":
+            if lower >= upper:
+                self.dialogInfo("Upper bound must be greater then lower bound.")
+                if self.selector_empty:
+                    if type == "lower":
+                        if str(self.selector_empty.get_lower_bound()) != "nan":
+                            widget.set_text(str(self.selector_empty.get_lower_bound()))
+                    else:
+                        if str(self.selector_empty.get_upper_bound()) != "nan":
+                            widget.set_text(str(self.selector_empty.get_upper_bound()))
+                else:
+                    widget.set_text("")
+                return
+        #add bound
+        if type == "upper":
+            vys = self.DHEditBoundMatch(self.value_akt, self.selector_empty, data, None, None)
+        else:
+            vys = self.DHEditBoundMatch(self.value_akt, self.selector_empty, None, data, None)
+        
+        if not vys:
+            logger.error("Not changed value bound")
+        elif vys != self.selector_empty:
+            self.emit("item_changed")
+            
 class EditValueTitle(commands.DHEditItems,Edit_abs):
 
     COLUMN_LAN = 0
@@ -1518,14 +1628,14 @@ class EditValueValue(commands.DHEditItems,Edit_abs):
         btn_del.connect("clicked", self.__cb_del_row)
 
         self.addColumn("Selector",self.COLUMN_SELECTOR)
+        self.addColumn("Selector",self.COLUMN_VALUE)
         
-        cellcombo = gtk.CellRendererCombo()
-        cellcombo.set_property("editable", True)
-        cellcombo.set_property("text-column", 1)
-        #cellcombo.connect("edited", self.cb_cellcombo_edited)
-        column = gtk.TreeViewColumn("Choice", cellcombo, text=self.COLUMN_VALUE, model=self.COLUMN_MODEL_CHOICES)
-        column.set_resizable(True)
-        lv.append_column(column)
+        #cellcombo = gtk.CellRendererCombo()
+        #cellcombo.set_property("editable", True)
+        #cellcombo.set_property("text-column", 1)
+        #column = gtk.TreeViewColumn("Choice", cellcombo, text=self.COLUMN_VALUE, model=self.COLUMN_MODEL_CHOICES)
+        #column.set_resizable(True)
+        #lv.append_column(column)
 
     def fill(self, value):
         self.item = value
@@ -1534,11 +1644,21 @@ class EditValueValue(commands.DHEditItems,Edit_abs):
         if value:
             instanses = value.get_instances()
             for instance in instanses:
+                
                 model_choices = gtk.ListStore(str,str)
                 choices = instance.choices
                 for choice in choices:
                     iter_choice = model_choices.append(["",choice])
-                self.model.append([instance.selector, str(instance.value), model_choices, instance])
+                
+                #read value
+                if instance.type == openscap.OSCAP.XCCDF_TYPE_BOOLEAN:
+                    value = str(instance.get_value_boolean())
+                elif instance.type == openscap.OSCAP.XCCDF_TYPE_NUMBER:
+                    value = str(instance.value)
+                elif instance.type == openscap.OSCAP.XCCDF_TYPE_STRING:
+                    value = instance.get_value_string()
+                    
+                self.model.append([instance.selector, value, model_choices, instance])
                 
     def __cb_add(self, widget):
         EditValueDialogWindow(self.item, self.core, self.lv, self.DHEditValueInstance, False)
@@ -2503,6 +2623,9 @@ class EditValueDialogWindow(Edit_abs):
             if self.iter:
                 self.instance= self.model.get_value(self.iter, self.COLUMN_OBJECT)
                 #self.model_combo_choices = self.model.get_value(iter, self.COLUMN_MODEL_CHOICES)
+            else:
+                self.dialogInfo("Choose row which you want Edit.")
+                return
         else:
             self.model = tw_instance.get_model()
         self.type = value.type
@@ -2517,21 +2640,21 @@ class EditValueDialogWindow(Edit_abs):
         
         self.lbl_type = builder.get_object("edit_value:lbl_type")
         self.text_selector = builder.get_object("edit_value:text_selector")
+        self.text_value = builder.get_object("edit_value:text_value")
         
-        #self.lbl_match = builder.get_object("edit_value:lbl_match")
+        self.lbl_match = builder.get_object("edit_value:lbl_match")
         self.lbl_value = builder.get_object("edit_value:lbl_value")
         self.lbl_uper_bound = builder.get_object("edit_value:lbl_uper_bound")
         self.lbl_lower_bound = builder.get_object("edit_value:lbl_lower_bound")
         self.lbl_mustMatch = builder.get_object("edit_value:lbl_mustMatch")
         self.box_choices = builder.get_object("edit_value:box_choices")
         
-        #self.text_match = builder.get_object("edit_value:text_match")
-        self.text_value = builder.get_object("edit_value:text_value")
+        self.text_match = builder.get_object("edit_value:text_match")
         self.combo_value = builder.get_object("edit_value:combo_value")
         self.text_uper_bound = builder.get_object("edit_value:text_uper_bound")
         self.text_lower_bound = builder.get_object("edit_value:text_lower_bound")
-        self.text_uper_bound.connect("focus-out-event", self.cb_control_bound, "upper")
-        self.text_lower_bound.connect("focus-out-event", self.cb_control_bound, "lower")
+        #self.text_uper_bound.connect("focus-out-event", self.cb_control_bound, "upper")
+        #self.text_lower_bound.connect("focus-out-event", self.cb_control_bound, "lower")
         
         self.lbl_default = builder.get_object("edit_value:lbl_default")
         self.combo_default = builder.get_object("edit_value:combo_default")
@@ -2560,8 +2683,8 @@ class EditValueDialogWindow(Edit_abs):
             self.lbl_type.set_text("Number")
             self.combo_value.hide()
             if edit:
-                if self.instance.value:
-                    self.text_value.set_text(self.instance.value)
+                if self.instance.get_value_number() != float("nan"):
+                    self.text_value.set_text(str(self.instance.get_value_number()))
             #if edit:
                 #self.text_uper_bound.set_text(str(self.instance.upper_bound))
                 #self.text_lower_bound.set_text(str(self.instance.lower_bound))
@@ -2576,7 +2699,7 @@ class EditValueDialogWindow(Edit_abs):
             self.combo_value.hide()
             if edit:
                 if self.instance.value:
-                    self.text_value.set_text(self.instance.value)
+                    self.text_value.set_text(self.instance.get_value_string())
             #if edit:
                 #if self.instance.match:
                     #self.text_match.set_text(self.instance.match)
@@ -2604,11 +2727,12 @@ class EditValueDialogWindow(Edit_abs):
             self.combo_value.set_model(self.model_bool)
             
             if self.edit:
-                if self.instance.get_value_boolean():
-                    if self.instance.get_value_boolean() == True:
-                        self.combo_value.set_active(0)
-                    elif self.instance.get_value_boolean() == False:
-                        self.combo_value.set_active(1)
+                if self.instance.get_value_boolean() == True:
+                    self.combo_value.set_active(0)
+                else:
+                    self.combo_value.set_active(1)
+            else:
+                self.combo_value.set_active(1)
                     
             #self.model_combo_choices.append(["", "True"])
             #self.model_combo_choices.append(["", "False"])
@@ -2641,7 +2765,7 @@ class EditValueDialogWindow(Edit_abs):
         ## choices
         #EditValueChoice (core, self.model_combo_choices, self.tv_choices, self.window)
        
-        if edit:
+        if edit  and self.instance.selector:
             self.text_selector.set_text(self.instance.selector)
 
             #self.chBox_mustMatch.set_active(self.instance.must_match)
@@ -2657,25 +2781,6 @@ class EditValueDialogWindow(Edit_abs):
             
             
         self.show()
-
-    def cb_control_bound(self, widget, event, data):
-        
-        if widget.get_text() != "" and widget.get_text() != "nan":
-            try:
-                data = float(widget.get_text())
-            except:
-                self.dialogInfo("Invalid number in %s bound." % (data), self.window)
-                widget.set_text("")
-                return
-
-            upper = self.text_uper_bound.get_text()
-            lower = self.text_lower_bound.get_text()
-
-            if upper == "" or upper == "nan" or lower == "" or lower == "nan":
-                return
-            elif lower >= upper:
-                self.dialogInfo("Upper bound must be greater then lower bound.", self.window)
-                widget.set_text("")
 
     def cb_combo_default(self, widget):
         active = widget.get_active()
@@ -2694,15 +2799,37 @@ class EditValueDialogWindow(Edit_abs):
 
     def __cb_do(self, widget):
         poc = 0
+        selector_empty = None
         
         # control if selector not exist or empty
         for ins in self.item.instances:
             if ins.selector == self.text_selector.get_text():
                 poc = poc + 1
-
+            if ins.selector == "":
+                selector_empty = ins
+        
+        if self.edit and self.instance.selector == "" and self.text_selector.get_text() != "":
+            if self.instance.get_match() != None or str(self.instance.get_lower_bound()) != "nan" or str(self.instance.get_upper_bound()) != "nan":
+                self.dialogInfo("Can't change empty selector if is set \n match, upper bound or lower_bound  in general.", self.window)
+                return
+                
         if (poc == 1 and not self.edit) or (self.edit and poc == 1 and self.text_selector.get_text() != self.instance.selector):
             self.dialogInfo("Selector already exist. \n Change selector.", self.window)
             return
+        
+        # control value
+        if self.type == openscap.OSCAP.XCCDF_TYPE_BOOLEAN:
+            active = self.combo_value.get_active_iter()
+            if active:
+                value = self.model_bool.get_value(active, 0)
+            else:
+                value = None
+                
+        else:
+            value = self.text_value.get_text()
+            if not self.control_data(value, selector_empty, "value"):
+                return
+
         
         ##control default
         #if (not self.chBox_mustMatch.get_active()) and self.comboEntry_default.get_active() == -1:
@@ -2733,17 +2860,7 @@ class EditValueDialogWindow(Edit_abs):
         match = None
         mustMuch = None
         
-        if self.type == openscap.OSCAP.XCCDF_TYPE_BOOLEAN:
-            active = self.combo_value.get_active_iter()
-            if active:
-                value = self.model_bool.get_value(active, 0)
-            else:
-                value = None
-                
-        elif self.type == openscap.OSCAP.XCCDF_TYPE_NUMBER:
-            value = self.text_value.get_text()
-        elif self.type == openscap.OSCAP.XCCDF_TYPE_STRING:
-            value = self.text_value.get_text()
+
         
         #if self.type == openscap.OSCAP.XCCDF_TYPE_NUMBER:
             #upper = float(self.text_uper_bound.get_text())
@@ -2769,7 +2886,7 @@ class EditValueDialogWindow(Edit_abs):
 
         self.window.destroy()
 
-    def control_data(self, data, text):
+    def control_data(self, data, selector_empty, text):
         """Control data about type and set parameter
             param data is string
             return False if data is incorrect
@@ -2781,27 +2898,34 @@ class EditValueDialogWindow(Edit_abs):
                 except Exception, e:
                     self.dialogInfo("Invalid number '%s' in %s." % (data, text), self.window)
                     return False
+                
+                if selector_empty:
+                    low = selector_empty.lower_bound
+                    upper = selector_empty.upper_bound
+                else:
+                    low = "nan"
+                    upper = "nan"
                     
-                low = self.text_lower_bound.get_text()
-                uper = self.text_uper_bound.get_text()
                 # control low
                 if low != "" and low != "nan":
                     low = float(low)
                     if data < low:
                         self.dialogInfo("Number %f can't be less then Lower bound." % (data), self.window)
                         return False
-                #control uper
-                if uper != "" and uper != "nan":
-                    uper = float(uper)
-                    if data > uper:
+                #control upper
+                if upper != "" and upper != "nan":
+                    upper = float(upper)
+                    if data > upper:
                         self.dialogInfo("Number %f can't be over Upper bound." % (data), self.window)
                         return False
 
             elif self.type == openscap.OSCAP.XCCDF_TYPE_STRING:
-                pattern = re.compile(self.text_match.get_text(),re.IGNORECASE)
-                if pattern.search(data) == None:
-                    self.dialogInfo("String '%s' isn't match with regular expression in field match." % data, self.window)
-                    return False
+                if selector_empty:
+                    if selector_empty.match:
+                        pattern = re.compile(selector_empty.match,re.IGNORECASE)
+                        if pattern.search(data) == None:
+                            self.dialogInfo("String '%s' isn't match with regular expression in field match." % data, self.window)
+                            return False
         return True
         
     def show(self):
@@ -2835,8 +2959,6 @@ class EditValueChoice(commands.DataHandler, abstract.EnterList):
         elif action == "add":
             self.model[self.edit_path][self.edit_column] = self.edit_text
 
-
-            
 #class EditTitle(commands.DataHandler, abstract.EnterList):
     
     #COLUMN_MARK_ROW = 0

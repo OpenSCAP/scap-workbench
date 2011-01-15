@@ -1808,7 +1808,8 @@ class DHEditItems:
             if value != None and value != '':
                 instance.set_value_number(float(value))
             else:
-                instance.set_value_number (float('nan'))
+                print float ("inf")
+                instance.set_value_number (float('inf'))
             #instance.set_defval_number(default)
             #instance.set_lower_bound(lower)
             #instance.set_upper_bound(upper)
@@ -1828,6 +1829,28 @@ class DHEditItems:
         #for it in choicesIter:
             #choicesIter.remove(it)
         #logger.error("Add choices not implemented")
+        return instance
+
+    def DHEditBoundMatch(self, value, kinstance, upper, lower, match):
+        # if exist instance without selector take bound and match from this instance
+        instance = None
+        for ins in value.instances:
+            if ins.selector == "" or ins.selector == None:
+                instance = ins
+                break
+        if not instance:
+            instance = value.new_instance()
+            value.add_instance(instance)
+        
+        if upper:
+            if not instance.set_upper_bound(upper):
+                return False
+        if lower:
+            if not instance.set_lower_bound(lower):
+                return False
+        if match:
+           if not instance.set_match(match):
+               return False
         return instance
         
     def DHEditRequires(self, item, id, add):
