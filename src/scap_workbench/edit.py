@@ -1149,7 +1149,8 @@ class EditPlatform(commands.DHEditItems,Edit_abs):
                         "textView":     {"name":    "Platform",
                                         "column":   self.COLUMN_TEXT,
                                         "empty":    False, 
-                                        "unique":   False},
+                                        "unique":   False,
+                                        "init_data": ""}
                         }
 
         Edit_abs.__init__(self, core, lv, values)
@@ -1169,7 +1170,7 @@ class EditPlatform(commands.DHEditItems,Edit_abs):
         self.model.clear()
         if item:
             for data in item.platforms:
-                self.model.append([data, None])
+                self.model.append([data, data])
 
 #======================================= EDIT VALUES ==========================================
 
@@ -2282,7 +2283,10 @@ class EditDialogWindow(EventObject):
                     return
                 else:
                     dest_path = path
-        
+
+            if "init_data" in self.values["textView"]:
+                self.init_data = text_textView
+                
         if "cBox" in self.values:
             active = self.cBox.get_active()
             if active < 0:

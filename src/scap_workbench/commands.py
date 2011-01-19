@@ -1487,24 +1487,18 @@ class DHEditItems:
         COLUMN_OBJECT = 1
         if item:
             if not delete:
-                # column == None new data 
-                if column == None:
-                    model.set_value(iter, COLUMN_TEXT, "init_itrText")
-                    item.add_platform("init_itrText")
+                object = model.get_value(iter, COLUMN_OBJECT)
+                if not object:
+                    model.set_value(iter, COLUMN_OBJECT, value)
+                    model.set_value(iter, COLUMN_TEXT, value)
+                    item.add_platform(value)
                 else:
                     if column == COLUMN_TEXT:
-                        old_text = model.get_value(iter, COLUMN_TEXT)
-                        print "old text=" + old_text
-                        i = 0
-                        for platf in item.platforms:
-                            print "search text=" + old_text
-                            if platf == old_text or platf == "init_itrText":
-                                print "sem tu value=" + value
-                                print item.platforms
-                                print item.platforms[0]
-                                print i
-                                item.platforms[0] = value
-                            i = i + 1
+                        old_text = model.get_value(iter, COLUMN_OBJECT)
+                        if old_text != value:
+                            item.platforms.remove(old_text)
+                            model.set_value(iter, COLUMN_TEXT, value)
+                            item.add_platform(value)
                     else:
                         logger.error("Bad number of column.")
             else:
@@ -1897,10 +1891,9 @@ class DHEditItems:
 
         if item:
             object = model.get_value(iter, COLUMN_OBJECT)
-
+            rule = item.to_rule()
             if not object:
                 object = openscap.xccdf.fixtext_new()
-                rule = item.to_rule()
                 rule.add_fixtext(object)
                 model.set_value(iter, COLUMN_OBJECT, object)
             elif  not delete:
@@ -1913,7 +1906,8 @@ class DHEditItems:
                 else:
                     logger.error("Bad number of column.")
             else:
-                logger.info ("TODO delete Fixtext")
+                logger.debug("Removing %s" %(object,))
+                rule.fixtexts.remove(object)
                 model.remove(iter)
         else:
             logger.error("Error: Not read item.")
@@ -1972,10 +1966,10 @@ class DHEditItems:
 
         if item:
             object = model.get_value(iter, COLUMN_OBJECT)
-
+            rule = item.to_rule()
+            
             if not object:
                 object = openscap.xccdf.fix_new()
-                rule = item.to_rule()
                 rule.add_fix(object)
                 model.set_value(iter, COLUMN_OBJECT, object)
             elif  not delete:
@@ -1986,7 +1980,8 @@ class DHEditItems:
                 else:
                     logger.error("Bad number of column.")
             else:
-                logger.info ("TODO delete Fix")
+                logger.debug("Removing %s" %(object,))
+                rule.fixes.remove(object)
                 model.remove(iter)
         else:
             logger.error("Error: Not read item.")
