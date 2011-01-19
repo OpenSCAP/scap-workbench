@@ -84,7 +84,8 @@ class Edit_abs:
     combo_model_status.append([openscap.OSCAP.XCCDF_STATUS_INTERIM, "INTERIM", "Interim."])
     
     combo_model_warning = gtk.ListStore(int, str, str)
-    combo_model_warning.append([openscap.OSCAP.XCCDF_WARNING_GENERAL, "GENERAL", "  General-purpose warning."])
+    combo_model_warning.append([0, "UNKNOWN", "Unknown."])
+    combo_model_warning.append([openscap.OSCAP.XCCDF_WARNING_GENERAL, "GENERAL", "General-purpose warning."])
     combo_model_warning.append([openscap.OSCAP.XCCDF_WARNING_FUNCTIONALITY, "FUNCTIONALITY", "Warning about possible impacts to functionality."])
     combo_model_warning.append([openscap.OSCAP.XCCDF_WARNING_PERFORMANCE, "PERFORMANCE", "  Warning about changes to target system performance."])
     combo_model_warning.append([openscap.OSCAP.XCCDF_WARNING_HARDWARE, "HARDWARE", "Warning about hardware restrictions or possible impacts to hardware."])
@@ -899,7 +900,6 @@ class EditWarning(commands.DHEditItems,Edit_abs):
         self.model.clear()
         if item:
             for data in item.warnings:
-
                 iter = self.combo_model_warning.get_iter_first()
                 while iter:
                     if data.category == self.combo_model_warning.get_value(iter, self.COMBO_COLUMN_DATA):
@@ -1180,6 +1180,7 @@ class EditValues(commands.DHEditItems, Edit_abs, EventObject):
     COLUMN_TYPE_ITER = 2
     COLUMN_TYPE_TEXT = 3
     COLUMN_OBJECT = 4
+    COLUMN_CHECK = 5
     
     def __init__(self, core, builder):
         
@@ -1194,7 +1195,7 @@ class EditValues(commands.DHEditItems, Edit_abs, EventObject):
         
         self.add_receiver("gui:btn:menu:edit:values", "item_changed", self.__update)
         
-        self.model = gtk.ListStore(str, str, gobject.TYPE_PYOBJECT, str, gobject.TYPE_PYOBJECT)
+        self.model = gtk.ListStore(str, str, gobject.TYPE_PYOBJECT, str, gobject.TYPE_PYOBJECT, gobject.TYPE_PYOBJECT)
         lv = self.builder.get_object("edit:values:tv_values")
         lv.set_model(self.model)
         
@@ -1288,7 +1289,7 @@ class EditValues(commands.DHEditItems, Edit_abs, EventObject):
                             type = self.combo_model_type.get_value(iter, self.COMBO_COLUMN_VIEW )
                             break
                         iter = self.combo_model_type.iter_next(iter)
-                    self.model.append([value.id, title_lang, iter, type, value])
+                    self.model.append([value.id, title_lang, iter, type, value, check])
         
     def __cd_value_remove(self, widget):
         pass
@@ -1405,10 +1406,10 @@ class EditValues(commands.DHEditItems, Edit_abs, EventObject):
 
     def cb_match(self, widget, event):
 
-        vys = self.DHEditBoundMatch(self.value_akt, self.selector_empty, None, None, widget.get_text())
+        vys = self.DHEditBoundMatch(self.value_akt, None, None, widget.get_text())
         if not vys:
             logger.error("Not changed value match")
-        elif vys != self.selector_empty:
+        else:
             self.emit("item_changed")
             
     def cb_control_bound(self, widget, event, type):
@@ -1451,13 +1452,13 @@ class EditValues(commands.DHEditItems, Edit_abs, EventObject):
                 return
         #add bound
         if type == "upper":
-            vys = self.DHEditBoundMatch(self.value_akt, self.selector_empty, data, None, None)
+            vys = self.DHEditBoundMatch(self.value_akt, data, None, None)
         else:
-            vys = self.DHEditBoundMatch(self.value_akt, self.selector_empty, None, data, None)
+            vys = self.DHEditBoundMatch(self.value_akt, None, data, None)
         
         if not vys:
-            logger.error("Not changed value bound")
-        elif vys != self.selector_empty:
+            logger.error("Not changed value bound.")
+        else:
             self.emit("item_changed")
             
 class EditValueTitle(commands.DHEditItems,Edit_abs):
@@ -1601,7 +1602,7 @@ class EditValueQuestion(commands.DHEditItems,Edit_abs):
             for data in value.question:
                 self.model.append([data.lang, data.text, data])
                 
-class EditValueValue(commands.DHEditItems,Edit_abs):
+class EditValueValue(commands.DHEditItems, Edit_abs):
 
     COLUMN_SELECTOR = 0
     COLUMN_VALUE = 1
@@ -1613,7 +1614,9 @@ class EditValueValue(commands.DHEditItems,Edit_abs):
         #set listView and model
         lv = builder.get_object("edit:values:lv_value")
         model = gtk.ListStore(str, str, gtk.TreeModel, gobject.TYPE_PYOBJECT)
+        self.model = model
         lv.set_model(model)
+        self.selection = lv.get_selection()
 
         #information for new/edit dialog
 
@@ -1667,7 +1670,19 @@ class EditValueValue(commands.DHEditItems,Edit_abs):
         EditValueDialogWindow(self.item, self.core, self.lv, self.DHEditValueInstance, True)
     
     def __cb_del_row(self, widget):
-        pass
+        iter = self.dialogEditDel()
+        if iter != None:
+            object = self.model.get_value(iter, self.COLUMN_OBJECT)
+            if object.selector == "" or object.selector == None:
+                if self.item.type == openscap.OSCAP.XCCDF_TYPE_NUMBER:
+                    if  (not (object.get_match() == None or object.get_match() == '') or str(object.get_lower_bound()) != "nan" or str(object.get_upper_bound()) != "nan"):
+                        self.dialogInfo("Can't del velue instnace, because is set Match or Bound in general.")
+                        return
+                if self.item.type == openscap.OSCAP.XCCDF_TYPE_STRING:
+                    if not (object.get_match() == None or object.get_match() == ''):
+                        self.dialogInfo("Can't del velue instnace, because is set Match in general.")
+                        return
+            self.DHEditValueInstanceDel(self.item, self.model, iter)
 #=========================================  End edit values ===================================
 
 #======================================= EDIT FIXTEXT ==========================================
@@ -2809,8 +2824,8 @@ class EditValueDialogWindow(Edit_abs):
                 selector_empty = ins
         
         if self.edit and self.instance.selector == "" and self.text_selector.get_text() != "":
-            if self.instance.get_match() != None or str(self.instance.get_lower_bound()) != "nan" or str(self.instance.get_upper_bound()) != "nan":
-                self.dialogInfo("Can't change empty selector if is set \n match, upper bound or lower_bound  in general.", self.window)
+            if  (not (self.instance.get_match() == None or self.instance.get_match() == '') or str(self.instance.get_lower_bound()) != "nan" or str(self.instance.get_upper_bound()) != "nan"):
+                self.dialogInfo("Can't change empty selector if is set Bound or Match in Grnral. ", self.window)
                 return
                 
         if (poc == 1 and not self.edit) or (self.edit and poc == 1 and self.text_selector.get_text() != self.instance.selector):

@@ -1606,6 +1606,7 @@ class DHEditItems:
         COLUMN_TYPE_ITER = 2
         COLUMN_TYPE_TEXT = 3
         COLUMN_OBJECT = 4
+        COLUMN_CHECK = 5
     
         if self.item:
             if not delete:
@@ -1626,6 +1627,7 @@ class DHEditItems:
                     object = model.get_value(iter, COLUMN_OBJECT)
                     object.set_id(value)
                     check = openscap.xccdf.check_new()
+                    model.set_value(iter, COLUMN_CHECK, check)
                     check_export = openscap.xccdf.check_export_new()
                     check_export.set_value(value)
                     check.add_export(check_export)
@@ -1635,8 +1637,11 @@ class DHEditItems:
                 else:
                     logger.error("Bad number of column.")
             else:
-                logger.info ("TODO delete Value.")
-                model.remove(iter)  
+                object = model.get_value(iter, COLUMN_OBJECT)
+                check = model.get_value(iter, COLUMN_CHECK)
+                logger.debug("Removing %s" %(object,))
+                check.exports.remove(object)
+                model.remove(iter)
         else:
             logger.error("Error: Not read item.")
 
@@ -1655,9 +1660,6 @@ class DHEditItems:
             value.set_interactive(state)
         else:
             logger.error("Error: Not value.")
-    
-    def DHEditValueInstance(self):
-        pass
     
     def DHEditValueTitle(self, item, model, iter, column, value, delete=False):
 
@@ -1680,7 +1682,8 @@ class DHEditItems:
                 else:
                     logger.error("Bad number of column.")
             else:
-                logger.info ("TODO delete Value Title")
+                logger.debug("Removing %s" %(object,))
+                item.title.remove(object)
                 model.remove(iter)
         else:
             logger.error("Error: Not read item.")
@@ -1706,7 +1709,8 @@ class DHEditItems:
                 else:
                     logger.error("Bad number of column.")
             else:
-                logger.info ("TODO delete Value Title")
+                logger.debug("Removing %s" %(object,))
+                item.description.remove(object)
                 model.remove(iter)
         else:
             logger.error("Error: Not read item.")
@@ -1732,7 +1736,8 @@ class DHEditItems:
                 else:
                     logger.error("Bad number of column.")
             else:
-                logger.info ("TODO delete Value Title")
+                logger.debug("Removing %s" %(object,))
+                item.question.remove(object)
                 model.remove(iter)
         else:
             logger.error("Error: Not read item.")
@@ -1781,7 +1786,8 @@ class DHEditItems:
                 logger.error("Bad column number: %s", column)
                 pass
         else:
-            logger.info ("TODO delete Value value")
+            logger.debug("Removing %s" %(obj,))
+            item.value.remove(obj)
             model.remove(iter)
 
     def DHEditConflicts(self, item, id, add):
@@ -1806,32 +1812,41 @@ class DHEditItems:
         instance.set_selector(selector)
         if type == openscap.OSCAP.XCCDF_TYPE_NUMBER:
             if value != None and value != '':
-                instance.set_value_number(float(value))
+                data = (float(value))
             else:
-                print float ("inf")
-                instance.set_value_number (float('inf'))
-            #instance.set_defval_number(default)
-            #instance.set_lower_bound(lower)
-            #instance.set_upper_bound(upper)
+                data = (float('nan'))
+                
+            # if selector is empty set as defval too
+            if selector == '':
+                instance.set_defval_number(data)
+            instance.set_value_number (data)
             
         elif type == openscap.OSCAP.XCCDF_TYPE_STRING:
             instance.set_value_string(value)
-            #instance.set_defval_string(default)
+            # if selector is empty set as defval too
+            if selector == '':
+                instance.set_defval_string(value)
             #instance.set_match(match)
             
         elif type == openscap.OSCAP.XCCDF_TYPE_BOOLEAN:
             instance.set_value_boolean(value)
-            #instance.set_defval_boolean(default)
-    
-        #instance.set_must_match(mustMuch)
-        #instance.set_selector(selector)
-        
-        #for it in choicesIter:
-            #choicesIter.remove(it)
-        #logger.error("Add choices not implemented")
+            # if selector is empty set as defval too
+            if selector == '':
+                instance.set_defval_boolean(value)
         return instance
-
-    def DHEditBoundMatch(self, value, kinstance, upper, lower, match):
+        
+    def DHEditValueInstanceDel(self, item, model, iter):
+        COLUMN_SELECTOR = 0
+        COLUMN_VALUE = 1
+        COLUMN_MODEL_CHOICES = 2
+        COLUMN_OBJECT = 3
+    
+        object = model.get_value(iter, COLUMN_OBJECT)
+        logger.debug("Removing %s" %(object,))
+        item.instances.remove(object)
+        model.remove(iter)
+    
+    def DHEditBoundMatch(self, value, upper, lower, match):
         # if exist instance without selector take bound and match from this instance
         instance = None
         for ins in value.instances:
@@ -1841,14 +1856,16 @@ class DHEditItems:
         if not instance:
             instance = value.new_instance()
             value.add_instance(instance)
-        
-        if upper:
+            if value.type == openscap.OSCAP.XCCDF_TYPE_NUMBER:
+                instance.set_value_number(float('nan'))
+                
+        if upper != None:
             if not instance.set_upper_bound(upper):
                 return False
-        if lower:
+        if lower != None:
             if not instance.set_lower_bound(lower):
                 return False
-        if match:
+        if match != None:
            if not instance.set_match(match):
                return False
         return instance
