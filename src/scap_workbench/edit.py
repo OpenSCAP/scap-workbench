@@ -397,6 +397,8 @@ class MenuButtonEdit(abstract.MenuButton, commands.DHEditItems, Edit_abs):
         """
         #main
         self.nBook = self.builder.get_object("edit:notebook")
+        self.nBook.remove_page(1)
+        self.nBook.remove_page(3)
         self.set_sensitive(False)
         self.btn_revert = self.builder.get_object("edit:btn_revert")
         self.btn_save = self.builder.get_object("edit:btn_save")
