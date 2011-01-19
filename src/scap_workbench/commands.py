@@ -1607,7 +1607,8 @@ class DHEditItems:
         COLUMN_TYPE_TEXT = 3
         COLUMN_OBJECT = 4
         COLUMN_CHECK = 5
-    
+        COLUMN_CHECK_EXPORT = 6
+        
         if self.item:
             if not delete:
                 # column == None new data 
@@ -1626,21 +1627,30 @@ class DHEditItems:
                 elif column == COLUMN_ID:
                     object = model.get_value(iter, COLUMN_OBJECT)
                     object.set_id(value)
-                    check = openscap.xccdf.check_new()
-                    model.set_value(iter, COLUMN_CHECK, check)
+                    check_add = None
+                    #add to firts check which will found
+                    for check_ex in self.item.checks:
+                        check_add = check_ex
+                        break
+                    
+                    #check not exist create new
+                    if not check_add:
+                        check_add = openscap.xccdf.check_new()
+                        self.item.add_check(check)
+                    model.set_value(iter, COLUMN_CHECK, check_add)
                     check_export = openscap.xccdf.check_export_new()
                     check_export.set_value(value)
-                    check.add_export(check_export)
-                    self.item.add_check(check)
+                    check_add.add_export(check_export)
+                        
                 elif column == COLUMN_TYPE_ITER:
                     pass
                 else:
                     logger.error("Bad number of column.")
             else:
-                object = model.get_value(iter, COLUMN_OBJECT)
                 check = model.get_value(iter, COLUMN_CHECK)
-                logger.debug("Removing %s" %(object,))
-                check.exports.remove(object)
+                check_export = model.get_value(iter, COLUMN_CHECK_EXPORT)
+                logger.debug("Removing %s" %(check_export,))
+                check.exports.remove(check_export)
                 model.remove(iter)
         else:
             logger.error("Error: Not read item.")

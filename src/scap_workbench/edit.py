@@ -1181,6 +1181,7 @@ class EditValues(commands.DHEditItems, Edit_abs, EventObject):
     COLUMN_TYPE_TEXT = 3
     COLUMN_OBJECT = 4
     COLUMN_CHECK = 5
+    COLUMN_CHECK_EXPORT = 6
     
     def __init__(self, core, builder):
         
@@ -1195,7 +1196,7 @@ class EditValues(commands.DHEditItems, Edit_abs, EventObject):
         
         self.add_receiver("gui:btn:menu:edit:values", "item_changed", self.__update)
         
-        self.model = gtk.ListStore(str, str, gobject.TYPE_PYOBJECT, str, gobject.TYPE_PYOBJECT, gobject.TYPE_PYOBJECT)
+        self.model = gtk.ListStore(str, str, gobject.TYPE_PYOBJECT, str, gobject.TYPE_PYOBJECT, gobject.TYPE_PYOBJECT, gobject.TYPE_PYOBJECT)
         lv = self.builder.get_object("edit:values:tv_values")
         lv.set_model(self.model)
         
@@ -1289,7 +1290,7 @@ class EditValues(commands.DHEditItems, Edit_abs, EventObject):
                             type = self.combo_model_type.get_value(iter, self.COMBO_COLUMN_VIEW )
                             break
                         iter = self.combo_model_type.iter_next(iter)
-                    self.model.append([value.id, title_lang, iter, type, value, check])
+                    self.model.append([value.id, title_lang, iter, type, value, check, export])
         
     def __cd_value_remove(self, widget):
         pass
