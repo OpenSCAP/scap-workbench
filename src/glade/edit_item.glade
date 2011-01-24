@@ -5,9 +5,9 @@
   <object class="GtkDialog" id="dialog:edit_item">
     <property name="border_width">5</property>
     <property name="modal">True</property>
-    <property name="window_position">center</property>
+    <property name="window_position">center-on-parent</property>
     <property name="destroy_with_parent">True</property>
-    <property name="type_hint">normal</property>
+    <property name="type_hint">dialog</property>
     <property name="has_separator">False</property>
     <child internal-child="vbox">
       <object class="GtkVBox" id="dialog-vbox">
@@ -179,7 +179,9 @@
   <object class="GtkDialog" id="dialog:add_item">
     <property name="border_width">5</property>
     <property name="modal">True</property>
-    <property name="type_hint">normal</property>
+    <property name="window_position">center-on-parent</property>
+    <property name="destroy_with_parent">True</property>
+    <property name="type_hint">dialog</property>
     <property name="has_separator">False</property>
     <child internal-child="vbox">
       <object class="GtkVBox" id="dialog-vbox2">
@@ -413,7 +415,10 @@
   </object>
   <object class="GtkDialog" id="dialog:add_id">
     <property name="border_width">5</property>
-    <property name="type_hint">normal</property>
+    <property name="modal">True</property>
+    <property name="window_position">center-on-parent</property>
+    <property name="destroy_with_parent">True</property>
+    <property name="type_hint">dialog</property>
     <property name="has_separator">False</property>
     <child internal-child="vbox">
       <object class="GtkVBox" id="dialog-vbox3">
@@ -740,7 +745,10 @@
   </object>
   <object class="GtkDialog" id="dialog:edit_value">
     <property name="border_width">5</property>
-    <property name="type_hint">normal</property>
+    <property name="modal">True</property>
+    <property name="window_position">center-on-parent</property>
+    <property name="destroy_with_parent">True</property>
+    <property name="type_hint">dialog</property>
     <property name="has_separator">False</property>
     <child internal-child="vbox">
       <object class="GtkVBox" id="dialog-vbox4">

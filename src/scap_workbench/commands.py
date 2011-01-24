@@ -1217,7 +1217,8 @@ class DHScan(DataHandler, EventObject):
         params = [ 
             "result-id",         "OSCAP-Test-"+(self.core.selected_profile or "default-profile"),
             "profile",           self.core.selected_profile,
-            "verbosity",         "1", None]
+            "verbosity",         "1", 
+            "oval-tepmplate",    "%.result.xml", None]
 
         retval = openscap.common.oscap_apply_xslt(file, "xccdf-report.xsl", "report.xhtml", params)
         logger.info("Export report file %s" % (["failed: %s" % (openscap.common.err_desc(),), "done"][retval],))

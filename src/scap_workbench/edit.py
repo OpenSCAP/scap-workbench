@@ -247,7 +247,7 @@ class Edit_abs:
         if patternBase.search(text) != None or patternTempo.search(text) != None or patternEnvi.search(text) != None:
             return True
         else:
-            error = "Incorrec value of Impact Metrix, correct is:\n\n"
+            error = "Incorrect value of Impact Metrix, correct is:\n\n"
             error = error + "Metric Value    Description \n\n"
             error = error + "Base =    AV:[L,A,N]/AC:[H,M,L]/Au:[M,S,N]/C:[N,P,C]/I:[N,P,C]/A:[N,P,C]\n\n"
             error = error + "Temporal =     E:[U,POC,F,H,ND]/RL:[OF,TF,W,U,ND]/RC:[UC,UR,C,ND]\n\n"
@@ -490,7 +490,7 @@ class MenuButtonEdit(abstract.MenuButton, commands.DHEditItems, Edit_abs):
             else: 
                 self.data_model.get_benchmark_titles()[0]
             self.section_list.get_model().append(["XCCDF", "XCCDF: "+title])
-            self.section_list.get_model().append(["PROFILES", "XCCDF: "+title+" (Profiles)"])
+            #self.section_list.get_model().append(["PROFILES", "XCCDF: "+title+" (Profiles)"])
             self.section_list.set_active(0)
 
     def cb_control_impact_metrix(self, widget, event):
@@ -2026,7 +2026,6 @@ class EditAddDialogWindow(EventObject, Edit_abs):
         #self.combo_model.append([self.CREATE_AS_PARENT,"Parent","Create the item as a parent."])
         
         self.window = builder.get_object("dialog:add_item")
-        self.window.set_keep_above(True)
         self.window.connect("delete-event", self.__delete_event)
         #self.window.resize(400, 150)
         
@@ -2176,7 +2175,6 @@ class EditDialogWindow(EventObject):
         builder.add_from_file("/usr/share/scap-workbench/edit_item.glade")
         
         self.window = builder.get_object("dialog:edit_item")
-        self.window.set_keep_above(True)
         self.window.connect("delete-event", self.__delete_event)
         self.window.resize(400, 150)
         
@@ -2412,7 +2410,6 @@ class EditSelectIdDialogWindow():
         builder.add_from_file("/usr/share/scap-workbench/edit_item.glade")
 
         self.window = builder.get_object("dialog:add_id")
-        self.window.set_keep_above(True)
         self.window.connect("delete-event", self.__delete_event)
         self.window.resize(800, 600)
         
@@ -2624,7 +2621,7 @@ class EditSelectIdDialogWindow():
     
 
 
-class EditValueDialogWindow(Edit_abs):
+class EditValueDialogWindow(abstract.Window, Edit_abs):
     
     COLUMN_SELECTOR = 0
     COLUMN_VALUE = 1
@@ -2656,7 +2653,6 @@ class EditValueDialogWindow(Edit_abs):
         builder.add_from_file("/usr/share/scap-workbench/edit_item.glade")
 
         self.window = builder.get_object("dialog:edit_value")
-        self.window.set_keep_above(True)
         self.window.connect("delete-event", self.__delete_event)
         self.window.resize(800, 600)
         
@@ -2952,7 +2948,7 @@ class EditValueDialogWindow(Edit_abs):
         
     def show(self):
         self.window.set_transient_for(self.core.main_window)
-        self.window.show()
+        self.window.show_all()
 
     def __delete_event(self, widget, event=None):
         self.window.destroy()
