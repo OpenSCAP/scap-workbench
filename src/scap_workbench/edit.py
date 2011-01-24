@@ -256,6 +256,50 @@ class Edit_abs:
             self.dialogInfo(error)
             return False
 
+class ProfileList(abstract.List):
+    
+    def __init__(self, widget, core, builder=None, progress=None, filter=None):
+        self.core = core
+        self.builder = builder
+        self.data_model = commands.DHProfiles(core)
+        abstract.List.__init__(self, "gui:edit:profile_list", core, widget)
+
+        selection = self.get_TreeView().get_selection()
+        selection.set_mode(gtk.SELECTION_SINGLE)
+        self.section_list = self.builder.get_object("edit:section_list")
+        self.profilesList = self.builder.get_object("edit:tw_profiles:sw")
+
+        # actions
+        self.add_sender(self.id, "show")
+        self.add_sender(self.id, "profile_changed")
+        self.add_receiver("gui:btn:menu:edit", "update", self.__update)
+        #self.add_receiver("gui:edit:profile_list", "update", self.__show)
+        selection.connect("changed", self.cb_item_changed, self.get_TreeView())
+
+    def __show(self):
+        if "profile" not in self.__dict__ or self.profile != self.core.selected_profile:
+            self.profile = self.core.selected_profile
+
+    def __update(self):
+
+        if self.section_list.get_model()[self.section_list.get_active()][0] == "PROFILES":
+            self.profilesList.set_visible(True)
+            if "profile" not in self.__dict__ or self.profile != self.core.selected_profile or self.core.force_reload_profiles:
+                self.data_model.fill()
+                self.get_TreeView().get_model().foreach(self.set_selected, (None, self.get_TreeView()))
+                self.core.force_reload_profiles = False
+        else:
+            self.profilesList.set_visible(False)
+
+    def cb_item_changed(self, widget, treeView):
+
+        selection = treeView.get_selection( )
+        if selection != None: 
+            (model, iter) = selection.get_selected( )
+            if iter: self.core.selected_profile = model.get_value(iter, 0)
+        self.emit("update")
+
+
 class ItemList(abstract.List):
 
     def __init__(self, widget, core, builder=None, progress=None, filter=None):
@@ -269,13 +313,14 @@ class ItemList(abstract.List):
         self.filter = filter
         self.map_filter = {}
         self.builder = builder
-        self.get_TreeView().set_enable_tree_lines(True)
 
         # Popup Menu
         self.builder.get_object("edit:list:popup:add").connect("activate", self.__cb_item_add)
         self.builder.get_object("edit:list:popup:remove").connect("activate", self.__cb_item_remove)
         widget.connect("button_press_event", self.__cb_button_pressed, self.builder.get_object("edit:list:popup"))
 
+        self.section_list = self.builder.get_object("edit:section_list")
+        self.itemsList = self.builder.get_object("edit:tw_items:sw")
         selection = self.get_TreeView().get_selection()
         selection.set_mode(gtk.SELECTION_SINGLE)
 
@@ -293,16 +338,19 @@ class ItemList(abstract.List):
         self.init_filters(self.filter, self.data_model.model, self.data_model.new_model())
 
     def __update(self):
-        if self.loaded_new == True:
-            self.get_TreeView().set_model(self.data_model.model)
-            self.data_model.fill()
-            self.loaded_new = False
-        
-        # Select the last one selected if there is one         #self.core.selected_item_edi
-        if self.old_selected != self.core.selected_item:
-            self.get_TreeView().get_model().foreach(self.set_selected, (self.core.selected_item, self.get_TreeView()))
-            self.core.force_reload_items = False
-            self.old_selected = self.core.selected_item
+        if self.section_list.get_model()[self.section_list.get_active()][0] == "XCCDF":
+            self.itemsList.set_visible(True)
+            if self.loaded_new == True:
+                self.get_TreeView().set_model(self.data_model.model)
+                self.data_model.fill()
+                self.loaded_new = False
+            # Select the last one selected if there is one         #self.core.selected_item_edi
+            if self.old_selected != self.core.selected_item:
+                self.get_TreeView().get_model().foreach(self.set_selected, (self.core.selected_item, self.get_TreeView()))
+                self.core.force_reload_items = False
+                self.old_selected = self.core.selected_item
+        else:
+            self.itemsList.set_visible(False)
 
             
     def __loaded_new_xccdf(self):
@@ -384,9 +432,13 @@ class MenuButtonEdit(abstract.MenuButton, commands.DHEditItems, Edit_abs):
         self.section_list = self.builder.get_object("edit:section_list")
         self.filter = filter.ItemFilter(self.core, self.builder,"edit:box_filter", "gui:btn:edit:filter")
         self.tw_items = self.builder.get_object("edit:tw_items")
+        self.tw_profiles = self.builder.get_object("edit:tw_profiles")
         titles = self.data_model.get_benchmark_titles()
         self.list_item = ItemList(self.tw_items, self.core, builder, self.progress, self.filter)
+        self.list_profile = ProfileList(self.tw_profiles, self.core, builder, self.progress, self.filter)
         self.ref_model = self.list_item.get_TreeView().get_model() # original model (not filtered)
+
+        self.section_list.connect("changed", self.__content_changed, self.section_list.get_model())
         
         self.filter.expander.cb_changed()
 
@@ -396,9 +448,13 @@ class MenuButtonEdit(abstract.MenuButton, commands.DHEditItems, Edit_abs):
         """Get widget for details
         """
         #main
-        self.nBook = self.builder.get_object("edit:notebook")
-        self.nBook.remove_page(1)
-        self.nBook.remove_page(3)
+        self.itemsPage = self.builder.get_object("edit:notebook")
+        self.profilePage = self.builder.get_object("edit:profile")
+        
+        # remove just for now (missing implementations and so..)
+        self.itemsPage.remove_page(1)
+        self.itemsPage.remove_page(3)
+
         self.set_sensitive(False)
         self.btn_revert = self.builder.get_object("edit:btn_revert")
         self.btn_save = self.builder.get_object("edit:btn_save")
@@ -476,8 +532,30 @@ class MenuButtonEdit(abstract.MenuButton, commands.DHEditItems, Edit_abs):
         self.cBox_role.set_model(self.combo_model_role)
         self.cBox_role.connect( "changed", self.cb_cBox_role)
 
-        self.add_receiver("gui:edit:item_list", "update", self.__update)
-        self.add_receiver("gui:edit:item_list", "changed", self.__update)
+        # PROFILES
+        self.info_box_lbl = self.builder.get_object("edit:profile:info_box:lbl")
+        self.profile_id = self.builder.get_object("edit:profile:entry_id")
+        self.profile_cb_lang = self.builder.get_object("edit:profile:cbentry_lang")
+        for lang in self.core.langs:
+            self.profile_cb_lang.get_model().append([lang])
+        self.profile_title = self.builder.get_object("edit:profile:entry_title")
+        self.profile_version = self.builder.get_object("edit:profile:entry_version")
+        self.profile_description = self.builder.get_object("edit:profile:entry_description")
+        self.profile_abstract = self.builder.get_object("edit:profile:cbox_abstract")
+        self.tw_langs = self.builder.get_object("edit:profile:tw_langs")
+        selection = self.tw_langs.get_selection()
+        #selection.connect("changed", self.__cb_lang_changed)
+        self.profile_btn_add = self.builder.get_object("edit:profile:btn_add")
+
+        self.langs_model = gtk.ListStore(str, str, str)
+        self.tw_langs.set_model(self.langs_model)
+        self.tw_langs.append_column(gtk.TreeViewColumn("Lang", gtk.CellRendererText(), text=0))
+        self.tw_langs.append_column(gtk.TreeViewColumn("Title", gtk.CellRendererText(), text=1))
+        self.tw_langs.append_column(gtk.TreeViewColumn("Description", gtk.CellRendererText(), text=2))
+
+        self.add_receiver("gui:edit:item_list", "update", self.__update_items)
+        self.add_receiver("gui:edit:item_list", "changed", self.__update_items)
+        self.add_receiver("gui:edit:profile_list", "update", self.__update_profile)
         self.add_receiver("gui:btn:main:xccdf", "load", self.__section_list_load)
         self.__section_list_load() #TODO
 
@@ -490,8 +568,18 @@ class MenuButtonEdit(abstract.MenuButton, commands.DHEditItems, Edit_abs):
             else: 
                 self.data_model.get_benchmark_titles()[0]
             self.section_list.get_model().append(["XCCDF", "XCCDF: "+title])
-            #self.section_list.get_model().append(["PROFILES", "XCCDF: "+title+" (Profiles)"])
+            self.section_list.get_model().append(["PROFILES", "XCCDF: "+title+" (Profiles)"])
             self.section_list.set_active(0)
+
+    def __content_changed(self, widget, model):
+        if model[widget.get_active()][0] == "XCCDF":
+            self.profilePage.set_visible(False)
+            self.itemsPage.set_visible(True)
+        elif model[widget.get_active()][0] == "PROFILES":
+            self.profilePage.set_visible(True)
+            self.itemsPage.set_visible(False)
+        self.__update()
+        self.emit("update")
 
     def cb_control_impact_metrix(self, widget, event):
         text = widget.get_text()
@@ -510,9 +598,59 @@ class MenuButtonEdit(abstract.MenuButton, commands.DHEditItems, Edit_abs):
         pass
 
     def set_sensitive(self, sensitive):
-        self.nBook.set_sensitive(sensitive)
+        self.itemsPage.set_sensitive(sensitive)
 
-    def __update(self):
+    def __set_profile_description(self, description):
+        """
+        Set description to the textView.
+        @param text Text with description
+        """
+        self.profile_description.get_buffer().set_text("")
+        if description == "": description = "No description"
+        description = "<body>"+description+"</body>"
+        self.profile_description.display_html(description)
+        
+    def __update(self, active=""):
+        if active == "PROFILES":
+            self.__update_profile()
+        else: self.__update_items()
+
+    def __update_profile(self):
+
+        details = self.data_model.get_profile_details(self.core.selected_profile)
+        if not details:
+            self.profile_id.set_text("")
+            self.profile_abstract.set_text("")
+            #self.profile_extend.set_text("")
+            self.profile_version.set_text("")
+            self.profile_title.set_text("")
+            #self.__set_description("")
+            return
+
+        self.profile_description.set_sensitive(details["id"] != None)
+        self.profile_title.set_sensitive(details["id"] != None)
+        self.profile_abstract.set_sensitive(details["id"] != None)
+        self.profile_id.set_sensitive(details["id"] != None)
+        self.profile_version.set_sensitive(details["id"] != None)
+        self.tw_langs.set_sensitive(details["id"] != None)
+        self.profile_cb_lang.set_sensitive(details["id"] != None)
+        self.profile_btn_add.set_sensitive(details["id"] != None)
+
+        self.profile_id.set_text(details["id"] or "")
+        self.profile_abstract.set_active(details["abstract"])
+        #self.profile_extend.set_text(str(details["extends"] or ""))
+        self.profile_version.set_text(details["version"] or "")
+
+        self.tw_langs.get_model().clear()
+        title = None
+        description = None
+        for lang in details["titles"]:
+            if lang in details["titles"]: title = details["titles"][lang]
+            if lang in details["descriptions"]: description = details["descriptions"][lang]
+            self.tw_langs.get_model().append([lang, title, description])
+
+
+    def __update_items(self):
  
         if self.core.selected_item_edit != None:
             details = self.data_model.get_item_objects(self.core.selected_item_edit)
