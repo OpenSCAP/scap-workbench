@@ -899,6 +899,23 @@ class DHProfiles(DataHandler):
             return None
 
         profile = openscap.xccdf.profile()
+        self.edit(item, profile)
+
+        self.core.lib["policy_model"].benchmark.add_profile(profile)
+        self.core.lib["policy_model"].add_policy(openscap.xccdf.policy(self.core.lib["policy_model"], profile))
+
+    def edit(self, item, profile=None):
+        logger.debug("Editing profile: \"%s\"", item["id"])
+        if not self.core.lib:
+            logger.error("Library not initialized or XCCDF file not specified")
+            return None
+
+        if not profile: profile = self.core.lib["policy_model"].benchmark.get_item(item["id"])
+        if not profile: 
+            self.core.notify("Saving profile failed: No profile \"%s\" in benchmark." % (item["id"]), 2)
+            logger.error("No profile \"%s\" in benchmark", item["id"])
+            return
+
         profile.id = item["id"]
         profile.abstract = item["abstract"]
         profile.version = item["version"]
@@ -912,9 +929,6 @@ class DHProfiles(DataHandler):
             description.text = detail["description"]
             description.lang = detail["lang"]
             profile.description = description
-
-        self.core.lib["policy_model"].benchmark.add_profile(profile)
-        self.core.lib["policy_model"].add_policy(openscap.xccdf.policy(self.core.lib["policy_model"], profile))
 
     def fill(self, item=None, parent=None):
 

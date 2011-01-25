@@ -236,11 +236,7 @@ class MainWindow(abstract.Window, threading.Thread):
 
         self.core.register("main:button_forward", self.builder.get_object("main:button_forward"))
         self.core.register("main:button_back", self.builder.get_object("main:button_back"))
-        self.builder.get_object("main:button_back").set_sensitive(False)
-
-        self.wizard = core.Wizard(self.core)
-        self.builder.get_object("main:button_forward").connect("clicked", self.wizard.forward)
-        self.builder.get_object("main:button_back").connect("clicked", self.wizard.back)
+        #self.builder.get_object("main:button_back").set_sensitive(False)
 
         self.core.main_window = self.window
         self.window.show()

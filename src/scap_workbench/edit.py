@@ -264,32 +264,31 @@ class ProfileList(abstract.List):
         self.data_model = commands.DHProfiles(core)
         abstract.List.__init__(self, "gui:edit:profile_list", core, widget)
 
+        # Popup Menu
+        self.builder.get_object("edit:profile_list:popup:add").connect("activate", self.__cb_item_add)
+        self.builder.get_object("edit:profile_list:popup:remove").connect("activate", self.__cb_item_remove)
+        widget.connect("button_press_event", self.__cb_button_pressed, self.builder.get_object("edit:profile_list:popup"))
+
         selection = self.get_TreeView().get_selection()
         selection.set_mode(gtk.SELECTION_SINGLE)
         self.section_list = self.builder.get_object("edit:section_list")
         self.profilesList = self.builder.get_object("edit:tw_profiles:sw")
 
         # actions
-        self.add_sender(self.id, "show")
-        self.add_sender(self.id, "profile_changed")
+        self.add_sender(self.id, "update_profiles")
         self.add_receiver("gui:btn:menu:edit", "update", self.__update)
-        #self.add_receiver("gui:edit:profile_list", "update", self.__show)
         selection.connect("changed", self.cb_item_changed, self.get_TreeView())
-
-    def __show(self):
-        if "profile" not in self.__dict__ or self.profile != self.core.selected_profile:
-            self.profile = self.core.selected_profile
 
     def __update(self):
 
         if self.section_list.get_model()[self.section_list.get_active()][0] == "PROFILES":
             self.profilesList.set_visible(True)
-            if "profile" not in self.__dict__ or self.profile != self.core.selected_profile or self.core.force_reload_profiles:
+            if "profile" not in self.__dict__ or self.core.force_reload_profiles:
                 self.data_model.fill()
-                self.get_TreeView().get_model().foreach(self.set_selected, (None, self.get_TreeView()))
-                self.core.force_reload_profiles = False
+                self.get_TreeView().get_model().foreach(self.set_selected, (self.core.selected_profile, self.get_TreeView()))
         else:
             self.profilesList.set_visible(False)
+        self.emit("update_profiles")
 
     def cb_item_changed(self, widget, treeView):
 
@@ -299,6 +298,22 @@ class ProfileList(abstract.List):
             if iter: self.core.selected_profile = model.get_value(iter, 0)
         self.emit("update")
 
+    def __cb_button_pressed(self, treeview, event, menu):
+        if event.button == 3:
+            time = event.time
+            menu.popup(None, None, None, event.button, event.time)
+
+    def __cb_item_remove(self, widget):
+        selection = self.get_TreeView().get_selection()
+        (model,iter) = selection.get_selected()
+        if iter:
+            self.data_model.remove_item(model[iter][0])
+            model.remove(iter)
+        else: raise AttributeError, "Removing non-selected item or nothing selected."
+        self.emit("update_profiles")
+
+    def __cb_item_add(self, widget):
+        EditAddProfileDialogWindow(self.core, self.data_model, self.__update)
 
 class ItemList(abstract.List):
 
@@ -423,6 +438,7 @@ class MenuButtonEdit(abstract.MenuButton, commands.DHEditItems, Edit_abs):
         self.builder = builder
         self.core = core
         self.data_model = commands.DataHandler(self.core)
+        self.profile_model = commands.DHProfiles(self.core)
         self.item = None
 
         #draw body
@@ -456,12 +472,7 @@ class MenuButtonEdit(abstract.MenuButton, commands.DHEditItems, Edit_abs):
         self.itemsPage.remove_page(3)
 
         self.set_sensitive(False)
-        self.btn_revert = self.builder.get_object("edit:btn_revert")
-        self.btn_save = self.builder.get_object("edit:btn_save")
-        
-        self.btn_revert.connect("clicked", self.__cb_revert)
-        self.btn_save.connect("clicked", self.__cb_save)
-        
+
         #general
         self.item_id = self.builder.get_object("edit:general:lbl_id")
         
@@ -542,11 +553,18 @@ class MenuButtonEdit(abstract.MenuButton, commands.DHEditItems, Edit_abs):
         self.profile_version = self.builder.get_object("edit:profile:entry_version")
         self.profile_description = self.builder.get_object("edit:profile:entry_description")
         self.profile_abstract = self.builder.get_object("edit:profile:cbox_abstract")
+        self.profile_extends = self.builder.get_object("edit:profile:cb_extends")
         self.tw_langs = self.builder.get_object("edit:profile:tw_langs")
-        selection = self.tw_langs.get_selection()
-        #selection.connect("changed", self.__cb_lang_changed)
-        self.profile_btn_add = self.builder.get_object("edit:profile:btn_add")
 
+        self.profile_btn_revert = self.builder.get_object("edit:profile:btn_revert")
+        self.profile_btn_revert.connect("clicked", self.__cb_profile_revert)
+        self.profile_btn_save = self.builder.get_object("edit:profile:btn_save")
+        self.profile_btn_save.connect("clicked", self.__cb_profile_save)
+        self.profile_btn_add = self.builder.get_object("edit:profile:btn_add")
+        self.profile_btn_add.connect("clicked", self.__cb_profile_add_lang)
+
+        selection = self.tw_langs.get_selection()
+        selection.connect("changed", self.__cb_profile_lang_changed)
         self.langs_model = gtk.ListStore(str, str, str)
         self.tw_langs.set_model(self.langs_model)
         self.tw_langs.append_column(gtk.TreeViewColumn("Lang", gtk.CellRendererText(), text=0))
@@ -591,11 +609,35 @@ class MenuButtonEdit(abstract.MenuButton, commands.DHEditItems, Edit_abs):
         if timestamp:
             self.DHEditVersionTime(self.item, timestamp)
 
-    def __cb_revert(self, widget):
-        pass
+    def __cb_profile_revert(self, widget):
+        self.__update_profile()
 
-    def __cb_save(self, widget):
-        pass
+    def __cb_profile_save(self, widget):
+        if self.profile_id.get_text() == "":
+            logger.error("No ID of profile specified")
+            md = gtk.MessageDialog(self.window, 
+                    gtk.DIALOG_MODAL, gtk.MESSAGE_ERROR,
+                    gtk.BUTTONS_OK, "ID of profile has to be specified !")
+            md.run()
+            md.destroy()
+            return
+        values = {}
+        values["id"] = self.profile_id.get_text()
+        values["abstract"] = self.profile_abstract.get_active()
+        values["version"] = self.profile_version.get_text()
+        if self.profile_extends.get_active() >= 0: values["extends"] = self.profile_extends.get_model()[self.profile_extends.get_active()][0]
+        else: values["extends"] = None
+        values["details"] = []
+        for row in self.tw_langs.get_model():
+            item = {"lang": row[0],
+                    "title": row[1],
+                    "description": row[2]}
+            values["details"].append(item)
+
+        self.profile_model.edit(values)
+        self.core.force_reload_profiles = True
+        self.profile_model.save()
+        self.emit("update")
 
     def set_sensitive(self, sensitive):
         self.itemsPage.set_sensitive(sensitive)
@@ -635,6 +677,8 @@ class MenuButtonEdit(abstract.MenuButton, commands.DHEditItems, Edit_abs):
         self.tw_langs.set_sensitive(details["id"] != None)
         self.profile_cb_lang.set_sensitive(details["id"] != None)
         self.profile_btn_add.set_sensitive(details["id"] != None)
+        self.profile_btn_save.set_sensitive(details["id"] != None)
+        self.profile_btn_revert.set_sensitive(details["id"] != None)
 
         self.profile_id.set_text(details["id"] or "")
         self.profile_abstract.set_active(details["abstract"])
@@ -648,6 +692,49 @@ class MenuButtonEdit(abstract.MenuButton, commands.DHEditItems, Edit_abs):
             if lang in details["titles"]: title = details["titles"][lang]
             if lang in details["descriptions"]: description = details["descriptions"][lang]
             self.tw_langs.get_model().append([lang, title, description])
+
+    def __cb_profile_lang_changed(self, widget):
+        selection = self.tw_langs.get_selection( )
+        if selection != None: 
+            (model, iter) = selection.get_selected( )
+            if iter: 
+                self.profile_cb_lang.set_text(model.get_value(iter, 0))
+                self.profile_title.set_text(model.get_value(iter, 1))
+                self.profile_description.get_buffer().set_text(model.get_value(iter, 2))
+
+    def __cb_profile_add_lang(self, widget):
+        result = None
+        for row in self.tw_langs.get_model():
+            if row[0] == self.profile_cb_lang.get_active_text():
+                md = gtk.MessageDialog(self.core.main_window, 
+                        gtk.DIALOG_MODAL, gtk.MESSAGE_QUESTION,
+                        gtk.BUTTONS_YES_NO, "Language \"%s\" already specified.\n\nRewrite stored data ?" % (row[0],))
+                md.set_title("Language found")
+                result = md.run()
+                md.destroy()
+                if result == gtk.RESPONSE_NO: 
+                    return
+                else: self.langs_model.remove(row.iter)
+
+        buffer = self.profile_description.get_buffer()
+        self.tw_langs.get_model().append([self.profile_cb_lang.get_active_text(), 
+            self.profile_title.get_text(),
+            buffer.get_text(buffer.get_start_iter(), buffer.get_end_iter(), False)])
+
+        # Add lang to combo box model
+        found = False
+        for item in self.profile_cb_lang.get_model():
+            if item[0] == self.profile_cb_lang.get_active_text(): 
+                found = True
+        if not found: 
+            self.profile_cb_lang.get_model().append([self.profile_cb_lang.get_active_text()])
+            self.profile_cb_lang.set_active_iter(self.profile_cb_lang.get_model()[-1].iter)
+            self.core.langs.append(self.profile_cb_lang.get_active_text())
+
+        # Clear
+        self.profile_cb_lang.set_active(-1)
+        self.profile_title.set_text("")
+        self.profile_description.get_buffer().set_text("")
 
 
     def __update_items(self):
@@ -2133,6 +2220,49 @@ class EditFixOption(commands.DHEditItems,Edit_abs):
         self.combo_complexity.handler_unblock_by_func(self.cb_combo_fix_complexity)
         self.combo_disruption.handler_unblock_by_func(self.cb_combo_fix_disruption)
         self.chbox_reboot.handler_unblock_by_func(self.cb_chbox_fix_reboot)
+
+class EditAddProfileDialogWindow(EventObject, Edit_abs):
+
+    def __init__(self, core, data_model, cb):
+        self.core = core
+        self.data_model = data_model
+        self.__update = cb
+        builder = gtk.Builder()
+        builder.add_from_file("/usr/share/scap-workbench/edit_item.glade")
+        self.window = builder.get_object("dialog:profile_add")
+
+        builder.get_object("profile_add:btn_ok").connect("clicked", self.__cb_do)
+        builder.get_object("profile_add:btn_cancel").connect("clicked", self.__delete_event)
+        self.id = builder.get_object("profile_add:entry_id")
+        self.info_box = builder.get_object("profile_add:info_box")
+
+        self.show()
+
+    def __cb_do(self, widget):
+
+        if len(self.id.get_text()) == 0: 
+            self.core.notify("Can't add profile with no ID !", 2, self.info_box)
+            return
+
+        values = {}
+        values["id"] = self.id.get_text()
+        values["abstract"] = False
+        values["version"] = ""
+        values["extends"] = None
+        values["details"] = []
+        self.data_model.add(values)
+        self.core.selected_profile = self.id.get_text()
+        self.core.force_reload_profiles = True
+        self.window.destroy()
+        self.__update()
+
+    def show(self):
+        self.window.set_transient_for(self.core.main_window)
+        self.window.show()
+
+    def __delete_event(self, widget, event=None):
+        self.window.destroy()
+        
 
 class EditAddDialogWindow(EventObject, Edit_abs):
     

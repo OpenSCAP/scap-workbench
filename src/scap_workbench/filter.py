@@ -506,7 +506,7 @@ class Loader:
         for f in os.listdir(os.path.abspath(dpath)):
             name, ext = os.path.splitext(f)
             if ext == '.py':
-                 logger.info("Imported filter module: %s" % (name,))
+                 logger.debug("Imported filter module: %s" % (name,))
                  module = __import__(name)
                  for obj in dir(module):
                      try:

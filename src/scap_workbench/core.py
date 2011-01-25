@@ -160,7 +160,7 @@ class SWBCore:
             raise Exception("Can't initialize openscap library")
         self.lib = openscap.xccdf.init(XCCDF)
         if self.lib != None: 
-            logger.info("Initialization done.")
+            logger.debug("Initialization done.")
             benchmark = self.lib["policy_model"].benchmark
             if benchmark == None or benchmark.instance == None:
                 logger.error("XCCDF benchmark does not exists. Can't fill data")
