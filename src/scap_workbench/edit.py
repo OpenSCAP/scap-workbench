@@ -279,16 +279,17 @@ class ProfileList(abstract.List):
         self.add_receiver("gui:btn:menu:edit", "update", self.__update)
         selection.connect("changed", self.cb_item_changed, self.get_TreeView())
 
-    def __update(self):
+    def __update(self, new=False):
 
         if self.section_list.get_model()[self.section_list.get_active()][0] == "PROFILES":
             self.profilesList.set_visible(True)
             if "profile" not in self.__dict__ or self.core.force_reload_profiles:
                 self.data_model.fill()
                 self.get_TreeView().get_model().foreach(self.set_selected, (self.core.selected_profile, self.get_TreeView()))
+                self.core.force_reload_profiles = False
+            if new: self.emit("update_profiles")
         else:
             self.profilesList.set_visible(False)
-        self.emit("update_profiles")
 
     def cb_item_changed(self, widget, treeView):
 
@@ -460,6 +461,7 @@ class MenuButtonEdit(abstract.MenuButton, commands.DHEditItems, Edit_abs):
 
         # set signals
         self.add_sender(self.id, "update")
+        self.add_sender(self.id, "update_profiles")
         
         """Get widget for details
         """
@@ -638,6 +640,7 @@ class MenuButtonEdit(abstract.MenuButton, commands.DHEditItems, Edit_abs):
         self.core.force_reload_profiles = True
         self.profile_model.save()
         self.emit("update")
+        self.emit("update_profiles")
 
     def set_sensitive(self, sensitive):
         self.itemsPage.set_sensitive(sensitive)
@@ -2254,7 +2257,7 @@ class EditAddProfileDialogWindow(EventObject, Edit_abs):
         self.core.selected_profile = self.id.get_text()
         self.core.force_reload_profiles = True
         self.window.destroy()
-        self.__update()
+        self.__update(new=True)
 
     def show(self):
         self.window.set_transient_for(self.core.main_window)
