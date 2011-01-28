@@ -978,6 +978,16 @@ class DHProfiles(DataHandler):
         profile = self.core.lib["policy_model"].benchmark.get_item(id).to_profile()
         self.core.lib["policy_model"].benchmark.profiles.remove(profile)
 
+    def change_refines(self, weight=None, severity=None, role=None):
+
+        if self.core.selected_profile == None: return
+        if not self.core.lib:
+            logger.error("Library not initialized or XCCDF file not specified")
+            return None
+
+        policy = self.core.lib["policy_model"].get_policy_by_id(self.core.selected_profile)
+        policy.set_refine_rule(self.core.selected_item, weight, severity, role)
+
 
 class DHScan(DataHandler, EventObject):
 

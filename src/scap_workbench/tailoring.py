@@ -376,7 +376,7 @@ class RefineDetails(EventObject):
         self.builder = builder
         self.core = core
         EventObject.__init__(self, self.core)
-        self.data_model = commands.DataHandler(self.core)
+        self.data_model = commands.DHProfiles(self.core)
 
         self.add_receiver("gui:tailoring:item_list", "update", self.__update)
         self.add_receiver("gui:tailoring:item_list", "changed", self.__update)
@@ -418,8 +418,7 @@ class RefineDetails(EventObject):
         self.combo_role = self.add_cBox(vbox_refines, "<b>Role</b>", False)
         self.combo_role.connect('changed', self.cb_changed, "role")
         
-        
-        self.model_severity = self.create_model(["Unkonown", "Info", "Low", "Medium", "High"])
+        self.model_severity = self.create_model(["Unknown", "Info", "Low", "Medium", "High"])
         self.combo_severity = self.add_cBox(vbox_refines, "<b>Severity</b>", False)
         self.combo_severity.connect('changed', self.cb_changed, "severity")
         
@@ -450,8 +449,12 @@ class RefineDetails(EventObject):
         return combo
         
     def cb_changed(self, widget, data):
-        pass
-        #TODO
+        if data == "role":
+            self.data_model.change_refines(role=widget.get_active())
+        elif data == "severity":
+            self.data_model.change_refines(severity=widget.get_active())
+        else:
+            raise NotImplementedError("Changing refines of \"%s\" not implemented." % (data,))
     
     
 class MenuButtonTailoring(abstract.MenuButton):
