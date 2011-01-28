@@ -969,6 +969,15 @@ class DHProfiles(DataHandler):
             sel.selected = selected
             profile.add_select(sel)
 
+    def remove_item(self, id):
+        if not self.core.lib:
+            logger.error("Library not initialized or XCCDF file not specified")
+            return None
+
+        logger.info("Removing profile %s" %(id,))
+        profile = self.core.lib["policy_model"].benchmark.get_item(id).to_profile()
+        self.core.lib["policy_model"].benchmark.profiles.remove(profile)
+
 
 class DHScan(DataHandler, EventObject):
 

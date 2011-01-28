@@ -209,7 +209,12 @@ class Renderer(abstract.MenuButton,EventObject):
             filter.active = False
             filter.eb.destroy()
         self.filters = []
-        
+ 
+
+    def set_active(self, active):
+        self.expander.get_widget().set_sensitive(active)
+        self.expander.get_btn_widget().set_sensitive(active)
+        self.expander.cb_changed(active=True)
 
 class ExpandBox(abstract.EventObject):
     """
@@ -252,15 +257,15 @@ class ExpandBox(abstract.EventObject):
         hbox.pack_start(self.arrowTop, False, True)
         hbox.pack_start(self.label, True, True)
         hbox.pack_start(self.arrowBottom, False, True)
-        btn = gtk.Button()
-        btn.add(hbox)
-        rollBox.pack_start(btn, False, True)
-        btn.connect("clicked", self.cb_changed)
+        self.btn = gtk.Button()
+        self.btn.add(hbox)
+        rollBox.pack_start(self.btn, False, True)
+        self.btn.connect("clicked", self.cb_changed)
         self.frameContent.show_all()
 
-    def cb_changed(self, widget=None):
+    def cb_changed(self, widget=None, active=None):
         logger.debug("Expander switched to %s", not self.frameContent.get_property("visible"))
-        if self.frameContent.get_property("visible"):
+        if active == True or self.frameContent.get_property("visible"):
             self.frameContent.hide()
             self.arrowTop.set_from_pixbuf(self.pixbufShow)
             self.arrowBottom.set_from_pixbuf(self.pixbufShow)
@@ -275,6 +280,9 @@ class ExpandBox(abstract.EventObject):
 
     def get_widget(self):
         return self.frameContent
+
+    def get_btn_widget(self):
+        return self.btn
 
 class ItemFilter(Renderer):
     

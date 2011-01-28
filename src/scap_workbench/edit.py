@@ -278,6 +278,7 @@ class ProfileList(abstract.List):
         self.add_sender(self.id, "update_profiles")
         self.add_receiver("gui:btn:menu:edit", "update", self.__update)
         selection.connect("changed", self.cb_item_changed, self.get_TreeView())
+        self.notifications = []
 
     def __update(self, new=False):
 
@@ -302,14 +303,30 @@ class ProfileList(abstract.List):
     def __cb_button_pressed(self, treeview, event, menu):
         if event.button == 3:
             time = event.time
+            # TODO: How to set remove button insensitive when default profile is selected ?
+            #selection = treeview.get_selection()
+            #(model, iter) = selection.get_selected()
+            #if iter and model[iter][0] == None:
+                #self.builder.get_object("edit:profile_list:popup:remove").set_sensitive(False)
+            #else:
+                #self.builder.get_object("edit:profile_list:popup:remove").set_sensitive(True)
             menu.popup(None, None, None, event.button, event.time)
 
     def __cb_item_remove(self, widget):
         selection = self.get_TreeView().get_selection()
-        (model,iter) = selection.get_selected()
+        (model, iter) = selection.get_selected()
         if iter:
+            # Remove all notifications and add notification if removing non-existing profile
+            if model[iter][0] == None:
+                for n in self.notifications: n.destroy()
+                n = self.core.notify("Can't remove \"%s\" profile. It's not a real profile." % (model[iter][1],), 1)
+                self.notifications.append(n)
+                return None
+
+            # remove profile
             self.data_model.remove_item(model[iter][0])
             model.remove(iter)
+
         else: raise AttributeError, "Removing non-selected item or nothing selected."
         self.emit("update_profiles")
 
@@ -595,9 +612,11 @@ class MenuButtonEdit(abstract.MenuButton, commands.DHEditItems, Edit_abs):
         if model[widget.get_active()][0] == "XCCDF":
             self.profilePage.set_visible(False)
             self.itemsPage.set_visible(True)
+            self.filter.set_active(True)
         elif model[widget.get_active()][0] == "PROFILES":
             self.profilePage.set_visible(True)
             self.itemsPage.set_visible(False)
+            self.filter.set_active(False)
         self.__update()
         self.emit("update")
 
@@ -665,7 +684,7 @@ class MenuButtonEdit(abstract.MenuButton, commands.DHEditItems, Edit_abs):
         details = self.data_model.get_profile_details(self.core.selected_profile)
         if not details:
             self.profile_id.set_text("")
-            self.profile_abstract.set_text("")
+            self.profile_abstract.set_active(False)
             #self.profile_extend.set_text("")
             self.profile_version.set_text("")
             self.profile_title.set_text("")
