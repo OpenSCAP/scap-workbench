@@ -579,6 +579,19 @@ class MenuButtonEdit(abstract.MenuButton, commands.DHEditItems, Edit_abs):
         self.add_receiver("gui:btn:main:xccdf", "load", self.__section_list_load)
         self.__section_list_load() #TODO
 
+    def cb_chbox_selected(self, widget):
+
+        selection = self.tw_items.get_selection()
+        (model, iter) = selection.get_selected()
+        if iter:
+            if model != self.ref_model:
+                map, struct = self.list_item.map_filter
+                path = map[model.get_path(iter)]
+                iter = self.ref_model.get_iter(path)
+                model= self.ref_model   
+            model.set_value(iter, 5, widget.get_active())
+            self.DHEditChboxSelected(widget)
+
     def __section_list_load(self):
         self.section_list.get_model().clear()
         titles = self.data_model.get_benchmark_titles()

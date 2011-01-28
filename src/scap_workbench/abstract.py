@@ -428,7 +428,7 @@ class List(EventObject):
         if struct:
             self.filtering_tree(self.ref_model, iter, self.filter_model, None, filters, n_column)
         else:
-           self.filtering_list(self.ref_model, iter, self.filter_model, filters, n_column)
+            self.filtering_list(self.ref_model, iter, self.filter_model, filters, n_column)
 
         self.treeView.set_model(self.filter_model)
         return (self.map_filter,struct)

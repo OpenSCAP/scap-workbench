@@ -773,7 +773,8 @@ class DHItemsTree(DataHandler, EventObject):
 
         # Check select status of item
         if self.items_model:
-            selected = False
+            #selected = False
+            selected = self.get_selected(item, self.items_model)
         else:
             selected = self.get_selected(item, self.items_model)
             color = ["gray", None][selected and pselected]
@@ -1561,7 +1562,7 @@ class DHEditItems:
         else:
             logger.error("Error: Not read item.")
 
-    def cb_chbox_selected(self, widget):
+    def DHEditChboxSelected(self, widget):
         if self.item :
             self.item.set_selected(widget.get_active())
         else:
