@@ -3118,11 +3118,11 @@ class EditValueDialogWindow(abstract.Window, Edit_abs):
         
         if self.edit and self.instance.selector == "" and self.text_selector.get_text() != "":
             if  (not (self.instance.get_match() == None or self.instance.get_match() == '') or str(self.instance.get_lower_bound()) != "nan" or str(self.instance.get_upper_bound()) != "nan"):
-                self.dialogInfo("Can't change empty selector if is set Bound or Match in Grnral. ", self.window)
+                self.dialogInfo("Can't change empty selector if is set Bound or Match in General. ", self.window)
                 return
                 
         if (poc == 1 and not self.edit) or (self.edit and poc == 1 and self.text_selector.get_text() != self.instance.selector):
-            self.dialogInfo("Selector already exist. \n Change selector.", self.window)
+            self.dialogInfo("Selector already exists. \n Change the selector.", self.window)
             return
         
         # control value
@@ -3167,8 +3167,6 @@ class EditValueDialogWindow(abstract.Window, Edit_abs):
         lower = None
         match = None
         mustMuch = None
-        
-
         
         #if self.type == openscap.OSCAP.XCCDF_TYPE_NUMBER:
             #upper = float(self.text_uper_bound.get_text())

@@ -84,7 +84,7 @@ class DataHandler:
 
         # Get regexp match from type of value
         if not len(item["match"]):
-            item["match"] = ["", "^[\\b]+$", "^.*$", "^[01]$"][value.type]
+            item["match"] = ["", "^[\\d]+$", "^.*$", "^[01]$"][value.type]
 
         if self.core.selected_profile == None:
             profile = self.core.lib["policy_model"].policies[0].profile
@@ -543,7 +543,8 @@ class DHValues(DataHandler):
             selected = "Unknown value"
             for key in value["options"].keys():
                 if key != '': model.append([key, value["options"][key]])
-                if value["options"][key] == value["selected"][1]: selected = key
+                if value["options"][key] == value["selected"][1] and value["options"][key]: selected = key
+                elif value["selected"][1] != None: selected = value["selected"][1]
             self.model.append([value["id"], value["titles"][lang], selected, color, model])
         self.treeView.columns_autosize()
         
@@ -570,10 +571,9 @@ class DHValues(DataHandler):
         if value["selected"][0] in value["choices"]:
             choices = "|".join(value["choices"][value["selected"][0]])
             pattern = re.compile(value["match"]+"|"+choices)
-            logger.info("Matching %s against %s: "%(new_text, value["match"]+"|"+choices))
         else: 
-            logger.info("Matching %s against %s: "%(new_text, value["match"]))
             pattern = re.compile(value["match"])
+
         if pattern.match(new_text):
             model.set_value(iter, 2, new_text)
             logger.info("Regexp matched: text %s match %s", new_text, "|".join([value["match"], choices]))
@@ -1249,7 +1249,6 @@ class DHScan(DataHandler, EventObject):
             "pwd",               os.getenv("PWD"),
             "oval-template",    "%.result.xml", None]
 
-        print params
         retval = openscap.common.oscap_apply_xslt(file, "xccdf-report.xsl", "report.xhtml", params)
         logger.info("Export report file %s" % (["failed: %s" % (openscap.common.err_desc(),), "done"][retval],))
         browser_val = webbrowser.open("report.xhtml")
@@ -1683,8 +1682,6 @@ class DHEditItems:
     def DHEditValueOper(self, value, oper):
 
         if value:
-            #print value
-            #print oper
             value.set_oper(oper)
             #openscap.xccdf.value.set_oper(value, oper)
         else:
@@ -1789,12 +1786,6 @@ class DHEditItems:
             return False
 
         obj = model.get_value(iter, COLUMN_OBJECT)
-        print "------------------------"
-        print "ITEM", item
-        print "OBJ", obj
-        print "VALUE", value
-        print "------------------------"
-        for inst in item.instances: print "Selector: ", inst.selector
 
         if not obj:
             instance = item.new_instance()
@@ -1842,19 +1833,22 @@ class DHEditItems:
         else:
             instance = item
             
-        
         #choicesIter = instance.get_choices()
         instance.set_selector(selector)
         if type == openscap.OSCAP.XCCDF_TYPE_NUMBER:
             if value != None and value != '':
-                data = (float(value))
+                try:
+                    data = int(value)
+                except ValueError:
+                    #Try float.
+                    data = float(value)
             else:
-                data = (float('nan'))
+                data = float('nan')
                 
             # if selector is empty set as defval too
             if selector == '':
                 instance.set_defval_number(data)
-            instance.set_value_number (data)
+            instance.set_value_number(data)
             
         elif type == openscap.OSCAP.XCCDF_TYPE_STRING:
             instance.set_value_string(value)
