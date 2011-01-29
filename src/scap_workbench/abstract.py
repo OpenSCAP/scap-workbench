@@ -758,7 +758,7 @@ class Func:
         self.lv.append_column(column)
 
 
-    def set_active_comboBox(self, comboBox, data, column):
+    def set_active_comboBox(self, comboBox, data, column, text = ""):
         """
         Function set active row which is same as data in column.
         """
@@ -773,6 +773,9 @@ class Func:
             iter = model.iter_next(iter)
             
         if not set_c:
+            if text != "":
+                text = "(" + text + ") "
+            logger.info("Data %sto combobox was unknowen." % (text))
             comboBox.set_active(-1)
         
     def set_model_to_comboBox(self, combo, model, view_column):

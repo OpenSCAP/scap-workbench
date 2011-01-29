@@ -1968,7 +1968,8 @@ class DHEditItems:
             active = widget.get_active()
             if active > 0:
                 model = widget.get_model()
-                self.item.set_strategy(model[active][COLUMN_DATA])
+                if not self.item.set_strategy(model[active][COLUMN_DATA]):
+                    logger.error("Strategy have not set in Fixtext.")
         else:
             logger.error("Error: Not fixtex.")
 
@@ -1979,7 +1980,8 @@ class DHEditItems:
             active = widget.get_active()
             if active > 0:
                 model = widget.get_model()
-                self.item.set_complexity(model[active][COLUMN_DATA])
+                if not self.item.set_complexity(model[active][COLUMN_DATA]):
+                    logger.error("Strategy have not setted in Fixtext.")
         else:
             logger.error("Error: Not fixtex.")
     
@@ -1989,7 +1991,8 @@ class DHEditItems:
             active = widget.get_active()
             if active > 0:
                 model = widget.get_model()
-                self.item.set_disruption(model[active][COLUMN_DATA])
+                if not self.item.set_disruption(model[active][COLUMN_DATA]):
+                    logger.error("Disruption have not set in Fixtext.")
         else:
             logger.error("Error: Not fixtex.")
     

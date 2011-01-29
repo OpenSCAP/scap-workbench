@@ -319,10 +319,7 @@ class MenuButtonEdit(abstract.MenuButton, commands.DHEditItems, abstract.Control
         self.edit_fix = EditFix(self.core, self.builder)
         
         self.cBox_severity = self.builder.get_object("edit:operations:combo_severity")
-        cell = gtk.CellRendererText()
-        self.cBox_severity.pack_start(cell, True)
-        self.cBox_severity.add_attribute(cell, 'text', self.COMBO_COLUMN_VIEW)  
-        self.cBox_severity.set_model(self.combo_model_level)
+        self.set_model_to_comboBox(self.cBox_severity,self.combo_model_level, self.COMBO_COLUMN_VIEW)
         self.cBox_severity.connect( "changed", self.cb_cBox_severity)
        
         
@@ -339,10 +336,7 @@ class MenuButtonEdit(abstract.MenuButton, commands.DHEditItems, abstract.Control
         self.chbox_multiple.connect("toggled",self.cb_chbox_multipl)
 
         self.cBox_role = self.builder.get_object("edit:other:combo_role")
-        cell = gtk.CellRendererText()
-        self.cBox_role.pack_start(cell, True)
-        self.cBox_role.add_attribute(cell, 'text', self.COMBO_COLUMN_VIEW)  
-        self.cBox_role.set_model(self.combo_model_role)
+        self.set_model_to_comboBox(self.cBox_role,self.combo_model_role, self.COMBO_COLUMN_VIEW)
         self.cBox_role.connect( "changed", self.cb_cBox_role)
 
         # PROFILES
@@ -1834,24 +1828,15 @@ class EditFixtextOption(commands.DHEditItems,abstract.ControlEditWindow):
         self.entry_reference.connect("focus-out-event",self.cb_entry_fixtext_reference)
         
         self.combo_strategy = self.builder.get_object("edit:operations:fixtext:combo_strategy1")
-        cell = gtk.CellRendererText()
-        self.combo_strategy.pack_start(cell, True)
-        self.combo_strategy.add_attribute(cell, 'text',self.COMBO_COLUMN_VIEW)  
-        self.combo_strategy.set_model(self.combo_model_strategy)
+        self.set_model_to_comboBox(self.combo_strategy,self.combo_model_strategy, self.COMBO_COLUMN_VIEW)
         self.combo_strategy.connect( "changed", self.cb_combo_fixtext_strategy)
         
         self.combo_complexity = self.builder.get_object("edit:operations:fixtext:combo_complexity1")
-        cell = gtk.CellRendererText()
-        self.combo_complexity.pack_start(cell, True)
-        self.combo_complexity.add_attribute(cell, 'text', self.COMBO_COLUMN_VIEW)  
-        self.combo_complexity.set_model(self.combo_model_level)
+        self.set_model_to_comboBox(self.combo_complexity,self.combo_model_level, self.COMBO_COLUMN_VIEW)
         self.combo_complexity.connect( "changed", self.cb_combo_fixtext_complexity)
     
         self.combo_disruption = self.builder.get_object("edit:operations:fixtext:combo_disruption1")
-        cell = gtk.CellRendererText()
-        self.combo_disruption.pack_start(cell, True)
-        self.combo_disruption.add_attribute(cell, 'text', self.COMBO_COLUMN_VIEW)  
-        self.combo_disruption.set_model(self.combo_model_level)
+        self.set_model_to_comboBox(self.combo_disruption,self.combo_model_level, self.COMBO_COLUMN_VIEW)
         self.combo_disruption.connect( "changed", self.cb_combo_fixtext_disruption)
     
         self.chbox_reboot = self.builder.get_object("edit:operations:fixtext:chbox_reboot1")
@@ -1875,9 +1860,9 @@ class EditFixtextOption(commands.DHEditItems,abstract.ControlEditWindow):
                 self.entry_reference.set_text("")
             
             self.chbox_reboot.set_active(fixtext.reboot)
-            self.set_active_comboBox(self.combo_strategy, fixtext.strategy, self.COMBO_COLUMN_DATA)
-            self.set_active_comboBox(self.combo_complexity, fixtext.complexity, self.COMBO_COLUMN_DATA)
-            self.set_active_comboBox(self.combo_disruption, fixtext.disruption, self.COMBO_COLUMN_DATA)
+            self.set_active_comboBox(self.combo_strategy, fixtext.strategy, self.COMBO_COLUMN_DATA, "fixtext strategy")
+            self.set_active_comboBox(self.combo_complexity, fixtext.complexity, self.COMBO_COLUMN_DATA, "fixtext complexity")
+            self.set_active_comboBox(self.combo_disruption, fixtext.disruption, self.COMBO_COLUMN_DATA, "fixtext disruption")
         else:
             self.item = None
             self.box_detail.set_sensitive(False)
@@ -2031,9 +2016,9 @@ class EditFixOption(commands.DHEditItems,abstract.ControlEditWindow):
                 self.entry_platform.set_text("")
                 
             self.chbox_reboot.set_active(fix.reboot)
-            self.set_active_comboBox(self.combo_strategy, fix.strategy, self.COMBO_COLUMN_DATA)
-            self.set_active_comboBox(self.combo_complexity, fix.complexity, self.COMBO_COLUMN_DATA)
-            self.set_active_comboBox(self.combo_disruption, fix.disruption, self.COMBO_COLUMN_DATA)
+            self.set_active_comboBox(self.combo_strategy, fix.strategy, self.COMBO_COLUMN_DATA,  "fix strategy")
+            self.set_active_comboBox(self.combo_complexity, fix.complexity, self.COMBO_COLUMN_DATA, "fix complexity")
+            self.set_active_comboBox(self.combo_disruption, fix.disruption, self.COMBO_COLUMN_DATA, "fix disruption")
         else:
             self.item = None
             self.box_detail.set_sensitive(False)
