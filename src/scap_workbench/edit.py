@@ -237,6 +237,7 @@ class MenuButtonEdit(abstract.MenuButton, commands.DHEditItems, abstract.Control
         self.data_model = commands.DataHandler(self.core)
         self.profile_model = commands.DHProfiles(self.core)
         self.item = None
+        self.func = abstract.Func()
 
         #draw body
         self.body = self.builder.get_object("edit:box")
@@ -294,6 +295,9 @@ class MenuButtonEdit(abstract.MenuButton, commands.DHEditItems, abstract.Control
         
         self.entry_cluster_id = self.builder.get_object("edit:general:entry_cluster_id")
         self.entry_cluster_id.connect("focus-out-event",self.cb_entry_cluster_id)
+
+        self.entry_weight = self.builder.get_object("edit:general:entry_weight")
+        self.entry_weight.connect("focus-out-event",self.cb_entry_weight)
         
         self.edit_title = EditTitle(self.core, self.builder)
         self.edit_description = EditDescription(self.core, self.builder)
@@ -375,6 +379,11 @@ class MenuButtonEdit(abstract.MenuButton, commands.DHEditItems, abstract.Control
         self.add_receiver("gui:btn:main:xccdf", "load", self.__section_list_load)
         self.__section_list_load() #TODO
 
+    def cb_entry_weight(self, widget, event):
+        weight = self.func.controlFloat(widget.get_text(), "Weight", self.core.main_window)
+        if weight:
+            self.DHEditWeight(weight)
+        
     def cb_chbox_selected(self, widget):
 
         selection = self.tw_items.get_selection()
@@ -584,6 +593,8 @@ class MenuButtonEdit(abstract.MenuButton, commands.DHEditItems, abstract.Control
             self.edit_conflicts.fill(details["item"])
             self.edit_requires.fill(details["item"])
 
+            self.entry_weight.set_text(str(details["weight"]))
+            
             if details["version"] != None:
                 self.entry_version.set_text(details["version"])
             else:
@@ -1463,14 +1474,18 @@ class EditValues(commands.DHEditItems, abstract.ControlEditWindow, EventObject):
         try:
             data = float(data)
         except:
-            self.dialogInfo("Invalid number in %s bound." % (type))
+            self.dialogInfo("Invalid number in %s bound." % (type), self.core.main_window)
             if self.selector_empty:
                 if type == "lower":
                     if str(self.selector_empty.get_lower_bound()) != "nan":
                         widget.set_text(str(self.selector_empty.get_lower_bound()))
+                    else:
+                        widget.set_text("")
                 else:
                     if str(self.selector_empty.get_upper_bound()) != "nan":
                         widget.set_text(str(self.selector_empty.get_upper_bound()))
+                    else:
+                        widget.set_text("")
             else:
                 widget.set_text("")
             return
@@ -1480,7 +1495,7 @@ class EditValues(commands.DHEditItems, abstract.ControlEditWindow, EventObject):
 
         if upper != "" and upper != "nan" and lower != "" and lower != "nan":
             if lower >= upper:
-                self.dialogInfo("Upper bound must be greater then lower bound.")
+                self.dialogInfo("Upper bound must be greater then lower bound.", self.core.main_window)
                 if self.selector_empty:
                     if type == "lower":
                         if str(self.selector_empty.get_lower_bound()) != "nan":
@@ -1718,11 +1733,11 @@ class EditValueValue(commands.DHEditItems, abstract.ControlEditWindow):
             if object.selector == "" or object.selector == None:
                 if self.item.type == openscap.OSCAP.XCCDF_TYPE_NUMBER:
                     if  (not (object.get_match() == None or object.get_match() == '') or str(object.get_lower_bound()) != "nan" or str(object.get_upper_bound()) != "nan"):
-                        self.dialogInfo("Can't del velue instnace, because is set Match or Bound in general.")
+                        self.dialogInfo("Can't del velue instnace, because is set Match or Bound in general.", self.core.main_window)
                         return
                 if self.item.type == openscap.OSCAP.XCCDF_TYPE_STRING:
                     if not (object.get_match() == None or object.get_match() == ''):
-                        self.dialogInfo("Can't del velue instnace, because is set Match in general.")
+                        self.dialogInfo("Can't del velue instnace, because is set Match in general.", self.core.main_window)
                         return
             self.DHEditValueInstanceDel(self.item, self.model, iter)
 #=========================================  End edit values ===================================
@@ -2161,20 +2176,20 @@ class EditAddDialogWindow(EventObject, abstract.ControlEditWindow):
         item_to_add = None
         active = self.combo_create_as.get_active()
         if active < 0:
-            self.dialogInfo("Set field Create as.")
+            self.dialogInfo("Set field Create as.", self.core.main_window)
             return
         create_as = self.combo_model[active][self.COMBO_COLUMN_DATA]
         
         if self.text_id.get_text() == "":
-            self.dialogInfo("Id Item can't be empty.")
+            self.dialogInfo("Id Item can't be empty.", self.core.main_window)
             return
 
         if self.text_lang.get_text() == "":
-            self.dialogInfo("Title language can't be empty.")
+            self.dialogInfo("Title language can't be empty.", self.core.main_window)
             return
 
         if self.text_title.get_text() == "":
-            self.dialogInfo("Title can't be empty.")
+            self.dialogInfo("Title can't be empty.", self.core.main_window)
             return
         
         selection = self.view.get_selection()
@@ -2233,7 +2248,7 @@ class EditAddDialogWindow(EventObject, abstract.ControlEditWindow):
             selection.select_iter(iter_new)
             self.window.destroy()
         else:
-            self.dialogInfo("Id item exist.")
+            self.dialogInfo("Id item exist.", self.core.main_window)
             return
             
     def show(self):
@@ -2493,7 +2508,7 @@ class EditValueDialogWindow(abstract.Window, abstract.ControlEditWindow):
                 self.instance= self.model.get_value(self.iter, self.COLUMN_OBJECT)
                 #self.model_combo_choices = self.model.get_value(iter, self.COLUMN_MODEL_CHOICES)
             else:
-                self.dialogInfo("Choose row which you want Edit.")
+                self.dialogInfo("Choose row which you want Edit.", self.core.main_window)
                 return
         else:
             self.model = tw_instance.get_model()

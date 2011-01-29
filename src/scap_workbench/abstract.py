@@ -825,7 +825,18 @@ class Func:
             
             self.dialogInfo(error, window)
             return False
-            
+
+    def controlFloat(self, data, text, window):
+        if data != "" or data != None:
+            try:
+                data = float(data)
+            except:
+                self.dialogInfo("Invalid number in %s." % (text), window)
+                return None
+            return data
+        else:
+            data = float(nan)
+
 class ControlEditWindow(Func, Enum_type):
     
     def __init__(self, core, lv, values):

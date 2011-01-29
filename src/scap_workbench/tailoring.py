@@ -402,10 +402,19 @@ class RefineDetails(EventObject):
                 self.func.set_active_comboBox(self.combo_severity, details["severity"], 0)
             else:
                 self.combo_severity.set_active(0)
+            
+            self.entry_weight.set_sensitive(True)
+            if "weight" in details:
+                self.entry_weight.set_text(str(details["weight"]))
+            else:
+                self.entry_weight.set_text("")
+            
         else:
             self.combo_role.set_model(gtk.ListStore(str))
             self.combo_severity.set_model(gtk.ListStore(str))
-
+            self.entry_weight.set_text("")
+            self.entry_weight.set_sensitive(False)
+            
     def draw(self):
         
         self.vbox_refines = gtk.VBox()
@@ -418,15 +427,16 @@ class RefineDetails(EventObject):
         self.model_role = abstract.Enum_type.combo_model_role
         self.combo_role = self.add_widget(vbox_refines, "<b>Role</b>", False, gtk.ComboBox())
         self.func.set_model_to_comboBox(self.combo_role, self.model_role, 1)
-        self.combo_role.connect('changed', self.cb_changed, "role")
+        self.combo_role.connect('changed', self.cb_editCombo, "role")
         
         self.model_severity = abstract.Enum_type.combo_model_level
         self.combo_severity = self.add_widget(vbox_refines, "<b>Severity</b>", False, gtk.ComboBox())
         self.func.set_model_to_comboBox(self.combo_severity, self.model_severity, 1)
-        self.combo_severity.connect('changed', self.cb_changed, "severity")
+        self.combo_severity.connect('changed', self.cb_editCombo, "severity")
         
         self.entry_weight = self.add_widget(vbox_refines, "<b>Weight</b>", False, gtk.Entry())
-
+        self.entry_weight.connect("focus-out-event", self.cb_editWeight)
+        
     def add_widget(self, body, text, expand, widget):
                 
         frame = gtk.Frame(text)
@@ -441,7 +451,7 @@ class RefineDetails(EventObject):
         alig.add(widget)
         return widget
         
-    def cb_changed(self, widget, data):
+    def cb_editCombo(self, widget, data):
         if data == "role":
             self.data_model.change_refines(role=widget.get_active())
         elif data == "severity":
@@ -449,7 +459,11 @@ class RefineDetails(EventObject):
         else:
             raise NotImplementedError("Changing refines of \"%s\" not implemented." % (data,))
     
-    
+    def cb_editWeight(self, widget, event):
+        weight = self.func.controlFloat(widget.get_text(), "Weight", self.core.main_window)
+        if weight:
+            self.data_model.change_refines(weight=weight)
+        
 class MenuButtonTailoring(abstract.MenuButton):
     """
     GUI for refines.

@@ -203,7 +203,8 @@ class DataHandler:
                     "profile_notes":    [(note.reftag, note.text) for note in item.profile_notes or []],
                     "role":             item.role,
                     "severity":         item.severity,
-                    "status_current":   item.status_current
+                    "status_current":   item.status_current,
+                    "weight":           item.weight
                     })
             else: 
                 logger.error("Item type not supported %d", item.type)
@@ -276,7 +277,8 @@ class DataHandler:
                     "profile_notes":    [(note) for note in item.profile_notes or []],
                     "role":             item.role,
                     "severity":         item.severity,
-                    "status_current":   item.status_current
+                    "status_current":   item.status_current,
+                    "weight":           item.weight
                     })
             else: 
                 logger.error("Item type not supported %d", item.type)
@@ -1588,6 +1590,12 @@ class DHEditItems:
     def cb_entry_cluster_id(self, widget, event):
         if self.item:
             self.item.set_cluster_id(widget.get_text())
+        else:
+            logger.error("Error: Not read item.")
+
+    def DHEditWeight(self, data):
+        if self.item:
+            self.item.set_weight(data)
         else:
             logger.error("Error: Not read item.")
 
