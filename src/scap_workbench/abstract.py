@@ -30,6 +30,12 @@ from htmltextview import HtmlTextView
 import core
 import logging
 
+try:
+    import openscap_api as openscap
+except Exception as ex:
+    logger.error("OpenScap library initialization failed: %s", ex)
+    openscap=None
+    
 logger = logging.getLogger("scap-workbench")
 
 class Menu(EventObject):
@@ -634,3 +640,465 @@ class EnterList(EventObject):
     def __cb_leave_row(self,widget, event):
         pass
 
+
+class Enum_type:
+    
+    COMBO_COLUMN_DATA = 0
+    COMBO_COLUMN_VIEW = 1
+    COMBO_COLUMN_INFO = 2
+    
+    combo_model_level = gtk.ListStore(int, str, str)
+    combo_model_level.append([openscap.OSCAP.XCCDF_UNKNOWN, "UNKNOWN", "Unknown."])
+    combo_model_level.append([openscap.OSCAP.XCCDF_INFO, "INFO", "Info."])
+    combo_model_level.append([openscap.OSCAP.XCCDF_LOW, "LOW", "Low."])
+    combo_model_level.append([openscap.OSCAP.XCCDF_MEDIUM, "MEDIUM", "Medium"])
+    combo_model_level.append([openscap.OSCAP.XCCDF_HIGH, "HIGH", "High."])
+    
+    combo_model_strategy = gtk.ListStore(int, str, str)
+    combo_model_strategy.append([openscap.OSCAP.XCCDF_STRATEGY_UNKNOWN, "UNKNOWN", "Strategy not defined."])
+    combo_model_strategy.append([openscap.OSCAP.XCCDF_STRATEGY_CONFIGURE, "CONFIGURE", "Adjust target config or settings."])
+    combo_model_strategy.append([openscap.OSCAP.XCCDF_STRATEGY_DISABLE, "DISABLE", "Turn off or deinstall something."])
+    combo_model_strategy.append([openscap.OSCAP.XCCDF_STRATEGY_ENABLE, "ENABLE", "Turn on or install something."])
+    combo_model_strategy.append([openscap.OSCAP.XCCDF_STRATEGY_PATCH, "PATCH", "Apply a patch, hotfix, or update."])
+    combo_model_strategy.append([openscap.OSCAP.XCCDF_STRATEGY_POLICY, "POLICY", "Remediation by changing policies/procedures."])
+    combo_model_strategy.append([openscap.OSCAP.XCCDF_STRATEGY_RESTRICT, "RESTRICT", "Adjust permissions or ACLs."])
+    combo_model_strategy.append([openscap.OSCAP.XCCDF_STRATEGY_UPDATE, "UPDATE", "Install upgrade or update the system"])
+    combo_model_strategy.append([openscap.OSCAP.XCCDF_STRATEGY_COMBINATION, "COMBINATION", "Combo of two or more of the above."])
+    
+    combo_model_status = gtk.ListStore(int, str, str)
+    combo_model_status.append([openscap.OSCAP.XCCDF_STATUS_NOT_SPECIFIED, "NOT SPECIFIED", "Status was not specified by benchmark."])
+    combo_model_status.append([openscap.OSCAP.XCCDF_STATUS_ACCEPTED, "ACCEPTED", "Accepted."])
+    combo_model_status.append([openscap.OSCAP.XCCDF_STATUS_DEPRECATED, "DEPRECATED", "Deprecated."])
+    combo_model_status.append([openscap.OSCAP.XCCDF_STATUS_DRAFT, "DRAFT ", "Draft item."])
+    combo_model_status.append([openscap.OSCAP.XCCDF_STATUS_INCOMPLETE, "INCOMPLETE", "The item is not complete. "])
+    combo_model_status.append([openscap.OSCAP.XCCDF_STATUS_INTERIM, "INTERIM", "Interim."])
+    
+    combo_model_warning = gtk.ListStore(int, str, str)
+    combo_model_warning.append([0, "UNKNOWN", "Unknown."])
+    combo_model_warning.append([openscap.OSCAP.XCCDF_WARNING_GENERAL, "GENERAL", "General-purpose warning."])
+    combo_model_warning.append([openscap.OSCAP.XCCDF_WARNING_FUNCTIONALITY, "FUNCTIONALITY", "Warning about possible impacts to functionality."])
+    combo_model_warning.append([openscap.OSCAP.XCCDF_WARNING_PERFORMANCE, "PERFORMANCE", "  Warning about changes to target system performance."])
+    combo_model_warning.append([openscap.OSCAP.XCCDF_WARNING_HARDWARE, "HARDWARE", "Warning about hardware restrictions or possible impacts to hardware."])
+    combo_model_warning.append([openscap.OSCAP.XCCDF_WARNING_LEGAL, "LEGAL", "Warning about legal implications."])
+    combo_model_warning.append([openscap.OSCAP.XCCDF_WARNING_REGULATORY, "REGULATORY", "Warning about regulatory obligations."])
+    combo_model_warning.append([openscap.OSCAP.XCCDF_WARNING_MANAGEMENT, "MANAGEMENT", "Warning about impacts to the mgmt or administration of the target system."])
+    combo_model_warning.append([openscap.OSCAP.XCCDF_WARNING_AUDIT, "AUDIT", "Warning about impacts to audit or logging."])
+    combo_model_warning.append([openscap.OSCAP.XCCDF_WARNING_DEPENDENCY, "DEPENDENCY", "Warning about dependencies between this Rule and other parts of the target system."])
+
+    combo_model_role = gtk.ListStore(int, str, str)
+    combo_model_role.append([openscap.OSCAP.XCCDF_ROLE_FULL, "FULL", "Check the rule and let the result contriburte to the score and appear in reports.."])
+    combo_model_role.append([openscap.OSCAP.XCCDF_ROLE_UNSCORED, "UNSCORED", "Check the rule and include the result in reports, but do not include it into score computations"])
+    combo_model_role.append([openscap.OSCAP.XCCDF_ROLE_UNCHECKED, "UNCHECKED", "Don't check the rule, result will be XCCDF_RESULT_UNKNOWN."])
+
+    combo_model_type = gtk.ListStore(int, str, str)
+    combo_model_type.append([openscap.OSCAP.XCCDF_TYPE_NUMBER, "NUMBER", ""])
+    combo_model_type.append([openscap.OSCAP.XCCDF_TYPE_STRING, "STRING", ""])
+    combo_model_type.append([openscap.OSCAP.XCCDF_TYPE_BOOLEAN, "BOOLEAN", ""])
+
+    combo_model_operator_number = gtk.ListStore(int, str, str)
+    combo_model_operator_number.append([openscap.OSCAP.XCCDF_OPERATOR_EQUALS, "EQUALS", "Equality"])
+    combo_model_operator_number.append([openscap.OSCAP.XCCDF_OPERATOR_NOT_EQUAL, "NOT EQUAL", "Inequality"])
+    combo_model_operator_number.append([openscap.OSCAP.XCCDF_OPERATOR_GREATER, "GREATER", "Greater than"])
+    combo_model_operator_number.append([openscap.OSCAP.XCCDF_OPERATOR_GREATER_EQUAL, "GREATER OR EQUAL", "Greater than or equal."])
+    combo_model_operator_number.append([openscap.OSCAP.XCCDF_OPERATOR_LESS , "LESS", "Less than."])
+    combo_model_operator_number.append([openscap.OSCAP.XCCDF_OPERATOR_LESS_EQUAL, "LESS OR EQUAL", "Less than or equal."])
+
+    combo_model_operator_bool = gtk.ListStore(int, str, str)
+    combo_model_operator_bool.append([openscap.OSCAP.XCCDF_OPERATOR_EQUALS, "EQUALS", "Equality"])
+    combo_model_operator_bool.append([openscap.OSCAP.XCCDF_OPERATOR_NOT_EQUAL, "NOT EQUAL", "Inequality"])
+
+    combo_model_operator_string = gtk.ListStore(int, str, str)
+    combo_model_operator_string.append([openscap.OSCAP.XCCDF_OPERATOR_EQUALS, "EQUALS", "Equality"])
+    combo_model_operator_string.append([openscap.OSCAP.XCCDF_OPERATOR_NOT_EQUAL, "NOT EQUAL", "Inequality"])
+    combo_model_operator_string.append([openscap.OSCAP.XCCDF_OPERATOR_PATTERN_MATCH, "PATTERN_MATCH", "Match a regular expression."])
+
+class Func:
+    
+    def dialogDel(self, window, selection):
+        """
+        Function Show dialogue if you wont to delete row if yes return iter of row.
+        @param window Widget of window for parent in dialogue.
+        @param selection Selection of TreeView.
+        @return Iter of treViw fi yes else return None
+        """
+        (model,iter) = selection.get_selected()
+        if iter:
+            md = gtk.MessageDialog(window, 
+                gtk.DIALOG_MODAL, gtk.MESSAGE_QUESTION,
+                gtk.BUTTONS_YES_NO, "Do you want delete selected row?")
+            md.set_title("Delete row")
+            result = md.run()
+            md.destroy()
+            if result == gtk.RESPONSE_NO: 
+                return None
+            else: 
+                return iter
+        else:
+            self.dialogInfo("Choose row which you want delete.", window)
+
+    def dialogNotSelected(self, window):
+        self.dialogInfo("Choose row which you want edit.", window)
+        
+        
+    def dialogInfo(self, text, window):
+        #window = self.core.main_window
+        md = gtk.MessageDialog(window, 
+                    gtk.DIALOG_MODAL, gtk.MESSAGE_INFO,
+                    gtk.BUTTONS_OK, text)
+        md.set_title("Info")
+        md.run()
+        md.destroy()
+
+    def addColumn(self, name, column, expand=False):
+        #txtcell = abstract.CellRendererTextWrap()
+        txtcell = gtk.CellRendererText()
+        column = gtk.TreeViewColumn(name, txtcell, text=column)
+        column.set_expand(expand)
+        column.set_resizable(True)
+        self.lv.append_column(column)
+
+
+    def set_active_comboBox(self, comboBox, data, column):
+        """
+        Function set active row which is same as data in column.
+        """
+        set_c = False
+        model =  comboBox.get_model()
+        iter = model.get_iter_first()
+        while iter:
+            if data == model.get_value(iter, column):
+                comboBox.set_active_iter(iter) 
+                set_c = True
+                break
+            iter = model.iter_next(iter)
+            
+        if not set_c:
+            comboBox.set_active(-1)
+        
+    def set_model_to_comboBox(self, combo, model, view_column):
+        cell = gtk.CellRendererText()
+        combo.pack_start(cell, True)
+        combo.add_attribute(cell, 'text', view_column)  
+        combo.set_model(model)
+
+    def controlDate(self, text, window):
+        """
+        Function concert sting to timestamp (gregorina). 
+        If set text is incorrect format return False and show message.
+        """
+        if text != "":
+            date = text.split("-")
+            if len(date) != 3:
+                self.dialogInfo("The date is in incorrect format. \n Correct format is YYYY-MM-DD.", window)
+                return False
+            try :
+                d = datetime.date(int(date[0]), int(date[1]), int(date[2]))
+            except Exception as ex:
+                error = "Date is incorrect format:\n" + str(ex)
+                self.dialogInfo(error, window)
+                return False
+            try:
+                timestamp = time.mktime(d.timetuple()) 
+            except Exception as ex:
+                error = "Date is out of range. "
+                self.dialogInfo(error, window)
+            return timestamp
+        return False
+            
+    def controlImpactMetric(self, text, window):
+        """
+        Function control impact metrix
+        """
+        #pattern = re.compile ("^AV:[L,A,N]/AC:[H,M,L]/Au:[M,S,N]/C:[N,P,C]/I:[N,P,C]/A:[N,P,C]$|^E:[U,POC,F,H,ND]/RL:[OF,TF,W,U,ND]/RC:[UC,UR,C,ND]$|^CDP:[N,L,LM,MH,H,ND]/TD:[N,L,M,H,ND]/CR:[L,M,H,ND]/ IR:[L,M,H,ND]/AR:[L,M,H,ND]$",re.IGNORECASE)
+        patternBase = re.compile("^AV:[L,A,N]/AC:[H,M,L]/Au:[M,S,N]/C:[N,P,C]/I:[N,P,C]/A:[N,P,C]$",re.IGNORECASE)
+        patternTempo = re.compile("^E:(U|(POC)|F|H|(ND))/RL:((OF)|(TF)|W|U|(ND))/RC:((UC)|(UR)|C|(ND))$",re.IGNORECASE)
+        patternEnvi = re.compile("^CDP:(N|L|H|(LM)|(MH)|(ND))/TD:(N|L|M|H|(ND))/CR:(L|M|H|(ND))/IR:(L|M|H|(ND))/AR:(L|M|H|(ND))$",re.IGNORECASE)
+        
+        if patternBase.search(text) != None or patternTempo.search(text) != None or patternEnvi.search(text) != None:
+            return True
+        else:
+            error = "Incorrect value of Impact Metrix, correct is:\n\n"
+            error = error + "Metric Value    Description \n\n"
+            error = error + "Base =    AV:[L,A,N]/AC:[H,M,L]/Au:[M,S,N]/C:[N,P,C]/I:[N,P,C]/A:[N,P,C]\n\n"
+            error = error + "Temporal =     E:[U,POC,F,H,ND]/RL:[OF,TF,W,U,ND]/RC:[UC,UR,C,ND]\n\n"
+            error = error + "Environmental =    CDP:[N,L,LM,MH,H,ND]/TD:[N,L,M,H,ND]/CR:[L,M,H,ND]/IR:[L,M,H,ND]/AR:[L,M,H,ND]"
+            
+            self.dialogInfo(error, window)
+            return False
+            
+class ControlEditWindow(Func, Enum_type):
+    
+    def __init__(self, core, lv, values):
+        self.core = core
+        self.values = values
+        self.item = None
+        if lv:
+            self.lv = lv
+            self.model = lv.get_model()
+            self.selection = lv.get_selection()
+            self.selection.set_mode(gtk.SELECTION_SINGLE)
+
+    def cb_edit_row(self, widget):
+        (model,iter) = self.selection.get_selected()
+        if iter:
+            window = EditDialogWindow(self.item, self.core, self.values, new=False)
+        else:
+            self.dialogNotSelected(self.core.main_window)
+
+    def cb_add_row(self, widget):
+        window = EditDialogWindow(self.item, self.core, self.values, new=True)
+
+    def cb_del_row(self, widget):
+        iter = self.dialogDel(self.core.main_window, self.selection)
+        if iter != None:
+            self.values["cb"](self.item, self.model, iter, None, None, True)
+
+
+
+class EditDialogWindow(EventObject):
+    """ 
+    Class create window for add/edit data acording the information in strucure.
+    Class control set data acordin data in structure
+    Example of struct
+        values = {
+                    "name_dialog":  "Fix",
+                    "view":         lv,
+                    "cb":           self.DHEditFix,
+                    "textEntry":    {"name":    "ID",
+                                    "column":   self.COLUMN_ID,
+                                    "empty":    False, 
+                                    "unique":   True},
+                    "textView":     {"name":    "Content",
+                                    "column":   self.COLUMN_TEXT,
+                                    "empty":    False, 
+                                    "unique":   False}
+                        }
+    """
+    def __init__(self, item, core, values, new=True):
+        
+        self.core = core
+        self.new = new
+        self.values = values
+        self.item = item
+        self.init_data = None
+        builder = gtk.Builder()
+        builder.add_from_file("/usr/share/scap-workbench/edit_item.glade")
+        
+        self.window = builder.get_object("dialog:edit_item")
+        self.window.connect("delete-event", self.__delete_event)
+        self.window.resize(400, 150)
+        
+        btn_ok = builder.get_object("btn_ok")
+        btn_ok.connect("clicked", self.__cb_do)
+        btn_cancel = builder.get_object("btn_cancel")
+        btn_cancel.connect("clicked", self.__delete_event)
+        
+        #info for change
+        self.iter_del = None
+
+        table = builder.get_object("table")
+        table.hide_all()
+        table.show()
+        
+        self.selection = values["view"].get_selection()
+        (self.model, self.iter) = self.selection.get_selected()
+
+        if "textEntry" in values:
+            self.textEntry = builder.get_object("entryText")
+            self.textEntry.show_all()
+            lbl_entryText = builder.get_object("lbl_entryText")
+            lbl_entryText.set_label(values["textEntry"]["name"])
+            lbl_entryText.show_all()
+            if new == False:
+                text_edit = self.model.get_value(self.iter,values["textEntry"]["column"])
+                if text_edit:
+                    self.textEntry.set_text(text_edit)
+                else:
+                    self.textEntry.set_text("")
+
+        if "textView" in values:
+            self.window.resize(650, 400)
+            self.textView = builder.get_object("textView")
+            sw_textView = builder.get_object("sw_textView")
+            sw_textView.show_all()
+            lbl_textView = builder.get_object("lbl_textView")
+            lbl_textView.set_label(values["textView"]["name"])
+            lbl_textView.show()
+            if new == False:
+                buff = self.textView.get_buffer()
+                buff.set_text(self.model.get_value(self.iter,values["textView"]["column"]))
+
+        if "cBox" in values:
+            self.cBox = builder.get_object("cBox")
+            cell = gtk.CellRendererText()
+            self.cBox.pack_start(cell, True)
+            self.cBox.add_attribute(cell, 'text',values["cBox"]["cBox_view"])  
+            self.cBox.set_model(values["cBox"]["model"])
+            lbl_cBox = builder.get_object("lbl_cBox")
+            lbl_cBox.set_label(values["cBox"]["name"])
+            self.cBox.show_all()
+            lbl_cBox.show()
+            if new == False:
+                self.cBox.set_active_iter(self.model.get_value(self.iter,values["cBox"]["column"]))
+
+        self.show()
+        
+    def __cb_do(self, widget):
+        
+        if self.new == True:
+            dest_path = None
+            self.iter = None
+        else:
+            dest_path = self.model.get_path(self.iter)
+        
+        if "textEntry" in self.values:
+            text_textEntry = self.textEntry.get_text()
+            
+            # if data should not be empty and control
+            if self.values["textEntry"]["empty"] == False:
+                if not self.control_empty(text_textEntry, self.values["textEntry"]["name"]):
+                    return
+            
+            # if data sould be unique and control
+            if self.values["textEntry"]["unique"] == True:
+                path = self.control_unique(self.values["textEntry"]["name"], self.model, 
+                                            self.values["textEntry"]["column"], text_textEntry, self.iter)
+                if path == False:
+                    return
+                else:
+                    dest_path = path
+            
+            # if exist control function for data
+            if "control_fce" in self.values["textEntry"]:
+                if self.values["textEntry"]["control_fce"](text_textEntry) == False:
+                    return
+                   
+                    
+        if "textView" in self.values:
+            buff = self.textView.get_buffer()
+            iter_start = buff.get_start_iter()
+            iter_end = buff.get_end_iter()
+            text_textView = buff.get_text(iter_start, iter_end, True)
+            
+            # if data should not be empty and control
+            if self.values["textView"]["empty"] == False:
+                if not self.control_empty(text_textView, self.values["textView"]["name"]):
+                    return
+
+            # if data sould be unique and control
+            if self.values["textView"]["unique"] == True:
+                path = self.control_unique(self.values["textView"]["name"], self.model, 
+                                            self.values["textView"]["column"], text_textView, self.iter)
+                if path == False:
+                    return
+                else:
+                    dest_path = path
+
+            if "init_data" in self.values["textView"]:
+                self.init_data = text_textView
+                
+        if "cBox" in self.values:
+            active = self.cBox.get_active()
+            if active < 0:
+                data_selected = ""
+                view_selected = ""
+                iter_selected = None
+            else:
+                data_selected = self.values["cBox"]["model"][active][self.values["cBox"]["cBox_data"]]
+                view_selected = self.values["cBox"]["model"][active][self.values["cBox"]["cBox_view"]]
+                iter_selected = self.cBox.get_active_iter()
+                
+            # if data should not be empty and control
+            if self.values["cBox"]["empty"] == False:
+                if not self.control_empty(data_selected, self.values["cBox"]["name"]):
+                    return
+            
+            # if data sould be unique and control
+            if self.values["cBox"]["unique"] == True:
+                path = self.control_unique(self.values["cBox"]["name"], self.model, 
+                                            self.values["cBox"]["column"], data_selected, self.iter)
+                if path == False:
+                    return
+                else:
+                    dest_path = path
+                    
+            if "init_data" in self.values["cBox"]:
+                self.init_data = data_selected
+                
+        # new row and unique => add new row
+        if dest_path == None:
+            iter = self.model.append()
+            self.values["cb"](self.item, self.model, iter, None, self.init_data, False)
+            self.selection.select_path(self.model.get_path(iter))
+
+        # row exist delete row
+        else:
+            iter = self.model.get_iter(dest_path)
+            if self.iter and dest_path != self.model.get_path(self.iter):
+                self.values["cb"](self.item, self.model, self.iter, None, None, True)
+
+        # if insert data are correct, put them to the model
+        if "textEntry" in self.values:
+            self.model.set_value(iter,self.values["textEntry"]["column"], text_textEntry)
+            
+            if "control_fce" in self.values["textEntry"]:
+                text_textEntry = self.values["textEntry"]["control_fce"](text_textEntry)
+            self.values["cb"](self.item, self.model, iter, self.values["textEntry"]["column"], text_textEntry, False)
+                    
+        if "textView" in self.values:
+            self.values["cb"](self.item, self.model, iter, self.values["textView"]["column"], text_textView, False)
+            self.model.set_value(iter,self.values["textView"]["column"], text_textView)
+
+        if "cBox" in self.values:
+            self.model.set_value(iter,self.values["cBox"]["column"], iter_selected)
+            self.model.set_value(iter,self.values["cBox"]["column_view"], view_selected)
+            self.values["cb"](self.item, self.model, iter, self.values["cBox"]["column"], data_selected, False)
+            
+        self.window.destroy()
+
+    def __delete_event(self, widget, event=None):
+        self.window.destroy()
+
+    def show(self):
+        self.window.set_transient_for(self.core.main_window)
+        self.window.show()
+        
+    def control_unique(self, name, model, column, data, iter):
+        """
+        Control if data is unique.
+        @return None if data are dulplicat and user do not want changed exist data. Return Iter for store date
+                if data are not duplicate or data are duplicate and user can change them.
+        """
+        if iter:
+            path = model.get_path(iter)
+        else:
+            path = None
+            
+        for row in model:
+            if row[column] == data and self.model.get_path(row.iter) != path:
+                md = gtk.MessageDialog(self.window, 
+                        gtk.DIALOG_MODAL, gtk.MESSAGE_QUESTION,
+                        gtk.BUTTONS_YES_NO, "%s \"%s\" already specified.\n\nRewrite stored data ?" % (name, data,))
+                md.set_title("Information exist")
+                result = md.run()
+                md.destroy()
+                if result == gtk.RESPONSE_NO:
+                    return False
+                else: 
+                    return model.get_path(row.iter)
+        return path
+    
+    def control_empty(self, data, name):
+        """
+        Control data if are not empty.
+        @return True if not empty else return false
+        """
+        if (data == "" or data == None):
+            md = gtk.MessageDialog(self.window, 
+                    gtk.DIALOG_MODAL, gtk.MESSAGE_INFO,
+                    gtk.BUTTONS_OK, " \"%s\" can't be empty." % (name))
+            md.set_title("Info")
+            md.run()
+            md.destroy()
+            return False
+        return True

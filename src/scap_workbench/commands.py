@@ -773,7 +773,6 @@ class DHItemsTree(DataHandler, EventObject):
 
         # Check select status of item
         if self.items_model:
-            #selected = False
             selected = self.get_selected(item, self.items_model)
         else:
             selected = self.get_selected(item, self.items_model)

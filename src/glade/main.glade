@@ -1323,7 +1323,7 @@
                                                 <child>
                                                   <object class="GtkTable" id="table6">
                                                     <property name="visible">True</property>
-                                                    <property name="n_rows">6</property>
+                                                    <property name="n_rows">7</property>
                                                     <property name="n_columns">2</property>
                                                     <property name="column_spacing">12</property>
                                                     <property name="row_spacing">5</property>
@@ -1407,22 +1407,6 @@
                                                       </packing>
                                                     </child>
                                                     <child>
-                                                      <object class="GtkCheckButton" id="edit:general:chbox_hidden">
-                                                        <property name="label" translatable="yes">Hidden</property>
-                                                        <property name="visible">True</property>
-                                                        <property name="can_focus">True</property>
-                                                        <property name="receives_default">False</property>
-                                                        <property name="relief">none</property>
-                                                        <property name="draw_indicator">True</property>
-                                                      </object>
-                                                      <packing>
-                                                        <property name="top_attach">5</property>
-                                                        <property name="bottom_attach">6</property>
-                                                        <property name="x_options">GTK_FILL</property>
-                                                        <property name="y_options">GTK_FILL</property>
-                                                      </packing>
-                                                    </child>
-                                                    <child>
                                                       <object class="GtkLabel" id="label43">
                                                         <property name="visible">True</property>
                                                         <property name="xalign">0</property>
@@ -1450,22 +1434,6 @@
                                                       </packing>
                                                     </child>
                                                     <child>
-                                                      <object class="GtkCheckButton" id="edit:general:chbox_prohibit">
-                                                        <property name="label" translatable="yes">Prohibit change</property>
-                                                        <property name="visible">True</property>
-                                                        <property name="can_focus">True</property>
-                                                        <property name="receives_default">False</property>
-                                                        <property name="draw_indicator">True</property>
-                                                      </object>
-                                                      <packing>
-                                                        <property name="left_attach">1</property>
-                                                        <property name="right_attach">2</property>
-                                                        <property name="top_attach">4</property>
-                                                        <property name="bottom_attach">5</property>
-                                                        <property name="y_options">GTK_FILL</property>
-                                                      </packing>
-                                                    </child>
-                                                    <child>
                                                       <object class="GtkCheckButton" id="edit:general:chbox_abstract">
                                                         <property name="label" translatable="yes">Abstract</property>
                                                         <property name="visible">True</property>
@@ -1482,6 +1450,22 @@
                                                       </packing>
                                                     </child>
                                                     <child>
+                                                      <object class="GtkCheckButton" id="edit:general:chbox_hidden">
+                                                        <property name="label" translatable="yes">Hidden</property>
+                                                        <property name="visible">True</property>
+                                                        <property name="can_focus">True</property>
+                                                        <property name="receives_default">False</property>
+                                                        <property name="relief">none</property>
+                                                        <property name="draw_indicator">True</property>
+                                                      </object>
+                                                      <packing>
+                                                        <property name="top_attach">6</property>
+                                                        <property name="bottom_attach">7</property>
+                                                        <property name="x_options">GTK_FILL</property>
+                                                        <property name="y_options">GTK_FILL</property>
+                                                      </packing>
+                                                    </child>
+                                                    <child>
                                                       <object class="GtkCheckButton" id="edit:general:chbox_selected">
                                                         <property name="label" translatable="yes">Selected</property>
                                                         <property name="visible">True</property>
@@ -1491,9 +1475,52 @@
                                                         <property name="draw_indicator">True</property>
                                                       </object>
                                                       <packing>
+                                                        <property name="top_attach">5</property>
+                                                        <property name="bottom_attach">6</property>
+                                                        <property name="x_options">GTK_FILL</property>
+                                                        <property name="y_options">GTK_FILL</property>
+                                                      </packing>
+                                                    </child>
+                                                    <child>
+                                                      <object class="GtkCheckButton" id="edit:general:chbox_prohibit">
+                                                        <property name="label" translatable="yes">Prohibit change</property>
+                                                        <property name="visible">True</property>
+                                                        <property name="can_focus">True</property>
+                                                        <property name="receives_default">False</property>
+                                                        <property name="draw_indicator">True</property>
+                                                      </object>
+                                                      <packing>
+                                                        <property name="left_attach">1</property>
+                                                        <property name="right_attach">2</property>
+                                                        <property name="top_attach">6</property>
+                                                        <property name="bottom_attach">7</property>
+                                                        <property name="y_options">GTK_FILL</property>
+                                                      </packing>
+                                                    </child>
+                                                    <child>
+                                                      <object class="GtkLabel" id="label1">
+                                                        <property name="visible">True</property>
+                                                        <property name="xalign">0</property>
+                                                        <property name="label" translatable="yes">Weight:</property>
+                                                      </object>
+                                                      <packing>
                                                         <property name="top_attach">4</property>
                                                         <property name="bottom_attach">5</property>
                                                         <property name="x_options">GTK_FILL</property>
+                                                        <property name="y_options">GTK_FILL</property>
+                                                      </packing>
+                                                    </child>
+                                                    <child>
+                                                      <object class="GtkEntry" id="edit:general:entry_weight">
+                                                        <property name="visible">True</property>
+                                                        <property name="can_focus">True</property>
+                                                        <property name="invisible_char">&#x25CF;</property>
+                                                      </object>
+                                                      <packing>
+                                                        <property name="left_attach">1</property>
+                                                        <property name="right_attach">2</property>
+                                                        <property name="top_attach">4</property>
+                                                        <property name="bottom_attach">5</property>
                                                         <property name="y_options">GTK_FILL</property>
                                                       </packing>
                                                     </child>

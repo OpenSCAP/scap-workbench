@@ -377,7 +377,7 @@ class RefineDetails(EventObject):
         self.core = core
         EventObject.__init__(self, self.core)
         self.data_model = commands.DHProfiles(self.core)
-
+        self.func = abstract.Func()
         self.add_receiver("gui:tailoring:item_list", "update", self.__update)
         self.add_receiver("gui:tailoring:item_list", "changed", self.__update)
 
@@ -392,13 +392,14 @@ class RefineDetails(EventObject):
 
             self.combo_role.set_model(self.model_role)
             if "role" in details:
+                self.func.set_active_comboBox(self.combo_role, details["role"], 0)
                 self.combo_role.set_active(details["role"])
             else:
                 self.combo_role.set_active(0)
 
             self.combo_severity.set_model(self.model_severity)
             if "severity" in details:
-                self.combo_severity.set_active(details["severity"])
+                self.func.set_active_comboBox(self.combo_severity, details["severity"], 0)
             else:
                 self.combo_severity.set_active(0)
         else:
@@ -414,28 +415,20 @@ class RefineDetails(EventObject):
         vbox_refines = gtk.VBox()
         alig.add(vbox_refines)
         
-        self.model_role = self.create_model(["Full", "Unscored", "Unchecked"])
-        self.combo_role = self.add_cBox(vbox_refines, "<b>Role</b>", False)
+        self.model_role = abstract.Enum_type.combo_model_role
+        self.combo_role = self.add_widget(vbox_refines, "<b>Role</b>", False, gtk.ComboBox())
+        self.func.set_model_to_comboBox(self.combo_role, self.model_role, 1)
         self.combo_role.connect('changed', self.cb_changed, "role")
         
-        self.model_severity = self.create_model(["Unknown", "Info", "Low", "Medium", "High"])
-        self.combo_severity = self.add_cBox(vbox_refines, "<b>Severity</b>", False)
+        self.model_severity = abstract.Enum_type.combo_model_level
+        self.combo_severity = self.add_widget(vbox_refines, "<b>Severity</b>", False, gtk.ComboBox())
+        self.func.set_model_to_comboBox(self.combo_severity, self.model_severity, 1)
         self.combo_severity.connect('changed', self.cb_changed, "severity")
         
+        self.entry_weight = self.add_widget(vbox_refines, "<b>Weight</b>", False, gtk.Entry())
 
-    def create_model(self, data):
-        model = gtk.ListStore(str)
-        for item in data:
-            model.append([item])
-        return model
-        
-    def add_cBox(self, body, text, expand):
-        
-        combo = gtk.ComboBox()
-        cell = gtk.CellRendererText()
-        combo.pack_start(cell)
-        combo.add_attribute(cell, 'text', 0)
-        
+    def add_widget(self, body, text, expand, widget):
+                
         frame = gtk.Frame(text)
         label = frame.get_label_widget()
         label.set_use_markup(True)        
@@ -445,8 +438,8 @@ class RefineDetails(EventObject):
         alig = gtk.Alignment(0.5, 0.5, 1, 1)
         alig.set_padding(0, 0, 12, 0)
         frame.add(alig)
-        alig.add(combo)
-        return combo
+        alig.add(widget)
+        return widget
         
     def cb_changed(self, widget, data):
         if data == "role":
