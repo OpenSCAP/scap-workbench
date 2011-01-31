@@ -1,6 +1,6 @@
 PKG=scap-workbench
 WRK_PKG=scap_workbench
-VERSION="0.1.0"
+VERSION="0.2.0"
 
 PY_LIB := $(shell python -c "from distutils.sysconfig import get_python_lib; print get_python_lib()")
 PY_VER := python$(shell python -c "import sys; print sys.version[:3]")
@@ -22,6 +22,7 @@ MODE_DIR = -m 755
 MODE_EXEC = -m 755
 MODE_REG = -m 644
 
+all:
 
 install:
 	test -d $(BINDIR) || $(INSTALL) $(MODE_DIR) -d $(BINDIR)
