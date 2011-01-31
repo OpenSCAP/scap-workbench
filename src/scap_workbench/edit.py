@@ -404,6 +404,7 @@ class MenuButtonEdit(abstract.MenuButton, commands.DHEditItems, abstract.Control
             self.section_list.set_active(0)
 
     def __content_changed(self, widget, model):
+        if not model or len(model) == 0: return
         if model[widget.get_active()][0] == "XCCDF":
             self.profilePage.set_visible(False)
             self.itemsPage.set_visible(True)
@@ -474,6 +475,8 @@ class MenuButtonEdit(abstract.MenuButton, commands.DHEditItems, abstract.Control
 
     def __update_profile(self):
 
+        self.profile_title.set_text("")
+        self.profile_description.get_buffer().set_text("")
         details = self.data_model.get_profile_details(self.core.selected_profile)
         if not details:
             self.profile_id.set_text("")
@@ -481,7 +484,6 @@ class MenuButtonEdit(abstract.MenuButton, commands.DHEditItems, abstract.Control
             #self.profile_extend.set_text("")
             self.profile_version.set_text("")
             self.profile_title.set_text("")
-            #self.__set_description("")
             return
 
         self.profile_description.set_sensitive(details["id"] != None)
@@ -508,12 +510,27 @@ class MenuButtonEdit(abstract.MenuButton, commands.DHEditItems, abstract.Control
             if lang in details["descriptions"]: description = details["descriptions"][lang]
             self.tw_langs.get_model().append([lang, title, description])
 
+    def __set_lang(self, widget, lang):
+
+        _set = False
+        model =  widget.get_model()
+        iter = model.get_iter_first()
+        while iter:
+            if lang == model.get_value(iter, 0):
+                widget.set_active_iter(iter) 
+                _set = True
+                break
+            iter = model.iter_next(iter)
+        if not _set: 
+            iter = model.append([lang])
+            widget.set_active_iter(iter)
+
     def __cb_profile_lang_changed(self, widget):
         selection = self.tw_langs.get_selection( )
         if selection != None: 
             (model, iter) = selection.get_selected( )
             if iter: 
-                self.profile_cb_lang.set_text(model.get_value(iter, 0))
+                self.__set_lang(self.profile_cb_lang, model.get_value(iter, 0))
                 self.profile_title.set_text(model.get_value(iter, 1))
                 self.profile_description.get_buffer().set_text(model.get_value(iter, 2))
 
