@@ -30,13 +30,13 @@ from htmltextview import HtmlTextView
 import core
 import logging
 
+logger = logging.getLogger("scap-workbench")
+
 try:
     import openscap_api as openscap
 except Exception as ex:
     logger.error("OpenScap library initialization failed: %s", ex)
     openscap=None
-    
-logger = logging.getLogger("scap-workbench")
 
 class Menu(EventObject):
     """ 
@@ -647,6 +647,7 @@ class Enum_type:
     COMBO_COLUMN_VIEW = 1
     COMBO_COLUMN_INFO = 2
     
+    # 0 is undefined here 
     combo_model_level = gtk.ListStore(int, str, str)
     combo_model_level.append([openscap.OSCAP.XCCDF_UNKNOWN, "UNKNOWN", "Unknown."])
     combo_model_level.append([openscap.OSCAP.XCCDF_INFO, "INFO", "Info."])
@@ -775,7 +776,7 @@ class Func:
         if not set_c:
             if text != "":
                 text = "(" + text + ") "
-            logger.info("Data %sto combobox was unknowen." % (text))
+            logger.info("Data %s passwed to combobox is unknown." % (text))
             comboBox.set_active(-1)
         
     def set_model_to_comboBox(self, combo, model, view_column):

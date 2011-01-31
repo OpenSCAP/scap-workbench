@@ -43,6 +43,7 @@ try:
 except Exception as ex:
     logger.error("OPENSCAP: %s", ex)
     openscap=None
+    sys.exit(2)
 
 class Notification:
 

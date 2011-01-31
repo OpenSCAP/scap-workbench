@@ -155,7 +155,14 @@ class DataHandler:
         if not self.core.lib:
             logger.error("Library not initialized or XCCDF file not specified")
             return None
+
         item = self.core.lib["policy_model"].benchmark.item(id or self.core.selected_item)
+
+        policy = self.core.lib["policy_model"].get_policy_by_id(self.core.selected_profile)
+        if policy != None:
+            new_item = policy.tailor_item(item)
+            if new_item: item = new_item
+
         if item != None:
             values = {
                     "id":               item.id,
@@ -209,6 +216,7 @@ class DataHandler:
             else: 
                 logger.error("Item type not supported %d", item.type)
                 return None
+
         else:
             logger.error("No item '%s' in benchmark", id)
             return None
@@ -988,7 +996,9 @@ class DHProfiles(DataHandler):
             return None
 
         policy = self.core.lib["policy_model"].get_policy_by_id(self.core.selected_profile)
-        policy.set_refine_rule(self.core.selected_item, weight, severity, role)
+        if policy:
+            logger.debug("Changing refine_rules: item(%s): severity(%s), role(%s), weight(%s)" % (self.core.selected_item, severity, role, weight))
+            refine = policy.set_refine_rule(self.core.selected_item, weight, severity, role)
 
 
 class DHScan(DataHandler, EventObject):
@@ -1016,7 +1026,7 @@ class DHScan(DataHandler, EventObject):
     FG_RED    = "red"
 
 
-    RESULT_NAME = "LockDown Test Result"
+    RESULT_NAME = "SCAP WORKBENCH Test Result"
 
     def __init__(self, id, core, progress=None):
 

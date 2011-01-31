@@ -388,18 +388,19 @@ class RefineDetails(EventObject):
         details = self.data_model.get_item_details(self.core.selected_item)
         if details == None: return
 
+        self.combo_role.handler_block_by_func(self.__cb_edit)
+        self.combo_severity.handler_block_by_func(self.__cb_edit)
         if details["typetext"] == "Rule":
 
             self.combo_role.set_model(self.model_role)
             if "role" in details:
-                self.func.set_active_comboBox(self.combo_role, details["role"], 0)
-                self.combo_role.set_active(details["role"])
+                self.func.set_active_comboBox(self.combo_role, details["role"] or 1, 0)
             else:
                 self.combo_role.set_active(0)
 
             self.combo_severity.set_model(self.model_severity)
             if "severity" in details:
-                self.func.set_active_comboBox(self.combo_severity, details["severity"], 0)
+                self.func.set_active_comboBox(self.combo_severity, details["severity"] or 1, 0)
             else:
                 self.combo_severity.set_active(0)
             
@@ -414,6 +415,9 @@ class RefineDetails(EventObject):
             self.combo_severity.set_model(gtk.ListStore(str))
             self.entry_weight.set_text("")
             self.entry_weight.set_sensitive(False)
+
+        self.combo_role.handler_unblock_by_func(self.__cb_edit)
+        self.combo_severity.handler_unblock_by_func(self.__cb_edit)
             
     def draw(self):
         
@@ -427,15 +431,15 @@ class RefineDetails(EventObject):
         self.model_role = abstract.Enum_type.combo_model_role
         self.combo_role = self.add_widget(vbox_refines, "<b>Role</b>", False, gtk.ComboBox())
         self.func.set_model_to_comboBox(self.combo_role, self.model_role, 1)
-        self.combo_role.connect('changed', self.cb_editCombo, "role")
+        self.combo_role.connect('changed', self.__cb_edit)
         
         self.model_severity = abstract.Enum_type.combo_model_level
         self.combo_severity = self.add_widget(vbox_refines, "<b>Severity</b>", False, gtk.ComboBox())
         self.func.set_model_to_comboBox(self.combo_severity, self.model_severity, 1)
-        self.combo_severity.connect('changed', self.cb_editCombo, "severity")
+        self.combo_severity.connect('changed', self.__cb_edit)
         
         self.entry_weight = self.add_widget(vbox_refines, "<b>Weight</b>", False, gtk.Entry())
-        self.entry_weight.connect("focus-out-event", self.cb_editWeight)
+        self.entry_weight.connect("focus-out-event", self.__cb_edit)
         
     def add_widget(self, body, text, expand, widget):
                 
@@ -451,18 +455,22 @@ class RefineDetails(EventObject):
         alig.add(widget)
         return widget
         
-    def cb_editCombo(self, widget, data):
-        if data == "role":
-            self.data_model.change_refines(role=widget.get_active())
-        elif data == "severity":
-            self.data_model.change_refines(severity=widget.get_active())
-        else:
-            raise NotImplementedError("Changing refines of \"%s\" not implemented." % (data,))
+    def __cb_edit(self, widget, event=None):
+        weight = self.__cb_get_weight()
+        self.data_model.change_refines( severity= abstract.Enum_type.combo_model_level[self.combo_severity.get_active()][0],
+                                        role=abstract.Enum_type.combo_model_role[self.combo_role.get_active()][0],
+                                        weight=weight)
+        #raise NotImplementedError("Changing refines of \"%s\" not implemented." % (data,))
     
-    def cb_editWeight(self, widget, event):
-        weight = self.func.controlFloat(widget.get_text(), "Weight", self.core.main_window)
+    def __cb_get_weight(self):
+        weight = self.func.controlFloat(self.entry_weight.get_text(), "Weight", self.core.main_window)
         if weight:
-            self.data_model.change_refines(weight=weight)
+            return weight
+        else: 
+            details = self.data_model.get_item_details(self.core.selected_item)
+            if "weight" in details:
+                return str(details["weight"])
+            else: return None
         
 class MenuButtonTailoring(abstract.MenuButton):
     """
