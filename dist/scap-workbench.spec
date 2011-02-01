@@ -14,7 +14,7 @@ Group: System Environment/Base
 Source0: https://fedorahosted.org/released/scap-workbench/%{name}-%{version}.tar.bz2
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}
 BuildArch: noarch
-BuildRequires: python2-devel
+BuildRequires: python2-devel desktop-file-utils
 Requires: openscap-python >= 0.6.8
 
 %description
