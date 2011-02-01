@@ -38,7 +38,7 @@ import render
 from htmltextview import HtmlTextView
 from threads import thread as threadSave
 
-logger = logging.getLogger("OSCAPEditor")
+logger = logging.getLogger("scap-workbench")
 
 class ItemList(abstract.List):
     
@@ -236,7 +236,7 @@ class ItemDetails(EventObject):
         try:
             self.fixes.display_html(text)
         except Exception as err:
-            logger.error("Exception: %s", err)
+            logger.warning("Exception: %s: (%s)", err, text)
 
     def draw(self):
         self.box_details = gtk.VBox()

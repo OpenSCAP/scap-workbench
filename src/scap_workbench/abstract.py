@@ -776,7 +776,7 @@ class Func:
         if not set_c:
             if text != "":
                 text = "(" + text + ") "
-            logger.info("Data %s passwed to combobox is unknown." % (text))
+            logger.error("Invalid data passed to combobox: \"%s\"" % (text))
             comboBox.set_active(-1)
         
     def set_model_to_comboBox(self, combo, model, view_column):

@@ -235,6 +235,7 @@ class DataHandler:
         if not self.core.lib:
             logger.error("Library not initialized or XCCDF file not specified")
             return None
+
         item = self.core.lib["policy_model"].benchmark.item(id or self.core.selected_item)
         if item != None:
             values = {
@@ -292,7 +293,7 @@ class DataHandler:
                 logger.error("Item type not supported %d", item.type)
                 return None
         else:
-            logger.error("No item '%s' in benchmark", id)
+            logger.error("No item \"%s\" in benchmark", id or self.core.selected_item)
             return None
 
         return values
@@ -920,10 +921,10 @@ class DHProfiles(DataHandler):
             logger.error("Library not initialized or XCCDF file not specified")
             return None
 
-        if not profile: profile = self.core.lib["policy_model"].benchmark.get_item(item["id"])
+        if not profile: profile = self.core.lib["policy_model"].benchmark.get_item(self.core.selected_profile)
         if not profile: 
-            self.core.notify("Saving profile failed: No profile \"%s\" in benchmark." % (item["id"]), 2)
-            logger.error("No profile \"%s\" in benchmark", item["id"])
+            self.core.notify("Saving profile failed: No profile \"%s\" in benchmark." % (self.core.selected_profile), 2)
+            logger.error("No profile \"%s\" in benchmark", self.core.selected_profile)
             return
 
         profile.id = item["id"]
@@ -963,6 +964,9 @@ class DHProfiles(DataHandler):
     def save(self):
 
         policy = self.core.lib["policy_model"].get_policy_by_id(self.core.selected_profile)
+        if policy == None:
+            logger.debug("No policy associated to profile %s" % (self.core.selected_profile,))
+            return
         rules = dict([(select.item, select.selected) for select in policy.selects])
 
         profile = policy.profile

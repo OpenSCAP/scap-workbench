@@ -48,10 +48,6 @@ logger = logging.getLogger("scap-workbench")
 from htmltextview import HtmlTextView
 from threads import thread as threadSave
 
-
-logger = logging.getLogger("OSCAPEditor")
-
-
 class ProfileList(abstract.List):
     
     def __init__(self, widget, core, builder=None, progress=None, filter=None):
@@ -480,7 +476,7 @@ class MenuButtonEdit(abstract.MenuButton, commands.DHEditItems, abstract.Control
         details = self.data_model.get_profile_details(self.core.selected_profile)
         if not details:
             self.profile_id.set_text("")
-            self.profile_abstract.set_text("")
+            self.profile_abstract.set_active(False)
             #self.profile_extend.set_text("")
             self.profile_version.set_text("")
             self.profile_title.set_text("")
