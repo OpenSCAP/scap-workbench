@@ -1692,7 +1692,7 @@ class DHEditItems:
                     #check not exist create new
                     if not check_add:
                         check_add = openscap.xccdf.check_new()
-                        self.item.add_check(check)
+                        self.item.add_check(check_add)
                     model.set_value(iter, COLUMN_CHECK, check_add)
                     check_export = openscap.xccdf.check_export_new()
                     check_export.set_value(value)
@@ -1715,7 +1715,6 @@ class DHEditItems:
 
         if value:
             value.set_oper(oper)
-            #openscap.xccdf.value.set_oper(value, oper)
         else:
             logger.error("Error: Not value.")
     
@@ -1806,48 +1805,6 @@ class DHEditItems:
         else:
             logger.error("Error: Not read item.")
             
-    def DHEditValueValue(self, item, model, iter, column, value, delete=False):
-
-        COLUMN_SELECTOR = 0
-        COLUMN_VALUE = 1
-        COLUMN_SELECTED = 2
-        COLUMN_OBJECT = 3
-
-        if not item:
-            logger.error("Error: Not read item.")
-            return False
-
-        obj = model.get_value(iter, COLUMN_OBJECT)
-
-        if not obj:
-            instance = item.new_instance()
-            item.add_instance(instance)
-            model.set_value(iter, COLUMN_OBJECT, instance)
-        elif not delete:
-            if column == COLUMN_SELECTOR:
-                obj.set_selector(value)
-            elif column == COLUMN_VALUE:
-                if model.get_value(iter, COLUMN_SELECTED): 
-                    [lambda x: logger.error("Unknown type of value: %s", item.get_type()), 
-                            obj.set_defval_number,
-                            obj.set_defval_boolean,
-                            obj.set_defval_string
-                            ][item.get_type()](value)
-                else: 
-                    [lambda x: logger.error("Unknown type of value: %s", item.get_type()), 
-                            obj.set_value_number,
-                            obj.set_value_boolean,
-                            obj.set_value_string
-                            ][item.get_type()](value)
-            
-            else:
-                logger.error("Bad column number: %s", column)
-                pass
-        else:
-            logger.debug("Removing %s" %(obj,))
-            item.value.remove(obj)
-            model.remove(iter)
-
     def DHEditConflicts(self, item, id, add):
         if add:
             try:
@@ -1857,17 +1814,16 @@ class DHEditItems:
         else:
             pass
 
-    def DHEditValueInstance(self, edit, value, item, type, selector, match, upper, lower, default, mustMuch, model_combo_choices):
+    def DHEditValueInstance(self, value, item, selector, match, upper, lower, default, mustMuch, model_combo_choices):
         
-        if not edit:
+        logger.debug("Editing value: %s", value)
+        instance = item.get_instance_by_selector(selector)
+        if not instance:
             instance = item.new_instance()
             item.add_instance(instance)
-        else:
-            instance = item
+        else: logger.debug("Found instance for %s", selector)
             
-        #choicesIter = instance.get_choices()
-        instance.set_selector(selector)
-        if type == openscap.OSCAP.XCCDF_TYPE_NUMBER:
+        if item.get_type() == openscap.OSCAP.XCCDF_TYPE_NUMBER:
             if value != None and value != '':
                 try:
                     data = int(value)
@@ -1876,24 +1832,16 @@ class DHEditItems:
                     data = float(value)
             else:
                 data = float('nan')
-                
-            # if selector is empty set as defval too
-            if selector == '':
-                instance.set_defval_number(data)
-            instance.set_value_number(data)
-            
-        elif type == openscap.OSCAP.XCCDF_TYPE_STRING:
-            instance.set_value_string(value)
-            # if selector is empty set as defval too
-            if selector == '':
-                instance.set_defval_string(value)
-            #instance.set_match(match)
-            
-        elif type == openscap.OSCAP.XCCDF_TYPE_BOOLEAN:
-            instance.set_value_boolean(value)
-            # if selector is empty set as defval too
-            if selector == '':
-                instance.set_defval_boolean(value)
+        else: data = value
+
+        logger.debug("Set selector to %s", selector)
+        instance.set_selector(selector)
+        [lambda x: logger.error("Unknown type of value: %s", item.get_type()), 
+                instance.set_value_number,
+                instance.set_value_string,
+                instance.set_value_boolean
+                ][item.get_type()](data)
+
         return instance
         
     def DHEditValueInstanceDel(self, item, model, iter):
@@ -1922,13 +1870,13 @@ class DHEditItems:
                 
         if upper != None:
             if not instance.set_upper_bound(upper):
-                return False
+                return None
         if lower != None:
             if not instance.set_lower_bound(lower):
-                return False
+                return None
         if match != None:
-           if not instance.set_match(match):
-               return False
+            if not instance.set_match(match):
+               return None
         return instance
         
     def DHEditRequires(self, item, id, add):

@@ -73,6 +73,8 @@ class ProfileList(abstract.List):
 
     def __update(self, new=False):
 
+        if not self.section_list.get_model() or len(self.section_list.get_model()) == 0: 
+            return
         if self.section_list.get_model()[self.section_list.get_active()][0] == "PROFILES":
             self.profilesList.set_visible(True)
             if "profile" not in self.__dict__ or self.core.force_reload_profiles:
@@ -146,6 +148,10 @@ class ItemList(abstract.List):
         self.init_filters(self.filter, self.data_model.model, self.data_model.new_model())
 
     def __update(self):
+
+        if not self.section_list.get_model() or len(self.section_list.get_model()) == 0: 
+            return
+
         if self.section_list.get_model()[self.section_list.get_active()][0] == "XCCDF":
             self.itemsList.set_visible(True)
             if self.loaded_new == True:
@@ -197,6 +203,7 @@ class ItemList(abstract.List):
         (model,iter) = selection.get_selected()
         if iter:
             EditAddDialogWindow(self.core, self.data_model.get_item(model[iter][0]), self, self.ref_model, self.edit_model.DHEditAddItem )
+        else: EditAddDialogWindow(self.core, None, self, self.ref_model, self.edit_model.DHEditAddItem )
 
     @threadSave
     def __cb_item_changed(self, widget, treeView):
@@ -1695,7 +1702,7 @@ class EditValueValue(commands.DHEditItems, abstract.ControlEditWindow):
         btn_del.connect("clicked", self.__cb_del_row)
 
         self.addColumn("Selector",self.COLUMN_SELECTOR)
-        self.addColumn("Selector",self.COLUMN_VALUE)
+        self.addColumn("Value",self.COLUMN_VALUE)
         
         #cellcombo = gtk.CellRendererCombo()
         #cellcombo.set_property("editable", True)
@@ -2755,11 +2762,11 @@ class EditValueDialogWindow(abstract.Window, abstract.ControlEditWindow):
             default = self.combo_default.get_active_text()
 
         if self.edit:
-            if self.cb(self.edit, value, self.instance, self.type, selector, match, upper, lower, default, mustMuch, self.model_combo_choices):
+            if self.cb(value, self.item, selector, match, upper, lower, default, mustMuch, self.model_combo_choices):
                 self.model.set_value(self.iter, self.COLUMN_SELECTOR, selector)
                 self.model.set_value(self.iter, self.COLUMN_VALUE, value)
         else:
-            vys = self.cb(self.edit, value, self.item, self.type, selector, match, upper, lower, default, mustMuch, self.model_combo_choices)
+            vys = self.cb(value, self.item, selector, match, upper, lower, default, mustMuch, self.model_combo_choices)
             if vys != -1:
                 self.model.append([selector, value, None, vys])
 
