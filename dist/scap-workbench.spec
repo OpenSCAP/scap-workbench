@@ -9,7 +9,7 @@ Name: scap-workbench
 URL: https://fedorahosted.org/scap-workbench/
 Version: 0.2.0
 Release: 1%{?dist}
-License: GPLv3
+License: GPLv3+
 Group: System Environment/Base
 Source0: https://fedorahosted.org/released/scap-workbench/%{name}-%{version}.tar.bz2
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}
@@ -40,12 +40,13 @@ rm -rf $RPM_BUILD_ROOT
 %files
 %defattr(-,root,root)
 %doc COPYING README
+%config(noreplace) %{_sysconfdir}/scap-workbench
 %config(noreplace) %{_sysconfdir}/scap-workbench/logger.conf
 %{_bindir}/scap-workbench
 %dir %{python_sitelib}/scap_workbench
 %{python_sitelib}/scap_workbench/*
-%dir /usr/share/scap-workbench/
-/usr/share/scap-workbench/*
+%dir %{_datadir}/scap-workbench/
+%{_datadir}/scap-workbench/*
 %{_mandir}/man8/scap-workbench.8.gz
 %{_datadir}/applications/scap-workbench.desktop
 %{_datadir}/pixmaps/scap-workbench.png
