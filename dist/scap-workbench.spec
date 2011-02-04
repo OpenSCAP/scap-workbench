@@ -40,7 +40,7 @@ rm -rf $RPM_BUILD_ROOT
 %files
 %defattr(-,root,root)
 %doc COPYING README
-%config(noreplace) %{_sysconfdir}/scap-workbench
+%dir %{_sysconfdir}/scap-workbench
 %config(noreplace) %{_sysconfdir}/scap-workbench/logger.conf
 %{_bindir}/scap-workbench
 %dir %{python_sitelib}/scap_workbench
