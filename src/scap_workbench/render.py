@@ -223,7 +223,7 @@ class MainWindow(abstract.Window, threading.Thread):
         # abstract the main menu
         self.menu = abstract.Menu("gui:menu", self.builder.get_object("main:toolbar"), self.core)
         self.menu.add_item(abstract.MenuButton("gui:btn:menu:main", self.builder.get_object("main:toolbar:main"), self.core))
-        self.menu.add_item(edit.MenuButtonEdit(self.builder, self.builder.get_object("main:toolbar:edit"), self.core))
+        self.menu.add_item(abstract.MenuButton("gui:btn:menu:edit", self.builder.get_object("main:toolbar:edit"), self.core))
         self.menu.add_item(abstract.MenuButton("gui:btn:menu:reports", self.builder.get_object("main:toolbar:reports"), self.core))
         self.menu.add_item(tailoring.MenuButtonTailoring(self.builder, self.builder.get_object("main:toolbar:tailoring"), self.core))
         self.menu.add_item(scan.MenuButtonScan(self.builder, self.builder.get_object("main:toolbar:scan"), self.core))
@@ -233,6 +233,12 @@ class MainWindow(abstract.Window, threading.Thread):
         submenu.add_item(MenuButtonXCCDF(self.builder, self.builder.get_object("main:sub:main:xccdf"), self.core))
         submenu.add_item(MenuButtonOVAL(self.main_box, self.builder.get_object("main:sub:main:oval"), self.core))
         self.core.get_item("gui:btn:menu:main").set_menu(submenu)
+
+        submenu = abstract.Menu("gui:menu:edit", self.builder.get_object("edit:sub:main"), self.core)
+        #submenu.add_item(edit.MenuButtonEditXCCDF(self.builder, self.builder.get_object("edit:sub:xccdf"), self.core))
+        #submenu.add_item(edit.MenuButtonEditProfiles(self.builder, self.builder.get_object("edit:sub:profiles"), self.core))
+        submenu.add_item(edit.MenuButtonEditItems(self.builder, self.builder.get_object("edit:sub:items"), self.core))
+        self.core.get_item("gui:btn:menu:edit").set_menu(submenu)
 
         self.core.register("main:button_forward", self.builder.get_object("main:button_forward"))
         self.core.register("main:button_back", self.builder.get_object("main:button_back"))

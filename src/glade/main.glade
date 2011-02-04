@@ -221,6 +221,49 @@
           </packing>
         </child>
         <child>
+          <object class="GtkToolbar" id="edit:sub:main">
+            <property name="toolbar_style">text</property>
+            <child>
+              <object class="GtkToggleToolButton" id="edit:sub:xccdf">
+                <property name="visible">True</property>
+                <property name="is_important">True</property>
+                <property name="label" translatable="yes">Main</property>
+                <property name="active">True</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="homogeneous">True</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkToggleToolButton" id="edit:sub:profiles">
+                <property name="visible">True</property>
+                <property name="is_important">True</property>
+                <property name="label" translatable="yes">Profiles</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="homogeneous">True</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkToggleToolButton" id="edit:sub:items">
+                <property name="visible">True</property>
+                <property name="is_important">True</property>
+                <property name="label" translatable="yes">Items</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="homogeneous">True</property>
+              </packing>
+            </child>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="position">2</property>
+          </packing>
+        </child>
+        <child>
           <object class="GtkAlignment" id="info_box:alig">
             <property name="visible">True</property>
             <property name="top_padding">5</property>
@@ -239,7 +282,7 @@
           </object>
           <packing>
             <property name="expand">False</property>
-            <property name="position">2</property>
+            <property name="position">3</property>
           </packing>
         </child>
         <child>
@@ -253,7 +296,7 @@
                     <property name="visible">True</property>
                     <property name="xalign">0</property>
                     <property name="yalign">0</property>
-                    <property name="top_padding">12</property>
+                    <property name="top_padding">5</property>
                     <property name="bottom_padding">12</property>
                     <property name="right_padding">12</property>
                     <child>
@@ -440,7 +483,7 @@
                 <child>
                   <object class="GtkAlignment" id="tailoring:alig1">
                     <property name="visible">True</property>
-                    <property name="top_padding">12</property>
+                    <property name="top_padding">5</property>
                     <property name="bottom_padding">12</property>
                     <property name="right_padding">12</property>
                     <child>
@@ -656,7 +699,7 @@
                 <child>
                   <object class="GtkAlignment" id="xccdf:alig1">
                     <property name="visible">True</property>
-                    <property name="top_padding">12</property>
+                    <property name="top_padding">5</property>
                     <property name="bottom_padding">12</property>
                     <property name="left_padding">12</property>
                     <property name="right_padding">12</property>
@@ -1106,7 +1149,7 @@
                 <property name="orientation">vertical</property>
                 <child>
                   <object class="GtkAlignment" id="oval:alig1">
-                    <property name="top_padding">12</property>
+                    <property name="top_padding">5</property>
                     <property name="bottom_padding">12</property>
                     <property name="left_padding">12</property>
                     <property name="right_padding">12</property>
@@ -1138,7 +1181,7 @@
                 <child>
                   <object class="GtkAlignment" id="edit:alig2">
                     <property name="visible">True</property>
-                    <property name="top_padding">12</property>
+                    <property name="top_padding">5</property>
                     <property name="bottom_padding">12</property>
                     <property name="right_padding">12</property>
                     <child>
@@ -4442,7 +4485,7 @@
             </child>
           </object>
           <packing>
-            <property name="position">3</property>
+            <property name="position">4</property>
           </packing>
         </child>
       </object>

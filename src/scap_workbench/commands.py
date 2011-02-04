@@ -1309,10 +1309,11 @@ class DHScan(DataHandler, EventObject):
         if self.__cancel_notify: self.__cancel_notify.destroy()
         self.__lock = False
 
-class DHEditItems:
+class DHEditItems(DataHandler):
     
-    def __init__(self):
-        pass
+    def __init__(self, core=None):
+
+        self.core = core
 
     def DHEditAddItem(self, item_to_add, group, data):
 

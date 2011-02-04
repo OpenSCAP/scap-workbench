@@ -68,7 +68,7 @@ class ProfileList(abstract.List):
 
         # actions
         self.add_sender(self.id, "update_profiles")
-        self.add_receiver("gui:btn:menu:edit", "update", self.__update)
+        self.add_receiver("gui:btn:menu:edit:items", "update", self.__update)
         selection.connect("changed", self.cb_item_changed, self.get_TreeView())
 
     def __update(self, new=False):
@@ -135,7 +135,7 @@ class ItemList(abstract.List):
         selection.set_mode(gtk.SELECTION_SINGLE)
 
         # actions
-        self.add_receiver("gui:btn:menu:edit", "update", self.__update)
+        self.add_receiver("gui:btn:menu:edit:items", "update", self.__update)
         self.add_receiver("gui:btn:edit:filter", "search", self.__search)
         self.add_receiver("gui:btn:edit:filter", "filter_add", self.__filter_add)
         self.add_receiver("gui:btn:edit:filter", "filter_del", self.__filter_del)
@@ -229,15 +229,29 @@ class ItemList(abstract.List):
         gtk.gdk.threads_leave()
 
 
-class MenuButtonEdit(abstract.MenuButton, commands.DHEditItems, abstract.ControlEditWindow):
+class MenuButtonEditXCCDF(abstract.MenuButton, abstract.ControlEditWindow):
+    pass
+
+class MenuButtonEditProfiles(abstract.MenuButton, abstract.ControlEditWindow):
+
+    def __init__(self, builder, widget, core):
+        abstract.MenuButton.__init__(self, "gui:btn:menu:edit:profiles", widget, core)
+        self.builder = builder
+        self.core = core
+        self.data_model = commands.DHEditItems(self.core)
+        self.profile_model = commands.DHProfiles(self.core)
+        self.item = None
+        self.func = abstract.Func()
+
+class MenuButtonEditItems(abstract.MenuButton, abstract.ControlEditWindow):
     """
     GUI for refines.
     """
     def __init__(self, builder, widget, core):
-        abstract.MenuButton.__init__(self, "gui:btn:menu:edit", widget, core)
+        abstract.MenuButton.__init__(self, "gui:btn:menu:edit:items", widget, core)
         self.builder = builder
         self.core = core
-        self.data_model = commands.DataHandler(self.core)
+        self.data_model = commands.DHEditItems(self.core)
         self.profile_model = commands.DHProfiles(self.core)
         self.item = None
         self.func = abstract.Func()
@@ -265,7 +279,6 @@ class MenuButtonEdit(abstract.MenuButton, commands.DHEditItems, abstract.Control
         
         """Get widget for details
         """
-        #main
         self.itemsPage = self.builder.get_object("edit:notebook")
         self.profilePage = self.builder.get_object("edit:profile")
         
@@ -275,32 +288,24 @@ class MenuButtonEdit(abstract.MenuButton, commands.DHEditItems, abstract.Control
 
         self.set_sensitive(False)
 
-        #general
+        # Get widgets from GLADE
         self.item_id = self.builder.get_object("edit:general:lbl_id")
-        
         self.entry_version = self.builder.get_object("edit:general:entry_version")
-        self.entry_version.connect("focus-out-event",self.cb_entry_version)
-        
+        self.entry_version.connect("focus-out-event", self.data_model.cb_entry_version)
         self.entry_version_time = self.builder.get_object("edit:general:entry_version_time")
-        self.entry_version_time.connect("focus-out-event",self.cb_control_version_time)
-
+        self.entry_version_time.connect("focus-out-event", self.cb_control_version_time)
         self.chbox_selected = self.builder.get_object("edit:general:chbox_selected")
-        self.chbox_selected.connect("toggled",self.cb_chbox_selected)
-        
+        self.chbox_selected.connect("toggled", self.cb_chbox_selected)
         self.chbox_hidden = self.builder.get_object("edit:general:chbox_hidden")
-        self.chbox_hidden.connect("toggled",self.cb_chbox_hidden)
-        
+        self.chbox_hidden.connect("toggled", self.data_model.cb_chbox_hidden)
         self.chbox_prohibit = self.builder.get_object("edit:general:chbox_prohibit")
-        self.chbox_prohibit.connect("toggled",self.cb_chbox_prohibit)
-        
+        self.chbox_prohibit.connect("toggled", self.data_model.cb_chbox_prohibit)
         self.chbox_abstract = self.builder.get_object("edit:general:chbox_abstract")
-        self.chbox_abstract.connect("toggled",self.cb_chbox_abstract)
-        
+        self.chbox_abstract.connect("toggled", self.data_model.cb_chbox_abstract)
         self.entry_cluster_id = self.builder.get_object("edit:general:entry_cluster_id")
-        self.entry_cluster_id.connect("focus-out-event",self.cb_entry_cluster_id)
-
+        self.entry_cluster_id.connect("focus-out-event", self.data_model.cb_entry_cluster_id)
         self.entry_weight = self.builder.get_object("edit:general:entry_weight")
-        self.entry_weight.connect("focus-out-event",self.cb_entry_weight)
+        self.entry_weight.connect("focus-out-event", self.cb_entry_weight)
         
         self.edit_title = EditTitle(self.core, self.builder)
         self.edit_description = EditDescription(self.core, self.builder)
@@ -314,33 +319,31 @@ class MenuButtonEdit(abstract.MenuButton, commands.DHEditItems, abstract.Control
         
         self.lbl_extends = self.builder.get_object("edit:dependencies:lbl_extends")
         
-        #Dependencies
         self.edit_platform = EditPlatform(self.core, self.builder)
+        self.edit_values = EditValues(self.core, self.builder)
         
-        #operations
+        """Get widgets from Glade: Part main.glade->Operations in edit
+        """
         self.edit_fixtext = EditFixtext(self.core, self.builder)
         self.edit_fix = EditFix(self.core, self.builder)
         
         self.cBox_severity = self.builder.get_object("edit:operations:combo_severity")
         self.set_model_to_comboBox(self.cBox_severity,self.combo_model_level, self.COMBO_COLUMN_VIEW)
-        self.cBox_severity.connect( "changed", self.cb_cBox_severity)
+        self.cBox_severity.connect( "changed", self.data_model.cb_cBox_severity)
        
         
         self.entry_impact_metric = self.builder.get_object("edit:operations:entry_impact_metric")
-        self.entry_impact_metric.connect("focus-out-event",self.cb_control_impact_metrix)
+        self.entry_impact_metric.connect("focus-out-event", self.cb_control_impact_metrix)
 
         self.lv_check = self.builder.get_object("edit:operations:lv_check")
         
-        #values
-        self.edit_values = EditValues(self.core, self.builder)
-        
         #others
         self.chbox_multiple = self.builder.get_object("edit:other:chbox_multiple")
-        self.chbox_multiple.connect("toggled",self.cb_chbox_multipl)
+        self.chbox_multiple.connect("toggled",self.data_model.cb_chbox_multipl)
 
         self.cBox_role = self.builder.get_object("edit:other:combo_role")
         self.set_model_to_comboBox(self.cBox_role,self.combo_model_role, self.COMBO_COLUMN_VIEW)
-        self.cBox_role.connect( "changed", self.cb_cBox_role)
+        self.cBox_role.connect( "changed", self.data_model.cb_cBox_role)
 
         # PROFILES
         self.info_box_lbl = self.builder.get_object("edit:profile:info_box:lbl")
@@ -375,6 +378,7 @@ class MenuButtonEdit(abstract.MenuButton, commands.DHEditItems, abstract.Control
         self.add_receiver("gui:edit:profile_list", "update", self.__update_profile)
         self.add_receiver("gui:btn:main:xccdf", "load", self.__section_list_load)
         self.__section_list_load() #TODO
+
 
     def cb_entry_weight(self, widget, event):
         weight = self.func.controlFloat(widget.get_text(), "Weight", self.core.main_window)
@@ -580,13 +584,13 @@ class MenuButtonEdit(abstract.MenuButton, commands.DHEditItems, abstract.Control
             details = None
             self.item = None
         
-        self.chbox_hidden.handler_block_by_func(self.cb_chbox_hidden)
+        self.chbox_hidden.handler_block_by_func(self.data_model.cb_chbox_hidden)
         self.chbox_selected.handler_block_by_func(self.cb_chbox_selected)
-        self.chbox_prohibit.handler_block_by_func(self.cb_chbox_prohibit)
-        self.chbox_abstract.handler_block_by_func(self.cb_chbox_abstract)
-        self.chbox_multiple.handler_block_by_func(self.cb_chbox_multipl)
-        self.cBox_severity.handler_block_by_func(self.cb_cBox_severity)
-        self.cBox_role.handler_block_by_func(self.cb_cBox_role)
+        self.chbox_prohibit.handler_block_by_func(self.data_model.cb_chbox_prohibit)
+        self.chbox_abstract.handler_block_by_func(self.data_model.cb_chbox_abstract)
+        self.chbox_multiple.handler_block_by_func(self.data_model.cb_chbox_multipl)
+        self.cBox_severity.handler_block_by_func(self.data_model.cb_cBox_severity)
+        self.cBox_role.handler_block_by_func(self.data_model.cb_cBox_role)
         
         if details != None:
             self.set_sensitive(True)
@@ -682,14 +686,14 @@ class MenuButtonEdit(abstract.MenuButton, commands.DHEditItems, abstract.Control
             else:
                 # clean data only for rule and set insensitive
                 self.cBox_severity.set_sensitive(False)
-                self.cBox_severity.handler_block_by_func(self.cb_cBox_severity)
+                self.cBox_severity.handler_block_by_func(self.data_model.cb_cBox_severity)
                 self.cBox_severity.set_active(-1)
-                self.cBox_severity.handler_unblock_by_func(self.cb_cBox_severity)
+                self.cBox_severity.handler_unblock_by_func(self.data_model.cb_cBox_severity)
                 
                 self.cBox_role.set_sensitive(False)
-                self.cBox_role.handler_block_by_func(self.cb_cBox_role)
+                self.cBox_role.handler_block_by_func(self.data_model.cb_cBox_role)
                 self.cBox_role.set_active(-1)
-                self.cBox_role.handler_unblock_by_func(self.cb_cBox_role)
+                self.cBox_role.handler_unblock_by_func(self.data_model.cb_cBox_role)
 
                 self.edit_values.set_sensitive(False)
                 self.edit_values.fill(None)
@@ -733,13 +737,13 @@ class MenuButtonEdit(abstract.MenuButton, commands.DHEditItems, abstract.Control
             self.entry_cluster_id.set_text("")
             self.lbl_extends.set_text("None")
 
-        self.chbox_hidden.handler_unblock_by_func(self.cb_chbox_hidden)
+        self.chbox_hidden.handler_unblock_by_func(self.data_model.cb_chbox_hidden)
         self.chbox_selected.handler_unblock_by_func(self.cb_chbox_selected)
-        self.chbox_prohibit.handler_unblock_by_func(self.cb_chbox_prohibit)
-        self.chbox_abstract.handler_unblock_by_func(self.cb_chbox_abstract)
-        self.chbox_multiple.handler_unblock_by_func(self.cb_chbox_multipl)
-        self.cBox_severity.handler_unblock_by_func(self.cb_cBox_severity)
-        self.cBox_role.handler_unblock_by_func(self.cb_cBox_role)
+        self.chbox_prohibit.handler_unblock_by_func(self.data_model.cb_chbox_prohibit)
+        self.chbox_abstract.handler_unblock_by_func(self.data_model.cb_chbox_abstract)
+        self.chbox_multiple.handler_unblock_by_func(self.data_model.cb_chbox_multipl)
+        self.cBox_severity.handler_unblock_by_func(self.data_model.cb_cBox_severity)
+        self.cBox_role.handler_unblock_by_func(self.data_model.cb_cBox_role)
             
 class EditConflicts(commands.DHEditItems,abstract.ControlEditWindow):
     
