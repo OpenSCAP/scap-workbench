@@ -194,7 +194,7 @@ class MenuButton(EventObject):
                 self.menu.active_item.set_active(active)
         self.widget.handler_unblock_by_func(self.cb_toggle)
         if active: 
-            self.emit("update")
+            self.emit_signal("update")
             self.update()
 
     def set_menu(self, menu):

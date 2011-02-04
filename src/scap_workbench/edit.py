@@ -68,22 +68,16 @@ class ProfileList(abstract.List):
 
         # actions
         self.add_sender(self.id, "update_profiles")
-        self.add_receiver("gui:btn:menu:edit:items", "update", self.__update)
+        self.add_receiver("gui:btn:menu:edit:profiles", "update", self.__update)
         selection.connect("changed", self.cb_item_changed, self.get_TreeView())
 
     def __update(self, new=False):
 
-        if not self.section_list.get_model() or len(self.section_list.get_model()) == 0: 
-            return
-        if self.section_list.get_model()[self.section_list.get_active()][0] == "PROFILES":
-            self.profilesList.set_visible(True)
-            if "profile" not in self.__dict__ or self.core.force_reload_profiles:
-                self.data_model.fill()
-                self.get_TreeView().get_model().foreach(self.set_selected, (self.core.selected_profile, self.get_TreeView()))
-                self.core.force_reload_profiles = False
-            if new: self.emit("update_profiles")
-        else:
-            self.profilesList.set_visible(False)
+        if "profile" not in self.__dict__ or self.core.force_reload_profiles:
+            self.data_model.fill()
+            self.get_TreeView().get_model().foreach(self.set_selected, (self.core.selected_profile, self.get_TreeView()))
+            self.core.force_reload_profiles = False
+        if new: self.emit("update_profiles")
 
     def cb_item_changed(self, widget, treeView):
 
@@ -149,24 +143,16 @@ class ItemList(abstract.List):
 
     def __update(self):
 
-        if not self.section_list.get_model() or len(self.section_list.get_model()) == 0: 
-            return
+        if self.loaded_new == True:
+            self.get_TreeView().set_model(self.data_model.model)
+            self.data_model.fill()
+            self.loaded_new = False
+        # Select the last one selected if there is one         #self.core.selected_item_edi
+        if self.old_selected != self.core.selected_item:
+            self.get_TreeView().get_model().foreach(self.set_selected, (self.core.selected_item, self.get_TreeView()))
+            self.core.force_reload_items = False
+            self.old_selected = self.core.selected_item
 
-        if self.section_list.get_model()[self.section_list.get_active()][0] == "XCCDF":
-            self.itemsList.set_visible(True)
-            if self.loaded_new == True:
-                self.get_TreeView().set_model(self.data_model.model)
-                self.data_model.fill()
-                self.loaded_new = False
-            # Select the last one selected if there is one         #self.core.selected_item_edi
-            if self.old_selected != self.core.selected_item:
-                self.get_TreeView().get_model().foreach(self.set_selected, (self.core.selected_item, self.get_TreeView()))
-                self.core.force_reload_items = False
-                self.old_selected = self.core.selected_item
-        else:
-            self.itemsList.set_visible(False)
-
-            
     def __loaded_new_xccdf(self):
         self.loaded_new = True
         
@@ -230,19 +216,189 @@ class ItemList(abstract.List):
 
 
 class MenuButtonEditXCCDF(abstract.MenuButton, abstract.ControlEditWindow):
-    pass
 
+    def __init__(self, builder, widget, core):
+        abstract.MenuButton.__init__(self, "gui:btn:menu:edit:XCCDF", widget, core)
+        self.builder = builder
+        self.core = core
+        
+        #draw body
+        self.body = self.builder.get_object("edit_xccdf:box")
+        
 class MenuButtonEditProfiles(abstract.MenuButton, abstract.ControlEditWindow):
 
     def __init__(self, builder, widget, core):
         abstract.MenuButton.__init__(self, "gui:btn:menu:edit:profiles", widget, core)
         self.builder = builder
         self.core = core
-        self.data_model = commands.DHEditItems(self.core)
         self.profile_model = commands.DHProfiles(self.core)
         self.item = None
         self.func = abstract.Func()
+        
+        #draw body
+        self.body = self.builder.get_object("edit_profile:box")
+        self.tw_profiles = self.builder.get_object("edit:tw_profiles")
+        self.list_profile = ProfileList(self.tw_profiles, self.core, builder, None, None)
 
+        # set signals
+        self.add_sender(self.id, "update")
+        
+       # PROFILES
+        self.info_box_lbl = self.builder.get_object("edit:profile:info_box:lbl")
+        self.profile_id = self.builder.get_object("edit:profile:entry_id")
+        self.profile_cb_lang = self.builder.get_object("edit:profile:cbentry_lang")
+        for lang in self.core.langs:
+            self.profile_cb_lang.get_model().append([lang])
+        self.profile_title = self.builder.get_object("edit:profile:entry_title")
+        self.profile_version = self.builder.get_object("edit:profile:entry_version")
+        self.profile_description = self.builder.get_object("edit:profile:entry_description")
+        self.profile_abstract = self.builder.get_object("edit:profile:cbox_abstract")
+        self.profile_extends = self.builder.get_object("edit:profile:cb_extends")
+        self.tw_langs = self.builder.get_object("edit:profile:tw_langs")
+
+        self.profile_btn_revert = self.builder.get_object("edit:profile:btn_revert")
+        self.profile_btn_revert.connect("clicked", self.__cb_profile_revert)
+        self.profile_btn_save = self.builder.get_object("edit:profile:btn_save")
+        self.profile_btn_save.connect("clicked", self.__cb_profile_save)
+        self.profile_btn_add = self.builder.get_object("edit:profile:btn_add")
+        self.profile_btn_add.connect("clicked", self.__cb_profile_add_lang)
+
+        selection = self.tw_langs.get_selection()
+        selection.connect("changed", self.__cb_profile_lang_changed)
+        self.langs_model = gtk.ListStore(str, str, str)
+        self.tw_langs.set_model(self.langs_model)
+        self.tw_langs.append_column(gtk.TreeViewColumn("Lang", gtk.CellRendererText(), text=0))
+        self.tw_langs.append_column(gtk.TreeViewColumn("Title", gtk.CellRendererText(), text=1))
+        self.tw_langs.append_column(gtk.TreeViewColumn("Description", gtk.CellRendererText(), text=2))
+
+        self.add_receiver("gui:edit:profile_list", "update", self.__update_profile)
+        self.add_receiver("gui:edit:profile_list", "changed", self.__update_profile)
+        
+    def __cb_profile_revert(self, widget):
+        self.__update_profile()
+
+    def __cb_profile_save(self, widget):
+        if self.profile_id.get_text() == "":
+            logger.error("No ID of profile specified")
+            md = gtk.MessageDialog(self.window, 
+                    gtk.DIALOG_MODAL, gtk.MESSAGE_ERROR,
+                    gtk.BUTTONS_OK, "ID of profile has to be specified !")
+            md.run()
+            md.destroy()
+            return
+        values = {}
+        values["id"] = self.profile_id.get_text()
+        values["abstract"] = self.profile_abstract.get_active()
+        values["version"] = self.profile_version.get_text()
+        if self.profile_extends.get_active() >= 0: values["extends"] = self.profile_extends.get_model()[self.profile_extends.get_active()][0]
+        else: values["extends"] = None
+        values["details"] = []
+        for row in self.tw_langs.get_model():
+            item = {"lang": row[0],
+                    "title": row[1],
+                    "description": row[2]}
+            values["details"].append(item)
+
+        self.profile_model.edit(values)
+        self.core.force_reload_profiles = True
+        self.profile_model.save()
+        self.emit("update")
+        
+    def __update_profile(self):
+
+        self.profile_title.set_text("")
+        self.profile_description.get_buffer().set_text("")
+        details = self.profile_model.get_profile_details(self.core.selected_profile)
+        if not details:
+            self.profile_id.set_text("")
+            self.profile_abstract.set_active(False)
+            #self.profile_extend.set_text("")
+            self.profile_version.set_text("")
+            self.profile_title.set_text("")
+            return
+
+        self.profile_description.set_sensitive(details["id"] != None)
+        self.profile_title.set_sensitive(details["id"] != None)
+        self.profile_abstract.set_sensitive(details["id"] != None)
+        self.profile_id.set_sensitive(details["id"] != None)
+        self.profile_version.set_sensitive(details["id"] != None)
+        self.tw_langs.set_sensitive(details["id"] != None)
+        self.profile_cb_lang.set_sensitive(details["id"] != None)
+        self.profile_btn_add.set_sensitive(details["id"] != None)
+        self.profile_btn_save.set_sensitive(details["id"] != None)
+        self.profile_btn_revert.set_sensitive(details["id"] != None)
+
+        self.profile_id.set_text(details["id"] or "")
+        self.profile_abstract.set_active(details["abstract"])
+        #self.profile_extend.set_text(str(details["extends"] or ""))
+        self.profile_version.set_text(details["version"] or "")
+
+        self.tw_langs.get_model().clear()
+        title = None
+        description = None
+        for lang in details["titles"]:
+            if lang in details["titles"]: title = details["titles"][lang]
+            if lang in details["descriptions"]: description = details["descriptions"][lang]
+            self.tw_langs.get_model().append([lang, title, description])
+            
+    def __cb_profile_lang_changed(self, widget):
+        selection = self.tw_langs.get_selection( )
+        if selection != None: 
+            (model, iter) = selection.get_selected( )
+            if iter: 
+                self.__set_lang(self.profile_cb_lang, model.get_value(iter, 0))
+                self.profile_title.set_text(model.get_value(iter, 1))
+                self.profile_description.get_buffer().set_text(model.get_value(iter, 2))
+
+    def __cb_profile_add_lang(self, widget):
+        result = None
+        for row in self.tw_langs.get_model():
+            if row[0] == self.profile_cb_lang.get_active_text():
+                md = gtk.MessageDialog(self.core.main_window, 
+                        gtk.DIALOG_MODAL, gtk.MESSAGE_QUESTION,
+                        gtk.BUTTONS_YES_NO, "Language \"%s\" already specified.\n\nRewrite stored data ?" % (row[0],))
+                md.set_title("Language found")
+                result = md.run()
+                md.destroy()
+                if result == gtk.RESPONSE_NO: 
+                    return
+                else: self.langs_model.remove(row.iter)
+
+        buffer = self.profile_description.get_buffer()
+        self.tw_langs.get_model().append([self.profile_cb_lang.get_active_text(), 
+            self.profile_title.get_text(),
+            buffer.get_text(buffer.get_start_iter(), buffer.get_end_iter(), False)])
+
+        # Add lang to combo box model
+        found = False
+        for item in self.profile_cb_lang.get_model():
+            if item[0] == self.profile_cb_lang.get_active_text(): 
+                found = True
+        if not found: 
+            self.profile_cb_lang.get_model().append([self.profile_cb_lang.get_active_text()])
+            self.profile_cb_lang.set_active_iter(self.profile_cb_lang.get_model()[-1].iter)
+            self.core.langs.append(self.profile_cb_lang.get_active_text())
+
+        # Clear
+        self.profile_cb_lang.set_active(-1)
+        self.profile_title.set_text("")
+        self.profile_description.get_buffer().set_text("")
+        
+    def __set_lang(self, widget, lang):
+
+        _set = False
+        model =  widget.get_model()
+        iter = model.get_iter_first()
+        while iter:
+            if lang == model.get_value(iter, 0):
+                widget.set_active_iter(iter) 
+                _set = True
+                break
+            iter = model.iter_next(iter)
+        if not _set: 
+            iter = model.append([lang])
+            widget.set_active_iter(iter)
+            
 class MenuButtonEditItems(abstract.MenuButton, abstract.ControlEditWindow):
     """
     GUI for refines.
@@ -252,37 +408,26 @@ class MenuButtonEditItems(abstract.MenuButton, abstract.ControlEditWindow):
         self.builder = builder
         self.core = core
         self.data_model = commands.DHEditItems(self.core)
-        self.profile_model = commands.DHProfiles(self.core)
         self.item = None
         self.func = abstract.Func()
 
         #draw body
-        self.body = self.builder.get_object("edit:box")
+        self.body = self.builder.get_object("edit_item:box")
         self.progress = self.builder.get_object("edit:progress")
         self.progress.hide()
-        self.section_list = self.builder.get_object("edit:section_list")
         self.filter = filter.ItemFilter(self.core, self.builder,"edit:box_filter", "gui:btn:edit:filter")
         self.tw_items = self.builder.get_object("edit:tw_items")
-        self.tw_profiles = self.builder.get_object("edit:tw_profiles")
         titles = self.data_model.get_benchmark_titles()
         self.list_item = ItemList(self.tw_items, self.core, builder, self.progress, self.filter)
-        self.list_profile = ProfileList(self.tw_profiles, self.core, builder, self.progress, self.filter)
         self.ref_model = self.list_item.get_TreeView().get_model() # original model (not filtered)
-
-        self.section_list.connect("changed", self.__content_changed, self.section_list.get_model())
         
         self.filter.expander.cb_changed()
 
         # set signals
         self.add_sender(self.id, "update")
-        self.add_sender(self.id, "update_profiles")
-        
-        """Get widget for details
-        """
-        self.itemsPage = self.builder.get_object("edit:notebook")
-        self.profilePage = self.builder.get_object("edit:profile")
         
         # remove just for now (missing implementations and so..)
+        self.itemsPage = self.builder.get_object("edit:notebook")
         self.itemsPage.remove_page(1)
         self.itemsPage.remove_page(3)
 
@@ -345,40 +490,8 @@ class MenuButtonEditItems(abstract.MenuButton, abstract.ControlEditWindow):
         self.set_model_to_comboBox(self.cBox_role,self.combo_model_role, self.COMBO_COLUMN_VIEW)
         self.cBox_role.connect( "changed", self.data_model.cb_cBox_role)
 
-        # PROFILES
-        self.info_box_lbl = self.builder.get_object("edit:profile:info_box:lbl")
-        self.profile_id = self.builder.get_object("edit:profile:entry_id")
-        self.profile_cb_lang = self.builder.get_object("edit:profile:cbentry_lang")
-        for lang in self.core.langs:
-            self.profile_cb_lang.get_model().append([lang])
-        self.profile_title = self.builder.get_object("edit:profile:entry_title")
-        self.profile_version = self.builder.get_object("edit:profile:entry_version")
-        self.profile_description = self.builder.get_object("edit:profile:entry_description")
-        self.profile_abstract = self.builder.get_object("edit:profile:cbox_abstract")
-        self.profile_extends = self.builder.get_object("edit:profile:cb_extends")
-        self.tw_langs = self.builder.get_object("edit:profile:tw_langs")
-
-        self.profile_btn_revert = self.builder.get_object("edit:profile:btn_revert")
-        self.profile_btn_revert.connect("clicked", self.__cb_profile_revert)
-        self.profile_btn_save = self.builder.get_object("edit:profile:btn_save")
-        self.profile_btn_save.connect("clicked", self.__cb_profile_save)
-        self.profile_btn_add = self.builder.get_object("edit:profile:btn_add")
-        self.profile_btn_add.connect("clicked", self.__cb_profile_add_lang)
-
-        selection = self.tw_langs.get_selection()
-        selection.connect("changed", self.__cb_profile_lang_changed)
-        self.langs_model = gtk.ListStore(str, str, str)
-        self.tw_langs.set_model(self.langs_model)
-        self.tw_langs.append_column(gtk.TreeViewColumn("Lang", gtk.CellRendererText(), text=0))
-        self.tw_langs.append_column(gtk.TreeViewColumn("Title", gtk.CellRendererText(), text=1))
-        self.tw_langs.append_column(gtk.TreeViewColumn("Description", gtk.CellRendererText(), text=2))
-
         self.add_receiver("gui:edit:item_list", "update", self.__update_items)
         self.add_receiver("gui:edit:item_list", "changed", self.__update_items)
-        self.add_receiver("gui:edit:profile_list", "update", self.__update_profile)
-        self.add_receiver("gui:btn:main:xccdf", "load", self.__section_list_load)
-        self.__section_list_load() #TODO
-
 
     def cb_entry_weight(self, widget, event):
         weight = self.func.controlFloat(widget.get_text(), "Weight", self.core.main_window)
@@ -410,17 +523,6 @@ class MenuButtonEditItems(abstract.MenuButton, abstract.ControlEditWindow):
             self.section_list.get_model().append(["PROFILES", "XCCDF: "+title+" (Profiles)"])
             self.section_list.set_active(0)
 
-    def __content_changed(self, widget, model):
-        if not model or len(model) == 0: return
-        if model[widget.get_active()][0] == "XCCDF":
-            self.profilePage.set_visible(False)
-            self.itemsPage.set_visible(True)
-        elif model[widget.get_active()][0] == "PROFILES":
-            self.profilePage.set_visible(True)
-            self.itemsPage.set_visible(False)
-        self.__update()
-        self.emit("update")
-
     def cb_control_impact_metrix(self, widget, event):
         text = widget.get_text()
         if text != "" and self.controlImpactMetric(text):
@@ -430,37 +532,6 @@ class MenuButtonEditItems(abstract.MenuButton, abstract.ControlEditWindow):
         timestamp = self.controlDate(widget.get_text())
         if timestamp:
             self.DHEditVersionTime(self.item, timestamp)
-
-    def __cb_profile_revert(self, widget):
-        self.__update_profile()
-
-    def __cb_profile_save(self, widget):
-        if self.profile_id.get_text() == "":
-            logger.error("No ID of profile specified")
-            md = gtk.MessageDialog(self.window, 
-                    gtk.DIALOG_MODAL, gtk.MESSAGE_ERROR,
-                    gtk.BUTTONS_OK, "ID of profile has to be specified !")
-            md.run()
-            md.destroy()
-            return
-        values = {}
-        values["id"] = self.profile_id.get_text()
-        values["abstract"] = self.profile_abstract.get_active()
-        values["version"] = self.profile_version.get_text()
-        if self.profile_extends.get_active() >= 0: values["extends"] = self.profile_extends.get_model()[self.profile_extends.get_active()][0]
-        else: values["extends"] = None
-        values["details"] = []
-        for row in self.tw_langs.get_model():
-            item = {"lang": row[0],
-                    "title": row[1],
-                    "description": row[2]}
-            values["details"].append(item)
-
-        self.profile_model.edit(values)
-        self.core.force_reload_profiles = True
-        self.profile_model.save()
-        self.emit("update")
-        self.emit("update_profiles")
 
     def set_sensitive(self, sensitive):
         self.itemsPage.set_sensitive(sensitive)
@@ -474,107 +545,6 @@ class MenuButtonEditItems(abstract.MenuButton, abstract.ControlEditWindow):
         if description == "": description = "No description"
         description = "<body>"+description+"</body>"
         self.profile_description.display_html(description)
-        
-    def __update(self, active=""):
-        if active == "PROFILES":
-            self.__update_profile()
-        else: self.__update_items()
-
-    def __update_profile(self):
-
-        self.profile_title.set_text("")
-        self.profile_description.get_buffer().set_text("")
-        details = self.data_model.get_profile_details(self.core.selected_profile)
-        if not details:
-            self.profile_id.set_text("")
-            self.profile_abstract.set_active(False)
-            #self.profile_extend.set_text("")
-            self.profile_version.set_text("")
-            self.profile_title.set_text("")
-            return
-
-        self.profile_description.set_sensitive(details["id"] != None)
-        self.profile_title.set_sensitive(details["id"] != None)
-        self.profile_abstract.set_sensitive(details["id"] != None)
-        self.profile_id.set_sensitive(details["id"] != None)
-        self.profile_version.set_sensitive(details["id"] != None)
-        self.tw_langs.set_sensitive(details["id"] != None)
-        self.profile_cb_lang.set_sensitive(details["id"] != None)
-        self.profile_btn_add.set_sensitive(details["id"] != None)
-        self.profile_btn_save.set_sensitive(details["id"] != None)
-        self.profile_btn_revert.set_sensitive(details["id"] != None)
-
-        self.profile_id.set_text(details["id"] or "")
-        self.profile_abstract.set_active(details["abstract"])
-        #self.profile_extend.set_text(str(details["extends"] or ""))
-        self.profile_version.set_text(details["version"] or "")
-
-        self.tw_langs.get_model().clear()
-        title = None
-        description = None
-        for lang in details["titles"]:
-            if lang in details["titles"]: title = details["titles"][lang]
-            if lang in details["descriptions"]: description = details["descriptions"][lang]
-            self.tw_langs.get_model().append([lang, title, description])
-
-    def __set_lang(self, widget, lang):
-
-        _set = False
-        model =  widget.get_model()
-        iter = model.get_iter_first()
-        while iter:
-            if lang == model.get_value(iter, 0):
-                widget.set_active_iter(iter) 
-                _set = True
-                break
-            iter = model.iter_next(iter)
-        if not _set: 
-            iter = model.append([lang])
-            widget.set_active_iter(iter)
-
-    def __cb_profile_lang_changed(self, widget):
-        selection = self.tw_langs.get_selection( )
-        if selection != None: 
-            (model, iter) = selection.get_selected( )
-            if iter: 
-                self.__set_lang(self.profile_cb_lang, model.get_value(iter, 0))
-                self.profile_title.set_text(model.get_value(iter, 1))
-                self.profile_description.get_buffer().set_text(model.get_value(iter, 2))
-
-    def __cb_profile_add_lang(self, widget):
-        result = None
-        for row in self.tw_langs.get_model():
-            if row[0] == self.profile_cb_lang.get_active_text():
-                md = gtk.MessageDialog(self.core.main_window, 
-                        gtk.DIALOG_MODAL, gtk.MESSAGE_QUESTION,
-                        gtk.BUTTONS_YES_NO, "Language \"%s\" already specified.\n\nRewrite stored data ?" % (row[0],))
-                md.set_title("Language found")
-                result = md.run()
-                md.destroy()
-                if result == gtk.RESPONSE_NO: 
-                    return
-                else: self.langs_model.remove(row.iter)
-
-        buffer = self.profile_description.get_buffer()
-        self.tw_langs.get_model().append([self.profile_cb_lang.get_active_text(), 
-            self.profile_title.get_text(),
-            buffer.get_text(buffer.get_start_iter(), buffer.get_end_iter(), False)])
-
-        # Add lang to combo box model
-        found = False
-        for item in self.profile_cb_lang.get_model():
-            if item[0] == self.profile_cb_lang.get_active_text(): 
-                found = True
-        if not found: 
-            self.profile_cb_lang.get_model().append([self.profile_cb_lang.get_active_text()])
-            self.profile_cb_lang.set_active_iter(self.profile_cb_lang.get_model()[-1].iter)
-            self.core.langs.append(self.profile_cb_lang.get_active_text())
-
-        # Clear
-        self.profile_cb_lang.set_active(-1)
-        self.profile_title.set_text("")
-        self.profile_description.get_buffer().set_text("")
-
 
     def __update_items(self):
  
@@ -2848,127 +2818,3 @@ class EditValueChoice(commands.DataHandler, abstract.EnterList):
             self.model.remove(self.iter_del)
         elif action == "add":
             self.model[self.edit_path][self.edit_column] = self.edit_text
-
-#class EditTitle(commands.DataHandler, abstract.EnterList):
-    
-    #COLUMN_MARK_ROW = 0
-    #COLUMN_LAN = 1
-    #COLUMN_TITLE = 2
-    
-    #def __init__(self, core, treeView):
-        #commands.DataHandler.__init__(self, core)
-        #self.core = core
-        #self.treeView = treeView
-        #self.iter_del=None
-        #self.model = gtk.ListStore(str, str, str)
-        #abstract.EnterList.__init__(self, core, "EditTitle",self.model, self.treeView)
-        
-        #self.add_receiver("EditTitle", "del", self.__del_row)
-        #self.add_receiver("EditTitle", "edit", self.__edit_row)
-        
-        #cell = self.set_insertColumnText("Language", EditTitle.COLUMN_LAN, True, True)
-        #cell = self.set_insertColumnText("Title", EditTitle.COLUMN_TITLE, False, False)
-        
-    #def __del_row(self):
-        #self.model.remove(self.iter_del)
-    
-    #def __edit_row(self):
-        #self.model[self.edit_path][self.edit_column] = self.edit_text
-    
-    #def fill(self,data):
-
-        #self.selected_old = None
-        #self.model.clear()
-        #if data != None:
-            #for key in data.keys():
-                #self.model.append(["", key, data[key]])
-        #iter = self.model.append(None)
-        #self.model.set(iter,EditTitle.COLUMN_MARK_ROW,"*")
-        
-#class DHEditDescription(DataHandler, abstract.EnterList):
-    
-    #COLUMN_MARK_ROW = 0
-    #COLUMN_LANG = 1
-    #COLUMN_DES_INFO = 2
-    #COLUMN_DES = 3
-    
-    #def __init__(self, core, treeView, sw_description):
-        #DataHandler.__init__(self, core)
-        #self.core = core
-        #self.treeView = treeView
-        #self.iter_del=None
-        #self.selected_des = None
-        #model = gtk.ListStore(str, str, str, str)
-        #abstract.EnterList.__init__(self, core, "DHEditDescription",model, self.treeView)
-        
-        #self.add_receiver("DHEditDescription", "del", self.__del_row)
-        
-        #cell = self.set_insertColumnText("Language", DHEditDescription.COLUMN_LANG)
-        #cell.connect("edited", self.__cd_editLang, DHEditDescription.COLUMN_LANG)
-        #cell = self.set_insertColumnInfo("Description", DHEditDescription.COLUMN_DES_INFO, True)
-                
-        #self.description = HtmlTextView()
-        #self.description.set_wrap_mode(gtk.WRAP_WORD)
-        #self.description.set_editable(True)
-        #self.description.connect("key-release-event", self.__edit_des)
-        #sw_description.add(self.description)
-        #sw_description.show_all()
-
-        #self.selection.connect("changed", self.__cb_item_changed)
-        
-    #def __cb_item_changed(self, widget):
-
-        #self.description.get_buffer().set_text("")
-        #if self.selection != None: 
-            #(model, iter) = self.selection.get_selected( )
-            #if iter: 
-                #self.selected_des = iter
-                #text = self.model.get_value(iter, DHEditDescription.COLUMN_DES) 
-                #if  text != "" and text != None:
-                    #self.description.display_html(self.model.get_value(iter, DHEditDescription.COLUMN_DES))
-            #else:
-                #self.selected_des = None
-                
-    #def __edit_des(self, widget, event):
-        #if self.selected_des != None:
-            #buff = self.description.get_buffer()
-            #iter_start = buff.get_start_iter()
-            #iter_end = buff.get_end_iter()
-            #des = buff.get_text(iter_start, iter_end, True)
-            #self.model.set(self.selected_des, DHEditDescription.COLUMN_DES, "<body>"+des+"</body>")
-            #self.model.set(self.selected_des, DHEditDescription.COLUMN_DES_INFO, des)
-    
-    #def __del_row(self):
-        #self.model.remove(self.iter_del)
-        
-    #def __cd_editLang(self, cellrenderertext, path, new_text, column):
-        #self.model[path][column] = new_text
-
-    #def __cd_editDes(self, cellrenderertext, path, new_text, column):
-        #self.model[path][column] = new_text
-    
-    #def fill(self,data):
-        
-        #self.selected_old = None
-        #self.model.clear()
-        #if data != []:
-            #for key in data.keys():
-                #des = data[key].replace("xhtml:","")
-                #des = des.replace("xmlns:", "")
-                #des_info = des[:30].replace("\n","")
-                #des_info = des_info.replace("\t","")
-                #des = "<body>"+des+"</body>"
-                #self.model.append(["", key, des, des])
-        #iter = self.model.append(None)
-        #self.model.set(iter,DHEditDescription.COLUMN_MARK_ROW,"*")
-        
-        ##self.combo_model_strategy = gtk.ListStore(int, str, str)
-        ##self.combo_model_strategy.append([openscap.OSCAP., "", ""])
-        ##self.combo_model_strategy.append([openscap.OSCAP., "", ""])
-        ##self.combo_model_strategy.append([openscap.OSCAP., "", ""])
-        ##self.combo_model_strategy.append([openscap.OSCAP., "", ""])
-        ##self.combo_model_strategy.append([openscap.OSCAP., "", ""])
-        ##self.combo_model_strategy.append([openscap.OSCAP., "", ""])
-        ##self.combo_model_strategy.append([openscap.OSCAP., "", ""])
-        ##self.combo_model_strategy.append([openscap.OSCAP., "", ""])
-        ##self.combo_model_strategy.append([openscap.OSCAP., "", ""])

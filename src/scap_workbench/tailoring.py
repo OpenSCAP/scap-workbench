@@ -491,7 +491,7 @@ class MenuButtonTailoring(abstract.MenuButton):
 
         self.add_receiver("gui:btn:main:xccdf", "load", self.__profiles_update)
         self.add_receiver("gui:edit:profile_list", "update_profiles", self.__profiles_update)
-        self.add_receiver("gui:btn:menu:edit", "update_profiles", self.__profiles_update)
+        self.add_receiver("gui:btn:menu:edit:profiles", "update", self.__profiles_update)
 
         #draw body
         self.body = self.builder.get_object("tailoring:box")
