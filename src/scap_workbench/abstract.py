@@ -68,6 +68,8 @@ class Menu(EventObject):
         # vizual
         item.parent = self
 
+        return item
+
     def show(self):
         """
         Show the menu and set active itme.

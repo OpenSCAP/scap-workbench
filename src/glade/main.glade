@@ -226,9 +226,9 @@
             <child>
               <object class="GtkToggleToolButton" id="edit:sub:xccdf">
                 <property name="visible">True</property>
+                <property name="sensitive">False</property>
                 <property name="is_important">True</property>
                 <property name="label" translatable="yes">Main</property>
-                <property name="active">True</property>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -251,6 +251,7 @@
                 <property name="visible">True</property>
                 <property name="is_important">True</property>
                 <property name="label" translatable="yes">Items</property>
+                <property name="active">True</property>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -473,6 +474,9 @@
               <packing>
                 <property name="position">0</property>
               </packing>
+            </child>
+            <child>
+              <placeholder/>
             </child>
             <child>
               <object class="GtkVBox" id="tailoring:box">
@@ -1171,9 +1175,6 @@
               <packing>
                 <property name="position">4</property>
               </packing>
-            </child>
-            <child>
-              <placeholder/>
             </child>
             <child>
               <object class="GtkVBox" id="edit_item:box">

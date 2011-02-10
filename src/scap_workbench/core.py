@@ -130,7 +130,6 @@ class SWBCore:
 
         for o, a in opts:
             if o in ("-D", "--version"):
-                print logger.level
                 logger.setLevel(logging.DEBUG)
                 logger.root.setLevel(logging.DEBUG)
             else:

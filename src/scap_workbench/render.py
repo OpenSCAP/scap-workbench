@@ -237,7 +237,8 @@ class MainWindow(abstract.Window, threading.Thread):
         submenu = abstract.Menu("gui:menu:edit", self.builder.get_object("edit:sub:main"), self.core)
         submenu.add_item(edit.MenuButtonEditXCCDF(self.builder, self.builder.get_object("edit:sub:xccdf"), self.core))
         submenu.add_item(edit.MenuButtonEditProfiles(self.builder, self.builder.get_object("edit:sub:profiles"), self.core))
-        submenu.add_item(edit.MenuButtonEditItems(self.builder, self.builder.get_object("edit:sub:items"), self.core))
+        default = submenu.add_item(edit.MenuButtonEditItems(self.builder, self.builder.get_object("edit:sub:items"), self.core))
+        submenu.set_default(default)
         self.core.get_item("gui:btn:menu:edit").set_menu(submenu)
 
         self.core.register("main:button_forward", self.builder.get_object("main:button_forward"))

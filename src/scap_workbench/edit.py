@@ -428,7 +428,7 @@ class MenuButtonEditItems(abstract.MenuButton, abstract.ControlEditWindow):
         
         # remove just for now (missing implementations and so..)
         self.itemsPage = self.builder.get_object("edit:notebook")
-        self.itemsPage.remove_page(1)
+        #self.itemsPage.remove_page(1)
         self.itemsPage.remove_page(3)
 
         self.set_sensitive(False)
