@@ -221,9 +221,36 @@ class MenuButtonEditXCCDF(abstract.MenuButton, abstract.ControlEditWindow):
         abstract.MenuButton.__init__(self, "gui:btn:menu:edit:XCCDF", widget, core)
         self.builder = builder
         self.core = core
+        self.data_model = commands.DHXccdf(core)
         
         #draw body
         self.body = self.builder.get_object("edit_xccdf:box")
+        self.add_receiver("gui:btn:main:xccdf", "load", self.__update)
+        self.add_receiver("gui:btn:main:xccdf", "update", self.__update)
+
+        # Get widgets from glade
+        self.entry_version = self.builder.get_object("edit:xccdf:version")
+        self.entry_resolved = self.builder.get_object("edit:xccdf:resolved")
+        self.entry_status = self.builder.get_object("edit:xccdf:status")
+        self.entry_lang = self.builder.get_object("edit:xccdf:lang")
+        self.tv_titles = self.builder.get_object("edit:xccdf:titles")
+        self.tv_descriptions = self.builder.get_object("edit:xccdf:descriptions")
+        self.tv_warnings = self.builder.get_object("edit:xccdf:warnings")
+        self.tv_notices = self.builder.get_object("edit:xccdf:notices")
+        self.tv_references = self.builder.get_object("edit:xccdf:references")
+
+    def __update(self):
+        logger.debug("Updating Editor->XCCDF->Main")
+
+        STATUS_CURRENT = ["not specified", "accepted", "deprecated", "draft", "incomplet", "interim"]
+        details = self.data_model.get_details()
+        self.entry_version.set_text(details["version"] or "")
+        self.entry_resolved.set_active(details["resolved"])
+        self.entry_status.set_text(STATUS_CURRENT[details["status_current"]] or "")
+        self.entry_lang.set_text(details["lang"] or "")
+        for lang in details["titles"].keys():
+            self.tv_titles.get_model().append([lang, details["titles"][lang]])
+
         
 class MenuButtonEditProfiles(abstract.MenuButton, abstract.ControlEditWindow):
 
@@ -578,7 +605,7 @@ class MenuButtonEditItems(abstract.MenuButton, abstract.ControlEditWindow):
             self.edit_question.fill(details["item"])
             self.edit_rationale.fill(details["item"])
             self.edit_platform.fill(details["item"])
-            self.edit_conflicts.fill(details["item"])
+            self.edit_conflicts.fill(details)
             self.edit_requires.fill(details["item"])
 
             self.entry_weight.set_text(str(details["weight"]))
@@ -715,7 +742,7 @@ class MenuButtonEditItems(abstract.MenuButton, abstract.ControlEditWindow):
         self.cBox_severity.handler_unblock_by_func(self.data_model.cb_cBox_severity)
         self.cBox_role.handler_unblock_by_func(self.data_model.cb_cBox_role)
             
-class EditConflicts(commands.DHEditItems,abstract.ControlEditWindow):
+class EditConflicts(commands.DHEditItems, abstract.ControlEditWindow):
     
     COLUMN_ID = 0
     
@@ -735,12 +762,11 @@ class EditConflicts(commands.DHEditItems,abstract.ControlEditWindow):
 
         self.addColumn("ID Item",self.COLUMN_ID)
 
-    def fill(self, item):
-        self.item = item
+    def fill(self, details):
+        self.item = details["item"]
         self.model.clear()
-        if item:
-            for data in item.conflicts:
-                self.model.append([data])
+        for data in details["conflicts"]:
+            self.model.append([data])
     
     def __cb_add(self, widget):
         EditSelectIdDialogWindow(self.item, self.core, self.model, self.model_item, self.DHEditConflicts)

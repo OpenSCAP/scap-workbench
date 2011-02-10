@@ -174,7 +174,7 @@ class DataHandler:
                     "conflicts":        [conflict.text for conflict in item.conflicts or []],
                     "extends":          item.extends,
                     "hidden":           item.hidden,
-                    "platforms":        [platform.text for platform in item.platforms],
+                    "platforms":        [platform.text for platform in item.platforms or []],
                     "prohibit_changes": item.prohibit_changes,
                     "questions":        dict([(question.lang, question.text) for question in item.question or []]),
                     "rationale":        [rationale.text for rationale in item.rationale or []],
@@ -1809,7 +1809,7 @@ class DHEditItems(DataHandler):
     def DHEditConflicts(self, item, id, add):
         if add:
             try:
-                item.conflicts.append(id)
+                item.add_conflicts(id)
             except Exception, e:
                 logger.error("Add conflicts: %s" % (e,))
         else:
