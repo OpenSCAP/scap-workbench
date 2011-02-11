@@ -586,10 +586,10 @@ class DHValues(DataHandler):
         model = self.treeView.get_model()
         iter = model.get_iter(path)
         id = model.get_value(iter, 0)
-        logger.info("Altering value %s", id)
+        logger.debug("Altering value %s", id)
         val = self.core.lib["policy_model"].benchmark.item(id).to_value()
         value = self.parse_value(val)
-        logger.info("Matching %s agains %s or %s", new_text, value["choices"], value["match"])
+        logger.debug("Matching %s agains %s or %s", new_text, value["choices"], value["match"])
         # Match against pattern as "choices or match"
         choices = ""
         if value["selected"][0] in value["choices"]:
@@ -600,7 +600,7 @@ class DHValues(DataHandler):
 
         if pattern.match(new_text):
             model.set_value(iter, 2, new_text)
-            logger.info("Regexp matched: text %s match %s", new_text, "|".join([value["match"], choices]))
+            logger.debug("Regexp matched: text %s match %s", new_text, "|".join([value["match"], choices]))
             policy.set_tailor_items([{"id":id, "value":new_text}])
         else: logger.error("Failed regexp match: text %s does not match %s", new_text, "|".join([value["match"], choices]))
 
