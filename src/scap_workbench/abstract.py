@@ -855,17 +855,17 @@ class ControlEditWindow(Func, Enum_type):
             self.selection = lv.get_selection()
             self.selection.set_mode(gtk.SELECTION_SINGLE)
 
-    def cb_edit_row(self, widget):
+    def cb_edit_row(self, widget=None):
         (model,iter) = self.selection.get_selected()
         if iter:
             window = EditDialogWindow(self.item, self.core, self.values, new=False)
         else:
             self.dialogNotSelected(self.core.main_window)
 
-    def cb_add_row(self, widget):
+    def cb_add_row(self, widget=None):
         window = EditDialogWindow(self.item, self.core, self.values, new=True)
 
-    def cb_del_row(self, widget):
+    def cb_del_row(self, widget=None):
         iter = self.dialogDel(self.core.main_window, self.selection)
         if iter != None:
             self.values["cb"](self.item, self.model, iter, None, None, True)

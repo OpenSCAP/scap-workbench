@@ -171,10 +171,10 @@ class DataHandler:
                     "descriptions":     dict([(desc.lang, desc.text) for desc in item.description or []]),
                     "abstract":         item.abstract,
                     "cluster_id":       item.cluster_id,
-                    "conflicts":        [conflict.text for conflict in item.conflicts or []],
+                    "conflicts":        [conflict for conflict in item.conflicts or []],
                     "extends":          item.extends,
                     "hidden":           item.hidden,
-                    "platforms":        [platform.text for platform in item.platforms or []],
+                    "platforms":        [platform for platform in item.platforms or []],
                     "prohibit_changes": item.prohibit_changes,
                     "questions":        dict([(question.lang, question.text) for question in item.question or []]),
                     "rationale":        [rationale.text for rationale in item.rationale or []],
@@ -459,6 +459,19 @@ class DHXccdf(DataHandler):
 
 
         return details
+
+    def update(self, id=None, version=None, resolved=None, status=None, lang=None):
+
+        if not self.core.lib:
+            logger.error("Library not initialized or XCCDF file not specified")
+            return {}
+        benchmark = self.core.lib["policy_model"].benchmark
+
+        if id: benchmark.id = id
+        if version: benchmark.version = version
+        if resolved: benchmark.resolved = resolved
+        if status: benchmark.status_current = status
+        if lang: benchmark.lang = lang
 
     def export(self):
 

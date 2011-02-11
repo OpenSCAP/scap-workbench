@@ -229,27 +229,105 @@ class MenuButtonEditXCCDF(abstract.MenuButton, abstract.ControlEditWindow):
         self.add_receiver("gui:btn:main:xccdf", "update", self.__update)
 
         # Get widgets from glade
+        self.entry_id = self.builder.get_object("edit:xccdf:id")
+        self.entry_id.connect( "changed", self.__change, "change", "id")
         self.entry_version = self.builder.get_object("edit:xccdf:version")
+        self.entry_version.connect( "changed", self.__change, "change", "version")
         self.entry_resolved = self.builder.get_object("edit:xccdf:resolved")
+        self.entry_resolved.connect( "changed", self.__change, "change", "resolved")
         self.entry_status = self.builder.get_object("edit:xccdf:status")
+        self.entry_status.connect( "changed", self.__change, "change", "status")
         self.entry_lang = self.builder.get_object("edit:xccdf:lang")
+        self.entry_lang.connect( "changed", self.__change, "change", "lang")
+
         self.tv_titles = self.builder.get_object("edit:xccdf:titles")
+        model = gtk.ListStore(str, str)
+        self.tv_titles.set_model(model)
+        self.tv_titles.append_column(gtk.TreeViewColumn("Lang", gtk.CellRendererText(), text=0))
+        self.tv_titles.append_column(gtk.TreeViewColumn("Title", gtk.CellRendererText(), text=1))
+        self.builder.get_object("edit:xccdf:btn_titles_add").set_sensitive(False)
+        self.builder.get_object("edit:xccdf:btn_titles_edit").set_sensitive(False)
+        self.builder.get_object("edit:xccdf:btn_titles_del").set_sensitive(False)
+
         self.tv_descriptions = self.builder.get_object("edit:xccdf:descriptions")
+        model = gtk.ListStore(str, str)
+        self.tv_descriptions.set_model(model)
+        self.tv_descriptions.append_column(gtk.TreeViewColumn("Lang", gtk.CellRendererText(), text=0))
+        self.tv_descriptions.append_column(gtk.TreeViewColumn("Description", gtk.CellRendererText(), text=1))
+        self.builder.get_object("edit:xccdf:btn_descriptions_add").set_sensitive(False)
+        self.builder.get_object("edit:xccdf:btn_descriptions_edit").set_sensitive(False)
+        self.builder.get_object("edit:xccdf:btn_descriptions_del").set_sensitive(False)
+
         self.tv_warnings = self.builder.get_object("edit:xccdf:warnings")
+        model = gtk.ListStore(str, str)
+        self.tv_warnings.set_model(model)
+        self.tv_warnings.append_column(gtk.TreeViewColumn("Warning", gtk.CellRendererText(), text=0))
+        self.builder.get_object("edit:xccdf:btn_warnings_add").set_sensitive(False)
+        self.builder.get_object("edit:xccdf:btn_warnings_edit").set_sensitive(False)
+        self.builder.get_object("edit:xccdf:btn_warnings_del").set_sensitive(False)
+
         self.tv_notices = self.builder.get_object("edit:xccdf:notices")
+        model = gtk.ListStore(str, str)
+        self.tv_notices.set_model(model)
+        self.tv_notices.append_column(gtk.TreeViewColumn("Notice", gtk.CellRendererText(), text=0))
+        self.builder.get_object("edit:xccdf:btn_notices_add").set_sensitive(False)
+        self.builder.get_object("edit:xccdf:btn_notices_edit").set_sensitive(False)
+        self.builder.get_object("edit:xccdf:btn_notices_del").set_sensitive(False)
+
         self.tv_references = self.builder.get_object("edit:xccdf:references")
+        model = gtk.ListStore(str, str)
+        self.tv_references.set_model(model)
+        self.tv_references.append_column(gtk.TreeViewColumn("Reference", gtk.CellRendererText(), text=0))
+        self.builder.get_object("edit:xccdf:btn_references_add").set_sensitive(False)
+        self.builder.get_object("edit:xccdf:btn_references_edit").set_sensitive(False)
+        self.builder.get_object("edit:xccdf:btn_references_del").set_sensitive(False)
+
+    def __change(self, widget, subject=None, object=None):
+
+        if subject == "change":
+            func = self.data_model.update
+        else: logger.error("Change \"%s:%s\" not supported operation in \"%s\"" % (object, subject, widget))
+
+        if object == "id":
+            func(id=widget.get_text())
+        elif object == "version":
+            func(version=widget.get_text())
+        elif object == "resolved":
+            func(resolved=(widget.get_active() == 1))
+        elif object == "status":
+            func(status=widget.get_text())
+        elif object == "lang":
+            func(lang=widget.get_text())
+        else: logger.error("Change \"%s:%s\" not supported object in \"%s\"" % (object, subject, widget))
 
     def __update(self):
         logger.debug("Updating Editor->XCCDF->Main")
 
         STATUS_CURRENT = ["not specified", "accepted", "deprecated", "draft", "incomplet", "interim"]
+
+        # Clear models
+        self.tv_titles.get_model().clear()
+        self.tv_descriptions.get_model().clear()
+        self.tv_warnings.get_model().clear()
+        self.tv_notices.get_model().clear()
+        self.tv_references.get_model().clear()
+
         details = self.data_model.get_details()
+        self.entry_id.set_text(details["id"] or "")
         self.entry_version.set_text(details["version"] or "")
         self.entry_resolved.set_active(details["resolved"])
         self.entry_status.set_text(STATUS_CURRENT[details["status_current"]] or "")
         self.entry_lang.set_text(details["lang"] or "")
         for lang in details["titles"].keys():
             self.tv_titles.get_model().append([lang, details["titles"][lang]])
+        for lang in details["descs"].keys():
+            self.tv_descriptions.get_model().append([lang, details["descs"][lang]])
+        for warn in details["warnings"]:
+            self.tv_warnings.get_model().append([warn])
+        for notice in details["notices"]:
+            self.tv_notices.get_model().append([notice])
+        for ref in details["references"]:
+            self.tv_references.get_model().append([ref])
 
         
 class MenuButtonEditProfiles(abstract.MenuButton, abstract.ControlEditWindow):
