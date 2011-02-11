@@ -30,7 +30,6 @@ import threading
 import core
 import abstract
 import tailoring
-import profiles
 import scan
 import edit
 import logging
