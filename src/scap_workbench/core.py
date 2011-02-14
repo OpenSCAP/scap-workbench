@@ -114,6 +114,10 @@ class SWBCore:
         self.xccdf_file        = None
         self.filter_directory   = FILTER_DIR
 
+        # Global notifications
+        self.__global_notifications = {}
+        self.__global_notifications[None] = []
+
         # Info Box
         self.info_box = self.builder.get_object("info_box")
 
@@ -178,8 +182,16 @@ class SWBCore:
         if benchmark.lang == None:
             self.notify("XCCDF Benchmark: No language specified.", 2)
 
-    def notify(self, text, lvl=0, info_box=None):
+    def notify(self, text, lvl=0, info_box=None, msg_id=None):
+
         notification = Notification(text, lvl)
+        if msg_id:
+            if msg_id in self.__global_notifications:
+                self.__global_notifications[msg_id].destroy()
+            self.__global_notifications[msg_id] = notification
+        else:
+            self.__global_notifications[None].append(notification)
+
         if info_box: info_box.pack_start(notification.widget)
         else: self.info_box.pack_start(notification.widget)
         return notification

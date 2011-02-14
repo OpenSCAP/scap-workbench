@@ -74,7 +74,7 @@ class ProfileList(abstract.List):
     def __update(self, new=False):
 
         if "profile" not in self.__dict__ or self.core.force_reload_profiles:
-            self.data_model.fill()
+            self.data_model.fill(no_default=True)
             self.get_TreeView().get_model().foreach(self.set_selected, (self.core.selected_profile, self.get_TreeView()))
             self.core.force_reload_profiles = False
         if new: self.emit("update_profiles")
@@ -108,7 +108,7 @@ class ItemList(abstract.List):
 
     def __init__(self, widget, core, builder=None, progress=None, filter=None):
 
-        self.data_model = commands.DHItemsTree("gui:edit:DHItemsTree", core, progress, True)
+        self.data_model = commands.DHItemsTree("gui:edit:DHItemsTree", core, progress, True, no_checks=True)
         self.edit_model = commands.DHEditItems()
         abstract.List.__init__(self, "gui:edit:item_list", core, widget)
         self.core = core
@@ -147,7 +147,7 @@ class ItemList(abstract.List):
             self.get_TreeView().set_model(self.data_model.model)
             self.data_model.fill()
             self.loaded_new = False
-        # Select the last one selected if there is one         #self.core.selected_item_edi
+        # Select the last one selected if there is one         #self.core.selected_item_edit
         if self.old_selected != self.core.selected_item:
             self.get_TreeView().get_model().foreach(self.set_selected, (self.core.selected_item, self.get_TreeView()))
             self.core.force_reload_items = False
@@ -240,44 +240,34 @@ class MenuButtonEditXCCDF(abstract.MenuButton, abstract.ControlEditWindow):
         self.entry_lang = self.builder.get_object("edit:xccdf:lang")
         self.entry_lang.connect( "changed", self.__change, "change", "lang")
 
-        self.tv_titles = self.builder.get_object("edit:xccdf:titles")
-        model = gtk.ListStore(str, str)
-        self.tv_titles.set_model(model)
-        self.tv_titles.append_column(gtk.TreeViewColumn("Lang", gtk.CellRendererText(), text=0))
-        self.tv_titles.append_column(gtk.TreeViewColumn("Title", gtk.CellRendererText(), text=1))
+        self.tv_titles = abstract.ListEditor("gui:edit:xccdf:titles", self.core, widget=self.builder.get_object("edit:xccdf:titles"), model=gtk.ListStore(str, str))
+        self.tv_titles.widget.append_column(gtk.TreeViewColumn("Lang", gtk.CellRendererText(), text=0))
+        self.tv_titles.widget.append_column(gtk.TreeViewColumn("Title", gtk.CellRendererText(), text=1))
         self.builder.get_object("edit:xccdf:btn_titles_add").set_sensitive(False)
         self.builder.get_object("edit:xccdf:btn_titles_edit").set_sensitive(False)
         self.builder.get_object("edit:xccdf:btn_titles_del").set_sensitive(False)
 
-        self.tv_descriptions = self.builder.get_object("edit:xccdf:descriptions")
-        model = gtk.ListStore(str, str)
-        self.tv_descriptions.set_model(model)
-        self.tv_descriptions.append_column(gtk.TreeViewColumn("Lang", gtk.CellRendererText(), text=0))
-        self.tv_descriptions.append_column(gtk.TreeViewColumn("Description", gtk.CellRendererText(), text=1))
+        self.tv_descriptions = abstract.ListEditor("gui:edit:xccdf:descriptions", self.core, widget=self.builder.get_object("edit:xccdf:descriptions"), model=gtk.ListStore(str, str))
+        self.tv_descriptions.widget.append_column(gtk.TreeViewColumn("Lang", gtk.CellRendererText(), text=0))
+        self.tv_descriptions.widget.append_column(gtk.TreeViewColumn("Description", gtk.CellRendererText(), text=1))
         self.builder.get_object("edit:xccdf:btn_descriptions_add").set_sensitive(False)
         self.builder.get_object("edit:xccdf:btn_descriptions_edit").set_sensitive(False)
         self.builder.get_object("edit:xccdf:btn_descriptions_del").set_sensitive(False)
 
-        self.tv_warnings = self.builder.get_object("edit:xccdf:warnings")
-        model = gtk.ListStore(str, str)
-        self.tv_warnings.set_model(model)
-        self.tv_warnings.append_column(gtk.TreeViewColumn("Warning", gtk.CellRendererText(), text=0))
+        self.tv_warnings = abstract.ListEditor("gui:edit:xccdf:warnings", self.core, widget=self.builder.get_object("edit:xccdf:warnings"), model=gtk.ListStore(str, str))
+        self.tv_warnings.widget.append_column(gtk.TreeViewColumn("Warning", gtk.CellRendererText(), text=0))
         self.builder.get_object("edit:xccdf:btn_warnings_add").set_sensitive(False)
         self.builder.get_object("edit:xccdf:btn_warnings_edit").set_sensitive(False)
         self.builder.get_object("edit:xccdf:btn_warnings_del").set_sensitive(False)
 
-        self.tv_notices = self.builder.get_object("edit:xccdf:notices")
-        model = gtk.ListStore(str, str)
-        self.tv_notices.set_model(model)
-        self.tv_notices.append_column(gtk.TreeViewColumn("Notice", gtk.CellRendererText(), text=0))
+        self.tv_notices = abstract.ListEditor("gui:edit:xccdf:notices", self.core, widget=self.builder.get_object("edit:xccdf:notices"), model=gtk.ListStore(str, str))
+        self.tv_notices.widget.append_column(gtk.TreeViewColumn("Notice", gtk.CellRendererText(), text=0))
         self.builder.get_object("edit:xccdf:btn_notices_add").set_sensitive(False)
         self.builder.get_object("edit:xccdf:btn_notices_edit").set_sensitive(False)
         self.builder.get_object("edit:xccdf:btn_notices_del").set_sensitive(False)
 
-        self.tv_references = self.builder.get_object("edit:xccdf:references")
-        model = gtk.ListStore(str, str)
-        self.tv_references.set_model(model)
-        self.tv_references.append_column(gtk.TreeViewColumn("Reference", gtk.CellRendererText(), text=0))
+        self.tv_references = abstract.ListEditor("gui:edit:xccdf:references", self.core, widget=self.builder.get_object("edit:xccdf:references"), model=gtk.ListStore(str, str))
+        self.tv_references.widget.append_column(gtk.TreeViewColumn("Reference", gtk.CellRendererText(), text=0))
         self.builder.get_object("edit:xccdf:btn_references_add").set_sensitive(False)
         self.builder.get_object("edit:xccdf:btn_references_edit").set_sensitive(False)
         self.builder.get_object("edit:xccdf:btn_references_del").set_sensitive(False)
@@ -306,11 +296,11 @@ class MenuButtonEditXCCDF(abstract.MenuButton, abstract.ControlEditWindow):
         STATUS_CURRENT = ["not specified", "accepted", "deprecated", "draft", "incomplet", "interim"]
 
         # Clear models
-        self.tv_titles.get_model().clear()
-        self.tv_descriptions.get_model().clear()
-        self.tv_warnings.get_model().clear()
-        self.tv_notices.get_model().clear()
-        self.tv_references.get_model().clear()
+        self.tv_titles.clear()
+        self.tv_descriptions.clear()
+        self.tv_warnings.clear()
+        self.tv_notices.clear()
+        self.tv_references.clear()
 
         details = self.data_model.get_details()
         self.entry_id.set_text(details["id"] or "")
@@ -319,15 +309,15 @@ class MenuButtonEditXCCDF(abstract.MenuButton, abstract.ControlEditWindow):
         self.entry_status.set_text(STATUS_CURRENT[details["status_current"]] or "")
         self.entry_lang.set_text(details["lang"] or "")
         for lang in details["titles"].keys():
-            self.tv_titles.get_model().append([lang, details["titles"][lang]])
+            self.tv_titles.append([lang, details["titles"][lang]])
         for lang in details["descs"].keys():
-            self.tv_descriptions.get_model().append([lang, details["descs"][lang]])
+            self.tv_descriptions.append([lang, details["descs"][lang]])
         for warn in details["warnings"]:
-            self.tv_warnings.get_model().append([warn])
+            self.tv_warnings.append([warn])
         for notice in details["notices"]:
-            self.tv_notices.get_model().append([notice])
+            self.tv_notices.append([notice])
         for ref in details["references"]:
-            self.tv_references.get_model().append([ref])
+            self.tv_references.append([ref])
 
         
 class MenuButtonEditProfiles(abstract.MenuButton, abstract.ControlEditWindow):
@@ -453,7 +443,8 @@ class MenuButtonEditProfiles(abstract.MenuButton, abstract.ControlEditWindow):
             if iter: 
                 self.__set_lang(self.profile_cb_lang, model.get_value(iter, 0))
                 self.profile_title.set_text(model.get_value(iter, 1))
-                self.profile_description.get_buffer().set_text(model.get_value(iter, 2))
+                if model.get_value(iter, 2): 
+                    self.profile_description.get_buffer().set_text(model.get_value(iter, 2))
 
     def __cb_profile_add_lang(self, widget):
         result = None
@@ -534,7 +525,7 @@ class MenuButtonEditItems(abstract.MenuButton, abstract.ControlEditWindow):
         # remove just for now (missing implementations and so..)
         self.itemsPage = self.builder.get_object("edit:notebook")
         #self.itemsPage.remove_page(1)
-        self.itemsPage.remove_page(3)
+        self.itemsPage.remove_page(4)
 
         self.set_sensitive(False)
 
@@ -614,7 +605,7 @@ class MenuButtonEditItems(abstract.MenuButton, abstract.ControlEditWindow):
                 iter = self.ref_model.get_iter(path)
                 model= self.ref_model   
             model.set_value(iter, 5, widget.get_active())
-            self.DHEditChboxSelected(widget)
+            self.data_model.DHEditChboxSelected(widget, self.item)
 
     def __section_list_load(self):
         self.section_list.get_model().clear()
@@ -841,6 +832,8 @@ class EditConflicts(commands.DHEditItems, abstract.ControlEditWindow):
         self.addColumn("ID Item",self.COLUMN_ID)
 
     def fill(self, details):
+        if details == None:
+            return
         self.item = details["item"]
         self.model.clear()
         for data in details["conflicts"]:
@@ -2145,22 +2138,30 @@ class EditAddProfileDialogWindow(EventObject, abstract.ControlEditWindow):
         builder.get_object("profile_add:btn_ok").connect("clicked", self.__cb_do)
         builder.get_object("profile_add:btn_cancel").connect("clicked", self.__delete_event)
         self.id = builder.get_object("profile_add:entry_id")
+        self.title = builder.get_object("profile_add:entry_title")
         self.info_box = builder.get_object("profile_add:info_box")
+
+        self.lang = builder.get_object("profile_add:entry_lang")
+        self.lang.set_text(self.core.selected_lang or "")
 
         self.show()
 
     def __cb_do(self, widget):
 
         if len(self.id.get_text()) == 0: 
-            self.core.notify("Can't add profile with no ID !", 2, self.info_box)
+            self.core.notify("Can't add profile with no ID !", 2, self.info_box, msg_id="notify:edit:profile:new")
             return
+        if len(self.title.get_text()) == 0: 
+            self.core.notify("Please add title for this profile.", 2, self.info_box, msg_id="notify:edit:profile:new")
+            self.title.grab_focus()
+            #return
 
         values = {}
         values["id"] = self.id.get_text()
         values["abstract"] = False
         values["version"] = ""
         values["extends"] = None
-        values["details"] = []
+        values["details"] = [{"lang": self.lang.get_text(), "title": self.title.get_text(), "description": None}]
         self.data_model.add(values)
         self.core.selected_profile = self.id.get_text()
         self.core.force_reload_profiles = True

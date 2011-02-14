@@ -616,7 +616,7 @@ class DHItemsTree(DataHandler, EventObject):
     COLUMN_SELECTED = 5
     COLUMN_PARENT   = 6
 
-    def __init__(self, id, core, progress=None, items_model=False):
+    def __init__(self, id, core, progress=None, items_model=False, no_checks=False):
         """
         param items_model if False use selected profile is selected. If true use base model.
         """
@@ -624,6 +624,7 @@ class DHItemsTree(DataHandler, EventObject):
         self.id = id
         EventObject.__init__(self)
         DataHandler.__init__(self, core)
+        self.no_checks = no_checks
         
         core.register(id, self)
         self.add_sender(self.id, "filled")
@@ -664,6 +665,15 @@ class DHItemsTree(DataHandler, EventObject):
         column = gtk.TreeViewColumn() 
         column.set_title("Rule/Group Title")
         column.set_expand(True)
+        # Toggle
+        #cb call for filter_model and ref_model
+        if not self.no_checks:
+            render = gtk.CellRendererToggle()
+            render.connect('toggled', self.__cb_toggled)
+            column.pack_start(render, False)
+            column.set_attributes(render, active=DHItemsTree.COLUMN_SELECTED,
+                                    sensitive=DHItemsTree.COLUMN_PARENT,
+                                    activatable=DHItemsTree.COLUMN_PARENT)
         # Picture
         pbcell = gtk.CellRendererPixbuf()
         column.pack_start(pbcell, False)
@@ -676,9 +686,7 @@ class DHItemsTree(DataHandler, EventObject):
         column.set_resizable(True)
         treeView.append_column(column)
         #treeView.set_expander_column(column)
-
         """Cell with picture representing if the item is selected or not
-        """
         if not self.items_model:
             render = gtk.CellRendererToggle()
             column = gtk.TreeViewColumn("Selected", render, active=DHItemsTree.COLUMN_SELECTED,
@@ -689,6 +697,7 @@ class DHItemsTree(DataHandler, EventObject):
             
             column.set_resizable(True)
             treeView.append_column(column)
+        """
 
         treeView.set_enable_search(False)
 
@@ -945,23 +954,26 @@ class DHProfiles(DataHandler):
         profile.version = item["version"]
         if item["extends"] != None: profile.extends = item["extends"]
         for detail in item["details"]:
-            title = openscap.common.text()
-            title.text = detail["title"]
-            title.lang = detail["lang"]
-            profile.title = title
-            description = openscap.common.text()
-            description.text = detail["description"]
-            description.lang = detail["lang"]
-            profile.description = description
+            if detail["title"]:
+                title = openscap.common.text()
+                title.text = detail["title"]
+                title.lang = detail["lang"]
+                profile.title = title
+            if detail["description"]:
+                description = openscap.common.text()
+                description.text = detail["description"]
+                description.lang = detail["lang"]
+                profile.description = description
 
-    def fill(self, item=None, parent=None):
+    def fill(self, item=None, parent=None, no_default=False):
 
         if not self.core.lib:
             logger.error("Library not initialized or XCCDF file not specified")
             return None
         self.model.clear()
-        logger.debug("Adding profile (Default document)")
-        self.model.append([None, "(Default document)"])
+        if not no_default:
+            logger.debug("Adding profile (No profile)")
+            self.model.append([None, "(No profile)"])
 
         for item in self.core.lib["policy_model"].benchmark.profiles:
             logger.debug("Adding profile \"%s\"", item.id)
@@ -969,8 +981,9 @@ class DHProfiles(DataHandler):
             if self.core.selected_lang in pvalues["titles"]:
                 self.model.append([item.id, "Profile: "+pvalues["titles"][self.core.selected_lang]])
             else:
-                self.core.notify("No title with \"%s\" language in \"%s\" profile. Change language to proper view." % (self.core.selected_lang, item.id), 1)
-                self.model.append([item.id, "Profile: Unknown"])
+                self.core.notify("No title with \"%s\" language in \"%s\" profile. Change language to proper view." % (self.core.selected_lang, item.id), 
+                                  1, msg_id="notify:global:profile:fill:no_lang")
+                self.model.append([item.id, "Profile: %s (ID)" % (item.id,)])
 
         return True
 
@@ -1110,7 +1123,7 @@ class DHScan(DataHandler, EventObject):
         id = treeView.append_column(column)
         treeView.set_tooltip_column(id-1)
 
-    def fill(self, item):
+    def fill(self, item, iter=None):
 
         #initialization
         colorText_title = DHScan.FG_BLACK
@@ -1120,7 +1133,12 @@ class DHScan(DataHandler, EventObject):
         text = ""
         
         # choose color for cell, and text of result
-        if  item[DHScan.COLUMN_RESULT] == openscap.OSCAP.XCCDF_RESULT_PASS:
+        if  item[DHScan.COLUMN_RESULT] == None:
+            text = "Runnig .."
+            color_backG = DHScan.BG_WHITE
+            colorText_title = DHScan.FG_BLACK
+            colorText_ID = DHScan.FG_BLACK
+        elif  item[DHScan.COLUMN_RESULT] == openscap.OSCAP.XCCDF_RESULT_PASS:
             text = "PASS" # The test passed
             color_backG = DHScan.BG_GREEN
             colorText_title = DHScan.FG_GRAY
@@ -1175,8 +1193,8 @@ class DHScan(DataHandler, EventObject):
             colorText_title = DHScan.FG_GRAY 
             colorText_ID = DHScan.FG_BLACK
 
-
-        iter = self.model.append(None)
+        if not iter:
+            iter = self.model.append(None)
         self.model.set(iter,
                 DHScan.COLUMN_ID,   item[DHScan.COLUMN_ID],
                 DHScan.COLUMN_RESULT,   text,
@@ -1187,13 +1205,18 @@ class DHScan(DataHandler, EventObject):
                 DHScan.COLUMN_COLOR_BACKG,  color_backG,
                 DHScan.COLUMN_COLOR_TEXT_ID,  colorText_ID,
                 )
-        return True
+        return iter
 
     def __callback_start(self, msg, plugin):
         result = msg.user2num
         if result == openscap.OSCAP.XCCDF_RESULT_NOT_SELECTED: 
             return self.__cancel
 
+        if msg.user3str == None: title = ""
+        else: title = " ".join(msg.user3str.split())
+        if msg.string == None: desc = ""
+        else: desc = " ".join(msg.string.split())
+        self.__current_iter = self.fill([msg.user1str, None, False, title, desc])
         if self.__progress != None:
             gtk.gdk.threads_enter()
             fract = self.__progress.get_fraction()+self.step
@@ -1217,7 +1240,7 @@ class DHScan(DataHandler, EventObject):
         else: title = " ".join(msg.user3str.split())
         if msg.string == None: desc = ""
         else: desc = " ".join(msg.string.split())
-        self.fill([msg.user1str, msg.user2num, False, title, desc])
+        self.fill([msg.user1str, msg.user2num, False, title, desc], iter=self.__current_iter)
         self.emit("filled")
         self.treeView.queue_draw()
         self.__last = int(round(self.__progress.get_fraction()/self.step))
@@ -1326,6 +1349,7 @@ class DHEditItems(DataHandler):
     
     def __init__(self, core=None):
 
+        self.item = None # TODO: bug workaround - commands.py:1589 AttributeError: DHEditItems instance has no attribute 'item'
         self.core = core
 
     def DHEditAddItem(self, item_to_add, group, data):
@@ -1579,56 +1603,62 @@ class DHEditItems(DataHandler):
             logger.error("Error: Not read item.")
 
     def DHEditVersionTime(self, item, timestamp):
-        if item :
+        if item:
             item.set_version_time(timestamp)
         else:
             logger.error("Error: Not read item.")
 
 
     def cb_entry_version(self, widget, event):
-        if self.item :
-            self.item.set_version(widget.get_text())
+        item = self.get_item(self.core.selected_item_edit)
+        if item:
+            item.set_version(widget.get_text())
         else:
             logger.error("Error: Not read item.")
 
-    def DHEditChboxSelected(self, widget):
-        if self.item :
-            self.item.set_selected(widget.get_active())
+    def DHEditChboxSelected(self, widget, item=None):
+        if item:
+            item.set_selected(widget.get_active())
         else:
             logger.error("Error: Not read item.")
 
     def cb_chbox_hidden(self, widget):
-        if self.item :
-            self.item.set_hidden(widget.get_active())
+        item = self.get_item(self.core.selected_item_edit)
+        if item:
+            item.set_hidden(widget.get_active())
         else:
             logger.error("Error: Not read item.")
 
     def cb_chbox_prohibit(self, widget):
-        if self.item :
-            self.item.set_prohibit_changes(widget.get_active())
+        item = self.get_item(self.core.selected_item_edit)
+        if item:
+            item.set_prohibit_changes(widget.get_active())
         else:
             logger.error("Error: Not read item.")
 
     def cb_chbox_abstract(self, widget):
-        if self.item :
-            self.item.set_abstract(widget.get_active())
+        item = self.get_item(self.core.selected_item_edit)
+        if item:
+            item.set_abstract(widget.get_active())
         else:
             logger.error("Error: Not read item.")
 
     def cb_entry_cluster_id(self, widget, event):
-        if self.item:
-            self.item.set_cluster_id(widget.get_text())
+        item = self.get_item(self.core.selected_item_edit)
+        if item:
+            item.set_cluster_id(widget.get_text())
         else:
             logger.error("Error: Not read item.")
 
     def DHEditWeight(self, data):
-        if self.item:
-            self.item.set_weight(data)
+        item = self.get_item(self.core.selected_item_edit)
+        if item:
+            item.set_weight(data)
         else:
             logger.error("Error: Not read item.")
 
     def cb_chbox_multipl(self, widget):
-        rule = self.item.to_rule()
+        rule = self.get_item(self.core.selected_item_edit).to_rule()
         if rule:
             rule.set_multiple(widget.get_active())
         else:

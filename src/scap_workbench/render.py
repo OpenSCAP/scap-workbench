@@ -163,8 +163,8 @@ class MenuButtonXCCDF(abstract.MenuButton):
 
     def __cb_validate(self, widget):
         validate = self.data_model.validate()
-        self.core.notify(["Document is not valid !", "Document is valid.", 
-            "Validation process failed, check for error in log file."][validate], [1, 0, 2][validate])
+        self.notifications.append(self.core.notify(["Document is not valid !", "Document is valid.", 
+            "Validation process failed, check for error in log file."][validate], [1, 0, 2][validate], msg_id="notify:xccdf:validate"))
 
     def __cb_export(self, widget):
         self.data_model.export()

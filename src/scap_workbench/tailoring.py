@@ -538,35 +538,3 @@ class MenuButtonTailoring(abstract.MenuButton):
         redDetails = RefineDetails(self.builder, self.core)
         notebook.append_page(redDetails.vbox_refines, gtk.Label("Refines"))
         notebook.show_all()
-        
-
-class Language_form():
-    """
-    Form to show information in accessible languages
-    """
-    def __init__(self, name, core, data):
-        
-        self.core = core
-        self.data_model = commands.DataHandler(self.core)
-        
-        self.window = gtk.Window(gtk.WINDOW_TOPLEVEL)
-        self.window.set_title(name)
-        self.window.set_size_request(400, 250)
-        self.window.set_modal(True)
-        #lself.window.set_transient_for(parent)
-        
-        label_text = gtk.Label()
-        label_text.set_alignment(0,0)
-        self.window.add(label_text)
-        details = self.data_model.get_profile_details(self.core.selected_profile)
-        text = ""
-        if details != None:
-            for lang in details[data]:
-                text += "%s:    %s\n\n" % (lang, details[data][lang])
-            label_text.set_text(text)
-        else:
-            label_text.set_text("no " + data)
-        if text == "":
-            label_text.set_text("no " + data)
-        
-        self.window.show_all()

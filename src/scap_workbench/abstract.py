@@ -178,7 +178,9 @@ class MenuButton(EventObject):
         pass
 
     def activate(self, active):
-        pass
+        if not active:
+            for notify in self.notifications:
+                notify.destroy()
 
     def set_active(self, active):
         """
@@ -455,6 +457,35 @@ class List(EventObject):
 
         #refilter filters after deleted filter
         return self.filter_add(filters)
+
+
+class ListEditor(EventObject):
+    """ Abstract class for implementing all edit formulars that appear as list/tree view and 
+    has add, edit and del buttons """
+
+    def __init__(self, id, core, widget=None, model=None):
+        self.id = id
+        self.core = core
+        core.register(id, self)
+
+        self.widget         = widget
+        self.__treeView     = widget
+        self.__model        = model
+        self.__addButton    = None
+        self.__editButton   = None
+        self.__delButton    = None
+
+        if model: self.__treeView.set_model(model)
+
+    def set_model(self, model):
+        self.__treeView.set_model(model)
+
+    def clear(self):
+        self.__model.clear()
+
+    def append(self, item):
+        self.__model.append(item)
+
 
 class CellRendererTextWrap(gtk.CellRendererText):
     """ pokus asi nebude pouzito necham najindy pozeji smazu"""
