@@ -460,6 +460,29 @@ class DHXccdf(DataHandler):
 
         return details
 
+    def get_oval_files_info(self):
+
+        if not self.core.lib:
+            logger.error("Library not initialized or XCCDF file not specified")
+            return {}
+
+        info = {}
+        for name in self.core.lib["names"].keys():
+            if len(self.core.lib["names"][name]) != 2: 
+                logger.error("No sesion and/or definition model loaded for %s: ", name, self.core.lib["names"][name])
+                return
+
+            def_model = self.core.lib["names"][name][1]
+            info[name] = {}
+            info[name]["product_name"] = def_model.generator.product_name
+            info[name]["product_version"] = def_model.generator.product_version
+            info[name]["schema_version"] = def_model.generator.schema_version
+            info[name]["timestamp"] = def_model.generator.timestamp
+            info[name]["valid"] = ["yes", "no"][def_model.is_valid()]
+        
+        return info
+
+
     def update(self, id=None, version=None, resolved=None, status=None, lang=None):
 
         if not self.core.lib:
@@ -483,8 +506,8 @@ class DHXccdf(DataHandler):
         if file_name != "":
             self.core.lib["policy_model"].benchmark.export(file_name)
             logger.debug("Exported benchmark: %s", file_name)
-            self.core.notify("Benchmark has been exported to \"%s\"" % (file_name,), 0)
-        return True
+            return file_name
+        return None
 
     def validate(self):
         if not self.core.lib or self.core.xccdf_file == None:
@@ -676,8 +699,9 @@ class DHItemsTree(DataHandler, EventObject):
                                     activatable=DHItemsTree.COLUMN_PARENT)
         # Picture
         pbcell = gtk.CellRendererPixbuf()
+        pbcell.set_property("stock-size", gtk.ICON_SIZE_SMALL_TOOLBAR)
         column.pack_start(pbcell, False)
-        column.set_attributes(pbcell, stock_id=DHItemsTree.COLUMN_PICTURE)
+        column.add_attribute(pbcell, 'icon-name', DHItemsTree.COLUMN_PICTURE)
         # Text
         txtcell = gtk.CellRendererText()
         column.pack_start(txtcell, True)
@@ -817,8 +841,9 @@ class DHItemsTree(DataHandler, EventObject):
             if self.core.selected_lang in titles.keys(): title = titles[self.core.selected_lang]
             else: title = titles[titles.keys()[0]]
             if item.type == openscap.OSCAP.XCCDF_GROUP:
+                img = "emblem-documents"
                 gtk.gdk.threads_enter()
-                item_it = self.model.append(parent, [item.id, title, gtk.STOCK_DND_MULTIPLE, "Group: "+title, color, selected, pselected])
+                item_it = self.model.append(parent, [item.id, title, img, ""+title, color, selected, pselected])
                 self.treeView.queue_draw()
                 gtk.gdk.threads_leave()
                 # .. call recursive
@@ -826,8 +851,9 @@ class DHItemsTree(DataHandler, EventObject):
                     self.__recursive_fill(i, item_it, selected and pselected)
             # item is rule, store it to model
             elif item.type == openscap.OSCAP.XCCDF_RULE:
+                img = "document-new"
                 gtk.gdk.threads_enter()
-                item_it = self.model.append(parent, [item.id, title, gtk.STOCK_DND, "Rule: "+title, color, selected, pselected])
+                item_it = self.model.append(parent, [item.id, title, img, ""+title, color, selected, pselected])
                 self.treeView.queue_draw()
                 gtk.gdk.threads_leave()
             else: logger.warning("Unknown type of %s, should be Rule or Group (got %s)", item.type, item.id)
@@ -945,9 +971,9 @@ class DHProfiles(DataHandler):
 
         if not profile: profile = self.core.lib["policy_model"].benchmark.get_item(self.core.selected_profile)
         if not profile: 
-            self.core.notify("Saving profile failed: No profile \"%s\" in benchmark." % (self.core.selected_profile), 2)
+            self.core.notify("Saving profile failed: No profile \"%s\" in benchmark." % (self.core.selected_profile), 2) # TODO
             logger.error("No profile \"%s\" in benchmark", self.core.selected_profile)
-            return
+            return False
 
         profile.id = item["id"]
         profile.abstract = item["abstract"]
@@ -982,8 +1008,9 @@ class DHProfiles(DataHandler):
                 self.model.append([item.id, "Profile: "+pvalues["titles"][self.core.selected_lang]])
             else:
                 self.core.notify("No title with \"%s\" language in \"%s\" profile. Change language to proper view." % (self.core.selected_lang, item.id), 
-                                  1, msg_id="notify:global:profile:fill:no_lang")
+                                  1, msg_id="notify:global:profile:fill:no_lang") # TODO
                 self.model.append([item.id, "Profile: %s (ID)" % (item.id,)])
+                return False
 
         return True
 
@@ -1261,8 +1288,8 @@ class DHScan(DataHandler, EventObject):
                 retval = openscap.oval.agent_reset_session(sess)
                 logger.debug("OVAL Agent session reset: %s" % (retval,))
                 if retval != 0: 
+                    self.core.notify("Oval agent reset session failed.", 2, msg_id="notify:scan:oval_reset")
                     raise Exception, "OVAL agent reset session failed"
-                    self.core.notify("Oval agent reset session failed.", 2)
             self.__cancel = False
             self.__last = 0
 
@@ -1283,7 +1310,7 @@ class DHScan(DataHandler, EventObject):
     def cancel(self):
         if not self.__cancel:
             self.__cancel = True
-            self.__cancel_notify = self.core.notify("Scanning canceled. Please wait for openscap to finish current task.", 0)
+            self.__cancel_notify = self.core.notify("Scanning canceled. Please wait for openscap to finish current task.", 0, msg_id="notify:scan:cancel")
         for sess in self.core.lib["sessions"]:
             retval = openscap.oval.agent_abort_session(sess)
             logger.debug("OVAL Agent session abort: %s" % (retval,))
@@ -1314,7 +1341,7 @@ class DHScan(DataHandler, EventObject):
         retval = openscap.common.oscap_apply_xslt(file, "xccdf-report.xsl", "report.xhtml", params)
         logger.info("Export report file %s" % (["failed: %s" % (openscap.common.err_desc(),), "done"][retval],))
         browser_val = webbrowser.open("report.xhtml")
-        if not browser_val: self.core.notify("Failed to open browser \"%s\". Report file is saved in \"%s\"" % (webbrowser.get().name, "report.xhtml"), 1)
+        if not browser_val: self.core.notify("Failed to open browser \"%s\". Report file is saved in \"%s\"" % (webbrowser.get().name, "report.xhtml"), 1, msg_id="notify:scan:export_report")
 
     def scan(self):
         if self.__lock: 
@@ -1610,7 +1637,7 @@ class DHEditItems(DataHandler):
 
 
     def cb_entry_version(self, widget, event):
-        item = self.get_item(self.core.selected_item_edit)
+        item = self.get_item(self.core.selected_item)
         if item:
             item.set_version(widget.get_text())
         else:
@@ -1623,42 +1650,42 @@ class DHEditItems(DataHandler):
             logger.error("Error: Not read item.")
 
     def cb_chbox_hidden(self, widget):
-        item = self.get_item(self.core.selected_item_edit)
+        item = self.get_item(self.core.selected_item)
         if item:
             item.set_hidden(widget.get_active())
         else:
             logger.error("Error: Not read item.")
 
     def cb_chbox_prohibit(self, widget):
-        item = self.get_item(self.core.selected_item_edit)
+        item = self.get_item(self.core.selected_item)
         if item:
             item.set_prohibit_changes(widget.get_active())
         else:
             logger.error("Error: Not read item.")
 
     def cb_chbox_abstract(self, widget):
-        item = self.get_item(self.core.selected_item_edit)
+        item = self.get_item(self.core.selected_item)
         if item:
             item.set_abstract(widget.get_active())
         else:
             logger.error("Error: Not read item.")
 
     def cb_entry_cluster_id(self, widget, event):
-        item = self.get_item(self.core.selected_item_edit)
+        item = self.get_item(self.core.selected_item)
         if item:
             item.set_cluster_id(widget.get_text())
         else:
             logger.error("Error: Not read item.")
 
     def DHEditWeight(self, data):
-        item = self.get_item(self.core.selected_item_edit)
+        item = self.get_item(self.core.selected_item)
         if item:
             item.set_weight(data)
         else:
             logger.error("Error: Not read item.")
 
     def cb_chbox_multipl(self, widget):
-        rule = self.get_item(self.core.selected_item_edit).to_rule()
+        rule = self.get_item(self.core.selected_item).to_rule()
         if rule:
             rule.set_multiple(widget.get_active())
         else:

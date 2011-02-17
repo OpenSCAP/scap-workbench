@@ -196,6 +196,12 @@ class SWBCore:
         else: self.info_box.pack_start(notification.widget)
         return notification
 
+    def notify_destroy(self, msg_id):
+        if not msg_id:
+            raise AttributeError("notify_destroy: msg_id can't be None -> not allowed to destroy global notifications")
+        if msg_id in self.__global_notifications:
+            self.__global_notifications[msg_id].destroy()
+
     def set_sender(self, signal, sender):
         self.eventHandler.set_sender(signal, sender)
 

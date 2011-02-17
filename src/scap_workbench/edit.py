@@ -197,7 +197,7 @@ class ItemList(abstract.List):
         blinking when redrawing treeView
         """
         gtk.gdk.threads_enter()
-        details = self.data_model.get_item_objects(self.core.selected_item_edit)
+        details = self.data_model.get_item_objects(self.core.selected_item)
         if details != None:
             self.item = details["item"]
         else: self.item = None
@@ -206,10 +206,10 @@ class ItemList(abstract.List):
             (model, iter) = selection.get_selected( )
             if iter: 
                 self.core.selected_item = model.get_value(iter, 0)
-                self.core.selected_item_edit = model.get_value(iter, 0)
+                #self.core.selected_item_edit = model.get_value(iter, 0)
             else:
                 self.core.selected_item = None
-                self.core.selected_item_edit = None
+                #self.core.selected_item_edit = None
         self.emit("update")
         treeView.columns_autosize()
         gtk.gdk.threads_leave()
@@ -592,7 +592,7 @@ class MenuButtonEditItems(abstract.MenuButton, abstract.ControlEditWindow):
     def cb_entry_weight(self, widget, event):
         weight = self.func.controlFloat(widget.get_text(), "Weight", self.core.main_window)
         if weight:
-            self.DHEditWeight(weight)
+            self.data_model.DHEditWeight(weight)
         
     def cb_chbox_selected(self, widget):
 
@@ -622,12 +622,14 @@ class MenuButtonEditItems(abstract.MenuButton, abstract.ControlEditWindow):
     def cb_control_impact_metrix(self, widget, event):
         text = widget.get_text()
         if text != "" and self.controlImpactMetric(text):
-            self.DHEditImpactMetrix(self.item, text)
+            self.data_model.DHEditImpactMetrix(self.item, text)
             
     def cb_control_version_time(self, widget, event):
         timestamp = self.controlDate(widget.get_text())
         if timestamp:
-            self.DHEditVersionTime(self.item, timestamp)
+            self.data_model.DHEditVersionTime(self.item, timestamp)
+        elif timestamp == None and widget.get_text() != "": 
+            widget.grab_focus()
 
     def set_sensitive(self, sensitive):
         self.itemsPage.set_sensitive(sensitive)
@@ -644,8 +646,8 @@ class MenuButtonEditItems(abstract.MenuButton, abstract.ControlEditWindow):
 
     def __update_items(self):
  
-        if self.core.selected_item_edit != None:
-            details = self.data_model.get_item_objects(self.core.selected_item_edit)
+        if self.core.selected_item != None:
+            details = self.data_model.get_item_objects(self.core.selected_item)
         else:
             details = None
             self.item = None

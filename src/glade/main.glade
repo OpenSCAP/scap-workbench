@@ -744,320 +744,366 @@
                                     <property name="top_padding">10</property>
                                     <property name="left_padding">12</property>
                                     <child>
-                                      <object class="GtkTable" id="profiles:table2">
+                                      <object class="GtkVBox" id="vbox27">
                                         <property name="visible">True</property>
-                                        <property name="n_rows">11</property>
-                                        <property name="n_columns">2</property>
-                                        <property name="column_spacing">15</property>
-                                        <property name="row_spacing">2</property>
+                                        <property name="orientation">vertical</property>
+                                        <property name="spacing">5</property>
                                         <child>
-                                          <object class="GtkLabel" id="xccdf:lbl1">
+                                          <object class="GtkTable" id="profiles:table2">
                                             <property name="visible">True</property>
-                                            <property name="xalign">0</property>
-                                            <property name="label" translatable="yes">File:</property>
-                                          </object>
-                                          <packing>
-                                            <property name="x_options">GTK_FILL</property>
-                                            <property name="y_options">GTK_FILL</property>
-                                          </packing>
-                                        </child>
-                                        <child>
-                                          <object class="GtkLabel" id="xccdf:lbl2">
-                                            <property name="visible">True</property>
-                                            <property name="xalign">0</property>
-                                            <property name="label" translatable="yes">Title:</property>
-                                          </object>
-                                          <packing>
-                                            <property name="top_attach">1</property>
-                                            <property name="bottom_attach">2</property>
-                                            <property name="x_options">GTK_FILL</property>
-                                            <property name="y_options">GTK_FILL</property>
-                                          </packing>
-                                        </child>
-                                        <child>
-                                          <object class="GtkLabel" id="xccdf:lbl3">
-                                            <property name="visible">True</property>
-                                            <property name="xalign">0</property>
-                                            <property name="label" translatable="yes">Version:</property>
-                                          </object>
-                                          <packing>
-                                            <property name="top_attach">2</property>
-                                            <property name="bottom_attach">3</property>
-                                            <property name="x_options">GTK_FILL</property>
-                                            <property name="y_options">GTK_FILL</property>
-                                          </packing>
-                                        </child>
-                                        <child>
-                                          <object class="GtkLabel" id="xccdf:lbl_file">
-                                            <property name="visible">True</property>
-                                            <property name="xalign">0</property>
-                                            <property name="wrap">True</property>
-                                          </object>
-                                          <packing>
-                                            <property name="left_attach">1</property>
-                                            <property name="right_attach">2</property>
-                                            <property name="y_options">GTK_FILL</property>
-                                          </packing>
-                                        </child>
-                                        <child>
-                                          <object class="GtkLabel" id="xccdf:lbl_title">
-                                            <property name="visible">True</property>
-                                            <property name="xalign">0</property>
-                                            <property name="wrap">True</property>
-                                          </object>
-                                          <packing>
-                                            <property name="left_attach">1</property>
-                                            <property name="right_attach">2</property>
-                                            <property name="top_attach">1</property>
-                                            <property name="bottom_attach">2</property>
-                                            <property name="y_options">GTK_FILL</property>
-                                          </packing>
-                                        </child>
-                                        <child>
-                                          <object class="GtkLabel" id="xccdf:lbl_version">
-                                            <property name="visible">True</property>
-                                            <property name="xalign">0</property>
-                                            <property name="wrap">True</property>
-                                          </object>
-                                          <packing>
-                                            <property name="left_attach">1</property>
-                                            <property name="right_attach">2</property>
-                                            <property name="top_attach">2</property>
-                                            <property name="bottom_attach">3</property>
-                                            <property name="y_options">GTK_FILL</property>
-                                          </packing>
-                                        </child>
-                                        <child>
-                                          <object class="GtkLabel" id="xccdf:lbl6">
-                                            <property name="visible">True</property>
-                                            <property name="xalign">0</property>
-                                            <property name="label" translatable="yes">Resolved:</property>
-                                          </object>
-                                          <packing>
-                                            <property name="top_attach">3</property>
-                                            <property name="bottom_attach">4</property>
-                                            <property name="x_options">GTK_FILL</property>
-                                            <property name="y_options">GTK_FILL</property>
-                                          </packing>
-                                        </child>
-                                        <child>
-                                          <object class="GtkLabel" id="xccdf:lbl_resolved">
-                                            <property name="visible">True</property>
-                                            <property name="xalign">0</property>
-                                            <property name="wrap">True</property>
-                                          </object>
-                                          <packing>
-                                            <property name="left_attach">1</property>
-                                            <property name="right_attach">2</property>
-                                            <property name="top_attach">3</property>
-                                            <property name="bottom_attach">4</property>
-                                            <property name="y_options">GTK_FILL</property>
-                                          </packing>
-                                        </child>
-                                        <child>
-                                          <object class="GtkLabel" id="xccdf:lbl7">
-                                            <property name="visible">True</property>
-                                            <property name="xalign">0</property>
-                                            <property name="label" translatable="yes">Status current:</property>
-                                          </object>
-                                          <packing>
-                                            <property name="top_attach">4</property>
-                                            <property name="bottom_attach">5</property>
-                                            <property name="x_options">GTK_FILL</property>
-                                            <property name="y_options">GTK_FILL</property>
-                                          </packing>
-                                        </child>
-                                        <child>
-                                          <object class="GtkLabel" id="xccdf:lbl_status_current">
-                                            <property name="visible">True</property>
-                                            <property name="xalign">0</property>
-                                            <property name="wrap">True</property>
-                                          </object>
-                                          <packing>
-                                            <property name="left_attach">1</property>
-                                            <property name="right_attach">2</property>
-                                            <property name="top_attach">4</property>
-                                            <property name="bottom_attach">5</property>
-                                            <property name="y_options">GTK_FILL</property>
-                                          </packing>
-                                        </child>
-                                        <child>
-                                          <object class="GtkLabel" id="xccdf:lbl5">
-                                            <property name="visible">True</property>
-                                            <property name="xalign">0</property>
-                                            <property name="label" translatable="yes">Language:</property>
-                                          </object>
-                                          <packing>
-                                            <property name="top_attach">5</property>
-                                            <property name="bottom_attach">6</property>
-                                            <property name="x_options">GTK_FILL</property>
-                                            <property name="y_options">GTK_FILL</property>
-                                          </packing>
-                                        </child>
-                                        <child>
-                                          <object class="GtkLabel" id="xccdf:lbl_language">
-                                            <property name="visible">True</property>
-                                            <property name="xalign">0</property>
-                                            <property name="wrap">True</property>
-                                          </object>
-                                          <packing>
-                                            <property name="left_attach">1</property>
-                                            <property name="right_attach">2</property>
-                                            <property name="top_attach">5</property>
-                                            <property name="bottom_attach">6</property>
-                                            <property name="y_options">GTK_FILL</property>
-                                          </packing>
-                                        </child>
-                                        <child>
-                                          <object class="GtkLabel" id="xccdf:lbl4">
-                                            <property name="visible">True</property>
-                                            <property name="xalign">0</property>
-                                            <property name="yalign">0</property>
-                                            <property name="label" translatable="yes">Description:</property>
-                                          </object>
-                                          <packing>
-                                            <property name="top_attach">6</property>
-                                            <property name="bottom_attach">7</property>
-                                            <property name="x_options">GTK_FILL</property>
-                                            <property name="y_options">GTK_FILL</property>
-                                          </packing>
-                                        </child>
-                                        <child>
-                                          <object class="GtkLabel" id="xccdf:lbl_description">
-                                            <property name="visible">True</property>
-                                            <property name="xalign">0</property>
-                                            <property name="yalign">0</property>
-                                            <property name="wrap">True</property>
-                                          </object>
-                                          <packing>
-                                            <property name="left_attach">1</property>
-                                            <property name="right_attach">2</property>
-                                            <property name="top_attach">6</property>
-                                            <property name="bottom_attach">7</property>
-                                            <property name="y_options">GTK_FILL</property>
-                                          </packing>
-                                        </child>
-                                        <child>
-                                          <object class="GtkLabel" id="xccdf:lbl8">
-                                            <property name="visible">True</property>
-                                            <property name="xalign">0</property>
-                                            <property name="yalign">0</property>
-                                            <property name="label" translatable="yes">Warnings:</property>
-                                          </object>
-                                          <packing>
-                                            <property name="top_attach">7</property>
-                                            <property name="bottom_attach">8</property>
-                                            <property name="x_options">GTK_FILL</property>
-                                            <property name="y_options">GTK_FILL</property>
-                                          </packing>
-                                        </child>
-                                        <child>
-                                          <object class="GtkLabel" id="xccdf:lbl9">
-                                            <property name="visible">True</property>
-                                            <property name="xalign">0</property>
-                                            <property name="yalign">0</property>
-                                            <property name="label" translatable="yes">Notices:</property>
-                                          </object>
-                                          <packing>
-                                            <property name="top_attach">8</property>
-                                            <property name="bottom_attach">9</property>
-                                            <property name="x_options">GTK_FILL</property>
-                                            <property name="y_options">GTK_FILL</property>
-                                          </packing>
-                                        </child>
-                                        <child>
-                                          <object class="GtkLabel" id="xccdf:lbl_warnings">
-                                            <property name="visible">True</property>
-                                            <property name="xalign">0</property>
-                                            <property name="yalign">0</property>
-                                            <property name="wrap">True</property>
-                                            <attributes>
-                                              <attribute name="foreground" value="#9fdb00000000"/>
-                                            </attributes>
-                                          </object>
-                                          <packing>
-                                            <property name="left_attach">1</property>
-                                            <property name="right_attach">2</property>
-                                            <property name="top_attach">7</property>
-                                            <property name="bottom_attach">8</property>
-                                            <property name="y_options">GTK_FILL</property>
-                                          </packing>
-                                        </child>
-                                        <child>
-                                          <object class="GtkLabel" id="xccdf:lbl_notices">
-                                            <property name="visible">True</property>
-                                            <property name="xalign">0</property>
-                                            <property name="yalign">0</property>
-                                            <property name="wrap">True</property>
-                                            <attributes>
-                                              <attribute name="foreground" value="#a206aa351b47"/>
-                                            </attributes>
-                                          </object>
-                                          <packing>
-                                            <property name="left_attach">1</property>
-                                            <property name="right_attach">2</property>
-                                            <property name="top_attach">8</property>
-                                            <property name="bottom_attach">9</property>
-                                            <property name="y_options">GTK_FILL</property>
-                                          </packing>
-                                        </child>
-                                        <child>
-                                          <object class="GtkLabel" id="xccdf:lbl10">
-                                            <property name="visible">True</property>
-                                            <property name="xalign">0</property>
-                                            <property name="yalign">0</property>
-                                            <property name="label" translatable="yes">References:</property>
-                                          </object>
-                                          <packing>
-                                            <property name="top_attach">9</property>
-                                            <property name="bottom_attach">10</property>
-                                            <property name="x_options">GTK_FILL</property>
-                                            <property name="y_options">GTK_FILL</property>
-                                          </packing>
-                                        </child>
-                                        <child>
-                                          <object class="GtkVBox" id="xccdf:box_references">
-                                            <property name="visible">True</property>
-                                            <property name="orientation">vertical</property>
+                                            <property name="n_rows">11</property>
+                                            <property name="n_columns">2</property>
+                                            <property name="column_spacing">15</property>
+                                            <property name="row_spacing">2</property>
+                                            <child>
+                                              <object class="GtkLabel" id="xccdf:lbl1">
+                                                <property name="visible">True</property>
+                                                <property name="xalign">0</property>
+                                                <property name="label" translatable="yes">File:</property>
+                                              </object>
+                                              <packing>
+                                                <property name="x_options">GTK_FILL</property>
+                                                <property name="y_options">GTK_FILL</property>
+                                              </packing>
+                                            </child>
+                                            <child>
+                                              <object class="GtkLabel" id="xccdf:lbl2">
+                                                <property name="visible">True</property>
+                                                <property name="xalign">0</property>
+                                                <property name="label" translatable="yes">Title:</property>
+                                              </object>
+                                              <packing>
+                                                <property name="top_attach">1</property>
+                                                <property name="bottom_attach">2</property>
+                                                <property name="x_options">GTK_FILL</property>
+                                                <property name="y_options">GTK_FILL</property>
+                                              </packing>
+                                            </child>
+                                            <child>
+                                              <object class="GtkLabel" id="xccdf:lbl3">
+                                                <property name="visible">True</property>
+                                                <property name="xalign">0</property>
+                                                <property name="label" translatable="yes">Version:</property>
+                                              </object>
+                                              <packing>
+                                                <property name="top_attach">2</property>
+                                                <property name="bottom_attach">3</property>
+                                                <property name="x_options">GTK_FILL</property>
+                                                <property name="y_options">GTK_FILL</property>
+                                              </packing>
+                                            </child>
+                                            <child>
+                                              <object class="GtkLabel" id="xccdf:lbl_file">
+                                                <property name="visible">True</property>
+                                                <property name="xalign">0</property>
+                                                <property name="wrap">True</property>
+                                              </object>
+                                              <packing>
+                                                <property name="left_attach">1</property>
+                                                <property name="right_attach">2</property>
+                                                <property name="y_options">GTK_FILL</property>
+                                              </packing>
+                                            </child>
+                                            <child>
+                                              <object class="GtkLabel" id="xccdf:lbl_title">
+                                                <property name="visible">True</property>
+                                                <property name="xalign">0</property>
+                                                <property name="wrap">True</property>
+                                              </object>
+                                              <packing>
+                                                <property name="left_attach">1</property>
+                                                <property name="right_attach">2</property>
+                                                <property name="top_attach">1</property>
+                                                <property name="bottom_attach">2</property>
+                                                <property name="y_options">GTK_FILL</property>
+                                              </packing>
+                                            </child>
+                                            <child>
+                                              <object class="GtkLabel" id="xccdf:lbl_version">
+                                                <property name="visible">True</property>
+                                                <property name="xalign">0</property>
+                                                <property name="wrap">True</property>
+                                              </object>
+                                              <packing>
+                                                <property name="left_attach">1</property>
+                                                <property name="right_attach">2</property>
+                                                <property name="top_attach">2</property>
+                                                <property name="bottom_attach">3</property>
+                                                <property name="y_options">GTK_FILL</property>
+                                              </packing>
+                                            </child>
+                                            <child>
+                                              <object class="GtkLabel" id="xccdf:lbl6">
+                                                <property name="visible">True</property>
+                                                <property name="xalign">0</property>
+                                                <property name="label" translatable="yes">Resolved:</property>
+                                              </object>
+                                              <packing>
+                                                <property name="top_attach">3</property>
+                                                <property name="bottom_attach">4</property>
+                                                <property name="x_options">GTK_FILL</property>
+                                                <property name="y_options">GTK_FILL</property>
+                                              </packing>
+                                            </child>
+                                            <child>
+                                              <object class="GtkLabel" id="xccdf:lbl_resolved">
+                                                <property name="visible">True</property>
+                                                <property name="xalign">0</property>
+                                                <property name="wrap">True</property>
+                                              </object>
+                                              <packing>
+                                                <property name="left_attach">1</property>
+                                                <property name="right_attach">2</property>
+                                                <property name="top_attach">3</property>
+                                                <property name="bottom_attach">4</property>
+                                                <property name="y_options">GTK_FILL</property>
+                                              </packing>
+                                            </child>
+                                            <child>
+                                              <object class="GtkLabel" id="xccdf:lbl7">
+                                                <property name="visible">True</property>
+                                                <property name="xalign">0</property>
+                                                <property name="label" translatable="yes">Status current:</property>
+                                              </object>
+                                              <packing>
+                                                <property name="top_attach">4</property>
+                                                <property name="bottom_attach">5</property>
+                                                <property name="x_options">GTK_FILL</property>
+                                                <property name="y_options">GTK_FILL</property>
+                                              </packing>
+                                            </child>
+                                            <child>
+                                              <object class="GtkLabel" id="xccdf:lbl_status_current">
+                                                <property name="visible">True</property>
+                                                <property name="xalign">0</property>
+                                                <property name="wrap">True</property>
+                                              </object>
+                                              <packing>
+                                                <property name="left_attach">1</property>
+                                                <property name="right_attach">2</property>
+                                                <property name="top_attach">4</property>
+                                                <property name="bottom_attach">5</property>
+                                                <property name="y_options">GTK_FILL</property>
+                                              </packing>
+                                            </child>
+                                            <child>
+                                              <object class="GtkLabel" id="xccdf:lbl5">
+                                                <property name="visible">True</property>
+                                                <property name="xalign">0</property>
+                                                <property name="label" translatable="yes">Language:</property>
+                                              </object>
+                                              <packing>
+                                                <property name="top_attach">5</property>
+                                                <property name="bottom_attach">6</property>
+                                                <property name="x_options">GTK_FILL</property>
+                                                <property name="y_options">GTK_FILL</property>
+                                              </packing>
+                                            </child>
+                                            <child>
+                                              <object class="GtkLabel" id="xccdf:lbl_language">
+                                                <property name="visible">True</property>
+                                                <property name="xalign">0</property>
+                                                <property name="wrap">True</property>
+                                              </object>
+                                              <packing>
+                                                <property name="left_attach">1</property>
+                                                <property name="right_attach">2</property>
+                                                <property name="top_attach">5</property>
+                                                <property name="bottom_attach">6</property>
+                                                <property name="y_options">GTK_FILL</property>
+                                              </packing>
+                                            </child>
+                                            <child>
+                                              <object class="GtkLabel" id="xccdf:lbl4">
+                                                <property name="visible">True</property>
+                                                <property name="xalign">0</property>
+                                                <property name="yalign">0</property>
+                                                <property name="label" translatable="yes">Description:</property>
+                                              </object>
+                                              <packing>
+                                                <property name="top_attach">6</property>
+                                                <property name="bottom_attach">7</property>
+                                                <property name="x_options">GTK_FILL</property>
+                                                <property name="y_options">GTK_FILL</property>
+                                              </packing>
+                                            </child>
+                                            <child>
+                                              <object class="GtkLabel" id="xccdf:lbl_description">
+                                                <property name="visible">True</property>
+                                                <property name="xalign">0</property>
+                                                <property name="yalign">0</property>
+                                                <property name="wrap">True</property>
+                                              </object>
+                                              <packing>
+                                                <property name="left_attach">1</property>
+                                                <property name="right_attach">2</property>
+                                                <property name="top_attach">6</property>
+                                                <property name="bottom_attach">7</property>
+                                                <property name="y_options">GTK_FILL</property>
+                                              </packing>
+                                            </child>
+                                            <child>
+                                              <object class="GtkLabel" id="xccdf:lbl8">
+                                                <property name="visible">True</property>
+                                                <property name="xalign">0</property>
+                                                <property name="yalign">0</property>
+                                                <property name="label" translatable="yes">Warnings:</property>
+                                              </object>
+                                              <packing>
+                                                <property name="top_attach">7</property>
+                                                <property name="bottom_attach">8</property>
+                                                <property name="x_options">GTK_FILL</property>
+                                                <property name="y_options">GTK_FILL</property>
+                                              </packing>
+                                            </child>
+                                            <child>
+                                              <object class="GtkLabel" id="xccdf:lbl9">
+                                                <property name="visible">True</property>
+                                                <property name="xalign">0</property>
+                                                <property name="yalign">0</property>
+                                                <property name="label" translatable="yes">Notices:</property>
+                                              </object>
+                                              <packing>
+                                                <property name="top_attach">8</property>
+                                                <property name="bottom_attach">9</property>
+                                                <property name="x_options">GTK_FILL</property>
+                                                <property name="y_options">GTK_FILL</property>
+                                              </packing>
+                                            </child>
+                                            <child>
+                                              <object class="GtkLabel" id="xccdf:lbl_warnings">
+                                                <property name="visible">True</property>
+                                                <property name="xalign">0</property>
+                                                <property name="yalign">0</property>
+                                                <property name="wrap">True</property>
+                                                <attributes>
+                                                  <attribute name="foreground" value="#9fdb00000000"/>
+                                                </attributes>
+                                              </object>
+                                              <packing>
+                                                <property name="left_attach">1</property>
+                                                <property name="right_attach">2</property>
+                                                <property name="top_attach">7</property>
+                                                <property name="bottom_attach">8</property>
+                                                <property name="y_options">GTK_FILL</property>
+                                              </packing>
+                                            </child>
+                                            <child>
+                                              <object class="GtkLabel" id="xccdf:lbl_notices">
+                                                <property name="visible">True</property>
+                                                <property name="xalign">0</property>
+                                                <property name="yalign">0</property>
+                                                <property name="wrap">True</property>
+                                                <attributes>
+                                                  <attribute name="foreground" value="#a206aa351b47"/>
+                                                </attributes>
+                                              </object>
+                                              <packing>
+                                                <property name="left_attach">1</property>
+                                                <property name="right_attach">2</property>
+                                                <property name="top_attach">8</property>
+                                                <property name="bottom_attach">9</property>
+                                                <property name="y_options">GTK_FILL</property>
+                                              </packing>
+                                            </child>
+                                            <child>
+                                              <object class="GtkLabel" id="xccdf:lbl10">
+                                                <property name="visible">True</property>
+                                                <property name="xalign">0</property>
+                                                <property name="yalign">0</property>
+                                                <property name="label" translatable="yes">References:</property>
+                                              </object>
+                                              <packing>
+                                                <property name="top_attach">9</property>
+                                                <property name="bottom_attach">10</property>
+                                                <property name="x_options">GTK_FILL</property>
+                                                <property name="y_options">GTK_FILL</property>
+                                              </packing>
+                                            </child>
+                                            <child>
+                                              <object class="GtkVBox" id="xccdf:box_references">
+                                                <property name="visible">True</property>
+                                                <property name="orientation">vertical</property>
+                                                <child>
+                                                  <placeholder/>
+                                                </child>
+                                              </object>
+                                              <packing>
+                                                <property name="left_attach">1</property>
+                                                <property name="right_attach">2</property>
+                                                <property name="top_attach">9</property>
+                                                <property name="bottom_attach">10</property>
+                                                <property name="y_options">GTK_FILL</property>
+                                              </packing>
+                                            </child>
+                                            <child>
+                                              <object class="GtkLabel" id="xccdf:lbl11">
+                                                <property name="visible">True</property>
+                                                <property name="xalign">0</property>
+                                                <property name="yalign">0</property>
+                                                <property name="label" translatable="yes">File references:</property>
+                                              </object>
+                                              <packing>
+                                                <property name="top_attach">10</property>
+                                                <property name="bottom_attach">11</property>
+                                                <property name="x_options">GTK_FILL</property>
+                                                <property name="y_options">GTK_FILL</property>
+                                              </packing>
+                                            </child>
                                             <child>
                                               <placeholder/>
                                             </child>
                                           </object>
                                           <packing>
-                                            <property name="left_attach">1</property>
-                                            <property name="right_attach">2</property>
-                                            <property name="top_attach">9</property>
-                                            <property name="bottom_attach">10</property>
-                                            <property name="y_options">GTK_FILL</property>
+                                            <property name="expand">False</property>
+                                            <property name="position">0</property>
                                           </packing>
                                         </child>
                                         <child>
-                                          <object class="GtkLabel" id="xccdf:lbl11">
+                                          <object class="GtkAlignment" id="alignment38">
                                             <property name="visible">True</property>
-                                            <property name="xalign">0</property>
-                                            <property name="yalign">0</property>
-                                            <property name="label" translatable="yes">File references:</property>
+                                            <property name="top_padding">10</property>
+                                            <property name="left_padding">10</property>
+                                            <child>
+                                              <object class="GtkScrolledWindow" id="scrolledwindow29">
+                                                <property name="visible">True</property>
+                                                <property name="can_focus">True</property>
+                                                <property name="hscrollbar_policy">automatic</property>
+                                                <property name="vscrollbar_policy">automatic</property>
+                                                <child>
+                                                  <object class="GtkViewport" id="viewport7">
+                                                    <property name="visible">True</property>
+                                                    <property name="resize_mode">queue</property>
+                                                    <property name="shadow_type">none</property>
+                                                    <child>
+                                                      <object class="GtkVBox" id="xccdf:files:box">
+                                                        <property name="visible">True</property>
+                                                        <property name="orientation">vertical</property>
+                                                        <property name="spacing">5</property>
+                                                        <child>
+                                                          <placeholder/>
+                                                        </child>
+                                                        <child>
+                                                          <object class="GtkAlignment" id="alignment39">
+                                                            <property name="visible">True</property>
+                                                            <child>
+                                                            <placeholder/>
+                                                            </child>
+                                                          </object>
+                                                          <packing>
+                                                            <property name="pack_type">end</property>
+                                                            <property name="position">0</property>
+                                                          </packing>
+                                                        </child>
+                                                      </object>
+                                                    </child>
+                                                  </object>
+                                                </child>
+                                              </object>
+                                            </child>
                                           </object>
                                           <packing>
-                                            <property name="top_attach">10</property>
-                                            <property name="bottom_attach">11</property>
-                                            <property name="x_options">GTK_FILL</property>
-                                            <property name="y_options">GTK_FILL</property>
-                                          </packing>
-                                        </child>
-                                        <child>
-                                          <object class="GtkLabel" id="xccdf:lbl_file_references">
-                                            <property name="visible">True</property>
-                                            <property name="xalign">0</property>
-                                            <property name="yalign">0</property>
-                                            <property name="wrap">True</property>
-                                          </object>
-                                          <packing>
-                                            <property name="left_attach">1</property>
-                                            <property name="right_attach">2</property>
-                                            <property name="top_attach">10</property>
-                                            <property name="bottom_attach">11</property>
-                                            <property name="y_options">GTK_FILL</property>
+                                            <property name="position">1</property>
                                           </packing>
                                         </child>
                                       </object>
@@ -1070,10 +1116,12 @@
                               </object>
                             </child>
                             <child type="label">
-                              <object class="GtkLabel" id="label7">
+                              <object class="GtkLabel" id="xccdf:lbl_info">
                                 <property name="visible">True</property>
-                                <property name="label" translatable="yes">&lt;b&gt;Info:&lt;/b&gt;</property>
-                                <property name="use_markup">True</property>
+                                <property name="label" translatable="yes">Info:</property>
+                                <attributes>
+                                  <attribute name="weight" value="bold"/>
+                                </attributes>
                               </object>
                             </child>
                           </object>
@@ -1746,6 +1794,19 @@
                                                             <property name="expand">False</property>
                                                             <property name="fill">False</property>
                                                             <property name="position">2</property>
+                                                            </packing>
+                                                            </child>
+                                                            <child>
+                                                            <object class="GtkButton" id="edit:general:btn_description_preview">
+                                                            <property name="label" translatable="yes">Preview</property>
+                                                            <property name="visible">True</property>
+                                                            <property name="can_focus">True</property>
+                                                            <property name="receives_default">True</property>
+                                                            </object>
+                                                            <packing>
+                                                            <property name="expand">False</property>
+                                                            <property name="fill">False</property>
+                                                            <property name="position">3</property>
                                                             </packing>
                                                             </child>
                                                             </object>
@@ -2793,6 +2854,19 @@
                                                             <property name="position">2</property>
                                                             </packing>
                                                             </child>
+                                                            <child>
+                                                            <object class="GtkButton" id="edit:operations:btn_fixtext_preview">
+                                                            <property name="label" translatable="yes">Preview</property>
+                                                            <property name="visible">True</property>
+                                                            <property name="can_focus">True</property>
+                                                            <property name="receives_default">True</property>
+                                                            </object>
+                                                            <packing>
+                                                            <property name="expand">False</property>
+                                                            <property name="fill">False</property>
+                                                            <property name="position">3</property>
+                                                            </packing>
+                                                            </child>
                                                             </object>
                                                             <packing>
                                                             <property name="expand">False</property>
@@ -3727,6 +3801,19 @@
                                                             <property name="position">2</property>
                                                             </packing>
                                                             </child>
+                                                            <child>
+                                                            <object class="GtkButton" id="edit:values:btn_description_preview">
+                                                            <property name="label" translatable="yes">Preview</property>
+                                                            <property name="visible">True</property>
+                                                            <property name="can_focus">True</property>
+                                                            <property name="receives_default">True</property>
+                                                            </object>
+                                                            <packing>
+                                                            <property name="expand">False</property>
+                                                            <property name="fill">False</property>
+                                                            <property name="position">3</property>
+                                                            </packing>
+                                                            </child>
                                                             </object>
                                                             <packing>
                                                             <property name="expand">False</property>
@@ -4428,6 +4515,20 @@
                                                         <property name="position">0</property>
                                                       </packing>
                                                     </child>
+                                                    <child>
+                                                      <object class="GtkButton" id="edit:profile:btn_preview">
+                                                        <property name="label" translatable="yes">Preview</property>
+                                                        <property name="visible">True</property>
+                                                        <property name="can_focus">True</property>
+                                                        <property name="receives_default">True</property>
+                                                        <property name="image">edit:profile:btn_preview:img</property>
+                                                      </object>
+                                                      <packing>
+                                                        <property name="expand">False</property>
+                                                        <property name="fill">False</property>
+                                                        <property name="position">1</property>
+                                                      </packing>
+                                                    </child>
                                                   </object>
                                                   <packing>
                                                     <property name="expand">False</property>
@@ -4870,6 +4971,19 @@
                                         <property name="position">2</property>
                                       </packing>
                                     </child>
+                                    <child>
+                                      <object class="GtkButton" id="edit:xccdf:btn_descriptions_preview">
+                                        <property name="label" translatable="yes">Preview</property>
+                                        <property name="visible">True</property>
+                                        <property name="can_focus">True</property>
+                                        <property name="receives_default">True</property>
+                                      </object>
+                                      <packing>
+                                        <property name="expand">False</property>
+                                        <property name="fill">False</property>
+                                        <property name="position">3</property>
+                                      </packing>
+                                    </child>
                                   </object>
                                   <packing>
                                     <property name="expand">False</property>
@@ -5297,5 +5411,9 @@
   <object class="GtkImage" id="image4">
     <property name="visible">True</property>
     <property name="stock">gtk-remove</property>
+  </object>
+  <object class="GtkImage" id="edit:profile:btn_preview:img">
+    <property name="visible">True</property>
+    <property name="stock">gtk-find</property>
   </object>
 </interface>

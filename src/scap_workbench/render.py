@@ -76,6 +76,7 @@ class MenuButtonXCCDF(abstract.MenuButton):
         self.body = self.builder.get_object("xccdf:box")
 
         # info
+        self.label_info = self.builder.get_object("xccdf:lbl_info")
         self.label_title = self.builder.get_object("xccdf:lbl_title")
         self.label_version = self.builder.get_object("xccdf:lbl_version")
         self.label_url = self.builder.get_object("xccdf:lbl_file")
@@ -85,8 +86,8 @@ class MenuButtonXCCDF(abstract.MenuButton):
         self.label_status_current = self.builder.get_object("xccdf:lbl_status_current")
         self.label_warnings = self.builder.get_object("xccdf:lbl_warnings")
         self.label_notices = self.builder.get_object("xccdf:lbl_notices")
-        self.label_file_references = self.builder.get_object("xccdf:lbl_file_references")
         self.box_references = self.builder.get_object("xccdf:box_references")
+        self.files_box = self.builder.get_object("xccdf:files:box")
 
         self.btn_import = self.builder.get_object("xccdf:btn_import")
         self.btn_import.connect("clicked", self.__cb_import)
@@ -111,6 +112,67 @@ class MenuButtonXCCDF(abstract.MenuButton):
         label_set_autowrap(self.label_warnings)
         label_set_autowrap(self.label_notices)
 
+    def __add_file_info(self, name, file_info):
+
+        # Add table of information to the expander with label name
+        expander = gtk.Expander()
+        label = gtk.Label("OVAL: %s" % (name,))
+        pango_list = pango.AttrList()
+        pango_list.insert(pango.AttrWeight(pango.WEIGHT_BOLD, start_index=0, end_index=-1))
+        if not file_info:
+            pango_list.insert(pango.AttrForeground(65535, 0, 0, start_index=0, end_index=-1))
+        label.set_attributes(pango_list)
+        expander.set_label_widget(label)
+        expander.set_expanded(True)
+        align = gtk.Alignment()
+        align.set_padding(5, 10, 25, 0)
+
+        if not file_info:
+            label = gtk.Label("File not found: %s" % (name))
+            label.set_attributes(pango_list)
+            align.add(label)
+        else:
+            table = gtk.Table(rows=5, columns=2)
+            table.set_col_spacings(spacing=5)
+            align.add(table)
+
+            # use table to add information
+            label = gtk.Label("Product name:")
+            label.set_alignment(0.0, 0.50)
+            table.attach(label, 0, 1, 0, 1, xoptions=gtk.FILL, yoptions=gtk.FILL, xpadding=0, ypadding=0)
+            label = gtk.Label("Product version:")
+            label.set_alignment(0.0, 0.50)
+            table.attach(label, 0, 1, 1, 2, xoptions=gtk.FILL, yoptions=gtk.FILL, xpadding=0, ypadding=0)
+            label = gtk.Label("Schema version:")
+            label.set_alignment(0.0, 0.50)
+            table.attach(label, 0, 1, 2, 3, xoptions=gtk.FILL, yoptions=gtk.FILL, xpadding=0, ypadding=0)
+            label = gtk.Label("Timestamp:")
+            label.set_alignment(0.0, 0.50)
+            table.attach(label, 0, 1, 3, 4, xoptions=gtk.FILL, yoptions=gtk.FILL, xpadding=0, ypadding=0)
+            label = gtk.Label("Valid:")
+            label.set_alignment(0.0, 0.50)
+            table.attach(label, 0, 1, 4, 5, xoptions=gtk.FILL, yoptions=gtk.FILL, xpadding=0, ypadding=0)
+
+            label = gtk.Label(file_info["product_name"])
+            label.set_alignment(0.0, 0.50)
+            table.attach(label, 1, 2, 0, 1, xoptions=gtk.EXPAND|gtk.FILL, yoptions=gtk.FILL, xpadding=0, ypadding=0)
+            label = gtk.Label(file_info["product_version"])
+            label.set_alignment(0.0, 0.50)
+            table.attach(label, 1, 2, 1, 2, xoptions=gtk.EXPAND|gtk.FILL, yoptions=gtk.FILL, xpadding=0, ypadding=0)
+            label = gtk.Label(file_info["schema_version"])
+            label.set_alignment(0.0, 0.50)
+            table.attach(label, 1, 2, 2, 3, xoptions=gtk.EXPAND|gtk.FILL, yoptions=gtk.FILL, xpadding=0, ypadding=0)
+            label = gtk.Label(file_info["timestamp"])
+            label.set_alignment(0.0, 0.50)
+            table.attach(label, 1, 2, 3, 4, xoptions=gtk.EXPAND|gtk.FILL, yoptions=gtk.FILL, xpadding=0, ypadding=0)
+            label = gtk.Label(file_info["valid"])
+            label.set_alignment(0.0, 0.50)
+            table.attach(label, 1, 2, 4, 5, xoptions=gtk.EXPAND|gtk.FILL, yoptions=gtk.FILL, xpadding=0, ypadding=0)
+
+        expander.add(align)
+        self.files_box.pack_start(expander, False, False)
+        expander.show_all()
+
     # set functions
     def set_detail(self, details):
         """
@@ -118,6 +180,7 @@ class MenuButtonXCCDF(abstract.MenuButton):
         """
         STATUS_CURRENT = ["not specified", "accepted", "deprecated", "draft", "incomplet", "interim"]
         lang = details["lang"]
+        self.label_info.set_text("XCCDF: %s" % (details["id"] or "",))
         self.label_title.set_text(details["titles"][lang] or "")
         self.label_description.set_text(details["descs"][lang] or "")
         self.label_version.set_text(details["version"] or "")
@@ -126,8 +189,6 @@ class MenuButtonXCCDF(abstract.MenuButton):
         self.label_resolved.set_text(["no", "yes"][details["resolved"]])
         self.label_warnings.set_text("\n".join(["%s: %s" % (warn[0], warn[1].text) for warn in details["warnings"]]) or "None")
         self.label_notices.set_text("\n".join(["%s: %s" % (notice[0], notice[1].text) for notice in details["notices"]]) or "None")
-        self.label_file_references.set_text("")
-        self.label_file_references.set_text("\n".join(details["files"]) or "None")
         self.label_language.set_text(lang or "")
         
         # References
@@ -149,6 +210,20 @@ class MenuButtonXCCDF(abstract.MenuButton):
             label.connect("size-allocate", label_size_allocate)
             label.show()
 
+        # OVAL Files
+        for child in self.files_box.get_children():
+            child.destroy()
+
+        files = self.data_model.get_oval_files_info()
+        if len(details["files"]) ==  0:
+            return
+    
+        for f in details["files"]:
+            if f in files:
+                self.__add_file_info(f, files[f])
+            else: self.__add_file_info(f, None)
+
+
     # callBack functions
     def __cb_import(self, widget):
         file = self.data_model.file_browse("Load XCCDF file", action=gtk.FILE_CHOOSER_ACTION_OPEN)
@@ -167,7 +242,8 @@ class MenuButtonXCCDF(abstract.MenuButton):
             "Validation process failed, check for error in log file."][validate], [1, 0, 2][validate], msg_id="notify:xccdf:validate"))
 
     def __cb_export(self, widget):
-        self.data_model.export()
+        file_name = self.data_model.export()
+        if file_name: self.notifications.append(self.core.notify("Benchmark has been exported to \"%s\"" % (file_name,), 0, msg_id="notify:xccdf:export"))
 
     def cb_changed(self, combobox, core):
         
@@ -221,17 +297,18 @@ class MainWindow(abstract.Window, threading.Thread):
 
         # abstract the main menu
         self.menu = abstract.Menu("gui:menu", self.builder.get_object("main:toolbar"), self.core)
-        self.menu.add_item(abstract.MenuButton("gui:btn:menu:main", self.builder.get_object("main:toolbar:main"), self.core))
+        #self.menu.add_item(abstract.MenuButton("gui:btn:menu:main", self.builder.get_object("main:toolbar:main"), self.core))
+        self.menu.add_item(MenuButtonXCCDF(self.builder, self.builder.get_object("main:toolbar:main"), self.core))
         self.menu.add_item(abstract.MenuButton("gui:btn:menu:edit", self.builder.get_object("main:toolbar:edit"), self.core))
         self.menu.add_item(abstract.MenuButton("gui:btn:menu:reports", self.builder.get_object("main:toolbar:reports"), self.core))
         self.menu.add_item(tailoring.MenuButtonTailoring(self.builder, self.builder.get_object("main:toolbar:tailoring"), self.core))
         self.menu.add_item(scan.MenuButtonScan(self.builder, self.builder.get_object("main:toolbar:scan"), self.core))
         
         # subMenu_but_main
-        submenu = abstract.Menu("gui:menu:main", self.builder.get_object("main:sub:main"), self.core)
-        submenu.add_item(MenuButtonXCCDF(self.builder, self.builder.get_object("main:sub:main:xccdf"), self.core))
-        submenu.add_item(MenuButtonOVAL(self.main_box, self.builder.get_object("main:sub:main:oval"), self.core))
-        self.core.get_item("gui:btn:menu:main").set_menu(submenu)
+        #submenu = abstract.Menu("gui:menu:main", self.builder.get_object("main:sub:main"), self.core)
+        #submenu.add_item(MenuButtonXCCDF(self.builder, self.builder.get_object("main:sub:main:xccdf"), self.core))
+        #submenu.add_item(MenuButtonOVAL(self.main_box, self.builder.get_object("main:sub:main:oval"), self.core))
+        #self.core.get_item("gui:btn:menu:main").set_menu(submenu)
 
         submenu = abstract.Menu("gui:menu:edit", self.builder.get_object("edit:sub:main"), self.core)
         submenu.add_item(edit.MenuButtonEditXCCDF(self.builder, self.builder.get_object("edit:sub:xccdf"), self.core))

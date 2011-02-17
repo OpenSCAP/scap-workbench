@@ -818,7 +818,7 @@ class Func:
         combo.add_attribute(cell, 'text', view_column)  
         combo.set_model(model)
 
-    def controlDate(self, text, window):
+    def controlDate(self, text):
         """
         Function concert sting to timestamp (gregorina). 
         If set text is incorrect format return False and show message.
@@ -826,21 +826,23 @@ class Func:
         if text != "":
             date = text.split("-")
             if len(date) != 3:
-                self.dialogInfo("The date is in incorrect format. \n Correct format is YYYY-MM-DD.", window)
-                return False
+                self.notifications.append(self.core.notify("The date is in incorrect format. Correct format is YYYY-MM-DD.", 2, msg_id="notify:date_format"))
+                return None
             try :
                 d = datetime.date(int(date[0]), int(date[1]), int(date[2]))
             except Exception as ex:
-                error = "Date is incorrect format:\n" + str(ex)
-                self.dialogInfo(error, window)
-                return False
+                self.notifications.append(self.core.notify("The date is in incorrect format. Correct format is YYYY-MM-DD.", 2, msg_id="notify:date_format"))
+                return None
             try:
                 timestamp = time.mktime(d.timetuple()) 
             except Exception as ex:
-                error = "Date is out of range. "
-                self.dialogInfo(error, window)
+                self.notifications.append(self.core.notify("The date is out of range.", 2, msg_id="notify:date_format"))
+
+            self.core.notify_destroy("notify:date_format")
             return timestamp
-        return False
+        else:
+            self.core.notify_destroy("notify:date_format")
+            return None
             
     def controlImpactMetric(self, text, window):
         """
