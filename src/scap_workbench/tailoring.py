@@ -121,7 +121,7 @@ class ItemList(abstract.List):
         if selection != None: 
             (model, iter) = selection.get_selected( )
             if iter: 
-                self.core.selected_item = model.get_value(iter, 0)
+                self.core.selected_item = model.get_value(iter, commands.DHItemsTree.COLUMN_ID)
                 self.emit("update")
         treeView.columns_autosize()
         gtk.gdk.threads_leave()

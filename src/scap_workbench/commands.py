@@ -157,6 +157,7 @@ class DataHandler:
             return None
 
         item = self.core.lib["policy_model"].benchmark.item(id or self.core.selected_item)
+        if not item: return None
 
         policy = self.core.lib["policy_model"].get_policy_by_id(self.core.selected_profile)
         if policy != None:
@@ -490,11 +491,11 @@ class DHXccdf(DataHandler):
             return {}
         benchmark = self.core.lib["policy_model"].benchmark
 
-        if id: benchmark.id = id
-        if version: benchmark.version = version
-        if resolved: benchmark.resolved = resolved
-        if status: benchmark.status_current = status
-        if lang: benchmark.lang = lang
+        if id and benchmark.id != id: benchmark.id = id
+        if version and benchmark.version != version: benchmark.version = version
+        if resolved and benchmark.resolved != resolved: benchmark.resolved = resolved
+        if status and benchmark.status_current != status: benchmark.status_current = status
+        if lang and benchmark.lang != lang: benchmark.lang = lang
 
     def export(self):
 
@@ -575,7 +576,7 @@ class DHValues(DataHandler):
                 item = self.core.lib["policy_model"].benchmark.get_item(self.core.selected_item)
                 if item == None: 
                     logger.error("XCCDF Item \"%s\" does not exists. Can't fill data", self.core.selected_item)
-                    raise Error, "XCCDF Item \"%s\" does not exists. Can't fill data", self.core.selected_item
+                    raise Exception("XCCDF Item \"%s\" does not exists. Can't fill data" % (self.core.selected_item,))
             else: return
         
         # Append a couple of rows.
@@ -630,14 +631,14 @@ class DHValues(DataHandler):
 
 class DHItemsTree(DataHandler, EventObject):
 
-
-    COLUMN_ID       = 0
-    COLUMN_NAME     = 1
-    COLUMN_PICTURE  = 2
-    COLUMN_TEXT     = 3
-    COLUMN_COLOR    = 4
-    COLUMN_SELECTED = 5
-    COLUMN_PARENT   = 6
+    COLUMN_TYPE     = 0
+    COLUMN_ID       = 1
+    COLUMN_NAME     = 2
+    COLUMN_PICTURE  = 3
+    COLUMN_TEXT     = 4
+    COLUMN_COLOR    = 5
+    COLUMN_SELECTED = 6
+    COLUMN_PARENT   = 7
 
     def __init__(self, id, core, progress=None, items_model=False, no_checks=False):
         """
@@ -657,8 +658,8 @@ class DHItemsTree(DataHandler, EventObject):
         self.map_filter = None
         
     def new_model(self):
-        # ID, Name, Picture, Text, Font color, selected, parent-selected
-        return gtk.TreeStore(str, str, str, str, str, bool, bool)
+        # Type, ID, Name, Picture, Text, Font color, selected, parent-selected
+        return gtk.TreeStore(str, str, str, str, str, str, bool, bool)
         
     def render(self, treeView):
         """Make a model ListStore of Dependencies object"""
@@ -671,6 +672,23 @@ class DHItemsTree(DataHandler, EventObject):
         treeView.set_model(self.model)
 
         """This Cell is used to be first hidden column of tree view
+        to identify the type of item"""
+        txtcell = gtk.CellRendererText()
+        column = gtk.TreeViewColumn("Type", txtcell, text=DHItemsTree.COLUMN_TYPE)
+        column.set_visible(False)
+        treeView.append_column(column)
+
+        if not self.no_checks:
+            render = gtk.CellRendererToggle()
+            column = gtk.TreeViewColumn("", render, active=DHItemsTree.COLUMN_SELECTED,
+                                                            sensitive=DHItemsTree.COLUMN_PARENT,
+                                                            activatable=DHItemsTree.COLUMN_PARENT)
+            #cb call for filter_model and ref_model
+            render.connect('toggled', self.__cb_toggled)
+            column.set_resizable(True)
+            treeView.append_column(column)
+
+        """This Cell is used to be first second column of tree view
         to identify the item in list"""
         txtcell = gtk.CellRendererText()
         column = gtk.TreeViewColumn("Unique ID", txtcell, text=DHItemsTree.COLUMN_ID)
@@ -690,13 +708,13 @@ class DHItemsTree(DataHandler, EventObject):
         column.set_expand(True)
         # Toggle
         #cb call for filter_model and ref_model
-        if not self.no_checks:
-            render = gtk.CellRendererToggle()
-            render.connect('toggled', self.__cb_toggled)
-            column.pack_start(render, False)
-            column.set_attributes(render, active=DHItemsTree.COLUMN_SELECTED,
-                                    sensitive=DHItemsTree.COLUMN_PARENT,
-                                    activatable=DHItemsTree.COLUMN_PARENT)
+        #if not self.no_checks:
+            #render = gtk.CellRendererToggle()
+            #render.connect('toggled', self.__cb_toggled)
+            #column.pack_start(render, False)
+            #column.set_attributes(render, active=DHItemsTree.COLUMN_SELECTED,
+                                    #sensitive=DHItemsTree.COLUMN_PARENT,
+                                    #activatable=DHItemsTree.COLUMN_PARENT)
         # Picture
         pbcell = gtk.CellRendererPixbuf()
         pbcell.set_property("stock-size", gtk.ICON_SIZE_SMALL_TOOLBAR)
@@ -724,6 +742,7 @@ class DHItemsTree(DataHandler, EventObject):
         """
 
         treeView.set_enable_search(False)
+        treeView.set_expander_column(column)
 
     def __set_sensitive(self, policy, child, model, pselected):
         """Recursive function init-called from __cb_toggled. Function iterate throught
@@ -843,7 +862,7 @@ class DHItemsTree(DataHandler, EventObject):
             if item.type == openscap.OSCAP.XCCDF_GROUP:
                 img = "emblem-documents"
                 gtk.gdk.threads_enter()
-                item_it = self.model.append(parent, [item.id, title, img, ""+title, color, selected, pselected])
+                item_it = self.model.append(parent, ["group", item.id, title, img, ""+title, color, selected, pselected])
                 self.treeView.queue_draw()
                 gtk.gdk.threads_leave()
                 # .. call recursive
@@ -853,7 +872,7 @@ class DHItemsTree(DataHandler, EventObject):
             elif item.type == openscap.OSCAP.XCCDF_RULE:
                 img = "document-new"
                 gtk.gdk.threads_enter()
-                item_it = self.model.append(parent, [item.id, title, img, ""+title, color, selected, pselected])
+                item_it = self.model.append(parent, ["rule", item.id, title, img, ""+title, color, selected, pselected])
                 self.treeView.queue_draw()
                 gtk.gdk.threads_leave()
             else: logger.warning("Unknown type of %s, should be Rule or Group (got %s)", item.type, item.id)

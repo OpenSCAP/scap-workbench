@@ -458,24 +458,266 @@ class List(EventObject):
         #refilter filters after deleted filter
         return self.filter_add(filters)
 
+class Func:
+    
+    def dialogDel(self, window, selection):
+        """
+        Function Show dialogue if you wont to delete row if yes return iter of row.
+        @param window Widget of window for parent in dialogue.
+        @param selection Selection of TreeView.
+        @return Iter of treViw fi yes else return None
+        """
+        (model,iter) = selection.get_selected()
+        if iter:
+            md = gtk.MessageDialog(window, 
+                gtk.DIALOG_MODAL, gtk.MESSAGE_QUESTION,
+                gtk.BUTTONS_YES_NO, "Do you want delete selected row?")
+            md.set_title("Delete row")
+            result = md.run()
+            md.destroy()
+            if result == gtk.RESPONSE_NO: 
+                return None
+            else: 
+                return iter
+        else:
+            self.dialogInfo("Choose row which you want delete.", window)
 
-class ListEditor(EventObject):
+    def dialogNotSelected(self, window):
+        self.dialogInfo("Choose row which you want edit.", window)
+        
+        
+    def dialogInfo(self, text, window):
+        #window = self.core.main_window
+        md = gtk.MessageDialog(window, 
+                    gtk.DIALOG_MODAL, gtk.MESSAGE_INFO,
+                    gtk.BUTTONS_OK, text)
+        md.set_title("Info")
+        md.run()
+        md.destroy()
+
+    def addColumn(self, name, column, expand=False):
+        #txtcell = abstract.CellRendererTextWrap()
+        txtcell = gtk.CellRendererText()
+        column = gtk.TreeViewColumn(name, txtcell, text=column)
+        column.set_expand(expand)
+        column.set_resizable(True)
+        self.lv.append_column(column)
+
+
+    def set_active_comboBox(self, comboBox, data, column, text = ""):
+        """
+        Function set active row which is same as data in column.
+        """
+        set_c = False
+        model =  comboBox.get_model()
+        iter = model.get_iter_first()
+        while iter:
+            if data == model.get_value(iter, column):
+                comboBox.set_active_iter(iter) 
+                set_c = True
+                break
+            iter = model.iter_next(iter)
+            
+        if not set_c:
+            if text != "":
+                text = "(" + text + ") "
+            logger.error("Invalid data passed to combobox: \"%s\"" % (text))
+            comboBox.set_active(-1)
+        
+    def set_model_to_comboBox(self, combo, model, view_column):
+        cell = gtk.CellRendererText()
+        combo.pack_start(cell, True)
+        combo.add_attribute(cell, 'text', view_column)  
+        combo.set_model(model)
+
+    def controlDate(self, text):
+        """
+        Function concert sting to timestamp (gregorina). 
+        If set text is incorrect format return False and show message.
+        """
+        if text != "":
+            date = text.split("-")
+            if len(date) != 3:
+                self.notifications.append(self.core.notify("The date is in incorrect format. Correct format is YYYY-MM-DD.", 2, msg_id="notify:date_format"))
+                return None
+            try :
+                d = datetime.date(int(date[0]), int(date[1]), int(date[2]))
+            except Exception as ex:
+                self.notifications.append(self.core.notify("The date is in incorrect format. Correct format is YYYY-MM-DD.", 2, msg_id="notify:date_format"))
+                return None
+            try:
+                timestamp = time.mktime(d.timetuple()) 
+            except Exception as ex:
+                self.notifications.append(self.core.notify("The date is out of range.", 2, msg_id="notify:date_format"))
+
+            self.core.notify_destroy("notify:date_format")
+            return timestamp
+        else:
+            self.core.notify_destroy("notify:date_format")
+            return None
+            
+    def controlImpactMetric(self, text, window):
+        """
+        Function control impact metrix
+        """
+        #pattern = re.compile ("^AV:[L,A,N]/AC:[H,M,L]/Au:[M,S,N]/C:[N,P,C]/I:[N,P,C]/A:[N,P,C]$|^E:[U,POC,F,H,ND]/RL:[OF,TF,W,U,ND]/RC:[UC,UR,C,ND]$|^CDP:[N,L,LM,MH,H,ND]/TD:[N,L,M,H,ND]/CR:[L,M,H,ND]/ IR:[L,M,H,ND]/AR:[L,M,H,ND]$",re.IGNORECASE)
+        patternBase = re.compile("^AV:[L,A,N]/AC:[H,M,L]/Au:[M,S,N]/C:[N,P,C]/I:[N,P,C]/A:[N,P,C]$",re.IGNORECASE)
+        patternTempo = re.compile("^E:(U|(POC)|F|H|(ND))/RL:((OF)|(TF)|W|U|(ND))/RC:((UC)|(UR)|C|(ND))$",re.IGNORECASE)
+        patternEnvi = re.compile("^CDP:(N|L|H|(LM)|(MH)|(ND))/TD:(N|L|M|H|(ND))/CR:(L|M|H|(ND))/IR:(L|M|H|(ND))/AR:(L|M|H|(ND))$",re.IGNORECASE)
+        
+        if patternBase.search(text) != None or patternTempo.search(text) != None or patternEnvi.search(text) != None:
+            return True
+        else:
+            error = "Incorrect value of Impact Metrix, correct is:\n\n"
+            error = error + "Metric Value    Description \n\n"
+            error = error + "Base =    AV:[L,A,N]/AC:[H,M,L]/Au:[M,S,N]/C:[N,P,C]/I:[N,P,C]/A:[N,P,C]\n\n"
+            error = error + "Temporal =     E:[U,POC,F,H,ND]/RL:[OF,TF,W,U,ND]/RC:[UC,UR,C,ND]\n\n"
+            error = error + "Environmental =    CDP:[N,L,LM,MH,H,ND]/TD:[N,L,M,H,ND]/CR:[L,M,H,ND]/IR:[L,M,H,ND]/AR:[L,M,H,ND]"
+            
+            self.dialogInfo(error, window)
+            return False
+
+    def controlFloat(self, data, text, window):
+        if data != "" or data != None:
+            try:
+                data = float(data)
+            except:
+                self.dialogInfo("Invalid number in %s." % (text), window)
+                return None
+            return data
+        else:
+            data = float(nan)
+
+class Enum_type:
+    
+    COMBO_COLUMN_DATA = 0
+    COMBO_COLUMN_VIEW = 1
+    COMBO_COLUMN_INFO = 2
+    
+    # 0 is undefined here 
+    combo_model_level = gtk.ListStore(int, str, str)
+    combo_model_level.append([openscap.OSCAP.XCCDF_UNKNOWN, "UNKNOWN", "Unknown."])
+    combo_model_level.append([openscap.OSCAP.XCCDF_INFO, "INFO", "Info."])
+    combo_model_level.append([openscap.OSCAP.XCCDF_LOW, "LOW", "Low."])
+    combo_model_level.append([openscap.OSCAP.XCCDF_MEDIUM, "MEDIUM", "Medium"])
+    combo_model_level.append([openscap.OSCAP.XCCDF_HIGH, "HIGH", "High."])
+    
+    combo_model_strategy = gtk.ListStore(int, str, str)
+    combo_model_strategy.append([openscap.OSCAP.XCCDF_STRATEGY_UNKNOWN, "UNKNOWN", "Strategy not defined."])
+    combo_model_strategy.append([openscap.OSCAP.XCCDF_STRATEGY_CONFIGURE, "CONFIGURE", "Adjust target config or settings."])
+    combo_model_strategy.append([openscap.OSCAP.XCCDF_STRATEGY_DISABLE, "DISABLE", "Turn off or deinstall something."])
+    combo_model_strategy.append([openscap.OSCAP.XCCDF_STRATEGY_ENABLE, "ENABLE", "Turn on or install something."])
+    combo_model_strategy.append([openscap.OSCAP.XCCDF_STRATEGY_PATCH, "PATCH", "Apply a patch, hotfix, or update."])
+    combo_model_strategy.append([openscap.OSCAP.XCCDF_STRATEGY_POLICY, "POLICY", "Remediation by changing policies/procedures."])
+    combo_model_strategy.append([openscap.OSCAP.XCCDF_STRATEGY_RESTRICT, "RESTRICT", "Adjust permissions or ACLs."])
+    combo_model_strategy.append([openscap.OSCAP.XCCDF_STRATEGY_UPDATE, "UPDATE", "Install upgrade or update the system"])
+    combo_model_strategy.append([openscap.OSCAP.XCCDF_STRATEGY_COMBINATION, "COMBINATION", "Combo of two or more of the above."])
+    
+    combo_model_status = gtk.ListStore(int, str, str)
+    combo_model_status.append([openscap.OSCAP.XCCDF_STATUS_NOT_SPECIFIED, "NOT SPECIFIED", "Status was not specified by benchmark."])
+    combo_model_status.append([openscap.OSCAP.XCCDF_STATUS_ACCEPTED, "ACCEPTED", "Accepted."])
+    combo_model_status.append([openscap.OSCAP.XCCDF_STATUS_DEPRECATED, "DEPRECATED", "Deprecated."])
+    combo_model_status.append([openscap.OSCAP.XCCDF_STATUS_DRAFT, "DRAFT ", "Draft item."])
+    combo_model_status.append([openscap.OSCAP.XCCDF_STATUS_INCOMPLETE, "INCOMPLETE", "The item is not complete. "])
+    combo_model_status.append([openscap.OSCAP.XCCDF_STATUS_INTERIM, "INTERIM", "Interim."])
+    
+    combo_model_warning = gtk.ListStore(int, str, str)
+    combo_model_warning.append([0, "UNKNOWN", "Unknown."])
+    combo_model_warning.append([openscap.OSCAP.XCCDF_WARNING_GENERAL, "GENERAL", "General-purpose warning."])
+    combo_model_warning.append([openscap.OSCAP.XCCDF_WARNING_FUNCTIONALITY, "FUNCTIONALITY", "Warning about possible impacts to functionality."])
+    combo_model_warning.append([openscap.OSCAP.XCCDF_WARNING_PERFORMANCE, "PERFORMANCE", "  Warning about changes to target system performance."])
+    combo_model_warning.append([openscap.OSCAP.XCCDF_WARNING_HARDWARE, "HARDWARE", "Warning about hardware restrictions or possible impacts to hardware."])
+    combo_model_warning.append([openscap.OSCAP.XCCDF_WARNING_LEGAL, "LEGAL", "Warning about legal implications."])
+    combo_model_warning.append([openscap.OSCAP.XCCDF_WARNING_REGULATORY, "REGULATORY", "Warning about regulatory obligations."])
+    combo_model_warning.append([openscap.OSCAP.XCCDF_WARNING_MANAGEMENT, "MANAGEMENT", "Warning about impacts to the mgmt or administration of the target system."])
+    combo_model_warning.append([openscap.OSCAP.XCCDF_WARNING_AUDIT, "AUDIT", "Warning about impacts to audit or logging."])
+    combo_model_warning.append([openscap.OSCAP.XCCDF_WARNING_DEPENDENCY, "DEPENDENCY", "Warning about dependencies between this Rule and other parts of the target system."])
+
+    combo_model_role = gtk.ListStore(int, str, str)
+    combo_model_role.append([openscap.OSCAP.XCCDF_ROLE_FULL, "FULL", "Check the rule and let the result contriburte to the score and appear in reports.."])
+    combo_model_role.append([openscap.OSCAP.XCCDF_ROLE_UNSCORED, "UNSCORED", "Check the rule and include the result in reports, but do not include it into score computations"])
+    combo_model_role.append([openscap.OSCAP.XCCDF_ROLE_UNCHECKED, "UNCHECKED", "Don't check the rule, result will be XCCDF_RESULT_UNKNOWN."])
+
+    combo_model_type = gtk.ListStore(int, str, str)
+    combo_model_type.append([openscap.OSCAP.XCCDF_TYPE_NUMBER, "NUMBER", ""])
+    combo_model_type.append([openscap.OSCAP.XCCDF_TYPE_STRING, "STRING", ""])
+    combo_model_type.append([openscap.OSCAP.XCCDF_TYPE_BOOLEAN, "BOOLEAN", ""])
+
+    combo_model_operator_number = gtk.ListStore(int, str, str)
+    combo_model_operator_number.append([openscap.OSCAP.XCCDF_OPERATOR_EQUALS, "EQUALS", "Equality"])
+    combo_model_operator_number.append([openscap.OSCAP.XCCDF_OPERATOR_NOT_EQUAL, "NOT EQUAL", "Inequality"])
+    combo_model_operator_number.append([openscap.OSCAP.XCCDF_OPERATOR_GREATER, "GREATER", "Greater than"])
+    combo_model_operator_number.append([openscap.OSCAP.XCCDF_OPERATOR_GREATER_EQUAL, "GREATER OR EQUAL", "Greater than or equal."])
+    combo_model_operator_number.append([openscap.OSCAP.XCCDF_OPERATOR_LESS , "LESS", "Less than."])
+    combo_model_operator_number.append([openscap.OSCAP.XCCDF_OPERATOR_LESS_EQUAL, "LESS OR EQUAL", "Less than or equal."])
+
+    combo_model_operator_bool = gtk.ListStore(int, str, str)
+    combo_model_operator_bool.append([openscap.OSCAP.XCCDF_OPERATOR_EQUALS, "EQUALS", "Equality"])
+    combo_model_operator_bool.append([openscap.OSCAP.XCCDF_OPERATOR_NOT_EQUAL, "NOT EQUAL", "Inequality"])
+
+    combo_model_operator_string = gtk.ListStore(int, str, str)
+    combo_model_operator_string.append([openscap.OSCAP.XCCDF_OPERATOR_EQUALS, "EQUALS", "Equality"])
+    combo_model_operator_string.append([openscap.OSCAP.XCCDF_OPERATOR_NOT_EQUAL, "NOT EQUAL", "Inequality"])
+    combo_model_operator_string.append([openscap.OSCAP.XCCDF_OPERATOR_PATTERN_MATCH, "PATTERN_MATCH", "Match a regular expression."])
+
+
+class ListEditor(EventObject, Func, Enum_type):
     """ Abstract class for implementing all edit formulars that appear as list/tree view and 
     has add, edit and del buttons """
+
+    TEXT_COLUMN = 1
 
     def __init__(self, id, core, widget=None, model=None):
         self.id = id
         self.core = core
-        core.register(id, self)
+        EventObject.__init__(self, core)
+        self.core.register(self.id, self)
 
         self.widget         = widget
         self.__treeView     = widget
         self.__model        = model
-        self.__addButton    = None
-        self.__editButton   = None
-        self.__delButton    = None
+        self.__addBtn       = None
+        self.__editBtn      = None
+        self.__delBtn       = None
+        self.__previewBtn   = None
 
         if model: self.__treeView.set_model(model)
+
+    def append_column(self, column):
+        """For ControlEditWindow, remove after
+        """
+        return self.widget.append_column(column)
+
+    def get_model(self):
+        """For ControlEditWindow, remove after
+        """
+        return self.__model
+
+    def get_selection(self):
+        """For ControlEditWindow, remove after
+        """
+        return self.widget.get_selection()
+
+    def cb_edit_row(self, widget=None, values=None):
+        """From ControlEditWindow
+        """
+        (model,iter) = self.get_selection().get_selected()
+        if iter:
+            window = EditDialogWindow(self.item, self.core, values, new=False)
+        else:
+            self.dialogNotSelected(self.core.main_window)
+
+    def cb_add_row(self, widget=None, values=None):
+        """From ControlEditWindow
+        """
+        window = EditDialogWindow(self.item, self.core, values, new=True)
+
+    def cb_del_row(self, widget=None, values=None):
+        """From ControlEditWindow
+        """
+        iter = self.dialogDel(self.core.main_window, self.get_selection())
+        if iter != None:
+            values["cb"](self.item, self.get_model(), iter, None, None, True)
 
     def set_model(self, model):
         self.__treeView.set_model(model)
@@ -486,6 +728,45 @@ class ListEditor(EventObject):
     def append(self, item):
         self.__model.append(item)
 
+    def __preview_dialog_destroy(self, widget):
+        self.preview_dialog.destroy()
+
+    def preview(self, widget):
+
+        selection = self.widget.get_selection()
+        if selection != None: 
+            (model, iter) = selection.get_selected()
+            if not iter: return False
+        else: return False
+
+        builder = gtk.Builder()
+        builder.add_from_file("/usr/share/scap-workbench/edit_item.glade")
+        self.preview_dialog = builder.get_object("dialog:description_preview")
+        self.preview_scw = builder.get_object("dialog:description_preview:scw")
+        builder.get_object("dialog:description_preview:btn_ok").connect("clicked", self.__preview_dialog_destroy)
+        # Get the background color from window and destroy it
+        window = gtk.Window()
+        window.realize()
+        bg_color = window.get_style().bg[gtk.STATE_NORMAL]
+        window.destroy()
+
+        description = HtmlTextView()
+        description.set_wrap_mode(gtk.WRAP_WORD)
+        description.modify_base(gtk.STATE_NORMAL, bg_color)
+        self.preview_scw.add(description)
+
+        desc = self.__model.get_value(iter, self.TEXT_COLUMN) or ""
+        desc = desc.replace("xhtml:","")
+        desc = desc.replace("xmlns:", "")
+        if desc == "": desc = "No description"
+        desc = "<body>"+desc+"</body>"
+        try:
+            description.display_html(desc)
+        except Exception as err:
+            logger.error("Exception: %s", err)
+
+        self.preview_dialog.set_transient_for(self.core.main_window)
+        self.preview_dialog.show_all()
 
 class CellRendererTextWrap(gtk.CellRendererText):
     """ pokus asi nebude pouzito necham najindy pozeji smazu"""
@@ -673,208 +954,6 @@ class EnterList(EventObject):
     def __cb_leave_row(self,widget, event):
         pass
 
-
-class Enum_type:
-    
-    COMBO_COLUMN_DATA = 0
-    COMBO_COLUMN_VIEW = 1
-    COMBO_COLUMN_INFO = 2
-    
-    # 0 is undefined here 
-    combo_model_level = gtk.ListStore(int, str, str)
-    combo_model_level.append([openscap.OSCAP.XCCDF_UNKNOWN, "UNKNOWN", "Unknown."])
-    combo_model_level.append([openscap.OSCAP.XCCDF_INFO, "INFO", "Info."])
-    combo_model_level.append([openscap.OSCAP.XCCDF_LOW, "LOW", "Low."])
-    combo_model_level.append([openscap.OSCAP.XCCDF_MEDIUM, "MEDIUM", "Medium"])
-    combo_model_level.append([openscap.OSCAP.XCCDF_HIGH, "HIGH", "High."])
-    
-    combo_model_strategy = gtk.ListStore(int, str, str)
-    combo_model_strategy.append([openscap.OSCAP.XCCDF_STRATEGY_UNKNOWN, "UNKNOWN", "Strategy not defined."])
-    combo_model_strategy.append([openscap.OSCAP.XCCDF_STRATEGY_CONFIGURE, "CONFIGURE", "Adjust target config or settings."])
-    combo_model_strategy.append([openscap.OSCAP.XCCDF_STRATEGY_DISABLE, "DISABLE", "Turn off or deinstall something."])
-    combo_model_strategy.append([openscap.OSCAP.XCCDF_STRATEGY_ENABLE, "ENABLE", "Turn on or install something."])
-    combo_model_strategy.append([openscap.OSCAP.XCCDF_STRATEGY_PATCH, "PATCH", "Apply a patch, hotfix, or update."])
-    combo_model_strategy.append([openscap.OSCAP.XCCDF_STRATEGY_POLICY, "POLICY", "Remediation by changing policies/procedures."])
-    combo_model_strategy.append([openscap.OSCAP.XCCDF_STRATEGY_RESTRICT, "RESTRICT", "Adjust permissions or ACLs."])
-    combo_model_strategy.append([openscap.OSCAP.XCCDF_STRATEGY_UPDATE, "UPDATE", "Install upgrade or update the system"])
-    combo_model_strategy.append([openscap.OSCAP.XCCDF_STRATEGY_COMBINATION, "COMBINATION", "Combo of two or more of the above."])
-    
-    combo_model_status = gtk.ListStore(int, str, str)
-    combo_model_status.append([openscap.OSCAP.XCCDF_STATUS_NOT_SPECIFIED, "NOT SPECIFIED", "Status was not specified by benchmark."])
-    combo_model_status.append([openscap.OSCAP.XCCDF_STATUS_ACCEPTED, "ACCEPTED", "Accepted."])
-    combo_model_status.append([openscap.OSCAP.XCCDF_STATUS_DEPRECATED, "DEPRECATED", "Deprecated."])
-    combo_model_status.append([openscap.OSCAP.XCCDF_STATUS_DRAFT, "DRAFT ", "Draft item."])
-    combo_model_status.append([openscap.OSCAP.XCCDF_STATUS_INCOMPLETE, "INCOMPLETE", "The item is not complete. "])
-    combo_model_status.append([openscap.OSCAP.XCCDF_STATUS_INTERIM, "INTERIM", "Interim."])
-    
-    combo_model_warning = gtk.ListStore(int, str, str)
-    combo_model_warning.append([0, "UNKNOWN", "Unknown."])
-    combo_model_warning.append([openscap.OSCAP.XCCDF_WARNING_GENERAL, "GENERAL", "General-purpose warning."])
-    combo_model_warning.append([openscap.OSCAP.XCCDF_WARNING_FUNCTIONALITY, "FUNCTIONALITY", "Warning about possible impacts to functionality."])
-    combo_model_warning.append([openscap.OSCAP.XCCDF_WARNING_PERFORMANCE, "PERFORMANCE", "  Warning about changes to target system performance."])
-    combo_model_warning.append([openscap.OSCAP.XCCDF_WARNING_HARDWARE, "HARDWARE", "Warning about hardware restrictions or possible impacts to hardware."])
-    combo_model_warning.append([openscap.OSCAP.XCCDF_WARNING_LEGAL, "LEGAL", "Warning about legal implications."])
-    combo_model_warning.append([openscap.OSCAP.XCCDF_WARNING_REGULATORY, "REGULATORY", "Warning about regulatory obligations."])
-    combo_model_warning.append([openscap.OSCAP.XCCDF_WARNING_MANAGEMENT, "MANAGEMENT", "Warning about impacts to the mgmt or administration of the target system."])
-    combo_model_warning.append([openscap.OSCAP.XCCDF_WARNING_AUDIT, "AUDIT", "Warning about impacts to audit or logging."])
-    combo_model_warning.append([openscap.OSCAP.XCCDF_WARNING_DEPENDENCY, "DEPENDENCY", "Warning about dependencies between this Rule and other parts of the target system."])
-
-    combo_model_role = gtk.ListStore(int, str, str)
-    combo_model_role.append([openscap.OSCAP.XCCDF_ROLE_FULL, "FULL", "Check the rule and let the result contriburte to the score and appear in reports.."])
-    combo_model_role.append([openscap.OSCAP.XCCDF_ROLE_UNSCORED, "UNSCORED", "Check the rule and include the result in reports, but do not include it into score computations"])
-    combo_model_role.append([openscap.OSCAP.XCCDF_ROLE_UNCHECKED, "UNCHECKED", "Don't check the rule, result will be XCCDF_RESULT_UNKNOWN."])
-
-    combo_model_type = gtk.ListStore(int, str, str)
-    combo_model_type.append([openscap.OSCAP.XCCDF_TYPE_NUMBER, "NUMBER", ""])
-    combo_model_type.append([openscap.OSCAP.XCCDF_TYPE_STRING, "STRING", ""])
-    combo_model_type.append([openscap.OSCAP.XCCDF_TYPE_BOOLEAN, "BOOLEAN", ""])
-
-    combo_model_operator_number = gtk.ListStore(int, str, str)
-    combo_model_operator_number.append([openscap.OSCAP.XCCDF_OPERATOR_EQUALS, "EQUALS", "Equality"])
-    combo_model_operator_number.append([openscap.OSCAP.XCCDF_OPERATOR_NOT_EQUAL, "NOT EQUAL", "Inequality"])
-    combo_model_operator_number.append([openscap.OSCAP.XCCDF_OPERATOR_GREATER, "GREATER", "Greater than"])
-    combo_model_operator_number.append([openscap.OSCAP.XCCDF_OPERATOR_GREATER_EQUAL, "GREATER OR EQUAL", "Greater than or equal."])
-    combo_model_operator_number.append([openscap.OSCAP.XCCDF_OPERATOR_LESS , "LESS", "Less than."])
-    combo_model_operator_number.append([openscap.OSCAP.XCCDF_OPERATOR_LESS_EQUAL, "LESS OR EQUAL", "Less than or equal."])
-
-    combo_model_operator_bool = gtk.ListStore(int, str, str)
-    combo_model_operator_bool.append([openscap.OSCAP.XCCDF_OPERATOR_EQUALS, "EQUALS", "Equality"])
-    combo_model_operator_bool.append([openscap.OSCAP.XCCDF_OPERATOR_NOT_EQUAL, "NOT EQUAL", "Inequality"])
-
-    combo_model_operator_string = gtk.ListStore(int, str, str)
-    combo_model_operator_string.append([openscap.OSCAP.XCCDF_OPERATOR_EQUALS, "EQUALS", "Equality"])
-    combo_model_operator_string.append([openscap.OSCAP.XCCDF_OPERATOR_NOT_EQUAL, "NOT EQUAL", "Inequality"])
-    combo_model_operator_string.append([openscap.OSCAP.XCCDF_OPERATOR_PATTERN_MATCH, "PATTERN_MATCH", "Match a regular expression."])
-
-class Func:
-    
-    def dialogDel(self, window, selection):
-        """
-        Function Show dialogue if you wont to delete row if yes return iter of row.
-        @param window Widget of window for parent in dialogue.
-        @param selection Selection of TreeView.
-        @return Iter of treViw fi yes else return None
-        """
-        (model,iter) = selection.get_selected()
-        if iter:
-            md = gtk.MessageDialog(window, 
-                gtk.DIALOG_MODAL, gtk.MESSAGE_QUESTION,
-                gtk.BUTTONS_YES_NO, "Do you want delete selected row?")
-            md.set_title("Delete row")
-            result = md.run()
-            md.destroy()
-            if result == gtk.RESPONSE_NO: 
-                return None
-            else: 
-                return iter
-        else:
-            self.dialogInfo("Choose row which you want delete.", window)
-
-    def dialogNotSelected(self, window):
-        self.dialogInfo("Choose row which you want edit.", window)
-        
-        
-    def dialogInfo(self, text, window):
-        #window = self.core.main_window
-        md = gtk.MessageDialog(window, 
-                    gtk.DIALOG_MODAL, gtk.MESSAGE_INFO,
-                    gtk.BUTTONS_OK, text)
-        md.set_title("Info")
-        md.run()
-        md.destroy()
-
-    def addColumn(self, name, column, expand=False):
-        #txtcell = abstract.CellRendererTextWrap()
-        txtcell = gtk.CellRendererText()
-        column = gtk.TreeViewColumn(name, txtcell, text=column)
-        column.set_expand(expand)
-        column.set_resizable(True)
-        self.lv.append_column(column)
-
-
-    def set_active_comboBox(self, comboBox, data, column, text = ""):
-        """
-        Function set active row which is same as data in column.
-        """
-        set_c = False
-        model =  comboBox.get_model()
-        iter = model.get_iter_first()
-        while iter:
-            if data == model.get_value(iter, column):
-                comboBox.set_active_iter(iter) 
-                set_c = True
-                break
-            iter = model.iter_next(iter)
-            
-        if not set_c:
-            if text != "":
-                text = "(" + text + ") "
-            logger.error("Invalid data passed to combobox: \"%s\"" % (text))
-            comboBox.set_active(-1)
-        
-    def set_model_to_comboBox(self, combo, model, view_column):
-        cell = gtk.CellRendererText()
-        combo.pack_start(cell, True)
-        combo.add_attribute(cell, 'text', view_column)  
-        combo.set_model(model)
-
-    def controlDate(self, text):
-        """
-        Function concert sting to timestamp (gregorina). 
-        If set text is incorrect format return False and show message.
-        """
-        if text != "":
-            date = text.split("-")
-            if len(date) != 3:
-                self.notifications.append(self.core.notify("The date is in incorrect format. Correct format is YYYY-MM-DD.", 2, msg_id="notify:date_format"))
-                return None
-            try :
-                d = datetime.date(int(date[0]), int(date[1]), int(date[2]))
-            except Exception as ex:
-                self.notifications.append(self.core.notify("The date is in incorrect format. Correct format is YYYY-MM-DD.", 2, msg_id="notify:date_format"))
-                return None
-            try:
-                timestamp = time.mktime(d.timetuple()) 
-            except Exception as ex:
-                self.notifications.append(self.core.notify("The date is out of range.", 2, msg_id="notify:date_format"))
-
-            self.core.notify_destroy("notify:date_format")
-            return timestamp
-        else:
-            self.core.notify_destroy("notify:date_format")
-            return None
-            
-    def controlImpactMetric(self, text, window):
-        """
-        Function control impact metrix
-        """
-        #pattern = re.compile ("^AV:[L,A,N]/AC:[H,M,L]/Au:[M,S,N]/C:[N,P,C]/I:[N,P,C]/A:[N,P,C]$|^E:[U,POC,F,H,ND]/RL:[OF,TF,W,U,ND]/RC:[UC,UR,C,ND]$|^CDP:[N,L,LM,MH,H,ND]/TD:[N,L,M,H,ND]/CR:[L,M,H,ND]/ IR:[L,M,H,ND]/AR:[L,M,H,ND]$",re.IGNORECASE)
-        patternBase = re.compile("^AV:[L,A,N]/AC:[H,M,L]/Au:[M,S,N]/C:[N,P,C]/I:[N,P,C]/A:[N,P,C]$",re.IGNORECASE)
-        patternTempo = re.compile("^E:(U|(POC)|F|H|(ND))/RL:((OF)|(TF)|W|U|(ND))/RC:((UC)|(UR)|C|(ND))$",re.IGNORECASE)
-        patternEnvi = re.compile("^CDP:(N|L|H|(LM)|(MH)|(ND))/TD:(N|L|M|H|(ND))/CR:(L|M|H|(ND))/IR:(L|M|H|(ND))/AR:(L|M|H|(ND))$",re.IGNORECASE)
-        
-        if patternBase.search(text) != None or patternTempo.search(text) != None or patternEnvi.search(text) != None:
-            return True
-        else:
-            error = "Incorrect value of Impact Metrix, correct is:\n\n"
-            error = error + "Metric Value    Description \n\n"
-            error = error + "Base =    AV:[L,A,N]/AC:[H,M,L]/Au:[M,S,N]/C:[N,P,C]/I:[N,P,C]/A:[N,P,C]\n\n"
-            error = error + "Temporal =     E:[U,POC,F,H,ND]/RL:[OF,TF,W,U,ND]/RC:[UC,UR,C,ND]\n\n"
-            error = error + "Environmental =    CDP:[N,L,LM,MH,H,ND]/TD:[N,L,M,H,ND]/CR:[L,M,H,ND]/IR:[L,M,H,ND]/AR:[L,M,H,ND]"
-            
-            self.dialogInfo(error, window)
-            return False
-
-    def controlFloat(self, data, text, window):
-        if data != "" or data != None:
-            try:
-                data = float(data)
-            except:
-                self.dialogInfo("Invalid number in %s." % (text), window)
-                return None
-            return data
-        else:
-            data = float(nan)
 
 class ControlEditWindow(Func, Enum_type):
     

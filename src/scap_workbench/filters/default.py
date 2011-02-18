@@ -17,7 +17,7 @@ class TailoringFilter1(filter.Filter):
 
     def __search_func(self, model, iter, params):
         pattern = re.compile("rule", re.IGNORECASE)
-        return pattern.search(model.get_value(iter, 3), 0, 4) != None
+        return pattern.search(model.get_value(iter, 0), 0, 4) != None
 
 class TailoringFilter2(filter.Filter):
 
@@ -35,7 +35,7 @@ class TailoringFilter2(filter.Filter):
 
     def __search_func(self, model, iter, params):
         pattern = re.compile("rule", re.IGNORECASE)
-        return pattern.search(model.get_value(iter, 3), 0, 4) != None
+        return pattern.search(model.get_value(iter, 0), 0, 4) != None
 
 
 class TailoringFilter3(filter.Filter):
@@ -54,7 +54,7 @@ class TailoringFilter3(filter.Filter):
 
     def __search_func(self, model, iter, params):
         pattern = re.compile("rule", re.IGNORECASE)
-        return pattern.search(model.get_value(iter, 3), 0, 4) != None
+        return pattern.search(model.get_value(iter, 0), 0, 4) != None
 
 
 class ScanFilter1(filter.Filter):

@@ -4518,7 +4518,6 @@
                                                     <child>
                                                       <object class="GtkButton" id="edit:profile:btn_preview">
                                                         <property name="label" translatable="yes">Preview</property>
-                                                        <property name="visible">True</property>
                                                         <property name="can_focus">True</property>
                                                         <property name="receives_default">True</property>
                                                         <property name="image">edit:profile:btn_preview:img</property>

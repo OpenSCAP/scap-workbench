@@ -205,7 +205,7 @@ class ItemList(abstract.List):
         if selection != None: 
             (model, iter) = selection.get_selected( )
             if iter: 
-                self.core.selected_item = model.get_value(iter, 0)
+                self.core.selected_item = model.get_value(iter, commands.DHItemsTree.COLUMN_ID)
                 #self.core.selected_item_edit = model.get_value(iter, 0)
             else:
                 self.core.selected_item = None
@@ -253,6 +253,7 @@ class MenuButtonEditXCCDF(abstract.MenuButton, abstract.ControlEditWindow):
         self.builder.get_object("edit:xccdf:btn_descriptions_add").set_sensitive(False)
         self.builder.get_object("edit:xccdf:btn_descriptions_edit").set_sensitive(False)
         self.builder.get_object("edit:xccdf:btn_descriptions_del").set_sensitive(False)
+        self.builder.get_object("edit:xccdf:btn_descriptions_preview").connect("clicked", self.tv_descriptions.preview)
 
         self.tv_warnings = abstract.ListEditor("gui:edit:xccdf:warnings", self.core, widget=self.builder.get_object("edit:xccdf:warnings"), model=gtk.ListStore(str, str))
         self.tv_warnings.widget.append_column(gtk.TreeViewColumn("Warning", gtk.CellRendererText(), text=0))
@@ -512,13 +513,12 @@ class MenuButtonEditItems(abstract.MenuButton, abstract.ControlEditWindow):
         self.progress = self.builder.get_object("edit:progress")
         self.progress.hide()
         self.filter = filter.ItemFilter(self.core, self.builder,"edit:box_filter", "gui:btn:edit:filter")
+        self.filter.set_active(False)
         self.tw_items = self.builder.get_object("edit:tw_items")
         titles = self.data_model.get_benchmark_titles()
         self.list_item = ItemList(self.tw_items, self.core, builder, self.progress, self.filter)
         self.ref_model = self.list_item.get_TreeView().get_model() # original model (not filtered)
         
-        self.filter.expander.cb_changed()
-
         # set signals
         self.add_sender(self.id, "update")
         
@@ -929,54 +929,52 @@ class EditTitle(commands.DHEditItems,abstract.ControlEditWindow):
             for data in item.title:
                 self.model.append([data.lang, (" ".join(data.text.split())), data])
 
-class EditDescription(commands.DHEditItems,abstract.ControlEditWindow):
-
-    COLUMN_LAN = 0
-    COLUMN_DES = 1
-    COLUMN_OBJECTS = 2
+class EditDescription(abstract.ListEditor):
 
     def __init__(self, core, builder):
 
         #set listView and model
-        lv = builder.get_object("edit:general:lv_description")
-        model = gtk.ListStore(str, str, gobject.TYPE_PYOBJECT)
-        lv.set_model(model)
+        self.core = core
+        self.builder = builder
+        self.data_model = commands.DHEditItems(core)
+        abstract.ListEditor.__init__(self, "gui:edit:items:general:description", self.core, 
+                               widget=self.builder.get_object("edit:general:lv_description"), model=gtk.ListStore(str, str, gobject.TYPE_PYOBJECT))
+        self.builder.get_object("edit:general:btn_description_preview").connect("clicked", self.preview)
         
         #information for new/edit dialog
         values = {
                         "name_dialog":  "Edit description",
-                        "view":         lv,
-                        "cb":           self.DHEditDescription,
+                        "view":         self,
+                        "cb":           self.data_model.DHEditDescription,
                         "textEntry":    {"name":    "Language",
-                                        "column":   self.COLUMN_LAN,
+                                        "column":   0,
                                         "empty":    False, 
                                         "unique":   True},
                         "textView":     {"name":    "Description",
-                                        "column":   self.COLUMN_DES,
+                                        "column":   1,
                                         "empty":    False, 
                                         "unique":   False},
                         }
 
-        abstract.ControlEditWindow.__init__(self, core, lv, values)
         btn_add = builder.get_object("edit:general:btn_description_add")
         btn_edit = builder.get_object("edit:general:btn_description_edit")
         btn_del = builder.get_object("edit:general:btn_description_del")
         
         # set callBack
-        btn_add.connect("clicked", self.cb_add_row)
-        btn_edit.connect("clicked", self.cb_edit_row)
-        btn_del.connect("clicked", self.cb_del_row)
+        btn_add.connect("clicked", self.cb_add_row, values)
+        btn_edit.connect("clicked", self.cb_edit_row, values)
+        btn_del.connect("clicked", self.cb_del_row, values)
 
-        self.addColumn("Language",self.COLUMN_LAN)
-        self.addColumn("Description",self.COLUMN_DES)
+        self.widget.append_column(gtk.TreeViewColumn("Language", gtk.CellRendererText(), text=0))
+        self.widget.append_column(gtk.TreeViewColumn("Description", gtk.CellRendererText(), text=1))
 
     def fill(self, item):
 
         self.item = item
-        self.model.clear()
+        self.get_model().clear()
         if item:
             for data in item.description:
-                self.model.append([data.lang, re.sub("[\t ]+" , " ", data.text).strip(), data])
+                self.append([data.lang, re.sub("[\t ]+" , " ", data.text).strip(), data])
 
 
 class EditWarning(commands.DHEditItems,abstract.ControlEditWindow):
@@ -1651,52 +1649,52 @@ class EditValueTitle(commands.DHEditItems,abstract.ControlEditWindow):
             for data in value.title:
                 self.model.append([data.lang, (" ".join(data.text.split())), data])
                 
-class EditValueDescription(commands.DHEditItems,abstract.ControlEditWindow):
+class EditValueDescription(abstract.ListEditor):
 
-    COLUMN_LAN = 0
-    COLUMN_TEXT = 1
-    COLUMN_OBJECT = 2
+    TEXT_COLUMN = 1
 
     def __init__(self, core, builder):
         
-        #set listView and model
-        lv = builder.get_object("edit:values:lv_description")
-        model = gtk.ListStore(str, str, gobject.TYPE_PYOBJECT)
-        lv.set_model(model)
+        self.core = core
+        self.builder = builder
+        self.data_model = commands.DHEditItems(core)
+        abstract.ListEditor.__init__(self, "gui:edit:items:values:description", self.core, 
+                                     widget=self.builder.get_object("edit:values:lv_description"), model=gtk.ListStore(str, str, gobject.TYPE_PYOBJECT))
+        self.builder.get_object("edit:values:btn_description_preview").connect("clicked", self.preview)
 
         #information for new/edit dialog
         values = {
                         "name_dialog":  "Value description",
-                        "view":         lv,
-                        "cb":           self.DHEditValueDescription,
+                        "view":         self,
+                        "cb":           self.data_model.DHEditValueDescription,
                         "textEntry":    {"name":    "Language",
-                                        "column":   self.COLUMN_LAN,
+                                        "column":   0,
                                         "empty":    False, 
                                         "unique":   True},
                         "textView":     {"name":    "Value Description",
-                                        "column":   self.COLUMN_TEXT,
+                                        "column":   self.TEXT_COLUMN,
                                         "empty":    False, 
                                         "unique":   False}
                         }
-        abstract.ControlEditWindow.__init__(self, core, lv, values)
+
         btn_add = builder.get_object("edit:values:btn_description_add")
         btn_edit = builder.get_object("edit:values:btn_description_edit")
         btn_del = builder.get_object("edit:values:btn_description_del")
         
         # set callBack to btn
-        btn_add.connect("clicked", self.cb_add_row)
-        btn_edit.connect("clicked", self.cb_edit_row)
-        btn_del.connect("clicked", self.cb_del_row)
+        btn_add.connect("clicked", self.cb_add_row, values)
+        btn_edit.connect("clicked", self.cb_edit_row, values)
+        btn_del.connect("clicked", self.cb_del_row, values)
         
-        self.addColumn("Language",self.COLUMN_LAN)
-        self.addColumn("Value description",self.COLUMN_TEXT)
+        self.widget.append_column(gtk.TreeViewColumn("Language", gtk.CellRendererText(), text=0))
+        self.widget.append_column(gtk.TreeViewColumn("Description", gtk.CellRendererText(), text=1))
         
     def fill(self, value):
         self.item = value
-        self.model.clear()
+        self.clear()
         if value:
             for data in value.description:
-                self.model.append([data.lang, data.text, data])
+                self.append([data.lang, data.text, data])
 
 class EditValueQuestion(commands.DHEditItems,abstract.ControlEditWindow):
 
@@ -1831,63 +1829,57 @@ class EditValueValue(commands.DHEditItems, abstract.ControlEditWindow):
 
 #======================================= EDIT FIXTEXT ==========================================
 
-class EditFixtext(commands.DHEditItems, abstract.ControlEditWindow, EventObject):
+class EditFixtext(abstract.ListEditor):
     
-    COLUMN_TEXT = 0
-    COLUMN_OBJECT = 1
-    
+    TEXT_COLUMN = 0
+
     def __init__(self, core, builder):
         
-        self.id = "gui:btn:menu:edit:fixtext"
-        self.builder = builder
         self.core = core
+        self.builder = builder
+        self.data_model = commands.DHEditItems(core)
+        abstract.ListEditor.__init__(self, "gui:edit:items:operations:fixtext", self.core, widget=self.builder.get_object("edit:operations:lv_fixtext"), model=gtk.ListStore(str, gobject.TYPE_PYOBJECT))
+        self.builder.get_object("edit:operations:btn_fixtext_preview").connect("clicked", self.preview)
         
-        EventObject.__init__(self, core)
-        self.core.register(self.id, self)
+        # Register Event Object
         self.add_sender(self.id, "item_changed")
-        
         self.edit_fixtext_option = EditFixtextOption(core, builder)
-        self.add_receiver("gui:btn:menu:edit:fixtext", "item_changed", self.__update)
+        self.add_receiver("gui:edit:items:operations:fixtext", "item_changed", self.__update)
         
-        self.model = gtk.ListStore(str, gobject.TYPE_PYOBJECT)
-        lv = self.builder.get_object("edit:operations:lv_fixtext")
-        lv.set_model(self.model)
-        
-                #information for new/edit dialog
+        #information for new/edit dialog
         values = {
                     "name_dialog":  "Fixtext",
-                    "view":         lv,
-                    "cb":           self.DHEditFixtextText,
+                    "view":         self,
+                    "cb":           self.data_model.DHEditFixtextText,
                     "textView":     {"name":    "Value",
-                                    "column":   self.COLUMN_TEXT,
+                                    "column":   0,
                                     "empty":    False, 
                                     "unique":   False}
                         }
-        abstract.ControlEditWindow.__init__(self, core, lv, values)
         btn_add = builder.get_object("edit:operations:btn_fixtext_add")
         btn_edit = builder.get_object("edit:operations:btn_fixtext_edit")
         btn_del = builder.get_object("edit:operations:btn_fixtext_del")
         
         # set callBack to btn
-        btn_add.connect("clicked", self.cb_add_row)
-        btn_edit.connect("clicked", self.cb_edit_row)
-        btn_del.connect("clicked", self.cb_del_row)
+        btn_add.connect("clicked", self.cb_add_row, values)
+        btn_edit.connect("clicked", self.cb_edit_row, values)
+        btn_del.connect("clicked", self.cb_del_row, values)
         
-        self.selection.connect("changed", self.__cb_item_changed, lv)
+        self.widget.get_selection().connect("changed", self.__cb_item_changed, self.widget)
         
         self.box_main = self.builder.get_object("edit:operations:fixtext:box")
         
-        self.addColumn("Text",self.COLUMN_TEXT)
+        self.widget.append_column(gtk.TreeViewColumn("Text", gtk.CellRendererText(), text=0))
         
     def fill(self, item):
-        self.model.clear()
+        self.clear()
         self.emit("item_changed")
         if item:
             self.item = item
             rule = item.to_rule()
             if rule.fixtexts:
-                for object in rule.fixtexts:
-                    self.model.append([re.sub("[\t ]+" , " ", object.text.text).strip(), object])
+                for obj in rule.fixtexts:
+                    self.append([re.sub("[\t ]+" , " ", obj.text.text).strip(), obj])
         else:
             self.item = None
     
@@ -1899,10 +1891,10 @@ class EditFixtext(commands.DHEditItems, abstract.ControlEditWindow, EventObject)
         treeView.columns_autosize()
     
     def __update(self):
-        (model,iter) = self.selection.get_selected()
+        (model,iter) = self.get_selection().get_selected()
  
         if iter:
-            self.edit_fixtext_option.fill(model.get_value(iter,self.COLUMN_OBJECT))
+            self.edit_fixtext_option.fill(model.get_value(iter, 1))
         else:
             self.edit_fixtext_option.fill(None)
 
