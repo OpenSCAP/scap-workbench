@@ -86,7 +86,7 @@ class MenuButtonScan(abstract.MenuButton):
         self.builder = builder
         abstract.MenuButton.__init__(self, "gui:btn:menu:scan", widget, core)
         self.core = core
-        self.__export_notify = None
+        self.exported_file = None
 
         self.progress = self.builder.get_object("scan:progress")
         self.data_model = commands.DHScan("gui:scan:DHScan", core, self.progress)
@@ -108,7 +108,6 @@ class MenuButtonScan(abstract.MenuButton):
         self.help = self.builder.get_object("scan:btn_help")
         self.help.connect("clicked", self.__cb_help)
         self.results_btn = self.builder.get_object("scan:btn_results")
-        self.results_btn.set_sensitive(False)
         self.results_btn.connect("clicked", self.__cb_export_report)
 
         # set signals
@@ -120,7 +119,7 @@ class MenuButtonScan(abstract.MenuButton):
     def __update_profile(self):
         if self.core.selected_profile != None:
             self.notifications.append(self.core.notify("Selected profile: \"%s\"." % (self.core.selected_profile,), 0))
-        else: self.notifications.append(self.core.notify("Selected default document profile.", 0))
+        elif self.core.xccdf_file: self.notifications.append(self.core.notify("Selected default document profile.", 0))
 
     def activate(self, active):
         if active:
@@ -131,22 +130,28 @@ class MenuButtonScan(abstract.MenuButton):
 
     #callback function
     def __cb_export_report(self, widget):
-        self.data_model.export_report(self.exported_file)
-        if self.__export_notify: self.__export_notify.destroy()
+        if self.exported_file:
+            self.core.notify_destroy("notify:scan:no_results")
+            self.data_model.export_report(self.exported_file)
+        else: self.notifications.append(self.core.notify("Please export results first.", 2, msg_id="notify:scan:no_results"))
+        self.core.notify_destroy("notify:scan:export_notify")
 
     def __export(self):
         self.exported_file = self.data_model.export()
         if self.exported_file: 
-            self.__export_notify = self.core.notify("Results exported successfuly. You can see them by pushing the \"Results\" button.", 0)
-            self.notifications.append(self.__export_notify)
+            self.notifications.append(self.core.notify("Results exported successfuly. You can see them by pushing the \"Results\" button.", 0, msg_id="notify:scan:export_notify"))
             self.results_btn.set_sensitive(True)
 
     def __cb_profile(self, widget):
         for notify in self.notifications:
             notify.destroy()
+        if not self.core.xccdf_file: 
+            self.core.notify("Library not initialized or XCCDF file not specified", 1, msg_id="notify:xccdf:not_loaded")
+            return
         ProfileChooser(self.core, self.__update_profile)
 
     def __cb_start(self, widget):
+        self.exported_file = None
         for notify in self.notifications:
             notify.destroy()
         self.emit("scan")
@@ -189,7 +194,8 @@ class ProfileChooser(abstract.Window):
         selection = tw.get_selection()
         model, it = selection.get_selected()
         if it == None: 
-            logger.error("Nothing selected or bug ??")
+            logger.debug("Nothing selected, skipping")
+            self.window.destroy()
             return
         self.core.selected_profile = model.get_value(it, 0)
         if self.callback: self.callback()

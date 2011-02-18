@@ -217,6 +217,11 @@ class SWBCore:
         self.force_reload_profiles = True
         self.selected_profile = None
 
+    def destroy(self):
+        self.xccdf_file = None
+        self.__set_force()
+        self.__destroy__()
+
     def __destroy__(self):
         if self.lib == None: return
         if self.lib["policy_model"] != None:
@@ -225,6 +230,7 @@ class SWBCore:
             model.free()
         for sess in self.lib["sessions"]:
             sess.free()
+        self.lib = None
 
     def get_item(self, id):
         if id not in self.__objects:

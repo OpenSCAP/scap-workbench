@@ -32,6 +32,7 @@ class EventObject(gobject.GObject):
         self.core = core
         gobject.type_register(EventObject)
         self.object = self
+        self.notifications = []
     
     def emit_signal(self, signal):
         logger.debug("Emiting signal %s from %s", signal, self.id)
@@ -48,6 +49,12 @@ class EventObject(gobject.GObject):
     def add_receiver(self, id, signal, callback, position=-1, *args):
 
         if self.core != None: self.core.set_receiver(id, signal, callback, position)
+
+    def activate(self, active):
+        if not active:
+            for notify in self.notifications:
+                notify.destroy()
+
 
 class EventHandler(EventObject):
 

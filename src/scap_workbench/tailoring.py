@@ -69,6 +69,7 @@ class ItemList(abstract.List):
 
     def __update(self):
 
+        if self.core.xccdf_file == None: self.data_model.model.clear()
         if "profile" not in self.__dict__ or self.profile != self.core.selected_profile or self.core.force_reload_items:
             if self.model_changed == True:
                 md = gtk.MessageDialog(self.window, 
@@ -84,11 +85,12 @@ class ItemList(abstract.List):
             self.profile = self.core.selected_profile
             self.get_TreeView().set_model(self.data_model.model)
             self.data_model.fill()
-            if self.old_selected != self.core.selected_item:
-                # Select the last one selected if there is one
-                self.get_TreeView().get_model().foreach(self.set_selected, (self.core.selected_item, self.get_TreeView()))
-                self.core.force_reload_items = False
-                self.old_selected = self.core.selected_item
+            self.core.force_reload_items = False
+
+        if self.old_selected != self.core.selected_item:
+            # Select the last one selected if there is one
+            self.get_TreeView().get_model().foreach(self.set_selected, (self.core.selected_item, self.get_TreeView()))
+            self.old_selected = self.core.selected_item
 
     def __search(self):
         self.search(self.filter.get_search_text(),1)
@@ -514,9 +516,9 @@ class MenuButtonTailoring(abstract.MenuButton):
     def __profiles_update(self):
 
         # need update because of new file loaded
-        self.profile_model.fill()
-        self.profiles.set_active(0)
-        self.core.selected_profile = self.profile_model.model[self.profiles.get_active()][0]
+        if self.profile_model.fill():
+            self.profiles.set_active(0)
+            self.core.selected_profile = self.profile_model.model[self.profiles.get_active()][0]
 
     def __cb_profile_changed(self, widget, model):
 

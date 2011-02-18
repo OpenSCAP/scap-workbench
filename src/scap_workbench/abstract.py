@@ -257,7 +257,7 @@ class List(EventObject):
         id, view = usr
         selection = view.get_selection()
         
-        if model.get_value(iter, 0) == id:
+        if model.get_value(iter, 1) == id:
             view.expand_to_path(path)
             selection.select_path(path)
 
@@ -665,7 +665,9 @@ class ListEditor(EventObject, Func, Enum_type):
     """ Abstract class for implementing all edit formulars that appear as list/tree view and 
     has add, edit and del buttons """
 
-    TEXT_COLUMN = 1
+    COLUMN_LANG = 0
+    COLUMN_TEXT = 1
+    COLUMN_OBJ  = 2
 
     def __init__(self, id, core, widget=None, model=None):
         self.id = id
@@ -703,14 +705,14 @@ class ListEditor(EventObject, Func, Enum_type):
         """
         (model,iter) = self.get_selection().get_selected()
         if iter:
-            window = EditDialogWindow(self.item, self.core, values, new=False)
+            window = EditDialogWindow(None, self.core, values, new=False)
         else:
             self.dialogNotSelected(self.core.main_window)
 
     def cb_add_row(self, widget=None, values=None):
         """From ControlEditWindow
         """
-        window = EditDialogWindow(self.item, self.core, values, new=True)
+        window = EditDialogWindow(None, self.core, values, new=True)
 
     def cb_del_row(self, widget=None, values=None):
         """From ControlEditWindow
@@ -726,7 +728,9 @@ class ListEditor(EventObject, Func, Enum_type):
         self.__model.clear()
 
     def append(self, item):
-        self.__model.append(item)
+        try:
+            self.__model.append(item)
+        except ValueError, err: raise ValueError("Value Error in model appending \"%s\": %s" % (item, err))
 
     def __preview_dialog_destroy(self, widget):
         self.preview_dialog.destroy()
@@ -755,7 +759,7 @@ class ListEditor(EventObject, Func, Enum_type):
         description.modify_base(gtk.STATE_NORMAL, bg_color)
         self.preview_scw.add(description)
 
-        desc = self.__model.get_value(iter, self.TEXT_COLUMN) or ""
+        desc = self.__model.get_value(iter, self.COLUMN_TEXT) or ""
         desc = desc.replace("xhtml:","")
         desc = desc.replace("xmlns:", "")
         if desc == "": desc = "No description"

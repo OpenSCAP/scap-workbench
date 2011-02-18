@@ -98,6 +98,9 @@ class MenuButtonXCCDF(abstract.MenuButton):
         self.btn_export = self.builder.get_object("xccdf:btn_export")
         self.btn_export.connect("clicked", self.__cb_export)
 
+        self.btn_close = self.builder.get_object("xccdf:btn_close")
+        self.btn_close.connect("clicked", self.__cb_close)
+
         self.add_sender(self.id, "update")
         self.add_sender(self.id, "load")
         self.add_sender(self.id, "lang_changed")
@@ -105,6 +108,10 @@ class MenuButtonXCCDF(abstract.MenuButton):
         details = self.data_model.get_details()
         try:
             self.set_detail(details)
+            if self.core.xccdf_file != None: 
+                self.btn_close.set_sensitive(True)
+                self.btn_validate.set_sensitive(True)
+                self.btn_export.set_sensitive(True)
         except KeyError: pass
 
         label_set_autowrap(self.label_title)
@@ -174,11 +181,26 @@ class MenuButtonXCCDF(abstract.MenuButton):
         expander.show_all()
 
     # set functions
-    def set_detail(self, details):
+    def set_detail(self, details=None):
         """
         Set information about file.
         """
         STATUS_CURRENT = ["not specified", "accepted", "deprecated", "draft", "incomplet", "interim"]
+        # CLEAR
+        self.label_info.set_text("")
+        self.label_title.set_text("")
+        self.label_description.set_text("")
+        self.label_version.set_text("")
+        self.label_url.set_text("")
+        self.label_status_current.set_text("")
+        self.label_resolved.set_text("")
+        self.label_warnings.set_text("")
+        self.label_notices.set_text("")
+        self.label_language.set_text("")
+        for child in self.files_box.get_children(): child.destroy()
+
+        # SET
+        if not details: return
         lang = details["lang"]
         self.label_info.set_text("XCCDF: %s" % (details["id"] or "",))
         self.label_title.set_text(details["titles"][lang] or "")
@@ -232,6 +254,10 @@ class MenuButtonXCCDF(abstract.MenuButton):
             self.core.init(file)
             self.emit("load")
             details = self.data_model.get_details()
+            self.btn_close.set_sensitive(True)
+            self.btn_validate.set_sensitive(True)
+            self.btn_export.set_sensitive(True)
+
             try:
                 self.set_detail(details)
             except KeyError: pass
@@ -255,6 +281,15 @@ class MenuButtonXCCDF(abstract.MenuButton):
         self.emit("lang_changed")
         return
         
+    def __cb_close(self, widget):
+        self.btn_close.set_sensitive(False)
+        self.btn_validate.set_sensitive(False)
+        self.btn_export.set_sensitive(False)
+        self.core.destroy()
+        self.set_detail()
+        self.core.notify_destroy("notify:xccdf:validate")
+        self.core.notify_destroy("notify:xccdf:export")
+        self.emit("load")
     
 class MenuButtonOVAL(abstract.MenuButton):
 

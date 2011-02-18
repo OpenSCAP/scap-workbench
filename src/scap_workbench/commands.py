@@ -109,7 +109,7 @@ class DataHandler:
     def get_languages(self):
         """Get available languages from XCCDF Benchmark"""
         if not self.core.lib:
-            logger.error("Library not initialized or XCCDF file not specified")
+            self.core.notify("Library not initialized or XCCDF file not specified", 1, msg_id="notify:xccdf:not_loaded")
             return []
         return [self.core.lib["policy_model"].benchmark.lang]
 
@@ -153,7 +153,7 @@ class DataHandler:
         """get_item_details -- get details of XCCDF_ITEM"""
 
         if not self.core.lib:
-            logger.error("Library not initialized or XCCDF file not specified")
+            self.core.notify("Library not initialized or XCCDF file not specified", 1, msg_id="notify:xccdf:not_loaded")
             return None
 
         item = self.core.lib["policy_model"].benchmark.item(id or self.core.selected_item)
@@ -223,10 +223,10 @@ class DataHandler:
             return None
 
         return values
-    
+ 
     def get_item(self, id, items_model=False):
         if not self.core.lib:
-            logger.error("Library not initialized or XCCDF file not specified")
+            self.core.notify("Library not initialized or XCCDF file not specified", 1, msg_id="notify:xccdf:not_loaded")
             return None
         return self.core.lib["policy_model"].benchmark.item(id or self.core.selected_item)
         
@@ -234,7 +234,7 @@ class DataHandler:
         """get_item_details -- get details of XCCDF_ITEM"""
 
         if not self.core.lib:
-            logger.error("Library not initialized or XCCDF file not specified")
+            self.core.notify("Library not initialized or XCCDF file not specified", 1, msg_id="notify:xccdf:not_loaded")
             return None
 
         item = self.core.lib["policy_model"].benchmark.item(id or self.core.selected_item)
@@ -302,7 +302,7 @@ class DataHandler:
     def get_profiles(self):
         
         if not self.core.lib:
-            logger.error("Library not initialized or XCCDF file not specified")
+            self.core.notify("Library not initialized or XCCDF file not specified", 1, msg_id="notify:xccdf:not_loaded")
             return None
         profiles = []
         for item in self.core.lib["policy_model"].benchmark.profiles:
@@ -316,6 +316,9 @@ class DataHandler:
 
     def get_profile_details(self, id):
         """get_profile_details -- get details of Profiles"""
+        if not self.core.lib:
+            self.core.notify("Library not initialized or XCCDF file not specified", 1, msg_id="notify:xccdf:not_loaded")
+            return None
         policy = self.core.lib["policy_model"].get_policy_by_id(id or self.core.selected_profile)
         if not policy: return None
         item = policy.profile
@@ -441,10 +444,11 @@ class DHXccdf(DataHandler):
     def get_details(self):
     
         if not self.core.lib:
-            logger.error("Library not initialized or XCCDF file not specified")
-            return {}
+            self.core.notify("Library not initialized or XCCDF file not specified", 1, msg_id="notify:xccdf:not_loaded")
+            return None
         benchmark = self.core.lib["policy_model"].benchmark
         details = {
+                "item":             benchmark,
                 "descs":            dict([(desc.lang, desc.text) for desc in benchmark.description]),
                 "id":               benchmark.id,
                 "lang":             benchmark.lang,
@@ -464,7 +468,7 @@ class DHXccdf(DataHandler):
     def get_oval_files_info(self):
 
         if not self.core.lib:
-            logger.error("Library not initialized or XCCDF file not specified")
+            self.core.notify("Library not initialized or XCCDF file not specified", 1, msg_id="notify:xccdf:not_loaded")
             return {}
 
         info = {}
@@ -483,11 +487,10 @@ class DHXccdf(DataHandler):
         
         return info
 
-
     def update(self, id=None, version=None, resolved=None, status=None, lang=None):
 
         if not self.core.lib:
-            logger.error("Library not initialized or XCCDF file not specified")
+            self.core.notify("Library not initialized or XCCDF file not specified", 1, msg_id="notify:xccdf:not_loaded")
             return {}
         benchmark = self.core.lib["policy_model"].benchmark
 
@@ -500,7 +503,7 @@ class DHXccdf(DataHandler):
     def export(self):
 
         if not self.core.lib:
-            logger.error("Library not initialized or XCCDF file not specified")
+            self.core.notify("Library not initialized or XCCDF file not specified", 1, msg_id="notify:xccdf:not_loaded")
             return None
 
         file_name = self.file_browse("Save XCCDF file", file=self.core.xccdf_file)
@@ -512,11 +515,99 @@ class DHXccdf(DataHandler):
 
     def validate(self):
         if not self.core.lib or self.core.xccdf_file == None:
-            logger.error("Library not initialized or XCCDF file not specified")
+            self.core.notify("Library not initialized or XCCDF file not specified", 1, msg_id="notify:xccdf:not_loaded")
             return 2
 
         retval = openscap.common.validate_document(self.core.xccdf_file, openscap.OSCAP.OSCAP_DOCUMENT_XCCDF, None, self.__cb_report, None)
         return retval
+
+    def add_title(self, lang, text):
+        if not self.core.lib or self.core.xccdf_file == None:
+            self.core.notify("Library not initialized or XCCDF file not specified", 1, msg_id="notify:xccdf:not_loaded")
+            return 2
+
+        title = openscap.common.text()
+        title.text = text
+        title.lang = lang
+    
+        retval = self.core.lib["policy_model"].benchmark.add_title(title)
+        return retval
+
+    def edit_title(self, title, lang, text):
+        if not self.core.lib or self.core.xccdf_file == None:
+            self.core.notify("Library not initialized or XCCDF file not specified", 1, msg_id="notify:xccdf:not_loaded")
+            return 2
+
+        title.lang = lang
+        title.text = text
+        return True
+
+    def remove_title(self, title):
+        if not self.core.lib or self.core.xccdf_file == None:
+            self.core.notify("Library not initialized or XCCDF file not specified", 1, msg_id="notify:xccdf:not_loaded")
+            return 2
+
+        return self.core.lib["policy_model"].benchmark.title.remove(title)
+
+    def add_description(self, lang, text):
+        if not self.core.lib or self.core.xccdf_file == None:
+            self.core.notify("Library not initialized or XCCDF file not specified", 1, msg_id="notify:xccdf:not_loaded")
+            return 2
+
+        description = openscap.common.text()
+        description.text = text
+        description.lang = lang
+    
+        retval = self.core.lib["policy_model"].benchmark.add_description(description)
+        return retval
+
+    def edit_description(self, description, lang, text):
+        if not self.core.lib or self.core.xccdf_file == None:
+            self.core.notify("Library not initialized or XCCDF file not specified", 1, msg_id="notify:xccdf:not_loaded")
+            return 2
+
+        description.lang = lang
+        description.text = text
+        return True
+
+    def remove_description(self, description):
+        if not self.core.lib or self.core.xccdf_file == None:
+            self.core.notify("Library not initialized or XCCDF file not specified", 1, msg_id="notify:xccdf:not_loaded")
+            return 2
+
+        return self.core.lib["policy_model"].benchmark.description.remove(description)
+
+    def add_warning(self, category, lang, text):
+        if not self.core.lib or self.core.xccdf_file == None:
+            self.core.notify("Library not initialized or XCCDF file not specified", 1, msg_id="notify:xccdf:not_loaded")
+            return 2
+
+        warning = openscap.xccdf.warning_new()
+        text = warning.text
+        text.text = text
+        text.lang = lang
+        warning.category = category
+    
+        retval = self.core.lib["policy_model"].benchmark.add_warning(warning)
+        return retval
+
+    def edit_warning(self, warning, category, lang, text):
+        if not self.core.lib or self.core.xccdf_file == None:
+            self.core.notify("Library not initialized or XCCDF file not specified", 1, msg_id="notify:xccdf:not_loaded")
+            return 2
+
+        warning.text.lang = lang
+        warning.text.text = text
+        warning.category = category
+        return True
+
+    def remove_warning(self, warning):
+        if not self.core.lib or self.core.xccdf_file == None:
+            self.core.notify("Library not initialized or XCCDF file not specified", 1, msg_id="notify:xccdf:not_loaded")
+            return 2
+
+        return self.core.lib["policy_model"].benchmark.warning.remove(warning)
+
 
     def __cb_report(self, msg, plugin):
         return True
@@ -563,7 +654,7 @@ class DHValues(DataHandler):
     def fill(self, item=None):
 
         if not self.core.lib:
-            logger.error("Library not initialized or XCCDF file not specified")
+            self.core.notify("Library not initialized or XCCDF file not specified", 1, msg_id="notify:xccdf:not_loaded")
             return None
 
         """If item is None, then this is first call and we need to get the item
@@ -601,7 +692,7 @@ class DHValues(DataHandler):
     def cellcombo_edited(self, cell, path, new_text):
 
         if not self.core.lib:
-            logger.error("Library not initialized or XCCDF file not specified")
+            self.core.notify("Library not initialized or XCCDF file not specified", 1, msg_id="notify:xccdf:not_loaded")
             return None
         if self.core.selected_profile == None:
             policy = self.core.lib["policy_model"].policies[0]
@@ -788,7 +879,7 @@ class DHItemsTree(DataHandler, EventObject):
         """Check if library is initialized, 
         return otherwise"""
         if not self.core.lib:
-            logger.error("Library not initialized or XCCDF file not specified")
+            self.core.notify("Library not initialized or XCCDF file not specified", 1, msg_id="notify:xccdf:not_loaded")
             return None
 
         """model is alternative attribute for previous
@@ -896,7 +987,7 @@ class DHItemsTree(DataHandler, EventObject):
     def fill(self, item=None, parent=None):
         """Thread save function to fill the treeView."""
         if not self.core.lib:
-            logger.error("Library not initialized or XCCDF file not specified")
+            self.core.notify("Library not initialized or XCCDF file not specified", 1, msg_id="notify:xccdf:not_loaded")
             return None
 
         """we don't know item so it's first call and we need to clear
@@ -973,7 +1064,7 @@ class DHProfiles(DataHandler):
     def add(self, item):
         logger.debug("Adding new profile: \"%s\"", item["id"])
         if not self.core.lib:
-            logger.error("Library not initialized or XCCDF file not specified")
+            self.core.notify("Library not initialized or XCCDF file not specified", 1, msg_id="notify:xccdf:not_loaded")
             return None
 
         profile = openscap.xccdf.profile()
@@ -985,7 +1076,7 @@ class DHProfiles(DataHandler):
     def edit(self, item, profile=None):
         logger.debug("Editing profile: \"%s\"", item["id"])
         if not self.core.lib:
-            logger.error("Library not initialized or XCCDF file not specified")
+            self.core.notify("Library not initialized or XCCDF file not specified", 1, msg_id="notify:xccdf:not_loaded")
             return None
 
         if not profile: profile = self.core.lib["policy_model"].benchmark.get_item(self.core.selected_profile)
@@ -1012,10 +1103,10 @@ class DHProfiles(DataHandler):
 
     def fill(self, item=None, parent=None, no_default=False):
 
-        if not self.core.lib:
-            logger.error("Library not initialized or XCCDF file not specified")
-            return None
         self.model.clear()
+        if not self.core.lib:
+            self.core.notify("Library not initialized or XCCDF file not specified", 1, msg_id="notify:xccdf:not_loaded")
+            return False
         if not no_default:
             logger.debug("Adding profile (No profile)")
             self.model.append([None, "(No profile)"])
@@ -1057,7 +1148,7 @@ class DHProfiles(DataHandler):
 
     def remove_item(self, id):
         if not self.core.lib:
-            logger.error("Library not initialized or XCCDF file not specified")
+            self.core.notify("Library not initialized or XCCDF file not specified", 1, msg_id="notify:xccdf:not_loaded")
             return None
 
         logger.info("Removing profile %s" %(id,))
@@ -1068,7 +1159,7 @@ class DHProfiles(DataHandler):
 
         if self.core.selected_profile == None: return
         if not self.core.lib:
-            logger.error("Library not initialized or XCCDF file not specified")
+            self.core.notify("Library not initialized or XCCDF file not specified", 1, msg_id="notify:xccdf:not_loaded")
             return None
 
         policy = self.core.lib["policy_model"].get_policy_by_id(self.core.selected_profile)
@@ -1327,6 +1418,10 @@ class DHScan(DataHandler, EventObject):
         return True
         
     def cancel(self):
+        if not self.core.lib:
+            self.core.notify("Library not initialized or XCCDF file not specified", 1, msg_id="notify:xccdf:not_loaded")
+            return None
+
         if not self.__cancel:
             self.__cancel = True
             self.__cancel_notify = self.core.notify("Scanning canceled. Please wait for openscap to finish current task.", 0, msg_id="notify:scan:cancel")
@@ -1365,7 +1460,7 @@ class DHScan(DataHandler, EventObject):
     def scan(self):
         if self.__lock: 
             logger.error("Scan already running")
-        else: 
+        elif self.core.selected_profile: 
             self.__prepaire()
             self.__lock = True
             self.th_scan()
@@ -1373,7 +1468,7 @@ class DHScan(DataHandler, EventObject):
     @threadSave
     def th_scan(self):
         if not self.core.lib:
-            logger.error("Library not initialized or XCCDF file not specified")
+            self.core.notify("Library not initialized or XCCDF file not specified", 1, msg_id="notify:xccdf:not_loaded")
             return None
         logger.debug("Scanning %s ..", self.policy.id)
         if self.__progress != None:
@@ -1427,6 +1522,7 @@ class DHEditItems(DataHandler):
         COLUMN_TEXT = 1
         COLUMN_OBJECT = 2
 
+        if not item: item = self.get_item(self.core.selected_item)
         if item:
             object = model.get_value(iter, COLUMN_OBJECT)
 
@@ -1454,7 +1550,8 @@ class DHEditItems(DataHandler):
         COLUMN_LAN = 0
         COLUMN_TEXT = 1
         COLUMN_OBJECT = 2
-
+ 
+        if not item: item = self.get_item(self.core.selected_item)
         if item:
             object = model.get_value(iter, COLUMN_OBJECT)
 
@@ -1484,6 +1581,7 @@ class DHEditItems(DataHandler):
         COLUMN_TEXT = 3
         COLUMN_OBJECT = 4
 
+        if not item: item = self.get_item(self.core.selected_item)
         if item:
             object = model.get_value(iter, COLUMN_OBJECT)
 
