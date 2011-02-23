@@ -470,6 +470,8 @@ class RefineDetails(EventObject):
             return weight
         else: 
             details = self.data_model.get_item_details(self.core.selected_item)
+            if details == None: return
+
             if "weight" in details:
                 return str(details["weight"])
             else: return None

@@ -3429,6 +3429,7 @@
                                                       <object class="GtkButton" id="edit:values:btn_remove">
                                                         <property name="label" translatable="yes">Remove</property>
                                                         <property name="visible">True</property>
+                                                        <property name="sensitive">False</property>
                                                         <property name="can_focus">True</property>
                                                         <property name="receives_default">True</property>
                                                       </object>
@@ -4731,20 +4732,6 @@
                           </packing>
                         </child>
                         <child>
-                          <object class="GtkEntry" id="edit:xccdf:status">
-                            <property name="visible">True</property>
-                            <property name="sensitive">False</property>
-                            <property name="can_focus">True</property>
-                            <property name="invisible_char">&#x25CF;</property>
-                          </object>
-                          <packing>
-                            <property name="left_attach">1</property>
-                            <property name="right_attach">2</property>
-                            <property name="top_attach">3</property>
-                            <property name="bottom_attach">4</property>
-                          </packing>
-                        </child>
-                        <child>
                           <object class="GtkEntry" id="edit:xccdf:lang">
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
@@ -4796,6 +4783,23 @@
                           <packing>
                             <property name="x_options">GTK_FILL</property>
                             <property name="y_options">GTK_FILL</property>
+                          </packing>
+                        </child>
+                        <child>
+                          <object class="GtkComboBox" id="edit:xccdf:status">
+                            <property name="visible">True</property>
+                            <child>
+                              <object class="GtkCellRendererText" id="Text"/>
+                              <attributes>
+                                <attribute name="text">1</attribute>
+                              </attributes>
+                            </child>
+                          </object>
+                          <packing>
+                            <property name="left_attach">1</property>
+                            <property name="right_attach">2</property>
+                            <property name="top_attach">3</property>
+                            <property name="bottom_attach">4</property>
                           </packing>
                         </child>
                       </object>
@@ -5343,6 +5347,20 @@
   <object class="GtkMenu" id="edit:list:popup">
     <property name="visible">True</property>
     <child>
+      <object class="GtkCheckMenuItem" id="edit:list:popup:show_values">
+        <property name="visible">True</property>
+        <property name="tooltip_text" translatable="yes">Show values in groups</property>
+        <property name="label" translatable="yes">Show values</property>
+        <property name="use_underline">True</property>
+        <property name="active">True</property>
+      </object>
+    </child>
+    <child>
+      <object class="GtkSeparatorMenuItem" id="separator">
+        <property name="visible">True</property>
+      </object>
+    </child>
+    <child>
       <object class="GtkImageMenuItem" id="edit:list:popup:add">
         <property name="label" translatable="yes">Add Group / Rule</property>
         <property name="visible">True</property>
@@ -5356,6 +5374,7 @@
       <object class="GtkImageMenuItem" id="edit:list:popup:remove">
         <property name="label" translatable="yes">Remove</property>
         <property name="visible">True</property>
+        <property name="sensitive">False</property>
         <property name="tooltip_text" translatable="yes">Remove this item from content</property>
         <property name="image">image2</property>
         <property name="use_stock">False</property>

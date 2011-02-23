@@ -39,10 +39,14 @@ except Exception as ex:
 
 from threads import thread as threadSave
 
-class DataHandler:
+class DataHandler(object):
     """DataHandler Class implements handling data from Openscap library,
     calling oscap functions and parsing oscap output to models specified by
     tool's objects"""
+
+    CMD_OPER_ADD    = 0
+    CMD_OPER_EDIT   = 1
+    CMD_OPER_DEL    = 2
 
     def __init__(self, core):
         """DataHandler.__init__ -- initialization of data handler.
@@ -50,6 +54,14 @@ class DataHandler:
         library => openscap library"""
 
         self.core = core
+
+    def check_library(self):
+        """Check if the library exists and the XCCDF file
+        is loaded. If not return False and True otherwise"""
+        if not self.core.lib or self.core.xccdf_file == None:
+            self.core.notify("Library not initialized or XCCDF file not specified", 1, msg_id="notify:xccdf:not_loaded")
+            return False
+        else: return True
 
     def parse_value(self, value):
 
@@ -107,10 +119,9 @@ class DataHandler:
         return item
 
     def get_languages(self):
-        """Get available languages from XCCDF Benchmark"""
-        if not self.core.lib:
-            self.core.notify("Library not initialized or XCCDF file not specified", 1, msg_id="notify:xccdf:not_loaded")
-            return []
+        """Get available languages from XCCDF Benchmark
+        """
+        if not self.check_library(): return []
         return [self.core.lib["policy_model"].benchmark.lang]
 
     def get_selected(self, item, items_model):
@@ -119,7 +130,6 @@ class DataHandler:
 
         if self.core.selected_profile == None or items_model == True:
             return item.selected
-
         else:
             policy = self.core.lib["policy_model"].get_policy_by_id(self.core.selected_profile)
             if policy == None: raise Exception, "Policy %s does not exist" % (self.core.selected_profile,)
@@ -131,13 +141,18 @@ class DataHandler:
             else: return select.selected
 
     def get_item_values(self, id):
+        """Get all values of item with id equal to id parameter
+        This could be either XCCDF Group or XCCDF Benchmark
+        """
 
         if self.core.selected_profile == None:
             policy = self.core.lib["policy_model"].policies[0]
         else: policy = self.core.lib["policy_model"].get_policy_by_id(self.core.selected_profile)
 
         values = []
-        item = self.core.lib["policy_model"].benchmark.item(id)
+        if id == self.core.lib["policy_model"].benchmark.id: item = self.core.lib["policy_model"].benchmark
+        else: item = self.core.lib["policy_model"].benchmark.item(id)
+        
         if item.type == openscap.OSCAP.XCCDF_RULE:
             return policy.get_values_by_rule_id(id)
         else:
@@ -150,11 +165,10 @@ class DataHandler:
         return values
 
     def get_item_details(self, id, items_model=False):
-        """get_item_details -- get details of XCCDF_ITEM"""
+        """Parse details from item with id equal to id parameter to
+        the dictionary."""
 
-        if not self.core.lib:
-            self.core.notify("Library not initialized or XCCDF file not specified", 1, msg_id="notify:xccdf:not_loaded")
-            return None
+        if not self.check_library(): return None
 
         item = self.core.lib["policy_model"].benchmark.item(id or self.core.selected_item)
         if not item: return None
@@ -166,11 +180,11 @@ class DataHandler:
 
         if item != None:
             values = {
+                    "item":             item,
                     "id":               item.id,
                     "type":             item.type,
-                    "titles":           dict([(title.lang, " ".join(title.text.split())) for title in item.title or []]),
+                    "titles":           dict([(title.lang, title.text) for title in item.title or []]),
                     "descriptions":     dict([(desc.lang, desc.text) for desc in item.description or []]),
-                    "abstract":         item.abstract,
                     "cluster_id":       item.cluster_id,
                     "conflicts":        [conflict for conflict in item.conflicts or []],
                     "extends":          item.extends,
@@ -181,27 +195,30 @@ class DataHandler:
                     "rationale":        [rationale.text for rationale in item.rationale or []],
                     "references":       self.parse_refs(item.references),
                     "requires":         item.requires,
-                    "selected":         item.selected,
                     "statuses":         [(status.date, status.status) for status in item.statuses or []],
                     "version":          item.version,
                     "version_time":     item.version_time,
                     "version_update":   item.version_update,
                     "warnings":         [(warning.category, warning.text) for warning in item.warnings or []],
-                    "weight":           item.weight,
                     "selected":         self.get_selected(item, items_model)
                     }
             if item.type == openscap.OSCAP.XCCDF_GROUP:
                 item = item.to_group()
                 values.update({
+                    "abstract":         item.abstract,
                     "typetext":         "Group",
                     #"content":         item.content,
                     #"values":           self.__item_get_values(item),
-                    "status_current":   item.status_current
+                    "selected":         item.selected,
+                    "status_current":   item.status_current,
+                    "values":           item.values,
+                    "weight":           item.weight
                     })
             elif item.type == openscap.OSCAP.XCCDF_RULE:
                 item = item.to_rule()
                 values.update({
                     #"checks":          item.checks
+                    "abstract":         item.abstract,
                     "typetext":         "Rule",
                     "fixes":            self.__rule_get_fixes(item),
                     "fixtexts":         self.__rule_get_fixtexts(item),
@@ -210,9 +227,21 @@ class DataHandler:
                     "multiple":         item.multiple,
                     "profile_notes":    [(note.reftag, note.text) for note in item.profile_notes or []],
                     "role":             item.role,
+                    "selected":         item.selected,
                     "severity":         item.severity,
                     "status_current":   item.status_current,
                     "weight":           item.weight
+                    })
+            elif item.type == openscap.OSCAP.XCCDF_VALUE:
+                item = item.to_value()
+                values.update({
+                    "abstract":         item.abstract,
+                    "instances":        item.instances,
+                    "interactive":      item.interactive,
+                    "interface_hint":   item.interface_hint,
+                    "oper":             item.oper,
+                    "sources":          item.sources,
+                    "status_current":   item.status_current
                     })
             else: 
                 logger.error("Item type not supported %d", item.type)
@@ -225,85 +254,15 @@ class DataHandler:
         return values
  
     def get_item(self, id, items_model=False):
-        if not self.core.lib:
-            self.core.notify("Library not initialized or XCCDF file not specified", 1, msg_id="notify:xccdf:not_loaded")
-            return None
+        """Get the item from benchmark
+        """
+        if not self.check_library(): return None
         return self.core.lib["policy_model"].benchmark.item(id or self.core.selected_item)
         
-    def get_item_objects(self, id, items_model=False):
-        """get_item_details -- get details of XCCDF_ITEM"""
-
-        if not self.core.lib:
-            self.core.notify("Library not initialized or XCCDF file not specified", 1, msg_id="notify:xccdf:not_loaded")
-            return None
-
-        item = self.core.lib["policy_model"].benchmark.item(id or self.core.selected_item)
-        if item != None:
-            values = {
-                    "item":             item,
-                    "id":               item.id,
-                    "type":             item.type,
-                    "titles":           item.title,
-                    "descriptions":     [(desc) for desc in item.description or []],
-                    "abstract":         item.abstract,
-                    "cluster_id":       item.cluster_id,
-                    "conflicts":        [conflict for conflict in item.conflicts or []],
-                    "extends":          item.extends,
-                    "hidden":           item.hidden,
-                    "platforms":        item.platforms,
-                    "prohibit_changes": item.prohibit_changes,
-                    "questions":        [(question) for question in item.question or []],
-                    "rationale":        [rationale for rationale in item.rationale or []],
-                    "references":       self.parse_refs(item.references),
-                    "requires":         item.requires,
-                    "selected":         item.selected,
-                    "statuses":         [(status) for status in item.statuses or []],
-                    "version":          item.version,
-                    "version_time":     item.version_time,
-                    "version_update":   item.version_update,
-                    "warnings":         [(warning) for warning in item.warnings or []],
-                    "weight":           item.weight,
-                    "selected":         self.get_selected(item, items_model)
-                    }
-            if item.type == openscap.OSCAP.XCCDF_GROUP:
-                item = item.to_group()
-                values.update({
-                    "typetext":         "Group",
-                    #"content":         item.content,
-                    #"values":           self.__item_get_values(item),
-                    "status_current":   item.status_current,
-                    "values":           item.values
-                    })
-            elif item.type == openscap.OSCAP.XCCDF_RULE:
-                item = item.to_rule()
-                values.update({
-                    #"checks":          item.checks
-                    "typetext":         "Rule",
-                    "fixes":            self.__rule_get_fixes(item),
-                    "fixtexts":         self.__rule_get_fixtexts(item),
-                    "idents":           [(ident) for ident in item.idents or []],
-                    "imapct_metric":    item.impact_metric,
-                    "multiple":         item.multiple,
-                    "profile_notes":    [(note) for note in item.profile_notes or []],
-                    "role":             item.role,
-                    "severity":         item.severity,
-                    "status_current":   item.status_current,
-                    "weight":           item.weight
-                    })
-            else: 
-                logger.error("Item type not supported %d", item.type)
-                return None
-        else:
-            logger.error("No item \"%s\" in benchmark", id or self.core.selected_item)
-            return None
-
-        return values
-        
     def get_profiles(self):
-        
-        if not self.core.lib:
-            self.core.notify("Library not initialized or XCCDF file not specified", 1, msg_id="notify:xccdf:not_loaded")
-            return None
+        """Get all profiles of the Benchmark
+        """
+        if not self.check_library(): return None
         profiles = []
         for item in self.core.lib["policy_model"].benchmark.profiles:
             pvalues = self.get_profile_details(item.id)
@@ -315,10 +274,10 @@ class DataHandler:
         return profiles
 
     def get_profile_details(self, id):
-        """get_profile_details -- get details of Profiles"""
-        if not self.core.lib:
-            self.core.notify("Library not initialized or XCCDF file not specified", 1, msg_id="notify:xccdf:not_loaded")
-            return None
+        """Get details of selected Profile represented by id parameter
+        """
+        if not self.check_library(): return None
+
         policy = self.core.lib["policy_model"].get_policy_by_id(id or self.core.selected_profile)
         if not policy: return None
         item = policy.profile
@@ -434,6 +393,87 @@ class DataHandler:
         parent = item.parent
         parent.content.remove(item)
 
+    def edit_title(self, operation, obj, lang, text, item=None):
+
+        if not self.check_library(): return None
+
+        if item == None:
+            item = self.core.lib["policy_model"].benchmark.get_item(self.core.selected_item)
+
+        if operation == self.CMD_OPER_ADD:
+            title = openscap.common.text()
+            title.text = text
+            title.lang = lang
+            return item.add_title(title)
+
+        elif operation == self.CMD_OPER_EDIT:
+            if obj == None: 
+                return False
+            obj.lang = lang
+            obj.text = text
+            return True
+
+        elif operation == self.CMD_OPER_DEL:
+            return item.title.remove(obj)
+
+        else: raise AttributeError("Edit title: Unknown operation %s" % (operation,))
+
+    def edit_description(self, operation, obj, lang, text, item=None):
+
+        if not self.check_library(): return None
+
+        if item == None:
+            item = self.core.lib["policy_model"].benchmark.get_item(self.core.selected_item)
+
+        if operation == self.CMD_OPER_ADD:
+            description = openscap.common.text()
+            description.text = text
+            description.lang = lang
+        
+            return item.add_description(description)
+
+        elif operation == self.CMD_OPER_EDIT:
+            if obj == None: 
+                return False
+            obj.lang = lang
+            obj.text = text
+            return True
+
+        elif operation == self.CMD_OPER_DEL:
+            return item.description.remove(obj)
+
+        else: raise AttributeError("Edit description: Unknown operation %s" % (operation,))
+
+    def edit_warning(self, operation, obj, category, lang, text, item=None):
+
+        if not self.check_library(): return None
+
+        if item == None:
+            item = self.core.lib["policy_model"].benchmark.get_item(self.core.selected_item)
+
+        if operation == self.CMD_OPER_ADD:
+            warning = openscap.xccdf.warning_new()
+            new_text = openscap.common.text()
+            new_text.text = text
+            new_text.lang = lang
+            warning.text = new_text
+            if category != None: warning.category = category
+    
+            return item.add_warning(warning)
+
+        elif operation == self.CMD_OPER_EDIT:
+            if obj == None: 
+                return False
+            obj.text.lang = lang
+            obj.text.text = text
+            if category != None: obj.category = category
+            return True
+
+        elif operation == self.CMD_OPER_DEL:
+            return item.warnings.remove(obj)
+
+        else: raise AttributeError("Edit warning: Unknown operation %s" % (operation,))
+
 
 class DHXccdf(DataHandler):
 
@@ -443,9 +483,7 @@ class DHXccdf(DataHandler):
 
     def get_details(self):
     
-        if not self.core.lib:
-            self.core.notify("Library not initialized or XCCDF file not specified", 1, msg_id="notify:xccdf:not_loaded")
-            return None
+        if not self.check_library(): return None
         benchmark = self.core.lib["policy_model"].benchmark
         details = {
                 "item":             benchmark,
@@ -467,9 +505,7 @@ class DHXccdf(DataHandler):
 
     def get_oval_files_info(self):
 
-        if not self.core.lib:
-            self.core.notify("Library not initialized or XCCDF file not specified", 1, msg_id="notify:xccdf:not_loaded")
-            return {}
+        if not self.check_library(): return None
 
         info = {}
         for name in self.core.lib["names"].keys():
@@ -489,9 +525,7 @@ class DHXccdf(DataHandler):
 
     def update(self, id=None, version=None, resolved=None, status=None, lang=None):
 
-        if not self.core.lib:
-            self.core.notify("Library not initialized or XCCDF file not specified", 1, msg_id="notify:xccdf:not_loaded")
-            return {}
+        if not self.check_library(): return None
         benchmark = self.core.lib["policy_model"].benchmark
 
         if id and benchmark.id != id: benchmark.id = id
@@ -502,9 +536,7 @@ class DHXccdf(DataHandler):
 
     def export(self):
 
-        if not self.core.lib:
-            self.core.notify("Library not initialized or XCCDF file not specified", 1, msg_id="notify:xccdf:not_loaded")
-            return None
+        if not self.check_library(): return None
 
         file_name = self.file_browse("Save XCCDF file", file=self.core.xccdf_file)
         if file_name != "":
@@ -514,100 +546,60 @@ class DHXccdf(DataHandler):
         return None
 
     def validate(self):
-        if not self.core.lib or self.core.xccdf_file == None:
-            self.core.notify("Library not initialized or XCCDF file not specified", 1, msg_id="notify:xccdf:not_loaded")
-            return 2
+        if not self.check_library(): return 2
 
         retval = openscap.common.validate_document(self.core.xccdf_file, openscap.OSCAP.OSCAP_DOCUMENT_XCCDF, None, self.__cb_report, None)
         return retval
 
-    def add_title(self, lang, text):
-        if not self.core.lib or self.core.xccdf_file == None:
-            self.core.notify("Library not initialized or XCCDF file not specified", 1, msg_id="notify:xccdf:not_loaded")
-            return 2
+    def get_titles(self):
+        if not self.check_library(): return None
+        return self.core.lib["policy_model"].benchmark.title
+    def get_descriptions(self):
+        if not self.check_library(): return None
+        return self.core.lib["policy_model"].benchmark.description
+    def get_warnings(self):
+        if not self.check_library(): return None
+        return self.core.lib["policy_model"].benchmark.warnings
+    def get_notices(self):
+        if not self.check_library(): return None
+        return self.core.lib["policy_model"].benchmark.notices
 
-        title = openscap.common.text()
-        title.text = text
-        title.lang = lang
+    def edit_title(self, operation, obj, lang, text):
+        if not self.check_library(): return None
+        super(DHXccdf, self).edit_title(operation, obj, lang, text, item=self.core.lib["policy_model"].benchmark)
+
+    def edit_description(self, operation, obj, lang, text):
+        if not self.check_library(): return None
+        super(DHXccdf, self).edit_description(operation, obj, lang, text, item=self.core.lib["policy_model"].benchmark)
+
+    def edit_warning(self, operation, obj, category, lang, text):
+        if not self.check_library(): return None
+        super(DHXccdf, self).edit_warning(operation, obj, category, lang, text, item=self.core.lib["policy_model"].benchmark)
+
+    def edit_notice(self, operation, obj, id, text):
+
+        if not self.check_library(): return None
+
+        if operation == self.CMD_OPER_ADD:
+            notice = openscap.xccdf.notice_new()
+            new_text = openscap.common.text()
+            new_text.text = text
+            notice.text = new_text
+            notice.id = id
     
-        retval = self.core.lib["policy_model"].benchmark.add_title(title)
-        return retval
+            return self.core.lib["policy_model"].benchmark.add_notice(notice)
 
-    def edit_title(self, title, lang, text):
-        if not self.core.lib or self.core.xccdf_file == None:
-            self.core.notify("Library not initialized or XCCDF file not specified", 1, msg_id="notify:xccdf:not_loaded")
-            return 2
+        elif operation == self.CMD_OPER_EDIT:
+            if obj == None: 
+                return False
+            obj.text.text = text
+            obj.id = id
+            return True
 
-        title.lang = lang
-        title.text = text
-        return True
+        elif operation == self.CMD_OPER_DEL:
+            return self.core.lib["policy_model"].benchmark.notice.remove(obj)
 
-    def remove_title(self, title):
-        if not self.core.lib or self.core.xccdf_file == None:
-            self.core.notify("Library not initialized or XCCDF file not specified", 1, msg_id="notify:xccdf:not_loaded")
-            return 2
-
-        return self.core.lib["policy_model"].benchmark.title.remove(title)
-
-    def add_description(self, lang, text):
-        if not self.core.lib or self.core.xccdf_file == None:
-            self.core.notify("Library not initialized or XCCDF file not specified", 1, msg_id="notify:xccdf:not_loaded")
-            return 2
-
-        description = openscap.common.text()
-        description.text = text
-        description.lang = lang
-    
-        retval = self.core.lib["policy_model"].benchmark.add_description(description)
-        return retval
-
-    def edit_description(self, description, lang, text):
-        if not self.core.lib or self.core.xccdf_file == None:
-            self.core.notify("Library not initialized or XCCDF file not specified", 1, msg_id="notify:xccdf:not_loaded")
-            return 2
-
-        description.lang = lang
-        description.text = text
-        return True
-
-    def remove_description(self, description):
-        if not self.core.lib or self.core.xccdf_file == None:
-            self.core.notify("Library not initialized or XCCDF file not specified", 1, msg_id="notify:xccdf:not_loaded")
-            return 2
-
-        return self.core.lib["policy_model"].benchmark.description.remove(description)
-
-    def add_warning(self, category, lang, text):
-        if not self.core.lib or self.core.xccdf_file == None:
-            self.core.notify("Library not initialized or XCCDF file not specified", 1, msg_id="notify:xccdf:not_loaded")
-            return 2
-
-        warning = openscap.xccdf.warning_new()
-        text = warning.text
-        text.text = text
-        text.lang = lang
-        warning.category = category
-    
-        retval = self.core.lib["policy_model"].benchmark.add_warning(warning)
-        return retval
-
-    def edit_warning(self, warning, category, lang, text):
-        if not self.core.lib or self.core.xccdf_file == None:
-            self.core.notify("Library not initialized or XCCDF file not specified", 1, msg_id="notify:xccdf:not_loaded")
-            return 2
-
-        warning.text.lang = lang
-        warning.text.text = text
-        warning.category = category
-        return True
-
-    def remove_warning(self, warning):
-        if not self.core.lib or self.core.xccdf_file == None:
-            self.core.notify("Library not initialized or XCCDF file not specified", 1, msg_id="notify:xccdf:not_loaded")
-            return 2
-
-        return self.core.lib["policy_model"].benchmark.warning.remove(warning)
-
+        else: raise AttributeError("Edit notice: Unknown operation %s" % (operation,))
 
     def __cb_report(self, msg, plugin):
         return True
@@ -653,9 +645,7 @@ class DHValues(DataHandler):
 
     def fill(self, item=None):
 
-        if not self.core.lib:
-            self.core.notify("Library not initialized or XCCDF file not specified", 1, msg_id="notify:xccdf:not_loaded")
-            return None
+        if not self.check_library(): return None
 
         """If item is None, then this is first call and we need to get the item
         from benchmark. Otherwise it's recursive call and the item is already
@@ -691,9 +681,8 @@ class DHValues(DataHandler):
 
     def cellcombo_edited(self, cell, path, new_text):
 
-        if not self.core.lib:
-            self.core.notify("Library not initialized or XCCDF file not specified", 1, msg_id="notify:xccdf:not_loaded")
-            return None
+        if not self.check_library(): return None
+
         if self.core.selected_profile == None:
             policy = self.core.lib["policy_model"].policies[0]
         else: policy = self.core.lib["policy_model"].get_policy_by_id(self.core.selected_profile)
@@ -797,15 +786,6 @@ class DHItemsTree(DataHandler, EventObject):
         column = gtk.TreeViewColumn() 
         column.set_title("Rule/Group Title")
         column.set_expand(True)
-        # Toggle
-        #cb call for filter_model and ref_model
-        #if not self.no_checks:
-            #render = gtk.CellRendererToggle()
-            #render.connect('toggled', self.__cb_toggled)
-            #column.pack_start(render, False)
-            #column.set_attributes(render, active=DHItemsTree.COLUMN_SELECTED,
-                                    #sensitive=DHItemsTree.COLUMN_PARENT,
-                                    #activatable=DHItemsTree.COLUMN_PARENT)
         # Picture
         pbcell = gtk.CellRendererPixbuf()
         pbcell.set_property("stock-size", gtk.ICON_SIZE_SMALL_TOOLBAR)
@@ -819,18 +799,6 @@ class DHItemsTree(DataHandler, EventObject):
         column.set_resizable(True)
         treeView.append_column(column)
         #treeView.set_expander_column(column)
-        """Cell with picture representing if the item is selected or not
-        if not self.items_model:
-            render = gtk.CellRendererToggle()
-            column = gtk.TreeViewColumn("Selected", render, active=DHItemsTree.COLUMN_SELECTED,
-                                                            sensitive=DHItemsTree.COLUMN_PARENT,
-                                                            activatable=DHItemsTree.COLUMN_PARENT)
-            #cb call for filter_model and ref_model
-            render.connect('toggled', self.__cb_toggled)
-            
-            column.set_resizable(True)
-            treeView.append_column(column)
-        """
 
         treeView.set_enable_search(False)
         treeView.set_expander_column(column)
@@ -878,9 +846,7 @@ class DHItemsTree(DataHandler, EventObject):
 
         """Check if library is initialized, 
         return otherwise"""
-        if not self.core.lib:
-            self.core.notify("Library not initialized or XCCDF file not specified", 1, msg_id="notify:xccdf:not_loaded")
-            return None
+        if not self.check_library(): return None
 
         """model is alternative attribute for previous
         model if filters were applied"""
@@ -921,10 +887,12 @@ class DHItemsTree(DataHandler, EventObject):
         for all childs."""
         self.__set_sensitive(policy, model[path], model, model[path][DHItemsTree.COLUMN_SELECTED])
 
-    def __recursive_fill(self, item=None, parent=None, pselected=True):
+    def __recursive_fill(self, item=None, parent=None, pselected=True, with_values=False):
         """Function to fill the treeModel. Recursive call through benchmark items
         for constructing the tree structure. Select attribute is from selected policy (profile).
-        See profiles."""
+        See profiles.
+        
+        with_values - if the model has the values of groups"""
 
         """This is recusive call (item is not None) so let's get type of 
         item and add it to model. If the item is Group continue more deep with
@@ -938,57 +906,84 @@ class DHItemsTree(DataHandler, EventObject):
             self.__progress.set_text("Adding items %s/%s" % (int(self.__progress.get_fraction()/self.__step), self.__total))
             gtk.gdk.threads_leave()
 
-        # Check select status of item
+        """Check the item if it's selected. If the parent or the item is not selected
+        change the color of the font to the fgray"""
         if self.items_model:
             selected = self.get_selected(item, self.items_model)
         else:
             selected = self.get_selected(item, self.items_model)
             color = ["gray", None][selected and pselected]
         
+        """If item is not None let's fill the model with groups and rules.
+        """
         if item != None:
-            # If item is group, store it ..
+            # Get striped titles without white characters
             titles = dict([(title.lang, " ".join(title.text.split())) for title in item.title])
             if self.core.selected_lang in titles.keys(): title = titles[self.core.selected_lang]
             else: title = titles[titles.keys()[0]]
+
+            # TYPE: XCCDF_RULE
             if item.type == openscap.OSCAP.XCCDF_GROUP:
+                item = item.to_group()
                 img = "emblem-documents"
                 gtk.gdk.threads_enter()
                 item_it = self.model.append(parent, ["group", item.id, title, img, ""+title, color, selected, pselected])
                 self.treeView.queue_draw()
                 gtk.gdk.threads_leave()
-                # .. call recursive
+
+                """For all content of the group continue with recursive fill
+                """
                 for i in item.content:
-                    self.__recursive_fill(i, item_it, selected and pselected)
-            # item is rule, store it to model
+                    self.__recursive_fill(i, item_it, selected and pselected, with_values=with_values)
+
+                """Get the values of the group and add it to the end of group subtree
+                """
+                if with_values:
+                    img = "emblem-downloads"
+                    for value in item.values:
+                        if len(value.title) == 0: title = value.id
+                        titles = dict([(title.lang, " ".join(title.text.split())) for title in value.title])
+                        if self.core.selected_lang in titles.keys(): title = titles[self.core.selected_lang]
+                        else: title = titles[titles.keys()[0]]
+                        gtk.gdk.threads_enter()
+                        self.model.append(item_it, ["value", value.id, title, img, ""+title, color, selected, pselected])
+                        self.treeView.queue_draw()
+                        gtk.gdk.threads_leave()
+
+            # TYPE: XCCDF_RULE
             elif item.type == openscap.OSCAP.XCCDF_RULE:
                 img = "document-new"
                 gtk.gdk.threads_enter()
                 item_it = self.model.append(parent, ["rule", item.id, title, img, ""+title, color, selected, pselected])
                 self.treeView.queue_draw()
                 gtk.gdk.threads_leave()
+
+            #TYPE: UNKNOWN
             else: logger.warning("Unknown type of %s, should be Rule or Group (got %s)", item.type, item.id)
 
-            return # we need to return otherwise it would continue to next block
         else: 
             raise Exception, "Can't get data to fill. Expected XCCDF Item (got %s)" % (item,)
 
-    def __item_count(self, item):
+    def __item_count(self, item, with_values=False):
         """Recursive function returning count of children.
         if item is RULE return 0"""
         number = 0
         if item.type == openscap.OSCAP.XCCDF_GROUP or item.to_item().type == openscap.OSCAP.XCCDF_BENCHMARK:
+            if with_values:
+                if item.type == openscap.OSCAP.XCCDF_GROUP: values = item.to_group().values
+                else: values = item.values
+                for child in values:
+                    number += 1
             for child in item.content:
                 number += 1
                 if child.type == openscap.OSCAP.XCCDF_GROUP:
-                    number += self.__item_count(child)
+                    number += self.__item_count(child, with_values=with_values)
         return number
 
     @threadSave
-    def fill(self, item=None, parent=None):
+    def fill(self, item=None, parent=None, with_values=False):
         """Thread save function to fill the treeView."""
-        if not self.core.lib:
-            self.core.notify("Library not initialized or XCCDF file not specified", 1, msg_id="notify:xccdf:not_loaded")
-            return None
+        if not self.check_library(): return None
 
         """we don't know item so it's first call and we need to clear
         the model, get the item from benchmark and continue recursively
@@ -998,7 +993,7 @@ class DHItemsTree(DataHandler, EventObject):
         if self.__progress:
             self.__progress.set_fraction(0.0)
             self.__progress.show()
-            self.__total = self.__item_count(self.core.lib["policy_model"].benchmark)
+            self.__total = self.__item_count(self.core.lib["policy_model"].benchmark, with_values=with_values)
         self.__step = (100.0/(self.__total or 1.0))/100.0
 
         try:
@@ -1013,7 +1008,7 @@ class DHItemsTree(DataHandler, EventObject):
                     self.__progress.set_fraction(self.__progress.get_fraction()+self.__step)
                     self.__progress.set_text("Adding items %s/%s" % (int(self.__progress.get_fraction()/self.__step), self.__total))
                     gtk.gdk.threads_leave()
-                self.__recursive_fill(item)
+                self.__recursive_fill(item, with_values=with_values)
 
             gtk.gdk.threads_enter()
             self.treeView.set_sensitive(True)
@@ -1037,7 +1032,8 @@ class DHProfiles(DataHandler):
         DataHandler.__init__(self, core)
 
     def render(self, treeView):
-        """Make a model ListStore of Dependencies object"""
+        """Make a model ListStore of Profile object
+        """
 
         self.model = gtk.ListStore(str, str)
         treeView.set_model(self.model)
@@ -1062,10 +1058,14 @@ class DHProfiles(DataHandler):
         treeView.append_column(column)
 
     def add(self, item):
+        """Add a new profile to the benchmark.
+        Item is a dictionary specifing profile to be added
+        
+        This method is using @ref edit method to fill the data from
+        item to the XCCDF Profile structure"""
+
         logger.debug("Adding new profile: \"%s\"", item["id"])
-        if not self.core.lib:
-            self.core.notify("Library not initialized or XCCDF file not specified", 1, msg_id="notify:xccdf:not_loaded")
-            return None
+        if not self.check_library(): return None
 
         profile = openscap.xccdf.profile()
         self.edit(item, profile)
@@ -1074,17 +1074,23 @@ class DHProfiles(DataHandler):
         self.core.lib["policy_model"].add_policy(openscap.xccdf.policy(self.core.lib["policy_model"], profile))
 
     def edit(self, item, profile=None):
-        logger.debug("Editing profile: \"%s\"", item["id"])
-        if not self.core.lib:
-            self.core.notify("Library not initialized or XCCDF file not specified", 1, msg_id="notify:xccdf:not_loaded")
-            return None
+        """Edit profile (if it's not None) with the values from
+        item parameter.
 
+        If profile is None try to get the profile from benchmark instead.
+        If this failed and selected profile does not exist return False"""
+
+        logger.debug("Editing profile: \"%s\"", item["id"])
+        if not self.check_library(): return None
+
+        # Try to find the selected profile if it exists
         if not profile: profile = self.core.lib["policy_model"].benchmark.get_item(self.core.selected_profile)
         if not profile: 
-            self.core.notify("Saving profile failed: No profile \"%s\" in benchmark." % (self.core.selected_profile), 2) # TODO
+            self.core.notify("Saving profile failed: No profile \"%s\" in benchmark." % (self.core.selected_profile), 2)
             logger.error("No profile \"%s\" in benchmark", self.core.selected_profile)
             return False
 
+        # Fill the profile with details from the item parameter
         profile.id = item["id"]
         profile.abstract = item["abstract"]
         profile.version = item["version"]
@@ -1102,15 +1108,18 @@ class DHProfiles(DataHandler):
                 profile.description = description
 
     def fill(self, item=None, parent=None, no_default=False):
+        """Clear the model and fill it with existing profiles from loaded benchmark
+        no_default parameter means that there should not be a default document representation of policy
+        """
 
         self.model.clear()
-        if not self.core.lib:
-            self.core.notify("Library not initialized or XCCDF file not specified", 1, msg_id="notify:xccdf:not_loaded")
-            return False
+        if not self.check_library(): return None
+
         if not no_default:
             logger.debug("Adding profile (No profile)")
             self.model.append([None, "(No profile)"])
 
+        # Go thru all profiles from benchmark and add them into the model
         for item in self.core.lib["policy_model"].benchmark.profiles:
             logger.debug("Adding profile \"%s\"", item.id)
             pvalues = self.get_profile_details(item.id)
@@ -1125,6 +1134,9 @@ class DHProfiles(DataHandler):
         return True
 
     def save(self):
+        """Save the profile in the benchmark. Profile still exists just as policy and
+        all changes made to the policy after tailoring are not mirrored to the profile,
+        therefor we need to save it explicitely."""
 
         policy = self.core.lib["policy_model"].get_policy_by_id(self.core.selected_profile)
         if policy == None:
@@ -1147,20 +1159,19 @@ class DHProfiles(DataHandler):
             profile.add_select(sel)
 
     def remove_item(self, id):
-        if not self.core.lib:
-            self.core.notify("Library not initialized or XCCDF file not specified", 1, msg_id="notify:xccdf:not_loaded")
-            return None
+        """Remove profile from XCCDF Benchmark
+        """
+        if not self.check_library(): return None
 
         logger.info("Removing profile %s" %(id,))
         profile = self.core.lib["policy_model"].benchmark.get_item(id).to_profile()
         self.core.lib["policy_model"].benchmark.profiles.remove(profile)
 
     def change_refines(self, weight=None, severity=None, role=None):
-
+        """Call the library to change refines of profile
+        """
         if self.core.selected_profile == None: return
-        if not self.core.lib:
-            self.core.notify("Library not initialized or XCCDF file not specified", 1, msg_id="notify:xccdf:not_loaded")
-            return None
+        if not self.check_library(): return None
 
         policy = self.core.lib["policy_model"].get_policy_by_id(self.core.selected_profile)
         if policy:
@@ -1418,9 +1429,7 @@ class DHScan(DataHandler, EventObject):
         return True
         
     def cancel(self):
-        if not self.core.lib:
-            self.core.notify("Library not initialized or XCCDF file not specified", 1, msg_id="notify:xccdf:not_loaded")
-            return None
+        if not self.check_library(): return None
 
         if not self.__cancel:
             self.__cancel = True
@@ -1467,9 +1476,8 @@ class DHScan(DataHandler, EventObject):
 
     @threadSave
     def th_scan(self):
-        if not self.core.lib:
-            self.core.notify("Library not initialized or XCCDF file not specified", 1, msg_id="notify:xccdf:not_loaded")
-            return None
+        if not self.check_library(): return None
+
         logger.debug("Scanning %s ..", self.policy.id)
         if self.__progress != None:
             gtk.gdk.threads_enter()
@@ -1492,6 +1500,16 @@ class DHEditItems(DataHandler):
 
         self.item = None # TODO: bug workaround - commands.py:1589 AttributeError: DHEditItems instance has no attribute 'item'
         self.core = core
+
+    def get_titles(self):
+        if not self.check_library(): return None
+        return self.core.lib["policy_model"].benchmark.get_item(self.core.selected_item).title
+    def get_descriptions(self):
+        if not self.check_library(): return None
+        return self.core.lib["policy_model"].benchmark.get_item(self.core.selected_item).description
+    def get_warnings(self):
+        if not self.check_library(): return None
+        return self.core.lib["policy_model"].benchmark.get_item(self.core.selected_item).warnings
 
     def DHEditAddItem(self, item_to_add, group, data):
 

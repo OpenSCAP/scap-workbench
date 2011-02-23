@@ -25,8 +25,8 @@ import threading
 logger = logging.getLogger("scap-workbench")
 
 def thread(func):
-    def callback(self, *args):
-        handler = ThreadHandler(func, self, *args)
+    def callback(self, *args, **kwargs):
+        handler = ThreadHandler(func, self, *args, **kwargs)
         logger.debug("Running thread handler \"%s:%s\"", func, args)
         handler.start()
     return callback
@@ -35,12 +35,13 @@ class ThreadHandler(threading.Thread):
     """
     """
     
-    def __init__(self, func, obj, *args):
+    def __init__(self, func, obj, *args, **kwargs):
         """ Initializing variables """
         
         self.running = False
         self.__func = func
         self.args = args
+        self.kwargs = kwargs
         self.obj = obj
 
         threading.Thread.__init__(self)
@@ -53,5 +54,5 @@ class ThreadHandler(threading.Thread):
         """ Run method, this is the code that runs while thread is alive """
 
         # Run the function
-        self.__func(self.obj, *self.args)
+        self.__func(self.obj, *self.args, **self.kwargs)
 

@@ -32,11 +32,13 @@ class EventObject(gobject.GObject):
         self.core = core
         gobject.type_register(EventObject)
         self.object = self
+
+        # Notifications are global for each event object
         self.notifications = []
     
-    def emit_signal(self, signal):
+    def emit(self, signal):
         logger.debug("Emiting signal %s from %s", signal, self.id)
-        self.emit(signal)
+        gobject.GObject.emit(self, signal)
 
     def add_sender(self, id, signal, *args):
 
@@ -94,7 +96,7 @@ class EventHandler(EventObject):
         if sender.id in self.receivers:
             if signal in self.receivers[sender.id]:
                 for cb in self.receivers[sender.id][signal]:
-                    #logger.debug("Emiting signal \"%s\" from \"%s\" into \"%s\"" % (signal, sender.id, cb))
+                    logger.debug("Received signal \"%s\" from \"%s\" into \"%s\"" % (signal, sender.id, cb))
                     if callable(cb): cb()
                     else: 
                         logger.error("Callback %s is not callable", cb)

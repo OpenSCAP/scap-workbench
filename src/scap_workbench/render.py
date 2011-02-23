@@ -105,14 +105,17 @@ class MenuButtonXCCDF(abstract.MenuButton):
         self.add_sender(self.id, "load")
         self.add_sender(self.id, "lang_changed")
 
-        details = self.data_model.get_details()
-        try:
-            self.set_detail(details)
-            if self.core.xccdf_file != None: 
-                self.btn_close.set_sensitive(True)
-                self.btn_validate.set_sensitive(True)
-                self.btn_export.set_sensitive(True)
-        except KeyError: pass
+        self.add_receiver("gui:btn:menu:edit:XCCDF", "update", self.__update)
+        self.add_receiver("gui:edit:xccdf:title", "update", self.__update)
+        self.add_receiver("gui:edit:xccdf:description", "update", self.__update)
+        self.add_receiver("gui:edit:xccdf:warning", "update", self.__update)
+        self.add_receiver("gui:edit:xccdf:notice", "update", self.__update)
+
+        self.__update()
+        if self.core.xccdf_file != None: 
+            self.btn_close.set_sensitive(True)
+            self.btn_validate.set_sensitive(True)
+            self.btn_export.set_sensitive(True)
 
         label_set_autowrap(self.label_title)
         label_set_autowrap(self.label_description)
@@ -180,13 +183,7 @@ class MenuButtonXCCDF(abstract.MenuButton):
         self.files_box.pack_start(expander, False, False)
         expander.show_all()
 
-    # set functions
-    def set_detail(self, details=None):
-        """
-        Set information about file.
-        """
-        STATUS_CURRENT = ["not specified", "accepted", "deprecated", "draft", "incomplet", "interim"]
-        # CLEAR
+    def __clear(self):
         self.label_info.set_text("")
         self.label_title.set_text("")
         self.label_description.set_text("")
@@ -199,15 +196,25 @@ class MenuButtonXCCDF(abstract.MenuButton):
         self.label_language.set_text("")
         for child in self.files_box.get_children(): child.destroy()
 
+    # set functions
+    def __update(self):
+        """
+        Set information about file.
+        """
+        self.__clear()
+        details = self.data_model.get_details()
+
         # SET
         if not details: return
         lang = details["lang"]
         self.label_info.set_text("XCCDF: %s" % (details["id"] or "",))
-        self.label_title.set_text(details["titles"][lang] or "")
-        self.label_description.set_text(details["descs"][lang] or "")
+        if lang not in details["titles"]: self.label_title.set_text("No title in \"%s\" language" % (lang,))
+        else: self.label_title.set_text(details["titles"][lang] or "")
+        if lang not in details["descs"]: self.label_description.set_text("No description in \"%s\" language" % (lang,))
+        else: self.label_description.set_text(details["descs"][lang] or "")
         self.label_version.set_text(details["version"] or "")
         self.label_url.set_text(details["id"] or "")
-        self.label_status_current.set_text(STATUS_CURRENT[details["status_current"]] or "")
+        self.label_status_current.set_text(abstract.ENUM_STATUS_CURRENT.map(details["status_current"])[1])
         self.label_resolved.set_text(["no", "yes"][details["resolved"]])
         self.label_warnings.set_text("\n".join(["%s: %s" % (warn[0], warn[1].text) for warn in details["warnings"]]) or "None")
         self.label_notices.set_text("\n".join(["%s: %s" % (notice[0], notice[1].text) for notice in details["notices"]]) or "None")
@@ -253,13 +260,12 @@ class MenuButtonXCCDF(abstract.MenuButton):
             logger.debug("Loading XCCDF file %s", file)
             self.core.init(file)
             self.emit("load")
-            details = self.data_model.get_details()
             self.btn_close.set_sensitive(True)
             self.btn_validate.set_sensitive(True)
             self.btn_export.set_sensitive(True)
 
             try:
-                self.set_detail(details)
+                self.__update()
             except KeyError: pass
 
     def __cb_validate(self, widget):
@@ -286,7 +292,7 @@ class MenuButtonXCCDF(abstract.MenuButton):
         self.btn_validate.set_sensitive(False)
         self.btn_export.set_sensitive(False)
         self.core.destroy()
-        self.set_detail()
+        self.__clear()
         self.core.notify_destroy("notify:xccdf:validate")
         self.core.notify_destroy("notify:xccdf:export")
         self.emit("load")
