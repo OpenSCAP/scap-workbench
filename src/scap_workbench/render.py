@@ -110,6 +110,7 @@ class MenuButtonXCCDF(abstract.MenuButton):
         self.add_receiver("gui:edit:xccdf:description", "update", self.__update)
         self.add_receiver("gui:edit:xccdf:warning", "update", self.__update)
         self.add_receiver("gui:edit:xccdf:notice", "update", self.__update)
+        self.add_receiver("gui:edit:xccdf:status", "update", self.__update)
 
         self.__update()
         if self.core.xccdf_file != None: 

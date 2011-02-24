@@ -239,9 +239,6 @@ class MenuButtonEditXCCDF(abstract.MenuButton):
         self.entry_version.connect( "changed", self.__change, "change", "version")
         self.entry_resolved = self.builder.get_object("edit:xccdf:resolved")
         self.entry_resolved.connect( "changed", self.__change, "change", "resolved")
-        self.entry_status = self.builder.get_object("edit:xccdf:status")
-        self.entry_status.set_model(abstract.Enum_type.combo_model_status)
-        self.entry_status.connect( "changed", self.__change, "change", "status")
         self.entry_lang = self.builder.get_object("edit:xccdf:lang")
         self.entry_lang.connect( "changed", self.__change, "change", "lang")
 
@@ -265,17 +262,24 @@ class MenuButtonEditXCCDF(abstract.MenuButton):
         self.builder.get_object("edit:xccdf:btn_warnings_del").connect("clicked", self.warnings.dialog, self.data_model.CMD_OPER_DEL)
 
         # -- NOTICE --
-        self.notices = EditNotices(self.core, "gui:edit:xccdf:notice", builder.get_object("edit:xccdf:notices"), self.data_model)
+        self.notices = EditNotice(self.core, "gui:edit:xccdf:notice", builder.get_object("edit:xccdf:notices"), self.data_model)
         self.builder.get_object("edit:xccdf:btn_notices_add").connect("clicked", self.notices.dialog, self.data_model.CMD_OPER_ADD)
         self.builder.get_object("edit:xccdf:btn_notices_edit").connect("clicked", self.notices.dialog, self.data_model.CMD_OPER_EDIT)
         self.builder.get_object("edit:xccdf:btn_notices_del").connect("clicked", self.notices.dialog, self.data_model.CMD_OPER_DEL)
-        # -------------
 
+        # -- REFERENCE --
         self.tv_references = abstract.ListEditor("gui:edit:xccdf:references", self.core, widget=self.builder.get_object("edit:xccdf:references"), model=gtk.ListStore(str, str))
         self.tv_references.widget.append_column(gtk.TreeViewColumn("Reference", gtk.CellRendererText(), text=0))
         self.builder.get_object("edit:xccdf:btn_references_add").set_sensitive(False)
         self.builder.get_object("edit:xccdf:btn_references_edit").set_sensitive(False)
         self.builder.get_object("edit:xccdf:btn_references_del").set_sensitive(False)
+
+        # -- STATUS --
+        self.statuses = EditStatus(self.core, "gui:edit:xccdf:status", builder.get_object("edit:xccdf:statuses"), self.data_model)
+        self.builder.get_object("edit:xccdf:btn_statuses_add").connect("clicked", self.statuses.dialog, self.data_model.CMD_OPER_ADD)
+        self.builder.get_object("edit:xccdf:btn_statuses_edit").connect("clicked", self.statuses.dialog, self.data_model.CMD_OPER_EDIT)
+        self.builder.get_object("edit:xccdf:btn_statuses_del").connect("clicked", self.statuses.dialog, self.data_model.CMD_OPER_DEL)
+        # -------------
 
     def __change(self, widget, subject=None, object=None):
 
@@ -305,11 +309,11 @@ class MenuButtonEditXCCDF(abstract.MenuButton):
         self.descriptions.clear()
         self.warnings.clear()
         self.notices.clear()
+        self.statuses.clear()
         self.tv_references.clear()
         self.entry_id.set_text("")
         self.entry_version.set_text("")
         self.entry_resolved.set_active(-1)
-        self.entry_status.set_active(-1)
         self.entry_lang.set_text("")
 
 
@@ -319,7 +323,6 @@ class MenuButtonEditXCCDF(abstract.MenuButton):
         self.entry_id.handler_block_by_func(self.__change)
         self.entry_version.handler_block_by_func(self.__change)
         self.entry_resolved.handler_block_by_func(self.__change)
-        self.entry_status.handler_block_by_func(self.__change)
         self.entry_lang.handler_block_by_func(self.__change)
 
         self.__clear_widgets()
@@ -341,7 +344,6 @@ class MenuButtonEditXCCDF(abstract.MenuButton):
         self.entry_id.set_sensitive(details != None)
         self.entry_version.set_sensitive(details != None)
         self.entry_resolved.set_sensitive(False)
-        self.entry_status.set_sensitive(details != None)
         self.entry_lang.set_sensitive(details != None)
 
         """Update 
@@ -350,7 +352,6 @@ class MenuButtonEditXCCDF(abstract.MenuButton):
             self.entry_id.set_text(details["id"] or "")
             self.entry_version.set_text(details["version"] or "")
             self.entry_resolved.set_active(details["resolved"])
-            self.entry_status.set_active(abstract.ENUM_STATUS_CURRENT.map(details["status_current"])[0])
             self.entry_lang.set_text(details["lang"] or "")
             self.titles.fill()
             self.descriptions.fill()
@@ -358,11 +359,11 @@ class MenuButtonEditXCCDF(abstract.MenuButton):
             self.notices.fill()
             for ref in details["references"]:
                 self.tv_references.append([ref])
+            self.statuses.fill()
 
         self.entry_id.handler_unblock_by_func(self.__change)
         self.entry_version.handler_unblock_by_func(self.__change)
         self.entry_resolved.handler_unblock_by_func(self.__change)
-        self.entry_status.handler_unblock_by_func(self.__change)
         self.entry_lang.handler_unblock_by_func(self.__change)
 
         
@@ -605,7 +606,7 @@ class MenuButtonEditItems(abstract.MenuButton, abstract.ControlEditWindow):
         builder.get_object("edit:general:btn_title_del").connect("clicked", self.titles.dialog, self.data_model.CMD_OPER_DEL)
 
         # -- DESCRIPTION --
-        self.descriptions = EditTitle(self.core, "gui:edit:xccdf:items:descriptions", builder.get_object("edit:general:lv_description"), self.data_model)
+        self.descriptions = EditDescription(self.core, "gui:edit:xccdf:items:descriptions", builder.get_object("edit:general:lv_description"), self.data_model)
         builder.get_object("edit:general:btn_description_add").connect("clicked", self.descriptions.dialog, self.data_model.CMD_OPER_ADD)
         builder.get_object("edit:general:btn_description_edit").connect("clicked", self.descriptions.dialog, self.data_model.CMD_OPER_EDIT)
         builder.get_object("edit:general:btn_description_del").connect("clicked", self.descriptions.dialog, self.data_model.CMD_OPER_DEL)
@@ -616,9 +617,14 @@ class MenuButtonEditItems(abstract.MenuButton, abstract.ControlEditWindow):
         builder.get_object("edit:general:btn_warning_add").connect("clicked", self.warnings.dialog, self.data_model.CMD_OPER_ADD)
         builder.get_object("edit:general:btn_warning_edit").connect("clicked", self.warnings.dialog, self.data_model.CMD_OPER_EDIT)
         builder.get_object("edit:general:btn_warning_del").connect("clicked", self.warnings.dialog, self.data_model.CMD_OPER_DEL)
+
+        # -- STATUS --
+        self.statuses = EditStatus(self.core, "gui:edit:items:general:status", builder.get_object("edit:general:lv_status"), self.data_model)
+        builder.get_object("edit:general:btn_status_add").connect("clicked", self.statuses.dialog, self.data_model.CMD_OPER_ADD)
+        builder.get_object("edit:general:btn_status_edit").connect("clicked", self.statuses.dialog, self.data_model.CMD_OPER_EDIT)
+        builder.get_object("edit:general:btn_status_del").connect("clicked", self.statuses.dialog, self.data_model.CMD_OPER_DEL)
         # -------------
 
-        self.edit_status = EditStatus(self.core, self.builder)
         self.edit_question = EditQuestion(self.core, self.builder)
         self.edit_rationale = EditRationale(self.core, self.builder)
         self.edit_conflicts = EditConflicts(self.core, self.builder,self.list_item.get_TreeView().get_model())
@@ -736,7 +742,7 @@ class MenuButtonEditItems(abstract.MenuButton, abstract.ControlEditWindow):
             self.titles.fill()
             self.descriptions.fill()
             self.warnings.fill()
-            self.edit_status.fill(details["item"])
+            self.statuses.fill()
             self.edit_question.fill(details["item"])
             self.edit_rationale.fill(details["item"])
             self.edit_platform.fill(details["item"])
@@ -875,8 +881,8 @@ class MenuButtonEditItems(abstract.MenuButton, abstract.ControlEditWindow):
             self.set_sensitive(False)
             self.titles.fill()
             self.descriptions.fill()
-            self.warnings.fill(None)
-            self.edit_status.fill(None)
+            self.warnings.fill()
+            self.statuses.fill()
             self.edit_question.fill(None)
             self.edit_rationale.fill(None)
             self.edit_conflicts.fill(None)
@@ -1131,7 +1137,7 @@ class EditWarning(abstract.ListEditor):
     def __init__(self, core, id, widget, data_model):
         
         self.data_model = data_model
-        abstract.ListEditor.__init__(self, id, core, widget=widget, model=gtk.ListStore(str, str, gobject.TYPE_PYOBJECT, str, gobject.TYPE_PYOBJECT))
+        abstract.ListEditor.__init__(self, id, core, widget=widget, model=gtk.ListStore(str, str, gobject.TYPE_PYOBJECT, str))
         self.add_sender(id, "update")
 
         self.widget.append_column(gtk.TreeViewColumn("Language", gtk.CellRendererText(), text=self.COLUMN_LANG))
@@ -1186,7 +1192,8 @@ class EditWarning(abstract.ListEditor):
                 self.notifications.append(self.core.notify("Please select at least one item to edit", 2, msg_id="notify:not_selected"))
                 return
             else:
-                self.category.set_active(model[self.iter][self.COLUMN_CATEGORY] or -1)
+                print model[self.iter][self.COLUMN_CATEGORY]
+                self.category.set_active(abstract.ENUM_WARNING.pos(model[self.iter][self.COLUMN_OBJ].category) or -1)
                 self.lang.set_text(model[self.iter][self.COLUMN_LANG] or "")
                 self.warning.get_buffer().set_text(model[self.iter][self.COLUMN_TEXT] or "")
         elif operation == self.data_model.CMD_OPER_DEL:
@@ -1211,9 +1218,9 @@ class EditWarning(abstract.ListEditor):
         for item in self.data_model.get_warnings():
             category = abstract.ENUM_WARNING.map(item.category)
             index = abstract.ENUM_WARNING.pos(item.category)
-            self.append([item.text.lang, item.text.text, item, category[1], index])
+            self.append([item.text.lang, item.text.text, item, category[1]])
 
-class EditNotices(abstract.ListEditor):
+class EditNotice(abstract.ListEditor):
 
     COLUMN_ID = 0
     COLUMN_LANG = -1
@@ -1304,70 +1311,90 @@ class EditNotices(abstract.ListEditor):
         for data in self.data_model.get_notices():
             self.append([data.id, re.sub("[\t ]+" , " ", data.text.text or "").strip(), data])
 
-class EditStatus(commands.DHEditItems, abstract.ControlEditWindow):
+class EditStatus(abstract.ListEditor):
 
-    COLUMN_STATUS_TEXT= 0
-    COLUMN_STATUS_ITER = 1
-    COLUMN_DATE = 2
-    COLUMN_OBJECT = 3
-    
-    def __init__(self, core, builder):
-        
-        #set listView and model
-        lv = builder.get_object("edit:general:lv_status")
-        model = gtk.ListStore(str, gobject.TYPE_PYOBJECT, str, gobject.TYPE_PYOBJECT)
-        lv.set_model(model)
+    COLUMN_DATE = 0
 
-        #information for new/edit dialog
-        values = {
-                        "name_dialog":  "Edit title",
-                        "view":         lv,
-                        "cb":           self.DHEditStatus,
-                        "cBox":         {"name":    "Status",
-                                        "column":   self.COLUMN_STATUS_ITER,
-                                        "column_view":   self.COLUMN_STATUS_TEXT,
-                                        "cBox_view":self.COMBO_COLUMN_VIEW,
-                                        "cBox_data":self.COMBO_COLUMN_DATA,
-                                        "model":    self.combo_model_status,
-                                        "empty":    False, 
-                                        "unique":   False},
-                        "textEntry":    {"name":    "Date",
-                                        "column":   self.COLUMN_DATE,
-                                        "empty":    False, 
-                                        "unique":   False,
-                                        "control_fce": self.controlDate}
+    def __init__(self, core, id, widget, data_model):
 
-                        }
-        abstract.ControlEditWindow.__init__(self, core, lv, values)
-        btn_add = builder.get_object("edit:general:btn_status_add")
-        btn_edit = builder.get_object("edit:general:btn_status_edit")
-        btn_del = builder.get_object("edit:general:btn_status_del")
-        
-        
-        # set callBack to btn
-        btn_add.connect("clicked", self.cb_add_row)
-        btn_edit.connect("clicked", self.cb_edit_row)
-        btn_del.connect("clicked", self.cb_del_row)
-        
-        self.addColumn("Date",self.COLUMN_DATE)
-        self.addColumn("Status",self.COLUMN_STATUS_TEXT)
-        
-    def fill(self, item):
-        self.item = item
-        self.model.clear()
-        if item:
-            for data in item.statuses:
-                iter = self.combo_model_status.get_iter_first()
-                while iter:
-                    if data.status == self.combo_model_status.get_value(iter, self.COMBO_COLUMN_DATA):
-                        status = self.combo_model_status.get_value(iter, self.COMBO_COLUMN_VIEW )
-                        break
-                    iter = self.combo_model_status.iter_next(iter)
-                if iter == None: 
-                    logger.error("Unexpected category XCCDF_WARNING.")
-                    status = "Uknown"
+        self.data_model = data_model 
+        abstract.ListEditor.__init__(self, id, core, widget=widget, model=gtk.ListStore(str, str, gobject.TYPE_PYOBJECT))
+        self.add_sender(id, "update")
 
-                self.model.append([status, iter,datetime.date.fromtimestamp(data.date), data])
+        self.widget.append_column(gtk.TreeViewColumn("Date", gtk.CellRendererText(), text=self.COLUMN_DATE))
+        self.widget.append_column(gtk.TreeViewColumn("Status", gtk.CellRendererText(), text=self.COLUMN_TEXT))
+
+    def __do(self, widget=None):
+        """
+        """
+        item = None
+        if self.iter and self.get_model() != None: 
+            item = self.get_model()[self.iter][self.COLUMN_OBJ]
+
+        year, month, day = self.calendar.get_date()
+        retval = self.data_model.edit_status(self.operation, item, "%s-%s-%s" % (year, month, day), self.status.get_active())
+        self.fill()
+        self.__dialog_destroy()
+        self.emit("update")
+
+    def __dialog_destroy(self, widget=None):
+        """
+        """
+        if self.dialog: 
+            self.dialog.destroy()
+
+    def dialog(self, widget, operation):
+        """
+        """
+        self.operation = operation
+        builder = gtk.Builder()
+        builder.add_from_file("/usr/share/scap-workbench/edit_item.glade")
+        self.dialog = builder.get_object("dialog:edit_status")
+        self.info_box = builder.get_object("dialog:edit_status:info_box")
+        self.calendar = builder.get_object("dialog:edit_status:calendar")
+        self.status = builder.get_object("dialog:edit_status:status")
+        self.status.set_model(self.combo_model_status)
+        builder.get_object("dialog:edit_status:btn_cancel").connect("clicked", self.__dialog_destroy)
+        builder.get_object("dialog:edit_status:btn_ok").connect("clicked", self.__do)
+
+        self.core.notify_destroy("notify:not_selected")
+        (model, self.iter) = self.get_selection().get_selected()
+        if operation == self.data_model.CMD_OPER_ADD:
+            day, month, year = time.strftime("%d %m %Y", time.gmtime()).split()
+            self.calendar.select_month(int(month), int(year))
+            self.calendar.select_day(int(day))
+        elif operation == self.data_model.CMD_OPER_EDIT:
+            if not self.iter:
+                self.notifications.append(self.core.notify("Please select at least one item to edit", 2, msg_id="notify:not_selected"))
+                return
+            else:
+                day, month, year = time.strftime("%d %m %Y", time.localtime(model[self.iter][self.COLUMN_OBJ].date)).split()
+                self.calendar.select_month(int(month), int(year))
+                self.calendar.select_day(int(day))
+                self.status.set_active(abstract.ENUM_STATUS_CURRENT.pos(model[self.iter][self.COLUMN_OBJ].status) or -1)
+        elif operation == self.data_model.CMD_OPER_DEL:
+            if not self.iter:
+                self.notifications.append(self.core.notify("Please select at least one item to delete", 2, msg_id="notify:not_selected"))
+                return
+            else: 
+                iter = self.dialogDel(self.core.main_window, self.get_selection())
+                if iter != None:
+                    self.__do()
+                return
+        else: 
+            logger.error("Unknown operation for description dialog: \"%s\"" % (operation,))
+            return
+
+        self.dialog.set_transient_for(self.core.main_window)
+        self.dialog.show_all()
+
+    def fill(self):
+
+        self.clear()
+        for item in self.data_model.get_statuses():
+            status = abstract.ENUM_STATUS_CURRENT.map(item.status)
+            index = abstract.ENUM_STATUS_CURRENT.pos(item.status)
+            self.append([time.strftime("%d-%m-%Y", time.localtime(item.date)), status[1], item])
 
 class EditIdent(commands.DHEditItems,abstract.ControlEditWindow):
 

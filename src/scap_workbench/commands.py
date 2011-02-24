@@ -25,6 +25,7 @@ import gobject
 import webbrowser
 import datetime
 import time
+from datetime import datetime
 
 from events import EventObject
 from htmltextview import HtmlTextView
@@ -474,6 +475,34 @@ class DataHandler(object):
 
         else: raise AttributeError("Edit warning: Unknown operation %s" % (operation,))
 
+    def edit_status(self, operation, obj, date, status, item=None):
+
+        if not self.check_library(): return None
+
+        if item == None:
+            item = self.core.lib["policy_model"].benchmark.get_item(self.core.selected_item)
+
+        if operation == self.CMD_OPER_ADD:
+            t = datetime.strptime(date, "%Y-%m-%d")
+            the_date = time.mktime(t.timetuple())
+            new_status = openscap.xccdf.status_new()
+            new_status.date = the_date
+            new_status.status = status
+
+            return item.add_status(new_status)
+
+        elif operation == self.CMD_OPER_EDIT:
+            if obj == None: 
+                return False
+            t = datetime.strptime(date, "%Y-%m-%d")
+            obj.date = time.mktime(t.timetuple())
+            obj.status = status
+            return True
+
+        elif operation == self.CMD_OPER_DEL:
+            return item.statuses.remove(obj)
+
+        else: raise AttributeError("Edit warning: Unknown operation %s" % (operation,))
 
 class DHXccdf(DataHandler):
 
@@ -523,7 +552,7 @@ class DHXccdf(DataHandler):
         
         return info
 
-    def update(self, id=None, version=None, resolved=None, status=None, lang=None):
+    def update(self, id=None, version=None, resolved=None, lang=None):
 
         if not self.check_library(): return None
         benchmark = self.core.lib["policy_model"].benchmark
@@ -531,7 +560,6 @@ class DHXccdf(DataHandler):
         if id and benchmark.id != id: benchmark.id = id
         if version and benchmark.version != version: benchmark.version = version
         if resolved and benchmark.resolved != resolved: benchmark.resolved = resolved
-        if status and benchmark.status_current != status: benchmark.status_current = status
         if lang and benchmark.lang != lang: benchmark.lang = lang
 
     def export(self):
@@ -563,6 +591,9 @@ class DHXccdf(DataHandler):
     def get_notices(self):
         if not self.check_library(): return None
         return self.core.lib["policy_model"].benchmark.notices
+    def get_statuses(self):
+        if not self.check_library(): return None
+        return self.core.lib["policy_model"].benchmark.statuses
 
     def edit_title(self, operation, obj, lang, text):
         if not self.check_library(): return None
@@ -574,7 +605,11 @@ class DHXccdf(DataHandler):
 
     def edit_warning(self, operation, obj, category, lang, text):
         if not self.check_library(): return None
-        super(DHXccdf, self).edit_warning(operation, obj, category, lang, text, item=self.core.lib["policy_model"].benchmark)
+        super(DHXccdf, self).edit_warning(operation, obj, category, lang, text, item=self.core.lib["policy_model"].benchmark.to_item())
+
+    def edit_status(self, operation, obj, date, status):
+        if not self.check_library(): return None
+        super(DHXccdf, self).edit_status(operation, obj, date, status, item=self.core.lib["policy_model"].benchmark.to_item())
 
     def edit_notice(self, operation, obj, id, text):
 
@@ -1510,6 +1545,9 @@ class DHEditItems(DataHandler):
     def get_warnings(self):
         if not self.check_library(): return None
         return self.core.lib["policy_model"].benchmark.get_item(self.core.selected_item).warnings
+    def get_statuses(self):
+        if not self.check_library(): return None
+        return self.core.lib["policy_model"].benchmark.get_item(self.core.selected_item).statuses
 
     def DHEditAddItem(self, item_to_add, group, data):
 

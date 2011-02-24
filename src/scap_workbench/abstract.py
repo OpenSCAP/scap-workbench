@@ -574,6 +574,7 @@ class Func:
                 self.notifications.append(self.core.notify("The date is in incorrect format. Correct format is YYYY-MM-DD.", 2, msg_id="notify:date_format"))
                 return None
             try :
+                print date
                 d = datetime.date(int(date[0]), int(date[1]), int(date[2]))
             except Exception as ex:
                 self.notifications.append(self.core.notify("The date is in incorrect format. Correct format is YYYY-MM-DD.", 2, msg_id="notify:date_format"))
