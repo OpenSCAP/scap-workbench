@@ -207,6 +207,9 @@ class MenuButton(EventObject):
         frame.add(alig)
         return alig
 
+    def set_sensitive(self, sensitive):
+        self.widget.set_sensitive(sensitive)
+
     def update(self):
         pass
 

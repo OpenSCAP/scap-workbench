@@ -743,6 +743,12 @@ class DHValues(DataHandler):
             policy.set_tailor_items([{"id":id, "value":new_text}])
         else: logger.error("Failed regexp match: text %s does not match %s", new_text, "|".join([value["match"], choices]))
 
+    def get_titles(self):
+        if not self.check_library(): return None
+        return self.core.lib["policy_model"].benchmark.get_item(self.core.selected_item).title
+    def get_descriptions(self):
+        if not self.check_library(): return None
+        return self.core.lib["policy_model"].benchmark.get_item(self.core.selected_item).description
 
 class DHItemsTree(DataHandler, EventObject):
 

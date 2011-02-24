@@ -4219,7 +4219,7 @@
                     <property name="left_padding">12</property>
                     <property name="right_padding">12</property>
                     <child>
-                      <object class="GtkHPaned" id="hpaned1">
+                      <object class="GtkHPaned" id="edit:tw_profiles:box">
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="position">500</property>
@@ -4660,7 +4660,7 @@
                     <property name="left_padding">12</property>
                     <property name="right_padding">12</property>
                     <child>
-                      <object class="GtkTable" id="profiles:table1">
+                      <object class="GtkTable" id="edit:xccdf:entries">
                         <property name="visible">True</property>
                         <property name="n_rows">4</property>
                         <property name="n_columns">2</property>
@@ -4792,7 +4792,7 @@
                         <property name="can_focus">True</property>
                         <property name="scrollable">True</property>
                         <child>
-                          <object class="GtkAlignment" id="alignment33">
+                          <object class="GtkAlignment" id="edit:xccdf:titles:box">
                             <property name="visible">True</property>
                             <property name="top_padding">5</property>
                             <property name="bottom_padding">5</property>
@@ -4887,7 +4887,7 @@
                           </packing>
                         </child>
                         <child>
-                          <object class="GtkAlignment" id="alignment34">
+                          <object class="GtkAlignment" id="edit:xccdf:descriptions:box">
                             <property name="visible">True</property>
                             <property name="top_padding">5</property>
                             <property name="bottom_padding">5</property>
@@ -4998,7 +4998,7 @@
                           </packing>
                         </child>
                         <child>
-                          <object class="GtkAlignment" id="alignment35">
+                          <object class="GtkAlignment" id="edit:xccdf:warnings:box">
                             <property name="visible">True</property>
                             <property name="top_padding">5</property>
                             <property name="bottom_padding">5</property>
@@ -5096,7 +5096,7 @@
                           </packing>
                         </child>
                         <child>
-                          <object class="GtkAlignment" id="alignment36">
+                          <object class="GtkAlignment" id="edit:xccdf:notices:box">
                             <property name="visible">True</property>
                             <property name="top_padding">5</property>
                             <property name="bottom_padding">5</property>
@@ -5194,7 +5194,7 @@
                           </packing>
                         </child>
                         <child>
-                          <object class="GtkAlignment" id="alignment37">
+                          <object class="GtkAlignment" id="edit:xccdf:references:box">
                             <property name="visible">True</property>
                             <property name="top_padding">5</property>
                             <property name="bottom_padding">5</property>
@@ -5292,7 +5292,7 @@
                           </packing>
                         </child>
                         <child>
-                          <object class="GtkAlignment" id="alignment40">
+                          <object class="GtkAlignment" id="edit:xccdf:statuses:box">
                             <property name="visible">True</property>
                             <property name="top_padding">5</property>
                             <property name="bottom_padding">5</property>

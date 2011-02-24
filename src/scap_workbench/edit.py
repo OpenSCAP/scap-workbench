@@ -331,20 +331,8 @@ class MenuButtonEditXCCDF(abstract.MenuButton):
         """Set sensitivity of widgets depended on availability of XCCDF details
         This is mainly supposed to control no-XCCDF or loaded XCCDF behavior
         """
-        self.builder.get_object("edit:xccdf:btn_titles_add").set_sensitive(details != None)
-        self.builder.get_object("edit:xccdf:btn_titles_edit").set_sensitive(details != None)
-        self.builder.get_object("edit:xccdf:btn_titles_del").set_sensitive(details != None)
-        self.builder.get_object("edit:xccdf:btn_descriptions_add").set_sensitive(details != None)
-        self.builder.get_object("edit:xccdf:btn_descriptions_edit").set_sensitive(details != None)
-        self.builder.get_object("edit:xccdf:btn_descriptions_del").set_sensitive(details != None)
-        self.builder.get_object("edit:xccdf:btn_descriptions_preview").set_sensitive(details != None)
-        self.builder.get_object("edit:xccdf:btn_warnings_add").set_sensitive(details != None)
-        self.builder.get_object("edit:xccdf:btn_warnings_edit").set_sensitive(details != None)
-        self.builder.get_object("edit:xccdf:btn_warnings_del").set_sensitive(details != None)
-        self.entry_id.set_sensitive(details != None)
-        self.entry_version.set_sensitive(details != None)
-        self.entry_resolved.set_sensitive(False)
-        self.entry_lang.set_sensitive(details != None)
+        self.builder.get_object("edit:xccdf:notebook").set_sensitive(details != None)
+        self.builder.get_object("edit:xccdf:entries").set_sensitive(details != None)
 
         """Update 
         """
@@ -383,6 +371,10 @@ class MenuButtonEditProfiles(abstract.MenuButton, abstract.ControlEditWindow):
         self.list_profile = ProfileList(self.tw_profiles, self.core, builder, None, None)
 
         # set signals
+        self.add_receiver("gui:edit:profile_list", "update", self.__update)
+        self.add_receiver("gui:edit:profile_list", "changed", self.__update)
+        self.add_receiver("gui:btn:main:xccdf", "load", self.__update)
+        self.add_receiver("gui:btn:main:xccdf", "update", self.__update)
         self.add_sender(self.id, "update")
         
        # PROFILES
@@ -412,12 +404,9 @@ class MenuButtonEditProfiles(abstract.MenuButton, abstract.ControlEditWindow):
         self.tw_langs.append_column(gtk.TreeViewColumn("Lang", gtk.CellRendererText(), text=0))
         self.tw_langs.append_column(gtk.TreeViewColumn("Title", gtk.CellRendererText(), text=1))
         self.tw_langs.append_column(gtk.TreeViewColumn("Description", gtk.CellRendererText(), text=2))
-
-        self.add_receiver("gui:edit:profile_list", "update", self.__update_profile)
-        self.add_receiver("gui:edit:profile_list", "changed", self.__update_profile)
         
     def __cb_profile_revert(self, widget):
-        self.__update_profile()
+        self.__update()
 
     def __cb_profile_save(self, widget):
         if self.profile_id.get_text() == "":
@@ -446,7 +435,7 @@ class MenuButtonEditProfiles(abstract.MenuButton, abstract.ControlEditWindow):
         self.profile_model.save()
         self.emit("update")
         
-    def __update_profile(self):
+    def __update(self):
 
         self.profile_title.set_text("")
         self.profile_description.get_buffer().set_text("")
@@ -455,6 +444,8 @@ class MenuButtonEditProfiles(abstract.MenuButton, abstract.ControlEditWindow):
         self.profile_btn_add.set_sensitive(details != None)
         self.profile_btn_save.set_sensitive(details != None)
         self.profile_btn_revert.set_sensitive(details != None)
+        self.builder.get_object("edit:profile").set_sensitive(details != None)
+        self.builder.get_object("edit:tw_profiles:box").set_sensitive(details != None)
 
         if not details:
             self.profile_id.set_text("")
@@ -1327,6 +1318,13 @@ class EditStatus(abstract.ListEditor):
     def __do(self, widget=None):
         """
         """
+        self.core.notify_destroy("notify:dialog_notify")
+        # Check input data
+        if self.status.get_active() == -1:
+            self.core.notify("Status has to be choosen.", 2, info_box=self.info_box, msg_id="notify:dialog_notify")
+            self.status.grab_focus()
+            return
+
         item = None
         if self.iter and self.get_model() != None: 
             item = self.get_model()[self.iter][self.COLUMN_OBJ]
@@ -1610,6 +1608,7 @@ class EditValues(commands.DHEditItems, abstract.ControlEditWindow, EventObject):
         self.selector_empty = None
         
         self.data_model = commands.DHEditItems()
+        self.value_model = commands.DHValues(core)
         EventObject.__init__(self, core)
         self.core.register(self.id, self)
         self.add_sender(self.id, "item_changed")
@@ -1644,27 +1643,19 @@ class EditValues(commands.DHEditItems, abstract.ControlEditWindow, EventObject):
         self.selection.connect("changed", self.__cb_item_changed, lv)
         
         #edit data of values
-        self.edit_values_title = EditValueTitle(self.core, self.builder)
+        # -- TITLE --
+        self.value_titles = EditTitle(self.core, "gui:edit:xccdf:values:title", builder.get_object("edit:values:lv_title"), self.value_model)
+        builder.get_object("edit:values:btn_title_add").connect("clicked", self.value_titles.dialog, self.value_model.CMD_OPER_ADD)
+        builder.get_object("edit:values:btn_title_edit").connect("clicked", self.value_titles.dialog, self.value_model.CMD_OPER_EDIT)
+        builder.get_object("edit:values:btn_title_del").connect("clicked", self.value_titles.dialog, self.value_model.CMD_OPER_DEL)
 
-        self.description = EditValueDescription(self.core, "gui:edit:items:values:description", builder.get_object("edit:values:lv_description"))
-        #information for new/edit dialog
-        values = {
-                        "name_dialog":  "Value description",
-                        "view":         self.description,
-                        "cb":           self.data_model.DHEditValueDescription,
-                        "textEntry":    {"name":    "Language",
-                                        "column":   0,
-                                        "empty":    False, 
-                                        "unique":   True},
-                        "textView":     {"name":    "Value Description",
-                                        "column":   1,
-                                        "empty":    False, 
-                                        "unique":   False}
-                        }
-        builder.get_object("edit:values:btn_description_add").connect("clicked", self.description.cb_add_row, values)
-        builder.get_object("edit:values:btn_description_edit").connect("clicked", self.description.cb_edit_row, values)
-        builder.get_object("edit:values:btn_description_del").connect("clicked", self.description.cb_del_row, values)
-        builder.get_object("edit:values:btn_description_preview").connect("clicked", self.description.preview)
+        # -- DESCRIPTION --
+        self.value_descriptions = EditDescription(self.core, "gui:edit:xccdf:values:description", builder.get_object("edit:values:lv_description"), self.value_model)
+        builder.get_object("edit:values:btn_description_add").connect("clicked", self.value_descriptions.dialog, self.value_model.CMD_OPER_ADD)
+        builder.get_object("edit:values:btn_description_edit").connect("clicked", self.value_descriptions.dialog, self.value_model.CMD_OPER_EDIT)
+        builder.get_object("edit:values:btn_description_del").connect("clicked", self.value_descriptions.dialog, self.value_model.CMD_OPER_DEL)
+        builder.get_object("edit:values:btn_description_preview").connect("clicked", self.value_descriptions.preview)
+        # -------------
 
         self.edit_values_question = EditValueQuestion(self.core, self.builder)
         self.edit_values_value = EditValueValue(self.core, self.builder)
@@ -1750,8 +1741,8 @@ class EditValues(commands.DHEditItems, abstract.ControlEditWindow, EventObject):
             self.value_nbook.set_sensitive(True)
             value = model.get_value(iter, self.COLUMN_OBJECT)
             self.value_akt = value
-            self.edit_values_title.fill(value)
-            self.description.fill(value)
+            self.value_titles.fill()
+            self.value_descriptions.fill()
             self.edit_values_question.fill(value)
             self.edit_values_value.fill(value)
             
@@ -1809,8 +1800,8 @@ class EditValues(commands.DHEditItems, abstract.ControlEditWindow, EventObject):
                 self.lbl_match.set_sensitive(False)
         else:
             self.value_nbook.set_sensitive(False)
-            self.edit_values_title.fill(None)
-            self.description.fill(None)
+            self.value_titles.fill()
+            self.value_descriptions.fill()
             self.edit_values_question.fill(None)
             self.edit_values_value.fill(None)
             self.combo_operator.set_active(-1)
@@ -1905,70 +1896,6 @@ class EditValues(commands.DHEditItems, abstract.ControlEditWindow, EventObject):
             logger.error("Not changed value bound.")
         else:
             self.emit("item_changed")
-            
-class EditValueTitle(commands.DHEditItems,abstract.ControlEditWindow):
-
-    COLUMN_LAN = 0
-    COLUMN_TEXT = 1
-    COLUMN_OBJECT = 2
-
-    def __init__(self, core, builder):
-        
-        #set listView and model
-        lv = builder.get_object("edit:values:lv_title")
-        model = gtk.ListStore(str, str, gobject.TYPE_PYOBJECT)
-        lv.set_model(model)
-
-        #information for new/edit dialog
-        values = {
-                        "name_dialog":  "Value title",
-                        "view":         lv,
-                        "cb":           self.DHEditValueTitle,
-                        "textEntry":    {"name":    "Language",
-                                        "column":   self.COLUMN_LAN,
-                                        "empty":    False, 
-                                        "unique":   True},
-                        "textView":     {"name":    "Value title",
-                                        "column":   self.COLUMN_TEXT,
-                                        "empty":    False, 
-                                        "unique":   False}
-                        }
-        abstract.ControlEditWindow.__init__(self, core, lv, values)
-        btn_add = builder.get_object("edit:values:btn_title_add")
-        btn_edit = builder.get_object("edit:values:btn_title_edit")
-        btn_del = builder.get_object("edit:values:btn_title_del")
-        
-        # set callBack to btn
-        btn_add.connect("clicked", self.cb_add_row)
-        btn_edit.connect("clicked", self.cb_edit_row)
-        btn_del.connect("clicked", self.cb_del_row)
-        
-        self.addColumn("Language",self.COLUMN_LAN)
-        self.addColumn("Value title",self.COLUMN_TEXT)
-        
-    def fill(self, value):
-        self.item = value
-        self.model.clear()
-        if value:
-            for data in value.title:
-                self.model.append([data.lang, (" ".join(data.text.split())), data])
-                
-class EditValueDescription(abstract.ListEditor):
-
-    def __init__(self, core, id, widget):
-        
-        self.data_model = commands.DHEditItems(core)
-        abstract.ListEditor.__init__(self, id, core, widget=widget, model=gtk.ListStore(str, str, gobject.TYPE_PYOBJECT))
-        
-        self.widget.append_column(gtk.TreeViewColumn("Language", gtk.CellRendererText(), text=0))
-        self.widget.append_column(gtk.TreeViewColumn("Description", gtk.CellRendererText(), text=1))
-        
-    def fill(self, value):
-        self.item = value
-        self.clear()
-        if value:
-            for data in value.description:
-                self.append([data.lang, data.text, data])
 
 class EditValueQuestion(commands.DHEditItems,abstract.ControlEditWindow):
 
