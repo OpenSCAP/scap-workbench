@@ -191,8 +191,8 @@ class ItemList(abstract.List):
         selection = self.get_TreeView().get_selection()
         (model,iter) = selection.get_selected()
         if iter:
-            EditAddDialogWindow(self.core, self.data_model.get_item(model[iter][0]), self, self.ref_model, self.edit_model.DHEditAddItem )
-        else: EditAddDialogWindow(self.core, None, self, self.ref_model, self.edit_model.DHEditAddItem )
+            AddItem(self.core, self.data_model, self, self.ref_model)
+        else: AddItem(self.core, None, self, self.ref_model)
 
     @threadSave
     def __cb_item_changed(self, widget, treeView):
@@ -548,6 +548,7 @@ class MenuButtonEditItems(abstract.MenuButton, abstract.ControlEditWindow):
         self.data_model = commands.DHEditItems(self.core)
         self.item = None
         self.func = abstract.Func()
+        self.current_page = 0
 
         #draw body
         self.body = self.builder.get_object("edit_item:box")
@@ -564,10 +565,10 @@ class MenuButtonEditItems(abstract.MenuButton, abstract.ControlEditWindow):
         self.add_sender(self.id, "update")
         
         # remove just for now (missing implementations and so..)
-        self.itemsPage = self.builder.get_object("edit:notebook")
-        #self.itemsPage.remove_page(1)
-        self.itemsPage.remove_page(4)
-        #print self.itemsPage.get_nth_page(1)
+        self.itemsNB = self.builder.get_object("edit:notebook")
+        #self.itemsNB.remove_page(1)
+        self.itemsNB.remove_page(4)
+        #print self.itemsNB.get_nth_page(1)
 
         self.set_sensitive(False)
 
@@ -696,7 +697,7 @@ class MenuButtonEditItems(abstract.MenuButton, abstract.ControlEditWindow):
             widget.grab_focus()
 
     def set_sensitive(self, sensitive):
-        self.itemsPage.set_sensitive(sensitive)
+        self.itemsNB.set_sensitive(sensitive)
 
     def __set_profile_description(self, description):
         """
@@ -2371,170 +2372,132 @@ class EditAddProfileDialogWindow(EventObject, abstract.ControlEditWindow):
         self.window.destroy()
         
 
-class EditAddDialogWindow(EventObject, abstract.ControlEditWindow):
-    
-    CREATE_AS_CHILD = 0
-    CREATE_AS_SIBLING = 1
-    CREATE_AS_PARENT = 2
-
+class AddItem(EventObject, abstract.ControlEditWindow):
     
     COMBO_COLUMN_DATA = 0
     COMBO_COLUMN_VIEW = 1
     COMBO_COLUMN_INFO = 2
     
-    def __init__(self, core, item, list_item, ref_model, cb):
+    def __init__(self, core, data_model, list_item, ref_model):
         
         self.core = core
-        self.item = item
-        self.cb = cb
+        self.data_model = data_model
         self.view = list_item.get_TreeView()
         self.ref_model = ref_model#list_item.get_TreeView().get_model()
         self.map_filterInfo = list_item.map_filter
         
-        builder = gtk.Builder()
-        builder.add_from_file("/usr/share/scap-workbench/edit_item.glade")
-
-        self.combo_model = gtk.ListStore(int, str, str)
-
-        #self.combo_model.append([self.CREATE_AS_CHILD,"Child","Create the item as a child."])
-        #self.combo_model.append([self.CREATE_AS_SIBLING,"Sibling","Create the item as a sibling."])
-        #self.combo_model.append([self.CREATE_AS_PARENT,"Parent","Create the item as a parent."])
-        
-        self.window = builder.get_object("dialog:add_item")
+        self.builder = gtk.Builder()
+        self.builder.add_from_file("/usr/share/scap-workbench/edit_item.glade")
+        self.window = self.builder.get_object("dialog:add_item")
         self.window.connect("delete-event", self.__delete_event)
-        #self.window.resize(400, 150)
         
-        btn_ok = builder.get_object("add_item:btn_ok")
+        btn_ok = self.builder.get_object("dialog:add_item:btn_ok")
         btn_ok.connect("clicked", self.__cb_do)
-        btn_cancel = builder.get_object("add_item:btn_cancel")
+        btn_cancel = self.builder.get_object("dialog:add_item:btn_cancel")
         btn_cancel.connect("clicked", self.__delete_event)
 
-        self.rb_type_group = builder.get_object("add_item:rb_type_group")
-        self.rb_type_rule = builder.get_object("add_item:rb_type_rule")
-        self.text_id = builder.get_object("add_item:text_id")
-        self.text_lang = builder.get_object("add_item:text_lang")
-        self.text_title = builder.get_object("add_item:text_title")
-        self.combo_create_as = builder.get_object("add_item:combo_create_as")
+        self.itype = self.builder.get_object("dialog:add_item:type")
+        self.itype.connect("changed", self.__cb_changed_type)
+        self.vtype = self.builder.get_object("dialog:add_item:value_type")
+        self.iid = self.builder.get_object("dialog:add_item:id")
+        self.lang = self.builder.get_object("dialog:add_item:lang")
+        self.lang.set_text(self.core.selected_lang)
+        self.lang.set_sensitive(False)
+        self.title = self.builder.get_object("dialog:add_item:title")
+        self.relation = self.builder.get_object("dialog:add_item:relation")
+        self.relation.connect("changed", self.__cb_changed_relation)
+        self.info_box = self.builder.get_object("dialog:add_item:info_box")
+
+        self.__entry_style = self.iid.get_style().base[gtk.STATE_NORMAL]
+
+        #TODO: remove this section -> move it to commander
+        self.selection = self.data_model.treeView.get_selection()
+        if self.selection != None:
+            (self.model, self.iter) = self.selection.get_selected()
+            if self.iter == None: return False
+            self.parent = self.data_model.get_item(self.model[self.iter][self.data_model.COLUMN_ID])
             
-        cell = gtk.CellRendererText()
-        self.combo_create_as.set_model(self.combo_model)
-        self.combo_create_as.pack_start(cell, True)
-        self.combo_create_as.add_attribute(cell, 'text', self.COMBO_COLUMN_VIEW)
-        self.combo_create_as.set_active(self.CREATE_AS_CHILD)
-        
-        struct = self.map_filterInfo[1]
-        # if is active filter_model and truct is list, can be added only child
-        if not struct:
-            self.combo_model.append([self.CREATE_AS_CHILD,"Child","Create the item as a child."])
-            self.combo_create_as.set_active(0)
-            self.combo_create_as.set_sensitive(False)
-            self.item = self.item.to_group()
-        
-        # not selected item add to root -> only child
-        elif self.item == None:
-            self.combo_model.append([self.CREATE_AS_CHILD,"Child","Create the item as a child."])
-            self.combo_create_as.set_active(0)
-            self.combo_create_as.set_sensitive(False)
-        
-        elif self.item.type == openscap.OSCAP.XCCDF_GROUP:
-            self.combo_model.append([self.CREATE_AS_CHILD,"Child","Create the item as a child."])
-            self.combo_model.append([self.CREATE_AS_SIBLING,"Sibling","Create the item as a sibling."])
-            self.combo_create_as.set_active(0)
-            self.item = self.item.to_group()
-        
-        # ir rule cen by add only as sibling
-        else:
-            self.combo_model.append([self.CREATE_AS_SIBLING,"Sibling","Create the item as a sibling."])
-            self.combo_create_as.set_sensitive(False)
-            self.combo_create_as.set_active(0)
-            self.item = self.item.to_rule()
         self.show()
 
+    def __cb_changed_relation(self, widget):
+
+        self.core.notify_destroy("dialog:add_item")
+        if self.model[self.iter][self.data_model.COLUMN_TYPE] == "value" and widget.get_active() == self.data_model.RELATION_CHILD:
+            self.core.notify("Item type VALUE can't be a parent !", 2, self.info_box, msg_id="dialog:add_item")
+            self.itype.grab_focus()
+            return
+
+    def __cb_changed_type(self, widget):
+
+        self.core.notify_destroy("dialog:add_item")
+        if widget.get_active() == self.data_model.TYPE_VALUE:
+            self.builder.get_object("dialog:add_item:value_type:lbl").set_visible(True)
+            self.vtype.set_visible(True)
+        else: 
+            self.builder.get_object("dialog:add_item:value_type:lbl").set_visible(False)
+            self.vtype.set_visible(False)
+
     def __cb_do(self, widget):
-        
-        item_to_add = None
-        active = self.combo_create_as.get_active()
-        if active < 0:
-            self.dialogInfo("Set field Create as.", self.core.main_window)
-            return
-        create_as = self.combo_model[active][self.COMBO_COLUMN_DATA]
-        
-        if self.text_id.get_text() == "":
-            self.dialogInfo("Id Item can't be empty.", self.core.main_window)
+
+        self.core.notify_destroy("dialog:add_item")
+        tagOK = True
+        itype = self.itype.get_active()
+        vtype = self.vtype.get_active()
+        relation = self.relation.get_active()
+        if itype == -1:
+            self.core.notify("Relation has to be chosen", 2, self.info_box, msg_id="dialog:add_item")
+            self.itype.grab_focus()
             return
 
-        if self.text_lang.get_text() == "":
-            self.dialogInfo("Title language can't be empty.", self.core.main_window)
+        if itype == self.data_model.TYPE_VALUE:
+            if vtype == -1:
+                self.core.notify("Type of value has to be choosen", 2, self.info_box, msg_id="dialog:add_item")
+                self.vtype.grab_focus()
+                return
+
+        if relation == -1:
+            self.core.notify("Relation has to be chosen", 2, self.info_box, msg_id="dialog:add_item")
+            self.relation.grab_focus()
+            return
+        elif relation == self.data_model.RELATION_CHILD and parent.type == self.data_model.TYPE_VALUE:
+            self.core.notify("Type of value has ", 2, self.info_box, msg_id="dialog:add_item")
+            self.vtype.grab_focus()
             return
 
-        if self.text_title.get_text() == "":
-            self.dialogInfo("Title can't be empty.", self.core.main_window)
+        if self.iid.get_text() == "":
+            self.core.notify("The ID of item is mandatory !", 2, self.info_box, msg_id="dialog:add_item")
+            self.iid.grab_focus()
+            self.iid.modify_base(gtk.STATE_NORMAL, gtk.gdk.Color("#FFC1C2"))
             return
-        
-        selection = self.view.get_selection()
-        (model ,iter) = selection.get_selected()
-        
-        if self.item != None:
-            
-            if create_as == self.CREATE_AS_CHILD:
-                item_to_add = self.item
-                
-            if create_as == self.CREATE_AS_SIBLING:
-                item_to_add = self.item.get_parent().to_group()
-                if item_to_add == None:
-                    item_to_add = self.core.lib["policy_model"].benchmark
-                    iter = None
-                else:
-                    iter = model.iter_parent(iter)
-        else:
-            item_to_add = self.core.lib["policy_model"].benchmark
-            iter = None
-        
-        type = "Rule: "
-        group = False
-        icon = gtk.STOCK_DND
-        if self.rb_type_group.get_active():
-            type = "Group: "
-            group = True
-            icon = gtk.STOCK_DND_MULTIPLE
-            
-        vys = self.cb(item_to_add, group, [self.text_id.get_text(),"EN", self.text_title.get_text()] )
-        if vys:
-            iter_new_ref = None
-            
-            # if actual model is filter model - must change ref model too
-            if self.ref_model != model:
-                
-                map_filter = self.map_filterInfo[0]
-                #if item none add to root or iter == None
-                if self.item != None and iter != None:
-                    iter_filter = map_filter[model.get_path(iter)]
-                    iter_ref = self.ref_model.get_iter(iter_filter)
-                else:
-                    iter_ref = None
+        else: 
+            self.iid.modify_base(gtk.STATE_NORMAL, self.__entry_style)
 
-                iter_new_ref = self.ref_model.append(iter_ref,[self.text_id.get_text(), self.text_title.get_text(), 
-                                            icon, type+self.text_title.get_text(), None, False, False])
-
-            iter_new = model.append(iter, [self.text_id.get_text(), self.text_title.get_text(), icon, 
-                                            type+self.text_title.get_text(), None, False, False])
-            
-            #If actual model si filter model add information to map_filter 
-            if iter_new_ref:
-                map_filter.update({model.get_path(iter_new):self.ref_model.get_path(iter_new_ref)})
-                
-            self.view.expand_to_path(model.get_path(iter_new))
-            selection.select_iter(iter_new)
-            self.window.destroy()
-        else:
-            self.dialogInfo("Id item exist.", self.core.main_window)
+        if self.title.get_text() == "":
+            self.core.notify("The title of item is mandatory !", 2, self.info_box, msg_id="dialog:add_item")
+            self.title.grab_focus()
+            self.title.modify_base(gtk.STATE_NORMAL, gtk.gdk.Color("#FFC1C2"))
             return
+        else: 
+            self.title.modify_base(gtk.STATE_NORMAL, self.__entry_style)
+
+        if relation == self.data_model.RELATION_PARENT:
+            self.core.notify("Relation PARENT is not implemented yet", 2, self.info_box, msg_id="dialog:add_item")
+            self.relation.grab_focus()
+            return
+
+        item = {"id": self.iid.get_text(),
+                "lang": self.lang.get_text(),
+                "title": self.title.get_text()}
+        retval = self.data_model.add_item(item, itype, relation, vtype)
+
+        self.window.destroy()
             
     def show(self):
         self.window.set_transient_for(self.core.main_window)
         self.window.show()
 
     def __delete_event(self, widget, event=None):
+        self.core.notify_destroy("dialog:add_item")
         self.window.destroy()
 
 class EditSelectIdDialogWindow():

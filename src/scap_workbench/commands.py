@@ -45,9 +45,15 @@ class DataHandler(object):
     calling oscap functions and parsing oscap output to models specified by
     tool's objects"""
 
-    CMD_OPER_ADD    = 0
-    CMD_OPER_EDIT   = 1
-    CMD_OPER_DEL    = 2
+    CMD_OPER_ADD        = 0
+    CMD_OPER_EDIT       = 1
+    CMD_OPER_DEL        = 2
+    RELATION_SIBLING    = 0
+    RELATION_CHILD      = 1
+    RELATION_PARENT     = 2
+    TYPE_GROUP          = 0
+    TYPE_RULE           = 1
+    TYPE_VALUE          = 2
 
     def __init__(self, core):
         """DataHandler.__init__ -- initialization of data handler.
@@ -164,6 +170,7 @@ class DataHandler(object):
                     values.extend( self.get_item_values(i.id) )
 
         return values
+
 
     def get_item_details(self, id, items_model=False):
         """Parse details from item with id equal to id parameter to
@@ -1064,6 +1071,78 @@ class DHItemsTree(DataHandler, EventObject):
             gtk.gdk.threads_leave()
 
         return True
+
+    def add_item(self, item_dict, itype, relation, vtype):
+        """Add new item into the benchmark relative to the selected position
+        in the benchmark tree and choosen relation between selected item and
+        new item"""
+
+        if not self.check_library(): return None
+
+        """If no selected item is passed to the function, get the selected
+        item from the core"""
+        selection = self.treeView.get_selection()
+        if selection != None:
+            (model, iter) = selection.get_selected()
+            if iter == None: return False
+            parent = self.get_item(model[iter][self.COLUMN_ID])
+
+        """There is no item selected therefor we are adding new item to the
+        root level: benchmark. Get benchmark and check it for None value"""
+        if parent == None: 
+            parent = self.core.lib["policy_model"].benchmark
+            if parent == None:
+                return False
+
+        """If relation between selected and new item is SIBLING then we need
+        as parent selected item's parent, if selected item is benchmark: 
+        return false cause benchmark is a root"""
+        if relation == self.RELATION_SIBLING:
+            if parent == self.core.lib["policy_model"].benchmark:
+                return False
+            else: 
+                parent = parent.parent
+                iter = model.iter_parent(iter)
+                if not parent: 
+                    return False
+
+        """Convert parent of item (which is XCCDF_ITEM now) to the appropriate
+        type: BENCHMARK, RULE or GROUP"""
+        if parent.type == openscap.OSCAP.XCCDF_RULE:
+            parent = parent.to_rule()
+        elif parent.type == openscap.OSCAP.XCCDF_GROUP:
+            parent = parent.to_group()
+        elif parent.type == openscap.OSCAP.XCCDF_BENCHMARK:
+            parent = parent.to_benchmark()
+        else: 
+            return False
+
+        """Fill new created item with the values from the formular. Make an 'op'
+        operation related to the type of the parent"""
+        title = openscap.common.text()
+        title.lang = item_dict["lang"]
+        title.text = item_dict["title"]
+        if itype == self.TYPE_RULE:
+            item = openscap.xccdf.rule()
+            op = parent.add_rule
+        elif itype == self.TYPE_GROUP:
+            item = openscap.xccdf.group()
+            op = parent.add_group
+        elif itype == self.TYPE_VALUE:
+            item = openscap.xccdf.value(vtype+1) #TODO
+            op = parent.add_value
+        else: raise AttributeError("Add item: Type \"%s\" not supported" % (itype,))
+        item.id = item_dict["id"]
+        item.add_title(title)
+
+        if parent == self.core.lib["policy_model"].benchmark:
+            retval = op(parent, item)
+        else: retval = op(parent, item)
+
+        item_it = self.model.append(iter, [["group", "rule", "value"][itype], item_dict["id"], item_dict["title"], #TODO: type
+            ["emblem-documents", "document-new", "emblem-downloads"][itype], ""+item_dict["title"], None, True, parent.selected])
+        self.treeView.expand_to_path(model.get_path(item_it))
+        selection.select_iter(item_it)
 
 
 class DHProfiles(DataHandler):
