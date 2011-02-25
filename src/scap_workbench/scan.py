@@ -118,7 +118,10 @@ class MenuButtonScan(abstract.MenuButton):
 
     def __update_profile(self):
         if self.core.selected_profile != None:
-            self.notifications.append(self.core.notify("Selected profile: \"%s\"." % (self.core.selected_profile,), 0))
+            profile = self.data_model.get_profile_details(self.core.selected_profile)
+            if self.core.selected_lang in profile["titles"]: title = profile["titles"][self.core.selected_lang]
+            else: title = "%s (ID)" % (profile["id"],)
+            self.notifications.append(self.core.notify("Selected profile: \"%s\"." % (title,), 0))
         elif self.core.xccdf_file: self.notifications.append(self.core.notify("Selected default document profile.", 0))
 
     def activate(self, active):
