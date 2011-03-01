@@ -71,6 +71,20 @@ ENUM_WARNING=enum((
     [openscap.OSCAP.XCCDF_WARNING_AUDIT, "AUDIT", "Warning about impacts to audit or logging."],
     [openscap.OSCAP.XCCDF_WARNING_DEPENDENCY, "DEPENDENCY", "Warning about dependencies between this Rule and other parts of the target system."]))
 
+ENUM_OPERATOR=enum((
+    [openscap.OSCAP.XCCDF_OPERATOR_EQUALS, "EQUALS", "Equality"],
+    [openscap.OSCAP.XCCDF_OPERATOR_NOT_EQUAL, "NOT EQUAL", "Inequality"],
+    [openscap.OSCAP.XCCDF_OPERATOR_GREATER, "GREATER", "Greater than"],
+    [openscap.OSCAP.XCCDF_OPERATOR_GREATER_EQUAL, "GREATER OR EQUAL", "Greater than or equal."],
+    [openscap.OSCAP.XCCDF_OPERATOR_LESS , "LESS", "Less than."],
+    [openscap.OSCAP.XCCDF_OPERATOR_LESS_EQUAL, "LESS OR EQUAL", "Less than or equal."]))
+
+ENUM_TYPE=enum((
+    [0, "UNKNOWN", "Unknown."],
+    [openscap.OSCAP.XCCDF_TYPE_NUMBER, "NUMBER", ""],
+    [openscap.OSCAP.XCCDF_TYPE_STRING, "STRING", ""],
+    [openscap.OSCAP.XCCDF_TYPE_BOOLEAN, "BOOLEAN", ""]))
+
 class Menu(EventObject):
     """ 
     Create Main item for TreeToolBar_toggleButtonGroup and draw all tree Menu
@@ -664,17 +678,12 @@ class Enum_type:
     combo_model_role.append([openscap.OSCAP.XCCDF_ROLE_UNCHECKED, "UNCHECKED", "Don't check the rule, result will be XCCDF_RESULT_UNKNOWN."])
 
     combo_model_type = gtk.ListStore(int, str, str)
-    combo_model_type.append([openscap.OSCAP.XCCDF_TYPE_NUMBER, "NUMBER", ""])
-    combo_model_type.append([openscap.OSCAP.XCCDF_TYPE_STRING, "STRING", ""])
-    combo_model_type.append([openscap.OSCAP.XCCDF_TYPE_BOOLEAN, "BOOLEAN", ""])
+    for item in ENUM_TYPE:
+        combo_model_type.append(item)
 
     combo_model_operator_number = gtk.ListStore(int, str, str)
-    combo_model_operator_number.append([openscap.OSCAP.XCCDF_OPERATOR_EQUALS, "EQUALS", "Equality"])
-    combo_model_operator_number.append([openscap.OSCAP.XCCDF_OPERATOR_NOT_EQUAL, "NOT EQUAL", "Inequality"])
-    combo_model_operator_number.append([openscap.OSCAP.XCCDF_OPERATOR_GREATER, "GREATER", "Greater than"])
-    combo_model_operator_number.append([openscap.OSCAP.XCCDF_OPERATOR_GREATER_EQUAL, "GREATER OR EQUAL", "Greater than or equal."])
-    combo_model_operator_number.append([openscap.OSCAP.XCCDF_OPERATOR_LESS , "LESS", "Less than."])
-    combo_model_operator_number.append([openscap.OSCAP.XCCDF_OPERATOR_LESS_EQUAL, "LESS OR EQUAL", "Less than or equal."])
+    for item in ENUM_OPERATOR:
+        combo_model_operator_number.append(item)
 
     combo_model_operator_bool = gtk.ListStore(int, str, str)
     combo_model_operator_bool.append([openscap.OSCAP.XCCDF_OPERATOR_EQUALS, "EQUALS", "Equality"])

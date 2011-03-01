@@ -249,7 +249,8 @@ class DataHandler(object):
                     "interface_hint":   item.interface_hint,
                     "oper":             item.oper,
                     "sources":          item.sources,
-                    "status_current":   item.status_current
+                    "status_current":   item.status_current,
+                    "vtype":            item.type
                     })
             else: 
                 logger.error("Item type not supported %d", item.type)
@@ -395,6 +396,37 @@ class DataHandler(object):
             titles[title.lang] = title.text
         return titles
 
+    def get_titles(self):
+        if not self.check_library(): return None
+        item = self.core.lib["policy_model"].benchmark.get_item(self.core.selected_item)
+        if item: return item.title
+        else: return []
+    def get_descriptions(self):
+        if not self.check_library(): return None
+        item = self.core.lib["policy_model"].benchmark.get_item(self.core.selected_item)
+        if item: return item.description
+        else: return []
+    def get_warnings(self):
+        if not self.check_library(): return None
+        item = self.core.lib["policy_model"].benchmark.get_item(self.core.selected_item)
+        if item: return item.warnings
+        else: return []
+    def get_statuses(self):
+        if not self.check_library(): return None
+        item = self.core.lib["policy_model"].benchmark.get_item(self.core.selected_item)
+        if item: return item.statuses
+        else: return []
+    def get_questions(self):
+        if not self.check_library(): return None
+        item = self.core.lib["policy_model"].benchmark.get_item(self.core.selected_item)
+        if item: return item.question
+        else: return []
+    def get_rationales(self):
+        if not self.check_library(): return None
+        item = self.core.lib["policy_model"].benchmark.get_item(self.core.selected_item)
+        if item: return item.rationale
+        else: return []
+
     def remove_item(self, id):
         item = self.get_item(id)
         logger.info("Removing item %s" %(id,))
@@ -510,6 +542,62 @@ class DataHandler(object):
             return item.statuses.remove(obj)
 
         else: raise AttributeError("Edit warning: Unknown operation %s" % (operation,))
+
+    def edit_question(self, operation, obj, lang, overrides, text, item=None):
+
+        if not self.check_library(): return None
+
+        if item == None:
+            item = self.core.lib["policy_model"].benchmark.get_item(self.core.selected_item)
+
+        if operation == self.CMD_OPER_ADD:
+            question = openscap.common.text()
+            question.text = text
+            question.lang = lang
+            question.overrides = overrides
+            
+            return item.add_question(question)
+
+        elif operation == self.CMD_OPER_EDIT:
+            if obj == None: 
+                return False
+            obj.lang = lang
+            obj.text = text
+            obj.overrides = overrides
+            return True
+
+        elif operation == self.CMD_OPER_DEL:
+            return item.question.remove(obj)
+
+        else: raise AttributeError("Edit question: Unknown operation %s" % (operation,))
+
+    def edit_rationale(self, operation, obj, lang, overrides, text, item=None):
+
+        if not self.check_library(): return None
+
+        if item == None:
+            item = self.core.lib["policy_model"].benchmark.get_item(self.core.selected_item)
+
+        if operation == self.CMD_OPER_ADD:
+            rationale = openscap.common.text()
+            rationale.text = text
+            rationale.lang = lang
+            rationale.overrides = overrides
+            
+            return item.add_rationale(rationale)
+
+        elif operation == self.CMD_OPER_EDIT:
+            if obj == None: 
+                return False
+            obj.lang = lang
+            obj.text = text
+            obj.overrides = overrides
+            return True
+
+        elif operation == self.CMD_OPER_DEL:
+            return item.rationale.remove(obj)
+
+        else: raise AttributeError("Edit question: Unknown operation %s" % (operation,))
 
 class DHXccdf(DataHandler):
 
@@ -750,12 +838,40 @@ class DHValues(DataHandler):
             policy.set_tailor_items([{"id":id, "value":new_text}])
         else: logger.error("Failed regexp match: text %s does not match %s", new_text, "|".join([value["match"], choices]))
 
-    def get_titles(self):
+    def get_rationales(self):
+        raise Exception("According to XCCDF Version 1.2: No rationale for value item")
+
+    def get_value_instances(self):
         if not self.check_library(): return None
-        return self.core.lib["policy_model"].benchmark.get_item(self.core.selected_item).title
-    def get_descriptions(self):
-        if not self.check_library(): return None
-        return self.core.lib["policy_model"].benchmark.get_item(self.core.selected_item).description
+
+        instances = []
+        for instance in self.core.lib["policy_model"].benchmark.get_item(self.core.selected_item).to_value().instances:
+
+            if instance.type == openscap.OSCAP.XCCDF_TYPE_NUMBER:
+                op_defval = instance.defval_number
+                op_value  = instance.value_number
+            elif instance.type == openscap.OSCAP.XCCDF_TYPE_STRING:
+                op_defval = instance.defval_string
+                op_value  = instance.value_string
+            elif instance.type == openscap.OSCAP.XCCDF_TYPE_BOOLEAN:
+                op_defval = instance.defval_boolean
+                op_value  = instance.value_boolean
+            else: raise Exception("Get value instances: Typ of instance not supported: \"%s\"" % (instance.type,))
+
+            instances.append({
+                    "choices": instance.choices,
+                    "defval": op_defval,
+                    "lower_bound": instance.lower_bound,
+                    "match": instance.match,
+                    "must_match": instance.must_match,
+                    "selector": instance.selector,
+                    "type": instance.type,
+                    "upper_bound": instance.upper_bound,
+                    "value": instance.value,
+                    "tvalue": op_value
+                    })
+        return instances
+
 
 class DHItemsTree(DataHandler, EventObject):
 
@@ -990,9 +1106,10 @@ class DHItemsTree(DataHandler, EventObject):
                     img = "emblem-downloads"
                     for value in item.values:
                         if len(value.title) == 0: title = value.id
-                        titles = dict([(title.lang, " ".join(title.text.split())) for title in value.title])
-                        if self.core.selected_lang in titles.keys(): title = titles[self.core.selected_lang]
-                        else: title = titles[titles.keys()[0]]
+                        else:
+                            titles = dict([(title.lang, " ".join(title.text.split())) for title in value.title])
+                            if self.core.selected_lang in titles.keys(): title = titles[self.core.selected_lang]
+                            else: title = titles[titles.keys()[0]]
                         gtk.gdk.threads_enter()
                         self.model.append(item_it, ["value", value.id, title, img, ""+title, color, selected, pselected])
                         self.treeView.queue_draw()
@@ -1621,162 +1738,6 @@ class DHEditItems(DataHandler):
         self.item = None # TODO: bug workaround - commands.py:1589 AttributeError: DHEditItems instance has no attribute 'item'
         self.core = core
 
-    def get_titles(self):
-        if not self.check_library(): return None
-        return self.core.lib["policy_model"].benchmark.get_item(self.core.selected_item).title
-    def get_descriptions(self):
-        if not self.check_library(): return None
-        return self.core.lib["policy_model"].benchmark.get_item(self.core.selected_item).description
-    def get_warnings(self):
-        if not self.check_library(): return None
-        return self.core.lib["policy_model"].benchmark.get_item(self.core.selected_item).warnings
-    def get_statuses(self):
-        if not self.check_library(): return None
-        return self.core.lib["policy_model"].benchmark.get_item(self.core.selected_item).statuses
-
-    def DHEditAddItem(self, item_to_add, group, data):
-
-        ID = 0
-        TITLE_LANG = 1
-        TITLE = 2
-
-        if group:
-            item = openscap.xccdf.group_new()
-            item.set_id(data[ID])
-            vys = item_to_add.add_group(item)
-    
-        else:
-            item = openscap.xccdf.rule_new()
-            item.set_id(data[ID])
-            vys = item_to_add.add_rule(item)
-        if not vys:
-            return vys
-        title = openscap.common.text_new()
-        title.set_lang(data[TITLE_LANG])
-        title.set_text(data[TITLE]) 
-        item.add_title(title)
-        return vys
-        
-    def DHEditTitle(self, item, model, iter, column, value, delete=False):
-
-        COLUMN_LAN = 0
-        COLUMN_TEXT = 1
-        COLUMN_OBJECT = 2
-
-        if not item: item = self.get_item(self.core.selected_item)
-        if item:
-            object = model.get_value(iter, COLUMN_OBJECT)
-
-            if not object:
-                object = openscap.common.text_new()
-                item.add_title(object)
-                model.set_value(iter, COLUMN_OBJECT, object)
-            elif  not delete:
-                if column == COLUMN_LAN:
-                    object.set_lang(value)
-                elif column == COLUMN_TEXT:
-                    object.text = value
-                    #object.set_text(value)
-                else:
-                    logger.error("Bad number of column.")
-            else:
-                logger.debug("Removing %s" %(object,))
-                item.title.remove(object)
-                model.remove(iter)
-        else:
-            logger.error("Error: Not read item.")
-            
-    def DHEditDescription(self, item, model, iter, column, value, delete=False):
-
-        COLUMN_LAN = 0
-        COLUMN_TEXT = 1
-        COLUMN_OBJECT = 2
- 
-        if not item: item = self.get_item(self.core.selected_item)
-        if item:
-            object = model.get_value(iter, COLUMN_OBJECT)
-
-            if not object:
-                object = openscap.common.text_new()
-                item.add_description(object)
-                model.set_value(iter, COLUMN_OBJECT, object)
-            elif not delete:
-                if column == COLUMN_LAN:
-                    object.set_lang(value)
-                elif column == COLUMN_TEXT:
-                    object.set_text(value)
-                else:
-                    logger.error("Bad number of column.")
-            else:
-                logger.debug("Removing %s" %(object,))
-                item.description.remove(object)
-                model.remove(iter)  
-        else:
-            logger.error("Error: Not read item.")
-            
-    def DHEditWarning(self, item, model, iter, column, value, delete=False):
-
-        COLUMN_CATEGORY_TEXT= 0
-        COLUMN_CATEGORY_ITER = 1
-        COLUMN_LAN = 2
-        COLUMN_TEXT = 3
-        COLUMN_OBJECT = 4
-
-        if not item: item = self.get_item(self.core.selected_item)
-        if item:
-            object = model.get_value(iter, COLUMN_OBJECT)
-
-            if not object:
-                object = openscap.xccdf.warning_new()
-                object.set_text(openscap.common.text_new())
-                item.add_warning(object)
-                model.set_value(iter, COLUMN_OBJECT, object)
-            elif  not delete:
-                if column == COLUMN_CATEGORY_ITER:
-                    object.set_category(value)
-                elif column == COLUMN_TEXT:
-                    object_text = openscap.xccdf.warning_get_text(object)
-                    object_text.set_text(value)
-                elif column == COLUMN_LAN:
-                    object_text = openscap.xccdf.warning_get_text(object)
-                    object_text.set_lang(value)
-                else:
-                    logger.error("Bad number of column.")
-            else:
-                logger.debug("Removing %s" %(object,))
-                item.warnings.remove(object)
-                model.remove(iter) 
-        else:
-            logger.error("Error: Not read item.")
-            
-    def DHEditStatus(self, item, model, iter, column, value, delete=False):
-
-        COLUMN_STATUS_TEXT= 0
-        COLUMN_STATUS_ITER = 1
-        COLUMN_DATE = 2
-        COLUMN_OBJECT = 3
-
-        if item:
-            object = model.get_value(iter, COLUMN_OBJECT)
-
-            if not object:
-                object = openscap.xccdf.status_new()
-                item.add_status(object)
-                model.set_value(iter, COLUMN_OBJECT, object)
-            elif  not delete:
-                if column == COLUMN_STATUS_ITER:
-                    object.set_status(value)
-                elif column == COLUMN_DATE:
-                    object.set_date(value)
-                else:
-                    logger.error("Bad number of column.")
-            else:
-                logger.debug("Removing %s" %(object,))
-                item.statuses.remove(object)
-                model.remove(iter) 
-        else:
-            logger.error("Error: Not read item.")
-
     def DHEditIdent(self, item, model, iter, column, value, delete=False):
 
         COLUMN_ID = 0
@@ -1806,60 +1767,6 @@ class DHEditItems(DataHandler):
         else:
             logger.error("Error: Not read item.")
 
-    def DHEditQuestion(self, item, model, iter, column, value, delete=False):
-
-        COLUMN_LAN = 0
-        COLUMN_TEXT = 1
-        COLUMN_OBJECT = 2
-
-        if item:
-            object = model.get_value(iter, COLUMN_OBJECT)
-
-            if not object:
-                object = openscap.common.text_new()
-                item.add_question(object)
-                model.set_value(iter, COLUMN_OBJECT, object)
-            elif  not delete:
-                if column == COLUMN_LAN:
-                    object.set_lang(value)
-                elif column == COLUMN_TEXT:
-                    object.set_text(value)
-                else:
-                    logger.error("Bad number of column.")
-            else:
-                logger.debug("Removing %s" %(object,))
-                item.question.remove(object)
-                model.remove(iter)  
-        else:
-            logger.error("Error: Not read item.")
-                
-    def DHEditRationale(self, item, model, iter, column, value, delete=False):
-
-        COLUMN_LAN = 0
-        COLUMN_TEXT = 1
-        COLUMN_OBJECT = 2
-        
-        if item:
-            object = model.get_value(iter, COLUMN_OBJECT)
-
-            if not object:
-                object = openscap.common.text_new()
-                item.add_rationale(object)
-                model.set_value(iter, COLUMN_OBJECT, object)
-            elif  not delete:
-                if column == COLUMN_LAN:
-                    object.set_lang(value)
-                elif column == COLUMN_TEXT:
-                    object.set_text(value)
-                else:
-                    logger.error("Bad number of column.")
-            else:
-                logger.debug("Removing %s" %(object,))
-                item.rationale.remove(object)
-                model.remove(iter)  
-        else:
-            logger.error("Error: Not read item.")
-            
     def DHEditPlatform(self, item, model, iter, column, value, delete=False):
 
         COLUMN_TEXT = 0
