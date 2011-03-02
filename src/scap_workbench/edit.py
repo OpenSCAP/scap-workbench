@@ -234,13 +234,13 @@ class MenuButtonEditXCCDF(abstract.MenuButton):
 
         # Get widgets from glade
         self.entry_id = self.builder.get_object("edit:xccdf:id")
-        self.entry_id.connect( "changed", self.__change, "change", "id")
+        self.entry_id.connect( "changed", self.__change, "id")
         self.entry_version = self.builder.get_object("edit:xccdf:version")
-        self.entry_version.connect( "changed", self.__change, "change", "version")
+        self.entry_version.connect( "changed", self.__change, "version")
         self.entry_resolved = self.builder.get_object("edit:xccdf:resolved")
-        self.entry_resolved.connect( "changed", self.__change, "change", "resolved")
+        self.entry_resolved.connect( "changed", self.__change, "resolved")
         self.entry_lang = self.builder.get_object("edit:xccdf:lang")
-        self.entry_lang.connect( "changed", self.__change, "change", "lang")
+        self.entry_lang.connect( "changed", self.__change, "lang")
 
         # -- TITLE --
         self.titles = EditTitle(self.core, "gui:edit:xccdf:title", builder.get_object("edit:xccdf:titles"), self.data_model)
@@ -281,24 +281,20 @@ class MenuButtonEditXCCDF(abstract.MenuButton):
         self.builder.get_object("edit:xccdf:btn_statuses_del").connect("clicked", self.statuses.dialog, self.data_model.CMD_OPER_DEL)
         # -------------
 
-    def __change(self, widget, subject=None, object=None):
-
-        if subject == "change":
-            func = self.data_model.update
-        else: logger.error("Change \"%s:%s\" not supported operation in \"%s\"" % (object, subject, widget))
+    def __change(self, widget, object=None):
 
         if object == "id":
-            func(id=widget.get_text())
+            self.data_model.update(id=widget.get_text())
         elif object == "version":
-            func(version=widget.get_text())
+            self.data_model.update(version=widget.get_text())
         elif object == "resolved":
-            func(resolved=(widget.get_active() == 1))
+            self.data_model.update(resolved=(widget.get_active() == 1))
         elif object == "status":
-            func(status=abstract.ENUM_STATUS_CURRENT[widget.get_active()][0])
+            self.data_model.update(status=abstract.ENUM_STATUS_CURRENT[widget.get_active()][0])
         elif object == "lang":
-            func(lang=widget.get_text())
+            self.data_model.update(lang=widget.get_text())
         else: 
-            logger.error("Change \"%s:%s\" not supported object in \"%s\"" % (object, subject, widget))
+            logger.error("Change \"%s\" not supported object in \"%s\"" % (object, widget))
             return
         self.emit("update")
 
@@ -565,29 +561,34 @@ class MenuButtonEditItems(abstract.MenuButton, abstract.ControlEditWindow):
         self.add_sender(self.id, "update")
         
         # remove just for now (missing implementations and so..)
-        self.items = self.builder.get_object("edit:items")
-        #self.items.remove_page(1)
+        self.items = self.builder.get_object("edit:xccdf:items")
         self.items.remove_page(4)
-        #print self.items.get_nth_page(1)
 
         # Get widgets from GLADE
         self.item_id = self.builder.get_object("edit:general:entry_id")
-        self.entry_version = self.builder.get_object("edit:general:entry_version")
-        self.entry_version.connect("focus-out-event", self.data_model.cb_entry_version)
-        self.entry_version_time = self.builder.get_object("edit:general:entry_version_time")
-        self.entry_version_time.connect("focus-out-event", self.cb_control_version_time)
-        self.chbox_selected = self.builder.get_object("edit:general:chbox_selected")
-        self.chbox_selected.connect("toggled", self.cb_chbox_selected)
-        self.chbox_hidden = self.builder.get_object("edit:general:chbox_hidden")
-        self.chbox_hidden.connect("toggled", self.data_model.cb_chbox_hidden)
-        self.chbox_prohibit = self.builder.get_object("edit:general:chbox_prohibit")
-        self.chbox_prohibit.connect("toggled", self.data_model.cb_chbox_prohibit)
-        self.chbox_abstract = self.builder.get_object("edit:general:chbox_abstract")
-        self.chbox_abstract.connect("toggled", self.data_model.cb_chbox_abstract)
-        self.entry_cluster_id = self.builder.get_object("edit:general:entry_cluster_id")
-        self.entry_cluster_id.connect("focus-out-event", self.data_model.cb_entry_cluster_id)
-        self.entry_weight = self.builder.get_object("edit:general:entry_weight")
-        self.entry_weight.connect("focus-out-event", self.cb_entry_weight)
+        self.version = self.builder.get_object("edit:general:entry_version")
+        self.version.connect("focus-out-event", self.__change)
+        self.version.connect("key-press-event", self.__change)
+        self.version_time = self.builder.get_object("edit:general:entry_version_time")
+        self.version_time.connect("focus-out-event", self.__change)
+        self.version_time.connect("key-press-event", self.__change)
+        self.selected = self.builder.get_object("edit:general:chbox_selected")
+        self.selected.connect("toggled", self.__change)
+        self.hidden = self.builder.get_object("edit:general:chbox_hidden")
+        self.hidden.connect("toggled", self.__change)
+        self.prohibit = self.builder.get_object("edit:general:chbox_prohibit")
+        self.prohibit.connect("toggled", self.__change)
+        self.abstract = self.builder.get_object("edit:general:chbox_abstract")
+        self.abstract.connect("toggled", self.__change)
+        self.cluster_id = self.builder.get_object("edit:general:entry_cluster_id")
+        self.cluster_id.connect("focus-out-event", self.__change)
+        self.cluster_id.connect("key-press-event", self.__change)
+        self.weight = self.builder.get_object("edit:general:entry_weight")
+        self.weight.connect("focus-out-event", self.__change)
+        self.weight.connect("key-press-event", self.__change)
+        self.operations = self.builder.get_object("edit:xccdf:items:operations")
+        self.extends = self.builder.get_object("edit:dependencies:lbl_extends")
+        self.item_values_main = self.builder.get_object("edit:values:sw_main")
         
         # -- TITLES --
         self.titles = EditTitle(self.core, "gui:edit:xccdf:items:titles", builder.get_object("edit:general:lv_title"), self.data_model)
@@ -625,50 +626,74 @@ class MenuButtonEditItems(abstract.MenuButton, abstract.ControlEditWindow):
         builder.get_object("edit:items:rationales:btn_add").connect("clicked", self.rationales.dialog, self.data_model.CMD_OPER_ADD)
         builder.get_object("edit:items:rationales:btn_edit").connect("clicked", self.rationales.dialog, self.data_model.CMD_OPER_EDIT)
         builder.get_object("edit:items:rationales:btn_del").connect("clicked", self.rationales.dialog, self.data_model.CMD_OPER_DEL)
+
+        # -- VALUES --
+        self.item_values = EditItemValues(self.core, "gui:edit:items:values", builder.get_object("edit:xccdf:items:values"), self.data_model)
+        builder.get_object("edit:xccdf:items:values:btn_add").connect("clicked", self.item_values.dialog, self.data_model.CMD_OPER_ADD)
+        builder.get_object("edit:xccdf:items:values:btn_del").connect("clicked", self.item_values.dialog, self.data_model.CMD_OPER_DEL)
+
         # -------------
 
-        self.edit_conflicts = EditConflicts(self.core, self.builder,self.list_item.get_TreeView().get_model())
-        self.edit_requires = EditRequires(self.core, self.builder,self.list_item.get_TreeView().get_model())
-        self.edit_ident = EditIdent(self.core, self.builder)
-        
-        self.lbl_extends = self.builder.get_object("edit:dependencies:lbl_extends")
-        
-        self.edit_platform = EditPlatform(self.core, self.builder)
-        self.values = EditValues(self.core, "gui:edit:xccdf:values", self.builder)
-        
-        """Get widgets from Glade: Part main.glade->Operations in edit
+        """Get widgets from Glade: Part main.glade in edit
         """
-        self.edit_fixtext = EditFixtext(self.core, self.builder)
-        self.edit_fix = EditFix(self.core, self.builder)
+        self.conflicts = EditConflicts(self.core, self.builder,self.list_item.get_TreeView().get_model())
+        self.requires = EditRequires(self.core, self.builder,self.list_item.get_TreeView().get_model())
+        self.ident = EditIdent(self.core, self.builder)
+        self.platform = EditPlatform(self.core, self.builder)
+        self.values = EditValues(self.core, "gui:edit:xccdf:values", self.builder)
+        self.fixtext = EditFixtext(self.core, self.builder)
+        self.fix = EditFix(self.core, self.builder)
         
-        self.cBox_severity = self.builder.get_object("edit:operations:combo_severity")
-        self.set_model_to_comboBox(self.cBox_severity,self.combo_model_level, self.COMBO_COLUMN_VIEW)
-        self.cBox_severity.connect( "changed", self.data_model.cb_cBox_severity)
-       
-        
-        self.entry_impact_metric = self.builder.get_object("edit:operations:entry_impact_metric")
-        self.entry_impact_metric.connect("focus-out-event", self.cb_control_impact_metrix)
-
-        self.lv_check = self.builder.get_object("edit:operations:lv_check")
+        self.severity = self.builder.get_object("edit:operations:combo_severity")
+        self.set_model_to_comboBox(self.severity,self.combo_model_level, self.COMBO_COLUMN_VIEW)
+        self.severity.connect( "changed", self.__change)
+        self.impact_metric = self.builder.get_object("edit:operations:entry_impact_metric")
+        self.impact_metric.connect("focus-out-event", self.cb_control_impact_metrix)
+        self.check = self.builder.get_object("edit:operations:lv_check")
         
         #others
-        self.chbox_multiple = self.builder.get_object("edit:other:chbox_multiple")
-        self.chbox_multiple.connect("toggled",self.data_model.cb_chbox_multipl)
+        #self.multiple = self.builder.get_object("edit:other:chbox_multiple")
+        #self.multiple.connect("toggled",self.data_model.cb_chbox_multipl)
 
-        self.cBox_role = self.builder.get_object("edit:other:combo_role")
-        self.set_model_to_comboBox(self.cBox_role,self.combo_model_role, self.COMBO_COLUMN_VIEW)
-        self.cBox_role.connect( "changed", self.data_model.cb_cBox_role)
+        #self.role = self.builder.get_object("edit:other:combo_role")
+        #self.set_model_to_comboBox(self.role, self.combo_model_role, self.COMBO_COLUMN_VIEW)
+        #self.role.connect( "changed", self.data_model.cb_cBox_role)
 
         self.add_receiver("gui:edit:item_list", "update", self.__update)
         self.add_receiver("gui:edit:item_list", "changed", self.__update)
         self.add_receiver("gui:edit:xccdf:values", "update", self.__update_item)
         self.add_receiver("gui:edit:xccdf:values:titles", "update", self.__update_item)
 
-    def cb_entry_weight(self, widget, event):
-        weight = self.func.controlFloat(widget.get_text(), "Weight", self.core.main_window)
-        if weight:
-            self.data_model.DHEditWeight(weight)
-        
+    def __change(self, widget, event=None):
+
+        if event and event.type == gtk.gdk.KEY_PRESS and event.keyval != gtk.keysyms.Return:
+            return
+
+        if widget == self.version:
+            self.data_model.update(version=widget.get_text())
+        elif widget == self.version_time:
+            timestamp = self.controlDate(widget.get_text())
+            if timestamp:
+                self.data_model.update(version_time=timestamp)
+        elif widget == self.selected:
+            self.data_model.update(selected=widget.get_active())
+        elif widget == self.hidden:
+            self.data_model.update(hidden=widget.get_active())
+        elif widget == self.prohibit:
+            self.data_model.update(prohibit=widget.get_active())
+        elif widget == self.abstract:
+            self.data_model.update(abstract=widget.get_active())
+        elif widget == self.cluster_id:
+            self.data_model.update(cluster_id=widget.get_text())
+        elif widget == self.weight:
+            weight = self.controlFloat(widget.get_text(), "Weight")
+            if weight:
+                self.data_model.update(weight=weight)
+        else: 
+            logger.error("Change \"%s\" not supported object in \"%s\"" % (object, widget))
+            return
+        #self.emit("update")
+
     def cb_chbox_selected(self, widget):
 
         selection = self.tw_items.get_selection()
@@ -698,13 +723,6 @@ class MenuButtonEditItems(abstract.MenuButton, abstract.ControlEditWindow):
         text = widget.get_text()
         if text != "" and self.controlImpactMetric(text):
             self.data_model.DHEditImpactMetrix(self.item, text)
-            
-    def cb_control_version_time(self, widget, event):
-        timestamp = self.controlDate(widget.get_text())
-        if timestamp:
-            self.data_model.DHEditVersionTime(self.item, timestamp)
-        elif timestamp == None and widget.get_text() != "": 
-            widget.grab_focus()
 
     def show(self, sensitive):
         self.items.set_sensitive(sensitive)
@@ -739,192 +757,128 @@ class MenuButtonEditItems(abstract.MenuButton, abstract.ControlEditWindow):
             model[iter][2] = title
             model[iter][4] = ""+title
 
+    def __block_signals(self):
+        self.hidden.handler_block_by_func(self.__change)
+        self.selected.handler_block_by_func(self.__change)
+        self.prohibit.handler_block_by_func(self.__change)
+        self.abstract.handler_block_by_func(self.__change)
+        self.severity.handler_block_by_func(self.__change)
+        #self.multiple.handler_block_by_func(self.__change)
+        #self.role.handler_block_by_func(self.__change)
+
+    def __unblock_signals(self):
+        self.hidden.handler_unblock_by_func(self.__change)
+        self.selected.handler_unblock_by_func(self.__change)
+        self.prohibit.handler_unblock_by_func(self.__change)
+        self.abstract.handler_unblock_by_func(self.__change)
+        self.severity.handler_unblock_by_func(self.__change)
+        #self.chbox_multiple.handler_unblock_by_func(self.__change)
+        #self.cBox_role.handler_unblock_by_func(self.__change)
+
+    def __clear(self):
+        self.__block_signals()
+        self.item_id.set_text("")
+        self.hidden.set_active(False)
+        self.selected.set_active(False)
+        self.prohibit.set_active(False)
+        self.abstract.set_active(False)
+        self.version.set_text("")
+        self.version_time.set_text("")
+        self.cluster_id.set_text("")
+        #self.extends.set_text("None")
+
+        self.titles.clear()
+        self.descriptions.clear()
+        self.warnings.clear()
+        self.statuses.clear()
+        self.questions.clear()
+        self.rationales.clear()
+        self.item_values.clear()
+        self.conflicts.fill(None)
+        self.requires.fill(None)
+        self.platform.fill(None)
+        self.fix.fill(None)
+        self.fixtext.fill(None)
+        self.__unblock_signals()
+
     def __update(self):
  
-        # TODO: clear
         if self.core.selected_item != None:
             details = self.data_model.get_item_details(self.core.selected_item)
         else:
             details = None
-            self.item = None
+            #self.item = None
         
-        self.chbox_hidden.handler_block_by_func(self.data_model.cb_chbox_hidden)
-        self.chbox_selected.handler_block_by_func(self.cb_chbox_selected)
-        self.chbox_prohibit.handler_block_by_func(self.data_model.cb_chbox_prohibit)
-        self.chbox_abstract.handler_block_by_func(self.data_model.cb_chbox_abstract)
-        self.chbox_multiple.handler_block_by_func(self.data_model.cb_chbox_multipl)
-        self.cBox_severity.handler_block_by_func(self.data_model.cb_cBox_severity)
-        self.cBox_role.handler_block_by_func(self.data_model.cb_cBox_role)
-        
-        if details != None:
-            self.item = details["item"]
-            self.item_id.set_text(details["id"])
-            self.chbox_hidden.set_active(details["hidden"])
-            self.chbox_prohibit.set_active(details["prohibit_changes"])
-            self.titles.fill()
-            self.descriptions.fill()
-            self.warnings.fill()
-            self.statuses.fill()
-            self.questions.fill()
-            self.rationales.fill()
-            self.edit_platform.fill(details["item"])
-
-            # Check if selected item is not a value
-            if details["type"] == openscap.OSCAP.XCCDF_VALUE:
-                self.show(False)
-                self.values.show(True)
-                self.values.update()
-                self.chbox_hidden.handler_unblock_by_func(self.data_model.cb_chbox_hidden)
-                self.chbox_selected.handler_unblock_by_func(self.cb_chbox_selected)
-                self.chbox_prohibit.handler_unblock_by_func(self.data_model.cb_chbox_prohibit)
-                self.chbox_abstract.handler_unblock_by_func(self.data_model.cb_chbox_abstract)
-                self.chbox_multiple.handler_unblock_by_func(self.data_model.cb_chbox_multipl)
-                self.cBox_severity.handler_unblock_by_func(self.data_model.cb_cBox_severity)
-                self.cBox_role.handler_unblock_by_func(self.data_model.cb_cBox_role)
-                return
-            else: 
-                self.show(True)
-                self.values.show(False)
-
-            self.chbox_abstract.set_active(details["abstract"])
-            self.chbox_selected.set_active(details["selected"])
-            self.edit_conflicts.fill(details)
-            self.edit_requires.fill(details["item"])
-            self.set_sensitive(True)
-
-            self.entry_weight.set_text(str(details["weight"]))
-            
-            if details["version"] != None:
-                self.entry_version.set_text(details["version"])
-            else:
-                self.entry_version.set_text("")
-
-            if details["version_time"] != 0:
-                self.entry_version_time.set_text(str(datetime.date.fromtimestamp(details["version_time"])))
-            else:
-                self.entry_version_time.set_text("")
-
-            if details["cluster_id"] != None:
-                self.entry_cluster_id.set_text(details["cluster_id"])
-            else:
-                self.entry_cluster_id.set_text("")
-
-            if details["extends"] != None:
-                self.lbl_extends.set_text(details["extends"])
-            else:
-                self.lbl_extends.set_text("None")
-
-            # dat only for rule
-            if details["typetext"] == "Rule":
-                self.cBox_severity.set_sensitive(True)
-                if details["severity"] != None:
-                    model_sev = self.cBox_severity.get_model()
-                    iter_sev = model_sev.get_iter_first()
-                    while iter_sev:
-                        if model_sev.get_value(iter_sev, 0) == details["severity"]:
-                            self.cBox_severity.set_active_iter(iter_sev)
-                            break
-                        iter_sev = model_sev.iter_next(iter_sev)
-                else:
-                    self.cBox_severity.set_active(-1)
-
-                self.entry_impact_metric.set_sensitive(True)
-                if details["imapct_metric"] != None:
-                    self.entry_impact_metric.set_text(details["imapct_metric"])
-                else:
-                    self.entry_impact_metric.set_text("")
-
-                self.cBox_role.set_sensitive(True)
-                if details["role"]:
-                    model_role = self.cBox_role.get_model()
-                    iter_role = model_role.get_iter_first()
-                    while iter_role:
-                        if model_role.get_value(iter_role, 0) == details["role"]:
-                            self.cBox_role.set_active_iter(iter_role)
-                            break
-                        iter_role = model_role.iter_next(iter_role)
-                else:
-                    self.cBox_role.set_active(-1)
-
-                #self.edit_values.set_sensitive(True)
-                #self.edit_values.fill(details["item"])
-
-                self.chbox_multiple.set_sensitive(True)
-                self.chbox_multiple.set_active(details["multiple"])
-                
-                self.edit_fixtext.set_sensitive(True)
-                self.edit_fixtext.fill(details["item"])
-                
-                self.edit_fix.set_sensitive(True)
-                self.edit_fix.fill(details["item"])
-                
-                self.edit_ident.set_sensitive(True)
-                self.edit_ident.fill(details["item"])
-                
-                # clean hide data only for group and set insensitive
-
-            #data only for Group
-            else:
-                # clean data only for rule and set insensitive
-                self.cBox_severity.set_sensitive(False)
-                self.cBox_severity.handler_block_by_func(self.data_model.cb_cBox_severity)
-                self.cBox_severity.set_active(-1)
-                self.cBox_severity.handler_unblock_by_func(self.data_model.cb_cBox_severity)
-                
-                self.cBox_role.set_sensitive(False)
-                self.cBox_role.handler_block_by_func(self.data_model.cb_cBox_role)
-                self.cBox_role.set_active(-1)
-                self.cBox_role.handler_unblock_by_func(self.data_model.cb_cBox_role)
-
-                #self.edit_values.set_sensitive(False)
-                #self.edit_values.fill(None)
-                
-                self.chbox_multiple.set_sensitive(False)
-                self.chbox_multiple.set_active(False)
-                
-                self.entry_impact_metric.set_sensitive(False)
-                self.entry_impact_metric.set_text("")
-                
-                self.edit_fixtext.set_sensitive(False)
-                self.edit_fixtext.fill(None)
-                
-                self.edit_fix.set_sensitive(False)
-                self.edit_fix.fill(None)
-                
-                self.edit_ident.set_sensitive(False)
-                self.edit_ident.fill(None)
-                
-        else:
-            self.item = None
+        self.__clear()
+        if details == None:
             self.set_sensitive(False)
-            self.titles.fill()
-            self.descriptions.fill()
-            self.warnings.fill()
-            self.statuses.fill()
-            self.questions.fill()
-            self.rationales.fill()
-            self.edit_conflicts.fill(None)
-            self.edit_requires.fill(None)
-            self.edit_platform.fill(None)
-            self.edit_fix.fill(None)
-            self.edit_fixtext.fill(None)
-            self.item_id.set_text("")
-            self.chbox_hidden.set_active(False)
-            self.chbox_selected.set_active(False)
-            self.chbox_prohibit.set_active(False)
-            self.chbox_abstract.set_active(False)
-            self.entry_version.set_text("")
-            self.entry_version_time.set_text("")
-            self.entry_cluster_id.set_text("")
-            self.lbl_extends.set_text("None")
+            return
 
-        self.chbox_hidden.handler_unblock_by_func(self.data_model.cb_chbox_hidden)
-        self.chbox_selected.handler_unblock_by_func(self.cb_chbox_selected)
-        self.chbox_prohibit.handler_unblock_by_func(self.data_model.cb_chbox_prohibit)
-        self.chbox_abstract.handler_unblock_by_func(self.data_model.cb_chbox_abstract)
-        self.chbox_multiple.handler_unblock_by_func(self.data_model.cb_chbox_multipl)
-        self.cBox_severity.handler_unblock_by_func(self.data_model.cb_cBox_severity)
-        self.cBox_role.handler_unblock_by_func(self.data_model.cb_cBox_role)
+        # Check if the item is value and change widgets
+        if details["type"] == openscap.OSCAP.XCCDF_VALUE:
+            self.show(False)
+            self.values.show(True)
+            self.values.update()
+            return
+        else: 
+            self.show(True)
+            self.values.show(False)
+
+        # Item is not value, continue
+        self.__block_signals()
+        self.item_id.set_text(details["id"] or "")
+        self.weight.set_text(str(details["weight"] or ""))
+        self.version.set_text(details["version"] or "")
+        self.version_time.set_text(str(datetime.date.fromtimestamp(details["version_time"]) or ""))
+        self.cluster_id.set_text(details["cluster_id"] or "")
+        self.extends.set_text(details["extends"] or "")
+        self.titles.fill()
+        self.descriptions.fill()
+        self.warnings.fill()
+        self.statuses.fill()
+        self.questions.fill()
+        self.rationales.fill()
+        self.conflicts.fill(details)
+        self.requires.fill(details["item"])
+        self.platform.fill(details["item"])
+
+        self.abstract.set_active(details["abstract"])
+        self.selected.set_active(details["selected"])
+        self.hidden.set_active(details["hidden"])
+        self.prohibit.set_active(details["prohibit_changes"])
+
+        self.set_sensitive(True)
+
+        if details["type"] == openscap.OSCAP.XCCDF_RULE: # Item is Rule
+            self.ident.set_sensitive(True)
+            self.item_values_main.set_sensitive(True)
+            self.operations.set_sensitive(True)
+
+            self.severity.set_active(abstract.ENUM_LEVEL.pos(details["severity"]) or -1)
+            self.impact_metric.set_text(details["imapct_metric"] or "")
+            self.fixtext.fill(details["item"])
+            self.fix.fill(details["item"])
+            self.ident.fill(details["item"])
+            self.item_values.fill()
+            #self.role.set_active(abstract.ENUM_ROLE.pos(details["role"]) or -1)
+            #self.multiple.set_active(details["multiple"] or -1)
+            #self.values.fill(None)
+            
+        else: # Item is GROUP
+            # clean data only for rule and set insensitive
+            self.ident.set_sensitive(False)
+            self.item_values_main.set_sensitive(False)
+            self.operations.set_sensitive(False)
+
+            self.severity.set_active(-1)
+            self.impact_metric.set_text("")
+            self.fixtext.fill(None)
+            self.fix.fill(None)
+            self.ident.fill(None)
+            #self.role.set_active(-1)
+
+        self.__unblock_signals()
+                
             
 class EditConflicts(commands.DHEditItems, abstract.ControlEditWindow):
     
@@ -994,6 +948,114 @@ class EditRequires(commands.DHEditItems,abstract.ControlEditWindow):
     def __cb_del_row(self, widget):
         pass
     
+class EditItemValues(abstract.ListEditor):
+
+    COLUMN_ID       = 0
+    COLUMN_VALUE    = 1
+    COLUMN_OBJ      = 2
+
+    def __init__(self, core, id, widget, data_model):
+
+        self.data_model = data_model
+        abstract.ListEditor.__init__(self, id, core, widget=widget, model=gtk.ListStore(str, str, gobject.TYPE_PYOBJECT))
+        #self.add_sender(id, "update")
+
+        self.widget.append_column(gtk.TreeViewColumn("ID", gtk.CellRendererText(), text=self.COLUMN_ID))
+        self.widget.append_column(gtk.TreeViewColumn("Value", gtk.CellRendererText(), text=self.COLUMN_VALUE))
+
+    def __do(self, widget=None):
+        """
+        """
+        self.core.notify_destroy("notify:dialog_notify")
+        item = None
+        (model, iter) = self.values.get_selection().get_selected()
+        if iter:
+            item = model[iter][self.COLUMN_ID]
+        else:
+            self.core.notify("Value has to be choosen.", 2, info_box=self.info_box, msg_id="notify:dialog_notify")
+            return
+
+        self.data_model.item_edit_value(self.operation, item)
+        self.fill()
+        self.__dialog_destroy()
+        self.emit("update")
+
+    def __dialog_destroy(self, widget=None):
+        """
+        """
+        if self.dialog: 
+            self.dialog.destroy()
+
+    def filter_treeview(self, model, iter, data):
+        text = self.search.get_text()
+        if len(text) == 0: 
+            return True
+        pattern = re.compile(text, re.I)
+        for col in data:
+            found = re.search(pattern, model[iter][col])
+            if found != None: return True
+        return False
+
+    def search_treeview(self, widget, treeview):
+        treeview.get_model().refilter()
+        return
+
+    def dialog(self, widget, operation):
+        """
+        """
+        self.operation = operation
+        builder = gtk.Builder()
+        builder.add_from_file("/usr/share/scap-workbench/edit_item.glade")
+        self.dialog = builder.get_object("dialog:find_value")
+        self.info_box = builder.get_object("dialog:find_value:info_box")
+        self.values = builder.get_object("dialog:find_value:values")
+        self.search = builder.get_object("dialog:find_value:search")
+        self.search.connect("changed", self.search_treeview, self.values)
+        builder.get_object("dialog:find_value:btn_cancel").connect("clicked", self.__dialog_destroy)
+        builder.get_object("dialog:find_value:btn_ok").connect("clicked", self.__do)
+
+        self.core.notify_destroy("notify:not_selected")
+        (model, self.iter) = self.get_selection().get_selected()
+        if operation == self.data_model.CMD_OPER_ADD:
+            self.values.append_column(gtk.TreeViewColumn("ID of Value", gtk.CellRendererText(), text=self.COLUMN_ID))
+            self.values.append_column(gtk.TreeViewColumn("Title", gtk.CellRendererText(), text=self.COLUMN_VALUE))
+            values = self.data_model.get_all_values()
+            self.values.set_model(gtk.ListStore(str, str, gobject.TYPE_PYOBJECT))
+            modelfilter = self.values.get_model().filter_new()
+            modelfilter.set_visible_func(self.filter_treeview, data=[0,1])
+            self.values.set_model(modelfilter)
+            for value in values: 
+                item = self.data_model.parse_value(value)
+                if len(item["titles"]) > 0:
+                    if self.core.selected_lang in item["titles"].keys(): title = item["titles"][self.core.selected_lang]
+                    else: title = item["titles"][item["titles"].keys()[0]]+" ["+item["titles"].keys()[0]+"]"
+                self.values.get_model().get_model().append([value.id, title, value])
+
+            self.dialog.set_transient_for(self.core.main_window)
+            self.dialog.show_all()
+        elif operation == self.data_model.CMD_OPER_DEL:
+            if not self.iter:
+                self.notifications.append(self.core.notify("Please select at least one item to delete", 2, msg_id="notify:not_selected"))
+                return
+            else: 
+                iter = self.dialogDel(self.core.main_window, self.get_selection())
+                if iter != None:
+                    self.__do()
+                return
+        else: 
+            logger.error("Unknown operation for title dialog: \"%s\"" % (operation,))
+            return
+
+    def fill(self):
+        """
+        """
+        self.clear()
+        for item in self.data_model.get_item_values(self.core.selected_item):
+            if len(item["titles"]) > 0:
+                if self.core.selected_lang in item["titles"].keys(): title = item["titles"][self.core.selected_lang]
+                else: title = item["titles"][item["titles"].keys()[0]]+" ["+item["titles"].keys()[0]+"]"
+            self.append([item["id"], (" ".join(title.split())), self.data_model.get_item(item["id"])])
+
 class EditTitle(abstract.ListEditor):
 
     def __init__(self, core, id, widget, data_model):
@@ -1683,7 +1745,7 @@ class EditPlatform(commands.DHEditItems,abstract.ControlEditWindow):
 
 #======================================= EDIT VALUES ==========================================
 
-class EditValues(EventObject):
+class EditValues(abstract.MenuButton, abstract.ControlEditWindow):
     
     COLUMN_ID = 0
     COLUMN_TITLE = 1
@@ -1748,17 +1810,25 @@ class EditValues(EventObject):
         
         self.vid = self.builder.get_object("edit:values:id")
         self.version = self.builder.get_object("edit:values:version")
+        self.version.connect("focus-out-event", self.__change)
+        self.version.connect("key-press-event", self.__change)
         self.version_time = self.builder.get_object("edit:values:version_time")
+        self.version_time.connect("focus-out-event", self.__change)
+        self.version_time.connect("key-press-event", self.__change)
         self.cluster_id = self.builder.get_object("edit:values:cluster_id")
+        self.cluster_id.connect("focus-out-event", self.__change)
+        self.cluster_id.connect("key-press-event", self.__change)
         self.vtype = self.builder.get_object("edit:values:type")
         self.operator = self.builder.get_object("edit:values:operator")
+        self.operator.connect("changed", self.__change)
         self.abstract = self.builder.get_object("edit:values:abstract")
+        self.abstract.connect("toggled", self.__change)
         self.prohibit_changes = self.builder.get_object("edit:values:prohibit_changes")
+        self.prohibit_changes.connect("toggled", self.__change)
         self.interactive = self.builder.get_object("edit:values:interactive")
+        self.interactive.connect("toggled", self.__change)
 
-        #self.operator.connect( "changed", self.cb_combo_value_operator)
         self.operator.set_model(abstract.Enum_type.combo_model_operator_number)
-        #self.interactive.connect("toggled", self.cb_combo_value_interactive)
         
     def show(self, active):
         self.values.set_sensitive(active)
@@ -1766,6 +1836,31 @@ class EditValues(EventObject):
 
     def update(self):
         self.__update()
+
+    def __change(self, widget, event=None):
+
+        if event and event.type == gtk.gdk.KEY_PRESS and event.keyval != gtk.keysyms.Return:
+            return
+
+        if widget == self.version:
+            self.data_model.edit_value(version=widget.get_text())
+        elif widget == self.version_time:
+            timestamp = self.controlDate(widget.get_text())
+            if timestamp:
+                self.data_model.update(version_time=timestamp)
+        elif widget == self.cluster_id:
+            self.data_model.edit_value(cluster_id=widget.get_text())
+        elif widget == self.operator:
+            self.data_model.edit_value(operator=abstract.ENUM_OPERATOR[widget.get_active()][0])
+        elif widget == self.abstract:
+            self.data_model.edit_value(abstract=widget.get_active())
+        elif widget == self.prohibit_changes:
+            self.data_model.edit_value(prohibit_changes=widget.get_active())
+        elif widget == self.interactive:
+            self.data_model.edit_value(interactive=widget.get_active())
+        else: 
+            logger.error("Change: not supported object in \"%s\"" % (widget,))
+            return
 
     def __clear(self):
         self.titles.clear()
@@ -1780,8 +1875,6 @@ class EditValues(EventObject):
 
     def __update(self):
 
-        #self.operator.handler_block_by_func(self.cb_combo_value_operator)
-        #self.interactive.handler_block_by_func(self.cb_combo_value_interactive)
         details = self.data_model.get_item_details(self.core.selected_item)
 
         self.values.set_sensitive(details != None)
@@ -1800,60 +1893,13 @@ class EditValues(EventObject):
             self.abstract.set_active(details["abstract"])
             self.prohibit_changes.set_active(details["prohibit_changes"])
             self.interactive.set_active(details["interactive"])
+            self.operator.set_active(abstract.ENUM_OPERATOR.pos(details["oper"]))
             self.titles.fill()
             self.descriptions.fill()
             self.warnings.fill()
             self.statuses.fill()
             self.questions.fill()
             self.values_values.fill()
-            
-            # if exist instance without selector take bound and match from this instance
-            #self.selector_empty = None
-            #for ins in value.instances:
-                #if ins.selector == "" or ins.selector == None:
-                    #self.selector_empty = ins
-                    #break
-
-            #show bound and match
-            return
-
-            if value.get_type()  == openscap.OSCAP.XCCDF_TYPE_NUMBER:
-                self.lbl_type.set_text("Number")
-                self.combo_operator.set_model(self.combo_model_operator_number)
-                self.set_active_comboBox(self.combo_operator, value.oper, 0)
-                if self.selector_empty:
-                    if str(self.selector_empty.get_lower_bound()) != "nan":
-                        self.text_lower_bound.set_text(str(self.selector_empty.get_lower_bound()))
-                    if str(self.selector_empty.get_upper_bound()) != "nan":
-                        self.text_upper_bound.set_text(str(self.selector_empty.get_upper_bound()))
-                    if self.selector_empty.get_match() != None:
-                        self.text_match.set_text(self.selector_empty.get_match())
-
-            elif value.get_type()  == openscap.OSCAP.XCCDF_TYPE_STRING:
-                self.lbl_type.set_text("String")
-                self.combo_operator.set_model(self.combo_model_operator_string)
-                self.set_active_comboBox(self.combo_operator, value.oper, 0)
-                if self.selector_empty:
-                    if self.selector_empty.get_match() != None:
-                        self.text_match.set_text(self.selector_empty.get_match())
-                self.text_lower_bound.set_sensitive(False)
-                self.text_upper_bound.set_sensitive(False)
-                self.lbl_lower_bound.set_sensitive(False)
-                self.lbl_upper_bound.set_sensitive(False)
-                
-            elif value.get_type()  == openscap.OSCAP.XCCDF_TYPE_BOOLEAN:
-                self.lbl_type.set_text("Boolean")
-                self.combo_operator.set_model(self.combo_model_operator_bool)
-                self.set_active_comboBox(self.combo_operator, value.oper, 0)
-                self.text_lower_bound.set_sensitive(False)
-                self.text_upper_bound.set_sensitive(False)
-                self.text_match.set_sensitive(False)
-                self.lbl_lower_bound.set_sensitive(False)
-                self.lbl_upper_bound.set_sensitive(False)
-                self.lbl_match.set_sensitive(False)
-            
-        #self.operator.handler_unblock_by_func(self.cb_combo_value_operator)
-        #self.interactive.handler_unblock_by_func(self.cb_combo_value_interactive)
 
     def cb_combo_value_operator(self,widget):
         COLUMN_DATA = 0
@@ -1947,7 +1993,7 @@ class EditValuesValues(abstract.ListEditor):
     COLUMN_UPPER_BOUND  = 4
     COLUMN_MUST_MATCH   = 5
     COLUMN_MATCH        = 6
-    COLUMN_OBJECT       = 7
+    COLUMN_OBJ          = 7
     
     def __init__(self, core, id, widget, data_model):
 
@@ -1966,7 +2012,28 @@ class EditValuesValues(abstract.ListEditor):
     def __do(self, widget=None):
         """
         """
-        # TODO
+        # Check input data
+        (model, iter) = self.get_selection().get_selected()
+        item = None
+        if iter:
+            item = model[iter][self.COLUMN_OBJ]
+
+        for inst in model:
+            if self.selector.get_text() == inst[0] and model[iter][self.COLUMN_SELECTOR] != self.selector.get_text():
+                self.core.notify("Selector \"%s\" is already used !" % (inst[0],), 2, self.info_box, msg_id="dialog:add_value")
+                self.selector.grab_focus()
+                self.selector.modify_base(gtk.STATE_NORMAL, gtk.gdk.Color("#FFC1C2"))
+                return
+        self.selector.modify_base(gtk.STATE_NORMAL, self.__entry_style)
+        
+        if self.type == openscap.OSCAP.XCCDF_TYPE_BOOLEAN:
+            self.data_model.edit_value_of_value(self.operation, item, self.selector.get_text(), self.value_bool.get_active(), self.default_bool.get_active(), 
+                        self.match.get_text(), None, None, self.must_match.get_active())
+        if self.type == openscap.OSCAP.XCCDF_TYPE_NUMBER:
+            self.data_model.edit_value_of_value(self.operation, item, self.selector.get_text(), self.value.get_text(), self.default.get_text(), self.match.get_text(), 
+                        self.upper_bound.get_text(), self.lower_bound.get_value_as_int(), self.must_match.get_value_as_int())
+        else: self.data_model.edit_value_of_value(self.operation, item, self.selector.get_text(), self.value.get_text(), self.default.get_text(), self.match.get_text(), None,
+                            None, self.must_match.get_active())
         self.fill()
         self.__dialog_destroy()
         self.emit("update")
@@ -1987,7 +2054,9 @@ class EditValuesValues(abstract.ListEditor):
         self.info_box = builder.get_object("dialog:edit_value:info_box")
         self.selector = builder.get_object("dialog:edit_value:selector")
         self.value = builder.get_object("dialog:edit_value:value")
+        self.value_bool = builder.get_object("dialog:edit_value:value:bool")
         self.default = builder.get_object("dialog:edit_value:default")
+        self.default_bool = builder.get_object("dialog:edit_value:default:bool")
         self.match = builder.get_object("dialog:edit_value:match")
         self.upper_bound = builder.get_object("dialog:edit_value:upper_bound")
         self.lower_bound = builder.get_object("dialog:edit_value:lower_bound")
@@ -1995,24 +2064,40 @@ class EditValuesValues(abstract.ListEditor):
         builder.get_object("dialog:edit_value:btn_cancel").connect("clicked", self.__dialog_destroy)
         builder.get_object("dialog:edit_value:btn_ok").connect("clicked", self.__do)
 
+        self.__entry_style = self.selector.get_style().base[gtk.STATE_NORMAL]
+
+        # Upper and lower bound should be disabled if value is not a number
+        item = self.data_model.get_item_details(self.core.selected_item)
+        self.type = item["vtype"]
+        if self.type != openscap.OSCAP.XCCDF_TYPE_NUMBER:
+            self.upper_bound.set_sensitive(False)
+            self.lower_bound.set_sensitive(False)
+
+        # Different widgets for different type boolean or other
+        boolean = (self.type == openscap.OSCAP.XCCDF_TYPE_BOOLEAN)
+        self.value.set_visible(not boolean)
+        self.default.set_visible(not boolean)
+        self.value_bool.set_visible(boolean)
+        self.default_bool.set_visible(boolean)
+
         self.core.notify_destroy("notify:not_selected")
-        (model, self.iter) = self.get_selection().get_selected()
+        (model, iter) = self.get_selection().get_selected()
         if operation == self.data_model.CMD_OPER_ADD:
             pass
         elif operation == self.data_model.CMD_OPER_EDIT:
-            if not self.iter:
+            if not iter:
                 self.notifications.append(self.core.notify("Please select at least one item to edit", 2, msg_id="notify:not_selected"))
                 return
             else:
-                self.selector.set_text(model[self.iter][self.COLUMN_SELECTOR] or "")
-                self.value.set_text(model[self.iter][self.COLUMN_VALUE] or "")
-                self.default.set_text(model[self.iter][self.COLUMN_DEFAULT] or "")
-                self.match.set_text(model[self.iter][self.COLUMN_MATCH] or "")
-                self.upper_bound.set_text(model[self.iter][self.COLUMN_UPPER_BOUND] or "")
-                self.lower_bound.set_text(model[self.iter][self.COLUMN_LOWER_BOUND] or "")
-                self.must_match.set_active(model[self.iter][self.COLUMN_MUST_MATCH])
+                self.selector.set_text(model[iter][self.COLUMN_SELECTOR] or "")
+                self.value.set_text(model[iter][self.COLUMN_VALUE] or "")
+                self.default.set_text(model[iter][self.COLUMN_DEFAULT] or "")
+                self.match.set_text(model[iter][self.COLUMN_MATCH] or "")
+                self.upper_bound.set_text(model[iter][self.COLUMN_UPPER_BOUND] or "")
+                self.lower_bound.set_text(model[iter][self.COLUMN_LOWER_BOUND] or "")
+                self.must_match.set_active(model[iter][self.COLUMN_MUST_MATCH])
         elif operation == self.data_model.CMD_OPER_DEL:
-            if not self.iter:
+            if not iter:
                 self.notifications.append(self.core.notify("Please select at least one item to delete", 2, msg_id="notify:not_selected"))
                 return
             else: 
@@ -2025,13 +2110,20 @@ class EditValuesValues(abstract.ListEditor):
             return
 
         self.dialog.set_transient_for(self.core.main_window)
-        self.dialog.show_all()
+        self.dialog.show()
 
     def fill(self):
 
         self.clear()
         for instance in self.data_model.get_value_instances():
-            self.append([instance["selector"], instance["value"], instance["defval"], instance["lower_bound"], instance["upper_bound"], instance["must_match"], instance["match"], instance])
+            self.append([instance["selector"], 
+                         instance["value"], 
+                         instance["defval"], 
+                         instance["lower_bound"], 
+                         instance["upper_bound"], 
+                         instance["must_match"], 
+                         instance["match"], 
+                         instance["item"]])
 
 #======================================= EDIT FIXTEXT ==========================================
 
@@ -2731,336 +2823,6 @@ class EditSelectIdDialogWindow():
             return False
     
 
-
-class EditValueDialogWindow(abstract.Window, abstract.ControlEditWindow):
-    
-    COLUMN_SELECTOR = 0
-    COLUMN_VALUE = 1
-    COLUMN_MODEL_CHOICES = 2
-    COLUMN_OBJECT = 3
-    
-    def __init__(self, value, core, tw_instance, cb, edit=False):
-        self.core = core
-        self.item = value
-        self.cb = cb
-        self.edit = edit
-        self.tw_instance = tw_instance
-        self.model_combo_choices = gtk.ListStore(str, str)
-        
-        if edit:
-            selection = tw_instance.get_selection()
-            (self.model, self.iter) = selection.get_selected()
-            if self.iter:
-                self.instance= self.model.get_value(self.iter, self.COLUMN_OBJECT)
-                #self.model_combo_choices = self.model.get_value(iter, self.COLUMN_MODEL_CHOICES)
-            else:
-                self.dialogInfo("Choose row which you want Edit.", self.core.main_window)
-                return
-        else:
-            self.model = tw_instance.get_model()
-        self.type = value.type
-
-        builder = gtk.Builder()
-        builder.add_from_file("/usr/share/scap-workbench/edit_item.glade")
-
-        self.window = builder.get_object("dialog:edit_value")
-        self.window.connect("delete-event", self.__delete_event)
-        self.window.resize(800, 600)
-        
-        self.lbl_type = builder.get_object("edit_value:lbl_type")
-        self.text_selector = builder.get_object("edit_value:text_selector")
-        self.text_value = builder.get_object("edit_value:text_value")
-        
-        self.lbl_match = builder.get_object("edit_value:lbl_match")
-        self.lbl_value = builder.get_object("edit_value:lbl_value")
-        self.lbl_uper_bound = builder.get_object("edit_value:lbl_uper_bound")
-        self.lbl_lower_bound = builder.get_object("edit_value:lbl_lower_bound")
-        self.lbl_mustMatch = builder.get_object("edit_value:lbl_mustMatch")
-        self.box_choices = builder.get_object("edit_value:box_choices")
-        
-        self.text_match = builder.get_object("edit_value:text_match")
-        self.combo_value = builder.get_object("edit_value:combo_value")
-        self.text_uper_bound = builder.get_object("edit_value:text_uper_bound")
-        self.text_lower_bound = builder.get_object("edit_value:text_lower_bound")
-        #self.text_uper_bound.connect("focus-out-event", self.cb_control_bound, "upper")
-        #self.text_lower_bound.connect("focus-out-event", self.cb_control_bound, "lower")
-        
-        self.lbl_default = builder.get_object("edit_value:lbl_default")
-        self.combo_default = builder.get_object("edit_value:combo_default")
-        cell = gtk.CellRendererText()
-        self.combo_default.pack_start(cell, True)
-        self.combo_default.add_attribute(cell, 'text', 1)  
-        self.combo_default.connect( "changed", self.cb_combo_default)
-        self.combo_default.set_model(self.model_combo_choices)
-
-        self.comboEntry_default = builder.get_object("edit_value:comboEntry_default")
-        self.comboEntry_default.set_text_column(1)
-        self.comboEntry_default.connect( "changed", self.cb_combo_default)
-        self.comboEntry_default.set_model(self.model_combo_choices)
-        
-        self.chBox_mustMatch = builder.get_object("edit_value:chBox_mustMatch")
-        self.chBox_mustMatch.connect("toggled", self.cb_mustMatch)
-        self.tv_choices = builder.get_object("edit_value:tv_choices")
-
-        btn_ok = builder.get_object("edit_value:btn_ok")
-        btn_ok.connect("clicked", self.__cb_do)
-        btn_cancel = builder.get_object("edit_value:btn_cancel")
-        btn_cancel.connect("clicked", self.__delete_event)
-
-
-        if self.type  == openscap.OSCAP.XCCDF_TYPE_NUMBER:
-            self.lbl_type.set_text("Number")
-            self.combo_value.hide()
-            if edit:
-                if self.instance.get_value_number() != float("nan"):
-                    self.text_value.set_text(str(self.instance.get_value_number()))
-            #if edit:
-                #self.text_uper_bound.set_text(str(self.instance.upper_bound))
-                #self.text_lower_bound.set_text(str(self.instance.lower_bound))
-                #for choice in self.instance.choices:
-                    #self.model_combo_choices.append(["", choice])
-            ## hide information for others type
-            #self.lbl_match.set_sensitive(False)
-            #self.text_match.set_sensitive(False)
-
-        elif self.type  == openscap.OSCAP.XCCDF_TYPE_STRING:
-            self.lbl_type.set_text("String")
-            self.combo_value.hide()
-            if edit:
-                if self.instance.value:
-                    self.text_value.set_text(self.instance.get_value_string())
-            #if edit:
-                #if self.instance.match:
-                    #self.text_match.set_text(self.instance.match)
-                #for choice in self.instance.choices:
-                    #self.model_combo_choices.append(["", choice])
-
-            # hide information for others type
-            #self.text_uper_bound.set_sensitive(False)
-            #self.lbl_uper_bound.set_sensitive(False)
-            #self.text_lower_bound.set_sensitive(False)
-            #self.lbl_lower_bound.set_sensitive(False)
-
-            
-        elif self.type  == openscap.OSCAP.XCCDF_TYPE_BOOLEAN:
-            self.lbl_type.set_text("Boolean")
-            
-            self.text_value.hide()
-            self.model_bool = gtk.ListStore(bool, str)
-            self.model_bool.append([True, "True"])
-            self.model_bool.append([False, "False"])
-            
-            cell = gtk.CellRendererText()
-            self.combo_value.pack_start(cell, True)
-            self.combo_value.add_attribute(cell, 'text', 1)  
-            self.combo_value.set_model(self.model_bool)
-            
-            if self.edit:
-                if self.instance.get_value_boolean() == True:
-                    self.combo_value.set_active(0)
-                else:
-                    self.combo_value.set_active(1)
-            else:
-                self.combo_value.set_active(1)
-                    
-            #self.model_combo_choices.append(["", "True"])
-            #self.model_combo_choices.append(["", "False"])
-
-            ## hide information for others type
-            #self.text_uper_bound.set_sensitive(False)
-            #self.lbl_uper_bound.set_sensitive(False)
-            #self.text_lower_bound.set_sensitive(False)
-            #self.lbl_lower_bound.set_sensitive(False)
-            #self.lbl_match.set_sensitive(False)
-            #self.text_match.set_sensitive(False)
-            #self.box_choices.hide()
-            #self.chBox_mustMatch.hide()
-            #self.lbl_mustMatch.hide()
-            #self.window.resize(400, 200)
-
-        #hide alll
-        self.text_uper_bound.hide()
-        self.lbl_uper_bound.hide()
-        self.text_lower_bound.hide()
-        self.lbl_lower_bound.hide()
-        self.box_choices.hide()
-        self.chBox_mustMatch.hide()
-        self.lbl_mustMatch.hide()
-        self.comboEntry_default.hide()
-        self.combo_default.hide()
-        self.lbl_default.hide()
-        self.window.resize(300, 200)
-            
-        ## choices
-        #EditValueChoice (core, self.model_combo_choices, self.tv_choices, self.window)
-       
-        if edit  and self.instance.selector:
-            self.text_selector.set_text(self.instance.selector)
-
-            #self.chBox_mustMatch.set_active(self.instance.must_match)
-            #if self.instance.must_match:
-                #self.comboEntry_default.hide()
-                #self.combo_default.show()
-            #else:
-                #self.comboEntry_default.show()
-                #self.combo_default.hide()
-        #else:
-            #self.comboEntry_default.show()
-            #self.combo_default.hide()
-            
-            
-        self.show()
-
-    def cb_combo_default(self, widget):
-        active = widget.get_active()
-        if widget == self.combo_default:
-            self.comboEntry_default.set_active(active)
-        else:
-            self.combo_default.set_active(active)
-
-    def cb_mustMatch(self, widget):
-        if widget.get_active():
-            self.comboEntry_default.hide()
-            self.combo_default.show()
-        else:
-            self.comboEntry_default.show()
-            self.combo_default.hide()
-
-    def __cb_do(self, widget):
-        poc = 0
-        selector_empty = None
-        
-        # control if selector not exist or empty
-        for ins in self.item.instances:
-            if ins.selector == self.text_selector.get_text():
-                poc = poc + 1
-            if ins.selector == "":
-                selector_empty = ins
-        
-        if self.edit and self.instance.selector == "" and self.text_selector.get_text() != "":
-            if  (not (self.instance.get_match() == None or self.instance.get_match() == '') or str(self.instance.get_lower_bound()) != "nan" or str(self.instance.get_upper_bound()) != "nan"):
-                self.dialogInfo("Can't change empty selector if is set Bound or Match in General. ", self.window)
-                return
-                
-        if (poc == 1 and not self.edit) or (self.edit and poc == 1 and self.text_selector.get_text() != self.instance.selector):
-            self.dialogInfo("Selector already exists. \n Change the selector.", self.window)
-            return
-        
-        # control value
-        if self.type == openscap.OSCAP.XCCDF_TYPE_BOOLEAN:
-            active = self.combo_value.get_active_iter()
-            if active:
-                value = self.model_bool.get_value(active, 0)
-            else:
-                value = None
-                
-        else:
-            value = self.text_value.get_text()
-            if not self.control_data(value, selector_empty, "value"):
-                return
-
-        
-        ##control default
-        #if (not self.chBox_mustMatch.get_active()) and self.comboEntry_default.get_active() == -1:
-            #if not self.control_data(self.comboEntry_default.get_active_text(), "Default"):
-                #return
-            
-        ## control choices must be at the end of control, becouse remove mark row from model
-        #iter_ch = self.model_combo_choices.get_iter_first()
-        #while iter_ch:
-            
-            ##if model has * in mark_column is it end  
-            #mark = self.model_combo_choices.get_value(iter_ch, 0)
-            #if mark == "*":
-                ## after remove * must control finish by succead
-                #self.model_combo_choices.remove(iter_ch)
-                #break
-
-            ##control data
-            #data = self.model_combo_choices.get_value(iter_ch, 1)
-            #if not self.control_data(data, "choices"):
-                #return
-            #iter_ch = self.model_combo_choices.iter_next(iter_ch)
-
-        #all control ready
-        selector = self.text_selector.get_text()
-        upper = None
-        lower = None
-        match = None
-        mustMuch = None
-        
-        #if self.type == openscap.OSCAP.XCCDF_TYPE_NUMBER:
-            #upper = float(self.text_uper_bound.get_text())
-            #lower = float(self.text_lower_bound.get_text())
-        #if self.type == openscap.OSCAP.XCCDF_TYPE_STRING:
-            #match = self.text_match.get_text()
-
-        #mustMuch = self.chBox_mustMatch.get_active()
-
-        if not mustMuch:
-            default = self.comboEntry_default.get_active_text()
-        else:
-            default = self.combo_default.get_active_text()
-
-        if self.edit:
-            if self.cb(value, self.item, selector, match, upper, lower, default, mustMuch, self.model_combo_choices):
-                self.model.set_value(self.iter, self.COLUMN_SELECTOR, selector)
-                self.model.set_value(self.iter, self.COLUMN_VALUE, value)
-        else:
-            vys = self.cb(value, self.item, selector, match, upper, lower, default, mustMuch, self.model_combo_choices)
-            if vys != -1:
-                self.model.append([selector, value, None, vys])
-
-        self.window.destroy()
-
-    def control_data(self, data, selector_empty, text):
-        """Control data about type and set parameter
-            param data is string
-            return False if data is incorrect
-        """
-        if data != "":
-            if self.type == openscap.OSCAP.XCCDF_TYPE_NUMBER:
-                try:
-                    data = float(data)
-                except Exception, e:
-                    self.dialogInfo("Invalid number '%s' in %s." % (data, text), self.window)
-                    return False
-                
-                if selector_empty:
-                    low = selector_empty.lower_bound
-                    upper = selector_empty.upper_bound
-                else:
-                    low = "nan"
-                    upper = "nan"
-                    
-                # control low
-                if low != "" and low != "nan":
-                    low = float(low)
-                    if data < low:
-                        self.dialogInfo("Number %f can't be less then Lower bound." % (data), self.window)
-                        return False
-                #control upper
-                if upper != "" and upper != "nan":
-                    upper = float(upper)
-                    if data > upper:
-                        self.dialogInfo("Number %f can't be over Upper bound." % (data), self.window)
-                        return False
-
-            elif self.type == openscap.OSCAP.XCCDF_TYPE_STRING:
-                if selector_empty:
-                    if selector_empty.match:
-                        pattern = re.compile(selector_empty.match,re.IGNORECASE)
-                        if pattern.search(data) == None:
-                            self.dialogInfo("String '%s' isn't match with regular expression in field match." % data, self.window)
-                            return False
-        return True
-        
-    def show(self):
-        self.window.set_transient_for(self.core.main_window)
-        self.window.show()
-
-    def __delete_event(self, widget, event=None):
-        self.window.destroy()
 
 class EditValueChoice(commands.DataHandler, abstract.EnterList):
     

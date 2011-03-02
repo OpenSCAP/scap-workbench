@@ -74,8 +74,10 @@ class DataHandler(object):
 
         # get value properties
         item = {}
+        item["item"] = value
         item["id"] = value.id
-        item["lang"] = self.core.lib["policy_model"].benchmark.lang
+        #item["lang"] = self.core.lib["policy_model"].benchmark.lang
+        item["lang"] = self.core.selected_lang
         item["titles"] = {}
         item["descs"] = {}
         # Titles / Questions
@@ -124,6 +126,11 @@ class DataHandler(object):
             else: item["selected"] = ('', '')
 
         return item
+
+    def get_all_values(self):
+        if not self.check_library(): return []
+
+        return self.core.lib["policy_model"].benchmark.get_all_values()
 
     def get_languages(self):
         """Get available languages from XCCDF Benchmark
@@ -244,6 +251,7 @@ class DataHandler(object):
                 item = item.to_value()
                 values.update({
                     "abstract":         item.abstract,
+                    "typetext":         "Value",
                     "instances":        item.instances,
                     "interactive":      item.interactive,
                     "interface_hint":   item.interface_hint,
@@ -841,34 +849,116 @@ class DHValues(DataHandler):
     def get_rationales(self):
         raise Exception("According to XCCDF Version 1.2: No rationale for value item")
 
+    def edit_value(self, version=None, version_time=None, prohibit_changes=None, abstract=None, cluster_id=None, interactive=None, operator=None):
+        if not self.check_library(): return None
+
+        item = self.core.lib["policy_model"].benchmark.get_item(self.core.selected_item)
+        if item == None:
+            raise Exception("Edit items update: No item selected !")
+        item = item.to_value()
+
+        if version != None:
+            item.version = version
+        if version_time != None:
+            item.version_time = version_time
+        if prohibit_changes != None:
+            item.prohibit_changes = prohibit_changes
+        if abstract != None:
+            item.abstract = abstract
+        if cluster_id != None:
+            item.cluster_id = cluster_id
+        if interactive != None:
+            item.interactive = interactive
+        if operator != None:
+            item.oper = operator
+
+    def edit_value_of_value(self, operation, obj, selector, value, default, match, upper_bound, lower_bound, must_match):
+        if not self.check_library(): return None
+        
+        item = self.core.lib["policy_model"].benchmark.get_item(self.core.selected_item).to_value()
+        if item == None:
+            raise Exception("Edit values: No item selected")
+
+        if operation == self.CMD_OPER_ADD:
+            new_instance = item.new_instance()
+            if item.type == openscap.OSCAP.XCCDF_TYPE_NUMBER:
+                if default: new_instance.defval_number = int(default)
+                if value: new_instance.value_number = int(value)
+            elif item.type == openscap.OSCAP.XCCDF_TYPE_STRING:
+                if default: new_instance.defval_string = default
+                if value: new_instance.value_string = value
+            elif item.type == openscap.OSCAP.XCCDF_TYPE_BOOLEAN:
+                if default != -1: new_instance.defval_boolean = bool(default)
+                if value != -1: new_instance.value_boolean = bool(value)
+            else: raise Exception("Get value instances: Typ of instance not supported: \"%s\"" % (instance.type,))
+            if match: new_instance.match = match
+            if upper_bound != None: new_instance.upper_bound = upper_bound
+            if lower_bound != None: new_instance.lower_bound = lower_bound
+            new_instance.must_match  = must_match
+            new_instance.selector = selector
+
+            return item.add_instance(new_instance)
+
+        elif operation == self.CMD_OPER_EDIT:
+            if obj == None: 
+                logger.error("Can't edit None object")
+                return False
+            if item.type == openscap.OSCAP.XCCDF_TYPE_NUMBER:
+                obj.defval_number = default
+                obj.value_number = value
+            elif item.type == openscap.OSCAP.XCCDF_TYPE_STRING:
+                obj.defval_string = default
+                obj.value_string = value
+            elif item.type == openscap.OSCAP.XCCDF_TYPE_BOOLEAN:
+                obj.defval_string = default
+                obj.value_string = value
+            else: raise Exception("Get value instances: Typ of instance not supported: \"%s\"" % (instance.type,))
+            obj.match = match
+            if upper_bound != None: obj.upper_bound = upper_bound
+            if lower_bound != None: obj.lower_bound = lower_bound
+            obj.must_match  = must_match
+            obj.selector = selector
+            
+            return True
+
+        elif operation == self.CMD_OPER_DEL:
+            if obj == None: 
+                logger.error("Can't remove None object")
+                return False
+            return item.instances.remove(obj)
+
+        else: raise AttributeError("Edit question: Unknown operation %s" % (operation,))
+
     def get_value_instances(self):
         if not self.check_library(): return None
 
         instances = []
-        for instance in self.core.lib["policy_model"].benchmark.get_item(self.core.selected_item).to_value().instances:
+        item = self.core.lib["policy_model"].benchmark.get_item(self.core.selected_item).to_value()
 
-            if instance.type == openscap.OSCAP.XCCDF_TYPE_NUMBER:
+        for instance in item.instances:
+            if item.type == openscap.OSCAP.XCCDF_TYPE_NUMBER:
                 op_defval = instance.defval_number
                 op_value  = instance.value_number
-            elif instance.type == openscap.OSCAP.XCCDF_TYPE_STRING:
+            elif item.type == openscap.OSCAP.XCCDF_TYPE_STRING:
                 op_defval = instance.defval_string
                 op_value  = instance.value_string
-            elif instance.type == openscap.OSCAP.XCCDF_TYPE_BOOLEAN:
+            elif item.type == openscap.OSCAP.XCCDF_TYPE_BOOLEAN:
                 op_defval = instance.defval_boolean
                 op_value  = instance.value_boolean
             else: raise Exception("Get value instances: Typ of instance not supported: \"%s\"" % (instance.type,))
 
             instances.append({
-                    "choices": instance.choices,
-                    "defval": op_defval,
-                    "lower_bound": instance.lower_bound,
-                    "match": instance.match,
-                    "must_match": instance.must_match,
-                    "selector": instance.selector,
-                    "type": instance.type,
-                    "upper_bound": instance.upper_bound,
-                    "value": instance.value,
-                    "tvalue": op_value
+                    "item":         instance,
+                    "choices":      instance.choices,
+                    "defval":       op_defval,
+                    "lower_bound":  instance.lower_bound,
+                    "match":        instance.match,
+                    "must_match":   instance.must_match,
+                    "selector":     instance.selector,
+                    "type":         instance.type,
+                    "upper_bound":  instance.upper_bound,
+                    "value":        instance.value,
+                    "tvalue":       op_value
                     })
         return instances
 
@@ -1738,6 +1828,57 @@ class DHEditItems(DataHandler):
         self.item = None # TODO: bug workaround - commands.py:1589 AttributeError: DHEditItems instance has no attribute 'item'
         self.core = core
 
+    def update(self, version=None, version_time=None, selected=None, hidden=None, prohibit=None, abstract=None, cluster_id=None, weight=None):
+        if not self.check_library(): return None
+
+        item = self.core.lib["policy_model"].benchmark.get_item(self.core.selected_item)
+        if item == None:
+            raise Exception("Edit items update: No item selected !")
+
+        if version != None:
+            item.version = version
+        if version_time != None:
+            item.version_time = version_time
+        if selected != None:
+            item.selected = selected
+        if hidden != None:
+            item.hidden = hidden
+        if prohibit != None:
+            item.prohibit_changes = prohibit
+        if abstract != None:
+            item.abstract = abstract
+        if cluster_id != None:
+            item.cluster_id = cluster_id
+        if weight != None:
+            item.weight = weight
+
+    def item_edit_value(self, operation, value):
+        if not self.check_library(): return None
+
+        item = self.core.lib["policy_model"].benchmark.get_item(self.core.selected_item)
+        if item.type != openscap.OSCAP.XCCDF_RULE:
+            raise Exception("There must be Rule For adding value !")
+        item = item.to_rule()
+
+        if operation == self.CMD_OPER_ADD:
+            check_add = None
+            #add to firts check which will found
+            for check_ex in item.checks:
+                check_add = check_ex
+                break
+            
+            #check not exist create new
+            if not check_add:
+                check_add = openscap.xccdf.check_new()
+                item.add_check(check_add)
+            check_export = openscap.xccdf.check_export_new()
+            check_export.set_value(value)
+            check_add.add_export(check_export)
+
+        elif operation == self.CMD_OPER_DEL:
+            logger.error("Delete of value refernces not supported.")
+
+
     def DHEditIdent(self, item, model, iter, column, value, delete=False):
 
         COLUMN_ID = 0
@@ -1793,94 +1934,6 @@ class DHEditItems(DataHandler):
                 model.remove(iter)  
         else:
             logger.error("Error: Not read item.")
-
-    def DHEditVersionTime(self, item, timestamp):
-        if item:
-            item.set_version_time(timestamp)
-        else:
-            logger.error("Error: Not read item.")
-
-
-    def cb_entry_version(self, widget, event):
-        item = self.get_item(self.core.selected_item)
-        if item:
-            item.set_version(widget.get_text())
-        else:
-            logger.error("Error: Not read item.")
-
-    def DHEditChboxSelected(self, widget, item=None):
-        if item:
-            item.set_selected(widget.get_active())
-        else:
-            logger.error("Error: Not read item.")
-
-    def cb_chbox_hidden(self, widget):
-        item = self.get_item(self.core.selected_item)
-        if item:
-            item.set_hidden(widget.get_active())
-        else:
-            logger.error("Error: Not read item.")
-
-    def cb_chbox_prohibit(self, widget):
-        item = self.get_item(self.core.selected_item)
-        if item:
-            item.set_prohibit_changes(widget.get_active())
-        else:
-            logger.error("Error: Not read item.")
-
-    def cb_chbox_abstract(self, widget):
-        item = self.get_item(self.core.selected_item)
-        if item:
-            item.set_abstract(widget.get_active())
-        else:
-            logger.error("Error: Not read item.")
-
-    def cb_entry_cluster_id(self, widget, event):
-        item = self.get_item(self.core.selected_item)
-        if item:
-            item.set_cluster_id(widget.get_text())
-        else:
-            logger.error("Error: Not read item.")
-
-    def DHEditWeight(self, data):
-        item = self.get_item(self.core.selected_item)
-        if item:
-            item.set_weight(data)
-        else:
-            logger.error("Error: Not read item.")
-
-    def cb_chbox_multipl(self, widget):
-        rule = self.get_item(self.core.selected_item).to_rule()
-        if rule:
-            rule.set_multiple(widget.get_active())
-        else:
-            logger.error("Error: Not read item.")
-
-    def  cb_cBox_severity(self, widget):
-
-        COLUMN_DATA = 0
-
-        rule = self.item.to_rule()
-        if rule:
-            active = widget.get_active()
-            if active > 0:
-                model = widget.get_model()
-                rule.set_severity(model[active][COLUMN_DATA])
-        else:
-            logger.error("Error: Not rule.")
-            
-    def  cb_cBox_role(self, widget):
-
-        COLUMN_DATA = 0
-
-        rule = self.item.to_rule()
-        if rule:
-            active = widget.get_active()
-            if active > 0:
-                model = widget.get_model()
-                rule.set_role(model[active][COLUMN_DATA])
-        else:
-            logger.error("Error: Not rule.")
             
     def DHEditImpactMetrix(self, rule, text):
         if rule:
@@ -1890,62 +1943,6 @@ class DHEditItems(DataHandler):
                 logger.error("Error: Impact metrix not set.")
         else:
             logger.error("Error: Not read rule.")
-
-    def DHEditValue(self, item, model, iter, column, value, delete=False):
-
-        COLUMN_ID = 0
-        COLUMN_TITLE = 1
-        COLUMN_TYPE_ITER = 2
-        COLUMN_TYPE_TEXT = 3
-        COLUMN_OBJECT = 4
-        COLUMN_CHECK = 5
-        COLUMN_CHECK_EXPORT = 6
-        
-        if self.item:
-            if not delete:
-                # column == None new data 
-                if column == None:
-                    parent = self.item.get_parent()
-                    value = openscap.xccdf.value_new(value)
-                    
-                    # if parent si benchmark or rule
-                    if parent.type ==  openscap.OSCAP.XCCDF_GROUP:
-                        parent = parent.to_group()
-                    else:
-                        parent = self.item.get_benchmark()
-                        
-                    parent.add_value(value)
-                    model.set_value(iter, COLUMN_OBJECT, value)
-                elif column == COLUMN_ID:
-                    object = model.get_value(iter, COLUMN_OBJECT)
-                    object.set_id(value)
-                    check_add = None
-                    #add to firts check which will found
-                    for check_ex in self.item.checks:
-                        check_add = check_ex
-                        break
-                    
-                    #check not exist create new
-                    if not check_add:
-                        check_add = openscap.xccdf.check_new()
-                        self.item.add_check(check_add)
-                    model.set_value(iter, COLUMN_CHECK, check_add)
-                    check_export = openscap.xccdf.check_export_new()
-                    check_export.set_value(value)
-                    check_add.add_export(check_export)
-                        
-                elif column == COLUMN_TYPE_ITER:
-                    pass
-                else:
-                    logger.error("Bad number of column.")
-            else:
-                check = model.get_value(iter, COLUMN_CHECK)
-                check_export = model.get_value(iter, COLUMN_CHECK_EXPORT)
-                logger.debug("Removing %s" %(check_export,))
-                check.exports.remove(check_export)
-                model.remove(iter)
-        else:
-            logger.error("Error: Not read item.")
 
     def DHEditValueOper(self, value, oper):
 
@@ -1960,96 +1957,6 @@ class DHEditItems(DataHandler):
         else:
             logger.error("Error: Not value.")
     
-    def DHEditValueTitle(self, item, model, iter, column, value, delete=False):
-
-        COLUMN_LAN = 0
-        COLUMN_TEXT = 1
-        COLUMN_OBJECT = 2
-
-        if item:
-            object = model.get_value(iter, COLUMN_OBJECT)
-
-            if not object:
-                object = openscap.common.text_new()
-                item.add_title(object)
-                model.set_value(iter, COLUMN_OBJECT, object)
-            elif  not delete:
-                if column == COLUMN_LAN:
-                    object.set_lang(value)
-                elif column == COLUMN_TEXT:
-                    object.set_text(value)
-                else:
-                    logger.error("Bad number of column.")
-            else:
-                logger.debug("Removing %s" %(object,))
-                item.title.remove(object)
-                model.remove(iter)
-        else:
-            logger.error("Error: Not read item.")
-            
-    def DHEditValueDescription(self, item, model, iter, column, value, delete=False):
-
-        COLUMN_LAN = 0
-        COLUMN_TEXT = 1
-        COLUMN_OBJECT = 2
-
-        if item:
-            object = model.get_value(iter, COLUMN_OBJECT)
-
-            if not object:
-                object = openscap.common.text_new()
-                item.add_description(object)
-                model.set_value(iter, COLUMN_OBJECT, object)
-            elif  not delete:
-                if column == COLUMN_LAN:
-                    object.set_lang(value)
-                elif column == COLUMN_TEXT:
-                    object.set_text(value)
-                else:
-                    logger.error("Bad number of column.")
-            else:
-                logger.debug("Removing %s" %(object,))
-                item.description.remove(object)
-                model.remove(iter)
-        else:
-            logger.error("Error: Not read item.")
-            
-    def DHEditValueQuestion(self, item, model, iter, column, value, delete=False):
-
-        COLUMN_LAN = 0
-        COLUMN_TEXT = 1
-        COLUMN_OBJECT = 2
-
-        if item:
-            object = model.get_value(iter, COLUMN_OBJECT)
-
-            if not object:
-                object = openscap.common.text_new()
-                item.add_question(object)
-                model.set_value(iter, COLUMN_OBJECT, object)
-            elif  not delete:
-                if column == COLUMN_LAN:
-                    object.set_lang(value)
-                elif column == COLUMN_TEXT:
-                    object.set_text(value)
-                else:
-                    logger.error("Bad number of column.")
-            else:
-                logger.debug("Removing %s" %(object,))
-                item.question.remove(object)
-                model.remove(iter)
-        else:
-            logger.error("Error: Not read item.")
-            
-    def DHEditConflicts(self, item, id, add):
-        if add:
-            try:
-                item.add_conflicts(id)
-            except Exception, e:
-                logger.error("Add conflicts: %s" % (e,))
-        else:
-            pass
-
     def DHEditValueInstance(self, value, item, selector, match, upper, lower, default, mustMuch, model_combo_choices):
         
         logger.debug("Editing value: %s", value)

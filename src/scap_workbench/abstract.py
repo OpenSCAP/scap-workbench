@@ -85,6 +85,18 @@ ENUM_TYPE=enum((
     [openscap.OSCAP.XCCDF_TYPE_STRING, "STRING", ""],
     [openscap.OSCAP.XCCDF_TYPE_BOOLEAN, "BOOLEAN", ""]))
 
+ENUM_LEVEL=enum((
+    [openscap.OSCAP.XCCDF_UNKNOWN, "UNKNOWN", "Unknown."],
+    [openscap.OSCAP.XCCDF_INFO, "INFO", "Info."],
+    [openscap.OSCAP.XCCDF_LOW, "LOW", "Low."],
+    [openscap.OSCAP.XCCDF_MEDIUM, "MEDIUM", "Medium"],
+    [openscap.OSCAP.XCCDF_HIGH, "HIGH", "High."]))
+
+ENUM_ROLE=enum((
+    [openscap.OSCAP.XCCDF_ROLE_FULL, "FULL", "Check the rule and let the result contriburte to the score and appear in reports.."],
+    [openscap.OSCAP.XCCDF_ROLE_UNSCORED, "UNSCORED", "Check the rule and include the result in reports, but do not include it into score computations"],
+    [openscap.OSCAP.XCCDF_ROLE_UNCHECKED, "UNCHECKED", "Don't check the rule, result will be XCCDF_RESULT_UNKNOWN."]))
+
 class Menu(EventObject):
     """ 
     Create Main item for TreeToolBar_toggleButtonGroup and draw all tree Menu
@@ -585,13 +597,13 @@ class Func:
         Function concert sting to timestamp (gregorina). 
         If set text is incorrect format return False and show message.
         """
+        self.core.notify_destroy("notify:date_format")
         if text != "":
             date = text.split("-")
             if len(date) != 3:
                 self.notifications.append(self.core.notify("The date is in incorrect format. Correct format is YYYY-MM-DD.", 2, msg_id="notify:date_format"))
                 return None
             try :
-                print date
                 d = datetime.date(int(date[0]), int(date[1]), int(date[2]))
             except Exception as ex:
                 self.notifications.append(self.core.notify("The date is in incorrect format. Correct format is YYYY-MM-DD.", 2, msg_id="notify:date_format"))
@@ -628,12 +640,13 @@ class Func:
             self.dialogInfo(error, window)
             return False
 
-    def controlFloat(self, data, text, window):
+    def controlFloat(self, data, text, info_box=None):
+        self.core.notify_destroy("notify:float_format")
         if data != "" or data != None:
             try:
                 data = float(data)
             except:
-                self.dialogInfo("Invalid number in %s." % (text), window)
+                self.notifications.append(self.core.notify("Invalid number in %s." % (text,), 2, info_box, msg_id="notify:float_format"))
                 return None
             return data
         else:
@@ -647,11 +660,8 @@ class Enum_type:
     
     # 0 is undefined here 
     combo_model_level = gtk.ListStore(int, str, str)
-    combo_model_level.append([openscap.OSCAP.XCCDF_UNKNOWN, "UNKNOWN", "Unknown."])
-    combo_model_level.append([openscap.OSCAP.XCCDF_INFO, "INFO", "Info."])
-    combo_model_level.append([openscap.OSCAP.XCCDF_LOW, "LOW", "Low."])
-    combo_model_level.append([openscap.OSCAP.XCCDF_MEDIUM, "MEDIUM", "Medium"])
-    combo_model_level.append([openscap.OSCAP.XCCDF_HIGH, "HIGH", "High."])
+    for item in ENUM_LEVEL:
+        combo_model_level.append(item)
     
     combo_model_strategy = gtk.ListStore(int, str, str)
     combo_model_strategy.append([openscap.OSCAP.XCCDF_STRATEGY_UNKNOWN, "UNKNOWN", "Strategy not defined."])
@@ -673,9 +683,8 @@ class Enum_type:
         combo_model_warning.append(item)
 
     combo_model_role = gtk.ListStore(int, str, str)
-    combo_model_role.append([openscap.OSCAP.XCCDF_ROLE_FULL, "FULL", "Check the rule and let the result contriburte to the score and appear in reports.."])
-    combo_model_role.append([openscap.OSCAP.XCCDF_ROLE_UNSCORED, "UNSCORED", "Check the rule and include the result in reports, but do not include it into score computations"])
-    combo_model_role.append([openscap.OSCAP.XCCDF_ROLE_UNCHECKED, "UNCHECKED", "Don't check the rule, result will be XCCDF_RESULT_UNKNOWN."])
+    for item in ENUM_ROLE:
+        combo_model_role.append(item)
 
     combo_model_type = gtk.ListStore(int, str, str)
     for item in ENUM_TYPE:
