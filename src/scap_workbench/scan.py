@@ -130,6 +130,7 @@ class MenuButtonScan(abstract.MenuButton):
         else:
             for notify in self.notifications:
                 notify.destroy()
+            self.core.notify_destroy("notify:scan:cancel")
 
     #callback function
     def __cb_export_report(self, widget):
@@ -148,7 +149,7 @@ class MenuButtonScan(abstract.MenuButton):
     def __cb_profile(self, widget):
         for notify in self.notifications:
             notify.destroy()
-        if not self.core.xccdf_file: 
+        if self.core.xccdf_file == None:
             self.core.notify("Library not initialized or XCCDF file not specified", 1, msg_id="notify:xccdf:not_loaded")
             return
         ProfileChooser(self.core, self.__update_profile)
