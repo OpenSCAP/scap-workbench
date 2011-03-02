@@ -89,6 +89,9 @@ class MenuButtonXCCDF(abstract.MenuButton):
         self.box_references = self.builder.get_object("xccdf:box_references")
         self.files_box = self.builder.get_object("xccdf:files:box")
 
+        self.btn_new = self.builder.get_object("xccdf:btn_new")
+        self.btn_new.connect("clicked", self.__cb_new)
+
         self.btn_import = self.builder.get_object("xccdf:btn_import")
         self.btn_import.connect("clicked", self.__cb_import)
 
@@ -255,6 +258,17 @@ class MenuButtonXCCDF(abstract.MenuButton):
 
 
     # callBack functions
+    def __cb_new(self, widget):
+        self.core.init(None)
+        self.btn_close.set_sensitive(True)
+        self.btn_validate.set_sensitive(True)
+        self.btn_export.set_sensitive(True)
+        try:
+            self.__update()
+        except KeyError: pass
+
+        self.emit("load")
+
     def __cb_import(self, widget):
         file = self.data_model.file_browse("Load XCCDF file", action=gtk.FILE_CHOOSER_ACTION_OPEN)
         if file != "":

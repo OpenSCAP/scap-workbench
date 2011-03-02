@@ -395,6 +395,10 @@ class DataHandler(object):
             refs.append(tmpref)
         return refs
 
+    def get_benchmark(self):
+        if not self.core.lib: return None
+        return self.core.lib["policy_model"].benchmark
+
     def get_benchmark_titles(self):
         if not self.core.lib: return {}
         benchmark = self.core.lib["policy_model"].benchmark
@@ -857,7 +861,7 @@ class DHValues(DataHandler):
             raise Exception("Edit items update: No item selected !")
         item = item.to_value()
 
-        if version != None:
+        if version != None and item.version != version:
             item.version = version
         if version_time != None:
             item.version_time = version_time
@@ -865,7 +869,7 @@ class DHValues(DataHandler):
             item.prohibit_changes = prohibit_changes
         if abstract != None:
             item.abstract = abstract
-        if cluster_id != None:
+        if cluster_id != None and item.cluster_id != cluster_id:
             item.cluster_id = cluster_id
         if interactive != None:
             item.interactive = interactive
@@ -1285,19 +1289,21 @@ class DHItemsTree(DataHandler, EventObject):
         new item"""
 
         if not self.check_library(): return None
+        parent = None
+        iter = None
 
         """If no selected item is passed to the function, get the selected
         item from the core"""
         selection = self.treeView.get_selection()
         if selection != None:
             (model, iter) = selection.get_selected()
-            if iter == None: return False
-            parent = self.get_item(model[iter][self.COLUMN_ID])
+            if iter != None:
+                parent = self.get_item(model[iter][self.COLUMN_ID])
 
         """There is no item selected therefor we are adding new item to the
         root level: benchmark. Get benchmark and check it for None value"""
         if parent == None: 
-            parent = self.core.lib["policy_model"].benchmark
+            parent = self.core.lib["policy_model"].benchmark.to_item()
             if parent == None:
                 return False
 
@@ -1305,7 +1311,7 @@ class DHItemsTree(DataHandler, EventObject):
         as parent selected item's parent, if selected item is benchmark: 
         return false cause benchmark is a root"""
         if relation == self.RELATION_SIBLING:
-            if parent == self.core.lib["policy_model"].benchmark:
+            if parent.type == openscap.OSCAP.XCCDF_BENCHMARK:
                 return False
             else: 
                 parent = parent.parent
@@ -1322,6 +1328,7 @@ class DHItemsTree(DataHandler, EventObject):
         elif parent.type == openscap.OSCAP.XCCDF_BENCHMARK:
             parent = parent.to_benchmark()
         else: 
+            logger.error("Unsupported itme format: %s" % (parent.type,))
             return False
 
         """Fill new created item with the values from the formular. Make an 'op'
@@ -1835,7 +1842,7 @@ class DHEditItems(DataHandler):
         if item == None:
             raise Exception("Edit items update: No item selected !")
 
-        if version != None:
+        if version != None and item.version != version:
             item.version = version
         if version_time != None:
             item.version_time = version_time
@@ -1847,9 +1854,9 @@ class DHEditItems(DataHandler):
             item.prohibit_changes = prohibit
         if abstract != None:
             item.abstract = abstract
-        if cluster_id != None:
+        if cluster_id != None and item.cluster_id != cluster_id:
             item.cluster_id = cluster_id
-        if weight != None:
+        if weight != None and item.weight != weight:
             item.weight = weight
 
     def item_edit_value(self, operation, value):

@@ -109,7 +109,6 @@ class ItemList(abstract.List):
     def __init__(self, widget, core, builder=None, progress=None, filter=None):
 
         self.data_model = commands.DHItemsTree("gui:edit:DHItemsTree", core, progress, True, no_checks=True)
-        self.edit_model = commands.DHEditItems()
         abstract.List.__init__(self, "gui:edit:item_list", core, widget)
         self.core = core
         self.loaded_new = True
@@ -188,11 +187,7 @@ class ItemList(abstract.List):
         else: raise AttributeError, "Removing non-selected item or nothing selected."
 
     def __cb_item_add(self, widget):
-        selection = self.get_TreeView().get_selection()
-        (model,iter) = selection.get_selected()
-        if iter:
-            AddItem(self.core, self.data_model, self, self.ref_model)
-        else: AddItem(self.core, None, self, self.ref_model)
+        AddItem(self.core, self.data_model, self, self.ref_model)
 
     @threadSave
     def __cb_item_changed(self, widget, treeView):
@@ -2506,22 +2501,25 @@ class AddItem(EventObject, abstract.ControlEditWindow):
 
         self.__entry_style = self.iid.get_style().base[gtk.STATE_NORMAL]
 
-        #TODO: remove this section -> move it to commander
-        self.selection = self.data_model.treeView.get_selection()
-        if self.selection != None:
-            (self.model, self.iter) = self.selection.get_selected()
-            if self.iter == None: return False
-            self.parent = self.data_model.get_item(self.model[self.iter][self.data_model.COLUMN_ID])
-            
         self.show()
 
     def __cb_changed_relation(self, widget):
 
-        self.core.notify_destroy("dialog:add_item")
-        if self.model[self.iter][self.data_model.COLUMN_TYPE] == "value" and widget.get_active() == self.data_model.RELATION_CHILD:
-            self.core.notify("Item type VALUE can't be a parent !", 2, self.info_box, msg_id="dialog:add_item")
-            self.itype.grab_focus()
-            return
+        self.core.notify_destroy("notify:relation")
+        (model, iter) = self.view.get_selection().get_selected()
+        if not iter:
+            if widget.get_active()  in [self.data_model.RELATION_PARENT, self.data_model.RELATION_SIBLING]:
+                self.core.notify("Item can't be a parent or sibling of benchmark !", 2, self.info_box, msg_id="notify:relation")
+                self.itype.grab_focus()
+                return False
+        else:
+            self.core.notify_destroy("dialog:add_item")
+            if model[iter][self.data_model.COLUMN_TYPE] == "value" and widget.get_active() == self.data_model.RELATION_CHILD:
+                self.core.notify("Item type VALUE can't be a parent !", 2, self.info_box, msg_id="notify:relation")
+                self.itype.grab_focus()
+                return False
+
+        return True
 
     def __cb_changed_type(self, widget):
 
@@ -2540,6 +2538,9 @@ class AddItem(EventObject, abstract.ControlEditWindow):
         itype = self.itype.get_active()
         vtype = self.vtype.get_active()
         relation = self.relation.get_active()
+        if not self.__cb_changed_relation(self.relation):
+            return
+
         if itype == -1:
             self.core.notify("Relation has to be chosen", 2, self.info_box, msg_id="dialog:add_item")
             self.itype.grab_focus()
@@ -2554,10 +2555,6 @@ class AddItem(EventObject, abstract.ControlEditWindow):
         if relation == -1:
             self.core.notify("Relation has to be chosen", 2, self.info_box, msg_id="dialog:add_item")
             self.relation.grab_focus()
-            return
-        elif relation == self.data_model.RELATION_CHILD and parent.type == self.data_model.TYPE_VALUE:
-            self.core.notify("Type of value has ", 2, self.info_box, msg_id="dialog:add_item")
-            self.vtype.grab_focus()
             return
 
         if self.iid.get_text() == "":
@@ -2585,7 +2582,6 @@ class AddItem(EventObject, abstract.ControlEditWindow):
                 "lang": self.lang.get_text(),
                 "title": self.title.get_text()}
         retval = self.data_model.add_item(item, itype, relation, vtype)
-
         self.window.destroy()
             
     def show(self):
