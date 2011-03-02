@@ -721,7 +721,7 @@ class MenuButtonEditItems(abstract.MenuButton, abstract.ControlEditWindow):
 
     def show(self, sensitive):
         self.items.set_sensitive(sensitive)
-        self.items.set_visible(sensitive)
+        self.items.set_property("visible", sensitive)
 
     def __set_profile_description(self, description):
         """
@@ -1827,7 +1827,7 @@ class EditValues(abstract.MenuButton, abstract.ControlEditWindow):
         
     def show(self, active):
         self.values.set_sensitive(active)
-        self.values.set_visible(active)
+        self.values.set_property("visible", active)
 
     def update(self):
         self.__update()
@@ -2525,10 +2525,10 @@ class AddItem(EventObject, abstract.ControlEditWindow):
 
         self.core.notify_destroy("dialog:add_item")
         if widget.get_active() == self.data_model.TYPE_VALUE:
-            self.builder.get_object("dialog:add_item:value_type:lbl").set_visible(True)
+            self.builder.get_object("dialog:add_item:value_type:lbl").set_property("visible", True)
             self.vtype.set_visible(True)
         else: 
-            self.builder.get_object("dialog:add_item:value_type:lbl").set_visible(False)
+            self.builder.get_object("dialog:add_item:value_type:lbl").set_property("visible", False)
             self.vtype.set_visible(False)
 
     def __cb_do(self, widget):

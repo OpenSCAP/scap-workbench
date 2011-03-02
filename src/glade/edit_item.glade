@@ -2026,7 +2026,6 @@
                 <child>
                   <object class="GtkComboBox" id="dialog:edit_warning:category">
                     <property name="visible">True</property>
-                    <property name="editing_canceled">True</property>
                     <child>
                       <object class="GtkCellRendererText" id="Text"/>
                       <attributes>
@@ -2329,7 +2328,6 @@
                 <child>
                   <object class="GtkComboBox" id="dialog:edit_status:status">
                     <property name="visible">True</property>
-                    <property name="editing_canceled">True</property>
                     <child>
                       <object class="GtkCellRendererText" id="Text1"/>
                       <attributes>
