@@ -48,6 +48,7 @@ class DataHandler(object):
     CMD_OPER_ADD        = 0
     CMD_OPER_EDIT       = 1
     CMD_OPER_DEL        = 2
+    CMD_OPER_BIND       = 3
     RELATION_SIBLING    = 0
     RELATION_CHILD      = 1
     RELATION_PARENT     = 2
@@ -66,7 +67,8 @@ class DataHandler(object):
         """Check if the library exists and the XCCDF file
         is loaded. If not return False and True otherwise"""
         if not self.core.lib or self.core.xccdf_file == None:
-            self.core.notify("Library not initialized or XCCDF file not specified", 1, msg_id="notify:xccdf:not_loaded")
+            #self.core.notify("Library not initialized or XCCDF file not specified", 1, msg_id="notify:xccdf:not_loaded")
+            logger.debug("Library not initialized or XCCDF file not specified")
             return False
         else: return True
 
@@ -178,6 +180,77 @@ class DataHandler(object):
 
         return values
 
+    def get_item_check_exports(self, check=None, item=None):
+        if not self.check_library(): return None
+
+        content = []
+        if check != None:
+            for child in check.children:
+                if child.complex: content.extend(self.get_item_check_exports(check=child))
+                else: 
+                    for ref in child.exports:
+                        content.append((ref.value, ref.name))
+        else:
+            if item == None: item = self.core.lib["policy_model"].benchmark.get_item(self.core.selected_item)
+            if item == None: return None
+            if item.type == openscap.OSCAP.XCCDF_RULE:
+                rule = item.to_rule()
+                for check in rule.checks:
+                    if check.complex: content.extend(self.get_item_check_exports(check=child))
+                    else: 
+                        for ref in check.exports:
+                            content.append((ref.value, ref.name))
+            else: return []
+
+        return content
+
+    def get_item_content(self, check=None, item=None):
+        if not self.check_library(): return None
+
+        content = []
+        if check != None:
+            for child in check.children:
+                if child.complex: content.extend(self.get_item_content(check=child))
+                else: 
+                    for ref in child.content_refs:
+                        content.append((ref.name, ref.href))
+        else:
+            if item == None: item = self.core.lib["policy_model"].benchmark.get_item(self.core.selected_item)
+            if item == None: return None
+            if item.type == openscap.OSCAP.XCCDF_RULE:
+                rule = item.to_rule()
+                for check in rule.checks:
+                    if check.complex: content.extend(self.get_item_content(check=child))
+                    else: 
+                        for ref in check.content_refs:
+                            content.append((ref.name, ref.href))
+            else: return []
+
+        return content
+
+    def set_item_content(self, name=None, href=None, item=None):
+        if not self.check_library(): return None
+
+        if item == None: item = self.core.lib["policy_model"].benchmark.get_item(self.core.selected_item)
+        if item == None: return False, "Item \"%s\" not found" % (item or self.core.selected_item,)
+
+        if item.type == openscap.OSCAP.XCCDF_RULE:
+            rule = item.to_rule()
+            if len(rule.checks) > 1:
+                return (False, "Can't set the content: More then one check is present")
+            if rule.checks[0].complex:
+                return (False, "Can't set up the content ref when complex check present")
+            if len(rule.checks[0].content_refs) > 1:
+                return (False, "Can't set up the content: More content refs present")
+            else: 
+                if name != None and rule.checks[0].content_refs[0].name != name:
+                    rule.checks[0].content_refs[0].name = name
+                if href != None and rule.checks[0].content_refs[0].href != href:
+                    rule.checks[0].content_refs[0].href = href
+                        
+        else: return False, "Set content ref fatal: Item is not a rule !"
+
+        return True, ""
 
     def get_item_details(self, id, items_model=False):
         """Parse details from item with id equal to id parameter to
@@ -232,7 +305,7 @@ class DataHandler(object):
             elif item.type == openscap.OSCAP.XCCDF_RULE:
                 item = item.to_rule()
                 values.update({
-                    #"checks":          item.checks
+                    #"checks":           item.checks,
                     "abstract":         item.abstract,
                     "typetext":         "Rule",
                     "fixes":            self.__rule_get_fixes(item),
@@ -611,6 +684,42 @@ class DataHandler(object):
 
         else: raise AttributeError("Edit question: Unknown operation %s" % (operation,))
 
+    def __substitute(self, node_type, id, arg=None):
+        if not self.check_library(): return None
+
+        post = None
+        item = self.core.lib["policy_model"].benchmark.get_item(id)
+        if item == None:
+            return None
+
+        if item.type == openscap.OSCAP.XCCDF_VALUE:
+            item = item.to_value()
+            if arg != None: # We have policy, let's return the profile tailored value
+                new_item = arg.tailor_item(item.to_item())
+                if new_item: 
+                    post = new_item.to_value().instances[0].defval_string or new_item.to_value().instances[0].value
+                    openscap.OSCAP.oscap_free(new_item)
+                else: 
+                    instance = item.instance_by_selector(None)
+                    post = instance.value
+            else: 
+                instance = item.instance_by_selector(None) or item.instances[0]
+                post = instance.value
+            return post
+        else: raise Exception("Can substitute only VALUE item, got ID of %s" % item.type)
+                
+        return None
+
+
+    def substitute(self, description, with_policy=False):
+        policy = None
+        if with_policy: policy = self.core.lib["policy_model"].get_policy_by_id(self.core.selected_profile)
+        sub = openscap.common.text_xccdf_substitute(description, self.__substitute, policy)
+        if sub != None:
+            return sub
+        else: return description
+
+
 class DHXccdf(DataHandler):
 
     def __init__(self, core):
@@ -756,34 +865,9 @@ class DHValues(DataHandler):
     def render(self, treeView):
         """Make a model ListStore of Dependencies object"""
         self.treeView = treeView
-        self.model = gtk.ListStore(str, str, str, str, gtk.TreeModel)
+        self.model = gtk.ListStore(str, str, str, gtk.gdk.Color, gtk.TreeModel)
         self.treeView.set_model(self.model)
-
-        """This Cell is used to be first hidden column of tree view
-        to identify the item in list"""
-        txtcell = gtk.CellRendererText()
-        column = gtk.TreeViewColumn("Unique ID", txtcell, text=0)
-        column.set_visible(False)
-        column.set_resizable(True)
-        self.treeView.append_column(column)
-
-        # Text
-        txtcell = gtk.CellRendererText()
-        txtcell.set_property("editable", False)
-        column.pack_start(txtcell, False)
-        column.set_attributes(txtcell, text=1)
-        column = gtk.TreeViewColumn("Value Name", txtcell, text=1, foreground=3)
-        column.set_resizable(True)
-        self.treeView.append_column(column)
-
-        #combo
-        cellcombo = gtk.CellRendererCombo()
-        cellcombo.set_property("editable", True)
-        cellcombo.set_property("text-column", 0)
-        cellcombo.connect("edited", self.cellcombo_edited)
-        column = gtk.TreeViewColumn("Values", cellcombo, text=2, model=4, foreground=3)
-        column.set_resizable(True)
-        self.treeView.append_column(column)
+        return
 
     def fill(self, item=None):
 
@@ -807,7 +891,7 @@ class DHValues(DataHandler):
         values = self.get_item_values(self.core.selected_item)
         # TODO: The 0:gray value is not working cause of error in get_selected that values stay the same color
         # after selecting rule/group
-        color = ["black", "black"][self.get_selected(item, self.items_model)]
+        color = [gtk.gdk.Color("black"), gtk.gdk.Color("black")][self.get_selected(item, self.items_model)]
         for value in values:
             lang = value["lang"]
             model = gtk.ListStore(str, str)
@@ -829,26 +913,33 @@ class DHValues(DataHandler):
             policy = self.core.lib["policy_model"].policies[0]
         else: policy = self.core.lib["policy_model"].get_policy_by_id(self.core.selected_profile)
 
-        model = self.treeView.get_model()
-        iter = model.get_iter(path)
-        id = model.get_value(iter, 0)
-        logger.debug("Altering value %s", id)
+        new_text_value = None
+        iter = self.model.get_iter(path)
+        id = self.model.get_value(iter, 0)
+        value_model = self.model.get_value(iter, 4)
+        for value_iter in value_model:
+            if value_iter[0] == new_text: new_text_value = value_iter[1]
+        if new_text_value == None: new_text_value = new_text
+
         val = self.core.lib["policy_model"].benchmark.item(id).to_value()
         value = self.parse_value(val)
-        logger.debug("Matching %s agains %s or %s", new_text, value["choices"], value["match"])
+        logger.debug("Matching %s against %s or %s", new_text_value, value["choices"], value["match"])
         # Match against pattern as "choices or match"
-        choices = ""
-        if value["selected"][0] in value["choices"]:
-            choices = "|".join(value["choices"][value["selected"][0]])
-            pattern = re.compile(value["match"]+"|"+choices)
-        else: 
-            pattern = re.compile(value["match"])
+        pattern_list = []
+        if value["selected"][0] in value["choices"]: pattern_list.append("|".join(value["choices"][value["selected"][0]]))
+        if value["match"]: pattern_list.append(value["match"])
+        patterns = [re.compile(pattern) for pattern in pattern_list]
 
-        if pattern.match(new_text):
-            model.set_value(iter, 2, new_text)
-            logger.debug("Regexp matched: text %s match %s", new_text, "|".join([value["match"], choices]))
-            policy.set_tailor_items([{"id":id, "value":new_text}])
-        else: logger.error("Failed regexp match: text %s does not match %s", new_text, "|".join([value["match"], choices]))
+        for i, pattern in enumerate(patterns):
+            s = pattern.match(new_text_value)
+            if s != None:
+                # Dirty hack when matched string has the same length as found one (if no, it's bad)
+                if (s.end() - s.start()) != len(new_text_value): continue
+                self.model.set_value(iter, 2, new_text)
+                logger.debug("Regexp matched: text \"%s\" matched \"%s\"", new_text_value, pattern_list[i])
+                policy.set_tailor_items([{"id":id, "value":new_text_value}])
+                return
+        logger.error("Failed regexp match: text %s does not match %s", new_text_value, "|".join(pattern_list))
 
     def get_rationales(self):
         raise Exception("According to XCCDF Version 1.2: No rationale for value item")
@@ -1391,55 +1482,44 @@ class DHProfiles(DataHandler):
         column.set_resizable(True)
         treeView.append_column(column)
 
-    def add(self, item):
+    def update(self, id=None, version=None, abstract=None, prohibit_changes=None):
+        if not self.check_library(): return None
+
+        policy = self.core.lib["policy_model"].get_policy_by_id(self.core.selected_profile)
+        if not policy: 
+            logger.error("Update failed: No profile \"%s\" in benchmnark" % (self.core.selected_profile,))
+            return None
+        profile = policy.profile
+
+        if id != None and profile.id != id:
+            profile.id = id
+        if version != None and profile.version != version:
+            profile.version = version
+        if abstract != None and profile.abstract != abstract:
+            profile.abstract = abstract
+        if prohibit_changes != None and profile.prohibit_changes != prohibit_changes:
+            profile.prohibit_changes = prohibit_changes
+
+    def add(self, id, lang, title):
         """Add a new profile to the benchmark.
         Item is a dictionary specifing profile to be added
         
         This method is using @ref edit method to fill the data from
         item to the XCCDF Profile structure"""
 
-        logger.debug("Adding new profile: \"%s\"", item["id"])
+        logger.debug("Adding new profile: \"%s\"", id)
         if not self.check_library(): return None
 
         profile = openscap.xccdf.profile()
-        self.edit(item, profile)
+        profile.id = id
+        profile.abstract = False
+        new_title = openscap.common.text()
+        new_title.text = title
+        new_title.lang = lang
+        profile.title = new_title
 
         self.core.lib["policy_model"].benchmark.add_profile(profile)
         self.core.lib["policy_model"].add_policy(openscap.xccdf.policy(self.core.lib["policy_model"], profile))
-
-    def edit(self, item, profile=None):
-        """Edit profile (if it's not None) with the values from
-        item parameter.
-
-        If profile is None try to get the profile from benchmark instead.
-        If this failed and selected profile does not exist return False"""
-
-        logger.debug("Editing profile: \"%s\"", item["id"])
-        if not self.check_library(): return None
-
-        # Try to find the selected profile if it exists
-        if not profile: profile = self.core.lib["policy_model"].benchmark.get_item(self.core.selected_profile)
-        if not profile: 
-            self.core.notify("Saving profile failed: No profile \"%s\" in benchmark." % (self.core.selected_profile), 2)
-            logger.error("No profile \"%s\" in benchmark", self.core.selected_profile)
-            return False
-
-        # Fill the profile with details from the item parameter
-        profile.id = item["id"]
-        profile.abstract = item["abstract"]
-        profile.version = item["version"]
-        if item["extends"] != None: profile.extends = item["extends"]
-        for detail in item["details"]:
-            if detail["title"]:
-                title = openscap.common.text()
-                title.text = detail["title"]
-                title.lang = detail["lang"]
-                profile.title = title
-            if detail["description"]:
-                description = openscap.common.text()
-                description.text = detail["description"]
-                description.lang = detail["lang"]
-                profile.description = description
 
     def fill(self, item=None, parent=None, no_default=False):
         """Clear the model and fill it with existing profiles from loaded benchmark
@@ -1497,7 +1577,7 @@ class DHProfiles(DataHandler):
         """
         if not self.check_library(): return None
 
-        logger.info("Removing profile %s" %(id,))
+        logger.debug("Removing profile %s" %(id,))
         profile = self.core.lib["policy_model"].benchmark.get_item(id).to_profile()
         self.core.lib["policy_model"].benchmark.profiles.remove(profile)
 
@@ -1511,6 +1591,33 @@ class DHProfiles(DataHandler):
         if policy:
             logger.debug("Changing refine_rules: item(%s): severity(%s), role(%s), weight(%s)" % (self.core.selected_item, severity, role, weight))
             refine = policy.set_refine_rule(self.core.selected_item, weight, severity, role)
+
+    def __get_current_profile(self):
+        policy = self.core.lib["policy_model"].get_policy_by_id(self.core.selected_profile)
+        if not policy: return None
+        return policy.profile
+
+    def get_titles(self):
+        if not self.check_library(): return None
+        return self.__get_current_profile().title
+    def get_descriptions(self):
+        if not self.check_library(): return None
+        return self.__get_current_profile().description
+    def get_statuses(self):
+        if not self.check_library(): return None
+        return self.__get_current_profile().statuses
+
+    def edit_title(self, operation, obj, lang, text):
+        if not self.check_library(): return None
+        super(DHProfiles, self).edit_title(operation, obj, lang, text, item=self.__get_current_profile())
+
+    def edit_description(self, operation, obj, lang, text):
+        if not self.check_library(): return None
+        super(DHProfiles, self).edit_description(operation, obj, lang, text, item=self.__get_current_profile())
+
+    def edit_status(self, operation, obj, date, status):
+        if not self.check_library(): return None
+        super(DHProfiles, self).edit_status(operation, obj, date, status, item=self.__get_current_profile())
 
 
 class DHScan(DataHandler, EventObject):
@@ -1859,7 +1966,7 @@ class DHEditItems(DataHandler):
         if weight != None and item.weight != weight:
             item.weight = weight
 
-    def item_edit_value(self, operation, value):
+    def item_edit_value(self, operation, value, export_name):
         if not self.check_library(): return None
 
         item = self.core.lib["policy_model"].benchmark.get_item(self.core.selected_item)
@@ -1877,11 +1984,23 @@ class DHEditItems(DataHandler):
             #check not exist create new
             if not check_add:
                 check_add = openscap.xccdf.check_new()
+                check_add.system="http://oval.mitre.org/XMLSchema/oval-definitions-5"
                 item.add_check(check_add)
             check_export = openscap.xccdf.check_export_new()
-            check_export.set_value(value)
+            check_export.value = value
+            check_export.name = export_name
             check_add.add_export(check_export)
 
+        if operation == self.CMD_OPER_EDIT:
+            check_add = None
+            #add to firts check which will found
+            for check in item.checks:
+                for check_export in check.exports:
+                    if check_export.value == value:
+                        check_export.value = value
+                        check_export.name = export_name
+                        return
+                
         elif operation == self.CMD_OPER_DEL:
             logger.error("Delete of value refernces not supported.")
 

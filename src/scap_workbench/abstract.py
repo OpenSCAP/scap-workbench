@@ -721,10 +721,6 @@ class ListEditor(EventObject, Func, Enum_type):
         self.widget         = widget
         self.__treeView     = widget
         self.__model        = model
-        self.__addBtn       = None
-        self.__editBtn      = None
-        self.__delBtn       = None
-        self.__previewBtn   = None
 
         if model: self.__treeView.set_model(model)
 
@@ -805,6 +801,7 @@ class ListEditor(EventObject, Func, Enum_type):
         desc = self.__model.get_value(iter, self.COLUMN_TEXT) or ""
         desc = desc.replace("xhtml:","")
         desc = desc.replace("xmlns:", "")
+        desc = self.data_model.substitute(desc)
         if desc == "": desc = "No description"
         desc = "<body>"+desc+"</body>"
         try:

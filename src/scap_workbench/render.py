@@ -120,6 +120,7 @@ class MenuButtonXCCDF(abstract.MenuButton):
             self.btn_close.set_sensitive(True)
             self.btn_validate.set_sensitive(True)
             self.btn_export.set_sensitive(True)
+            self.__menu_sensitive(True)
 
         label_set_autowrap(self.label_title)
         label_set_autowrap(self.label_description)
@@ -263,6 +264,7 @@ class MenuButtonXCCDF(abstract.MenuButton):
         self.btn_close.set_sensitive(True)
         self.btn_validate.set_sensitive(True)
         self.btn_export.set_sensitive(True)
+        self.__menu_sensitive(True)
         try:
             self.__update()
         except KeyError: pass
@@ -278,6 +280,7 @@ class MenuButtonXCCDF(abstract.MenuButton):
             self.btn_close.set_sensitive(True)
             self.btn_validate.set_sensitive(True)
             self.btn_export.set_sensitive(True)
+            self.__menu_sensitive(True)
 
             try:
                 self.__update()
@@ -301,11 +304,17 @@ class MenuButtonXCCDF(abstract.MenuButton):
         core.selected_lang = model[active][0]
         self.emit("lang_changed")
         return
-        
+ 
+    def __menu_sensitive(self, active):
+        for item in self.core.menu.btnList:
+            if item.id in ["gui:btn:menu:tailoring", "gui:btn:menu:scan", "gui:btn:menu:edit"]:
+                item.set_sensitive(active)
+
     def __cb_close(self, widget):
         self.btn_close.set_sensitive(False)
         self.btn_validate.set_sensitive(False)
         self.btn_export.set_sensitive(False)
+        self.__menu_sensitive(False)
         self.core.destroy()
         self.__clear()
         self.core.notify_destroy("notify:xccdf:validate")
@@ -349,23 +358,18 @@ class MainWindow(abstract.Window, threading.Thread):
         assert self.core != None, "Initialization failed, core is None"
 
         self.window = self.builder.get_object("main:window")
+        self.core.main_window = self.window
         self.main_box = self.builder.get_object("main:box")
 
         # abstract the main menu
         self.menu = abstract.Menu("gui:menu", self.builder.get_object("main:toolbar"), self.core)
-        #self.menu.add_item(abstract.MenuButton("gui:btn:menu:main", self.builder.get_object("main:toolbar:main"), self.core))
+        self.core.menu = self.menu
         self.menu.add_item(MenuButtonXCCDF(self.builder, self.builder.get_object("main:toolbar:main"), self.core))
         self.menu.add_item(abstract.MenuButton("gui:btn:menu:edit", self.builder.get_object("main:toolbar:edit"), self.core))
         self.menu.add_item(abstract.MenuButton("gui:btn:menu:reports", self.builder.get_object("main:toolbar:reports"), self.core))
         self.menu.add_item(tailoring.MenuButtonTailoring(self.builder, self.builder.get_object("main:toolbar:tailoring"), self.core))
         self.menu.add_item(scan.MenuButtonScan(self.builder, self.builder.get_object("main:toolbar:scan"), self.core))
         
-        # subMenu_but_main
-        #submenu = abstract.Menu("gui:menu:main", self.builder.get_object("main:sub:main"), self.core)
-        #submenu.add_item(MenuButtonXCCDF(self.builder, self.builder.get_object("main:sub:main:xccdf"), self.core))
-        #submenu.add_item(MenuButtonOVAL(self.main_box, self.builder.get_object("main:sub:main:oval"), self.core))
-        #self.core.get_item("gui:btn:menu:main").set_menu(submenu)
-
         submenu = abstract.Menu("gui:menu:edit", self.builder.get_object("edit:sub:main"), self.core)
         submenu.add_item(edit.MenuButtonEditXCCDF(self.builder, self.builder.get_object("edit:sub:xccdf"), self.core))
         submenu.add_item(edit.MenuButtonEditProfiles(self.builder, self.builder.get_object("edit:sub:profiles"), self.core))
@@ -374,9 +378,7 @@ class MainWindow(abstract.Window, threading.Thread):
 
         self.core.register("main:button_forward", self.builder.get_object("main:button_forward"))
         self.core.register("main:button_back", self.builder.get_object("main:button_back"))
-        #self.builder.get_object("main:button_back").set_sensitive(False)
 
-        self.core.main_window = self.window
         self.window.show()
         self.builder.get_object("main:toolbar:main").set_active(True)
 

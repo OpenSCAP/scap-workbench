@@ -63,7 +63,6 @@ class ItemList(abstract.List):
         self.add_receiver("edit:dialog_window:add_item", "add", self.__model_changed)
         
         selection.connect("changed", self.__cb_item_changed, self.get_TreeView())
-        self.add_sender(self.id, "item_changed")
 
         self.init_filters(self.filter, self.data_model.model, self.data_model.new_model())
 
@@ -131,8 +130,9 @@ class ItemList(abstract.List):
 
 class ValuesList(abstract.List):
     
-    def __init__(self, widget, core):
+    def __init__(self, widget, core, builder):
         self.core = core
+        self.builder = builder
         self.data_model = commands.DHValues(core)
         abstract.List.__init__(self, "gui:tailoring:values_list", core, widget)
         self.get_TreeView().set_enable_tree_lines(True)
@@ -142,17 +142,14 @@ class ValuesList(abstract.List):
 
         # actions
         self.add_receiver("gui:tailoring:item_list", "update", self.__update)
-        selection.connect("changed", self.__cb_item_changed, self.get_TreeView())
+        self.builder.get_object("tailoring:tw_values:cell_values").connect("edited", self.__edited)
 
     def __update(self):
         self.data_model.fill()
 
-    def __cb_item_changed(self, widget, treeView):
-
-        selection = treeView.get_selection( )
-        if selection != None: 
-            (model, iter) = selection.get_selected( )
-            if iter: self.core.selected_deps = model.get_value(iter, 0)
+    def __edited(self, cell, path, new_text):
+        self.data_model.cellcombo_edited(cell, path, new_text)
+        self.emit("update")
 
 
 class ItemDetails(EventObject):
@@ -166,6 +163,7 @@ class ItemDetails(EventObject):
 
         self.add_receiver("gui:tailoring:item_list", "update", self.__update)
         self.add_receiver("gui:tailoring:item_list", "changed", self.__update)
+        self.add_receiver("gui:tailoring:values_list", "update", self.__update)
         self.draw()
 
     def __update(self):
@@ -199,6 +197,7 @@ class ItemDetails(EventObject):
             for lang in details["descriptions"]:
                 description = details["descriptions"][lang].replace("xhtml:","")
                 break
+        description = self.data_model.substitute(description, with_policy=True)
         if description == "": description = "No description"
         description = "<body>"+description+"</body>"
         try:
@@ -232,7 +231,7 @@ class ItemDetails(EventObject):
         for i, fixtext in enumerate(fixes):
             if text == None: text = ""
             hbox = gtk.HBox()
-            text += "    "+fixtext["text"].replace("xhtml:", "").replace("xmlns:", "")+"<br>"
+            text += "    "+self.data_model.substitute(fixtext["text"]).replace("xhtml:", "").replace("xmlns:", "")+"<br>"
         if text == None: text = "No fixes specified"
         text = "<body>"+text+"</body>"
         try:
@@ -504,7 +503,7 @@ class MenuButtonTailoring(abstract.MenuButton):
         self.progress.hide()
         self.filter = filter.ItemFilter(self.core, self.builder, "tailoring:box_filter", "gui:btn:tailoring:filter")
         self.rules_list = ItemList(self.builder.get_object("tailoring:tw_items"), self.core, self.progress, self.filter)
-        self.values = ValuesList(self.builder.get_object("tailoring:tw_values"), self.core)
+        self.values = ValuesList(self.builder.get_object("tailoring:tw_values"), self.core, self.builder)
         self.filter.expander.cb_changed()
 
         # set signals
