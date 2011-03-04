@@ -106,6 +106,7 @@
             </child>
             <child>
               <object class="GtkToggleToolButton" id="main:toolbar:profiles">
+                <property name="sensitive">False</property>
                 <property name="has_tooltip">True</property>
                 <property name="tooltip_text" translatable="yes">Add, remove and edit profiles in XCCDF document</property>
                 <property name="label" translatable="yes">Profiles</property>
@@ -120,6 +121,7 @@
             <child>
               <object class="GtkToggleToolButton" id="main:toolbar:tailoring">
                 <property name="visible">True</property>
+                <property name="sensitive">False</property>
                 <property name="has_tooltip">True</property>
                 <property name="tooltip_text" translatable="yes">Select and refine groups, rules and variables</property>
                 <property name="label" translatable="yes">_Tailoring</property>
@@ -134,6 +136,7 @@
             <child>
               <object class="GtkToggleToolButton" id="main:toolbar:scan">
                 <property name="visible">True</property>
+                <property name="sensitive">False</property>
                 <property name="has_tooltip">True</property>
                 <property name="tooltip_text" translatable="yes">Scan local computer against rules.</property>
                 <property name="label" translatable="yes">_Scan</property>
@@ -172,6 +175,7 @@
             <child>
               <object class="GtkToggleToolButton" id="main:toolbar:edit">
                 <property name="visible">True</property>
+                <property name="sensitive">False</property>
                 <property name="has_tooltip">True</property>
                 <property name="tooltip_text" translatable="yes">This feature is not available yet.</property>
                 <property name="label" translatable="yes">_Edit</property>
