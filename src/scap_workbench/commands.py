@@ -238,6 +238,13 @@ class DataHandler(object):
             rule = item.to_rule()
             if len(rule.checks) > 1:
                 return (False, "Can't set the content: More then one check is present")
+            elif len(rule.checks) == 0:
+                if (not name or name == "") and (not href == "" or href == ""): return
+                check = openscap.xccdf.check()
+                check.system="http://oval.mitre.org/XMLSchema/oval-definitions-5"
+                check.add_content_ref(openscap.xccdf.check_content_ref())
+                rule.add_check(check)
+
             if rule.checks[0].complex:
                 return (False, "Can't set up the content ref when complex check present")
             if len(rule.checks[0].content_refs) > 1:
@@ -607,11 +614,13 @@ class DataHandler(object):
             item = self.core.lib["policy_model"].benchmark.get_item(self.core.selected_item)
 
         if operation == self.CMD_OPER_ADD:
-            t = datetime.strptime(date, "%Y-%m-%d")
-            the_date = time.mktime(t.timetuple())
+            if date != None: 
+                t = datetime.strptime(date, "%Y-%m-%d")
+                the_date = time.mktime(t.timetuple())
+            else: the_date = time.time()
             new_status = openscap.xccdf.status_new()
             new_status.date = the_date
-            new_status.status = status
+            new_status.status = status or openscap.OSCAP.XCCDF_STATUS_INCOMPLETE
 
             return item.add_status(new_status)
 
@@ -792,7 +801,9 @@ class DHXccdf(DataHandler):
     def validate(self):
         if not self.check_library(): return 2
 
-        retval = openscap.common.validate_document(self.core.xccdf_file, openscap.OSCAP.OSCAP_DOCUMENT_XCCDF, None, self.__cb_report, None)
+        if os.access(self.core.xccdf_file, os.R_OK):
+            retval = openscap.common.validate_document(self.core.xccdf_file, openscap.OSCAP.OSCAP_DOCUMENT_XCCDF, None, self.__cb_report, None)
+        else: return 3
         return retval
 
     def get_titles(self):
@@ -823,7 +834,7 @@ class DHXccdf(DataHandler):
         if not self.check_library(): return None
         super(DHXccdf, self).edit_warning(operation, obj, category, lang, text, item=self.core.lib["policy_model"].benchmark.to_item())
 
-    def edit_status(self, operation, obj, date, status):
+    def edit_status(self, operation, obj=None, date=None, status=None):
         if not self.check_library(): return None
         super(DHXccdf, self).edit_status(operation, obj, date, status, item=self.core.lib["policy_model"].benchmark.to_item())
 
@@ -853,6 +864,8 @@ class DHXccdf(DataHandler):
         else: raise AttributeError("Edit notice: Unknown operation %s" % (operation,))
 
     def __cb_report(self, msg, plugin):
+        #print msg.user1str
+        logger.warning("Validation: %s", msg.string)
         return True
 
 class DHValues(DataHandler):
@@ -1448,6 +1461,7 @@ class DHItemsTree(DataHandler, EventObject):
             ["emblem-documents", "document-new", "emblem-downloads"][itype], ""+item_dict["title"], None, True, parent.selected])
         self.treeView.expand_to_path(model.get_path(item_it))
         selection.select_iter(item_it)
+        return True
 
 
 class DHProfiles(DataHandler):
@@ -1858,12 +1872,10 @@ class DHScan(DataHandler, EventObject):
         self.model.clear()
 
         if self.core.selected_profile == None:
-            self.policy = self.core.lib["policy_model"].policies[0]
+            self.policy = openscap.xccdf.policy_new(self.core.lib["policy_model"], None)
         else: self.policy = self.core.lib["policy_model"].get_policy_by_id(self.core.selected_profile)
 
         #self.__rules_count = 0
-        #for item in self.policy.selected_rules:
-            #self.__rules_count += 1
         self.__rules_count = len(self.policy.selected_rules)
         self.core.registered_callbacks = True
         self.step = (100.0/(self.__rules_count or 1.0))/100.0
@@ -1910,7 +1922,8 @@ class DHScan(DataHandler, EventObject):
     def scan(self):
         if self.__lock: 
             logger.error("Scan already running")
-        elif self.core.selected_profile: 
+        #elif self.core.selected_profile:  TODO: Why ?
+        else:
             self.__prepaire()
             self.__lock = True
             self.th_scan()
@@ -2004,6 +2017,27 @@ class DHEditItems(DataHandler):
         elif operation == self.CMD_OPER_DEL:
             logger.error("Delete of value refernces not supported.")
 
+    def add_oval_reference(self, f_OVAL):
+        if not self.check_library(): return False
+
+        if os.path.exists(f_OVAL): 
+            def_model = openscap.oval.definition_model_import(f_OVAL)
+            if def_model.instance == None:
+                if openscap.OSCAP.oscap_err(): desc = openscap.OSCAP.oscap_err_desc()
+                else: desc = "Unknown error, please report this bug (http://bugzilla.redhat.com/)"
+                raise ImportError("Cannot import definition model for \"%s\": %s" % (f_OVAL, desc))
+            self.core.lib["def_models"].append(def_model)
+            sess = openscap.oval.agent_new_session(def_model, os.path.basename(f_OVAL))
+            if sess == None or sess.instance == None:
+                if openscap.OSCAP.oscap_err(): desc = openscap.OSCAP.oscap_err_desc()
+                else: desc = "Unknown error, please report this bug (http://bugzilla.redhat.com/)"
+                raise ImportError("Cannot create agent session for \"%s\": %s" % (f_OVAL, desc))
+            self.core.lib["sessions"].append(sess)
+            self.core.lib["names"][os.path.basename(f_OVAL)] = [sess, def_model]
+            self.core.lib["policy_model"].register_engine_oval(sess)
+        else: print "WARNING: Skipping %s file which is referenced from XCCDF content" % (f_OVAL,)
+
+        return True
 
     def DHEditIdent(self, item, model, iter, column, value, delete=False):
 

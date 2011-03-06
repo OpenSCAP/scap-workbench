@@ -115,13 +115,6 @@ class MenuButtonXCCDF(abstract.MenuButton):
         self.add_receiver("gui:edit:xccdf:notice", "update", self.__update)
         self.add_receiver("gui:edit:xccdf:status", "update", self.__update)
 
-        self.__update()
-        if self.core.xccdf_file != None: 
-            self.btn_close.set_sensitive(True)
-            self.btn_validate.set_sensitive(True)
-            self.btn_export.set_sensitive(True)
-            self.__menu_sensitive(True)
-
         label_set_autowrap(self.label_title)
         label_set_autowrap(self.label_description)
         label_set_autowrap(self.label_warnings)
@@ -201,7 +194,9 @@ class MenuButtonXCCDF(abstract.MenuButton):
         self.label_language.set_text("")
         for child in self.files_box.get_children(): child.destroy()
 
-    # set functions
+    def update(self):
+        self.__update()
+
     def __update(self):
         """
         Set information about file.
@@ -225,6 +220,11 @@ class MenuButtonXCCDF(abstract.MenuButton):
         self.label_notices.set_text("\n".join(["%s: %s" % (notice[0], notice[1].text) for notice in details["notices"]]) or "None")
         self.label_language.set_text(lang or "")
         
+        self.btn_close.set_sensitive(True)
+        self.btn_validate.set_sensitive(True)
+        self.btn_export.set_sensitive(True)
+        self.__menu_sensitive(True)
+
         # References
         for child in self.box_references.get_children():
             child.destroy()
@@ -261,10 +261,8 @@ class MenuButtonXCCDF(abstract.MenuButton):
     # callBack functions
     def __cb_new(self, widget):
         self.core.init(None)
-        self.btn_close.set_sensitive(True)
-        self.btn_validate.set_sensitive(True)
-        self.btn_export.set_sensitive(True)
-        self.__menu_sensitive(True)
+        self.data_model.update(id="New_SCAP_Bnechmark", version="0", lang="en")
+        self.data_model.edit_status(self.data_model.CMD_OPER_ADD)
         try:
             self.__update()
         except KeyError: pass
@@ -277,10 +275,6 @@ class MenuButtonXCCDF(abstract.MenuButton):
             logger.debug("Loading XCCDF file %s", file)
             self.core.init(file)
             self.emit("load")
-            self.btn_close.set_sensitive(True)
-            self.btn_validate.set_sensitive(True)
-            self.btn_export.set_sensitive(True)
-            self.__menu_sensitive(True)
 
             try:
                 self.__update()
@@ -289,26 +283,19 @@ class MenuButtonXCCDF(abstract.MenuButton):
     def __cb_validate(self, widget):
         validate = self.data_model.validate()
         self.notifications.append(self.core.notify(["Document is not valid !", "Document is valid.", 
-            "Validation process failed, check for error in log file."][validate], [1, 0, 2][validate], msg_id="notify:xccdf:validate"))
+            "Validation process failed, check for error in log file.", "File not saved, use export first."][validate], [1, 0, 2, 1][validate], msg_id="notify:xccdf:validate"))
 
     def __cb_export(self, widget):
         file_name = self.data_model.export()
-        if file_name: self.notifications.append(self.core.notify("Benchmark has been exported to \"%s\"" % (file_name,), 0, msg_id="notify:xccdf:export"))
+        if file_name:
+            self.core.notify_destroy("notify:xccdf:validate")
+            self.notifications.append(self.core.notify("Benchmark has been exported to \"%s\"" % (file_name,), 0, msg_id="notify:xccdf:export"))
+            self.core.xccdf_file = file_name
 
-    def cb_changed(self, combobox, core):
-        
-        model = combobox.get_model()
-        active = combobox.get_active()
-        if active < 0:
-            return
-        core.selected_lang = model[active][0]
-        self.emit("lang_changed")
-        return
- 
     def __menu_sensitive(self, active):
-        for item in self.core.menu.btnList:
-            if item.id in ["gui:btn:menu:tailoring", "gui:btn:menu:scan", "gui:btn:menu:edit"]:
-                item.set_sensitive(active)
+        self.core.get_item("gui:btn:menu:tailoring").set_sensitive(active)
+        self.core.get_item("gui:btn:menu:scan").set_sensitive(active)
+        self.core.get_item("gui:btn:menu:edit").set_sensitive(active)
 
     def __cb_close(self, widget):
         self.btn_close.set_sensitive(False)
@@ -363,7 +350,6 @@ class MainWindow(abstract.Window, threading.Thread):
 
         # abstract the main menu
         self.menu = abstract.Menu("gui:menu", self.builder.get_object("main:toolbar"), self.core)
-        self.core.menu = self.menu
         self.menu.add_item(MenuButtonXCCDF(self.builder, self.builder.get_object("main:toolbar:main"), self.core))
         self.menu.add_item(abstract.MenuButton("gui:btn:menu:edit", self.builder.get_object("main:toolbar:edit"), self.core))
         self.menu.add_item(abstract.MenuButton("gui:btn:menu:reports", self.builder.get_object("main:toolbar:reports"), self.core))
@@ -381,6 +367,8 @@ class MainWindow(abstract.Window, threading.Thread):
 
         self.window.show()
         self.builder.get_object("main:toolbar:main").set_active(True)
+
+        self.core.get_item("gui:btn:main:xccdf").update()
 
     def __cb_info_close(self, widget):
         self.core.info_box.hide()

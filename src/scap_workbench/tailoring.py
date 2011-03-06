@@ -49,7 +49,7 @@ class ItemList(abstract.List):
         self.data_model = commands.DHItemsTree("gui:tailoring:DHItemsTree", core, progress)
         abstract.List.__init__(self, "gui:tailoring:item_list", core, widget)
         self.get_TreeView().set_enable_tree_lines(True)
-        self.model_changed = False
+        self.__has_model_changed = False
         
         selection = self.get_TreeView().get_selection()
         selection.set_mode(gtk.SELECTION_SINGLE)
@@ -61,6 +61,7 @@ class ItemList(abstract.List):
         self.add_receiver("gui:btn:tailoring:filter", "filter_del", self.__filter_del)
         self.add_receiver("gui:tailoring:DHItemsTree", "filled", self.__filter_refresh)
         self.add_receiver("edit:dialog_window:add_item", "add", self.__model_changed)
+        self.add_receiver("gui:edit:item_list", "update", self.__model_changed)
         
         selection.connect("changed", self.__cb_item_changed, self.get_TreeView())
 
@@ -69,18 +70,8 @@ class ItemList(abstract.List):
     def __update(self):
 
         if self.core.xccdf_file == None: self.data_model.model.clear()
-        if "profile" not in self.__dict__ or self.profile != self.core.selected_profile or self.core.force_reload_items:
-            if self.model_changed == True:
-                md = gtk.MessageDialog(self.window, 
-                        gtk.DIALOG_MODAL, gtk.MESSAGE_QUESTION,
-                        gtk.BUTTONS_YES_NO, "Some items were added or deleted. \n Do you want update profile? ")
-                md.set_title("Data changed")
-                result = md.run()
-                md.destroy()
-                if result == gtk.RESPONSE_NO:
-                    return
-                
-            self.model_changed == False
+        if "profile" not in self.__dict__ or self.profile != self.core.selected_profile or self.core.force_reload_items or self.__has_model_changed:
+            self.__has_model_changed == False
             self.profile = self.core.selected_profile
             self.get_TreeView().set_model(self.data_model.model)
             self.data_model.fill()
@@ -107,7 +98,7 @@ class ItemList(abstract.List):
         self.get_TreeView().get_model().foreach(self.set_selected, (self.core.selected_item, self.get_TreeView()))
 
     def __model_changed(self):
-        self.model_changed = True
+        self.__has_model_changed = True
 
         
     @threadSave

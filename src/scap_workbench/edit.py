@@ -129,6 +129,7 @@ class ItemList(abstract.List):
         self.itemsList = self.builder.get_object("edit:tw_items:sw")
         selection = self.get_TreeView().get_selection()
         selection.set_mode(gtk.SELECTION_SINGLE)
+        self.add_dialog = AddItem(self.core, self.data_model, self)
 
         # actions
         self.add_receiver("gui:btn:menu:edit:items", "update", self.__update)
@@ -139,7 +140,7 @@ class ItemList(abstract.List):
         self.add_receiver("gui:btn:main:xccdf", "load", self.__loaded_new_xccdf)
 
         selection.connect("changed", self.__cb_item_changed, self.get_TreeView())
-        self.add_sender(self.id, "item_changed")
+        self.add_sender(self.id, "update")
 
         self.init_filters(self.filter, self.data_model.model, self.data_model.new_model())
 
@@ -188,7 +189,7 @@ class ItemList(abstract.List):
         else: raise AttributeError, "Removing non-selected item or nothing selected."
 
     def __cb_item_add(self, widget):
-        AddItem(self.core, self.data_model, self, self.ref_model)
+        self.add_dialog.dialog()
 
     @threadSave
     def __cb_item_changed(self, widget, treeView):
@@ -435,7 +436,6 @@ class MenuButtonEditProfiles(abstract.MenuButton, abstract.ControlEditWindow):
         self.__clear()
         details = self.data_model.get_profile_details(self.core.selected_profile)
         if not details:
-            print "asdasd"
             return
         self.builder.get_object("edit:xccdf:profiles:details").set_sensitive(details != None and details["id"] != None)
 
@@ -604,7 +604,6 @@ class MenuButtonEditItems(abstract.MenuButton, abstract.ControlEditWindow):
         #self.role.connect( "changed", self.data_model.cb_cBox_role)
 
         self.add_receiver("gui:edit:item_list", "update", self.__update)
-        self.add_receiver("gui:edit:item_list", "changed", self.__update)
         self.add_receiver("gui:edit:xccdf:values", "update", self.__update_item)
         self.add_receiver("gui:edit:xccdf:values:titles", "update", self.__update_item)
 
@@ -647,9 +646,10 @@ class MenuButtonEditItems(abstract.MenuButton, abstract.ControlEditWindow):
         path = widget.get_filename()
         file = os.path.basename(widget.get_filename())
 
-        self.href.get_model().append([path, file])
-        self.href.set_active(len(self.href.get_model())-1)
-        self.core.lib["names"][file] = []
+        iter = self.href.get_model().append([path, file])
+        self.href.set_active_iter(iter)
+        self.data_model.add_oval_reference(path)
+        self.__change(widget=self.href)
         self.__update()
 
     def __cb_value_clicked(self, widget, event):
@@ -1433,7 +1433,7 @@ class EditStatus(abstract.ListEditor):
         """
         self.core.notify_destroy("notify:dialog_notify")
         # Check input data
-        if self.status.get_active() == -1:
+        if self.operation != self.data_model.CMD_OPER_DEL and self.status.get_active() == -1:
             self.core.notify("Status has to be choosen.", 2, info_box=self.info_box, msg_id="notify:dialog_notify")
             self.status.grab_focus()
             return
@@ -2492,39 +2492,43 @@ class AddItem(EventObject, abstract.ControlEditWindow):
     COMBO_COLUMN_VIEW = 1
     COMBO_COLUMN_INFO = 2
     
-    def __init__(self, core, data_model, list_item, ref_model):
+    def __init__(self, core, data_model, list_item):
         
         self.core = core
         self.data_model = data_model
+        self.list_item = list_item
         self.view = list_item.get_TreeView()
-        self.ref_model = ref_model#list_item.get_TreeView().get_model()
         self.map_filterInfo = list_item.map_filter
         
-        self.builder = gtk.Builder()
-        self.builder.add_from_file("/usr/share/scap-workbench/edit_item.glade")
-        self.window = self.builder.get_object("dialog:add_item")
+    def dialog(self):
+
+        builder = gtk.Builder()
+        builder.add_from_file("/usr/share/scap-workbench/edit_item.glade")
+        self.window = builder.get_object("dialog:add_item")
         self.window.connect("delete-event", self.__delete_event)
         
-        btn_ok = self.builder.get_object("dialog:add_item:btn_ok")
+        btn_ok = builder.get_object("dialog:add_item:btn_ok")
         btn_ok.connect("clicked", self.__cb_do)
-        btn_cancel = self.builder.get_object("dialog:add_item:btn_cancel")
+        btn_cancel = builder.get_object("dialog:add_item:btn_cancel")
         btn_cancel.connect("clicked", self.__delete_event)
 
-        self.itype = self.builder.get_object("dialog:add_item:type")
+        self.itype = builder.get_object("dialog:add_item:type")
         self.itype.connect("changed", self.__cb_changed_type)
-        self.vtype = self.builder.get_object("dialog:add_item:value_type")
-        self.iid = self.builder.get_object("dialog:add_item:id")
-        self.lang = self.builder.get_object("dialog:add_item:lang")
+        self.vtype_lbl = builder.get_object("dialog:add_item:value_type:lbl")
+        self.vtype = builder.get_object("dialog:add_item:value_type")
+        self.iid = builder.get_object("dialog:add_item:id")
+        self.lang = builder.get_object("dialog:add_item:lang")
         self.lang.set_text(self.core.selected_lang)
         self.lang.set_sensitive(False)
-        self.title = self.builder.get_object("dialog:add_item:title")
-        self.relation = self.builder.get_object("dialog:add_item:relation")
+        self.title = builder.get_object("dialog:add_item:title")
+        self.relation = builder.get_object("dialog:add_item:relation")
         self.relation.connect("changed", self.__cb_changed_relation)
-        self.info_box = self.builder.get_object("dialog:add_item:info_box")
+        self.info_box = builder.get_object("dialog:add_item:info_box")
 
         self.__entry_style = self.iid.get_style().base[gtk.STATE_NORMAL]
 
-        self.show()
+        self.window.set_transient_for(self.core.main_window)
+        self.window.show()
 
     def __cb_changed_relation(self, widget):
 
@@ -2547,12 +2551,8 @@ class AddItem(EventObject, abstract.ControlEditWindow):
     def __cb_changed_type(self, widget):
 
         self.core.notify_destroy("dialog:add_item")
-        if widget.get_active() == self.data_model.TYPE_VALUE:
-            self.builder.get_object("dialog:add_item:value_type:lbl").set_property("visible", True)
-            self.vtype.set_visible(True)
-        else: 
-            self.builder.get_object("dialog:add_item:value_type:lbl").set_property("visible", False)
-            self.vtype.set_visible(False)
+        self.vtype_lbl.set_property("visible", widget.get_active() == self.data_model.TYPE_VALUE)
+        self.vtype.set_visible(widget.get_active() == self.data_model.TYPE_VALUE)
 
     def __cb_do(self, widget):
 
@@ -2605,11 +2605,8 @@ class AddItem(EventObject, abstract.ControlEditWindow):
                 "lang": self.lang.get_text(),
                 "title": self.title.get_text()}
         retval = self.data_model.add_item(item, itype, relation, vtype)
+        if retval: self.list_item.emit("update") # TODO: HACK
         self.window.destroy()
-            
-    def show(self):
-        self.window.set_transient_for(self.core.main_window)
-        self.window.show()
 
     def __delete_event(self, widget, event=None):
         self.core.notify_destroy("dialog:add_item")

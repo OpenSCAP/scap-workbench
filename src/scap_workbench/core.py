@@ -168,7 +168,6 @@ class SWBCore:
             benchmark = openscap.xccdf.benchmark()
             self.lib = {"def_models":[], "sessions":[], "policy_model":openscap.xccdf.policy_model(benchmark), "xccdf_path":None, "names":{}}
             self.xccdf_file = ""
-            benchmark.lang = "en"
         else:
             self.xccdf_file = XCCDF
             self.lib = openscap.xccdf.init(XCCDF)
@@ -180,16 +179,16 @@ class SWBCore:
                     raise Error, "XCCDF benchmark does not exists. Can't fill data"
             else: logger.error("Initialization failed.")
 
-        # Language of benchmark should be in languages
-        benchmark = self.lib["policy_model"].benchmark
-        if benchmark == None:
-            logger.error("FATAL: Benchmark does not exist")
-            raise Exception("Can't initialize openscap library")
-        if not benchmark.lang in self.langs: 
-            self.langs.append(benchmark.lang)
-        self.selected_lang = benchmark.lang
-        if benchmark.lang == None:
-            self.notify("XCCDF Benchmark: No language specified.", 2)
+            # Language of benchmark should be in languages
+            benchmark = self.lib["policy_model"].benchmark
+            if benchmark == None:
+                logger.error("FATAL: Benchmark does not exist")
+                raise Exception("Can't initialize openscap library")
+            if not benchmark.lang in self.langs: 
+                self.langs.append(benchmark.lang)
+            self.selected_lang = benchmark.lang
+            if benchmark.lang == None:
+                self.notify("XCCDF Benchmark: No language specified.", 2)
 
     def notify(self, text, lvl=0, info_box=None, msg_id=None):
 
