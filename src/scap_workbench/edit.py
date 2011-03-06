@@ -635,8 +635,12 @@ class MenuButtonEditItems(abstract.MenuButton, abstract.ControlEditWindow):
         elif widget == self.content_ref:
             self.data_model.set_item_content(name=widget.get_text())
         elif widget == self.href:
-            href = self.href.get_model()[self.href.get_active()][1]
-            self.data_model.set_item_content(href=href)
+            if self.href.get_active() == -1 or len(self.href.get_model()) == 0:
+                return
+            iter = self.href.get_model()[self.href.get_active()]
+            if iter:
+                href = iter[1]
+                self.data_model.set_item_content(href=href)
         else: 
             logger.error("Change \"%s\" not supported object in \"%s\"" % (object, widget))
             return
@@ -646,10 +650,8 @@ class MenuButtonEditItems(abstract.MenuButton, abstract.ControlEditWindow):
         path = widget.get_filename()
         file = os.path.basename(widget.get_filename())
 
-        iter = self.href.get_model().append([path, file])
-        self.href.set_active_iter(iter)
         self.data_model.add_oval_reference(path)
-        self.__change(widget=self.href)
+        self.data_model.set_item_content(href=file)
         self.__update()
 
     def __cb_value_clicked(self, widget, event):
@@ -836,12 +838,13 @@ class MenuButtonEditItems(abstract.MenuButton, abstract.ControlEditWindow):
             self.fix.fill(details["item"])
             self.ident.fill(details["item"])
             content = self.data_model.get_item_content()
-            
+ 
             if len(self.core.lib["names"]) > 0:
+                self.href.get_model().clear()
                 for name in self.core.lib["names"].keys():
                     self.href.get_model().append([name, name])
             if content != None and len(content) > 0:
-                self.content_ref.set_text(content[0][0])
+                self.content_ref.set_text(content[0][0] or "")
                 for i, item in enumerate(self.href.get_model()):
                     if item[0] == content[0][1]: self.href.set_active(i)
             self.item_values.fill()

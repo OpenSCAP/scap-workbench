@@ -239,7 +239,7 @@ class DataHandler(object):
             if len(rule.checks) > 1:
                 return (False, "Can't set the content: More then one check is present")
             elif len(rule.checks) == 0:
-                if (not name or name == "") and (not href == "" or href == ""): return
+                if (not name or name == "") and (not href or href == ""): return
                 check = openscap.xccdf.check()
                 check.system="http://oval.mitre.org/XMLSchema/oval-definitions-5"
                 check.add_content_ref(openscap.xccdf.check_content_ref())
