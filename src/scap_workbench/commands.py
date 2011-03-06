@@ -1210,6 +1210,9 @@ class DHItemsTree(DataHandler, EventObject):
         return otherwise"""
         if not self.check_library(): return None
 
+        """You can't select items when in no profile policy"""
+        if self.core.selected_profile == None: return
+
         """model is alternative attribute for previous
         model if filters were applied"""
         if not model: 
@@ -1442,6 +1445,11 @@ class DHItemsTree(DataHandler, EventObject):
         title.text = item_dict["title"]
         if itype == self.TYPE_RULE:
             item = openscap.xccdf.rule()
+            select = openscap.xccdf.select()
+            select.selected = True
+            select.item = item_dict["id"]
+            for policy in self.core.lib["policy_model"].policies:
+                policy.add_select(select)
             op = parent.add_rule
         elif itype == self.TYPE_GROUP:
             item = openscap.xccdf.group()
@@ -1872,7 +1880,7 @@ class DHScan(DataHandler, EventObject):
         self.model.clear()
 
         if self.core.selected_profile == None:
-            self.policy = openscap.xccdf.policy_new(self.core.lib["policy_model"], None)
+            self.policy = self.core.lib["policy_model"].policies[0]
         else: self.policy = self.core.lib["policy_model"].get_policy_by_id(self.core.selected_profile)
 
         #self.__rules_count = 0
@@ -1968,6 +1976,8 @@ class DHEditItems(DataHandler):
             item.version_time = version_time
         if selected != None:
             item.selected = selected
+            for sel in self.core.lib["policy_model"].policies[0].selects:
+                if sel.item == item.id: sel.selected = selected
         if hidden != None:
             item.hidden = hidden
         if prohibit != None:

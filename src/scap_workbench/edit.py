@@ -1299,7 +1299,6 @@ class EditWarning(abstract.ListEditor):
                 self.notifications.append(self.core.notify("Please select at least one item to edit", 2, msg_id="notify:not_selected"))
                 return
             else:
-                print model[self.iter][self.COLUMN_CATEGORY]
                 self.category.set_active(abstract.ENUM_WARNING.pos(model[self.iter][self.COLUMN_OBJ].category) or -1)
                 self.lang.set_text(model[self.iter][self.COLUMN_LANG] or "")
                 self.warning.get_buffer().set_text(model[self.iter][self.COLUMN_TEXT] or "")
@@ -2544,8 +2543,8 @@ class AddItem(EventObject, abstract.ControlEditWindow):
                 return False
         else:
             self.core.notify_destroy("dialog:add_item")
-            if model[iter][self.data_model.COLUMN_TYPE] == "value" and widget.get_active() == self.data_model.RELATION_CHILD:
-                self.core.notify("Item type VALUE can't be a parent !", 2, self.info_box, msg_id="notify:relation")
+            if model[iter][self.data_model.COLUMN_TYPE] in ["value", "rule"] and widget.get_active() == self.data_model.RELATION_CHILD:
+                self.core.notify("Item types VALUE and RULE can't be a parent !", 2, self.info_box, msg_id="notify:relation")
                 self.itype.grab_focus()
                 return False
 
@@ -2585,6 +2584,11 @@ class AddItem(EventObject, abstract.ControlEditWindow):
 
         if self.iid.get_text() == "":
             self.core.notify("The ID of item is mandatory !", 2, self.info_box, msg_id="dialog:add_item")
+            self.iid.grab_focus()
+            self.iid.modify_base(gtk.STATE_NORMAL, gtk.gdk.Color("#FFC1C2"))
+            return
+        elif self.data_model.get_item_details(self.iid.get_text()):
+            self.core.notify("ID already exists", 2, self.info_box, msg_id="dialog:add_item")
             self.iid.grab_focus()
             self.iid.modify_base(gtk.STATE_NORMAL, gtk.gdk.Color("#FFC1C2"))
             return

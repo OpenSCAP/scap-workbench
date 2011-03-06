@@ -261,7 +261,7 @@ class MenuButtonXCCDF(abstract.MenuButton):
     # callBack functions
     def __cb_new(self, widget):
         self.core.init(None)
-        self.data_model.update(id="New_SCAP_Bnechmark", version="0", lang="en")
+        self.data_model.update(id="New_SCAP_Benchmark", version="0", lang="en")
         self.core.selected_lang = "en"
         self.data_model.edit_status(self.data_model.CMD_OPER_ADD)
         try:
