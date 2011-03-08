@@ -8,3 +8,5 @@ Exec=scap-workbench
 Icon=scap-workbench
 Categories=System;
 X-Desktop-File-Install-Version=0.2
+Encoding=UTF-8
+

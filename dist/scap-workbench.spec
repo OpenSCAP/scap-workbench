@@ -30,9 +30,7 @@ is based on OpenSCAP library.
 %install
 rm -rf $RPM_BUILD_ROOT
 make install DESTDIR=$RPM_BUILD_ROOT
-desktop-file-install					\
-	--dir $RPM_BUILD_ROOT%{_datadir}/applications	\
-	$RPM_BUILD_ROOT%{_datadir}/applications/scap-workbench.desktop
+desktop-file-validate $RPM_BUILD_ROOT%{_datadir}/applications/scap-workbench.desktop
 
 %clean
 rm -rf $RPM_BUILD_ROOT
