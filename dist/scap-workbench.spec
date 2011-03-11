@@ -15,7 +15,7 @@ Source0: https://fedorahosted.org/released/scap-workbench/%{name}-%{version}.tar
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}
 BuildArch: noarch
 BuildRequires: python2-devel desktop-file-utils
-Requires: openscap-python >= 0.7.0
+Requires: openscap-python >= 0.7.1
 
 %description
 scap-workbench is GUI tool that provides scanning, tailoring, 
