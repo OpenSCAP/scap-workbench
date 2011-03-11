@@ -874,7 +874,6 @@ class DHXccdf(DataHandler):
         else: raise AttributeError("Edit notice: Unknown operation %s" % (operation,))
 
     def __cb_report(self, msg, plugin):
-        #print msg.user1str
         logger.warning("Validation: %s", msg.string)
         return True
 
@@ -1161,7 +1160,7 @@ class DHItemsTree(DataHandler, EventObject):
                 break
 
 
-    def __cb_toggled(self, cell, path, model=None):
+    def cb_toggled(self, cell, path, model=None):
         """Function is called from GTK when checkbox of treeView item is toggled. 
         Function will alter present and previous models (if filters are applied) and
         change the selection of rule/group in policy. At the end is called __set_sensitive
@@ -2005,7 +2004,7 @@ class DHEditItems(DataHandler):
             self.core.lib["sessions"].append(sess)
             self.core.lib["names"][os.path.basename(f_OVAL)] = [sess, def_model]
             self.core.lib["policy_model"].register_engine_oval(sess)
-        else: print "WARNING: Skipping %s file which is referenced from XCCDF content" % (f_OVAL,)
+        else: logger.warning("Skipping %s file which is referenced from XCCDF content" % (f_OVAL,))
 
         return True
 

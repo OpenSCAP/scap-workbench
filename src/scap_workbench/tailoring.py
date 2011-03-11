@@ -61,7 +61,9 @@ class ItemList(abstract.List):
         self.add_receiver("gui:btn:tailoring:filter", "filter_del", self.__filter_del)
         self.add_receiver("gui:tailoring:DHItemsTree", "filled", self.__filter_refresh)
         self.add_receiver("edit:dialog_window:add_item", "add", self.__model_changed)
+        self.add_receiver("gui:edit:item_list", "update", self.__model_changed)
         
+        builder.get_object("tailoring:items:toggled:cellrenderer").connect("toggled", self.data_model.cb_toggled)
         selection.connect("changed", self.__cb_item_changed, self.get_TreeView())
 
         self.init_filters(self.filter, self.data_model.model, self.data_model.new_model())
