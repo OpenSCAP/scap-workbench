@@ -242,13 +242,14 @@ class DataHandler(object):
                 if (not name or name == "") and (not href or href == ""): return
                 check = openscap.xccdf.check()
                 check.system="http://oval.mitre.org/XMLSchema/oval-definitions-5"
-                check.add_content_ref(openscap.xccdf.check_content_ref())
                 rule.add_check(check)
 
             if rule.checks[0].complex:
                 return (False, "Can't set up the content ref when complex check present")
             if len(rule.checks[0].content_refs) > 1:
                 return (False, "Can't set up the content: More content refs present")
+            elif len(rule.checks[0].content_refs) == 0:
+                rule.checks[0].add_content_ref(openscap.xccdf.check_content_ref())
             else: 
                 if name != None and rule.checks[0].content_refs[0].name != name:
                     rule.checks[0].content_refs[0].name = name
@@ -350,6 +351,15 @@ class DataHandler(object):
 
         return values
  
+    def set_selected(self, model, path, iter, usr):
+
+        id, view, col = usr
+        selection = view.get_selection()
+        
+        if model.get_value(iter, col) == id:
+            view.expand_to_path(path)
+            selection.select_path(path)
+
     def get_item(self, id, items_model=False):
         """Get the item from benchmark
         """
@@ -1002,7 +1012,8 @@ class DHValues(DataHandler):
             if match: new_instance.match = match
             if upper_bound != None: new_instance.upper_bound = upper_bound
             if lower_bound != None: new_instance.lower_bound = lower_bound
-            new_instance.must_match  = must_match
+            new_instance.must_match = must_match
+            new_instance.must_match_given = True
             new_instance.selector = selector
 
             return item.add_instance(new_instance)
@@ -1012,19 +1023,20 @@ class DHValues(DataHandler):
                 logger.error("Can't edit None object")
                 return False
             if item.type == openscap.OSCAP.XCCDF_TYPE_NUMBER:
-                obj.defval_number = default
-                obj.value_number = value
+                if default: obj.defval_number = default
+                if value: obj.value_number = value
             elif item.type == openscap.OSCAP.XCCDF_TYPE_STRING:
-                obj.defval_string = default
-                obj.value_string = value
+                if default: obj.defval_string = default
+                if value: obj.value_string = value
             elif item.type == openscap.OSCAP.XCCDF_TYPE_BOOLEAN:
-                obj.defval_string = default
-                obj.value_string = value
+                if default != -1: obj.defval_string = default
+                if value != -1: obj.value_string = value
             else: raise Exception("Get value instances: Typ of instance not supported: \"%s\"" % (instance.type,))
             obj.match = match
             if upper_bound != None: obj.upper_bound = upper_bound
             if lower_bound != None: obj.lower_bound = lower_bound
-            obj.must_match  = must_match
+            obj.must_match = must_match
+            obj.must_match_given = True
             obj.selector = selector
             
             return True
@@ -1082,10 +1094,11 @@ class DHItemsTree(DataHandler, EventObject):
     COLUMN_SELECTED = 6
     COLUMN_PARENT   = 7
 
-    def __init__(self, id, core, progress=None, items_model=False, no_checks=False):
+    def __init__(self, id, core, progress=None, combo_box=None, items_model=False, no_checks=False):
         """
         param items_model if False use selected profile is selected. If true use base model.
         """
+        self.combo_box = combo_box
         self.items_model = items_model
         self.id = id
         EventObject.__init__(self)
@@ -1102,68 +1115,16 @@ class DHItemsTree(DataHandler, EventObject):
     def new_model(self):
         # Type, ID, Name, Picture, Text, Font color, selected, parent-selected
         return gtk.TreeStore(str, str, str, str, str, str, bool, bool)
-        
+
     def render(self, treeView):
         """Make a model ListStore of Dependencies object"""
 
         self.treeView = treeView
         
         # priperin model for view and filtering
-        self.model = self.new_model()
+        self.model = self.treeView.get_model()
         self.ref_model = self.model
-        treeView.set_model(self.model)
-
-        """This Cell is used to be first hidden column of tree view
-        to identify the type of item"""
-        txtcell = gtk.CellRendererText()
-        column = gtk.TreeViewColumn("Type", txtcell, text=DHItemsTree.COLUMN_TYPE)
-        column.set_visible(False)
-        treeView.append_column(column)
-
-        if not self.no_checks:
-            render = gtk.CellRendererToggle()
-            column = gtk.TreeViewColumn("", render, active=DHItemsTree.COLUMN_SELECTED,
-                                                            sensitive=DHItemsTree.COLUMN_PARENT,
-                                                            activatable=DHItemsTree.COLUMN_PARENT)
-            #cb call for filter_model and ref_model
-            render.connect('toggled', self.__cb_toggled)
-            column.set_resizable(True)
-            treeView.append_column(column)
-
-        """This Cell is used to be first second column of tree view
-        to identify the item in list"""
-        txtcell = gtk.CellRendererText()
-        column = gtk.TreeViewColumn("Unique ID", txtcell, text=DHItemsTree.COLUMN_ID)
-        column.set_visible(False)
-        treeView.append_column(column)
-
-        txtcell = gtk.CellRendererText()
-        column = gtk.TreeViewColumn("Name", txtcell, text=DHItemsTree.COLUMN_NAME)
-        column.set_visible(False)
-        treeView.append_column(column)
-
-        """Cell that contains title of showed item with picture as prefix.
-        Picture represent type of item: group or rule and text should start
-        with "Group" and "Rule" text"""
-        column = gtk.TreeViewColumn() 
-        column.set_title("Rule/Group Title")
-        column.set_expand(True)
-        # Picture
-        pbcell = gtk.CellRendererPixbuf()
-        pbcell.set_property("stock-size", gtk.ICON_SIZE_SMALL_TOOLBAR)
-        column.pack_start(pbcell, False)
-        column.add_attribute(pbcell, 'icon-name', DHItemsTree.COLUMN_PICTURE)
-        # Text
-        txtcell = gtk.CellRendererText()
-        column.pack_start(txtcell, True)
-        column.set_attributes(txtcell, text=DHItemsTree.COLUMN_TEXT)
-        column.add_attribute(txtcell, 'foreground', DHItemsTree.COLUMN_COLOR)
-        column.set_resizable(True)
-        treeView.append_column(column)
-        #treeView.set_expander_column(column)
-
-        treeView.set_enable_search(False)
-        treeView.set_expander_column(column)
+        return
 
     def __set_sensitive(self, policy, child, model, pselected):
         """Recursive function init-called from __cb_toggled. Function iterate throught
@@ -1287,7 +1248,7 @@ class DHItemsTree(DataHandler, EventObject):
             if self.core.selected_lang in titles.keys(): title = titles[self.core.selected_lang]
             else: title = titles[titles.keys()[0]]
 
-            # TYPE: XCCDF_RULE
+            # TYPE: XCCDF_GROUP
             if item.type == openscap.OSCAP.XCCDF_GROUP:
                 item = item.to_group()
                 img = "emblem-documents"
@@ -1304,23 +1265,27 @@ class DHItemsTree(DataHandler, EventObject):
                 """Get the values of the group and add it to the end of group subtree
                 """
                 if with_values:
-                    img = "emblem-downloads"
                     for value in item.values:
-                        if len(value.title) == 0: title = value.id
-                        else:
-                            titles = dict([(title.lang, " ".join(title.text.split())) for title in value.title])
-                            if self.core.selected_lang in titles.keys(): title = titles[self.core.selected_lang]
-                            else: title = titles[titles.keys()[0]]
-                        gtk.gdk.threads_enter()
-                        self.model.append(item_it, ["value", value.id, title, img, ""+title, color, selected, pselected])
-                        self.treeView.queue_draw()
-                        gtk.gdk.threads_leave()
+                        self.__recursive_fill(value.to_item(), item_it, selected and pselected, with_values=with_values)
 
             # TYPE: XCCDF_RULE
             elif item.type == openscap.OSCAP.XCCDF_RULE:
                 img = "document-new"
                 gtk.gdk.threads_enter()
                 item_it = self.model.append(parent, ["rule", item.id, title, img, ""+title, color, selected, pselected])
+                self.treeView.queue_draw()
+                gtk.gdk.threads_leave()
+
+            # TYPE: XCCDF_VALUE
+            elif item.type == openscap.OSCAP.XCCDF_VALUE:
+                img = "emblem-downloads"
+                if len(item.title) == 0: title = item.id
+                else:
+                    titles = dict([(title.lang, " ".join(title.text.split())) for title in item.title])
+                    if self.core.selected_lang in titles.keys(): title = titles[self.core.selected_lang]
+                    else: title = titles[titles.keys()[0]]
+                gtk.gdk.threads_enter()
+                self.model.append(parent, ["value", item.id, title, img, ""+title, color, selected, pselected])
                 self.treeView.queue_draw()
                 gtk.gdk.threads_leave()
 
@@ -1365,13 +1330,22 @@ class DHItemsTree(DataHandler, EventObject):
         try:
             gtk.gdk.threads_enter()
             self.model.clear()
+            if self.combo_box: self.combo_box.set_sensitive(False)
             self.treeView.set_sensitive(False)
             gtk.gdk.threads_leave()
 
-            for item in self.core.lib["policy_model"].benchmark.content:
+            """Using generator for list cause we don't want to extend (add) values to content
+            of benchmark again (list is benchmark content and adding cause adding to model)"""
+            content = [item for item in self.core.lib["policy_model"].benchmark.content]
+            if with_values:
+                content.extend([item.to_item() for item in self.core.lib["policy_model"].benchmark.values])
+
+            for item in content:
                 if self.__progress != None:
                     gtk.gdk.threads_enter()
-                    self.__progress.set_fraction(self.__progress.get_fraction()+self.__step)
+                    value = self.__progress.get_fraction()+self.__step
+                    if value > 1.0: value = 1.0
+                    self.__progress.set_fraction(value)
                     self.__progress.set_text("Adding items %s/%s" % (int(self.__progress.get_fraction()/self.__step), self.__total))
                     gtk.gdk.threads_leave()
                 self.__recursive_fill(item, with_values=with_values)
@@ -1386,6 +1360,9 @@ class DHItemsTree(DataHandler, EventObject):
                 self.__progress.set_fraction(1.0)
                 self.__progress.hide()
             self.emit("filled")
+            if self.core.selected_item:
+                self.treeView.get_model().foreach(self.set_selected, (self.core.selected_item, self.treeView, 1))
+            if self.combo_box: self.combo_box.set_sensitive(True)
             gtk.gdk.threads_leave()
 
         return True
@@ -1477,32 +1454,13 @@ class DHProfiles(DataHandler):
     def __init__(self, core):
         
         DataHandler.__init__(self, core)
+        self.treeView = None
 
     def render(self, treeView):
         """Make a model ListStore of Profile object
         """
-
-        self.model = gtk.ListStore(str, str)
-        treeView.set_model(self.model)
-
-        """This Cell is used to be first hidden column of tree view
-        to identify the item in list"""
-        txtcell = gtk.CellRendererText()
-        column = gtk.TreeViewColumn("Unique ID", txtcell, text=0)
-        column.set_visible(False)
-        treeView.append_column(column)
-
-        """Cell that contains title of showed item
-        """
-        column = gtk.TreeViewColumn() 
-        column.set_title("Profile title")
-        column.set_expand(True)
-        # Text
-        txtcell = gtk.CellRendererText()
-        column.pack_start(txtcell, True)
-        column.set_attributes(txtcell, text=1)
-        column.set_resizable(True)
-        treeView.append_column(column)
+        self.treeView = treeView
+        self.model = treeView.get_model()
 
     def update(self, id=None, version=None, abstract=None, prohibit_changes=None):
         if not self.check_library(): return None
@@ -1567,6 +1525,8 @@ class DHProfiles(DataHandler):
                 self.model.append([item.id, "Profile: %s (ID)" % (item.id,)])
                 return False
 
+        if self.core.selected_profile and self.treeView:
+            self.treeView.get_model().foreach(self.set_selected, (self.core.selected_profile, self.treeView, 0))
         return True
 
     def save(self):

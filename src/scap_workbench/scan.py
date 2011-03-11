@@ -170,7 +170,7 @@ class MenuButtonScan(abstract.MenuButton):
         window = HelpWindow(self.core)
 
 
-class ProfileChooser(abstract.Window):
+class ProfileChooser:
     """
     Modal window for choosing profile before scan
     """
@@ -178,38 +178,46 @@ class ProfileChooser(abstract.Window):
     def __init__(self, core, callback=None):
         self.callback = callback
         self.core = core
-        self.builder = gtk.Builder()
-        self.builder.add_from_file("/usr/share/scap-workbench/profile_chooser.glade")
-        self.draw_window()
-        self.profile_model = commands.DHProfiles(core)
-        self.profiles = self.builder.get_object("profile_chooser:tw")
-        self.profile_model.render(self.profiles)
-        self.profile_model.fill()
-        self.builder.get_object("profile_chooser:btn_ok").connect("clicked", self.__cb_profile_changed, self.profiles)
+        self.data_model = commands.DHProfiles(core)
 
-        # select profile
-        iter = self.profiles.get_model().get_iter_first()
-        for i, profile in enumerate(self.profile_model.model):
-            if self.core.selected_profile == profile[0]:
-                self.profiles.get_selection().select_iter(iter)
-            iter = self.profiles.get_model().iter_next(iter)
+        builder = gtk.Builder()
+        builder.add_from_file("/usr/share/scap-workbench/edit_item.glade")
+        self.dialog = builder.get_object("dialog:profile_change")
+        self.info_box = builder.get_object("dialog:profile_change:info_box")
+        self.profiles = builder.get_object("dialog:profile_change:profiles")
+        self.profiles.connect("key-press-event", self.__do)
+        builder.get_object("dialog:profile_change:btn_ok").connect("clicked", self.__do)
+        builder.get_object("dialog:profile_change:btn_cancel").connect("clicked", self.__dialog_destroy)
 
-    def __cb_profile_changed(self, widget, tw):
-        selection = tw.get_selection()
+        self.data_model.treeView = self.profiles
+
+        self.data_model.render(self.profiles)
+        self.data_model.fill()
+        self.dialog.set_transient_for(self.core.main_window)
+        self.dialog.show_all()
+
+    def __dialog_destroy(self, widget=None):
+        """
+        """
+        if self.dialog: 
+            self.dialog.destroy()
+
+    def __do(self, widget, event=None):
+
+        if event and event.type == gtk.gdk.KEY_PRESS and event.keyval != gtk.keysyms.Return:
+            return
+
+        selection = self.profiles.get_selection()
         model, it = selection.get_selected()
         if it == None: 
             logger.debug("Nothing selected, skipping")
             self.window.destroy()
             return
         self.core.selected_profile = model.get_value(it, 0)
-        if self.callback: self.callback()
-        self.window.destroy()
+        if self.callback:
+            self.callback()
+        self.__dialog_destroy()
         return self.core.selected_profile
-
-    def draw_window(self):
-        self.window = self.builder.get_object("profile_chooser:window")
-        self.window.set_transient_for(self.core.main_window)
-        self.window.show_all()
 
 class HelpWindow(abstract.Window):
 
@@ -222,45 +230,27 @@ class HelpWindow(abstract.Window):
     def delete_event(self, widget, event):
         self.window.destroy()
         
-    def __notify(self, widget, event):
-        if event.name == "width":
-            for cell in widget.get_cell_renderers():
-                cell.set_property('wrap-width', widget.get_width())
-
     def draw_window(self):
         # Create a new window
         self.window = self.builder.get_object("scan:help:window")
         self.treeView = self.builder.get_object("scan:help:treeview")
-        self.help_model = self.builder.get_object("scan:help:treeview:model")
+        self.help_model = self.treeView.get_model()
         self.builder.connect_signals(self)
-
-        txtcell = gtk.CellRendererText()
-        column = gtk.TreeViewColumn("Result", txtcell, text=0)
-        column.add_attribute(txtcell, 'background', 1)
-        self.treeView.append_column(column)
-
-        txtcell = gtk.CellRendererText()
-        txtcell.set_property('wrap-mode', pango.WRAP_WORD)
-        txtcell.set_property('wrap-width', 500)
-        column = gtk.TreeViewColumn("Description", txtcell, text=2)
-        column.set_resizable(True)
-        column.set_expand(True)
-        column.connect("notify", self.__notify)
-        self.treeView.append_column(column)
 
         selection = self.treeView.get_selection()
         selection.set_mode(gtk.SELECTION_NONE)
 
-        self.help_model.append(["PASS", commands.DHScan.BG_GREEN, "The target system or system component satisfied all the conditions of the Rule. A pass result contributes to the weighted score and maximum possible score."])
-        self.help_model.append(["FAIL", commands.DHScan.BG_RED, "The target system or system component did not satisfy all the conditions of the Rule. A fail result contributes to the maximum possible score."])
-        self.help_model.append(["ERROR", commands.DHScan.BG_ERR, "The checking engine encountered a system error and could not complete the test, therefore the status of the target’s compliance with the Rule is not certain. This could happen, for example, if a Benchmark testing tool were run with insufficient privileges."])
-        self.help_model.append(["UNKNOWN", commands.DHScan.BG_GRAY, "The testing tool encountered some problem and the result is unknown. For example, a result of ‘unknown’ might be given if the Benchmark testing tool were unable to interpret the output of the checking engine."])
-        self.help_model.append(["NOT APPLICABLE", commands.DHScan.BG_GRAY, "The Rule was not applicable to the target of the test. For example, the Rule might have been specific to a different version of the target OS, or it might have been a test against a platform feature that was not installed. Results with this status do not contribute to the Benchmark score."])
-        self.help_model.append(["NOT CHECKED", commands.DHScan.BG_GRAY, "The Rule was not evaluated by the checking engine. This status is designed for Rules that have no check properties. It may also correspond to a status returned by a checking engine. Results with this status do not contribute to the Benchmark score."])
-        self.help_model.append(["NOT SELECTED", commands.DHScan.BG_GRAY, "The Rule was not selected in the Benchmark. Results with this status do not contribute to the Benchmark score."])
-        self.help_model.append(["INFORMATIONAL", commands.DHScan.BG_LGREEN, "The Rule was checked, but the output from the checking engine is simply information for auditor or administrator; it is not a compliance category. This status value is designed for Rules whose main purpose is to extract information from the target rather than test compliance. Results with this status do not contribute to the Benchmark score."])
-        self.help_model.append(["FIXED", commands.DHScan.BG_FIXED, "The Rule had failed, but was then fixed (possibly by a tool that can automatically apply remediation, or possibly by the human auditor). Results with this status should be scored the same as pass."])
+        self.help_model[0][1] = commands.DHScan.BG_GREEN
+        self.help_model[1][1] = commands.DHScan.BG_RED
+        self.help_model[2][1] = commands.DHScan.BG_ERR
+        self.help_model[3][1] = commands.DHScan.BG_GRAY
+        self.help_model[4][1] = commands.DHScan.BG_GRAY
+        self.help_model[5][1] = commands.DHScan.BG_GRAY
+        self.help_model[6][1] = commands.DHScan.BG_GRAY
+        self.help_model[7][1] = commands.DHScan.BG_LGREEN
+        self.help_model[8][1] = commands.DHScan.BG_FIXED
 
+        self.window.set_transient_for(self.core.main_window)
         self.window.show_all()
 
     def destroy_window(self, widget):

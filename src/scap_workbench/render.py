@@ -260,7 +260,7 @@ class MenuButtonXCCDF(abstract.MenuButton):
 
     # callBack functions
     def __cb_new(self, widget):
-        self.core.init(None)
+        if not self.core.init(None): return
         self.data_model.update(id="New_SCAP_Benchmark", version="0", lang="en")
         self.core.selected_lang = "en"
         self.data_model.edit_status(self.data_model.CMD_OPER_ADD)
@@ -273,8 +273,9 @@ class MenuButtonXCCDF(abstract.MenuButton):
     def __cb_import(self, widget):
         file = self.data_model.file_browse("Load XCCDF file", action=gtk.FILE_CHOOSER_ACTION_OPEN)
         if file != "":
+            self.__cb_close(None)
             logger.debug("Loading XCCDF file %s", file)
-            self.core.init(file)
+            if not self.core.init(file): return
             self.emit("load")
 
             try:

@@ -22,6 +22,7 @@
 
 import gobject, gtk
 import logging
+from threads import thread as threadSave
 
 logger = logging.getLogger("scap-workbench")
 
@@ -92,6 +93,7 @@ class EventHandler(EventObject):
 
         return True
 
+    @threadSave
     def propagate(self, sender, signal):
         if sender.id in self.receivers:
             if signal in self.receivers[sender.id]:

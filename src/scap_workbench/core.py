@@ -24,7 +24,7 @@ import logging, logging.config
 import sys, gtk, gobject
 from events import EventHandler
 
-from threads import thread
+from threads import thread, ThreadManager
 import render #TODO
 import getopt
 
@@ -96,6 +96,7 @@ class SWBCore:
 
     def __init__(self, builder):
 
+        self.thread_handler = ThreadManager(self)
         self.builder = builder
         self.lib = None
         self.__objects = {}
@@ -162,15 +163,20 @@ class SWBCore:
             logger.error("Can't initialize openscap library.")
             raise Exception("Can't initialize openscap library")
 
+        try:
+            self.lib = openscap.xccdf.init(XCCDF)
+        except ImportError, err:
+            self.xccdf_file = None
+            logger.error(err)
+            return False
+
         if not XCCDF:
             # new benchmark
-            openscap.OSCAP.oscap_init
             benchmark = openscap.xccdf.benchmark()
             self.lib = {"def_models":[], "sessions":[], "policy_model":openscap.xccdf.policy_model(benchmark), "xccdf_path":None, "names":{}}
             self.xccdf_file = ""
         else:
             self.xccdf_file = XCCDF
-            self.lib = openscap.xccdf.init(XCCDF)
             if self.lib != None: 
                 logger.debug("Initialization done.")
                 benchmark = self.lib["policy_model"].benchmark
@@ -189,6 +195,7 @@ class SWBCore:
             self.selected_lang = benchmark.lang
             if benchmark.lang == None:
                 self.notify("XCCDF Benchmark: No language specified.", 2)
+        return True
 
     def notify(self, text, lvl=0, info_box=None, msg_id=None):
 

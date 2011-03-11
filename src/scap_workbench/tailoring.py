@@ -42,13 +42,13 @@ logger = logging.getLogger("scap-workbench")
 
 class ItemList(abstract.List):
     
-    def __init__(self, widget, core, progress=None, filter=None):
+    def __init__(self, builder, core, progress=None, filter=None):
         self.core = core
         self.filter = filter
-        self.old_selected = None
-        self.data_model = commands.DHItemsTree("gui:tailoring:DHItemsTree", core, progress)
-        abstract.List.__init__(self, "gui:tailoring:item_list", core, widget)
-        self.get_TreeView().set_enable_tree_lines(True)
+        self.__progress = progress
+        self.profiles = builder.get_object("tailoring:profile")
+        self.data_model = commands.DHItemsTree("gui:tailoring:DHItemsTree", core, progress, self.profiles)
+        abstract.List.__init__(self, "gui:tailoring:item_list", core, builder.get_object("tailoring:tw_items"))
         self.__has_model_changed = False
         
         selection = self.get_TreeView().get_selection()
@@ -74,41 +74,46 @@ class ItemList(abstract.List):
             self.__has_model_changed == False
             self.profile = self.core.selected_profile
             self.get_TreeView().set_model(self.data_model.model)
+            self.profiles.set_sensitive(False)
+            if self.__progress:
+                self.__progress.set_text("Waiting for thread lock ...")
+                self.__progress.show()
+            self.treeView.set_sensitive(False)
             self.data_model.fill()
             self.core.force_reload_items = False
 
-        if self.old_selected != self.core.selected_item:
+        if self.core.selected_item and self.selected != self.core.selected_item:
             # Select the last one selected if there is one
-            self.get_TreeView().get_model().foreach(self.set_selected, (self.core.selected_item, self.get_TreeView()))
-            self.old_selected = self.core.selected_item
+            details = self.data_model.get_item_details(self.core.selected_item)
+            if details and details["typetext"] != "Value":
+                self.get_TreeView().get_model().foreach(self.set_selected, (self.core.selected_item, self.get_TreeView(), 1))
+                self.selected = self.core.selected_item
 
     def __search(self):
         self.search(self.filter.get_search_text(),1)
         
     def __filter_add(self):
         self.data_model.map_filter = self.filter_add(self.filter.filters)
-        self.get_TreeView().get_model().foreach(self.set_selected, (self.core.selected_item, self.get_TreeView()))
+        self.get_TreeView().get_model().foreach(self.set_selected, (self.core.selected_item, self.get_TreeView(), 1))
 
     def __filter_del(self):
         self.data_model.map_filter = self.filter_del(self.filter.filters)
-        self.get_TreeView().get_model().foreach(self.set_selected, (self.core.selected_item, self.get_TreeView()))
+        self.get_TreeView().get_model().foreach(self.set_selected, (self.core.selected_item, self.get_TreeView(), 1))
 
     def __filter_refresh(self):
         self.data_model.map_filter = self.filter_del(self.filter.filters)
-        self.get_TreeView().get_model().foreach(self.set_selected, (self.core.selected_item, self.get_TreeView()))
+        self.get_TreeView().get_model().foreach(self.set_selected, (self.core.selected_item, self.get_TreeView(), 1))
 
     def __model_changed(self):
         self.__has_model_changed = True
 
         
-    @threadSave
     def __cb_item_changed(self, widget, treeView):
         """Make all changes in application in separate threads: workaround for annoying
         blinking when redrawing treeView
         TODO: Make this with idle function, not with new thread
         """
 
-        gtk.gdk.threads_enter()
         selection = treeView.get_selection( )
         if selection != None: 
             (model, iter) = selection.get_selected( )
@@ -116,7 +121,6 @@ class ItemList(abstract.List):
                 self.core.selected_item = model.get_value(iter, commands.DHItemsTree.COLUMN_ID)
                 self.emit("update")
         treeView.columns_autosize()
-        gtk.gdk.threads_leave()
 
 
 class ValuesList(abstract.List):
@@ -493,7 +497,7 @@ class MenuButtonTailoring(abstract.MenuButton):
         self.progress = self.builder.get_object("tailoring:progress")
         self.progress.hide()
         self.filter = filter.ItemFilter(self.core, self.builder, "tailoring:box_filter", "gui:btn:tailoring:filter")
-        self.rules_list = ItemList(self.builder.get_object("tailoring:tw_items"), self.core, self.progress, self.filter)
+        self.rules_list = ItemList(builder, self.core, self.progress, self.filter)
         self.values = ValuesList(self.builder.get_object("tailoring:tw_values"), self.core, self.builder)
         self.filter.expander.cb_changed()
 

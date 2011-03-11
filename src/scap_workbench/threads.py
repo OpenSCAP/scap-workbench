@@ -22,27 +22,51 @@
 
 import logging
 import threading
+import time
 logger = logging.getLogger("scap-workbench")
 
 def thread(func):
     def callback(self, *args, **kwargs):
-        handler = ThreadHandler(func, self, *args, **kwargs)
-        logger.debug("Running thread handler \"%s:%s\"", func, args)
-        handler.start()
+        self.core.thread_handler.new_thread(func, self, *args, **kwargs)
     return callback
+
+class ThreadManager:
+
+    def __init__(self, core):
+        self.core = core
+        self.handlers = []
+
+    def new_thread(self, func, obj, *args, **kwargs):
+        handler = ThreadHandler(self, func, obj, *args, **kwargs)
+        if handler: handler.start()
+
+    def start_thread(self, func, obj, *args, **kwargs):
+        while func in self.handlers:
+            logger.debug("Handler for function %s already running, waiting..." % (func,))
+            time.sleep(0.1)
+
+        self.handlers.append(func)
+        func(obj, *args, **kwargs)
+        logger.debug("Running thread handler \"%s:%s\"", func, args)
+
+    def stop_thread(self, func):
+        if func not in self.handlers:
+            logger.warning("Function called stop, but no function %s running" % (func,))
+        else: logger.debug("Thread function %s stopped." % (func,))
+        self.handlers.remove(func)
 
 class ThreadHandler(threading.Thread):
     """
     """
-    
-    def __init__(self, func, obj, *args, **kwargs):
+    def __init__(self, master, func, obj, *args, **kwargs):
         """ Initializing variables """
-        
+     
         self.running = False
         self.__func = func
-        self.args = args
-        self.kwargs = kwargs
-        self.obj = obj
+        self.__args = args
+        self.__kwargs = kwargs
+        self.__obj = obj
+        self.__master = master
 
         threading.Thread.__init__(self)
         self.__stopthread = threading.Event()
@@ -54,5 +78,7 @@ class ThreadHandler(threading.Thread):
         """ Run method, this is the code that runs while thread is alive """
 
         # Run the function
-        self.__func(self.obj, *self.args, **self.kwargs)
+        self.__master.start_thread(self.__func, self.__obj, *self.__args, **self.__kwargs)
+        self.__master.stop_thread(self.__func)
+
 

@@ -301,25 +301,35 @@ class List(EventObject):
         self.core.register(id, self)
         super(List, self).__init__(core)
         self.filter_model = None
+        self.selected = None
         
         if not widget:
-            self.scrolledWindow = gtk.ScrolledWindow()
-            self.scrolledWindow.set_shadow_type(gtk.SHADOW_IN)
-            self.scrolledWindow.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
-            self.treeView = gtk.TreeView()
-            self.treeView.set_headers_clickable(True)
-            self.scrolledWindow.add(self.treeView)
+            raise Exception("No widget for List specified")
         else:
             self.treeView = widget
         self.add_sender(id, "update")
         self.render()
 
+    def filter_treeview(self, model, iter, data):
+        text = self.search.get_text()
+        if len(text) == 0: 
+            return True
+        pattern = re.compile(text, re.I)
+        for col in data:
+            found = re.search(pattern, model[iter][col])
+            if found != None: return True
+        return False
+
+    def search_treeview(self, widget, treeview):
+        treeview.get_model().refilter()
+        return
+
     def set_selected(self, model, path, iter, usr):
 
-        id, view = usr
+        id, view, col = usr
         selection = view.get_selection()
         
-        if model.get_value(iter, 1) == id:
+        if model.get_value(iter, col) == id:
             view.expand_to_path(path)
             selection.select_path(path)
 
@@ -332,8 +342,8 @@ class List(EventObject):
         return self.scrolledWindow
 
     def render(self):
-        assert self.data_model, "Data model of %s does not exist !" % (self.id,)
-        self.data_model.render(self.get_TreeView())
+        if self.data_model: self.data_model.render(self.get_TreeView())
+        else: logger.error("Data model does not exist")
 
     def __match_func(self, model, iter, data):
         """ search pattern in column of model"""
@@ -783,7 +793,7 @@ class ListEditor(EventObject, Func, Enum_type):
         else: return False
 
         builder = gtk.Builder()
-        builder.add_from_file("/usr/share/scap-workbench/edit_item.glade")
+        builder.add_from_file("/usr/share/scap-workbench/dialogs.glade")
         self.preview_dialog = builder.get_object("dialog:description_preview")
         self.preview_scw = builder.get_object("dialog:description_preview:scw")
         builder.get_object("dialog:description_preview:btn_ok").connect("clicked", self.__preview_dialog_destroy)
@@ -1055,7 +1065,7 @@ class EditDialogWindow(EventObject):
         self.item = item
         self.init_data = None
         builder = gtk.Builder()
-        builder.add_from_file("/usr/share/scap-workbench/edit_item.glade")
+        builder.add_from_file("/usr/share/scap-workbench/dialogs.glade")
         
         self.window = builder.get_object("dialog:edit_item")
         self.window.connect("delete-event", self.__delete_event)

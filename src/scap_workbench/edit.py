@@ -76,8 +76,10 @@ class ProfileList(abstract.List):
 
         if "profile" not in self.__dict__ or self.core.force_reload_profiles:
             self.data_model.fill(no_default=True)
-            self.get_TreeView().get_model().foreach(self.set_selected, (self.core.selected_profile, self.get_TreeView()))
             self.core.force_reload_profiles = False
+        if self.core.selected_profile and self.selected != self.core.selected_profile:
+            self.get_TreeView().get_model().foreach(self.set_selected, (self.core.selected_profile, self.get_TreeView(), 0))
+            self.selected = self.core.selected_profile
         if new: self.emit("update_profiles")
 
     def cb_item_changed(self, widget, treeView):
@@ -86,6 +88,7 @@ class ProfileList(abstract.List):
         if selection != None: 
             (model, iter) = selection.get_selected( )
             if iter: self.core.selected_profile = model.get_value(iter, 0)
+        self.selected = self.core.selected_profile
         self.emit("update")
 
     def __cb_button_pressed(self, treeview, event, menu):
@@ -109,12 +112,12 @@ class ItemList(abstract.List):
 
     def __init__(self, widget, core, builder=None, progress=None, filter=None):
 
-        self.data_model = commands.DHItemsTree("gui:edit:DHItemsTree", core, progress, True, no_checks=True)
+        self.data_model = commands.DHItemsTree("gui:edit:DHItemsTree", core, progress, None, True, no_checks=True)
         abstract.List.__init__(self, "gui:edit:item_list", core, widget)
         self.core = core
         self.loaded_new = True
-        self.old_selected = None
         self.filter = filter
+        self.__progress = progress
         self.map_filter = {}
         self.builder = builder
 
@@ -134,28 +137,26 @@ class ItemList(abstract.List):
         # actions
         self.add_receiver("gui:btn:menu:edit:items", "update", self.__update)
         self.add_receiver("gui:btn:edit:filter", "search", self.__search)
-        self.add_receiver("gui:btn:edit:filter", "filter_add", self.__filter_add)
-        self.add_receiver("gui:btn:edit:filter", "filter_del", self.__filter_del)
-        self.add_receiver("gui:edit:DHItemsTree", "filled", self.__filter_refresh)
         self.add_receiver("gui:btn:main:xccdf", "load", self.__loaded_new_xccdf)
 
         selection.connect("changed", self.__cb_item_changed, self.get_TreeView())
         self.add_sender(self.id, "update")
 
-        self.init_filters(self.filter, self.data_model.model, self.data_model.new_model())
-
     def __update(self, widget=None):
 
         if self.core.xccdf_file == None: self.data_model.model.clear()
         if self.loaded_new == True or widget != None:
-            self.get_TreeView().set_model(self.data_model.model)
+            #self.get_TreeView().set_model(self.data_model.model)
+            if self.__progress:
+                self.__progress.set_text("Waiting for thread lock ...")
+                self.__progress.show()
+            self.treeView.set_sensitive(False)
             self.data_model.fill(with_values=self.with_values.get_active())
             self.loaded_new = False
         # Select the last one selected if there is one         #self.core.selected_item_edit
-        if self.old_selected != self.core.selected_item:
+        if self.core.selected_item and self.selected != self.core.selected_item:
             self.get_TreeView().get_model().foreach(self.set_selected, (self.core.selected_item, self.get_TreeView()))
-            self.core.force_reload_items = False
-            self.old_selected = self.core.selected_item
+            self.selected = self.core.selected_item
 
     def __loaded_new_xccdf(self):
         self.loaded_new = True
@@ -163,18 +164,6 @@ class ItemList(abstract.List):
     def __search(self):
         self.search(self.filter.get_search_text(), 1)
         
-    def __filter_add(self):
-        self.map_filter = self.filter_add(self.filter.filters)
-        self.get_TreeView().get_model().foreach(self.set_selected, (self.core.selected_item, self.get_TreeView()))
-
-    def __filter_del(self):
-        self.map_filter = self.filter_del(self.filter.filters)
-        self.get_TreeView().get_model().foreach(self.set_selected, (self.core.selected_item, self.get_TreeView()))
-
-    def __filter_refresh(self):
-        self.map_filter = self.filter_del(self.filter.filters)
-        self.get_TreeView().get_model().foreach(self.set_selected, (self.core.selected_item, self.get_TreeView()))
-
     def __cb_button_pressed(self, treeview, event, menu):
         if event.button == 3:
             time = event.time
@@ -206,10 +195,9 @@ class ItemList(abstract.List):
             (model, iter) = selection.get_selected( )
             if iter: 
                 self.core.selected_item = model.get_value(iter, commands.DHItemsTree.COLUMN_ID)
-                #self.core.selected_item_edit = model.get_value(iter, 0)
             else:
                 self.core.selected_item = None
-                #self.core.selected_item_edit = None
+        self.selected = self.core.selected_item
         self.emit("update")
         treeView.columns_autosize()
         gtk.gdk.threads_leave()
@@ -633,7 +621,9 @@ class MenuButtonEditItems(abstract.MenuButton, abstract.ControlEditWindow):
             if weight:
                 self.data_model.update(weight=weight)
         elif widget == self.content_ref:
-            self.data_model.set_item_content(name=widget.get_text())
+            ret, err = self.data_model.set_item_content(name=widget.get_text())
+            if not ret:
+                self.notifications.append(self.core.notify(err, 2, msg_id="notify:edit:content_href"))
         elif widget == self.href:
             if self.href.get_active() == -1 or len(self.href.get_model()) == 0:
                 return
@@ -993,7 +983,7 @@ class EditItemValues(abstract.ListEditor):
         """
         self.operation = operation
         builder = gtk.Builder()
-        builder.add_from_file("/usr/share/scap-workbench/edit_item.glade")
+        builder.add_from_file("/usr/share/scap-workbench/dialogs.glade")
         self.dialog = builder.get_object("dialog:find_value")
         self.info_box = builder.get_object("dialog:find_value:info_box")
         self.values = builder.get_object("dialog:find_value:values")
@@ -1118,7 +1108,7 @@ class EditTitle(abstract.ListEditor):
         """
         self.operation = operation
         builder = gtk.Builder()
-        builder.add_from_file("/usr/share/scap-workbench/edit_item.glade")
+        builder.add_from_file("/usr/share/scap-workbench/dialogs.glade")
         self.dialog = builder.get_object("dialog:edit_title")
         self.info_box = builder.get_object("dialog:edit_title:info_box")
         self.lang = builder.get_object("dialog:edit_title:lang")
@@ -1195,7 +1185,7 @@ class EditDescription(abstract.ListEditor):
         """
         self.operation = operation
         builder = gtk.Builder()
-        builder.add_from_file("/usr/share/scap-workbench/edit_item.glade")
+        builder.add_from_file("/usr/share/scap-workbench/dialogs.glade")
         self.dialog = builder.get_object("dialog:edit_description")
         self.info_box = builder.get_object("dialog:edit_description:info_box")
         self.lang = builder.get_object("dialog:edit_description:lang")
@@ -1280,7 +1270,7 @@ class EditWarning(abstract.ListEditor):
         """
         self.operation = operation
         builder = gtk.Builder()
-        builder.add_from_file("/usr/share/scap-workbench/edit_item.glade")
+        builder.add_from_file("/usr/share/scap-workbench/dialogs.glade")
         self.dialog = builder.get_object("dialog:edit_warning")
         self.info_box = builder.get_object("dialog:edit_warning:info_box")
         self.lang = builder.get_object("dialog:edit_warning:lang")
@@ -1376,7 +1366,7 @@ class EditNotice(abstract.ListEditor):
         """
         self.operation = operation
         builder = gtk.Builder()
-        builder.add_from_file("/usr/share/scap-workbench/edit_item.glade")
+        builder.add_from_file("/usr/share/scap-workbench/dialogs.glade")
         self.dialog = builder.get_object("dialog:edit_notice")
         self.info_box = builder.get_object("dialog:edit_notice:info_box")
         self.wid = builder.get_object("dialog:edit_notice:id")
@@ -1461,7 +1451,7 @@ class EditStatus(abstract.ListEditor):
         """
         self.operation = operation
         builder = gtk.Builder()
-        builder.add_from_file("/usr/share/scap-workbench/edit_item.glade")
+        builder.add_from_file("/usr/share/scap-workbench/dialogs.glade")
         self.dialog = builder.get_object("dialog:edit_status")
         self.info_box = builder.get_object("dialog:edit_status:info_box")
         self.calendar = builder.get_object("dialog:edit_status:calendar")
@@ -1600,7 +1590,7 @@ class EditQuestion(abstract.ListEditor):
         """
         self.operation = operation
         builder = gtk.Builder()
-        builder.add_from_file("/usr/share/scap-workbench/edit_item.glade")
+        builder.add_from_file("/usr/share/scap-workbench/dialogs.glade")
         self.dialog = builder.get_object("dialog:edit_question")
         self.info_box = builder.get_object("dialog:edit_question:info_box")
         self.lang = builder.get_object("dialog:edit_question:lang")
@@ -1682,7 +1672,7 @@ class EditRationale(abstract.ListEditor):
         """
         self.operation = operation
         builder = gtk.Builder()
-        builder.add_from_file("/usr/share/scap-workbench/edit_item.glade")
+        builder.add_from_file("/usr/share/scap-workbench/dialogs.glade")
         self.dialog = builder.get_object("dialog:edit_rationale")
         self.info_box = builder.get_object("dialog:edit_rationale:info_box")
         self.lang = builder.get_object("dialog:edit_rationale:lang")
@@ -2075,7 +2065,7 @@ class EditValuesValues(abstract.ListEditor):
         """
         self.operation = operation
         builder = gtk.Builder()
-        builder.add_from_file("/usr/share/scap-workbench/edit_item.glade")
+        builder.add_from_file("/usr/share/scap-workbench/dialogs.glade")
         self.dialog = builder.get_object("dialog:edit_value")
         self.info_box = builder.get_object("dialog:edit_value:info_box")
         self.selector = builder.get_object("dialog:edit_value:selector")
@@ -2087,6 +2077,7 @@ class EditValuesValues(abstract.ListEditor):
         self.upper_bound = builder.get_object("dialog:edit_value:upper_bound")
         self.lower_bound = builder.get_object("dialog:edit_value:lower_bound")
         self.must_match = builder.get_object("dialog:edit_value:must_match")
+        self.choices = builder.get_object("dialog:edit_value:choices")
         builder.get_object("dialog:edit_value:btn_cancel").connect("clicked", self.__dialog_destroy)
         builder.get_object("dialog:edit_value:btn_ok").connect("clicked", self.__do)
 
@@ -2122,6 +2113,8 @@ class EditValuesValues(abstract.ListEditor):
                 self.upper_bound.set_text(model[iter][self.COLUMN_UPPER_BOUND] or "")
                 self.lower_bound.set_text(model[iter][self.COLUMN_LOWER_BOUND] or "")
                 self.must_match.set_active(model[iter][self.COLUMN_MUST_MATCH])
+                for choice in model[iter][self.COLUMN_OBJ].choices:
+                    self.choices.get_model().append([choice])
         elif operation == self.data_model.CMD_OPER_DEL:
             if not iter:
                 self.notifications.append(self.core.notify("Please select at least one item to delete", 2, msg_id="notify:not_selected"))
@@ -2450,7 +2443,7 @@ class EditAddProfileDialogWindow(EventObject, abstract.ControlEditWindow):
         self.data_model = data_model
         self.__update = cb
         builder = gtk.Builder()
-        builder.add_from_file("/usr/share/scap-workbench/edit_item.glade")
+        builder.add_from_file("/usr/share/scap-workbench/dialogs.glade")
         self.window = builder.get_object("dialog:profile_add")
 
         builder.get_object("profile_add:btn_ok").connect("clicked", self.__cb_do)
@@ -2505,7 +2498,7 @@ class AddItem(EventObject, abstract.ControlEditWindow):
     def dialog(self):
 
         builder = gtk.Builder()
-        builder.add_from_file("/usr/share/scap-workbench/edit_item.glade")
+        builder.add_from_file("/usr/share/scap-workbench/dialogs.glade")
         self.window = builder.get_object("dialog:add_item")
         self.window.connect("delete-event", self.__delete_event)
         
@@ -2537,15 +2530,15 @@ class AddItem(EventObject, abstract.ControlEditWindow):
         self.core.notify_destroy("notify:relation")
         (model, iter) = self.view.get_selection().get_selected()
         if not iter:
-            if widget.get_active()  in [self.data_model.RELATION_PARENT, self.data_model.RELATION_SIBLING]:
+            if widget.get_active() in [self.data_model.RELATION_PARENT, self.data_model.RELATION_SIBLING]:
                 self.core.notify("Item can't be a parent or sibling of benchmark !", 2, self.info_box, msg_id="notify:relation")
-                self.itype.grab_focus()
+                widget.grab_focus()
                 return False
         else:
             self.core.notify_destroy("dialog:add_item")
             if model[iter][self.data_model.COLUMN_TYPE] in ["value", "rule"] and widget.get_active() == self.data_model.RELATION_CHILD:
                 self.core.notify("Item types VALUE and RULE can't be a parent !", 2, self.info_box, msg_id="notify:relation")
-                self.itype.grab_focus()
+                widget.grab_focus()
                 return False
 
         return True
@@ -2633,7 +2626,7 @@ class EditSelectIdDialogWindow():
         self.model_item = model_item
         
         builder = gtk.Builder()
-        builder.add_from_file("/usr/share/scap-workbench/edit_item.glade")
+        builder.add_from_file("/usr/share/scap-workbench/dialogs.glade")
 
         self.window = builder.get_object("dialog:add_id")
         self.window.connect("delete-event", self.__delete_event)
@@ -2844,29 +2837,3 @@ class EditSelectIdDialogWindow():
             #self.core.notify("Can't filter items: %s" % (e,), 3)
             logger.error("Can't filter items: %s" % (e,))
             return False
-    
-
-
-class EditValueChoice(commands.DataHandler, abstract.EnterList):
-    
-    COLUMN_MARK_ROW = 0
-    COLUMN_CHOICE = 1
-
-    def __init__(self, core, model, treeView, window):
-
-        self.model = model
-        self.treeView = treeView
-        abstract.EnterList.__init__(self, core, "EditValueCoice",self.model, self.treeView, self.cb_lv_edit , window)
-        
-        cell = self.set_insertColumnText("Choice", self.COLUMN_CHOICE, True, True)
-        iter = self.model.append(None)
-        self.model.set(iter,self.COLUMN_MARK_ROW,"*")
-
-    def cb_lv_edit(self, action):
-    
-        if action == "edit":
-            self.model[self.edit_path][self.edit_column] = self.edit_text
-        elif action == "del":
-            self.model.remove(self.iter_del)
-        elif action == "add":
-            self.model[self.edit_path][self.edit_column] = self.edit_text
