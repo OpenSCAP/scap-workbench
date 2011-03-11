@@ -77,9 +77,7 @@ class ProfileList(abstract.List):
         if "profile" not in self.__dict__ or self.core.force_reload_profiles:
             self.data_model.fill(no_default=True)
             self.core.force_reload_profiles = False
-        if self.core.selected_profile and self.selected != self.core.selected_profile:
-            self.get_TreeView().get_model().foreach(self.set_selected, (self.core.selected_profile, self.get_TreeView(), 0))
-            self.selected = self.core.selected_profile
+        self.get_TreeView().get_model().foreach(self.set_selected, (self.core.selected_profile, self.get_TreeView(), 0))
         if new: self.emit("update_profiles")
 
     def cb_item_changed(self, widget, treeView):
@@ -155,7 +153,7 @@ class ItemList(abstract.List):
             self.loaded_new = False
         # Select the last one selected if there is one         #self.core.selected_item_edit
         if self.core.selected_item and self.selected != self.core.selected_item:
-            self.get_TreeView().get_model().foreach(self.set_selected, (self.core.selected_item, self.get_TreeView()))
+            self.get_TreeView().get_model().foreach(self.set_selected, (self.core.selected_item, self.get_TreeView(), 1))
             self.selected = self.core.selected_item
 
     def __loaded_new_xccdf(self):
@@ -180,12 +178,10 @@ class ItemList(abstract.List):
     def __cb_item_add(self, widget):
         self.add_dialog.dialog()
 
-    @threadSave
     def __cb_item_changed(self, widget, treeView):
         """Make all changes in application in separate threads: workaround for annoying
         blinking when redrawing treeView
         """
-        gtk.gdk.threads_enter()
         details = self.data_model.get_item_details(self.core.selected_item)
         if details != None:
             self.item = details["item"]
@@ -200,7 +196,6 @@ class ItemList(abstract.List):
         self.selected = self.core.selected_item
         self.emit("update")
         treeView.columns_autosize()
-        gtk.gdk.threads_leave()
 
 
 class MenuButtonEditXCCDF(abstract.MenuButton):

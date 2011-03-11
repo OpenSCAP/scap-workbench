@@ -30,6 +30,15 @@ def thread(func):
         self.core.thread_handler.new_thread(func, self, *args, **kwargs)
     return callback
 
+def thread_free(func):
+    def callback(self, *args, **kwargs):
+        handler = ThreadHandler(None, func, self, *args, **kwargs)
+        if handler:
+            logger.debug("Running thread handler (free) \"%s:%s\"", func, args)
+            handler.start()
+    return callback
+
+
 class ThreadManager:
 
     def __init__(self, core):
@@ -43,7 +52,7 @@ class ThreadManager:
     def start_thread(self, func, obj, *args, **kwargs):
         while func in self.handlers:
             logger.debug("Handler for function %s already running, waiting..." % (func,))
-            time.sleep(0.1)
+            time.sleep(1.0)
 
         self.handlers.append(func)
         func(obj, *args, **kwargs)
@@ -78,7 +87,9 @@ class ThreadHandler(threading.Thread):
         """ Run method, this is the code that runs while thread is alive """
 
         # Run the function
-        self.__master.start_thread(self.__func, self.__obj, *self.__args, **self.__kwargs)
-        self.__master.stop_thread(self.__func)
+        if self.__master:
+            self.__master.start_thread(self.__func, self.__obj, *self.__args, **self.__kwargs)
+            self.__master.stop_thread(self.__func)
+        else: self.__func(self.__obj, *self.__args, **self.__kwargs)
 
 

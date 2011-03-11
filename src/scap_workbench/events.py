@@ -22,7 +22,6 @@
 
 import gobject, gtk
 import logging
-from threads import thread as threadSave
 
 logger = logging.getLogger("scap-workbench")
 
@@ -93,13 +92,13 @@ class EventHandler(EventObject):
 
         return True
 
-    @threadSave
     def propagate(self, sender, signal):
         if sender.id in self.receivers:
             if signal in self.receivers[sender.id]:
                 for cb in self.receivers[sender.id][signal]:
                     logger.debug("Received signal \"%s\" from \"%s\" into \"%s\"" % (signal, sender.id, cb))
-                    if callable(cb): cb()
+                    if callable(cb): 
+                        cb()
                     else: 
                         logger.error("Callback %s is not callable", cb)
                         raise Exception

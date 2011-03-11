@@ -36,7 +36,7 @@ import filter
 import render
 
 from htmltextview import HtmlTextView
-from threads import thread as threadSave
+from threads import thread_free as threadFree
 
 logger = logging.getLogger("scap-workbench")
 
@@ -61,7 +61,6 @@ class ItemList(abstract.List):
         self.add_receiver("gui:btn:tailoring:filter", "filter_del", self.__filter_del)
         self.add_receiver("gui:tailoring:DHItemsTree", "filled", self.__filter_refresh)
         self.add_receiver("edit:dialog_window:add_item", "add", self.__model_changed)
-        self.add_receiver("gui:edit:item_list", "update", self.__model_changed)
         
         selection.connect("changed", self.__cb_item_changed, self.get_TreeView())
 
@@ -107,13 +106,14 @@ class ItemList(abstract.List):
     def __model_changed(self):
         self.__has_model_changed = True
 
-        
+    @threadFree
     def __cb_item_changed(self, widget, treeView):
         """Make all changes in application in separate threads: workaround for annoying
         blinking when redrawing treeView
         TODO: Make this with idle function, not with new thread
         """
 
+        gtk.gdk.threads_enter()
         selection = treeView.get_selection( )
         if selection != None: 
             (model, iter) = selection.get_selected( )
@@ -121,6 +121,7 @@ class ItemList(abstract.List):
                 self.core.selected_item = model.get_value(iter, commands.DHItemsTree.COLUMN_ID)
                 self.emit("update")
         treeView.columns_autosize()
+        gtk.gdk.threads_leave()
 
 
 class ValuesList(abstract.List):
@@ -513,7 +514,7 @@ class MenuButtonTailoring(abstract.MenuButton):
 
         # need update because of new file loaded
         if self.profile_model.fill():
-            self.profiles.set_active(0)
+            self.update()
             self.core.selected_profile = self.profile_model.model[self.profiles.get_active()][0]
 
     def __cb_profile_changed(self, widget, model):
