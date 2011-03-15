@@ -331,7 +331,7 @@ class MenuButtonEditXCCDF(abstract.MenuButton):
         self.entry_lang.handler_unblock_by_func(self.__change)
 
         
-class MenuButtonEditProfiles(abstract.MenuButton, abstract.ControlEditWindow):
+class MenuButtonEditProfiles(abstract.MenuButton):
 
     def __init__(self, builder, widget, core):
         abstract.MenuButton.__init__(self, "gui:btn:menu:edit:profiles", widget, core)
@@ -451,7 +451,7 @@ class MenuButtonEditProfiles(abstract.MenuButton, abstract.ControlEditWindow):
         self.emit("update")
 
             
-class MenuButtonEditItems(abstract.MenuButton, abstract.ControlEditWindow):
+class MenuButtonEditItems(abstract.MenuButton):
     """
     GUI for refines.
     """
@@ -559,6 +559,12 @@ class MenuButtonEditItems(abstract.MenuButton, abstract.ControlEditWindow):
         builder.get_object("edit:xccdf:items:values:btn_del").connect("clicked", self.item_values.dialog, self.data_model.CMD_OPER_DEL)
         builder.get_object("edit:xccdf:items:values").connect("button-press-event", self.__cb_value_clicked) # Double-click makes the editor to look for the value in items
 
+        # -- PLATFORMS --
+        self.platforms = EditPlatform(self.core, "gui:edit:dependencies:platforms", builder.get_object("edit:xccdf:dependencies:platforms"), self.data_model)
+        builder.get_object("edit:xccdf:dependencies:platforms:btn_add").connect("clicked", self.platforms.dialog, self.data_model.CMD_OPER_ADD)
+        builder.get_object("edit:xccdf:dependencies:platforms:btn_edit").connect("clicked", self.platforms.dialog, self.data_model.CMD_OPER_EDIT)
+        builder.get_object("edit:xccdf:dependencies:platforms:btn_del").connect("clicked", self.platforms.dialog, self.data_model.CMD_OPER_DEL)
+
         # -------------
 
         """Get widgets from Glade: Part main.glade in edit
@@ -566,25 +572,16 @@ class MenuButtonEditItems(abstract.MenuButton, abstract.ControlEditWindow):
         self.conflicts = EditConflicts(self.core, self.builder,self.list_item.get_TreeView().get_model())
         self.requires = EditRequires(self.core, self.builder,self.list_item.get_TreeView().get_model())
         self.ident = EditIdent(self.core, self.builder)
-        self.platform = EditPlatform(self.core, self.builder)
         self.values = EditValues(self.core, "gui:edit:xccdf:values", self.builder)
         self.fixtext = EditFixtext(self.core, self.builder)
         self.fix = EditFix(self.core, self.builder)
         
         self.severity = self.builder.get_object("edit:operations:combo_severity")
-        self.set_model_to_comboBox(self.severity,self.combo_model_level, self.COMBO_COLUMN_VIEW)
+        self.severity.set_model(abstract.Enum_type.combo_model_level)
         self.severity.connect( "changed", self.__change)
         self.impact_metric = self.builder.get_object("edit:operations:entry_impact_metric")
         self.impact_metric.connect("focus-out-event", self.cb_control_impact_metrix)
         self.check = self.builder.get_object("edit:operations:lv_check")
-        
-        #others
-        #self.multiple = self.builder.get_object("edit:other:chbox_multiple")
-        #self.multiple.connect("toggled",self.data_model.cb_chbox_multipl)
-
-        #self.role = self.builder.get_object("edit:other:combo_role")
-        #self.set_model_to_comboBox(self.role, self.combo_model_role, self.COMBO_COLUMN_VIEW)
-        #self.role.connect( "changed", self.data_model.cb_cBox_role)
 
         self.add_receiver("gui:edit:item_list", "update", self.__update)
         self.add_receiver("gui:edit:xccdf:values", "update", self.__update_item)
@@ -759,7 +756,7 @@ class MenuButtonEditItems(abstract.MenuButton, abstract.ControlEditWindow):
         self.item_values.clear()
         self.conflicts.fill(None)
         self.requires.fill(None)
-        self.platform.fill(None)
+        self.platforms.fill()
         self.fix.fill(None)
         self.fixtext.fill(None)
         self.__unblock_signals()
@@ -803,7 +800,7 @@ class MenuButtonEditItems(abstract.MenuButton, abstract.ControlEditWindow):
         self.rationales.fill()
         self.conflicts.fill(details)
         self.requires.fill(details["item"])
-        self.platform.fill(details["item"])
+        self.platforms.fill()
 
         self.abstract.set_active(details["abstract"])
         self.selected.set_active(details["selected"])
@@ -1042,7 +1039,7 @@ class EditItemValues(abstract.ListEditor):
             self.dialog.show_all()
 
         elif operation == self.data_model.CMD_OPER_DEL:
-            if not self.iter:
+            if not iter:
                 self.notifications.append(self.core.notify("Please select at least one item to delete", 2, msg_id="notify:not_selected"))
                 return
             else: 
@@ -1647,9 +1644,10 @@ class EditRationale(abstract.ListEditor):
         """
         """
         item = None
+        (model, iter) = self.get_selection().get_selected()
         buffer = self.rationale.get_buffer()
-        if self.iter and self.get_model() != None: 
-            item = self.get_model()[self.iter][self.COLUMN_OBJ]
+        if iter and model != None: 
+            item = model[iter][self.COLUMN_OBJ]
 
         retval = self.data_model.edit_rationale(self.operation, item, self.lang.get_text(), self.override.get_active(), buffer.get_text(buffer.get_start_iter(), buffer.get_end_iter()))
         self.fill()
@@ -1677,19 +1675,19 @@ class EditRationale(abstract.ListEditor):
         builder.get_object("dialog:edit_rationale:btn_ok").connect("clicked", self.__do)
 
         self.core.notify_destroy("notify:not_selected")
-        (model, self.iter) = self.get_selection().get_selected()
+        (model, iter) = self.get_selection().get_selected()
         if operation == self.data_model.CMD_OPER_ADD:
             pass
         elif operation == self.data_model.CMD_OPER_EDIT:
-            if not self.iter:
+            if not iter:
                 self.notifications.append(self.core.notify("Please select at least one item to edit", 2, msg_id="notify:not_selected"))
                 return
             else:
-                self.lang.set_text(model[self.iter][self.COLUMN_LANG] or "")
-                self.override.set_active(model[self.iter][self.COLUMN_OVERRIDE])
-                self.rationale.get_buffer().set_text(model[self.iter][self.COLUMN_TEXT] or "")
+                self.lang.set_text(model[iter][self.COLUMN_LANG] or "")
+                self.override.set_active(model[iter][self.COLUMN_OVERRIDE])
+                self.rationale.get_buffer().set_text(model[iter][self.COLUMN_TEXT] or "")
         elif operation == self.data_model.CMD_OPER_DEL:
-            if not self.iter:
+            if not iter:
                 self.notifications.append(self.core.notify("Please select at least one item to delete", 2, msg_id="notify:not_selected"))
                 return
             else: 
@@ -1711,52 +1709,161 @@ class EditRationale(abstract.ListEditor):
             self.append([data.lang, re.sub("[\t ]+" , " ", data.text).strip(), data, data.overrides])
 
 
-class EditPlatform(commands.DHEditItems,abstract.ControlEditWindow):
+class EditPlatform(abstract.ListEditor):
 
     COLUMN_TEXT = 0
-    COLUMN_OBJECTS = 1
 
-    def __init__(self, core, builder):
+    def __init__(self, core, id, widget, data_model):
 
-        #set listView and model
-        lv = builder.get_object("edit:dependencies:lv_platform")
-        model = gtk.ListStore(str, gobject.TYPE_PYOBJECT)
-        lv.set_model(model)
+        self.data_model = data_model 
+        abstract.ListEditor.__init__(self, id, core, widget=widget, model=gtk.ListStore(str))
+        self.add_sender(id, "update")
+
+        self.widget.append_column(gtk.TreeViewColumn("CPE Name", gtk.CellRendererText(), text=self.COLUMN_LANG))
+
+    def __do(self, widget=None):
+        """
+        """
+        self.core.notify_destroy("notify:edit")
+        item = None
+        (model, iter) = self.get_selection().get_selected()
+        if iter and model != None: 
+            item = model[iter][self.COLUMN_TEXT]
+
+        if self.operation != self.data_model.CMD_OPER_DEL:
+            text = self.cpe.get_text()
+            if len(text) < 6 or text[5] not in ["a", "o", "h"]:
+                self.core.notify("The part section can be \"a\", \"o\" or \"h\"", 2, self.info_box, msg_id="notify:edit")
+                return
+            if len(text[7:].split(":")) != 6:
+                self.core.notify("Invalid number of sections: should be cpe:/part:vendor:product:version:update:edition:lang", 2, self.info_box, msg_id="notify:edit")
+                return
+
+        retval = self.data_model.edit_platform(self.operation, item, self.cpe.get_text())
+        self.fill()
+        self.__dialog_destroy()
+        self.emit("update")
+
+    def __dialog_destroy(self, widget=None):
+        """
+        """
+        if self.dialog: 
+            self.dialog.destroy()
+
+    def __cb_build(self, widget):
+        self.cpe.handler_block_by_func(self.__cb_parse)
+        if self.part.get_active() == -1:
+            active = ""
+        else: active = ["a", "h", "o"][self.part.get_active()]
+        self.cpe.set_text("cpe:/%s:%s:%s:%s:%s:%s:%s" % (active, 
+            self.vendor.get_text(),
+            self.product.get_text(),
+            self.version.get_text(),
+            self.update.get_text(),
+            self.edition.get_text(),
+            self.language.get_text()))
+        self.cpe.handler_unblock_by_func(self.__cb_parse)
+
+    def __cb_parse(self, widget):
         
-        #information for new/edit dialog
-        values = {
-                        "name_dialog":  "Edit Platform",
-                        "view":         lv,
-                        "cb":           self.DHEditPlatform,
-                        "textView":     {"name":    "Platform",
-                                        "column":   self.COLUMN_TEXT,
-                                        "empty":    False, 
-                                        "unique":   False,
-                                        "init_data": ""}
-                        }
+        text = widget.get_text()
 
-        abstract.ControlEditWindow.__init__(self, core, lv, values)
-        btn_add = builder.get_object("edit:dependencies:btn_platform_add")
-        btn_edit = builder.get_object("edit:dependencies:btn_platform_edit")
-        btn_del = builder.get_object("edit:dependencies:btn_platform_del")
-        
-        # set callBack
-        btn_add.connect("clicked", self.cb_add_row)
-        btn_edit.connect("clicked", self.cb_edit_row)
-        btn_del.connect("clicked", self.cb_del_row)
+        # cpe:/
+        if text[:5] != "cpe:/": widget.set_text("cpe:/")
 
-        self.addColumn("Platform CPE",self.COLUMN_TEXT)
+        # cpe:/[a,o,h]
+        if len(text) > 5:
+            if text[5] not in ["a", "o", "h"]: 
+                self.core.notify("The part section can be \"a\", \"o\" or \"h\"", 1, self.info_box, msg_id="notify:edit")
+                widget.set_text("cpe:/")
+                return
+            else:
+                self.core.notify_destroy("notify:edit")
+                self.part.set_active(["a", "h", "o"].index(text[5]))
 
-    def fill(self, item):
-        self.item = item
-        self.model.clear()
-        if item:
-            for data in item.platforms:
-                self.model.append([data, data])
+        # cpe:/[a,o,h]:
+        if len(text) > 7 and text[6] != ":":
+            widget.set_text(text[:6]+":")
 
-#======================================= EDIT VALUES ==========================================
+        if len(text) > 8:
+            parts = text[7:].split(":")
+        else: parts = []
 
-class EditValues(abstract.MenuButton, abstract.ControlEditWindow):
+        # cpe:/[a,o,h]:vendor:product:version:update:edition:language
+        if len(parts) > 0: self.vendor.set_text(parts[0])
+        else: self.vendor.set_text("")
+        if len(parts) > 1: self.product.set_text(parts[1])
+        else: self.product.set_text("")
+        if len(parts) > 2: self.version.set_text(parts[2])
+        else: self.version.set_text("")
+        if len(parts) > 3: self.update.set_text(parts[3])
+        else: self.update.set_text("")
+        if len(parts) > 4: self.edition.set_text(parts[4])
+        else: self.edition.set_text("")
+        if len(parts) > 5: self.language.set_text(parts[5])
+        else: self.language.set_text("")
+
+    def dialog(self, widget, operation):
+        """
+        """
+        self.operation = operation
+        builder = gtk.Builder()
+        builder.add_from_file("/usr/share/scap-workbench/dialogs.glade")
+        self.dialog = builder.get_object("dialog:edit_platform")
+        self.info_box = builder.get_object("dialog:edit_platform:info_box")
+        self.cpe = builder.get_object("dialog:edit_platform:cpe")
+        self.part = builder.get_object("dialog:edit_platform:cpe_part")
+        self.vendor = builder.get_object("dialog:edit_platform:cpe_vendor")
+        self.product = builder.get_object("dialog:edit_platform:cpe_product")
+        self.version = builder.get_object("dialog:edit_platform:cpe_version")
+        self.update = builder.get_object("dialog:edit_platform:cpe_update")
+        self.edition = builder.get_object("dialog:edit_platform:cpe_edition")
+        self.language = builder.get_object("dialog:edit_platform:cpe_language")
+        builder.get_object("dialog:edit_platform:btn_cancel").connect("clicked", self.__dialog_destroy)
+        builder.get_object("dialog:edit_platform:btn_ok").connect("clicked", self.__do)
+
+        self.cpe.set_text("cpe:/")
+        self.cpe.connect("changed", self.__cb_parse)
+        self.part.connect("changed", self.__cb_build)
+        self.vendor.connect("changed", self.__cb_build)
+        self.product.connect("changed", self.__cb_build)
+        self.version.connect("changed", self.__cb_build)
+        self.update.connect("changed", self.__cb_build)
+        self.edition.connect("changed", self.__cb_build)
+        self.language.connect("changed", self.__cb_build)
+
+        self.core.notify_destroy("notify:not_selected")
+        (model, iter) = self.get_selection().get_selected()
+        if operation == self.data_model.CMD_OPER_ADD:
+            pass
+        elif operation == self.data_model.CMD_OPER_EDIT:
+            if not iter:
+                self.notifications.append(self.core.notify("Please select at least one item to edit", 2, msg_id="notify:not_selected"))
+                return
+            else:
+                self.cpe.set_text(model[iter][self.COLUMN_TEXT])
+        elif operation == self.data_model.CMD_OPER_DEL:
+            if not iter:
+                self.notifications.append(self.core.notify("Please select at least one item to delete", 2, msg_id="notify:not_selected"))
+                return
+            else: 
+                iter = self.dialogDel(self.core.main_window, self.get_selection())
+                if iter != None:
+                    self.__do()
+                return
+        else: 
+            logger.error("Unknown operation for rationale dialog: \"%s\"" % (operation,))
+            return
+
+        self.dialog.set_transient_for(self.core.main_window)
+        self.dialog.show_all()
+
+    def fill(self):
+        self.clear()
+        for item in self.data_model.get_platforms():
+            self.get_model().append([item])
+
+class EditValues(abstract.MenuButton):
     
     COLUMN_ID = 0
     COLUMN_TITLE = 1
@@ -1912,89 +2019,7 @@ class EditValues(abstract.MenuButton, abstract.ControlEditWindow):
             self.questions.fill()
             self.values_values.fill()
 
-    def cb_combo_value_operator(self,widget):
-        COLUMN_DATA = 0
-        (model,iter) = self.selection.get_selected()
-        if iter:
-            value = model.get_value(iter, self.COLUMN_OBJECT)
-            active = widget.get_active()
-            if active > 0:
-                combo_model = widget.get_model()
-                self.DHEditValueOper(value, combo_model[active][COLUMN_DATA])
-        else:
-            logger.error("Error: Not select value.")
             
-    def cb_combo_value_interactive(self,widget):
-        COLUMN_DATA = 0
-        (model,iter) = self.selection.get_selected()
-        if iter:
-            self.value_nbook.set_sensitive(True)
-            value = model.get_value(iter, self.COLUMN_OBJECT)
-            self.DHChBoxValueInteractive(value, widget.get_active())
-        else:
-            logger.error("Error: Not select value.")
-
-    def cb_match(self, widget, event):
-
-        vys = self.DHEditBoundMatch(self.value_akt, None, None, widget.get_text())
-        if not vys:
-            logger.error("Not changed value match")
-        else:
-            self.emit("item_changed")
-            
-    def cb_control_bound(self, widget, event, type):
-        
-        if widget.get_text() == "":
-            data = "nan"
-        else:
-            data = widget.get_text()
-            
-        try:
-            data = float(data)
-        except:
-            self.dialogInfo("Invalid number in %s bound." % (type), self.core.main_window)
-            if self.selector_empty:
-                if type == "lower":
-                    if str(self.selector_empty.get_lower_bound()) != "nan":
-                        widget.set_text(str(self.selector_empty.get_lower_bound()))
-                    else:
-                        widget.set_text("")
-                else:
-                    if str(self.selector_empty.get_upper_bound()) != "nan":
-                        widget.set_text(str(self.selector_empty.get_upper_bound()))
-                    else:
-                        widget.set_text("")
-            else:
-                widget.set_text("")
-            return
-
-        upper = self.text_upper_bound.get_text()
-        lower = self.text_lower_bound.get_text()
-
-        if upper != "" and upper != "nan" and lower != "" and lower != "nan":
-            if lower >= upper:
-                self.dialogInfo("Upper bound must be greater then lower bound.", self.core.main_window)
-                if self.selector_empty:
-                    if type == "lower":
-                        if str(self.selector_empty.get_lower_bound()) != "nan":
-                            widget.set_text(str(self.selector_empty.get_lower_bound()))
-                    else:
-                        if str(self.selector_empty.get_upper_bound()) != "nan":
-                            widget.set_text(str(self.selector_empty.get_upper_bound()))
-                else:
-                    widget.set_text("")
-                return
-        #add bound
-        if type == "upper":
-            vys = self.DHEditBoundMatch(self.value_akt, data, None, None)
-        else:
-            vys = self.DHEditBoundMatch(self.value_akt, None, data, None)
-        
-        if not vys:
-            logger.error("Not changed value bound.")
-        else:
-            self.emit("item_changed")
-
 class EditValuesValues(abstract.ListEditor):
 
     COLUMN_SELECTOR     = 0
@@ -2225,15 +2250,15 @@ class EditFixtextOption(commands.DHEditItems,abstract.ControlEditWindow):
         self.entry_reference.connect("focus-out-event",self.cb_entry_fixtext_reference)
         
         self.combo_strategy = self.builder.get_object("edit:operations:fixtext:combo_strategy1")
-        self.set_model_to_comboBox(self.combo_strategy,self.combo_model_strategy, self.COMBO_COLUMN_VIEW)
+        self.combo_strategy.set_model(abstract.Enum_type.combo_model_strategy)
         self.combo_strategy.connect( "changed", self.cb_combo_fixtext_strategy)
         
         self.combo_complexity = self.builder.get_object("edit:operations:fixtext:combo_complexity1")
-        self.set_model_to_comboBox(self.combo_complexity,self.combo_model_level, self.COMBO_COLUMN_VIEW)
+        self.combo_complexity.set_model(abstract.Enum_type.combo_model_level)
         self.combo_complexity.connect( "changed", self.cb_combo_fixtext_complexity)
     
         self.combo_disruption = self.builder.get_object("edit:operations:fixtext:combo_disruption1")
-        self.set_model_to_comboBox(self.combo_disruption,self.combo_model_level, self.COMBO_COLUMN_VIEW)
+        self.combo_disruption.set_model(abstract.Enum_type.combo_model_level)
         self.combo_disruption.connect( "changed", self.cb_combo_fixtext_disruption)
     
         self.chbox_reboot = self.builder.get_object("edit:operations:fixtext:chbox_reboot1")
@@ -2376,15 +2401,15 @@ class EditFixOption(commands.DHEditItems,abstract.ControlEditWindow):
         self.entry_platform.connect("focus-out-event",self.cb_entry_fix_platform)
         
         self.combo_strategy = self.builder.get_object("edit:operations:fix:combo_strategy")
-        self.set_model_to_comboBox(self.combo_strategy,self.combo_model_strategy, self.COMBO_COLUMN_VIEW)
+        self.combo_strategy.set_model(abstract.Enum_type.combo_model_strategy)
         self.combo_strategy.connect( "changed", self.cb_combo_fix_strategy)
         
         self.combo_complexity = self.builder.get_object("edit:operations:fix:combo_complexity")
-        self.set_model_to_comboBox(self.combo_complexity, self.combo_model_level, self.COMBO_COLUMN_VIEW)
+        self.combo_complexity.set_model(abstract.Enum_type.combo_model_level)
         self.combo_complexity.connect( "changed", self.cb_combo_fix_complexity)
     
         self.combo_disruption = self.builder.get_object("edit:operations:fix:combo_disruption")
-        self.set_model_to_comboBox(self.combo_disruption, self.combo_model_level, self.COMBO_COLUMN_VIEW)
+        self.combo_disruption.set_model(abstract.Enum_type.combo_model_level)
         self.combo_disruption.connect( "changed", self.cb_combo_fix_disruption)
     
         self.chbox_reboot = self.builder.get_object("edit:operations:fix:chbox_reboot")

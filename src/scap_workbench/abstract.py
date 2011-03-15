@@ -97,6 +97,26 @@ ENUM_ROLE=enum((
     [openscap.OSCAP.XCCDF_ROLE_UNSCORED, "UNSCORED", "Check the rule and include the result in reports, but do not include it into score computations"],
     [openscap.OSCAP.XCCDF_ROLE_UNCHECKED, "UNCHECKED", "Don't check the rule, result will be XCCDF_RESULT_UNKNOWN."]))
 
+ENUM_STRATEGY=enum((
+    [openscap.OSCAP.XCCDF_STRATEGY_UNKNOWN, "UNKNOWN", "Strategy not defined."],
+    [openscap.OSCAP.XCCDF_STRATEGY_CONFIGURE, "CONFIGURE", "Adjust target config or settings."],
+    [openscap.OSCAP.XCCDF_STRATEGY_DISABLE, "DISABLE", "Turn off or deinstall something."],
+    [openscap.OSCAP.XCCDF_STRATEGY_ENABLE, "ENABLE", "Turn on or install something."],
+    [openscap.OSCAP.XCCDF_STRATEGY_PATCH, "PATCH", "Apply a patch, hotfix, or update."],
+    [openscap.OSCAP.XCCDF_STRATEGY_POLICY, "POLICY", "Remediation by changing policies/procedures."],
+    [openscap.OSCAP.XCCDF_STRATEGY_RESTRICT, "RESTRICT", "Adjust permissions or ACLs."],
+    [openscap.OSCAP.XCCDF_STRATEGY_UPDATE, "UPDATE", "Install upgrade or update the system"],
+    [openscap.OSCAP.XCCDF_STRATEGY_COMBINATION, "COMBINATION", "Combo of two or more of the above."]))
+
+ENUM_OPERATOR_BOOL=enum((
+    [openscap.OSCAP.XCCDF_OPERATOR_EQUALS, "EQUALS", "Equality"],
+    [openscap.OSCAP.XCCDF_OPERATOR_NOT_EQUAL, "NOT EQUAL", "Inequality"]))
+
+ENUM_OPERATOR_STRING=enum((
+    [openscap.OSCAP.XCCDF_OPERATOR_EQUALS, "EQUALS", "Equality"],
+    [openscap.OSCAP.XCCDF_OPERATOR_NOT_EQUAL, "NOT EQUAL", "Inequality"],
+    [openscap.OSCAP.XCCDF_OPERATOR_PATTERN_MATCH, "PATTERN_MATCH", "Match a regular expression."]))
+
 class Menu(EventObject):
     """ 
     Create Main item for TreeToolBar_toggleButtonGroup and draw all tree Menu
@@ -674,15 +694,8 @@ class Enum_type:
         combo_model_level.append(item)
     
     combo_model_strategy = gtk.ListStore(int, str, str)
-    combo_model_strategy.append([openscap.OSCAP.XCCDF_STRATEGY_UNKNOWN, "UNKNOWN", "Strategy not defined."])
-    combo_model_strategy.append([openscap.OSCAP.XCCDF_STRATEGY_CONFIGURE, "CONFIGURE", "Adjust target config or settings."])
-    combo_model_strategy.append([openscap.OSCAP.XCCDF_STRATEGY_DISABLE, "DISABLE", "Turn off or deinstall something."])
-    combo_model_strategy.append([openscap.OSCAP.XCCDF_STRATEGY_ENABLE, "ENABLE", "Turn on or install something."])
-    combo_model_strategy.append([openscap.OSCAP.XCCDF_STRATEGY_PATCH, "PATCH", "Apply a patch, hotfix, or update."])
-    combo_model_strategy.append([openscap.OSCAP.XCCDF_STRATEGY_POLICY, "POLICY", "Remediation by changing policies/procedures."])
-    combo_model_strategy.append([openscap.OSCAP.XCCDF_STRATEGY_RESTRICT, "RESTRICT", "Adjust permissions or ACLs."])
-    combo_model_strategy.append([openscap.OSCAP.XCCDF_STRATEGY_UPDATE, "UPDATE", "Install upgrade or update the system"])
-    combo_model_strategy.append([openscap.OSCAP.XCCDF_STRATEGY_COMBINATION, "COMBINATION", "Combo of two or more of the above."])
+    for item in ENUM_STRATEGY:
+        combo_model_strategy.append(item)
     
     combo_model_status = gtk.ListStore(int, str, str)
     for item in ENUM_STATUS_CURRENT:
@@ -705,14 +718,12 @@ class Enum_type:
         combo_model_operator_number.append(item)
 
     combo_model_operator_bool = gtk.ListStore(int, str, str)
-    combo_model_operator_bool.append([openscap.OSCAP.XCCDF_OPERATOR_EQUALS, "EQUALS", "Equality"])
-    combo_model_operator_bool.append([openscap.OSCAP.XCCDF_OPERATOR_NOT_EQUAL, "NOT EQUAL", "Inequality"])
+    for item in ENUM_OPERATOR_BOOL:
+        combo_model_operator_bool.append(item)
 
     combo_model_operator_string = gtk.ListStore(int, str, str)
-    combo_model_operator_string.append([openscap.OSCAP.XCCDF_OPERATOR_EQUALS, "EQUALS", "Equality"])
-    combo_model_operator_string.append([openscap.OSCAP.XCCDF_OPERATOR_NOT_EQUAL, "NOT EQUAL", "Inequality"])
-    combo_model_operator_string.append([openscap.OSCAP.XCCDF_OPERATOR_PATTERN_MATCH, "PATTERN_MATCH", "Match a regular expression."])
-
+    for item in ENUM_OPERATOR_STRING:
+        combo_model_operator_string.append(item)
 
 class ListEditor(EventObject, Func, Enum_type):
     """ Abstract class for implementing all edit formulars that appear as list/tree view and 

@@ -2868,6 +2868,12 @@
                                                     <child>
                                                       <object class="GtkComboBox" id="edit:operations:combo_severity">
                                                         <property name="visible">True</property>
+                                                        <child>
+                                                          <object class="GtkCellRendererText" id="cellrenderertext15"/>
+                                                          <attributes>
+                                                            <attribute name="text">1</attribute>
+                                                          </attributes>
+                                                        </child>
                                                       </object>
                                                       <packing>
                                                         <property name="left_attach">1</property>
@@ -3033,6 +3039,12 @@
                                                             <child>
                                                             <object class="GtkComboBox" id="edit:operations:fixtext:combo_strategy1">
                                                             <property name="visible">True</property>
+                                                            <child>
+                                                            <object class="GtkCellRendererText" id="cellrenderertext19"/>
+                                                            <attributes>
+                                                            <attribute name="text">1</attribute>
+                                                            </attributes>
+                                                            </child>
                                                             </object>
                                                             <packing>
                                                             <property name="left_attach">1</property>
@@ -3045,6 +3057,12 @@
                                                             <child>
                                                             <object class="GtkComboBox" id="edit:operations:fixtext:combo_complexity1">
                                                             <property name="visible">True</property>
+                                                            <child>
+                                                            <object class="GtkCellRendererText" id="cellrenderertext20"/>
+                                                            <attributes>
+                                                            <attribute name="text">1</attribute>
+                                                            </attributes>
+                                                            </child>
                                                             </object>
                                                             <packing>
                                                             <property name="left_attach">1</property>
@@ -3057,6 +3075,12 @@
                                                             <child>
                                                             <object class="GtkComboBox" id="edit:operations:fixtext:combo_disruption1">
                                                             <property name="visible">True</property>
+                                                            <child>
+                                                            <object class="GtkCellRendererText" id="cellrenderertext21"/>
+                                                            <attributes>
+                                                            <attribute name="text">1</attribute>
+                                                            </attributes>
+                                                            </child>
                                                             </object>
                                                             <packing>
                                                             <property name="left_attach">1</property>
@@ -3339,6 +3363,12 @@
                                                             <child>
                                                             <object class="GtkComboBox" id="edit:operations:fix:combo_disruption">
                                                             <property name="visible">True</property>
+                                                            <child>
+                                                            <object class="GtkCellRendererText" id="cellrenderertext16"/>
+                                                            <attributes>
+                                                            <attribute name="text">1</attribute>
+                                                            </attributes>
+                                                            </child>
                                                             </object>
                                                             <packing>
                                                             <property name="left_attach">1</property>
@@ -3351,6 +3381,12 @@
                                                             <child>
                                                             <object class="GtkComboBox" id="edit:operations:fix:combo_complexity">
                                                             <property name="visible">True</property>
+                                                            <child>
+                                                            <object class="GtkCellRendererText" id="cellrenderertext17"/>
+                                                            <attributes>
+                                                            <attribute name="text">1</attribute>
+                                                            </attributes>
+                                                            </child>
                                                             </object>
                                                             <packing>
                                                             <property name="left_attach">1</property>
@@ -3363,6 +3399,12 @@
                                                             <child>
                                                             <object class="GtkComboBox" id="edit:operations:fix:combo_strategy">
                                                             <property name="visible">True</property>
+                                                            <child>
+                                                            <object class="GtkCellRendererText" id="cellrenderertext18"/>
+                                                            <attributes>
+                                                            <attribute name="text">1</attribute>
+                                                            </attributes>
+                                                            </child>
                                                             </object>
                                                             <packing>
                                                             <property name="left_attach">1</property>
@@ -3718,7 +3760,7 @@
                                                             <property name="vscrollbar_policy">automatic</property>
                                                             <property name="shadow_type">out</property>
                                                             <child>
-                                                            <object class="GtkTreeView" id="edit:dependencies:lv_platform">
+                                                            <object class="GtkTreeView" id="edit:xccdf:dependencies:platforms">
                                                             <property name="visible">True</property>
                                                             <property name="can_focus">True</property>
                                                             <property name="enable_grid_lines">both</property>
@@ -3735,7 +3777,7 @@
                                                             <property name="spacing">5</property>
                                                             <property name="layout_style">end</property>
                                                             <child>
-                                                            <object class="GtkButton" id="edit:dependencies:btn_platform_add">
+                                                            <object class="GtkButton" id="edit:xccdf:dependencies:platforms:btn_add">
                                                             <property name="label" translatable="yes">Add</property>
                                                             <property name="visible">True</property>
                                                             <property name="can_focus">True</property>
@@ -3748,7 +3790,7 @@
                                                             </packing>
                                                             </child>
                                                             <child>
-                                                            <object class="GtkButton" id="edit:dependencies:btn_platform_edit">
+                                                            <object class="GtkButton" id="edit:xccdf:dependencies:platforms:btn_edit">
                                                             <property name="label" translatable="yes">Edit</property>
                                                             <property name="visible">True</property>
                                                             <property name="can_focus">True</property>
@@ -3761,7 +3803,7 @@
                                                             </packing>
                                                             </child>
                                                             <child>
-                                                            <object class="GtkButton" id="edit:dependencies:btn_platform_del">
+                                                            <object class="GtkButton" id="edit:xccdf:dependencies:platforms:btn_del">
                                                             <property name="label" translatable="yes">Delete</property>
                                                             <property name="visible">True</property>
                                                             <property name="can_focus">True</property>

@@ -528,6 +528,11 @@ class DataHandler(object):
         item = self.core.lib["policy_model"].benchmark.get_item(self.core.selected_item)
         if item: return item.rationale
         else: return []
+    def get_platforms(self):
+        if not self.check_library(): return None
+        item = self.core.lib["policy_model"].benchmark.get_item(self.core.selected_item)
+        if item: return item.platforms
+        else: return []
 
     def remove_item(self, id):
         item = self.get_item(id)
@@ -701,7 +706,30 @@ class DataHandler(object):
         elif operation == self.CMD_OPER_DEL:
             return item.rationale.remove(obj)
 
-        else: raise AttributeError("Edit question: Unknown operation %s" % (operation,))
+        else: raise AttributeError("Edit rationale: Unknown operation %s" % (operation,))
+
+    def edit_platform(self, operation, obj, cpe, item=None):
+
+        if not self.check_library(): return None
+
+        if item == None:
+            item = self.core.lib["policy_model"].benchmark.get_item(self.core.selected_item)
+
+        if operation == self.CMD_OPER_ADD:
+            return item.add_platform(cpe)
+
+        elif operation == self.CMD_OPER_EDIT:
+            if obj == None: 
+                return False
+            #TODO: We have to remove and add in case of edit :'(
+            item.platforms.remove(obj)
+            item.add_platform(cpe)
+            return True
+
+        elif operation == self.CMD_OPER_DEL:
+            return item.platforms.remove(obj)
+
+        else: raise AttributeError("Edit platform: Unknown operation %s" % (operation,))
 
     def __substitute(self, node_type, id, arg=None):
         if not self.check_library(): return None
@@ -831,6 +859,9 @@ class DHXccdf(DataHandler):
     def get_statuses(self):
         if not self.check_library(): return None
         return self.core.lib["policy_model"].benchmark.statuses
+    def get_platforms(self):
+        if not self.check_library(): return None
+        return self.core.lib["policy_model"].benchmark.platforms
 
     def edit_title(self, operation, obj, lang, text):
         if not self.check_library(): return None
