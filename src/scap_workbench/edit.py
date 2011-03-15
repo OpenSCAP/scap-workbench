@@ -568,7 +568,7 @@ class MenuButtonEditItems(abstract.MenuButton, abstract.Func):
 
         # -- CONTENT REF --
         self.content_ref_dialog = FindOvalDef(self.core, "guid:edit:evaluation:content_ref:dialog", self.data_model)
-        self.content_ref_find.connect("clicked", self.content_ref_dialog.dialog, self.href)
+        self.content_ref_find.connect("clicked", self.__cb_find_oval_definition)
 
         # -------------
 
@@ -592,6 +592,14 @@ class MenuButtonEditItems(abstract.MenuButton, abstract.Func):
         self.add_receiver("gui:edit:xccdf:values", "update", self.__update_item)
         self.add_receiver("gui:edit:xccdf:values:titles", "update", self.__update_item)
         self.add_receiver("guid:edit:evaluation:content_ref:dialog", "update", self.__update)
+
+    def __cb_find_oval_definition(self, widget):
+
+        model = self.href.get_model()
+        if self.href.get_active() == -1:
+            self.notifications.append(self.core.notify("No definition file available", 2, msg_id="notify:definition_available"))
+            return
+        self.content_ref_dialog.dialog(None, model[self.href.get_active()][0])
 
     def __change(self, widget, event=None):
 
@@ -629,6 +637,7 @@ class MenuButtonEditItems(abstract.MenuButton, abstract.Func):
             if iter:
                 href = iter[1]
                 self.data_model.set_item_content(href=href)
+                self.core.notify_destroy("notify:definition_available")
         else: 
             logger.error("Change \"%s\" not supported object in \"%s\"" % (object, widget))
             return
@@ -639,7 +648,8 @@ class MenuButtonEditItems(abstract.MenuButton, abstract.Func):
         file = os.path.basename(widget.get_filename())
 
         self.data_model.add_oval_reference(path)
-        self.data_model.set_item_content(href=file)
+        retval, err = self.data_model.set_item_content(href=file)
+        if not retval: self.notifications.append(self.core.notify(err, 1, msg_id="notify:set_content_ref"))
         self.__update()
 
     def __cb_value_clicked(self, widget, event):
@@ -653,19 +663,6 @@ class MenuButtonEditItems(abstract.MenuButton, abstract.Func):
                 if not id: return
             else: return
             self.list_item.search(id, 1)
-
-    def cb_chbox_selected(self, widget):
-
-        selection = self.tw_items.get_selection()
-        (model, iter) = selection.get_selected()
-        if iter:
-            if model != self.ref_model:
-                map, struct = self.list_item.map_filter
-                path = map[model.get_path(iter)]
-                iter = self.ref_model.get_iter(path)
-                model= self.ref_model   
-            model.set_value(iter, 5, widget.get_active())
-            self.data_model.DHEditChboxSelected(widget, self.item)
 
     def __section_list_load(self):
         self.section_list.get_model().clear()
@@ -2877,15 +2874,15 @@ class FindOvalDef(abstract.Window, abstract.ListEditor):
     def __dialog_destroy(self, widget=None):
         """
         """
-        if self.dialog: 
-            self.dialog.destroy()
+        if self.wdialog: 
+            self.wdialog.destroy()
 
     def dialog(self, widget, href):
         """
         """
         builder = gtk.Builder()
         builder.add_from_file("/usr/share/scap-workbench/dialogs.glade")
-        self.dialog = builder.get_object("dialog:find_definition")
+        self.wdialog = builder.get_object("dialog:find_definition")
         self.info_box = builder.get_object("dialog:find_definition:info_box")
         self.definitions = builder.get_object("dialog:find_definition:definitions")
         self.search = builder.get_object("dialog:find_definition:search")
@@ -2901,9 +2898,9 @@ class FindOvalDef(abstract.Window, abstract.ListEditor):
         modelfilter.set_visible_func(self.filter_treeview, data=[0,1])
         self.definitions.set_model(modelfilter)
 
-        definitions = self.data_model.get_oval_definitions(href.get_model()[href.get_active()][0])
+        definitions = self.data_model.get_oval_definitions(href)
         for definition in definitions: 
             self.definitions.get_model().get_model().append([definition.id, definition.title])
 
-        self.dialog.set_transient_for(self.core.main_window)
-        self.dialog.show_all()
+        self.wdialog.set_transient_for(self.core.main_window)
+        self.wdialog.show_all()

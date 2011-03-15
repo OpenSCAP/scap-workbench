@@ -250,11 +250,11 @@ class DataHandler(object):
                 return (False, "Can't set up the content: More content refs present")
             elif len(rule.checks[0].content_refs) == 0:
                 rule.checks[0].add_content_ref(openscap.xccdf.check_content_ref())
-            else: 
-                if name != None and rule.checks[0].content_refs[0].name != name:
-                    rule.checks[0].content_refs[0].name = name
-                if href != None and rule.checks[0].content_refs[0].href != href:
-                    rule.checks[0].content_refs[0].href = href
+
+            if name != None and rule.checks[0].content_refs[0].name != name:
+                rule.checks[0].content_refs[0].name = name
+            if href != None and rule.checks[0].content_refs[0].href != href:
+                rule.checks[0].content_refs[0].href = href
                         
         else: return False, "Set content ref fatal: Item is not a rule !"
 
