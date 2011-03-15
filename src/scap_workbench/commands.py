@@ -757,7 +757,6 @@ class DataHandler(object):
                 
         return None
 
-
     def substitute(self, description, with_policy=False):
         policy = None
         if with_policy: policy = self.core.lib["policy_model"].get_policy_by_id(self.core.selected_profile)
@@ -765,6 +764,33 @@ class DataHandler(object):
         if sub != None:
             return sub
         else: return description
+
+    def get_oval_definitions(self, href):
+        if not self.check_library(): return None
+
+        if href not in self.core.lib["names"].keys():
+            return None
+
+        def_model = self.core.lib["names"][href][1]
+
+        return def_model.definitions
+
+
+    def parse_oval_definition(self, definition):
+        values = {
+                "affected":     definition.affected,
+                #"class":        definition.class, #Python problem
+                "criteria":     definition.criteria,
+                "deprecation":  definition.deprecation,
+                "description":  definition.description,
+                "id":           definition.id,
+                "metadata":     definition.metadata,
+                "notes":        definition.notes,
+                "references":   definition.references,
+                "title":        definition.title,
+                "version":      definition.version
+                }
+        return values
 
 
 class DHXccdf(DataHandler):

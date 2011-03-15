@@ -451,7 +451,7 @@ class MenuButtonEditProfiles(abstract.MenuButton):
         self.emit("update")
 
             
-class MenuButtonEditItems(abstract.MenuButton):
+class MenuButtonEditItems(abstract.MenuButton, abstract.Func):
     """
     GUI for refines.
     """
@@ -509,6 +509,7 @@ class MenuButtonEditItems(abstract.MenuButton):
         self.content_ref = self.builder.get_object("edit:xccdf:items:evaluation:content_ref")
         self.content_ref.connect("focus-out-event", self.__change)
         self.content_ref.connect("key-press-event", self.__change)
+        self.content_ref_find = self.builder.get_object("edit:xccdf:items:evaluation:content_ref:find")
         self.href = self.builder.get_object("edit:xccdf:items:evaluation:href")
         self.href.connect("changed", self.__change)
         self.href_dialog = self.builder.get_object("edit:xccdf:items:evaluation:href:dialog")
@@ -565,6 +566,10 @@ class MenuButtonEditItems(abstract.MenuButton):
         builder.get_object("edit:xccdf:dependencies:platforms:btn_edit").connect("clicked", self.platforms.dialog, self.data_model.CMD_OPER_EDIT)
         builder.get_object("edit:xccdf:dependencies:platforms:btn_del").connect("clicked", self.platforms.dialog, self.data_model.CMD_OPER_DEL)
 
+        # -- CONTENT REF --
+        self.content_ref_dialog = FindOvalDef(self.core, "guid:edit:evaluation:content_ref:dialog", self.data_model)
+        self.content_ref_find.connect("clicked", self.content_ref_dialog.dialog, self.href)
+
         # -------------
 
         """Get widgets from Glade: Part main.glade in edit
@@ -586,6 +591,7 @@ class MenuButtonEditItems(abstract.MenuButton):
         self.add_receiver("gui:edit:item_list", "update", self.__update)
         self.add_receiver("gui:edit:xccdf:values", "update", self.__update_item)
         self.add_receiver("gui:edit:xccdf:values:titles", "update", self.__update_item)
+        self.add_receiver("guid:edit:evaluation:content_ref:dialog", "update", self.__update)
 
     def __change(self, widget, event=None):
 
@@ -913,7 +919,7 @@ class EditRequires(commands.DHEditItems,abstract.ControlEditWindow):
     
     def __cb_del_row(self, widget):
         pass
-    
+
 class EditItemValues(abstract.ListEditor):
 
     COLUMN_ID       = 0
@@ -955,20 +961,6 @@ class EditItemValues(abstract.ListEditor):
         """
         if self.dialog: 
             self.dialog.destroy()
-
-    def filter_treeview(self, model, iter, data):
-        text = self.search.get_text()
-        if len(text) == 0: 
-            return True
-        pattern = re.compile(text, re.I)
-        for col in data:
-            found = re.search(pattern, model[iter][col])
-            if found != None: return True
-        return False
-
-    def search_treeview(self, widget, treeview):
-        treeview.get_model().refilter()
-        return
 
     def dialog(self, widget, operation):
         """
@@ -1756,12 +1748,12 @@ class EditPlatform(abstract.ListEditor):
             active = ""
         else: active = ["a", "h", "o"][self.part.get_active()]
         self.cpe.set_text("cpe:/%s:%s:%s:%s:%s:%s:%s" % (active, 
-            self.vendor.get_text(),
-            self.product.get_text(),
-            self.version.get_text(),
-            self.update.get_text(),
-            self.edition.get_text(),
-            self.language.get_text()))
+            self.vendor.get_text().replace(" ", "_"),
+            self.product.get_text().replace(" ", "_"),
+            self.version.get_text().replace(" ", "_"),
+            self.update.get_text().replace(" ", "_"),
+            self.edition.get_text().replace(" ", "_"),
+            self.language.get_text().replace(" ", "_")))
         self.cpe.handler_unblock_by_func(self.__cb_parse)
 
     def __cb_parse(self, widget):
@@ -2857,3 +2849,61 @@ class EditSelectIdDialogWindow():
             #self.core.notify("Can't filter items: %s" % (e,), 3)
             logger.error("Can't filter items: %s" % (e,))
             return False
+
+class FindOvalDef(abstract.Window, abstract.ListEditor):
+
+    COLUMN_ID       = 0
+    COLUMN_VALUE    = 1
+
+    def __init__(self, core, id, data_model):
+
+        self.data_model = data_model
+        self.core = core
+        abstract.Window.__init__(self, id, core)
+        self.add_sender(id, "update")
+
+    def __do(self, widget=None):
+        """
+        """
+        self.core.notify_destroy("notify:dialog_notify")
+        (model, iter) = self.definitions.get_selection().get_selected()
+        if not iter:
+            self.core.notify("You have to chose the definition !", 2, self.info_box, msg_id="notify:dialog_notify")
+            return
+        ret, err = self.data_model.set_item_content(name=model[iter][self.COLUMN_ID])
+        self.emit("update")
+        self.__dialog_destroy()
+
+    def __dialog_destroy(self, widget=None):
+        """
+        """
+        if self.dialog: 
+            self.dialog.destroy()
+
+    def dialog(self, widget, href):
+        """
+        """
+        builder = gtk.Builder()
+        builder.add_from_file("/usr/share/scap-workbench/dialogs.glade")
+        self.dialog = builder.get_object("dialog:find_definition")
+        self.info_box = builder.get_object("dialog:find_definition:info_box")
+        self.definitions = builder.get_object("dialog:find_definition:definitions")
+        self.search = builder.get_object("dialog:find_definition:search")
+        self.search.connect("changed", self.search_treeview, self.definitions)
+        builder.get_object("dialog:find_definition:btn_cancel").connect("clicked", self.__dialog_destroy)
+        builder.get_object("dialog:find_definition:btn_ok").connect("clicked", self.__do)
+
+        self.core.notify_destroy("notify:not_selected")
+        self.definitions.append_column(gtk.TreeViewColumn("ID of Definition", gtk.CellRendererText(), text=self.COLUMN_ID))
+        self.definitions.append_column(gtk.TreeViewColumn("Title", gtk.CellRendererText(), text=self.COLUMN_VALUE))
+        self.definitions.set_model(gtk.ListStore(str, str))
+        modelfilter = self.definitions.get_model().filter_new()
+        modelfilter.set_visible_func(self.filter_treeview, data=[0,1])
+        self.definitions.set_model(modelfilter)
+
+        definitions = self.data_model.get_oval_definitions(href.get_model()[href.get_active()][0])
+        for definition in definitions: 
+            self.definitions.get_model().get_model().append([definition.id, definition.title])
+
+        self.dialog.set_transient_for(self.core.main_window)
+        self.dialog.show_all()

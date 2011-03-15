@@ -309,7 +309,14 @@ class MenuButton(EventObject):
                 self.body.hide()
 
 class Window(EventObject):
-    pass
+
+    def __init__(self, id, core=None):
+        
+        #create view
+        self.core = core
+        self.id = id
+        EventObject.__init__(self, core)
+        self.core.register(id, self)
 
 class List(EventObject):
     
@@ -675,6 +682,9 @@ class Func:
         if data != "" or data != None:
             try:
                 data = float(data)
+                if data < 0:
+                    self.notifications.append(self.core.notify("Invalid number in %s. Please insert positive real number." % (text,), 2, info_box, msg_id="notify:float_format"))
+                    return None
             except:
                 self.notifications.append(self.core.notify("Invalid number in %s." % (text,), 2, info_box, msg_id="notify:float_format"))
                 return None
@@ -794,6 +804,20 @@ class ListEditor(EventObject, Func, Enum_type):
 
     def __preview_dialog_destroy(self, widget):
         self.preview_dialog.destroy()
+
+    def filter_treeview(self, model, iter, data):
+        text = self.search.get_text()
+        if len(text) == 0: 
+            return True
+        pattern = re.compile(text, re.I)
+        for col in data:
+            found = re.search(pattern, model[iter][col])
+            if found != None: return True
+        return False
+
+    def search_treeview(self, widget, treeview):
+        treeview.get_model().refilter()
+        return
 
     def preview(self, widget):
 
