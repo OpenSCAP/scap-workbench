@@ -21,7 +21,7 @@
 #      Vladimir Oberreiter  <xoberr01@stud.fit.vutbr.cz>
 
 import pygtk
-import gtk
+import gtk, gnome, gnome.ui
 import gobject
 import logging
 import pango
@@ -383,4 +383,5 @@ class MainWindow(abstract.Window, threading.Thread):
         return False
 
     def run(self):
+        gnome.init("SCAP Workbench", "0.2.3")
         gtk.main()

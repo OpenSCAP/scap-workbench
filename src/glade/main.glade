@@ -5037,6 +5037,7 @@ Weight must be a positive real number.</property>
                                 <property name="model">edit:xccdf:profiles:model</property>
                                 <property name="headers_visible">False</property>
                                 <property name="headers_clickable">False</property>
+                                <property name="reorderable">True</property>
                                 <child>
                                   <object class="GtkTreeViewColumn" id="treeviewcolumn1">
                                     <property name="visible">False</property>

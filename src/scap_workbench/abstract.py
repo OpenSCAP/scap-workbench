@@ -26,9 +26,14 @@ import gobject
 import re
 
 from events import EventObject
-from htmltextview import HtmlTextView
 import core
 import logging
+
+try:
+    import webkit as webkit
+except ImportError:
+    from htmltextview import HtmlTextView
+    webkit=None
 
 logger = logging.getLogger("scap-workbench")
 
@@ -838,21 +843,30 @@ class ListEditor(EventObject, Func, Enum_type):
         bg_color = window.get_style().bg[gtk.STATE_NORMAL]
         window.destroy()
 
-        description = HtmlTextView()
-        description.set_wrap_mode(gtk.WRAP_WORD)
-        description.modify_base(gtk.STATE_NORMAL, bg_color)
-        self.preview_scw.add(description)
-
         desc = self.__model.get_value(iter, self.COLUMN_TEXT) or ""
         desc = desc.replace("xhtml:","")
         desc = desc.replace("xmlns:", "")
         desc = self.data_model.substitute(desc)
         if desc == "": desc = "No description"
-        desc = "<body>"+desc+"</body>"
-        try:
-            description.display_html(desc)
-        except Exception as err:
-            logger.error("Exception: %s", err)
+        desc = "<body><div>"+desc+"</div></body>"
+
+        if webkit != None:
+            description = webkit.WebView()
+            self.preview_scw.add(description)
+            description.load_html_string(desc, "file:///")
+            description.set_zoom_level(0.75)
+            #description.modify_bg(gtk.STATE_NORMAL, bg_color)
+            #description.parent.modify_bg(gtk.STATE_NORMAL, bg_color)
+        else:
+            description = HtmlTextView()
+            description.set_wrap_mode(gtk.WRAP_WORD)
+            description.modify_base(gtk.STATE_NORMAL, bg_color)
+            self.preview_scw.add(description)
+            try:
+                description.display_html(desc)
+            except Exception as err:
+                logger.error("Exception: %s", err)
+
 
         self.preview_dialog.set_transient_for(self.core.main_window)
         self.preview_dialog.show_all()

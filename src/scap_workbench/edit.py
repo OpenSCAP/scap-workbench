@@ -40,6 +40,11 @@ except Exception as ex:
     logger.error("OpenScap library initialization failed: %s", ex)
     openscap=None
     
+try:
+    import webkit as webkit
+except ImportError:
+    webkit=None
+
 import commands
 import filter
 import render
@@ -956,8 +961,8 @@ class EditItemValues(abstract.ListEditor):
     def __dialog_destroy(self, widget=None):
         """
         """
-        if self.dialog: 
-            self.dialog.destroy()
+        if self.wdialog: 
+            self.wdialog.destroy()
 
     def dialog(self, widget, operation):
         """
@@ -965,7 +970,7 @@ class EditItemValues(abstract.ListEditor):
         self.operation = operation
         builder = gtk.Builder()
         builder.add_from_file("/usr/share/scap-workbench/dialogs.glade")
-        self.dialog = builder.get_object("dialog:find_value")
+        self.wdialog = builder.get_object("dialog:find_value")
         self.info_box = builder.get_object("dialog:find_value:info_box")
         self.values = builder.get_object("dialog:find_value:values")
         self.export_name = builder.get_object("dialog:find_value:export_name")
@@ -991,8 +996,8 @@ class EditItemValues(abstract.ListEditor):
                     else: title = item["titles"][item["titles"].keys()[0]]+" ["+item["titles"].keys()[0]+"]"
                 self.values.get_model().get_model().append([value.id, title, value])
 
-            self.dialog.set_transient_for(self.core.main_window)
-            self.dialog.show_all()
+            self.wdialog.set_transient_for(self.core.main_window)
+            self.wdialog.show_all()
         elif operation == self.data_model.CMD_OPER_EDIT:
             if not iter:
                 self.notifications.append(self.core.notify("Please select at least one item to delete", 2, msg_id="notify:not_selected"))
@@ -1016,16 +1021,16 @@ class EditItemValues(abstract.ListEditor):
             self.values.set_sensitive(False)
             self.search.set_sensitive(False)
             self.export_name.set_text(model[iter][self.COLUMN_EXPORT])
-            self.dialog.set_transient_for(self.core.main_window)
-            self.dialog.show_all()
+            self.wdialog.set_transient_for(self.core.main_window)
+            self.wdialog.show_all()
 
         elif operation == self.data_model.CMD_OPER_BIND:
             self.values.append_column(gtk.TreeViewColumn("ID of Value", gtk.CellRendererText(), text=self.COLUMN_ID))
             self.values.append_column(gtk.TreeViewColumn("Title", gtk.CellRendererText(), text=self.COLUMN_VALUE))
             self.values.set_sensitive(False)
 
-            self.dialog.set_transient_for(self.core.main_window)
-            self.dialog.show_all()
+            self.wdialog.set_transient_for(self.core.main_window)
+            self.wdialog.show_all()
 
         elif operation == self.data_model.CMD_OPER_DEL:
             if not iter:
@@ -1081,8 +1086,8 @@ class EditTitle(abstract.ListEditor):
     def __dialog_destroy(self, widget=None):
         """
         """
-        if self.dialog: 
-            self.dialog.destroy()
+        if self.wdialog: 
+            self.wdialog.destroy()
 
     def dialog(self, widget, operation):
         """
@@ -1090,7 +1095,7 @@ class EditTitle(abstract.ListEditor):
         self.operation = operation
         builder = gtk.Builder()
         builder.add_from_file("/usr/share/scap-workbench/dialogs.glade")
-        self.dialog = builder.get_object("dialog:edit_title")
+        self.wdialog = builder.get_object("dialog:edit_title")
         self.info_box = builder.get_object("dialog:edit_title:info_box")
         self.lang = builder.get_object("dialog:edit_title:lang")
         self.title = builder.get_object("dialog:edit_title:title")
@@ -1121,8 +1126,8 @@ class EditTitle(abstract.ListEditor):
             logger.error("Unknown operation for title dialog: \"%s\"" % (operation,))
             return
 
-        self.dialog.set_transient_for(self.core.main_window)
-        self.dialog.show_all()
+        self.wdialog.set_transient_for(self.core.main_window)
+        self.wdialog.show_all()
 
     def fill(self):
         """
@@ -1142,15 +1147,35 @@ class EditDescription(abstract.ListEditor):
         self.widget.append_column(gtk.TreeViewColumn("Language", gtk.CellRendererText(), text=self.COLUMN_LANG))
         self.widget.append_column(gtk.TreeViewColumn("Description", gtk.CellRendererText(), text=self.COLUMN_TEXT))
 
+    def regexp(self, regexp):
+        match = regexp.groups()
+        if match[1] in ["head", "body"]: 
+            return ""
+        elif match[1] in ["br", "hr"]: return match[0]+"xhtml:"+" ".join(match[1:3])+"/>" # unpaired tags
+        elif match[1] in ["sub"]: 
+            if match[2].find("idref") != -1: return match[0]+" ".join(match[1:3])+"/>" # <sub>
+            else: return "" # </sub>
+        else: return match[0]+"xhtml:"+" ".join(match[1:3]).strip()+">" # paired tags
+
     def __do(self, widget=None):
         """
         """
         item = None
-        buffer = self.description.get_buffer()
-        if self.iter and self.get_model() != None: 
-            item = self.get_model()[self.iter][self.COLUMN_OBJ]
+        (model, iter) = self.get_selection().get_selected()
+        if iter and model != None: 
+            item = model[iter][self.COLUMN_OBJ]
 
-        retval = self.data_model.edit_description(self.operation, item, self.lang.get_text(), buffer.get_text(buffer.get_start_iter(), buffer.get_end_iter()))
+        if self.operation == self.data_model.CMD_OPER_DEL:
+            retval = self.data_model.edit_description(self.operation, item, None, None)
+        else:
+            if self.switcher.get_active() == 1:
+                desc = self.description_html.get_buffer().get_text(self.description_html.get_buffer().get_start_iter(), self.description_html.get_buffer().get_end_iter())
+                self.description.load_html_string(desc or "", "file:///")
+            self.description.execute_script("document.title=document.documentElement.innerHTML;")
+            desc = self.description.get_main_frame().get_title()
+            desc = re.sub("(< */* *)([^>/ ]*) *([^>]*)/*>", self.regexp, desc)
+            retval = self.data_model.edit_description(self.operation, item, self.lang.get_text(), desc)
+
         self.fill()
         self.__dialog_destroy()
         self.emit("update")
@@ -1158,8 +1183,74 @@ class EditDescription(abstract.ListEditor):
     def __dialog_destroy(self, widget=None):
         """
         """
-        if self.dialog: 
-            self.dialog.destroy()
+        if self.wdialog: 
+            self.wdialog.destroy()
+
+    def __on_color_set(self, widget):
+        dialog = gtk.ColorSelectionDialog("Select Color")
+        if dialog.run() == gtk.RESPONSE_OK:
+            gc = str(dialog.colorsel.get_current_color())
+            color = "#" + "".join([gc[1:3], gc[5:7], gc[9:11]])
+            self.description.execute_script("document.execCommand('forecolor', null, '%s');" % color)
+        dialog.destroy()
+
+    def __on_font_set(self, widget):
+        dialog = gtk.FontSelectionDialog("Select a font")
+        if dialog.run() == gtk.RESPONSE_OK:
+            fname, fsize = dialog.fontsel.get_family().get_name(), dialog.fontsel.get_size()
+            self.description.execute_script("document.execCommand('fontname', null, '%s');" % fname)
+            self.description.execute_script("document.execCommand('fontsize', null, '%s');" % fsize)
+        dialog.destroy()
+
+    def __on_link_set(self, widget):
+        dialog = gtk.Dialog("Enter a URL:", self.core.main_window, 0,
+        (gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL, gtk.STOCK_OK, gtk.RESPONSE_OK))
+
+        entry = gtk.Entry()
+        dialog.vbox.pack_start(entry)
+        dialog.show_all()
+
+        if dialog.run() == gtk.RESPONSE_OK:
+            text = entry.get_text()
+            text = "<sub xmlns=\"http://checklists.nist.gov/xccdf/1.1\" idref=\""+text+"\"/>"
+            self.description.execute_script("document.execCommand('InsertHTML', true, '%s');" % text)
+        dialog.destroy()
+
+    def __on_code_set(self, action):
+        self.description.execute_script("document.execCommand('SetMark', null, 'code');")
+
+    def __on_action(self, action):
+        """
+        """
+        MAP = { "dialog:edit_description:action:bold":      "bold",
+                "dialog:edit_description:action:italic":    "italic",
+                "dialog:edit_description:action:underline": "underline",
+                "dialog:edit_description:action:outdent":   "Outdent",
+                "dialog:edit_description:action:indent":    "Indent",
+                "dialog:edit_description:action:bul_list":  "InsertUnorderedList",
+                "dialog:edit_description:action:num_list":  "InsertOrderedList"}
+        self.description.execute_script("document.execCommand('%s', false, false);" % MAP[action.get_name()])
+
+    def __on_zoom(self, action):
+        """
+        """
+        if action.get_name().split(":")[-1] == "zoomin":
+            self.description.zoom_in()
+        else: self.description.zoom_out()
+
+    def __propagate(self, widget):
+        
+        if widget.get_active() == 0:
+            self.description_sw.set_visible(True)
+            self.description_html_sw.set_visible(False)
+            desc = self.description_html.get_buffer().get_text(self.description_html.get_buffer().get_start_iter(), self.description_html.get_buffer().get_end_iter())
+            self.description.load_html_string(desc or "", "file:///")
+        elif widget.get_active() == 1:
+            self.description_sw.set_visible(False)
+            self.description_html_sw.set_visible(True)
+            self.description.execute_script("document.title=document.documentElement.innerHTML;")
+            desc = self.description.get_main_frame().get_title()
+            self.description_html.get_buffer().set_text(desc)
 
     def dialog(self, widget, operation):
         """
@@ -1167,39 +1258,74 @@ class EditDescription(abstract.ListEditor):
         self.operation = operation
         builder = gtk.Builder()
         builder.add_from_file("/usr/share/scap-workbench/dialogs.glade")
-        self.dialog = builder.get_object("dialog:edit_description")
+        self.wdialog = builder.get_object("dialog:edit_description")
         self.info_box = builder.get_object("dialog:edit_description:info_box")
         self.lang = builder.get_object("dialog:edit_description:lang")
-        self.description = builder.get_object("dialog:edit_description:description")
+        self.description_sw = builder.get_object("dialog:edit_description:description:sw")
+        self.description_tb = builder.get_object("dialog:edit_description:toolbar")
+        self.description_html = builder.get_object("dialog:edit_description:html")
+        self.description_html_sw = builder.get_object("dialog:edit_description:html:sw")
+        builder.get_object("dialog:edit_description:action:bold").connect("activate", self.__on_action)
+        builder.get_object("dialog:edit_description:action:italic").connect("activate", self.__on_action)
+        builder.get_object("dialog:edit_description:action:underline").connect("activate", self.__on_action)
+        builder.get_object("dialog:edit_description:action:code").connect("activate", self.__on_code_set)
+        builder.get_object("dialog:edit_description:action:num_list").connect("activate", self.__on_action)
+        builder.get_object("dialog:edit_description:action:bul_list").connect("activate", self.__on_action)
+        builder.get_object("dialog:edit_description:action:outdent").connect("activate", self.__on_action)
+        builder.get_object("dialog:edit_description:action:indent").connect("activate", self.__on_action)
+        builder.get_object("dialog:edit_description:action:link").connect("activate", self.__on_link_set)
+        builder.get_object("dialog:edit_description:action:zoomin").connect("activate", self.__on_zoom)
+        builder.get_object("dialog:edit_description:action:zoomout").connect("activate", self.__on_zoom)
+        builder.get_object("dialog:edit_description:tb:color").connect("clicked", self.__on_color_set)
+        builder.get_object("dialog:edit_description:tb:font").connect("clicked", self.__on_font_set)
         builder.get_object("dialog:edit_description:btn_cancel").connect("clicked", self.__dialog_destroy)
         builder.get_object("dialog:edit_description:btn_ok").connect("clicked", self.__do)
+        self.switcher = builder.get_object("dialog:edit_description:switcher")
+        self.switcher.connect("changed", self.__propagate)
+        self.description = None
+
+        if webkit == None:
+            label = gtk.Label("Missing WebKit python module")
+            label.modify_fg(gtk.STATE_NORMAL, gtk.gdk.Color("red"))
+            self.description_sw.add_with_viewport(label)
+            builder.get_object("dialog:edit_description:btn_ok").set_sensitive(False)
+            self.description_tb.set_sensitive(False)
+        else:
+            self.description = webkit.WebView()
+            self.description.set_editable(True)
+            self.description_sw.add(self.description)
+            self.description.set_zoom_level(0.75)
+            self.description.show_all()
 
         self.core.notify_destroy("notify:not_selected")
-        (model, self.iter) = self.get_selection().get_selected()
+        (model, iter) = self.get_selection().get_selected()
         if operation == self.data_model.CMD_OPER_ADD:
-            pass
+            self.description.load_html_string("", "file:///")
         elif operation == self.data_model.CMD_OPER_EDIT:
-            if not self.iter:
+            if not iter:
                 self.notifications.append(self.core.notify("Please select at least one item to edit", 2, msg_id="notify:not_selected"))
                 return
             else:
-                self.lang.set_text(model[self.iter][self.COLUMN_LANG] or "")
-                self.description.get_buffer().set_text(model[self.iter][self.COLUMN_TEXT] or "")
+                self.lang.set_text(model[iter][self.COLUMN_LANG] or "")
+                desc = model[iter][self.COLUMN_TEXT]
+                desc = desc.replace("xhtml:","")
+                if self.description: self.description.load_html_string(desc or "", "file:///")
+                #if self.description: self.description.load_string("<body>"+desc+"</body>" or "", "application/xhtml+xml", "utf-8", "file://")
         elif operation == self.data_model.CMD_OPER_DEL:
-            if not self.iter:
+            if not iter:
                 self.notifications.append(self.core.notify("Please select at least one item to delete", 2, msg_id="notify:not_selected"))
                 return
             else: 
-                iter = self.dialogDel(self.core.main_window, self.get_selection())
-                if iter != None:
+                retval = self.dialogDel(self.core.main_window, self.get_selection())
+                if retval != None:
                     self.__do()
                 return
         else: 
             logger.error("Unknown operation for description dialog: \"%s\"" % (operation,))
             return
 
-        self.dialog.set_transient_for(self.core.main_window)
-        self.dialog.show_all()
+        self.wdialog.set_transient_for(self.core.main_window)
+        self.wdialog.show()
 
     def fill(self):
 
@@ -1243,8 +1369,8 @@ class EditWarning(abstract.ListEditor):
     def __dialog_destroy(self, widget=None):
         """
         """
-        if self.dialog: 
-            self.dialog.destroy()
+        if self.wdialog: 
+            self.wdialog.destroy()
 
     def dialog(self, widget, operation):
         """
@@ -1252,7 +1378,7 @@ class EditWarning(abstract.ListEditor):
         self.operation = operation
         builder = gtk.Builder()
         builder.add_from_file("/usr/share/scap-workbench/dialogs.glade")
-        self.dialog = builder.get_object("dialog:edit_warning")
+        self.wdialog = builder.get_object("dialog:edit_warning")
         self.info_box = builder.get_object("dialog:edit_warning:info_box")
         self.lang = builder.get_object("dialog:edit_warning:lang")
         self.warning = builder.get_object("dialog:edit_warning:warning")
@@ -1286,8 +1412,8 @@ class EditWarning(abstract.ListEditor):
             logger.error("Unknown operation for description dialog: \"%s\"" % (operation,))
             return
 
-        self.dialog.set_transient_for(self.core.main_window)
-        self.dialog.show_all()
+        self.wdialog.set_transient_for(self.core.main_window)
+        self.wdialog.show_all()
 
     def fill(self):
 
@@ -1339,8 +1465,8 @@ class EditNotice(abstract.ListEditor):
     def __dialog_destroy(self, widget=None):
         """
         """
-        if self.dialog: 
-            self.dialog.destroy()
+        if self.wdialog: 
+            self.wdialog.destroy()
 
     def dialog(self, widget, operation):
         """
@@ -1348,7 +1474,7 @@ class EditNotice(abstract.ListEditor):
         self.operation = operation
         builder = gtk.Builder()
         builder.add_from_file("/usr/share/scap-workbench/dialogs.glade")
-        self.dialog = builder.get_object("dialog:edit_notice")
+        self.wdialog = builder.get_object("dialog:edit_notice")
         self.info_box = builder.get_object("dialog:edit_notice:info_box")
         self.wid = builder.get_object("dialog:edit_notice:id")
         self.notice = builder.get_object("dialog:edit_notice:notice")
@@ -1379,8 +1505,8 @@ class EditNotice(abstract.ListEditor):
             logger.error("Unknown operation for description dialog: \"%s\"" % (operation,))
             return
 
-        self.dialog.set_transient_for(self.core.main_window)
-        self.dialog.show_all()
+        self.wdialog.set_transient_for(self.core.main_window)
+        self.wdialog.show_all()
 
     def fill(self):
 
@@ -1424,8 +1550,8 @@ class EditStatus(abstract.ListEditor):
     def __dialog_destroy(self, widget=None):
         """
         """
-        if self.dialog: 
-            self.dialog.destroy()
+        if self.wdialog: 
+            self.wdialog.destroy()
 
     def dialog(self, widget, operation):
         """
@@ -1433,7 +1559,7 @@ class EditStatus(abstract.ListEditor):
         self.operation = operation
         builder = gtk.Builder()
         builder.add_from_file("/usr/share/scap-workbench/dialogs.glade")
-        self.dialog = builder.get_object("dialog:edit_status")
+        self.wdialog = builder.get_object("dialog:edit_status")
         self.info_box = builder.get_object("dialog:edit_status:info_box")
         self.calendar = builder.get_object("dialog:edit_status:calendar")
         self.status = builder.get_object("dialog:edit_status:status")
@@ -1469,8 +1595,8 @@ class EditStatus(abstract.ListEditor):
             logger.error("Unknown operation for description dialog: \"%s\"" % (operation,))
             return
 
-        self.dialog.set_transient_for(self.core.main_window)
-        self.dialog.show_all()
+        self.wdialog.set_transient_for(self.core.main_window)
+        self.wdialog.show_all()
 
     def fill(self):
 
@@ -1563,8 +1689,8 @@ class EditQuestion(abstract.ListEditor):
     def __dialog_destroy(self, widget=None):
         """
         """
-        if self.dialog: 
-            self.dialog.destroy()
+        if self.wdialog: 
+            self.wdialog.destroy()
 
     def dialog(self, widget, operation):
         """
@@ -1572,7 +1698,7 @@ class EditQuestion(abstract.ListEditor):
         self.operation = operation
         builder = gtk.Builder()
         builder.add_from_file("/usr/share/scap-workbench/dialogs.glade")
-        self.dialog = builder.get_object("dialog:edit_question")
+        self.wdialog = builder.get_object("dialog:edit_question")
         self.info_box = builder.get_object("dialog:edit_question:info_box")
         self.lang = builder.get_object("dialog:edit_question:lang")
         self.question = builder.get_object("dialog:edit_question:question")
@@ -1605,8 +1731,8 @@ class EditQuestion(abstract.ListEditor):
             logger.error("Unknown operation for question dialog: \"%s\"" % (operation,))
             return
 
-        self.dialog.set_transient_for(self.core.main_window)
-        self.dialog.show_all()
+        self.wdialog.set_transient_for(self.core.main_window)
+        self.wdialog.show_all()
 
     def fill(self):
 
@@ -1646,8 +1772,8 @@ class EditRationale(abstract.ListEditor):
     def __dialog_destroy(self, widget=None):
         """
         """
-        if self.dialog: 
-            self.dialog.destroy()
+        if self.wdialog: 
+            self.wdialog.destroy()
 
     def dialog(self, widget, operation):
         """
@@ -1655,7 +1781,7 @@ class EditRationale(abstract.ListEditor):
         self.operation = operation
         builder = gtk.Builder()
         builder.add_from_file("/usr/share/scap-workbench/dialogs.glade")
-        self.dialog = builder.get_object("dialog:edit_rationale")
+        self.wdialog = builder.get_object("dialog:edit_rationale")
         self.info_box = builder.get_object("dialog:edit_rationale:info_box")
         self.lang = builder.get_object("dialog:edit_rationale:lang")
         self.rationale = builder.get_object("dialog:edit_rationale:rationale")
@@ -1688,8 +1814,8 @@ class EditRationale(abstract.ListEditor):
             logger.error("Unknown operation for rationale dialog: \"%s\"" % (operation,))
             return
 
-        self.dialog.set_transient_for(self.core.main_window)
-        self.dialog.show_all()
+        self.wdialog.set_transient_for(self.core.main_window)
+        self.wdialog.show_all()
 
     def fill(self):
 
@@ -1736,8 +1862,8 @@ class EditPlatform(abstract.ListEditor):
     def __dialog_destroy(self, widget=None):
         """
         """
-        if self.dialog: 
-            self.dialog.destroy()
+        if self.wdialog: 
+            self.wdialog.destroy()
 
     def __cb_build(self, widget):
         self.cpe.handler_block_by_func(self.__cb_parse)
@@ -1798,7 +1924,7 @@ class EditPlatform(abstract.ListEditor):
         self.operation = operation
         builder = gtk.Builder()
         builder.add_from_file("/usr/share/scap-workbench/dialogs.glade")
-        self.dialog = builder.get_object("dialog:edit_platform")
+        self.wdialog = builder.get_object("dialog:edit_platform")
         self.info_box = builder.get_object("dialog:edit_platform:info_box")
         self.cpe = builder.get_object("dialog:edit_platform:cpe")
         self.part = builder.get_object("dialog:edit_platform:cpe_part")
@@ -1844,8 +1970,8 @@ class EditPlatform(abstract.ListEditor):
             logger.error("Unknown operation for rationale dialog: \"%s\"" % (operation,))
             return
 
-        self.dialog.set_transient_for(self.core.main_window)
-        self.dialog.show_all()
+        self.wdialog.set_transient_for(self.core.main_window)
+        self.wdialog.show_all()
 
     def fill(self):
         self.clear()
@@ -2066,8 +2192,8 @@ class EditValuesValues(abstract.ListEditor):
     def __dialog_destroy(self, widget=None):
         """
         """
-        if self.dialog: 
-            self.dialog.destroy()
+        if self.wdialog: 
+            self.wdialog.destroy()
 
     def dialog(self, widget, operation):
         """
@@ -2075,7 +2201,7 @@ class EditValuesValues(abstract.ListEditor):
         self.operation = operation
         builder = gtk.Builder()
         builder.add_from_file("/usr/share/scap-workbench/dialogs.glade")
-        self.dialog = builder.get_object("dialog:edit_value")
+        self.wdialog = builder.get_object("dialog:edit_value")
         self.info_box = builder.get_object("dialog:edit_value:info_box")
         self.selector = builder.get_object("dialog:edit_value:selector")
         self.value = builder.get_object("dialog:edit_value:value")
@@ -2137,8 +2263,8 @@ class EditValuesValues(abstract.ListEditor):
             logger.error("Unknown operation for values dialog: \"%s\"" % (operation,))
             return
 
-        self.dialog.set_transient_for(self.core.main_window)
-        self.dialog.show()
+        self.wdialog.set_transient_for(self.core.main_window)
+        self.wdialog.show()
 
     def fill(self):
 
