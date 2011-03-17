@@ -1241,13 +1241,13 @@ class EditDescription(abstract.ListEditor):
     def __propagate(self, widget):
         
         if widget.get_active() == 0:
-            self.description_sw.set_visible(True)
-            self.description_html_sw.set_visible(False)
+            self.description_sw.set_property("visible", True)
+            self.description_html_sw.set_property("visible", False)
             desc = self.description_html.get_buffer().get_text(self.description_html.get_buffer().get_start_iter(), self.description_html.get_buffer().get_end_iter())
             self.description.load_html_string(desc or "", "file:///")
         elif widget.get_active() == 1:
-            self.description_sw.set_visible(False)
-            self.description_html_sw.set_visible(True)
+            self.description_sw.set_property("visible", False)
+            self.description_html_sw.set_property("visible", True)
             self.description.execute_script("document.title=document.documentElement.innerHTML;")
             desc = self.description.get_main_frame().get_title()
             self.description_html.get_buffer().set_text(desc)
@@ -1290,6 +1290,7 @@ class EditDescription(abstract.ListEditor):
             self.description_sw.add_with_viewport(label)
             builder.get_object("dialog:edit_description:btn_ok").set_sensitive(False)
             self.description_tb.set_sensitive(False)
+            self.description_sw.show_all()
         else:
             self.description = webkit.WebView()
             self.description.set_editable(True)
