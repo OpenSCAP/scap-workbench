@@ -258,6 +258,7 @@ class MenuButtonEditXCCDF(abstract.MenuButton):
         self.builder.get_object("edit:xccdf:btn_references_add").set_sensitive(False)
         self.builder.get_object("edit:xccdf:btn_references_edit").set_sensitive(False)
         self.builder.get_object("edit:xccdf:btn_references_del").set_sensitive(False)
+        self.builder.get_object("edit:xccdf:references").set_sensitive(False)
 
         # -- STATUS --
         self.statuses = EditStatus(self.core, "gui:edit:xccdf:status", builder.get_object("edit:xccdf:statuses"), self.data_model)
@@ -326,8 +327,8 @@ class MenuButtonEditXCCDF(abstract.MenuButton):
             self.descriptions.fill()
             self.warnings.fill()
             self.notices.fill()
-            for ref in details["references"]:
-                self.tv_references.append([ref])
+            #for ref in details["references"]:
+                #self.tv_references.append([ref])
             self.statuses.fill()
 
         self.entry_id.handler_unblock_by_func(self.__change)
@@ -1170,9 +1171,9 @@ class EditDescription(abstract.ListEditor):
         else:
             if self.switcher.get_active() == 1:
                 desc = self.description_html.get_buffer().get_text(self.description_html.get_buffer().get_start_iter(), self.description_html.get_buffer().get_end_iter())
-                self.description.load_html_string(desc or "", "file:///")
-            self.description.execute_script("document.title=document.documentElement.innerHTML;")
-            desc = self.description.get_main_frame().get_title()
+            else:
+                self.description.execute_script("document.title=document.documentElement.innerHTML;")
+                desc = self.description.get_main_frame().get_title()
             desc = re.sub("(< */* *)([^>/ ]*) *([^>]*)/*>", self.regexp, desc)
             retval = self.data_model.edit_description(self.operation, item, self.lang.get_text(), desc)
 
@@ -1248,8 +1249,11 @@ class EditDescription(abstract.ListEditor):
         elif widget.get_active() == 1:
             self.description_sw.set_property("visible", False)
             self.description_html_sw.set_property("visible", True)
+            self.description.execute_script("throw(document.documentElement.innerHTML);")
             self.description.execute_script("document.title=document.documentElement.innerHTML;")
             desc = self.description.get_main_frame().get_title()
+            desc = desc.replace("<head></head>", "")
+            desc = desc.replace("<body>", "").replace("</body>", "")
             self.description_html.get_buffer().set_text(desc)
 
     def dialog(self, widget, operation):

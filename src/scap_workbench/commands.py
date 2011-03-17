@@ -473,7 +473,7 @@ class DataHandler(object):
                     "description": ref.description,
                     "format": ref.format,
                     "identifier": ref.identifier,
-                    "lang": ref.lang,
+                    "lang": ref.language,
                     "publisher": ref.publisher,
                     "relation": ref.relation,
                     "rights": ref.rights,
