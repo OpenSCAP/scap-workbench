@@ -230,10 +230,14 @@ class MenuButtonXCCDF(abstract.MenuButton):
             child.destroy()
 
         for i, ref in enumerate(details["references"]):
-            text = "%d) %s [<a href='%s'>link</a>]" % (i+1, " ".join((ref["title"] or "").split()), ref["identifier"])
-            label = gtk.Label(text)
+            label = gtk.Label()
+            if ref["isdc"] == True:
+                text = "<span color='#AAA'>DoublinCore reference: NOT SUPPORTED</span>"
+                label.set_use_markup(True)
+            else: text = "%d) %s [<a href='%s'>link</a>]" % (i+1, " ".join((ref["title"] or "").split()), ref["identifier"])
+            label.set_text(text)
             self.box_references.pack_start(label, True, True)
-            label.set_tooltip_text(ref[1])
+            #label.set_tooltip_text(ref[1])
             label.set_use_markup(True)
 	    try:
                 label.set_track_visited_links(True)
