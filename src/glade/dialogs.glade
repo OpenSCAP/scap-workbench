@@ -1939,10 +1939,10 @@ Note: This property holds the default value displayed to the user by tools durin
                       </packing>
                     </child>
                     <child>
-                      <object class="GtkToolButton" id="zoomin">
+                      <object class="GtkToolButton" id="dialog:edit_description:tb:zoomin">
                         <property name="visible">True</property>
-                        <property name="related_action">dialog:edit_description:action:zoomin</property>
                         <property name="use_action_appearance">True</property>
+                        <property name="related_action">dialog:edit_description:action:zoomin</property>
                         <property name="label" translatable="yes">Zoom in</property>
                         <property name="use_underline">True</property>
                       </object>
@@ -1952,10 +1952,10 @@ Note: This property holds the default value displayed to the user by tools durin
                       </packing>
                     </child>
                     <child>
-                      <object class="GtkToolButton" id="zoomout">
+                      <object class="GtkToolButton" id="dialog:edit_description:tb:zoomout">
                         <property name="visible">True</property>
-                        <property name="related_action">dialog:edit_description:action:zoomout</property>
                         <property name="use_action_appearance">True</property>
+                        <property name="related_action">dialog:edit_description:action:zoomout</property>
                         <property name="label" translatable="yes">Zoom out</property>
                         <property name="use_underline">True</property>
                       </object>
@@ -1976,8 +1976,8 @@ Note: This property holds the default value displayed to the user by tools durin
                     <child>
                       <object class="GtkToolButton" id="dialog:edit_desrtiption:tb:bold">
                         <property name="visible">True</property>
-                        <property name="related_action">dialog:edit_description:action:bold</property>
                         <property name="use_action_appearance">True</property>
+                        <property name="related_action">dialog:edit_description:action:bold</property>
                         <property name="label" translatable="yes">Bold</property>
                         <property name="use_underline">True</property>
                       </object>
@@ -1989,8 +1989,8 @@ Note: This property holds the default value displayed to the user by tools durin
                     <child>
                       <object class="GtkToolButton" id="dialog:edit_description:tb:italic">
                         <property name="visible">True</property>
-                        <property name="related_action">dialog:edit_description:action:italic</property>
                         <property name="use_action_appearance">True</property>
+                        <property name="related_action">dialog:edit_description:action:italic</property>
                         <property name="label" translatable="yes">Italic</property>
                         <property name="use_underline">True</property>
                       </object>
@@ -2002,8 +2002,8 @@ Note: This property holds the default value displayed to the user by tools durin
                     <child>
                       <object class="GtkToolButton" id="dialog:edit_description:tb:underline">
                         <property name="visible">True</property>
-                        <property name="related_action">dialog:edit_description:action:underline</property>
                         <property name="use_action_appearance">True</property>
+                        <property name="related_action">dialog:edit_description:action:underline</property>
                         <property name="label" translatable="yes">Underline</property>
                         <property name="use_underline">True</property>
                       </object>
@@ -2022,10 +2022,10 @@ Note: This property holds the default value displayed to the user by tools durin
                       </packing>
                     </child>
                     <child>
-                      <object class="GtkToolButton" id="toolbutton1">
+                      <object class="GtkToolButton" id="dialog:edit_description:tb:bull_list_item">
                         <property name="visible">True</property>
-                        <property name="related_action">dialog:edit_description:action:bul_list</property>
                         <property name="use_action_appearance">True</property>
+                        <property name="related_action">dialog:edit_description:action:bul_list</property>
                         <property name="is_important">True</property>
                         <property name="label" translatable="yes">Mum. List</property>
                         <property name="use_underline">True</property>
@@ -2036,10 +2036,10 @@ Note: This property holds the default value displayed to the user by tools durin
                       </packing>
                     </child>
                     <child>
-                      <object class="GtkToolButton" id="dialog:edit_description:tb:list">
+                      <object class="GtkToolButton" id="dialog:edit_description:tb:num_list_item">
                         <property name="visible">True</property>
-                        <property name="related_action">dialog:edit_description:action:num_list</property>
                         <property name="use_action_appearance">True</property>
+                        <property name="related_action">dialog:edit_description:action:num_list</property>
                         <property name="is_important">True</property>
                         <property name="label" translatable="yes">List</property>
                         <property name="use_underline">True</property>
@@ -2050,11 +2050,11 @@ Note: This property holds the default value displayed to the user by tools durin
                       </packing>
                     </child>
                     <child>
-                      <object class="GtkToolButton" id="toolbutton2">
+                      <object class="GtkToolButton" id="dialog:edit_description:tb:outdent_item">
                         <property name="visible">True</property>
                         <property name="sensitive">False</property>
-                        <property name="related_action">dialog:edit_description:action:outdent</property>
                         <property name="use_action_appearance">True</property>
+                        <property name="related_action">dialog:edit_description:action:outdent</property>
                         <property name="label" translatable="yes">Outdent</property>
                         <property name="use_underline">True</property>
                       </object>
@@ -2064,10 +2064,10 @@ Note: This property holds the default value displayed to the user by tools durin
                       </packing>
                     </child>
                     <child>
-                      <object class="GtkToolButton" id="toolbutton3">
+                      <object class="GtkToolButton" id="dialog:edit_description:tb:indent_item">
                         <property name="visible">True</property>
-                        <property name="related_action">dialog:edit_description:action:indent</property>
                         <property name="use_action_appearance">True</property>
+                        <property name="related_action">dialog:edit_description:action:indent</property>
                         <property name="label" translatable="yes">Indent</property>
                         <property name="use_underline">True</property>
                       </object>
@@ -2091,7 +2091,6 @@ Note: This property holds the default value displayed to the user by tools durin
                         <property name="label" translatable="yes">Left</property>
                         <property name="use_underline">True</property>
                         <property name="stock_id">gtk-justify-left</property>
-                        <property name="menu">menu1</property>
                       </object>
                       <packing>
                         <property name="expand">False</property>
@@ -2142,8 +2141,8 @@ Note: This property holds the default value displayed to the user by tools durin
                     <child>
                       <object class="GtkToolButton" id="dialog:edit_description:tb:code">
                         <property name="visible">True</property>
-                        <property name="related_action">dialog:edit_description:action:code</property>
                         <property name="use_action_appearance">True</property>
+                        <property name="related_action">dialog:edit_description:action:code</property>
                         <property name="label" translatable="yes">Code</property>
                         <property name="use_underline">True</property>
                       </object>
@@ -2155,8 +2154,8 @@ Note: This property holds the default value displayed to the user by tools durin
                     <child>
                       <object class="GtkToolButton" id="dialog:edit_description:tb:link">
                         <property name="visible">True</property>
-                        <property name="related_action">dialog:edit_description:action:link</property>
                         <property name="use_action_appearance">True</property>
+                        <property name="related_action">dialog:edit_description:action:link</property>
                         <property name="label" translatable="yes">Link</property>
                         <property name="use_underline">True</property>
                       </object>
@@ -4044,44 +4043,17 @@ Application Part - This part identifies relevant applications, services, and pac
     <property name="tooltip">indent text (move right)</property>
     <property name="stock_id">gtk-indent</property>
   </object>
-  <object class="GtkMenu" id="menu1">
-    <property name="visible">True</property>
-    <child>
-      <object class="GtkImageMenuItem" id="center">
-        <property name="label" translatable="yes">Left</property>
-        <property name="visible">True</property>
-        <property name="image">image2</property>
-        <property name="use_stock">False</property>
-      </object>
-    </child>
-    <child>
-      <object class="GtkImageMenuItem" id="right">
-        <property name="label" translatable="yes">Center</property>
-        <property name="visible">True</property>
-        <property name="image">image3</property>
-        <property name="use_stock">False</property>
-      </object>
-    </child>
-    <child>
-      <object class="GtkImageMenuItem" id="justify">
-        <property name="label" translatable="yes">Right</property>
-        <property name="visible">True</property>
-        <property name="image">image4</property>
-        <property name="use_stock">False</property>
-      </object>
-    </child>
-    <child>
-      <object class="GtkImageMenuItem" id="left">
-        <property name="label" translatable="yes">Justify</property>
-        <property name="visible">True</property>
-        <property name="image">image1</property>
-        <property name="use_stock">False</property>
-      </object>
-    </child>
+  <object class="GtkAction" id="dialog:edit_description:action:zoomin">
+    <property name="label">_Zoom in</property>
+    <property name="short_label">_Zoom in</property>
+    <property name="tooltip">Larger font size</property>
+    <property name="stock_id">gtk-zoom-in</property>
   </object>
-  <object class="GtkImage" id="image1">
-    <property name="visible">True</property>
-    <property name="stock">gtk-justify-fill</property>
+  <object class="GtkAction" id="dialog:edit_description:action:zoomout">
+    <property name="label">_Zoom out</property>
+    <property name="short_label">_Zoom out</property>
+    <property name="tooltip">Smaller font size</property>
+    <property name="stock_id">gtk-zoom-out</property>
   </object>
   <object class="GtkImage" id="image2">
     <property name="visible">True</property>
@@ -4095,16 +4067,8 @@ Application Part - This part identifies relevant applications, services, and pac
     <property name="visible">True</property>
     <property name="stock">gtk-justify-right</property>
   </object>
-  <object class="GtkAction" id="dialog:edit_description:action:zoomin">
-    <property name="label">_Zoom in</property>
-    <property name="short_label">_Zoom in</property>
-    <property name="tooltip">Larger font size</property>
-    <property name="stock_id">gtk-zoom-in</property>
-  </object>
-  <object class="GtkAction" id="dialog:edit_description:action:zoomout">
-    <property name="label">_Zoom out</property>
-    <property name="short_label">_Zoom out</property>
-    <property name="tooltip">Smaller font size</property>
-    <property name="stock_id">gtk-zoom-out</property>
+  <object class="GtkImage" id="image1">
+    <property name="visible">True</property>
+    <property name="stock">gtk-justify-fill</property>
   </object>
 </interface>

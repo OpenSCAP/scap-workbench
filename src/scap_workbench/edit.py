@@ -1242,19 +1242,25 @@ class EditDescription(abstract.ListEditor):
     def __propagate(self, widget):
         
         if widget.get_active() == 0:
+            for child in self.description_tb.get_children():
+                child.set_sensitive(True)
             self.description_sw.set_property("visible", True)
             self.description_html_sw.set_property("visible", False)
             desc = self.description_html.get_buffer().get_text(self.description_html.get_buffer().get_start_iter(), self.description_html.get_buffer().get_end_iter())
             self.description.load_html_string(desc or "", "file:///")
         elif widget.get_active() == 1:
+            for child in self.description_tb.get_children():
+                child.set_sensitive(False)
+            self.description_tb.set_sensitive(False)
             self.description_sw.set_property("visible", False)
             self.description_html_sw.set_property("visible", True)
-            self.description.execute_script("throw(document.documentElement.innerHTML);")
+            #self.description.execute_script("throw(document.documentElement.innerHTML);")
             self.description.execute_script("document.title=document.documentElement.innerHTML;")
             desc = self.description.get_main_frame().get_title()
             desc = desc.replace("<head></head>", "")
             desc = desc.replace("<body>", "").replace("</body>", "")
             self.description_html.get_buffer().set_text(desc)
+        self.switcher.parent.set_sensitive(True)
 
     def dialog(self, widget, operation):
         """
@@ -1285,6 +1291,7 @@ class EditDescription(abstract.ListEditor):
         builder.get_object("dialog:edit_description:btn_cancel").connect("clicked", self.__dialog_destroy)
         builder.get_object("dialog:edit_description:btn_ok").connect("clicked", self.__do)
         self.switcher = builder.get_object("dialog:edit_description:switcher")
+        self.switcher.set_active(1)
         self.switcher.connect("changed", self.__propagate)
         self.description = None
 
@@ -1300,7 +1307,12 @@ class EditDescription(abstract.ListEditor):
             self.description.set_editable(True)
             self.description_sw.add(self.description)
             self.description.set_zoom_level(0.75)
-            self.description.show_all()
+            self.description_html_sw.show_all()
+            self.description_sw.show_all()
+            self.description_sw.set_property("visible", False)
+            for child in self.description_tb.get_children():
+                child.set_sensitive(False)
+            self.switcher.parent.set_sensitive(True)
 
         self.core.notify_destroy("notify:not_selected")
         (model, iter) = self.get_selection().get_selected()
@@ -1314,8 +1326,8 @@ class EditDescription(abstract.ListEditor):
                 self.lang.set_text(model[iter][self.COLUMN_LANG] or "")
                 desc = model[iter][self.COLUMN_TEXT]
                 desc = desc.replace("xhtml:","")
-                if self.description: self.description.load_html_string(desc or "", "file:///")
-                #if self.description: self.description.load_string("<body>"+desc+"</body>" or "", "application/xhtml+xml", "utf-8", "file://")
+                #if self.description: self.description.load_html_string(desc or "", "file:///")
+                self.description_html.get_buffer().set_text(desc or "")
         elif operation == self.data_model.CMD_OPER_DEL:
             if not iter:
                 self.notifications.append(self.core.notify("Please select at least one item to delete", 2, msg_id="notify:not_selected"))
