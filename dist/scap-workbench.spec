@@ -42,6 +42,7 @@ rm -rf $RPM_BUILD_ROOT
 %dir %{_sysconfdir}/scap-workbench
 %config(noreplace) %{_sysconfdir}/scap-workbench/logger.conf
 %{_bindir}/scap-workbench
+%{_bindir}/scap-workbench-editor
 %dir %{python_sitelib}/scap_workbench
 %{python_sitelib}/scap_workbench/*
 %dir %{_datadir}/scap-workbench/
