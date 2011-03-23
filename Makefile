@@ -1,4 +1,5 @@
 PKG=scap-workbench
+PKG_EDITOR=scap-workbench-editor
 WRK_PKG=scap_workbench
 VERSION="0.2.3"
 
@@ -35,6 +36,7 @@ install:
 	test -d $(PYTHON_LIB_PKG) || $(INSTALL) $(MODE_DIR) -d $(PYTHON_LIB_PKG)
 	test -d $(DATADIR)/$(PKG)/filters || $(INSTALL) $(MODE_DIR) -d $(DATADIR)/$(PKG)/filters
 	$(INSTALL) $(MODE_EXEC) src/bin/$(PKG) $(BINDIR)/$(PKG)
+	$(INSTALL) $(MODE_EXEC) src/bin/$(PKG_EDITOR) $(BINDIR)/$(PKG_EDITOR)
 	$(INSTALL) $(MODE_REG) src/$(WRK_PKG)/*.py $(PYTHON_LIB_PKG)
 	$(INSTALL) $(MODE_REG) src/etc/logger.conf $(SYSCONFDIR)/$(PKG)/logger.conf
 	$(INSTALL) $(MODE_REG) src/glade/*.glade $(DATADIR)/$(PKG)

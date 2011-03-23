@@ -24,8 +24,7 @@ import logging, logging.config
 import sys, gtk, gobject
 from events import EventHandler
 
-from threads import thread, ThreadManager
-import render #TODO
+from threads import ThreadManager
 import getopt
 
 LOGGER_CONFIG_FILE='/etc/scap-workbench/logger.conf'
@@ -44,6 +43,31 @@ except Exception as ex:
     logger.error("OPENSCAP: %s", ex)
     openscap=None
     sys.exit(2)
+
+def label_set_autowrap(widget): 
+    "Make labels automatically re-wrap if their containers are resized.  Accepts label or container widgets."
+    # For this to work the label in the glade file must be set to wrap on words.
+    if isinstance(widget, gtk.Container):
+        children = widget.get_children()
+        for i in xrange(len(children)):
+            label_set_autowrap(children[i])
+    elif isinstance(widget, gtk.Label) and widget.get_line_wrap():
+        widget.connect_after("size-allocate", label_size_allocate)
+
+
+def label_size_allocate(widget, allocation):
+    "Callback which re-allocates the size of a label."
+    layout = widget.get_layout()
+    lw_old, lh_old = layout.get_size()
+    # fixed width labels
+    if lw_old / pango.SCALE == allocation.width:
+        return
+    # set wrap width to the pango.Layout of the labels
+    layout.set_width(allocation.width * pango.SCALE)
+    lw, lh = layout.get_size()  # lw is unused.
+    if lh_old != lh:
+        widget.set_size_request(-1, lh / pango.SCALE)
+
 
 class Notification:
 
@@ -66,7 +90,7 @@ class Notification:
         box.pack_start(self.img, False, False)
         self.label = gtk.Label(text)
         self.label.set_alignment(0, 0.5)
-        render.label_set_autowrap(self.label)
+        label_set_autowrap(self.label)
         box.pack_start(self.label, True, True)
         self.btn = gtk.Button()
         self.btn.set_relief(gtk.RELIEF_NONE)
@@ -156,8 +180,9 @@ class SWBCore:
                 model.free()
             for sess in self.lib["sessions"]:
                 sess.free()
-        for child in self.info_box:
-            child.destroy()
+        if self.info_box:
+            for child in self.info_box:
+                child.destroy()
 
         if openscap == None:
             logger.error("Can't initialize openscap library.")

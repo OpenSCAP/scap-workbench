@@ -28,6 +28,8 @@ import datetime
 import time
 import re
 import os
+import threading
+import gnome, gnome.ui
 
 import abstract
 import logging
@@ -75,6 +77,7 @@ class ProfileList(abstract.List):
         # actions
         self.add_sender(self.id, "update_profiles")
         self.add_receiver("gui:btn:menu:edit:profiles", "update", self.__update)
+        self.add_receiver("gui:btn:menu:edit:XCCDF", "load", self.__update)
         selection.connect("changed", self.cb_item_changed, self.get_TreeView())
 
     def __update(self, new=False):
@@ -140,7 +143,7 @@ class ItemList(abstract.List):
         # actions
         self.add_receiver("gui:btn:menu:edit:items", "update", self.__update)
         self.add_receiver("gui:btn:edit:filter", "search", self.__search)
-        self.add_receiver("gui:btn:main:xccdf", "load", self.__loaded_new_xccdf)
+        self.add_receiver("gui:btn:menu:edit:XCCDF", "load", self.__loaded_new_xccdf)
 
         selection.connect("changed", self.__cb_item_changed, self.get_TreeView())
         self.add_sender(self.id, "update")
@@ -213,9 +216,11 @@ class MenuButtonEditXCCDF(abstract.MenuButton):
         
         #draw body
         self.body = self.builder.get_object("edit_xccdf:box")
+        self.sub_menu = self.builder.get_object("edit:sub:main")
         self.add_receiver("gui:btn:main:xccdf", "load", self.__update)
         self.add_receiver("gui:btn:main:xccdf", "update", self.__update)
         self.add_sender(self.id, "update")
+        self.add_sender(self.id, "load")
 
         # Get widgets from glade
         self.entry_id = self.builder.get_object("edit:xccdf:id")
@@ -267,6 +272,67 @@ class MenuButtonEditXCCDF(abstract.MenuButton):
         self.builder.get_object("edit:xccdf:btn_statuses_del").connect("clicked", self.statuses.dialog, self.data_model.CMD_OPER_DEL)
         # -------------
 
+        self.btn_new = self.builder.get_object("edit:sub:new")
+        self.btn_close = self.builder.get_object("edit:sub:close")
+        self.btn_validate = self.builder.get_object("edit:sub:validate")
+        self.btn_import = self.builder.get_object("edit:sub:import")
+        self.btn_export = self.builder.get_object("edit:sub:export")
+        self.btn_new.connect("clicked", self.__cb_new)
+        self.btn_close.connect("clicked", self.__cb_close)
+        self.btn_validate.connect("clicked", self.__cb_validate)
+        self.btn_import.connect("clicked", self.__cb_import)
+        self.btn_export.connect("clicked", self.__cb_export)
+
+    def __cb_new(self, widget):
+        if not self.core.init(None): return
+        self.data_model.update(id="New_SCAP_Benchmark", version="0", lang="en")
+        self.core.selected_lang = "en"
+        self.data_model.edit_status(self.data_model.CMD_OPER_ADD)
+        try:
+            self.__update()
+        except KeyError: pass
+
+        self.emit("load")
+
+    def __cb_import(self, widget):
+        file = self.data_model.file_browse("Load XCCDF file", action=gtk.FILE_CHOOSER_ACTION_OPEN)
+        if file != "":
+            self.__cb_close(None)
+            logger.debug("Loading XCCDF file %s", file)
+            if not self.core.init(file): return
+            self.emit("load")
+
+            try:
+                self.__update()
+            except KeyError: pass
+
+    def __cb_validate(self, widget):
+        validate = self.data_model.validate()
+        self.notifications.append(self.core.notify(["Document is not valid !", "Document is valid.", 
+            "Validation process failed, check for error in log file.", "File not saved, use export first."][validate], [1, 0, 2, 1][validate], msg_id="notify:xccdf:validate"))
+
+    def __cb_export(self, widget):
+        file_name = self.data_model.export()
+        if file_name:
+            self.core.notify_destroy("notify:xccdf:validate")
+            self.notifications.append(self.core.notify("Benchmark has been exported to \"%s\"" % (file_name,), 0, msg_id="notify:xccdf:export"))
+            self.core.xccdf_file = file_name
+
+    def __menu_sensitive(self, active):
+        self.btn_close.set_sensitive(active)
+        self.btn_validate.set_sensitive(active)
+        self.btn_export.set_sensitive(active)
+        self.core.get_item("gui:btn:menu:edit:profiles").set_sensitive(active)
+        self.core.get_item("gui:btn:menu:edit:items").set_sensitive(active)
+
+    def __cb_close(self, widget):
+        self.__menu_sensitive(False)
+        self.core.destroy()
+        self.__clear()
+        self.core.notify_destroy("notify:xccdf:validate")
+        self.core.notify_destroy("notify:xccdf:export")
+        self.emit("load")
+
     def __change(self, widget, object=None):
 
         if object == "id":
@@ -284,7 +350,7 @@ class MenuButtonEditXCCDF(abstract.MenuButton):
             return
         self.emit("update")
 
-    def __clear_widgets(self):
+    def __clear(self):
         """Clear widgets
         """
         self.titles.clear()
@@ -298,6 +364,12 @@ class MenuButtonEditXCCDF(abstract.MenuButton):
         self.entry_resolved.set_active(-1)
         self.entry_lang.set_text("")
 
+    def activate(self, active):
+        abstract.MenuButton.activate(self, active)
+        self.sub_menu.set_visible(active)
+
+    def update(self):
+        self.__update()
 
     def __update(self):
 
@@ -307,8 +379,9 @@ class MenuButtonEditXCCDF(abstract.MenuButton):
         self.entry_resolved.handler_block_by_func(self.__change)
         self.entry_lang.handler_block_by_func(self.__change)
 
-        self.__clear_widgets()
+        self.__clear()
         details = self.data_model.get_details()
+        self.__menu_sensitive(details != None)
 
         """Set sensitivity of widgets depended on availability of XCCDF details
         This is mainly supposed to control no-XCCDF or loaded XCCDF behavior
@@ -474,8 +547,9 @@ class MenuButtonEditItems(abstract.MenuButton, abstract.Func):
         self.body = self.builder.get_object("edit_item:box")
         self.progress = self.builder.get_object("edit:progress")
         self.progress.hide()
-        self.filter = filter.ItemFilter(self.core, self.builder,"edit:box_filter", "gui:btn:edit:filter")
-        self.filter.set_active(False)
+        #self.filter = filter.ItemFilter(self.core, self.builder,"edit:box_filter", "gui:btn:edit:filter")
+        #self.filter.set_active(False)
+        self.filter = None
         self.tw_items = self.builder.get_object("edit:tw_items")
         titles = self.data_model.get_benchmark_titles()
         self.list_item = ItemList(self.tw_items, self.core, builder, self.progress, self.filter)
@@ -1254,7 +1328,6 @@ class EditDescription(abstract.ListEditor):
             self.description_tb.set_sensitive(False)
             self.description_sw.set_property("visible", False)
             self.description_html_sw.set_property("visible", True)
-            #self.description.execute_script("throw(document.documentElement.innerHTML);")
             self.description.execute_script("document.title=document.documentElement.innerHTML;")
             desc = self.description.get_main_frame().get_title()
             desc = desc.replace("<head></head>", "")
@@ -3047,3 +3120,53 @@ class FindOvalDef(abstract.Window, abstract.ListEditor):
 
         self.wdialog.set_transient_for(self.core.main_window)
         self.wdialog.show_all()
+
+
+
+class Editor(abstract.Window, threading.Thread):
+
+    def __init__(self):
+
+        threading.Thread.__init__(self)
+        logger = logging.getLogger(self.__class__.__name__)
+        self.builder = gtk.Builder()
+        self.builder.add_from_file("/usr/share/scap-workbench/editor.glade")
+        self.builder.connect_signals(self)
+        self.core = core.SWBCore(self.builder)
+        assert self.core != None, "Initialization failed, core is None"
+
+        self.window = self.builder.get_object("main:window")
+        self.core.main_window = self.window
+        self.main_box = self.builder.get_object("main:box")
+
+        # abstract the main menu
+        self.menu = abstract.Menu("gui:menu", self.builder.get_object("main:toolbar"), self.core)
+        self.menu.add_item(MenuButtonEditXCCDF(self.builder, self.builder.get_object("main:toolbar:main"), self.core))
+        self.menu.add_item(MenuButtonEditProfiles(self.builder, self.builder.get_object("main:toolbar:profiles"), self.core))
+        self.menu.add_item(MenuButtonEditItems(self.builder, self.builder.get_object("main:toolbar:items"), self.core))
+
+        self.window.show()
+        self.builder.get_object("main:toolbar:main").set_active(True)
+
+        self.core.get_item("gui:btn:menu:edit:XCCDF").update()
+        if self.core.xccdf_file != None and self.core.lib != None:
+            self.core.get_item("gui:btn:menu:edit:profiles").set_sensitive(True)
+            self.core.get_item("gui:btn:menu:edit:items").set_sensitive(True)
+
+    def __cb_info_close(self, widget):
+        self.core.info_box.hide()
+
+    def delete_event(self, widget, event, data=None):
+        """ close the window and quit
+        """
+        #gtk.gdk.threads_leave()
+        gtk.main_quit()
+        return False
+
+    def run(self):
+        gnome.init("SCAP Workbench", "0.2.3")
+        gtk.main()
+
+if __name__ == '__main__':
+    editor = Editor()
+    editor.start()

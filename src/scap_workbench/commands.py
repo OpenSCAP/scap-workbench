@@ -1415,11 +1415,11 @@ class DHItemsTree(DataHandler, EventObject):
                 self.__progress.set_text("Applying filters ...")
                 self.__progress.set_fraction(1.0)
                 self.__progress.hide()
-            self.emit("filled")
             if self.core.selected_item:
                 self.treeView.get_model().foreach(self.set_selected, (self.core.selected_item, self.treeView, 1))
             if self.combo_box: self.combo_box.set_sensitive(True)
             gtk.gdk.threads_leave()
+            self.emit("filled")
 
         return True
 

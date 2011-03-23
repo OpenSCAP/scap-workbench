@@ -20,5 +20,6 @@
 #      Maros Barabas        <mbarabas@redhat.com>
 #      Vladimir Oberreiter  <xoberr01@stud.fit.vutbr.cz>
 
-from render import *
+from render import MainWindow
+from edit import Editor
 __all__= ['abstract', 'commands', 'core', 'events', 'filter', 'htmltextview', 'profiles', 'render', 'scan', 'tailoring']
