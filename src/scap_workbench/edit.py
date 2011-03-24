@@ -366,7 +366,7 @@ class MenuButtonEditXCCDF(abstract.MenuButton):
 
     def activate(self, active):
         abstract.MenuButton.activate(self, active)
-        self.sub_menu.set_visible(active)
+        self.sub_menu.set_property("visible", active)
 
     def update(self):
         self.__update()
