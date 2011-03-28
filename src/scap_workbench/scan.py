@@ -181,7 +181,7 @@ class ProfileChooser:
         self.data_model = commands.DHProfiles(core)
 
         builder = gtk.Builder()
-        builder.add_from_file("/usr/share/scap-workbench/edit_item.glade")
+        builder.add_from_file("/usr/share/scap-workbench/dialogs.glade")
         self.dialog = builder.get_object("dialog:profile_change")
         self.info_box = builder.get_object("dialog:profile_change:info_box")
         self.profiles = builder.get_object("dialog:profile_change:profiles")

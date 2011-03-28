@@ -32,11 +32,6 @@ FILTER_DIR="/usr/share/scap-workbench/filters"
 logging.config.fileConfig(LOGGER_CONFIG_FILE)
 logger = logging.getLogger("scap-workbench")
 
-sys.path.append("/tmp/scap/usr/local/lib64/python2.6/site-packages")
-sys.path.append("/tmp/scap/usr/local/lib/python2.6/site-packages")
-#sys.path.append("/usr/lib64/python2.6/site-packages")
-#sys.path.append("/usr/lib/python2.6/site-packages")
-
 try:
     import openscap_api as openscap
 except Exception as ex:
@@ -116,24 +111,96 @@ class Notification:
             self.widget.destroy()
         
 
+class Library:
+    """ Abstract model of library variables that
+    are static and should be singletons"""
+
+    class OVAL:
+        """ Class that represents OVAL file that is imported to
+        library and used by XCCDF file"""
+        def __init__(self, path, sess, model):
+            self.path = path
+            self.session = sess
+            self.model = model
+
+        def destroy(self):
+            self.session.free()
+            self.model.free()
+    """*********"""
+
+    def __init__(self):
+        self.xccdf = None
+        self.benchmark = None
+        self.policy_model = None
+        self.files = {}
+        self.loaded = False
+
+    def init_policy_model(self):
+        """ This function should init policy model for scanning
+        """
+        raise Exception, "Not implemented yet"
+
+    def new(self):
+        """Create new XCCDF Benchmark
+        """
+        self.benchmark = openscap.xccdf.benchmark()
+        self.loaded = True
+
+    def add_file(self, path, sess, model):
+        if path in self.files:
+            logger.warning("%s is already in the list.")
+        else: self.files[path] = OVAL(path, sess, model)
+
+    def import_xccdf(self, xccdf):
+        """Import XCCDF Benchmark from file
+        """
+        self.xccdf = xccdf
+        self.benchmark = openscap.xccdf.benchmark_import(xccdf)
+        if self.benchmark: logger.debug("Initialization done.")
+        else:
+            logger.debug("Initialization failed. Benchmark can't be imported")
+            raise Exception("Can't initialize openscap library, Benchmark import failed.")
+        self.loaded = True
+
+    def parse(self, lib):
+        """
+        """
+        self.policy_model = lib["policy_model"]
+        if self.policy_model:
+            self.benchmark = self.policy_model.benchmark
+            if self.benchmark == None or self.benchmark.instance == None:
+                logger.error("XCCDF benchmark does not exists. Can't fill data")
+                raise Error, "XCCDF benchmark does not exists. Can't fill data"
+        if lib["names"]:
+            for name in lib["names"].keys():
+                self.files[name] = Library.OVAL(name, lib["names"][name][0], lib["names"][name][1])
+        self.loaded = True
+
+    def destroy(self):
+        """
+        """
+        if self.benchmark and not self.policy_model:
+            self.benchmark.free()
+        elif self.policy_model:
+            self.policy_model.free()
+        for oval in self.files.values(): oval.destroy()
+        self.loaded = False
+
 class SWBCore:
 
     def __init__(self, builder):
 
         self.thread_handler = ThreadManager(self)
         self.builder = builder
-        self.lib = None
+        self.lib = Library()
         self.__objects = {}
         self.main_window = None
-        self.changed_profiles = []
         self.force_reload_items = False
         self.force_reload_profiles = False
         self.eventHandler = EventHandler(self)
         self.registered_callbacks = False
         self.selected_profile   = None
         self.selected_item      = None
-        self.selected_item_edit = None
-        self.selected_deps      = None
         self.selected_lang      = ""
         self.langs              = []
         self.xccdf_file        = None
@@ -168,18 +235,14 @@ class SWBCore:
 
         if len(args) > 0:
             logger.debug("Loading XCCDF file %s", sys.argv[1])
-            self.init(args[0])
+            self.lib.import_xccdf(args[0])
 
         self.set_receiver("gui:btn:main:xccdf", "load", self.__set_force)
 
     def init(self, XCCDF):
-        if self.lib:
-            if self.lib["policy_model"] != None:
-                self.lib["policy_model"].free()
-            for model in self.lib["def_models"]:
-                model.free()
-            for sess in self.lib["sessions"]:
-                sess.free()
+        """Free self.lib
+        """
+        if self.lib: self.lib.destroy()
         if self.info_box:
             for child in self.info_box:
                 child.destroy()
@@ -188,39 +251,29 @@ class SWBCore:
             logger.error("Can't initialize openscap library.")
             raise Exception("Can't initialize openscap library")
 
-        try:
-            self.lib = openscap.xccdf.init(XCCDF)
-        except ImportError, err:
-            self.xccdf_file = None
-            logger.error(err)
-            return False
-
         if not XCCDF:
-            # new benchmark
-            benchmark = openscap.xccdf.benchmark()
-            self.lib = {"def_models":[], "sessions":[], "policy_model":openscap.xccdf.policy_model(benchmark), "xccdf_path":None, "names":{}}
-            self.xccdf_file = ""
+            self.lib.new()
         else:
-            self.xccdf_file = XCCDF
-            if self.lib != None: 
-                logger.debug("Initialization done.")
-                benchmark = self.lib["policy_model"].benchmark
-                if benchmark == None or benchmark.instance == None:
-                    logger.error("XCCDF benchmark does not exists. Can't fill data")
-                    raise Error, "XCCDF benchmark does not exists. Can't fill data"
-            else: logger.error("Initialization failed.")
+            try:
+                lib = openscap.xccdf.init(XCCDF)
+                self.lib.parse(lib)
+            except ImportError, err:
+                self.xccdf_file = None
+                logger.error(err)
+                return False
 
             # Language of benchmark should be in languages
-            benchmark = self.lib["policy_model"].benchmark
-            if benchmark == None:
+            if self.lib.benchmark == None:
                 logger.error("FATAL: Benchmark does not exist")
                 raise Exception("Can't initialize openscap library")
-            if not benchmark.lang in self.langs: 
-                self.langs.append(benchmark.lang)
-            self.selected_lang = benchmark.lang
-            if benchmark.lang == None:
+            if not self.lib.benchmark.lang in self.langs: 
+                self.langs.append(self.lib.benchmark.lang)
+            self.selected_lang = self.lib.benchmark.lang
+            if self.lib.benchmark.lang == None:
                 self.notify("XCCDF Benchmark: No language specified.", 2)
+        self.xccdf_file = self.lib.xccdf
         return True
+
 
     def notify(self, text, lvl=0, info_box=None, msg_id=None):
 
@@ -264,13 +317,7 @@ class SWBCore:
 
     def __destroy__(self):
         if self.lib == None: return
-        if self.lib["policy_model"] != None:
-            self.lib["policy_model"].free()
-        for model in self.lib["def_models"]:
-            model.free()
-        for sess in self.lib["sessions"]:
-            sess.free()
-        self.lib = None
+        self.lib.destroy()
 
     def get_item(self, id):
         if id not in self.__objects:

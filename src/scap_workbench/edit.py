@@ -904,9 +904,9 @@ class MenuButtonEditItems(abstract.MenuButton, abstract.Func):
             self.ident.fill(details["item"])
             content = self.data_model.get_item_content()
  
-            if len(self.core.lib["names"]) > 0:
+            if len(self.core.lib.files) > 0:
                 self.href.get_model().clear()
-                for name in self.core.lib["names"].keys():
+                for name in self.core.files.keys():
                     self.href.get_model().append([name, name])
             if content != None and len(content) > 0:
                 self.content_ref.set_text(content[0][0] or "")
@@ -1325,7 +1325,6 @@ class EditDescription(abstract.ListEditor):
         elif widget.get_active() == 1:
             for child in self.description_tb.get_children():
                 child.set_sensitive(False)
-            self.description_tb.set_sensitive(False)
             self.description_sw.set_property("visible", False)
             self.description_html_sw.set_property("visible", True)
             self.description.execute_script("document.title=document.documentElement.innerHTML;")

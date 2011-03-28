@@ -66,7 +66,7 @@ class DataHandler(object):
     def check_library(self):
         """Check if the library exists and the XCCDF file
         is loaded. If not return False and True otherwise"""
-        if not self.core.lib or self.core.xccdf_file == None:
+        if not self.core.lib or not self.core.lib.benchmark or self.core.xccdf_file == None:
             #self.core.notify("Library not initialized or XCCDF file not specified", 1, msg_id="notify:xccdf:not_loaded")
             logger.debug("Library not initialized or XCCDF file not specified")
             return False
@@ -78,7 +78,7 @@ class DataHandler(object):
         item = {}
         item["item"] = value
         item["id"] = value.id
-        #item["lang"] = self.core.lib["policy_model"].benchmark.lang
+        #item["lang"] = self.core.lib.benchmark.lang
         item["lang"] = self.core.selected_lang
         item["titles"] = {}
         item["descs"] = {}
@@ -110,8 +110,8 @@ class DataHandler(object):
             item["match"] = ["", "^[\\d]+$", "^.*$", "^[01]$"][value.type]
 
         if self.core.selected_profile == None:
-            profile = self.core.lib["policy_model"].policies[0].profile
-        else: profile = self.core.lib["policy_model"].get_policy_by_id(self.core.selected_profile).profile
+            profile = self.core.lib.policy_model.policies[0].profile
+        else: profile = self.core.lib.policy_model.get_policy_by_id(self.core.selected_profile).profile
         if profile != None:
             for r_value in profile.refine_values:
                 if r_value.item == value.id:
@@ -132,13 +132,13 @@ class DataHandler(object):
     def get_all_values(self):
         if not self.check_library(): return []
 
-        return self.core.lib["policy_model"].benchmark.get_all_values()
+        return self.core.lib.benchmark.get_all_values()
 
     def get_languages(self):
         """Get available languages from XCCDF Benchmark
         """
         if not self.check_library(): return []
-        return [self.core.lib["policy_model"].benchmark.lang]
+        return [self.core.lib.benchmark.lang]
 
     def get_selected(self, item, items_model):
         """DataHandler.get_selected -- get selction of rule/group
@@ -147,7 +147,7 @@ class DataHandler(object):
         if self.core.selected_profile == None or items_model == True:
             return item.selected
         else:
-            policy = self.core.lib["policy_model"].get_policy_by_id(self.core.selected_profile)
+            policy = self.core.lib.policy_model.get_policy_by_id(self.core.selected_profile)
             if policy == None: raise Exception, "Policy %s does not exist" % (self.core.selected_profile,)
 
             # Get selector from policy
@@ -162,12 +162,12 @@ class DataHandler(object):
         """
 
         if self.core.selected_profile == None:
-            policy = self.core.lib["policy_model"].policies[0]
-        else: policy = self.core.lib["policy_model"].get_policy_by_id(self.core.selected_profile)
+            policy = self.core.lib.policy_model.policies[0]
+        else: policy = self.core.lib.policy_model.get_policy_by_id(self.core.selected_profile)
 
         values = []
-        if id == self.core.lib["policy_model"].benchmark.id: item = self.core.lib["policy_model"].benchmark
-        else: item = self.core.lib["policy_model"].benchmark.item(id)
+        if id == self.core.lib.benchmark.id: item = self.core.lib.benchmark
+        else: item = self.core.lib.benchmark.item(id)
         
         if item.type == openscap.OSCAP.XCCDF_RULE:
             return policy.get_values_by_rule_id(id)
@@ -191,7 +191,7 @@ class DataHandler(object):
                     for ref in child.exports:
                         content.append((ref.value, ref.name))
         else:
-            if item == None: item = self.core.lib["policy_model"].benchmark.get_item(self.core.selected_item)
+            if item == None: item = self.core.lib.benchmark.get_item(self.core.selected_item)
             if item == None: return None
             if item.type == openscap.OSCAP.XCCDF_RULE:
                 rule = item.to_rule()
@@ -215,7 +215,7 @@ class DataHandler(object):
                     for ref in child.content_refs:
                         content.append((ref.name, ref.href))
         else:
-            if item == None: item = self.core.lib["policy_model"].benchmark.get_item(self.core.selected_item)
+            if item == None: item = self.core.lib.benchmark.get_item(self.core.selected_item)
             if item == None: return None
             if item.type == openscap.OSCAP.XCCDF_RULE:
                 rule = item.to_rule()
@@ -231,7 +231,7 @@ class DataHandler(object):
     def set_item_content(self, name=None, href=None, item=None):
         if not self.check_library(): return None
 
-        if item == None: item = self.core.lib["policy_model"].benchmark.get_item(self.core.selected_item)
+        if item == None: item = self.core.lib.benchmark.get_item(self.core.selected_item)
         if item == None: return False, "Item \"%s\" not found" % (item or self.core.selected_item,)
 
         if item.type == openscap.OSCAP.XCCDF_RULE:
@@ -266,10 +266,10 @@ class DataHandler(object):
 
         if not self.check_library(): return None
 
-        item = self.core.lib["policy_model"].benchmark.item(id or self.core.selected_item)
+        item = self.core.lib.benchmark.item(id or self.core.selected_item)
         if not item: return None
 
-        policy = self.core.lib["policy_model"].get_policy_by_id(self.core.selected_profile)
+        policy = self.core.lib.policy_model.get_policy_by_id(self.core.selected_profile)
         if policy != None:
             new_item = policy.tailor_item(item)
             if new_item: item = new_item
@@ -364,14 +364,14 @@ class DataHandler(object):
         """Get the item from benchmark
         """
         if not self.check_library(): return None
-        return self.core.lib["policy_model"].benchmark.item(id or self.core.selected_item)
+        return self.core.lib.benchmark.item(id or self.core.selected_item)
         
     def get_profiles(self):
         """Get all profiles of the Benchmark
         """
         if not self.check_library(): return None
         profiles = []
-        for item in self.core.lib["policy_model"].benchmark.profiles:
+        for item in self.core.lib.benchmark.profiles:
             pvalues = self.get_profile_details(item.id)
             if self.core.selected_lang in pvalues["titles"]: 
                 profiles.append((item.id, pvalues["titles"][self.core.selected_lang])) 
@@ -385,7 +385,7 @@ class DataHandler(object):
         """
         if not self.check_library(): return None
 
-        policy = self.core.lib["policy_model"].get_policy_by_id(id or self.core.selected_profile)
+        policy = self.core.lib.policy_model.get_policy_by_id(id or self.core.selected_profile)
         if not policy: return None
         item = policy.profile
         if item != None:
@@ -487,11 +487,11 @@ class DataHandler(object):
 
     def get_benchmark(self):
         if not self.core.lib: return None
-        return self.core.lib["policy_model"].benchmark
+        return self.core.lib.benchmark
 
     def get_benchmark_titles(self):
         if not self.core.lib: return {}
-        benchmark = self.core.lib["policy_model"].benchmark
+        benchmark = self.core.lib.benchmark
         if not benchmark: return None
         titles = {}
         for title in benchmark.title:
@@ -500,37 +500,37 @@ class DataHandler(object):
 
     def get_titles(self):
         if not self.check_library(): return None
-        item = self.core.lib["policy_model"].benchmark.get_item(self.core.selected_item)
+        item = self.core.lib.benchmark.get_item(self.core.selected_item)
         if item: return item.title
         else: return []
     def get_descriptions(self):
         if not self.check_library(): return None
-        item = self.core.lib["policy_model"].benchmark.get_item(self.core.selected_item)
+        item = self.core.lib.benchmark.get_item(self.core.selected_item)
         if item: return item.description
         else: return []
     def get_warnings(self):
         if not self.check_library(): return None
-        item = self.core.lib["policy_model"].benchmark.get_item(self.core.selected_item)
+        item = self.core.lib.benchmark.get_item(self.core.selected_item)
         if item: return item.warnings
         else: return []
     def get_statuses(self):
         if not self.check_library(): return None
-        item = self.core.lib["policy_model"].benchmark.get_item(self.core.selected_item)
+        item = self.core.lib.benchmark.get_item(self.core.selected_item)
         if item: return item.statuses
         else: return []
     def get_questions(self):
         if not self.check_library(): return None
-        item = self.core.lib["policy_model"].benchmark.get_item(self.core.selected_item)
+        item = self.core.lib.benchmark.get_item(self.core.selected_item)
         if item: return item.question
         else: return []
     def get_rationales(self):
         if not self.check_library(): return None
-        item = self.core.lib["policy_model"].benchmark.get_item(self.core.selected_item)
+        item = self.core.lib.benchmark.get_item(self.core.selected_item)
         if item: return item.rationale
         else: return []
     def get_platforms(self):
         if not self.check_library(): return None
-        item = self.core.lib["policy_model"].benchmark.get_item(self.core.selected_item)
+        item = self.core.lib.benchmark.get_item(self.core.selected_item)
         if item: return item.platforms
         else: return []
 
@@ -545,7 +545,7 @@ class DataHandler(object):
         if not self.check_library(): return None
 
         if item == None:
-            item = self.core.lib["policy_model"].benchmark.get_item(self.core.selected_item)
+            item = self.core.lib.benchmark.get_item(self.core.selected_item)
 
         if operation == self.CMD_OPER_ADD:
             title = openscap.common.text()
@@ -570,7 +570,7 @@ class DataHandler(object):
         if not self.check_library(): return None
 
         if item == None:
-            item = self.core.lib["policy_model"].benchmark.get_item(self.core.selected_item)
+            item = self.core.lib.benchmark.get_item(self.core.selected_item)
 
         if operation == self.CMD_OPER_ADD:
             description = openscap.common.text()
@@ -596,7 +596,7 @@ class DataHandler(object):
         if not self.check_library(): return None
 
         if item == None:
-            item = self.core.lib["policy_model"].benchmark.get_item(self.core.selected_item)
+            item = self.core.lib.benchmark.get_item(self.core.selected_item)
 
         if operation == self.CMD_OPER_ADD:
             warning = openscap.xccdf.warning_new()
@@ -626,7 +626,7 @@ class DataHandler(object):
         if not self.check_library(): return None
 
         if item == None:
-            item = self.core.lib["policy_model"].benchmark.get_item(self.core.selected_item)
+            item = self.core.lib.benchmark.get_item(self.core.selected_item)
 
         if operation == self.CMD_OPER_ADD:
             if date != None: 
@@ -657,7 +657,7 @@ class DataHandler(object):
         if not self.check_library(): return None
 
         if item == None:
-            item = self.core.lib["policy_model"].benchmark.get_item(self.core.selected_item)
+            item = self.core.lib.benchmark.get_item(self.core.selected_item)
 
         if operation == self.CMD_OPER_ADD:
             question = openscap.common.text()
@@ -685,7 +685,7 @@ class DataHandler(object):
         if not self.check_library(): return None
 
         if item == None:
-            item = self.core.lib["policy_model"].benchmark.get_item(self.core.selected_item)
+            item = self.core.lib.benchmark.get_item(self.core.selected_item)
 
         if operation == self.CMD_OPER_ADD:
             rationale = openscap.common.text()
@@ -713,7 +713,7 @@ class DataHandler(object):
         if not self.check_library(): return None
 
         if item == None:
-            item = self.core.lib["policy_model"].benchmark.get_item(self.core.selected_item)
+            item = self.core.lib.benchmark.get_item(self.core.selected_item)
 
         if operation == self.CMD_OPER_ADD:
             return item.add_platform(cpe)
@@ -735,7 +735,7 @@ class DataHandler(object):
         if not self.check_library(): return None
 
         post = None
-        item = self.core.lib["policy_model"].benchmark.get_item(id)
+        item = self.core.lib.benchmark.get_item(id)
         if item == None:
             return None
 
@@ -759,7 +759,7 @@ class DataHandler(object):
 
     def substitute(self, description, with_policy=False):
         policy = None
-        if with_policy: policy = self.core.lib["policy_model"].get_policy_by_id(self.core.selected_profile)
+        if with_policy: policy = self.core.lib.policy_model.get_policy_by_id(self.core.selected_profile)
         sub = openscap.common.text_xccdf_substitute(description, self.__substitute, policy)
         if sub != None:
             return sub
@@ -768,10 +768,10 @@ class DataHandler(object):
     def get_oval_definitions(self, href):
         if not self.check_library(): return None
 
-        if href not in self.core.lib["names"].keys():
+        if href not in self.core.lib.files.keys():
             return None
 
-        def_model = self.core.lib["names"][href][1]
+        def_model = self.core.lib.files[href].model
 
         return def_model.definitions
 
@@ -802,7 +802,7 @@ class DHXccdf(DataHandler):
     def get_details(self):
     
         if not self.check_library(): return None
-        benchmark = self.core.lib["policy_model"].benchmark
+        benchmark = self.core.lib.benchmark
         details = {
                 "item":             benchmark,
                 "descs":            dict([(desc.lang, desc.text) for desc in benchmark.description]),
@@ -814,8 +814,8 @@ class DHXccdf(DataHandler):
                 "titles":           dict([(title.lang, " ".join(title.text.split())) for title in benchmark.title]),
                 "version":          benchmark.version,
                 "references":       self.parse_refs(benchmark.references),
-                "warnings":         [(warn.category, warn.text) for warn in benchmark.warnings],
-                "files":            self.core.lib["policy_model"].files.strings
+                "warnings":         [(warn.category, warn.text) for warn in benchmark.warnings]
+                #"files":            self.core.lib.policy_model.files.strings # This function is in policy_model and should be in benchmark ?
                 }
 
 
@@ -826,12 +826,9 @@ class DHXccdf(DataHandler):
         if not self.check_library(): return None
 
         info = {}
-        for name in self.core.lib["names"].keys():
-            if len(self.core.lib["names"][name]) != 2: 
-                logger.error("No sesion and/or definition model loaded for %s: ", name, self.core.lib["names"][name])
-                return
+        for name in self.core.lib.files.keys():
 
-            def_model = self.core.lib["names"][name][1]
+            def_model = self.core.lib.files[name].model
             info[name] = {}
             info[name]["product_name"] = def_model.generator.product_name
             info[name]["product_version"] = def_model.generator.product_version
@@ -844,7 +841,7 @@ class DHXccdf(DataHandler):
     def update(self, id=None, version=None, resolved=None, lang=None):
 
         if not self.check_library(): return None
-        benchmark = self.core.lib["policy_model"].benchmark
+        benchmark = self.core.lib.benchmark
 
         if id and benchmark.id != id: benchmark.id = id
         if version and benchmark.version != version: benchmark.version = version
@@ -857,7 +854,7 @@ class DHXccdf(DataHandler):
 
         file_name = self.file_browse("Save XCCDF file", file=self.core.xccdf_file)
         if file_name != "":
-            self.core.lib["policy_model"].benchmark.export(file_name)
+            self.core.lib.benchmark.export(file_name)
             logger.debug("Exported benchmark: %s", file_name)
             return file_name
         return None
@@ -872,38 +869,38 @@ class DHXccdf(DataHandler):
 
     def get_titles(self):
         if not self.check_library(): return None
-        return self.core.lib["policy_model"].benchmark.title
+        return self.core.lib.benchmark.title
     def get_descriptions(self):
         if not self.check_library(): return None
-        return self.core.lib["policy_model"].benchmark.description
+        return self.core.lib.benchmark.description
     def get_warnings(self):
         if not self.check_library(): return None
-        return self.core.lib["policy_model"].benchmark.warnings
+        return self.core.lib.benchmark.warnings
     def get_notices(self):
         if not self.check_library(): return None
-        return self.core.lib["policy_model"].benchmark.notices
+        return self.core.lib.benchmark.notices
     def get_statuses(self):
         if not self.check_library(): return None
-        return self.core.lib["policy_model"].benchmark.statuses
+        return self.core.lib.benchmark.statuses
     def get_platforms(self):
         if not self.check_library(): return None
-        return self.core.lib["policy_model"].benchmark.platforms
+        return self.core.lib.benchmark.platforms
 
     def edit_title(self, operation, obj, lang, text):
         if not self.check_library(): return None
-        super(DHXccdf, self).edit_title(operation, obj, lang, text, item=self.core.lib["policy_model"].benchmark)
+        super(DHXccdf, self).edit_title(operation, obj, lang, text, item=self.core.lib.benchmark)
 
     def edit_description(self, operation, obj, lang, text):
         if not self.check_library(): return None
-        super(DHXccdf, self).edit_description(operation, obj, lang, text, item=self.core.lib["policy_model"].benchmark)
+        super(DHXccdf, self).edit_description(operation, obj, lang, text, item=self.core.lib.benchmark)
 
     def edit_warning(self, operation, obj, category, lang, text):
         if not self.check_library(): return None
-        super(DHXccdf, self).edit_warning(operation, obj, category, lang, text, item=self.core.lib["policy_model"].benchmark.to_item())
+        super(DHXccdf, self).edit_warning(operation, obj, category, lang, text, item=self.core.lib.benchmark.to_item())
 
     def edit_status(self, operation, obj=None, date=None, status=None):
         if not self.check_library(): return None
-        super(DHXccdf, self).edit_status(operation, obj, date, status, item=self.core.lib["policy_model"].benchmark.to_item())
+        super(DHXccdf, self).edit_status(operation, obj, date, status, item=self.core.lib.benchmark.to_item())
 
     def edit_notice(self, operation, obj, id, text):
 
@@ -916,7 +913,7 @@ class DHXccdf(DataHandler):
             notice.text = new_text
             notice.id = id
     
-            return self.core.lib["policy_model"].benchmark.add_notice(notice)
+            return self.core.lib.benchmark.add_notice(notice)
 
         elif operation == self.CMD_OPER_EDIT:
             if obj == None: 
@@ -926,7 +923,7 @@ class DHXccdf(DataHandler):
             return True
 
         elif operation == self.CMD_OPER_DEL:
-            return self.core.lib["policy_model"].benchmark.notice.remove(obj)
+            return self.core.lib.benchmark.notice.remove(obj)
 
         else: raise AttributeError("Edit notice: Unknown operation %s" % (operation,))
 
@@ -959,14 +956,14 @@ class DHValues(DataHandler):
         if item == None:
             self.model.clear()
             if self.core.selected_item != None:
-                item = self.core.lib["policy_model"].benchmark.get_item(self.core.selected_item)
+                item = self.core.lib.benchmark.get_item(self.core.selected_item)
                 if item == None: 
                     logger.error("XCCDF Item \"%s\" does not exists. Can't fill data", self.core.selected_item)
                     raise Exception("XCCDF Item \"%s\" does not exists. Can't fill data" % (self.core.selected_item,))
             else: return
         
         # Append a couple of rows.
-        item = self.core.lib["policy_model"].benchmark.get_item(self.core.selected_item)
+        item = self.core.lib.benchmark.get_item(self.core.selected_item)
         values = self.get_item_values(self.core.selected_item)
         # TODO: The 0:gray value is not working cause of error in get_selected that values stay the same color
         # after selecting rule/group
@@ -989,8 +986,8 @@ class DHValues(DataHandler):
         if not self.check_library(): return None
 
         if self.core.selected_profile == None:
-            policy = self.core.lib["policy_model"].policies[0]
-        else: policy = self.core.lib["policy_model"].get_policy_by_id(self.core.selected_profile)
+            policy = self.core.lib.policy_model.policies[0]
+        else: policy = self.core.lib.policy_model.get_policy_by_id(self.core.selected_profile)
 
         new_text_value = None
         iter = self.model.get_iter(path)
@@ -1000,7 +997,7 @@ class DHValues(DataHandler):
             if value_iter[0] == new_text: new_text_value = value_iter[1]
         if new_text_value == None: new_text_value = new_text
 
-        val = self.core.lib["policy_model"].benchmark.item(id).to_value()
+        val = self.core.lib.benchmark.item(id).to_value()
         value = self.parse_value(val)
         logger.debug("Matching %s against %s or %s", new_text_value, value["choices"], value["match"])
         # Match against pattern as "choices or match"
@@ -1026,7 +1023,7 @@ class DHValues(DataHandler):
     def edit_value(self, version=None, version_time=None, prohibit_changes=None, abstract=None, cluster_id=None, interactive=None, operator=None):
         if not self.check_library(): return None
 
-        item = self.core.lib["policy_model"].benchmark.get_item(self.core.selected_item)
+        item = self.core.lib.benchmark.get_item(self.core.selected_item)
         if item == None:
             raise Exception("Edit items update: No item selected !")
         item = item.to_value()
@@ -1049,7 +1046,7 @@ class DHValues(DataHandler):
     def edit_value_of_value(self, operation, obj, selector, value, default, match, upper_bound, lower_bound, must_match):
         if not self.check_library(): return None
         
-        item = self.core.lib["policy_model"].benchmark.get_item(self.core.selected_item).to_value()
+        item = self.core.lib.benchmark.get_item(self.core.selected_item).to_value()
         if item == None:
             raise Exception("Edit values: No item selected")
 
@@ -1109,7 +1106,7 @@ class DHValues(DataHandler):
         if not self.check_library(): return None
 
         instances = []
-        item = self.core.lib["policy_model"].benchmark.get_item(self.core.selected_item).to_value()
+        item = self.core.lib.benchmark.get_item(self.core.selected_item).to_value()
 
         for instance in item.instances:
             if item.type == openscap.OSCAP.XCCDF_TYPE_NUMBER:
@@ -1252,7 +1249,7 @@ class DHItemsTree(DataHandler, EventObject):
            2) Get selector by ID from selected item in treeView
            3) If there is no selector create one and set up by attributes from treeView
            """
-        policy = self.core.lib["policy_model"].get_policy_by_id(self.core.selected_profile)
+        policy = self.core.lib.policy_model.get_policy_by_id(self.core.selected_profile)
         if policy == None: 
             raise Exception, "Policy %s does not exist" % (self.core.selected_profile,)
 
@@ -1380,7 +1377,7 @@ class DHItemsTree(DataHandler, EventObject):
         if self.__progress:
             self.__progress.set_fraction(0.0)
             self.__progress.show()
-            self.__total = self.__item_count(self.core.lib["policy_model"].benchmark, with_values=with_values)
+            self.__total = self.__item_count(self.core.lib.benchmark, with_values=with_values)
         self.__step = (100.0/(self.__total or 1.0))/100.0
 
         try:
@@ -1392,9 +1389,9 @@ class DHItemsTree(DataHandler, EventObject):
 
             """Using generator for list cause we don't want to extend (add) values to content
             of benchmark again (list is benchmark content and adding cause adding to model)"""
-            content = [item for item in self.core.lib["policy_model"].benchmark.content]
+            content = [item for item in self.core.lib.benchmark.content]
             if with_values:
-                content.extend([item.to_item() for item in self.core.lib["policy_model"].benchmark.values])
+                content.extend([item.to_item() for item in self.core.lib.benchmark.values])
 
             for item in content:
                 if self.__progress != None:
@@ -1443,7 +1440,7 @@ class DHItemsTree(DataHandler, EventObject):
         """There is no item selected therefor we are adding new item to the
         root level: benchmark. Get benchmark and check it for None value"""
         if parent == None: 
-            parent = self.core.lib["policy_model"].benchmark.to_item()
+            parent = self.core.lib.benchmark.to_item()
             if parent == None:
                 return False
 
@@ -1481,7 +1478,7 @@ class DHItemsTree(DataHandler, EventObject):
             select = openscap.xccdf.select()
             select.selected = True
             select.item = item_dict["id"]
-            for policy in self.core.lib["policy_model"].policies:
+            for policy in self.core.lib.policy_model.policies:
                 policy.add_select(select)
             op = parent.add_rule
         elif itype == self.TYPE_GROUP:
@@ -1494,7 +1491,7 @@ class DHItemsTree(DataHandler, EventObject):
         item.id = item_dict["id"]
         item.add_title(title)
 
-        if parent == self.core.lib["policy_model"].benchmark:
+        if parent == self.core.lib.benchmark:
             retval = op(parent, item)
         else: retval = op(parent, item)
 
@@ -1521,7 +1518,7 @@ class DHProfiles(DataHandler):
     def update(self, id=None, version=None, abstract=None, prohibit_changes=None):
         if not self.check_library(): return None
 
-        policy = self.core.lib["policy_model"].get_policy_by_id(self.core.selected_profile)
+        policy = self.core.lib.policy_model.get_policy_by_id(self.core.selected_profile)
         if not policy: 
             logger.error("Update failed: No profile \"%s\" in benchmnark" % (self.core.selected_profile,))
             return None
@@ -1554,8 +1551,8 @@ class DHProfiles(DataHandler):
         new_title.lang = lang
         profile.title = new_title
 
-        self.core.lib["policy_model"].benchmark.add_profile(profile)
-        self.core.lib["policy_model"].add_policy(openscap.xccdf.policy(self.core.lib["policy_model"], profile))
+        self.core.lib.benchmark.add_profile(profile)
+        self.core.lib.policy_model.add_policy(openscap.xccdf.policy(self.core.lib.policy_model, profile))
 
     def fill(self, item=None, parent=None, no_default=False):
         """Clear the model and fill it with existing profiles from loaded benchmark
@@ -1570,7 +1567,7 @@ class DHProfiles(DataHandler):
             self.model.append([None, "(No profile)"])
 
         # Go thru all profiles from benchmark and add them into the model
-        for item in self.core.lib["policy_model"].benchmark.profiles:
+        for item in self.core.lib.benchmark.profiles:
             logger.debug("Adding profile \"%s\"", item.id)
             pvalues = self.get_profile_details(item.id)
             if self.core.selected_lang in pvalues["titles"]:
@@ -1590,7 +1587,7 @@ class DHProfiles(DataHandler):
         all changes made to the policy after tailoring are not mirrored to the profile,
         therefor we need to save it explicitely."""
 
-        policy = self.core.lib["policy_model"].get_policy_by_id(self.core.selected_profile)
+        policy = self.core.lib.policy_model.get_policy_by_id(self.core.selected_profile)
         if policy == None:
             logger.debug("No policy associated to profile %s" % (self.core.selected_profile,))
             return
@@ -1616,8 +1613,8 @@ class DHProfiles(DataHandler):
         if not self.check_library(): return None
 
         logger.debug("Removing profile %s" %(id,))
-        profile = self.core.lib["policy_model"].benchmark.get_item(id).to_profile()
-        self.core.lib["policy_model"].benchmark.profiles.remove(profile)
+        profile = self.core.lib.benchmark.get_item(id).to_profile()
+        self.core.lib.benchmark.profiles.remove(profile)
 
     def change_refines(self, weight=None, severity=None, role=None):
         """Call the library to change refines of profile
@@ -1625,13 +1622,13 @@ class DHProfiles(DataHandler):
         if self.core.selected_profile == None: return
         if not self.check_library(): return None
 
-        policy = self.core.lib["policy_model"].get_policy_by_id(self.core.selected_profile)
+        policy = self.core.lib.policy_model.get_policy_by_id(self.core.selected_profile)
         if policy:
             logger.debug("Changing refine_rules: item(%s): severity(%s), role(%s), weight(%s)" % (self.core.selected_item, severity, role, weight))
             refine = policy.set_refine_rule(self.core.selected_item, weight, severity, role)
 
     def __get_current_profile(self):
-        policy = self.core.lib["policy_model"].get_policy_by_id(self.core.selected_profile)
+        policy = self.core.lib.policy_model.get_policy_by_id(self.core.selected_profile)
         if not policy: return None
         return policy.profile
 
@@ -1881,11 +1878,11 @@ class DHScan(DataHandler, EventObject):
         """
 
         if self.core.registered_callbacks == False:
-            self.core.lib["policy_model"].register_start_callback(self.__callback_start, self)
-            self.core.lib["policy_model"].register_output_callback(self.__callback_end, self)
+            self.core.lib.policy_model.register_start_callback(self.__callback_start, self)
+            self.core.lib.policy_model.register_output_callback(self.__callback_end, self)
         else:
-            for sess in self.core.lib["sessions"]:
-                retval = openscap.oval.agent_reset_session(sess)
+            for oval in self.core.lib.files.values():
+                retval = openscap.oval.agent_reset_session(oval.session)
                 logger.debug("OVAL Agent session reset: %s" % (retval,))
                 if retval != 0: 
                     self.core.notify("Oval agent reset session failed.", 2, msg_id="notify:scan:oval_reset")
@@ -1896,8 +1893,8 @@ class DHScan(DataHandler, EventObject):
         self.model.clear()
 
         if self.core.selected_profile == None:
-            self.policy = self.core.lib["policy_model"].policies[0]
-        else: self.policy = self.core.lib["policy_model"].get_policy_by_id(self.core.selected_profile)
+            self.policy = self.core.lib.policy_model.policies[0]
+        else: self.policy = self.core.lib.policy_model.get_policy_by_id(self.core.selected_profile)
 
         #self.__rules_count = 0
         self.__rules_count = len(self.policy.selected_rules)
@@ -1911,8 +1908,8 @@ class DHScan(DataHandler, EventObject):
         if not self.__cancel:
             self.__cancel = True
             self.__cancel_notify = self.core.notify("Scanning canceled. Please wait for openscap to finish current task.", 0, msg_id="notify:scan:cancel")
-        for sess in self.core.lib["sessions"]:
-            retval = openscap.oval.agent_abort_session(sess)
+        for oval in self.core.lib.files.values():
+            retval = openscap.oval.agent_abort_session(oval.session)
             logger.debug("OVAL Agent session abort: %s" % (retval,))
 
     def export(self):
@@ -1982,7 +1979,7 @@ class DHEditItems(DataHandler):
     def update(self, version=None, version_time=None, selected=None, hidden=None, prohibit=None, abstract=None, cluster_id=None, weight=None):
         if not self.check_library(): return None
 
-        item = self.core.lib["policy_model"].benchmark.get_item(self.core.selected_item)
+        item = self.core.lib.benchmark.get_item(self.core.selected_item)
         if item == None:
             raise Exception("Edit items update: No item selected !")
 
@@ -1992,7 +1989,7 @@ class DHEditItems(DataHandler):
             item.version_time = version_time
         if selected != None:
             item.selected = selected
-            for sel in self.core.lib["policy_model"].policies[0].selects:
+            for sel in self.core.lib.policy_model.policies[0].selects:
                 if sel.item == item.id: sel.selected = selected
         if hidden != None:
             item.hidden = hidden
@@ -2008,7 +2005,7 @@ class DHEditItems(DataHandler):
     def item_edit_value(self, operation, value, export_name):
         if not self.check_library(): return None
 
-        item = self.core.lib["policy_model"].benchmark.get_item(self.core.selected_item)
+        item = self.core.lib.benchmark.get_item(self.core.selected_item)
         if item.type != openscap.OSCAP.XCCDF_RULE:
             raise Exception("There must be Rule For adding value !")
         item = item.to_rule()
@@ -2052,15 +2049,13 @@ class DHEditItems(DataHandler):
                 if openscap.OSCAP.oscap_err(): desc = openscap.OSCAP.oscap_err_desc()
                 else: desc = "Unknown error, please report this bug (http://bugzilla.redhat.com/)"
                 raise ImportError("Cannot import definition model for \"%s\": %s" % (f_OVAL, desc))
-            self.core.lib["def_models"].append(def_model)
             sess = openscap.oval.agent_new_session(def_model, os.path.basename(f_OVAL))
             if sess == None or sess.instance == None:
                 if openscap.OSCAP.oscap_err(): desc = openscap.OSCAP.oscap_err_desc()
                 else: desc = "Unknown error, please report this bug (http://bugzilla.redhat.com/)"
                 raise ImportError("Cannot create agent session for \"%s\": %s" % (f_OVAL, desc))
-            self.core.lib["sessions"].append(sess)
-            self.core.lib["names"][os.path.basename(f_OVAL)] = [sess, def_model]
-            self.core.lib["policy_model"].register_engine_oval(sess)
+            self.core.lib.files.add_file(os.path.basename(f_OVAL), sess, def_model)
+            self.core.lib.policy_model.register_engine_oval(sess)
         else: logger.warning("Skipping %s file which is referenced from XCCDF content" % (f_OVAL,))
 
         return True
