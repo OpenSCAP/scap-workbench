@@ -66,11 +66,47 @@ class DataHandler(object):
     def check_library(self):
         """Check if the library exists and the XCCDF file
         is loaded. If not return False and True otherwise"""
-        if not self.core.lib or not self.core.lib.benchmark or self.core.xccdf_file == None:
+        if not self.core.lib or not self.core.lib.loaded:
             #self.core.notify("Library not initialized or XCCDF file not specified", 1, msg_id="notify:xccdf:not_loaded")
             logger.debug("Library not initialized or XCCDF file not specified")
             return False
         else: return True
+
+    def get_values_by_rule_id(self, id, check=None):
+
+        if not self.check_library(): return None
+        items = []
+        values = []
+
+        # Case 1: check is not None -- we have recursive call
+        if check != None:
+            if check.complex:
+                # This check is complext so there is more checks within
+                for child in check.children: 
+                    self.get_values_by_rule_id(id, check=child)
+            else:
+                for export in check.exports:
+                    values.append(export.value)
+            return values
+
+        # Case 2: check is None -- this is regular call of function
+        item = self.core.lib.benchmark.get_item(id)
+        if item.type != openscap.OSCAP.XCCDF_RULE: raise TypeError("Wrong type of item with id \"%s\". Expected XCCDF_RULE, got " % (id, item.type))
+        rule = item.to_rule()
+        for check in rule.checks:
+            if check.complex:
+                # This check is complext so there is more checks within
+                for child in check.children: 
+                    values.extend(self.get_values_by_rule_id(id, check=child))
+            else:
+                for export in check.exports:
+                    values.append(export.value)
+
+        for value in self.core.lib.benchmark.get_all_values():
+            if value.id in values:
+                items.append(self.parse_value(value))
+            
+        return items
 
     def parse_value(self, value):
 
@@ -109,9 +145,9 @@ class DataHandler(object):
         if not len(item["match"]):
             item["match"] = ["", "^[\\d]+$", "^.*$", "^[01]$"][value.type]
 
-        if self.core.selected_profile == None:
+        if self.core.selected_profile == None and self.core.lib.policy_model:
             profile = self.core.lib.policy_model.policies[0].profile
-        else: profile = self.core.lib.policy_model.get_policy_by_id(self.core.selected_profile).profile
+        else: profile = self.get_profile(self.core.selected_profile)
         if profile != None:
             for r_value in profile.refine_values:
                 if r_value.item == value.id:
@@ -156,21 +192,23 @@ class DataHandler(object):
                 return item.selected
             else: return select.selected
 
+    def get_profile(self, id):
+        for profile in self.core.lib.benchmark.profiles:
+            if profile.id == id:
+                return profile
+        return None
+
     def get_item_values(self, id):
         """Get all values of item with id equal to id parameter
         This could be either XCCDF Group or XCCDF Benchmark
         """
-
-        if self.core.selected_profile == None:
-            policy = self.core.lib.policy_model.policies[0]
-        else: policy = self.core.lib.policy_model.get_policy_by_id(self.core.selected_profile)
 
         values = []
         if id == self.core.lib.benchmark.id: item = self.core.lib.benchmark
         else: item = self.core.lib.benchmark.item(id)
         
         if item.type == openscap.OSCAP.XCCDF_RULE:
-            return policy.get_values_by_rule_id(id)
+            return self.get_values_by_rule_id(id)
         else:
             item = item.to_group()
             values.extend( [self.parse_value(i) for i in item.values] )
@@ -269,10 +307,11 @@ class DataHandler(object):
         item = self.core.lib.benchmark.item(id or self.core.selected_item)
         if not item: return None
 
-        policy = self.core.lib.policy_model.get_policy_by_id(self.core.selected_profile)
-        if policy != None:
-            new_item = policy.tailor_item(item)
-            if new_item: item = new_item
+        if self.core.lib.policy_model:
+            policy = self.core.lib.policy_model.get_policy_by_id(self.core.selected_profile)
+            if policy != None:
+                new_item = policy.tailor_item(item)
+                if new_item: item = new_item
 
         if item != None:
             values = {
@@ -385,9 +424,7 @@ class DataHandler(object):
         """
         if not self.check_library(): return None
 
-        policy = self.core.lib.policy_model.get_policy_by_id(id or self.core.selected_profile)
-        if not policy: return None
-        item = policy.profile
+        item = self.get_profile(id)
         if item != None:
             values = {
                     "id":               item.id,
@@ -814,9 +851,10 @@ class DHXccdf(DataHandler):
                 "titles":           dict([(title.lang, " ".join(title.text.split())) for title in benchmark.title]),
                 "version":          benchmark.version,
                 "references":       self.parse_refs(benchmark.references),
-                "warnings":         [(warn.category, warn.text) for warn in benchmark.warnings]
-                #"files":            self.core.lib.policy_model.files.strings # This function is in policy_model and should be in benchmark ?
+                "warnings":         [(warn.category, warn.text) for warn in benchmark.warnings],
+                "files":            []
                 }
+        if self.core.lib.policy_model: details["files"] = self.core.lib.policy_model.files.strings
 
 
         return details
@@ -852,7 +890,7 @@ class DHXccdf(DataHandler):
 
         if not self.check_library(): return None
 
-        file_name = self.file_browse("Save XCCDF file", file=self.core.xccdf_file)
+        file_name = self.file_browse("Save XCCDF file", file=self.core.lib.xccdf)
         if file_name != "":
             self.core.lib.benchmark.export(file_name)
             logger.debug("Exported benchmark: %s", file_name)
@@ -862,8 +900,8 @@ class DHXccdf(DataHandler):
     def validate(self):
         if not self.check_library(): return 2
 
-        if os.access(self.core.xccdf_file, os.R_OK):
-            retval = openscap.common.validate_document(self.core.xccdf_file, openscap.OSCAP.OSCAP_DOCUMENT_XCCDF, None, self.__cb_report, None)
+        if os.access(self.core.lib.xccdf, os.R_OK):
+            retval = openscap.common.validate_document(self.core.lib.xccdf, openscap.OSCAP.OSCAP_DOCUMENT_XCCDF, None, self.__cb_report, None)
         else: return 3
         return retval
 
@@ -1554,6 +1592,7 @@ class DHProfiles(DataHandler):
         self.core.lib.benchmark.add_profile(profile)
         self.core.lib.policy_model.add_policy(openscap.xccdf.policy(self.core.lib.policy_model, profile))
 
+    @threadSave
     def fill(self, item=None, parent=None, no_default=False):
         """Clear the model and fill it with existing profiles from loaded benchmark
         no_default parameter means that there should not be a default document representation of policy
@@ -1628,9 +1667,7 @@ class DHProfiles(DataHandler):
             refine = policy.set_refine_rule(self.core.selected_item, weight, severity, role)
 
     def __get_current_profile(self):
-        policy = self.core.lib.policy_model.get_policy_by_id(self.core.selected_profile)
-        if not policy: return None
-        return policy.profile
+        return self.get_profile(self.core.selected_profile)
 
     def get_titles(self):
         if not self.check_library(): return None
@@ -1916,7 +1953,10 @@ class DHScan(DataHandler, EventObject):
         if not self.core.lib or self.__result == None: return False
         file_name = self.file_browse("Save results", file="results.xml")
         if file_name != "":
-            files = self.policy.export(self.__result, self.core.lib, DHScan.RESULT_NAME, file_name, file_name)
+            sessions = {}
+            for oval in self.core.lib.files.values():
+                sessions[oval.path] = oval.session
+            files = self.policy.export(self.__result, DHScan.RESULT_NAME, file_name, file_name, self.core.lib.xccdf, sessions)
             for file in files:
                 logger.debug("Exported: %s", file)
             return file_name

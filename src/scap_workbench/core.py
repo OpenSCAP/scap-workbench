@@ -143,6 +143,7 @@ class Library:
     def new(self):
         """Create new XCCDF Benchmark
         """
+        openscap.OSCAP.oscap_init()
         self.benchmark = openscap.xccdf.benchmark()
         self.loaded = True
 
@@ -154,8 +155,11 @@ class Library:
     def import_xccdf(self, xccdf):
         """Import XCCDF Benchmark from file
         """
+        openscap.OSCAP.oscap_init()
         self.xccdf = xccdf
         self.benchmark = openscap.xccdf.benchmark_import(xccdf)
+        #for file in self.benchmark.to_item().get_files():
+            #print file
         if self.benchmark: logger.debug("Initialization done.")
         else:
             logger.debug("Initialization failed. Benchmark can't be imported")
@@ -179,11 +183,15 @@ class Library:
     def destroy(self):
         """
         """
-        if self.benchmark and not self.policy_model:
+        openscap.OSCAP.oscap_cleanup()
+        if self.benchmark and self.policy_model == None:
             self.benchmark.free()
-        elif self.policy_model:
+            for oval in self.files.values(): oval.destroy()
+        elif self.policy_model != None:
             self.policy_model.free()
-        for oval in self.files.values(): oval.destroy()
+        self.xccdf = None
+        self.benchmark = None
+        self.policy_model = None
         self.loaded = False
 
 class SWBCore:
@@ -203,7 +211,6 @@ class SWBCore:
         self.selected_item      = None
         self.selected_lang      = ""
         self.langs              = []
-        self.xccdf_file        = None
         self.filter_directory   = FILTER_DIR
 
         # Global notifications
@@ -236,6 +243,9 @@ class SWBCore:
         if len(args) > 0:
             logger.debug("Loading XCCDF file %s", sys.argv[1])
             self.lib.import_xccdf(args[0])
+            if not self.lib.benchmark.lang in self.langs: 
+                self.langs.append(self.lib.benchmark.lang)
+            self.selected_lang = self.lib.benchmark.lang
 
         self.set_receiver("gui:btn:main:xccdf", "load", self.__set_force)
 
@@ -258,20 +268,18 @@ class SWBCore:
                 lib = openscap.xccdf.init(XCCDF)
                 self.lib.parse(lib)
             except ImportError, err:
-                self.xccdf_file = None
                 logger.error(err)
                 return False
 
             # Language of benchmark should be in languages
-            if self.lib.benchmark == None:
-                logger.error("FATAL: Benchmark does not exist")
-                raise Exception("Can't initialize openscap library")
-            if not self.lib.benchmark.lang in self.langs: 
-                self.langs.append(self.lib.benchmark.lang)
-            self.selected_lang = self.lib.benchmark.lang
-            if self.lib.benchmark.lang == None:
-                self.notify("XCCDF Benchmark: No language specified.", 2)
-        self.xccdf_file = self.lib.xccdf
+        if self.lib.benchmark == None:
+            logger.error("FATAL: Benchmark does not exist")
+            raise Exception("Can't initialize openscap library")
+        if not self.lib.benchmark.lang in self.langs: 
+            self.langs.append(self.lib.benchmark.lang)
+        self.selected_lang = self.lib.benchmark.lang
+        if self.lib.benchmark.lang == None:
+            self.notify("XCCDF Benchmark: No language specified.", 2)
         return True
 
 
@@ -311,7 +319,6 @@ class SWBCore:
         self.selected_profile = None
 
     def destroy(self):
-        self.xccdf_file = None
         self.__set_force()
         self.__destroy__()
 

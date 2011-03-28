@@ -122,7 +122,7 @@ class MenuButtonScan(abstract.MenuButton):
             if self.core.selected_lang in profile["titles"]: title = profile["titles"][self.core.selected_lang]
             else: title = "%s (ID)" % (profile["id"],)
             self.notifications.append(self.core.notify("Selected profile: \"%s\"." % (title,), 0))
-        elif self.core.xccdf_file: self.notifications.append(self.core.notify("Selected default document profile.", 0))
+        elif self.core.lib.loaded: self.notifications.append(self.core.notify("Selected default document profile.", 0))
 
     def activate(self, active):
         if active:
@@ -149,7 +149,7 @@ class MenuButtonScan(abstract.MenuButton):
     def __cb_profile(self, widget):
         for notify in self.notifications:
             notify.destroy()
-        if self.core.xccdf_file == None:
+        if self.core.lib.loaded == None:
             self.core.notify("Library not initialized or XCCDF file not specified", 1, msg_id="notify:xccdf:not_loaded")
             return
         ProfileChooser(self.core, self.__update_profile)

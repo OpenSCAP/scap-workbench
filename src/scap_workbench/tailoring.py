@@ -60,8 +60,6 @@ class ItemList(abstract.List):
         self.add_receiver("gui:btn:tailoring:filter", "filter_add", self.__filter_add)
         self.add_receiver("gui:btn:tailoring:filter", "filter_del", self.__filter_del)
         self.add_receiver("gui:tailoring:DHItemsTree", "filled", self.__filter_refresh)
-        self.add_receiver("edit:dialog_window:add_item", "add", self.__model_changed)
-        self.add_receiver("gui:edit:item_list", "update", self.__model_changed)
         
         builder.get_object("tailoring:items:toggled:cellrenderer").connect("toggled", self.data_model.cb_toggled)
         selection.connect("changed", self.__cb_item_changed, self.get_TreeView())
@@ -70,15 +68,11 @@ class ItemList(abstract.List):
 
     def __update(self):
 
-        if self.core.xccdf_file == None: self.data_model.model.clear()
-        if "profile" not in self.__dict__ or self.profile != self.core.selected_profile or self.core.force_reload_items or self.__has_model_changed:
-            self.__has_model_changed == False
+        if not self.core.lib.loaded: self.data_model.model.clear()
+        if "profile" not in self.__dict__ or self.profile != self.core.selected_profile or self.core.force_reload_items:
             self.profile = self.core.selected_profile
             self.get_TreeView().set_model(self.data_model.model)
             self.profiles.set_sensitive(False)
-            if self.__progress:
-                self.__progress.set_text("Waiting for thread lock ...")
-                self.__progress.show()
             self.treeView.set_sensitive(False)
             self.data_model.fill()
             self.core.force_reload_items = False
@@ -104,9 +98,6 @@ class ItemList(abstract.List):
     def __filter_refresh(self):
         self.data_model.map_filter = self.filter_del(self.filter.filters)
         self.get_TreeView().get_model().foreach(self.set_selected, (self.core.selected_item, self.get_TreeView(), 1))
-
-    def __model_changed(self):
-        self.__has_model_changed = True
 
     @threadFree
     def __cb_item_changed(self, widget, treeView):

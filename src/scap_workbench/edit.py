@@ -150,7 +150,7 @@ class ItemList(abstract.List):
 
     def __update(self, widget=None):
 
-        if self.core.xccdf_file == None: self.data_model.model.clear()
+        if not self.core.lib.loaded: self.data_model.model.clear()
         if self.loaded_new == True or widget != None:
             #self.get_TreeView().set_model(self.data_model.model)
             if self.__progress:
@@ -316,7 +316,7 @@ class MenuButtonEditXCCDF(abstract.MenuButton):
         if file_name:
             self.core.notify_destroy("notify:xccdf:validate")
             self.notifications.append(self.core.notify("Benchmark has been exported to \"%s\"" % (file_name,), 0, msg_id="notify:xccdf:export"))
-            self.core.xccdf_file = file_name
+            self.core.lib.xccdf = file_name
 
     def __menu_sensitive(self, active):
         self.btn_close.set_sensitive(active)
@@ -906,7 +906,7 @@ class MenuButtonEditItems(abstract.MenuButton, abstract.Func):
  
             if len(self.core.lib.files) > 0:
                 self.href.get_model().clear()
-                for name in self.core.files.keys():
+                for name in self.core.lib.files.keys():
                     self.href.get_model().append([name, name])
             if content != None and len(content) > 0:
                 self.content_ref.set_text(content[0][0] or "")
@@ -3148,7 +3148,7 @@ class Editor(abstract.Window, threading.Thread):
         self.builder.get_object("main:toolbar:main").set_active(True)
 
         self.core.get_item("gui:btn:menu:edit:XCCDF").update()
-        if self.core.xccdf_file != None and self.core.lib != None:
+        if self.core.lib.loaded:
             self.core.get_item("gui:btn:menu:edit:profiles").set_sensitive(True)
             self.core.get_item("gui:btn:menu:edit:items").set_sensitive(True)
 

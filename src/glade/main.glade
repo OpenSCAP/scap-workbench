@@ -1325,7 +1325,6 @@
                             <child>
                               <object class="GtkButton" id="xccdf:btn_new">
                                 <property name="label">gtk-new</property>
-                                <property name="visible">True</property>
                                 <property name="can_focus">True</property>
                                 <property name="receives_default">True</property>
                                 <property name="use_stock">True</property>

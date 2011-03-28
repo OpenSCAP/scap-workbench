@@ -31,7 +31,6 @@ import core
 import abstract
 import tailoring
 import scan
-import edit
 import logging
 import commands
 
@@ -301,7 +300,6 @@ class MenuButtonXCCDF(abstract.MenuButton):
     def __menu_sensitive(self, active):
         self.core.get_item("gui:btn:menu:tailoring").set_sensitive(active)
         self.core.get_item("gui:btn:menu:scan").set_sensitive(active)
-        self.core.get_item("gui:btn:menu:edit").set_sensitive(active)
 
     def __cb_close(self, widget):
         self.btn_close.set_sensitive(False)
@@ -357,7 +355,6 @@ class MainWindow(abstract.Window, threading.Thread):
         # abstract the main menu
         self.menu = abstract.Menu("gui:menu", self.builder.get_object("main:toolbar"), self.core)
         self.menu.add_item(MenuButtonXCCDF(self.builder, self.builder.get_object("main:toolbar:main"), self.core))
-        self.menu.add_item(abstract.MenuButton("gui:btn:menu:edit", self.builder.get_object("main:toolbar:edit"), self.core))
         self.menu.add_item(abstract.MenuButton("gui:btn:menu:reports", self.builder.get_object("main:toolbar:reports"), self.core))
         self.menu.add_item(tailoring.MenuButtonTailoring(self.builder, self.builder.get_object("main:toolbar:tailoring"), self.core))
         self.menu.add_item(scan.MenuButtonScan(self.builder, self.builder.get_object("main:toolbar:scan"), self.core))
