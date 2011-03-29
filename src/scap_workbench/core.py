@@ -196,7 +196,7 @@ class Library:
 
 class SWBCore:
 
-    def __init__(self, builder):
+    def __init__(self, builder, with_policy=False):
 
         self.thread_handler = ThreadManager(self)
         self.builder = builder
@@ -212,6 +212,7 @@ class SWBCore:
         self.selected_lang      = ""
         self.langs              = []
         self.filter_directory   = FILTER_DIR
+        self.with_policy = with_policy
 
         # Global notifications
         self.__global_notifications = {}
@@ -242,10 +243,7 @@ class SWBCore:
 
         if len(args) > 0:
             logger.debug("Loading XCCDF file %s", sys.argv[1])
-            self.lib.import_xccdf(args[0])
-            if not self.lib.benchmark.lang in self.langs: 
-                self.langs.append(self.lib.benchmark.lang)
-            self.selected_lang = self.lib.benchmark.lang
+            self.init(args[0])
 
         self.set_receiver("gui:btn:main:xccdf", "load", self.__set_force)
 
@@ -262,8 +260,13 @@ class SWBCore:
             raise Exception("Can't initialize openscap library")
 
         if not XCCDF:
+            # No XCCDF specified: Create new Benchmark
             self.lib.new()
+        elif not self.with_policy:
+            # Trying to import XCCDF in editor
+            self.lib.import_xccdf(XCCDF)
         else:
+            # Trying to import XCCDF in scanner - we need policies
             try:
                 lib = openscap.xccdf.init(XCCDF)
                 self.lib.parse(lib)

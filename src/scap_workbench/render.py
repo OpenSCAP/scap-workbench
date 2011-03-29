@@ -345,7 +345,7 @@ class MainWindow(abstract.Window, threading.Thread):
         self.builder = gtk.Builder()
         self.builder.add_from_file("/usr/share/scap-workbench/main.glade")
         self.builder.connect_signals(self)
-        self.core = core.SWBCore(self.builder)
+        self.core = core.SWBCore(self.builder, True)
         assert self.core != None, "Initialization failed, core is None"
 
         self.window = self.builder.get_object("main:window")
