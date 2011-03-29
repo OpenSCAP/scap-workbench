@@ -26,6 +26,7 @@ from events import EventHandler
 
 from threads import ThreadManager
 import getopt
+import os
 
 LOGGER_CONFIG_FILE='/etc/scap-workbench/logger.conf'
 FILTER_DIR="/usr/share/scap-workbench/filters"
@@ -124,8 +125,8 @@ class Library:
             self.model = model
 
         def destroy(self):
-            self.session.free()
-            self.model.free()
+            if self.session: self.session.free()
+            if self.model: self.model.free()
     """*********"""
 
     def __init__(self):
@@ -150,7 +151,7 @@ class Library:
     def add_file(self, path, sess, model):
         if path in self.files:
             logger.warning("%s is already in the list.")
-        else: self.files[path] = OVAL(path, sess, model)
+        else: self.files[path] = Library.OVAL(path, sess, model)
 
     def import_xccdf(self, xccdf):
         """Import XCCDF Benchmark from file
@@ -158,8 +159,17 @@ class Library:
         openscap.OSCAP.oscap_init()
         self.xccdf = xccdf
         self.benchmark = openscap.xccdf.benchmark_import(xccdf)
-        #for file in self.benchmark.to_item().get_files():
-            #print file
+        dirname = os.path.dirname(xccdf)
+
+        for file in self.benchmark.to_item().get_files().strings:
+            if os.path.exists(file):
+                def_model = openscap.oval.definition_model_import(file)
+            else:
+                def_model = openscap.oval.definition_model_import(os.path.join(dirname, file))
+
+            if def_model:
+                self.files[file] = Library.OVAL(file, None, def_model)
+
         if self.benchmark: logger.debug("Initialization done.")
         else:
             logger.debug("Initialization failed. Benchmark can't be imported")
