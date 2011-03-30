@@ -502,6 +502,16 @@ class MenuButtonEditProfiles(abstract.MenuButton):
         self.builder.get_object("edit:xccdf:profile:statuses:btn_add").connect("clicked", self.statuses.dialog, self.data_model.CMD_OPER_ADD)
         self.builder.get_object("edit:xccdf:profile:statuses:btn_edit").connect("clicked", self.statuses.dialog, self.data_model.CMD_OPER_EDIT)
         self.builder.get_object("edit:xccdf:profile:statuses:btn_del").connect("clicked", self.statuses.dialog, self.data_model.CMD_OPER_DEL)
+
+        # -- REFINES --
+
+        self.refines_idref = self.builder.get_object("xccdf:refines:idref")
+        self.refines_selected = self.builder.get_object("xccdf:refines:selected")
+        self.refines_weight = self.builder.get_object("xccdf:refines:weight")
+        self.refines_value = self.builder.get_object("xccdf:refines:value")
+        self.refines_selector = self.builder.get_object("xccdf:refines:selector")
+        self.refines_operator = self.builder.get_object("xccdf:refines:operator")
+        self.refines_severity = self.builder.get_object("xccdf:refines:severity")
         # -------------
 
     def __change(self, widget, event=None):
@@ -557,24 +567,30 @@ class MenuButtonEditProfiles(abstract.MenuButton):
             itype   = self.list_profile.selected_item[0]
             refid   = self.list_profile.selected_item[1]
             objs    = self.list_profile.selected_item[2]
-            self.builder.get_object("xccdf:refines:idref").set_text(refid)
+
+            self.refines_selected.set_sensitive(itype == "rule")
+            self.refines_weight.set_sensitive(itype == "rule")
+            self.refines_severity.set_sensitive(itype == "rule")
+            self.refines_value.set_sensitive(itype == "value")
+            self.refines_operator.set_sensitive(itype == "value")
+
+            self.refines_idref.set_text(refid)
             if itype == "rule":
                 for rule in objs:
                     if rule.object == "xccdf_select":
-                        self.builder.get_object("xccdf:refines:selected").set_active(rule.selected)
+                        self.refines_selected.set_active(rule.selected)
                     elif rule.object == "xccdf_refine_rule":
-                        self.builder.get_object("xccdf:refines:selector").set_text(rule.selector)
-                        self.builder.get_object("xccdf:refines:weight").set_text(rule.weight)
-                        #self.builder.get_object("xccdf:refines:severity") TODO
+                        self.refines_selector.set_text(rule.selector)
+                        self.refines_weight.set_text(rule.weight)
+                        #self.refines_severity.set_active(rule.severity)
                     else: raise AttributeError("Unknown type of rule refine: %s" % (rule.object,))
             elif itype == "value":
                 for value in objs:
                     if value.object == "xccdf_setvalue":
-                        self.builder.get_object("xccdf:refines:value").set_text(value.value)
+                        self.refines_value.set_text(value.value)
                     elif value.object == "xccdf_refine_value":
-                        self.builder.get_object("xccdf:refines:selector").set_text(value.selector)
-                        #self.builder.get_object("xccdf:refines:operator").set_active(value.operator)
-                        #self.builder.get_object("xccdf:refines:severity") TODO
+                        self.refines_selector.set_text(value.selector)
+                        #self.refines_operator.set_active(value.operator)
                     else: raise AttributeError("Unknown type of value refine: %s" % (value.object,))
                 
             else: raise AttributeError("Unknown type of refines in profile: %s" % (itype,))
