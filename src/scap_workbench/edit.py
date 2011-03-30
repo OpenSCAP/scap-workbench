@@ -27,7 +27,7 @@ import pango
 import datetime
 import time
 import re
-import os
+import os, gio
 import threading
 import gnome, gnome.ui
 
@@ -65,9 +65,9 @@ class ProfileList(abstract.List):
         abstract.List.__init__(self, "gui:edit:profile_list", core, widget)
 
         # Popup Menu
-        self.builder.get_object("edit:profile_list:popup:add").connect("activate", self.__cb_item_add)
-        self.builder.get_object("edit:profile_list:popup:remove").connect("activate", self.__cb_item_remove)
-        widget.connect("button_press_event", self.__cb_button_pressed, self.builder.get_object("edit:profile_list:popup"))
+        self.builder.get_object("profile_list:popup:add").connect("activate", self.__cb_item_add)
+        self.builder.get_object("profile_list:popup:remove").connect("activate", self.__cb_item_remove)
+        widget.connect("button_press_event", self.__cb_button_pressed, self.builder.get_object("profile_list:popup"))
 
         selection = self.get_TreeView().get_selection()
         selection.set_mode(gtk.SELECTION_SINGLE)
@@ -85,7 +85,7 @@ class ProfileList(abstract.List):
         if "profile" not in self.__dict__ or self.core.force_reload_profiles:
             self.data_model.fill(no_default=True)
             self.core.force_reload_profiles = False
-        self.get_TreeView().get_model().foreach(self.set_selected, (self.core.selected_profile, self.get_TreeView(), 0))
+        self.get_TreeView().get_model().foreach(self.set_selected, (self.core.selected_profile, self.get_TreeView(), 1))
         if new: self.emit("update_profiles")
 
     def cb_item_changed(self, widget, treeView):
@@ -93,7 +93,15 @@ class ProfileList(abstract.List):
         selection = treeView.get_selection( )
         if selection != None: 
             (model, iter) = selection.get_selected( )
-            if iter: self.core.selected_profile = model.get_value(iter, 0)
+            # Profile or refine ?
+            if not iter: 
+                return
+
+            if model.get_value(iter, 0) == "profile":
+                self.core.selected_profile = model.get_value(iter, 1)
+                self.selected_item = None
+            else:
+                self.selected_item = model[iter]
         self.selected = self.core.selected_profile
         self.emit("update")
 
@@ -106,7 +114,7 @@ class ProfileList(abstract.List):
         selection = self.get_TreeView().get_selection()
         (model,iter) = selection.get_selected()
         if iter:
-            self.data_model.remove_item(model[iter][0])
+            self.data_model.remove_item(model[iter][1])
             model.remove(iter)
         else: raise AttributeError, "Removing non-selected item or nothing selected."
         self.emit("update_profiles")
@@ -312,6 +320,7 @@ class MenuButtonEditXCCDF(abstract.MenuButton):
             "Validation process failed, check for error in log file.", "File not saved, use export first."][validate], [1, 0, 2, 1][validate], msg_id="notify:xccdf:validate"))
 
     def __cb_export(self, widget):
+        #ExportDialog(self.core)
         file_name = self.data_model.export()
         if file_name:
             self.core.notify_destroy("notify:xccdf:validate")
@@ -409,6 +418,36 @@ class MenuButtonEditXCCDF(abstract.MenuButton):
         self.entry_resolved.handler_unblock_by_func(self.__change)
         self.entry_lang.handler_unblock_by_func(self.__change)
 
+class ExportDialog(abstract.Window):
+
+    def __init__(self, core):
+
+        self.core = core
+        builder = gtk.Builder()
+        builder.add_from_file("/usr/share/scap-workbench/dialogs.glade")
+        self.wdialog = builder.get_object("dialog:export")
+        self.f_file = builder.get_object("dialog:export:file")
+        #self.f_file.set_filename(self.core.lib.xccdf)
+        self.f_guide = builder.get_object("dialog:export:guide")
+        self.show = builder.get_object("dialog:export:show")
+        self.profile = builder.get_object("dialog:export:profile")
+        builder.get_object("dialog:export:btn_ok").connect("clicked", self.__do)
+        builder.get_object("dialog:export:btn_cancel").connect("clicked", self.__dialog_destroy)
+
+        self.wdialog.set_transient_for(self.core.main_window)
+        self.wdialog.show()
+
+    def __do(self, widget=None):
+        export_file = self.f_file.get_file()
+        if export_file != None:
+            print export_file
+
+    def __dialog_destroy(self, widget=None):
+        """
+        """
+        if self.wdialog: 
+            self.wdialog.destroy()
+
         
 class MenuButtonEditProfiles(abstract.MenuButton):
 
@@ -420,8 +459,8 @@ class MenuButtonEditProfiles(abstract.MenuButton):
         
         #draw body
         self.body = self.builder.get_object("edit:xccdf:profiles:box")
-        self.tw_profiles = self.builder.get_object("edit:xccdf:profiles")
-        self.list_profile = ProfileList(self.tw_profiles, self.core, builder, None, None)
+        self.profiles = self.builder.get_object("edit:xccdf:profiles")
+        self.list_profile = ProfileList(self.profiles, self.core, builder, None, None)
 
         # set signals
         self.add_receiver("gui:edit:profile_list", "update", self.__update)
@@ -496,27 +535,57 @@ class MenuButtonEditProfiles(abstract.MenuButton):
     def __update(self):
 
         self.__clear()
-        details = self.data_model.get_profile_details(self.core.selected_profile)
-        if not details:
-            return
-        self.builder.get_object("edit:xccdf:profiles:details").set_sensitive(details != None and details["id"] != None)
+        
+        self.builder.get_object("edit:xccdf:profiles:details").set_visible(self.list_profile.selected_item == None)
+        self.builder.get_object("xccdf:refines:box").set_visible(self.list_profile.selected_item != None)
 
-        self.pid.set_text(details["id"] or "")
-        self.version.set_text(details["version"] or "")
-        #self.profile_extend.set_text(str(details["extends"] or ""))
-        self.abstract.set_active(details["abstract"])
-        self.prohibit_changes.set_active(details["prohibit_changes"])
-        self.titles.fill()
-        self.descriptions.fill()
-        self.statuses.fill()
+        if self.list_profile.selected_item == None:
+            details = self.data_model.get_profile_details(self.core.selected_profile)
+            if not details:
+                return
+            #self.builder.get_object("edit:xccdf:profiles:details").set_sensitive(details != None and details["id"] != None)
+
+            self.pid.set_text(details["id"] or "")
+            self.version.set_text(details["version"] or "")
+            #self.profile_extend.set_text(str(details["extends"] or ""))
+            self.abstract.set_active(details["abstract"])
+            self.prohibit_changes.set_active(details["prohibit_changes"])
+            self.titles.fill()
+            self.descriptions.fill()
+            self.statuses.fill()
+        else:
+            itype   = self.list_profile.selected_item[0]
+            refid   = self.list_profile.selected_item[1]
+            objs    = self.list_profile.selected_item[2]
+            self.builder.get_object("xccdf:refines:idref").set_text(refid)
+            if itype == "rule":
+                for rule in objs:
+                    if rule.object == "xccdf_select":
+                        self.builder.get_object("xccdf:refines:selected").set_active(rule.selected)
+                    elif rule.object == "xccdf_refine_rule":
+                        self.builder.get_object("xccdf:refines:selector").set_text(rule.selector)
+                        self.builder.get_object("xccdf:refines:weight").set_text(rule.weight)
+                        #self.builder.get_object("xccdf:refines:severity") TODO
+                    else: raise AttributeError("Unknown type of rule refine: %s" % (rule.object,))
+            elif itype == "value":
+                for value in objs:
+                    if value.object == "xccdf_setvalue":
+                        self.builder.get_object("xccdf:refines:value").set_text(value.value)
+                    elif value.object == "xccdf_refine_value":
+                        self.builder.get_object("xccdf:refines:selector").set_text(value.selector)
+                        #self.builder.get_object("xccdf:refines:operator").set_active(value.operator)
+                        #self.builder.get_object("xccdf:refines:severity") TODO
+                    else: raise AttributeError("Unknown type of value refine: %s" % (value.object,))
+                
+            else: raise AttributeError("Unknown type of refines in profile: %s" % (itype,))
 
     def __update_item(self):
-        selection = self.tw_profiles.get_selection()
+        selection = self.profiles.get_selection()
         (model, iter) = selection.get_selected()
         if iter:
-            item = self.data_model.get_profile_details(model[iter][0])
+            item = self.data_model.get_profile_details(model[iter][1])
             if item == None:
-                logger.error("Can't find item with ID: \"%s\"" % (model[iter][0],))
+                logger.error("Can't find item with ID: \"%s\"" % (model[iter][1],))
                 return
             model[iter][0] = item["id"] # TODO
 

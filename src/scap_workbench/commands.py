@@ -39,6 +39,10 @@ except Exception as ex:
     openscap=None
 
 from threads import thread as threadSave
+                
+IMG_GROUP   = "emblem-documents"
+IMG_RULE    = "document-new"
+IMG_VALUE   = "emblem-downloads"
 
 class DataHandler(object):
     """DataHandler Class implements handling data from Openscap library,
@@ -180,7 +184,7 @@ class DataHandler(object):
         """DataHandler.get_selected -- get selction of rule/group
         returns boolean value"""
 
-        if self.core.selected_profile == None or items_model == True:
+        if not self.core.lib.policy_model or self.core.selected_profile == None or items_model == True:
             return item.selected
         else:
             policy = self.core.lib.policy_model.get_policy_by_id(self.core.selected_profile)
@@ -1342,9 +1346,8 @@ class DHItemsTree(DataHandler, EventObject):
             # TYPE: XCCDF_GROUP
             if item.type == openscap.OSCAP.XCCDF_GROUP:
                 item = item.to_group()
-                img = "emblem-documents"
                 gtk.gdk.threads_enter()
-                item_it = self.model.append(parent, ["group", item.id, title, img, ""+title, color, selected, pselected])
+                item_it = self.model.append(parent, ["group", item.id, title, IMG_GROUP, ""+title, color, selected, pselected])
                 self.treeView.queue_draw()
                 gtk.gdk.threads_leave()
 
@@ -1361,22 +1364,20 @@ class DHItemsTree(DataHandler, EventObject):
 
             # TYPE: XCCDF_RULE
             elif item.type == openscap.OSCAP.XCCDF_RULE:
-                img = "document-new"
                 gtk.gdk.threads_enter()
-                item_it = self.model.append(parent, ["rule", item.id, title, img, ""+title, color, selected, pselected])
+                item_it = self.model.append(parent, ["rule", item.id, title, IMG_RULE, ""+title, color, selected, pselected])
                 self.treeView.queue_draw()
                 gtk.gdk.threads_leave()
 
             # TYPE: XCCDF_VALUE
             elif item.type == openscap.OSCAP.XCCDF_VALUE:
-                img = "emblem-downloads"
                 if len(item.title) == 0: title = item.id
                 else:
                     titles = dict([(title.lang, " ".join(title.text.split())) for title in item.title])
                     if self.core.selected_lang in titles.keys(): title = titles[self.core.selected_lang]
                     else: title = titles[titles.keys()[0]]
                 gtk.gdk.threads_enter()
-                self.model.append(parent, ["value", item.id, title, img, ""+title, color, selected, pselected])
+                self.model.append(parent, ["value", item.id, title, IMG_VALUE, ""+title, color, selected, pselected])
                 self.treeView.queue_draw()
                 gtk.gdk.threads_leave()
 
@@ -1590,7 +1591,55 @@ class DHProfiles(DataHandler):
         profile.title = new_title
 
         self.core.lib.benchmark.add_profile(profile)
-        self.core.lib.policy_model.add_policy(openscap.xccdf.policy(self.core.lib.policy_model, profile))
+        if self.core.lib.policy_model: self.core.lib.policy_model.add_policy(openscap.xccdf.policy(self.core.lib.policy_model, profile))
+
+    def get_title(self, titles):
+        
+        if titles == None or len(titles) == 0:
+            return ""
+
+        parsed = {}
+        for title in titles: parsed[title.lang] = title.text
+        if self.core.selected_lang in parsed.keys():
+            return parsed[self.core.selected_lang]
+        else: return "%s [%s]" % (titles[0].text, titles[0].lang)
+
+    def __fill_refines(self, profile, iter):
+
+        # -- RULES --
+        rules = {}
+        for rule in profile.selects: rules[rule.item] = [rule]
+        for rule in profile.refine_rules:
+            if rule.item in rules: rules[rule.item].append(rule)
+            else: rules[rule.item] = [rule]
+
+        for rule_k in rules.keys():
+            # add list of rules into the profile parent iter
+            for rule in rules[rule_k]:
+                if rule.object == "xccdf_select":
+                    if not rule.selected: color = "gray"
+                    else: color = None
+                    break
+            item = self.core.lib.benchmark.get_item(rule_k)
+            if item == None:
+                logger.error("%s points to nonexisting item %s" % (rules[rule_k][0].object, rule_k))
+                continue
+            self.model.append(iter, ["rule", rule_k, rules[rule_k], IMG_RULE, self.get_title(item.title), color])
+
+        # -- VALUES --
+        values = {}
+        for value in profile.setvalues: values[value.item] = [value]
+        for value in profile.refine_values:
+            if value.item in values: values[value.item].append(value)
+            else: values[value.item] = [value]
+
+        for value_k in values.keys():
+            # add list of values into the profile parent iter
+            item = self.core.lib.benchmark.get_item(value_k)
+            if item == None: 
+                logger.error("%s points to nonexisting value %s" % (values[value_k][0].object, value_k))
+                continue
+            self.model.append(iter, ["value", value_k, values[value_k], IMG_VALUE, self.get_title(item.title), None])
 
     @threadSave
     def fill(self, item=None, parent=None, no_default=False):
@@ -1599,6 +1648,8 @@ class DHProfiles(DataHandler):
         """
 
         self.model.clear()
+        self.model = gtk.TreeStore(str, str, gobject.TYPE_PYOBJECT, str, str, str)
+        self.treeView.set_model(self.model)
         if not self.check_library(): return None
 
         if not no_default:
@@ -1610,12 +1661,14 @@ class DHProfiles(DataHandler):
             logger.debug("Adding profile \"%s\"", item.id)
             pvalues = self.get_profile_details(item.id)
             if self.core.selected_lang in pvalues["titles"]:
-                self.model.append([item.id, "Profile: "+pvalues["titles"][self.core.selected_lang]])
+                title = "Profile: "+pvalues["titles"][self.core.selected_lang]
             else:
                 self.core.notify("No title with \"%s\" language in \"%s\" profile. Change language to proper view." % (self.core.selected_lang, item.id), 
                                   1, msg_id="notify:global:profile:fill:no_lang") # TODO
-                self.model.append([item.id, "Profile: %s (ID)" % (item.id,)])
-                return False
+                title = "Profile: %s (ID)" % (item.id,)
+            color = None
+            iter = self.model.append(None, ["profile", item.id, item, IMG_GROUP, ""+title, color])
+            self.__fill_refines(item, iter)
 
         if self.core.selected_profile and self.treeView:
             self.treeView.get_model().foreach(self.set_selected, (self.core.selected_profile, self.treeView, 0))
