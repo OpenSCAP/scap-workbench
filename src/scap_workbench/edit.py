@@ -577,25 +577,33 @@ class MenuButtonEditProfiles(abstract.MenuButton, abstract.Func):
         elif widget == self.prohibit_changes:
             self.data_model.update(prohibit_changes=widget.get_active())
         elif widget == self.refines_idref:
+            if not item: return
             self.data_model.update_refines(item[0], item[2], idref=widget.get_text())
         elif widget == self.refines_selected:
+            if not item: return
             self.data_model.update_refines(item[0], item[2], selected=widget.get_active())
         elif widget == self.refines_weight:
+            if not item: return
             weight = self.controlFloat(widget.get_text(), "Weight")
             if weight:
                 self.data_model.update_refines(item[0], item[1], item[2], weight=weight)
         elif widget == self.refines_value:
+            if not item: return
             self.data_model.update_refines(item[0], item[1], item[2], value=widget.get_text())
         elif widget == self.refines_selector:
+            if not item: return
             self.data_model.update_refines(item[0], item[1], item[2], selector=widget.get_text())
         elif widget == self.refines_selector_value:
+            if not item: return
             active = widget.get_active()
             if active != -1:
                 self.data_model.update_refines(item[0], item[1], item[2], selector=widget.get_model()[active][0])
         elif widget == self.refines_operator:
-            self.data_model.update_refines(item[0], item[1], item[2], operator=widget.get_active())
+            if not item: return
+            self.data_model.update_refines(item[0], item[1], item[2], operator=abstract.ENUM_OPERATOR[widget.get_active()][0])
         elif widget == self.refines_severity:
-            self.data_model.update_refines(item[0], item[1], item[2], severity=widget.get_active())
+            if not item: return
+            self.data_model.update_refines(item[0], item[1], item[2], severity=abstract.ENUM_LEVEL[widget.get_active()][0])
         else: 
             logger.error("Change \"%s\" not supported object in \"%s\"" % (object, widget))
             return
@@ -691,7 +699,7 @@ class MenuButtonEditProfiles(abstract.MenuButton, abstract.Func):
                     if rule.object == "xccdf_select":
                         self.refines_selected.set_active(rule.selected)
                     elif rule.object == "xccdf_refine_rule":
-                        self.refines_selector.set_text(rule.selector)
+                        self.refines_selector.set_text(rule.selector or "")
                         self.refines_weight.set_text(`rule.weight`)
                         self.refines_severity.set_active(abstract.ENUM_LEVEL.pos(rule.severity))
                     else: raise AttributeError("Unknown type of rule refine: %s" % (rule.object,))
@@ -706,13 +714,13 @@ class MenuButtonEditProfiles(abstract.MenuButton, abstract.Func):
                 has_value = False
                 for value in objs:
                     if value.object == "xccdf_setvalue":
-                        self.refines_value.set_text(value.value)
+                        self.refines_value.set_text(value.value or "")
                         has_value = True
                         self.refines_selector_value.set_active(-1)
                     elif value.object == "xccdf_refine_value":
                         for row in model:
                             if not has_value and row[0] == value.selector: self.refines_selector_value.set_active_iter(row.iter)
-                        self.refines_operator.set_active(abstract.ENUM_OPERATOR.pos(value.operator))
+                        self.refines_operator.set_active(abstract.ENUM_OPERATOR.pos(value.oper))
                     else: raise AttributeError("Unknown type of value refine: %s" % (value.object,))
                 
             else: raise AttributeError("Unknown type of refines in profile: %s" % (itype,))

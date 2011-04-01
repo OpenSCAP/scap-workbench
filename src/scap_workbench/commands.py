@@ -1858,16 +1858,16 @@ class DHProfiles(DataHandler):
                 elif setvalue.value != value:
                     setvalue.value = value
 
-            if not selector and operator == None: return
+            if selector == None and operator == None: return
             if not r_value:
                 r_value = openscap.xccdf.refine_value_new()
                 r_value.item = id
                 items.append(r_value)
                 profile.add_refine_values(r_value)
             if selector != None and r_value.selector != selector:
-                r_value.slector = selector
+                r_value.set_selector(selector)
             if operator != None and r_value.operator != operator:
-                r_value.operator = operator
+                r_value.set_oper(operator)
 
         else: raise AttributeError("Unknown type of refines in profile: %s" % (type,))
 
