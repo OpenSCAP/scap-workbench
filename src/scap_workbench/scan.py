@@ -191,7 +191,7 @@ class ProfileChooser:
 
         self.data_model.treeView = self.profiles
 
-        self.data_model.render(self.profiles)
+        self.data_model.model = self.profiles.get_model()
         self.data_model.fill()
         self.dialog.set_transient_for(self.core.main_window)
         self.dialog.show_all()

@@ -76,6 +76,19 @@ class DataHandler(object):
             return False
         else: return True
 
+    def get_title(self, titles):
+        
+        if titles == None or len(titles) == 0:
+            return None
+
+        parsed = {}
+        for title in titles: parsed[title.lang] = title.text
+        if self.core.selected_lang in parsed.keys():
+            return parsed[self.core.selected_lang]
+        elif self.core.lib.benchmark.lang in parsed.keys():
+            return "%s [%s]" % (parsed[self.core.lib.benchmark.lang], self.core.lib.benchmark.lang)
+        else: return "%s [%s]" % (titles[0].text, titles[0].lang)
+
     def get_values_by_rule_id(self, id, check=None):
 
         if not self.check_library(): return None
@@ -169,6 +182,23 @@ class DataHandler(object):
 
         return item
 
+    def get_all_item_ids(self, item=None):
+        if not self.check_library(): return []
+    
+        if item == None:
+            items = []
+            for child in self.core.lib.benchmark.content:
+                items.extend(self.get_all_item_ids(child))
+            return items
+
+        items = [item]
+        if item.type != openscap.OSCAP.XCCDF_RULE:
+            for child in item.content:
+                items.extend(self.get_all_item_ids(child))
+
+        return items
+
+
     def get_all_values(self):
         if not self.check_library(): return []
 
@@ -197,10 +227,10 @@ class DataHandler(object):
             else: return select.selected
 
     def get_profile(self, id):
-        for profile in self.core.lib.benchmark.profiles:
-            if profile.id == id:
-                return profile
-        return None
+        profile = self.core.lib.benchmark.get_item(id)
+
+        if profile: return profile.to_profile()
+        else: return None
 
     def get_item_values(self, id):
         """Get all values of item with id equal to id parameter
@@ -904,7 +934,7 @@ class DHXccdf(DataHandler):
     def validate(self):
         if not self.check_library(): return 2
 
-        if os.access(self.core.lib.xccdf, os.R_OK):
+        if os.access(self.core.lib.xccdf or "", os.R_OK):
             retval = openscap.common.validate_document(self.core.lib.xccdf, openscap.OSCAP.OSCAP_DOCUMENT_XCCDF, None, self.__cb_report, None)
         else: return 3
         return retval
@@ -1547,12 +1577,15 @@ class DHProfiles(DataHandler):
         
         DataHandler.__init__(self, core)
         self.treeView = None
+        self.model = None
 
     def render(self, treeView):
         """Make a model ListStore of Profile object
         """
         self.treeView = treeView
-        self.model = treeView.get_model()
+        #self.model = treeView.get_model() TODO
+        self.model = gtk.TreeStore(str, str, gobject.TYPE_PYOBJECT, str, str, str)
+        self.treeView.set_model(self.model)
 
     def update(self, id=None, version=None, abstract=None, prohibit_changes=None):
         if not self.check_library(): return None
@@ -1593,16 +1626,12 @@ class DHProfiles(DataHandler):
         self.core.lib.benchmark.add_profile(profile)
         if self.core.lib.policy_model: self.core.lib.policy_model.add_policy(openscap.xccdf.policy(self.core.lib.policy_model, profile))
 
-    def get_title(self, titles):
-        
-        if titles == None or len(titles) == 0:
-            return ""
-
-        parsed = {}
-        for title in titles: parsed[title.lang] = title.text
-        if self.core.selected_lang in parsed.keys():
-            return parsed[self.core.selected_lang]
-        else: return "%s [%s]" % (titles[0].text, titles[0].lang)
+    def get_refine_ids(self, profile):
+        # -- RULES --
+        ids = []
+        for rule in profile.selects + profile.refine_rules + profile.setvalues + profile.refine_values:
+            if rule.item not in ids: ids.append(rule.item)
+        return ids
 
     def __fill_refines(self, profile, iter):
 
@@ -1624,7 +1653,7 @@ class DHProfiles(DataHandler):
             if item == None:
                 logger.error("%s points to nonexisting item %s" % (rules[rule_k][0].object, rule_k))
                 continue
-            self.model.append(iter, ["rule", rule_k, rules[rule_k], IMG_RULE, self.get_title(item.title), color])
+            self.model.append(iter, ["rule", rule_k, rules[rule_k], IMG_RULE, self.get_title(item.title) or item.id+" (ID)", color])
 
         # -- VALUES --
         values = {}
@@ -1639,7 +1668,7 @@ class DHProfiles(DataHandler):
             if item == None: 
                 logger.error("%s points to nonexisting value %s" % (values[value_k][0].object, value_k))
                 continue
-            self.model.append(iter, ["value", value_k, values[value_k], IMG_VALUE, self.get_title(item.title), None])
+            self.model.append(iter, ["value", value_k, values[value_k], IMG_VALUE, self.get_title(item.title) or item.id+" (ID)", None])
 
     @threadSave
     def fill(self, item=None, parent=None, no_default=False):
@@ -1648,13 +1677,12 @@ class DHProfiles(DataHandler):
         """
 
         self.model.clear()
-        self.model = gtk.TreeStore(str, str, gobject.TYPE_PYOBJECT, str, str, str)
-        self.treeView.set_model(self.model)
         if not self.check_library(): return None
 
         if not no_default:
             logger.debug("Adding profile (No profile)")
-            self.model.append([None, "(No profile)"])
+            if self.model.__class__ == gtk.ListStore: self.model.append([None, "(No profile)"])
+            else: self.model.append(None, ["profile", None, item, IMG_GROUP, "(No profile)", None])
 
         # Go thru all profiles from benchmark and add them into the model
         for item in self.core.lib.benchmark.profiles:
@@ -1667,8 +1695,10 @@ class DHProfiles(DataHandler):
                                   1, msg_id="notify:global:profile:fill:no_lang") # TODO
                 title = "Profile: %s (ID)" % (item.id,)
             color = None
-            iter = self.model.append(None, ["profile", item.id, item, IMG_GROUP, ""+title, color])
-            self.__fill_refines(item, iter)
+            if self.model.__class__ == gtk.ListStore: iter = self.model.append([item.id, ""+title])
+            else:
+                iter = self.model.append(None, ["profile", item.id, item, IMG_GROUP, ""+title, color])
+                self.__fill_refines(item, iter)
 
         if self.core.selected_profile and self.treeView:
             self.treeView.get_model().foreach(self.set_selected, (self.core.selected_profile, self.treeView, 0))
@@ -1704,7 +1734,6 @@ class DHProfiles(DataHandler):
         """
         if not self.check_library(): return None
 
-        logger.debug("Removing profile %s" %(id,))
         profile = self.core.lib.benchmark.get_item(id).to_profile()
         self.core.lib.benchmark.profiles.remove(profile)
 
@@ -1744,6 +1773,99 @@ class DHProfiles(DataHandler):
         if not self.check_library(): return None
         super(DHProfiles, self).edit_status(operation, obj, date, status, item=self.__get_current_profile())
 
+    def remove_refine(self, id, items):
+        """Remove refine from 
+        """
+        if not self.check_library(): return None
+
+        profile = self.get_profile(id)
+        for item in items:
+            if item.object == "xccdf_select": profile.selects.remove(item)
+            elif item.object == "xccdf_refine_rule": profile.refine_rules.remove(item)
+            elif item.object == "xccdf_setvalue": profile.setvalues.remove(item)
+            elif item.object == "xccdf_refine_value": profile.refine_values.remove(item)
+            else: raise Exception("Can't remove item \"%s\" from profile %s" % (item, profile))
+
+    def add_refine(self, type, id, title, item):
+
+        profile_iter = None
+        (model, iter) = self.treeView.get_selection().get_selected()
+        if model.get_value(iter, 1) == self.core.selected_profile:
+            profile_iter = iter
+        elif model.iter_parent(iter) and model.get_value(model.iter_parent(iter), 1) == self.core.selected_profile:
+            profile_iter = model.iter_parent(iter)
+            
+        if profile_iter == None: 
+            logger.error("Can't add data. No profile specified !")
+            return
+
+        self.model.append(profile_iter, [type, id, [], {"rule":IMG_RULE, "value":IMG_VALUE}[type], title or item.id+" (ID)", None])
+
+    def update_refines(self, type, id, items, idref=None, selected=None, weight=None, value=None, selector=None, operator=None, severity=None):
+        if not self.check_library(): return None
+
+        profile = self.get_profile(self.core.selected_profile)
+
+        if idref != None and idref != id:
+            if len(items) != 0:
+                for item in items: item.item = idref
+
+        if type == "rule":
+            select = r_rule = None
+            for item in items:
+                if item.object == "xccdf_select": select = item
+                elif item.object == "xccdf_refine_rule": r_rule = item
+            if selected != None:
+                if not select:
+                    # Add new select
+                    new_select = openscap.xccdf.select_new()
+                    new_select.item = id
+                    new_select.selected = selected
+                    profile.add_select(new_select)
+                    items.append(new_select)
+                else: # We have select, let's change his selection
+                    select.selected = selected
+
+            if not selector and not weight and severity == None: return
+            if not r_rule:
+                r_rule = openscap.xccdf.refine_rule_new()
+                r_rule.item = id
+                items.append(r_rule)
+                profile.add_refine_rule(r_rule)
+            if selector != None and r_rule.selector != selector:
+                r_rule.selector = selector
+            if weight != None and r_rule.weight != weight:
+                r_rule.weight = weight
+            if severity != None and r_rule.severity != severity:
+                r_rule.severity = severity
+
+        elif type == "value":
+            setvalue = r_value = None
+            for item in items:
+                if item.object == "xccdf_setvalue": setvalue = item
+                elif item.object == "xccdf_refine_value": r_value = item
+            if value != None:
+                if not setvalue:
+                    new_setvalue = openscap.xccdf.setvalue_new()
+                    new_setvalue.item = id
+                    new_setvalue.value = value
+                    profile.add_setvalues(new_setvalue)
+                    items.append(new_setvalue)
+                elif setvalue.value != value:
+                    setvalue.value = value
+
+            if not selector and operator == None: return
+            if not r_value:
+                r_value = openscap.xccdf.refine_value_new()
+                r_value.item = id
+                items.append(r_value)
+                profile.add_refine_values(r_value)
+            if selector != None and r_value.selector != selector:
+                r_value.slector = selector
+            if operator != None and r_value.operator != operator:
+                r_value.operator = operator
+
+        else: raise AttributeError("Unknown type of refines in profile: %s" % (itype,))
 
 class DHScan(DataHandler, EventObject):
 

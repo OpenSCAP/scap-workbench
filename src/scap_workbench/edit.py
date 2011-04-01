@@ -47,6 +47,12 @@ try:
 except ImportError:
     webkit=None
 
+try:
+    from BeautifulSoup import BeautifulSoup
+    HAS_BEUTIFUL_SOUP = True
+except ImportError:
+    HAS_BEUTIFUL_SOUP = False
+
 import commands
 import filter
 import render
@@ -58,10 +64,11 @@ from threads import thread as threadSave
 
 class ProfileList(abstract.List):
     
-    def __init__(self, widget, core, builder=None, progress=None, filter=None):
+    def __init__(self, widget, core, data_model, builder=None, progress=None, filter=None):
         self.core = core
         self.builder = builder
-        self.data_model = commands.DHProfiles(core)
+        self.data_model = data_model
+        self.selected_item = None
         abstract.List.__init__(self, "gui:edit:profile_list", core, widget)
 
         # Popup Menu
@@ -75,18 +82,26 @@ class ProfileList(abstract.List):
         self.profilesList = self.builder.get_object("edit:tw_profiles:sw")
 
         # actions
-        self.add_sender(self.id, "update_profiles")
         self.add_receiver("gui:btn:menu:edit:profiles", "update", self.__update)
-        self.add_receiver("gui:btn:menu:edit:XCCDF", "load", self.__update)
+        self.add_receiver("gui:btn:menu:edit:XCCDF", "load", self.__clear_update)
+        self.add_receiver("gui:edit:xccdf:profiles:finditem", "update", self.__update)
         selection.connect("changed", self.cb_item_changed, self.get_TreeView())
+        self.add_sender(id, "update")
 
-    def __update(self, new=False):
+        self.get_TreeView().connect("key-press-event", self.__key_press)
 
-        if "profile" not in self.__dict__ or self.core.force_reload_profiles:
+    def __clear_update(self):
+        self.data_model.model.clear()
+        self.__update(force=True)
+
+    def __update(self, force=False):
+
+        if "profile" not in self.__dict__ or force:
             self.data_model.fill(no_default=True)
-            self.core.force_reload_profiles = False
+            self.profile = self.core.selected_profile
         self.get_TreeView().get_model().foreach(self.set_selected, (self.core.selected_profile, self.get_TreeView(), 1))
-        if new: self.emit("update_profiles")
+        self.get_TreeView().get_model().foreach(self.set_selected_profile_item, (self.core.selected_profile, self.core.selected_item, self.get_TreeView(), 1))
+        self.emit("update")
 
     def cb_item_changed(self, widget, treeView):
 
@@ -102,24 +117,40 @@ class ProfileList(abstract.List):
                 self.selected_item = None
             else:
                 self.selected_item = model[iter]
+                self.core.selected_item = model.get_value(iter, 1)
         self.selected = self.core.selected_profile
         self.emit("update")
+
+    def __key_press(self, widget, event):
+
+        if event and event.type == gtk.gdk.KEY_PRESS and event.keyval == gtk.keysyms.Delete:
+            selection = self.get_TreeView().get_selection()
+            (model,iter) = selection.get_selected()
+            if iter: self.__cb_item_remove()
 
     def __cb_button_pressed(self, treeview, event, menu):
         if event.button == 3:
             time = event.time
             menu.popup(None, None, None, event.button, event.time)
 
-    def __cb_item_remove(self, widget):
+    def __cb_item_remove(self, widget=None):
         selection = self.get_TreeView().get_selection()
         (model,iter) = selection.get_selected()
         if iter:
-            self.data_model.remove_item(model[iter][1])
-            model.remove(iter)
+            iter_next = model.iter_next(iter)
+            if model.get_value(iter, 0) == "profile":
+                self.data_model.remove_item(model[iter][1])
+                model.remove(iter)
+            else:
+                profile = model.get_value(model.iter_parent(iter), 1)
+                self.data_model.remove_refine(profile, model[iter][2])
+                model.remove(iter)
+            if iter_next:
+                self.get_TreeView().expand_to_path(model.get_path(iter_next))
+                selection.select_path(model.get_path(iter_next))
         else: raise AttributeError, "Removing non-selected item or nothing selected."
-        self.emit("update_profiles")
 
-    def __cb_item_add(self, widget):
+    def __cb_item_add(self, widget=None):
         EditAddProfileDialogWindow(self.core, self.data_model, self.__update)
 
 class ItemList(abstract.List):
@@ -129,7 +160,7 @@ class ItemList(abstract.List):
         self.data_model = commands.DHItemsTree("gui:edit:DHItemsTree", core, progress, None, True, no_checks=True)
         abstract.List.__init__(self, "gui:edit:item_list", core, widget)
         self.core = core
-        self.loaded_new = True
+        self.loaded = False
         self.filter = filter
         self.__progress = progress
         self.map_filter = {}
@@ -151,30 +182,30 @@ class ItemList(abstract.List):
         # actions
         self.add_receiver("gui:btn:menu:edit:items", "update", self.__update)
         self.add_receiver("gui:btn:edit:filter", "search", self.__search)
-        self.add_receiver("gui:btn:menu:edit:XCCDF", "load", self.__loaded_new_xccdf)
+        self.add_receiver("gui:btn:menu:edit:XCCDF", "load", self.__clear_update)
 
         selection.connect("changed", self.__cb_item_changed, self.get_TreeView())
         self.add_sender(self.id, "update")
 
-    def __update(self, widget=None):
+    def __clear_update(self):
+        self.data_model.model.clear()
+        self.__update(force=True)
 
-        if not self.core.lib.loaded: self.data_model.model.clear()
-        if self.loaded_new == True or widget != None:
+    def __update(self, force=False):
+
+        if not self.loaded or force:
             #self.get_TreeView().set_model(self.data_model.model)
             if self.__progress:
                 self.__progress.set_text("Waiting for thread lock ...")
                 self.__progress.show()
             self.treeView.set_sensitive(False)
             self.data_model.fill(with_values=self.with_values.get_active())
-            self.loaded_new = False
+            self.loaded = True
         # Select the last one selected if there is one         #self.core.selected_item_edit
         if self.core.selected_item and self.selected != self.core.selected_item:
             self.get_TreeView().get_model().foreach(self.set_selected, (self.core.selected_item, self.get_TreeView(), 1))
             self.selected = self.core.selected_item
 
-    def __loaded_new_xccdf(self):
-        self.loaded_new = True
-        
     def __search(self):
         self.search(self.filter.get_search_text(), 1)
         
@@ -225,8 +256,6 @@ class MenuButtonEditXCCDF(abstract.MenuButton):
         #draw body
         self.body = self.builder.get_object("edit_xccdf:box")
         self.sub_menu = self.builder.get_object("edit:sub:main")
-        self.add_receiver("gui:btn:main:xccdf", "load", self.__update)
-        self.add_receiver("gui:btn:main:xccdf", "update", self.__update)
         self.add_sender(self.id, "update")
         self.add_sender(self.id, "load")
 
@@ -449,24 +478,23 @@ class ExportDialog(abstract.Window):
             self.wdialog.destroy()
 
         
-class MenuButtonEditProfiles(abstract.MenuButton):
+class MenuButtonEditProfiles(abstract.MenuButton, abstract.Func):
 
     def __init__(self, builder, widget, core):
         abstract.MenuButton.__init__(self, "gui:btn:menu:edit:profiles", widget, core)
         self.builder = builder
         self.core = core
         self.data_model = commands.DHProfiles(self.core)
-        
+        self.__item_finder = FindItem(self.core, "gui:edit:xccdf:profiles:finditem", self.data_model)
+
         #draw body
         self.body = self.builder.get_object("edit:xccdf:profiles:box")
         self.profiles = self.builder.get_object("edit:xccdf:profiles")
-        self.list_profile = ProfileList(self.profiles, self.core, builder, None, None)
+        self.list_profile = ProfileList(self.profiles, self.core, self.data_model, builder, None, None)
 
         # set signals
         self.add_receiver("gui:edit:profile_list", "update", self.__update)
         self.add_receiver("gui:edit:profile_list", "changed", self.__update)
-        self.add_receiver("gui:btn:main:xccdf", "load", self.__update)
-        self.add_receiver("gui:btn:main:xccdf", "update", self.__update)
         self.add_receiver("gui:edit:xccdf:profile:titles", "update", self.__update_item)
         self.add_sender(self.id, "update")
         
@@ -507,18 +535,37 @@ class MenuButtonEditProfiles(abstract.MenuButton):
 
         self.refines_idref = self.builder.get_object("xccdf:refines:idref")
         self.refines_selected = self.builder.get_object("xccdf:refines:selected")
+        self.refines_selected.connect("toggled", self.__change)
         self.refines_weight = self.builder.get_object("xccdf:refines:weight")
+        self.refines_weight.connect("focus-out-event", self.__change)
+        self.refines_weight.connect("key-press-event", self.__change)
         self.refines_value = self.builder.get_object("xccdf:refines:value")
+        self.refines_value.connect("focus-out-event", self.__change)
+        self.refines_value.connect("key-press-event", self.__change)
         self.refines_selector = self.builder.get_object("xccdf:refines:selector")
+        self.refines_selector.connect("focus-out-event", self.__change)
+        self.refines_selector.connect("key-press-event", self.__change)
         self.refines_operator = self.builder.get_object("xccdf:refines:operator")
+        self.refines_operator.connect("changed", self.__change)
         self.refines_severity = self.builder.get_object("xccdf:refines:severity")
+        self.refines_severity.connect("changed", self.__change)
+        self.refines_idref_find = self.builder.get_object("xccdf:refines:idref:find")
+        self.refines_idref_find.set_sensitive(False)# TODO
+        self.refines_idref.set_sensitive(False)# TODO
+
+        self.refines_operator.set_model(abstract.Enum_type.combo_model_operator_number)
+        self.refines_severity.set_model(abstract.Enum_type.combo_model_level)
         # -------------
+
+        self.builder.get_object("profile_list:popup:sub:select").connect("activate", self.__find_item, "rule")
+        self.builder.get_object("profile_list:popup:sub:set-value").connect("activate", self.__find_item, "value")
 
     def __change(self, widget, event=None):
 
         if event and event.type == gtk.gdk.KEY_PRESS and event.keyval != gtk.keysyms.Return:
             return
 
+        item = self.list_profile.selected_item
         if widget == self.pid:
             self.data_model.update(id=widget.get_text())
         elif widget == self.version:
@@ -527,11 +574,56 @@ class MenuButtonEditProfiles(abstract.MenuButton):
             self.data_model.update(abstract=widget.get_active())
         elif widget == self.prohibit_changes:
             self.data_model.update(prohibit_changes=widget.get_active())
+        elif widget == self.refines_idref:
+            self.data_model.update_refines(item[0], item[2], idref=widget.get_text())
+        elif widget == self.refines_selected:
+            self.data_model.update_refines(item[0], item[2], selected=widget.get_active())
+        elif widget == self.refines_weight:
+            weight = self.controlFloat(widget.get_text(), "Weight")
+            if weight:
+                self.data_model.update_refines(item[0], item[1], item[2], weight=weight)
+        elif widget == self.refines_value:
+            self.data_model.update_refines(item[0], item[1], item[2], value=widget.get_text())
+        elif widget == self.refines_selector:
+            self.data_model.update_refines(item[0], item[1], item[2], selector=widget.get_text())
+        elif widget == self.refines_operator:
+            self.data_model.update_refines(item[0], item[1], item[2], operator=widget.get_active())
+        elif widget == self.refines_severity:
+            self.data_model.update_refines(item[0], item[1], item[2], severity=widget.get_active())
         else: 
             logger.error("Change \"%s\" not supported object in \"%s\"" % (object, widget))
             return
         #self.emit("update")
-        
+
+    def __find_item(self, widget, type):
+        self.__item_finder.dialog(type)
+
+    def __block_signals(self):
+        self.pid.handler_block_by_func(self.__change)
+        self.version.handler_block_by_func(self.__change)
+        self.abstract.handler_block_by_func(self.__change)
+        self.prohibit_changes.handler_block_by_func(self.__change)
+        #self.refines_idref.handler_block_by_func(self.__change)
+        self.refines_selected.handler_block_by_func(self.__change)
+        self.refines_weight.handler_block_by_func(self.__change)
+        self.refines_value.handler_block_by_func(self.__change)
+        self.refines_selector.handler_block_by_func(self.__change)
+        self.refines_operator.handler_block_by_func(self.__change)
+        self.refines_severity.handler_block_by_func(self.__change)
+
+    def __unblock_signals(self):
+        self.pid.handler_unblock_by_func(self.__change)
+        self.version.handler_unblock_by_func(self.__change)
+        self.abstract.handler_unblock_by_func(self.__change)
+        self.prohibit_changes.handler_unblock_by_func(self.__change)
+        #self.refines_idref.handler_unblock_by_func(self.__change)
+        self.refines_selected.handler_unblock_by_func(self.__change)
+        self.refines_weight.handler_unblock_by_func(self.__change)
+        self.refines_value.handler_unblock_by_func(self.__change)
+        self.refines_selector.handler_unblock_by_func(self.__change)
+        self.refines_operator.handler_unblock_by_func(self.__change)
+        self.refines_severity.handler_unblock_by_func(self.__change)
+
     def __clear(self):
 
         self.pid.set_text("")
@@ -541,17 +633,25 @@ class MenuButtonEditProfiles(abstract.MenuButton):
         self.titles.clear()
         self.descriptions.clear()
         self.statuses.clear()
+        self.refines_selected.set_active(False)
+        self.refines_weight.set_text("")
+        self.refines_value.set_text("")
+        self.refines_selector.set_text("")
+        self.refines_operator.set_active(-1)
+        self.refines_severity.set_active(-1)
 
     def __update(self):
 
+        if not self.core.selected_profile: return
+        self.__block_signals()
         self.__clear()
-        
         self.builder.get_object("edit:xccdf:profiles:details").set_visible(self.list_profile.selected_item == None)
         self.builder.get_object("xccdf:refines:box").set_visible(self.list_profile.selected_item != None)
 
         if self.list_profile.selected_item == None:
             details = self.data_model.get_profile_details(self.core.selected_profile)
             if not details:
+                self.__unblock_signals()
                 return
             #self.builder.get_object("edit:xccdf:profiles:details").set_sensitive(details != None and details["id"] != None)
 
@@ -581,8 +681,8 @@ class MenuButtonEditProfiles(abstract.MenuButton):
                         self.refines_selected.set_active(rule.selected)
                     elif rule.object == "xccdf_refine_rule":
                         self.refines_selector.set_text(rule.selector)
-                        self.refines_weight.set_text(rule.weight)
-                        #self.refines_severity.set_active(rule.severity)
+                        self.refines_weight.set_text(`rule.weight`)
+                        self.refines_severity.set_active(abstract.ENUM_LEVEL.pos(rule.severity))
                     else: raise AttributeError("Unknown type of rule refine: %s" % (rule.object,))
             elif itype == "value":
                 for value in objs:
@@ -590,10 +690,11 @@ class MenuButtonEditProfiles(abstract.MenuButton):
                         self.refines_value.set_text(value.value)
                     elif value.object == "xccdf_refine_value":
                         self.refines_selector.set_text(value.selector)
-                        #self.refines_operator.set_active(value.operator)
+                        self.refines_operator.set_active(abstract.ENUM_OPERATOR.pos(value.operator))
                     else: raise AttributeError("Unknown type of value refine: %s" % (value.object,))
                 
             else: raise AttributeError("Unknown type of refines in profile: %s" % (itype,))
+        self.__unblock_signals()
 
     def __update_item(self):
         selection = self.profiles.get_selection()
@@ -1215,7 +1316,7 @@ class EditItemValues(abstract.ListEditor):
                 if self.core.selected_lang in item["titles"].keys(): title = item["titles"][self.core.selected_lang]
                 else: title = item["titles"][item["titles"].keys()[0]]+" ["+item["titles"].keys()[0]+"]"
             ref = ""
-            for check in checks:
+            for check in checks or []:
                 if check[0] == item["id"]: ref = check[1]
             self.append([item["id"], (" ".join(title.split())), ref, self.data_model.get_item(item["id"])])
 
@@ -1293,7 +1394,7 @@ class EditTitle(abstract.ListEditor):
         """
         """
         self.clear()
-        for data in self.data_model.get_titles():
+        for data in self.data_model.get_titles() or []:
             self.append([data.lang, (" ".join(data.text.split())), data])
 
 class EditDescription(abstract.ListEditor):
@@ -1400,14 +1501,14 @@ class EditDescription(abstract.ListEditor):
 
     def __propagate(self, widget):
         
-        if widget.get_active() == 0:
+        if widget.get_active() == 0: # TEXT -> HTML
             for child in self.description_tb.get_children():
                 child.set_sensitive(True)
             self.description_sw.set_property("visible", True)
             self.description_html_sw.set_property("visible", False)
             desc = self.description_html.get_buffer().get_text(self.description_html.get_buffer().get_start_iter(), self.description_html.get_buffer().get_end_iter())
             self.description.load_html_string(desc or "", "file:///")
-        elif widget.get_active() == 1:
+        elif widget.get_active() == 1: # HTML -> TEXT
             for child in self.description_tb.get_children():
                 child.set_sensitive(False)
             self.description_sw.set_property("visible", False)
@@ -1416,6 +1517,11 @@ class EditDescription(abstract.ListEditor):
             desc = self.description.get_main_frame().get_title()
             desc = desc.replace("<head></head>", "")
             desc = desc.replace("<body>", "").replace("</body>", "")
+
+            if HAS_BEUTIFUL_SOUP:
+                # Use Beutiful soup to prettify the HTML
+                soup = BeautifulSoup(desc)
+                desc = soup.prettify()
             self.description_html.get_buffer().set_text(desc)
         self.switcher.parent.set_sensitive(True)
 
@@ -1504,7 +1610,7 @@ class EditDescription(abstract.ListEditor):
     def fill(self):
 
         self.clear()
-        for data in self.data_model.get_descriptions():
+        for data in self.data_model.get_descriptions() or []:
             self.append([data.lang, re.sub("[\t ]+" , " ", data.text).strip(), data])
 
 
@@ -1592,7 +1698,7 @@ class EditWarning(abstract.ListEditor):
     def fill(self):
 
         self.clear()
-        for item in self.data_model.get_warnings():
+        for item in self.data_model.get_warnings() or []:
             category = abstract.ENUM_WARNING.map(item.category)
             index = abstract.ENUM_WARNING.pos(item.category)
             self.append([item.text.lang, item.text.text, item, category[1]])
@@ -1685,7 +1791,7 @@ class EditNotice(abstract.ListEditor):
     def fill(self):
 
         self.get_model().clear()
-        for data in self.data_model.get_notices():
+        for data in self.data_model.get_notices() or []:
             self.append([data.id, re.sub("[\t ]+" , " ", data.text.text or "").strip(), data])
 
 class EditStatus(abstract.ListEditor):
@@ -1775,7 +1881,7 @@ class EditStatus(abstract.ListEditor):
     def fill(self):
 
         self.clear()
-        for item in self.data_model.get_statuses():
+        for item in self.data_model.get_statuses() or []:
             status = abstract.ENUM_STATUS_CURRENT.map(item.status)
             index = abstract.ENUM_STATUS_CURRENT.pos(item.status)
             self.append([time.strftime("%d-%m-%Y", time.localtime(item.date)), status[1], item])
@@ -1911,7 +2017,7 @@ class EditQuestion(abstract.ListEditor):
     def fill(self):
 
         self.clear()
-        for data in self.data_model.get_questions():
+        for data in self.data_model.get_questions() or []:
             self.append([data.lang, re.sub("[\t ]+" , " ", data.text).strip(), data, data.overrides])
 
 
@@ -1994,7 +2100,7 @@ class EditRationale(abstract.ListEditor):
     def fill(self):
 
         self.clear()
-        for data in self.data_model.get_rationales():
+        for data in self.data_model.get_rationales() or []:
             self.append([data.lang, re.sub("[\t ]+" , " ", data.text).strip(), data, data.overrides])
 
 
@@ -2149,7 +2255,7 @@ class EditPlatform(abstract.ListEditor):
 
     def fill(self):
         self.clear()
-        for item in self.data_model.get_platforms():
+        for item in self.data_model.get_platforms() or []:
             self.get_model().append([item])
 
 class EditValues(abstract.MenuButton):
@@ -2443,7 +2549,7 @@ class EditValuesValues(abstract.ListEditor):
     def fill(self):
 
         self.clear()
-        for instance in self.data_model.get_value_instances():
+        for instance in self.data_model.get_value_instances() or []:
             self.append([instance["selector"], 
                          instance["value"], 
                          instance["defval"], 
@@ -2780,7 +2886,7 @@ class EditAddProfileDialogWindow(EventObject, abstract.ControlEditWindow):
         self.core.selected_profile = self.pid.get_text()
         self.core.force_reload_profiles = True
         self.window.destroy()
-        self.__update(new=True)
+        self.__update(force=True)
 
     def show(self):
         self.window.set_transient_for(self.core.main_window)
@@ -3206,6 +3312,77 @@ class FindOvalDef(abstract.Window, abstract.ListEditor):
         self.wdialog.show_all()
 
 
+class FindItem(abstract.Window, abstract.ListEditor):
+
+    COLUMN_ID       = 0
+    COLUMN_VALUE    = 1
+    COLUMN_OBJ      = 2
+
+    def __init__(self, core, id, data_model):
+
+        self.data_model = data_model
+        self.core = core
+        abstract.Window.__init__(self, id, core)
+        self.add_sender(id, "update")
+
+    def __do(self, widget=None):
+        """
+        """
+        self.core.notify_destroy("notify:dialog_notify")
+        (model, iter) = self.items.get_selection().get_selected()
+        if not iter:
+            self.core.notify("You have to chose the item !", 2, self.info_box, msg_id="notify:dialog_notify")
+            return
+        self.data_model.add_refine(self.type, model[iter][self.COLUMN_ID], model[iter][self.COLUMN_VALUE], model[iter][self.COLUMN_OBJ])
+        self.core.selected_item = model[iter][self.COLUMN_ID]
+        self.emit("update")
+        self.__dialog_destroy()
+
+    def __dialog_destroy(self, widget=None):
+        """
+        """
+        if self.wdialog: 
+            self.wdialog.destroy()
+
+    def dialog(self, type):
+        """
+        """
+        self.type = type
+        builder = gtk.Builder()
+        builder.add_from_file("/usr/share/scap-workbench/dialogs.glade")
+        self.wdialog = builder.get_object("dialog:find_value")
+        self.info_box = builder.get_object("dialog:find_value:info_box")
+        self.items = builder.get_object("dialog:find_value:values")
+        self.search = builder.get_object("dialog:find_value:search")
+        self.search.connect("changed", self.search_treeview, self.items)
+        builder.get_object("dialog:find_value:btn_cancel").connect("clicked", self.__dialog_destroy)
+        builder.get_object("dialog:find_value:btn_ok").connect("clicked", self.__do)
+        builder.get_object("dialog:find_value:export_name:box").set_visible(False)
+        builder.get_object("dialog:find_value:export_name:separator").set_visible(False)
+
+        self.core.notify_destroy("notify:not_selected")
+        self.items.append_column(gtk.TreeViewColumn("ID", gtk.CellRendererText(), text=self.COLUMN_ID))
+        self.items.append_column(gtk.TreeViewColumn("Title", gtk.CellRendererText(), text=self.COLUMN_VALUE))
+
+        if type == "rule":
+            items = self.data_model.get_all_item_ids()
+        elif type == "value":
+            items = self.data_model.get_all_values()
+        else: raise Exception("Type \"%s\" not supported !" % (type,))
+
+        self.items.set_model(gtk.ListStore(str, str, gobject.TYPE_PYOBJECT))
+        modelfilter = self.items.get_model().filter_new()
+        modelfilter.set_visible_func(self.filter_treeview, data=[0,1])
+        self.items.set_model(modelfilter)
+
+        refines = self.data_model.get_refine_ids(self.data_model.get_profile(self.core.selected_profile))
+        for item in items:
+            if item.id not in refines:
+                title = self.data_model.get_title(item.title)
+                self.items.get_model().get_model().append([item.id, title, item])
+
+        self.wdialog.set_transient_for(self.core.main_window)
+        self.wdialog.show()
 
 class Editor(abstract.Window, threading.Thread):
 

@@ -364,6 +364,18 @@ class List(EventObject):
         if model.get_value(iter, col) == id:
             view.expand_to_path(path)
             selection.select_path(path)
+            return True
+
+    def set_selected_profile_item(self, model, path, iter, usr):
+
+        profile, id, view, col = usr
+        selection = view.get_selection()
+        if model.get_value(iter, col) != id:
+            return False
+        if model.get_value(iter, col) == id and model.iter_parent(iter) and model.get_value(model.iter_parent(iter), col) == profile:
+            view.expand_to_path(path)
+            selection.select_path(path)
+            return True
 
     def get_TreeView(self):
         """Returns treeView"""
@@ -684,7 +696,7 @@ class Func:
 
     def controlFloat(self, data, text, info_box=None):
         self.core.notify_destroy("notify:float_format")
-        if data != "" or data != None:
+        if data != "" and data != None:
             try:
                 data = float(data)
                 if data < 0:
@@ -695,7 +707,7 @@ class Func:
                 return None
             return data
         else:
-            data = float(nan)
+            return float('nan')
 
 class Enum_type:
     

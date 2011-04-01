@@ -1391,7 +1391,7 @@
             </child>
           </object>
           <packing>
-            <property name="position">3</property>
+            <property name="position">4</property>
           </packing>
         </child>
         <child>
@@ -3411,8 +3411,8 @@ Weight must be a positive real number.</property>
                                                 <child>
                                                   <object class="GtkFileChooserButton" id="edit:xccdf:items:evaluation:href:dialog">
                                                     <property name="visible">True</property>
-                                                    <property name="use_preview_label">False</property>
                                                     <property name="create_folders">False</property>
+                                                    <property name="use_preview_label">False</property>
                                                   </object>
                                                   <packing>
                                                     <property name="left_attach">2</property>
@@ -5764,12 +5764,13 @@ Weight must be a positive real number.</property>
         <property name="tooltip_text" translatable="yes">A Rule/Group selector. This selector designates a Rule, Group, or cluster of Rules and Groups.
 It overrides the selected property on the designated Items.
 It provides a means for including or excluding rules from the Profile.</property>
+        <property name="use_underline">True</property>
         <property name="use_stock">True</property>
         <child type="submenu">
           <object class="GtkMenu" id="menu4">
             <property name="visible">True</property>
             <child>
-              <object class="GtkMenuItem" id="profile_list:popup:sub:select1">
+              <object class="GtkMenuItem" id="profile_list:popup:sub:select">
                 <property name="visible">True</property>
                 <property name="tooltip_text" translatable="yes">A Rule/Group selector. This selector designates a Rule, Group, or cluster of Rules and Groups. It overrides the selected property on the designated Items. It provides a means for including or excluding rules from the Profile.
 This selector allows the Profile author to select check statements, override the scoring weight, severity, and role of a Rule, Group, or cluster of Rules and Groups.</property>
@@ -5806,7 +5807,7 @@ This selector designates the Value constraints to be applied during tailoring, f
     </child>
     <child>
       <object class="GtkImageMenuItem" id="profile_list:popup:remove">
-        <property name="label" translatable="yes">Remove Profile</property>
+        <property name="label" translatable="yes">Remove</property>
         <property name="visible">True</property>
         <property name="image">image4</property>
         <property name="use_stock">False</property>

@@ -179,6 +179,7 @@ class Library:
     def parse(self, lib):
         """
         """
+        self.xccdf = lib["xccdf_path"]
         self.policy_model = lib["policy_model"]
         if self.policy_model:
             self.benchmark = self.policy_model.benchmark
@@ -319,11 +320,8 @@ class SWBCore:
     def set_sender(self, signal, sender):
         self.eventHandler.set_sender(signal, sender)
 
-    def set_receiver(self, sender_id, signal, callback, position=-1):
-        self.eventHandler.register_receiver(sender_id, signal, callback, position)
-
-    def set_callback(self, action, callback, position=None):
-        pass
+    def set_receiver(self, sender_id, signal, callback, *args):
+        self.eventHandler.register_receiver(sender_id, signal, callback, args)
 
     def __set_force(self):
         self.registered_callbacks = False

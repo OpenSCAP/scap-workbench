@@ -48,9 +48,9 @@ class EventObject(gobject.GObject):
 
         if self.core != None: self.core.set_sender(signal, self)
 
-    def add_receiver(self, id, signal, callback, position=-1, *args):
+    def add_receiver(self, id, signal, callback, *args):
 
-        if self.core != None: self.core.set_receiver(id, signal, callback, position)
+        if self.core != None: self.core.set_receiver(id, signal, callback, args)
 
     def activate(self, active):
         if not active:
@@ -71,11 +71,7 @@ class EventHandler(EventObject):
     def set_sender(self, signal, sender):
         sender.connect(signal, self.propagate, signal)
 
-    def register_receiver(self, sender_id, signal, callback, position=-1):
-
-        if position == None or not isinstance(position, int):
-            logger.error("Position has to be an Integer ! Got %s", type(position))
-            return False
+    def register_receiver(self, sender_id, signal, callback, *args):
 
         if not callable(callback):
             logger.error("Given callback is not callable: %s", callback)
@@ -84,7 +80,7 @@ class EventHandler(EventObject):
         logger.debug("Adding receiver %s::%s::%s", sender_id, signal, callback)
         if sender_id in self.receivers:
             if signal in self.receivers[sender_id]:
-                self.receivers[sender_id][signal].insert(position, callback)
+                self.receivers[sender_id][signal].append(callback)
             else: self.receivers[sender_id][signal] = [callback]
         else: 
             self.receivers[sender_id] = {}
@@ -101,4 +97,4 @@ class EventHandler(EventObject):
                         cb()
                     else: 
                         logger.error("Callback %s is not callable", cb)
-                        raise Exception
+                        raise Exception, "Registered callback is not callable: %s" % ((signal, sender.id, cb),)

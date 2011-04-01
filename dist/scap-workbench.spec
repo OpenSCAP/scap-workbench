@@ -16,7 +16,7 @@ BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}
 BuildArch: noarch
 BuildRequires: python2-devel desktop-file-utils
 Requires: openscap-python >= 0.7.1
-Requires: pywebkitgtk
+Requires: pywebkitgtk python-BeautifulSoup
 
 %description
 scap-workbench is GUI tool that provides scanning, tailoring, 
