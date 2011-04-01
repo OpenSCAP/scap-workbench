@@ -543,8 +543,10 @@ class MenuButtonEditProfiles(abstract.MenuButton, abstract.Func):
         self.refines_value.connect("focus-out-event", self.__change)
         self.refines_value.connect("key-press-event", self.__change)
         self.refines_selector = self.builder.get_object("xccdf:refines:selector")
+        self.refines_selector_value = self.builder.get_object("xccdf:refines:selector:cb")
         self.refines_selector.connect("focus-out-event", self.__change)
         self.refines_selector.connect("key-press-event", self.__change)
+        self.refines_selector_value.connect("changed", self.__change)
         self.refines_operator = self.builder.get_object("xccdf:refines:operator")
         self.refines_operator.connect("changed", self.__change)
         self.refines_severity = self.builder.get_object("xccdf:refines:severity")
@@ -586,6 +588,10 @@ class MenuButtonEditProfiles(abstract.MenuButton, abstract.Func):
             self.data_model.update_refines(item[0], item[1], item[2], value=widget.get_text())
         elif widget == self.refines_selector:
             self.data_model.update_refines(item[0], item[1], item[2], selector=widget.get_text())
+        elif widget == self.refines_selector_value:
+            active = widget.get_active()
+            if active != -1:
+                self.data_model.update_refines(item[0], item[1], item[2], selector=widget.get_model()[active][0])
         elif widget == self.refines_operator:
             self.data_model.update_refines(item[0], item[1], item[2], operator=widget.get_active())
         elif widget == self.refines_severity:
@@ -608,6 +614,7 @@ class MenuButtonEditProfiles(abstract.MenuButton, abstract.Func):
         self.refines_weight.handler_block_by_func(self.__change)
         self.refines_value.handler_block_by_func(self.__change)
         self.refines_selector.handler_block_by_func(self.__change)
+        self.refines_selector_value.handler_block_by_func(self.__change)
         self.refines_operator.handler_block_by_func(self.__change)
         self.refines_severity.handler_block_by_func(self.__change)
 
@@ -621,6 +628,7 @@ class MenuButtonEditProfiles(abstract.MenuButton, abstract.Func):
         self.refines_weight.handler_unblock_by_func(self.__change)
         self.refines_value.handler_unblock_by_func(self.__change)
         self.refines_selector.handler_unblock_by_func(self.__change)
+        self.refines_selector_value.handler_unblock_by_func(self.__change)
         self.refines_operator.handler_unblock_by_func(self.__change)
         self.refines_severity.handler_unblock_by_func(self.__change)
 
@@ -671,6 +679,8 @@ class MenuButtonEditProfiles(abstract.MenuButton, abstract.Func):
             self.refines_selected.set_sensitive(itype in ["rule", "group"])
             self.refines_weight.set_sensitive(itype in ["rule", "group"])
             self.refines_selector.set_sensitive(itype in ["rule", "value"])
+            self.refines_selector.set_visible(itype != "value")
+            self.refines_selector_value.set_visible(itype == "value")
             self.refines_severity.set_sensitive(itype == "rule")
             self.refines_value.set_sensitive(itype == "value")
             self.refines_operator.set_sensitive(itype == "value")
@@ -686,11 +696,22 @@ class MenuButtonEditProfiles(abstract.MenuButton, abstract.Func):
                         self.refines_severity.set_active(abstract.ENUM_LEVEL.pos(rule.severity))
                     else: raise AttributeError("Unknown type of rule refine: %s" % (rule.object,))
             elif itype == "value":
+                model = self.refines_selector_value.get_model()
+                details = self.data_model.get_item_details(refid)
+
+                model.clear()
+                for inst in details["instances"]:
+                    model.append([inst.selector])
+
+                has_value = False
                 for value in objs:
                     if value.object == "xccdf_setvalue":
                         self.refines_value.set_text(value.value)
+                        has_value = True
+                        self.refines_selector_value.set_active(-1)
                     elif value.object == "xccdf_refine_value":
-                        self.refines_selector.set_text(value.selector)
+                        for row in model:
+                            if not has_value and row[0] == value.selector: self.refines_selector_value.set_active_iter(row.iter)
                         self.refines_operator.set_active(abstract.ENUM_OPERATOR.pos(value.operator))
                     else: raise AttributeError("Unknown type of value refine: %s" % (value.object,))
                 

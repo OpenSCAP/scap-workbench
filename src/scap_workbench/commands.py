@@ -1174,11 +1174,11 @@ class DHValues(DataHandler):
 
         else: raise AttributeError("Edit question: Unknown operation %s" % (operation,))
 
-    def get_value_instances(self):
+    def get_value_instances(self, item=None):
         if not self.check_library(): return None
 
         instances = []
-        item = self.core.lib.benchmark.get_item(self.core.selected_item).to_value()
+        if not item: item = self.core.lib.benchmark.get_item(self.core.selected_item).to_value()
 
         for instance in item.instances:
             if item.type == openscap.OSCAP.XCCDF_TYPE_NUMBER:
@@ -1853,7 +1853,7 @@ class DHProfiles(DataHandler):
                     new_setvalue = openscap.xccdf.setvalue_new()
                     new_setvalue.item = id
                     new_setvalue.value = value
-                    profile.add_setvalues(new_setvalue)
+                    profile.add_setvalue(new_setvalue)
                     items.append(new_setvalue)
                 elif setvalue.value != value:
                     setvalue.value = value

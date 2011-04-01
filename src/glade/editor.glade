@@ -68,6 +68,12 @@
       <column type="gchararray"/>
     </columns>
   </object>
+  <object class="GtkListStore" id="xccdf:refines:selector:box:model">
+    <columns>
+      <!-- column-name selector -->
+      <column type="gchararray"/>
+    </columns>
+  </object>
   <object class="GtkWindow" id="main:window">
     <property name="title" translatable="yes">SCAP Workbench editor</property>
     <property name="window_position">center</property>
@@ -1049,20 +1055,6 @@
                                                       </packing>
                                                     </child>
                                                     <child>
-                                                      <object class="GtkEntry" id="xccdf:refines:selector">
-                                                        <property name="visible">True</property>
-                                                        <property name="can_focus">True</property>
-                                                        <property name="invisible_char">&#x25CF;</property>
-                                                      </object>
-                                                      <packing>
-                                                        <property name="left_attach">1</property>
-                                                        <property name="right_attach">2</property>
-                                                        <property name="top_attach">1</property>
-                                                        <property name="bottom_attach">2</property>
-                                                        <property name="y_options">GTK_FILL</property>
-                                                      </packing>
-                                                    </child>
-                                                    <child>
                                                       <object class="GtkLabel" id="label72">
                                                         <property name="visible">True</property>
                                                         <property name="xalign">0</property>
@@ -1209,6 +1201,43 @@
                                                         <property name="right_attach">2</property>
                                                         <property name="top_attach">2</property>
                                                         <property name="bottom_attach">3</property>
+                                                      </packing>
+                                                    </child>
+                                                    <child>
+                                                      <object class="GtkVBox" id="vbox23">
+                                                        <property name="visible">True</property>
+                                                        <property name="orientation">vertical</property>
+                                                        <child>
+                                                          <object class="GtkEntry" id="xccdf:refines:selector">
+                                                            <property name="visible">True</property>
+                                                            <property name="can_focus">True</property>
+                                                            <property name="invisible_char">&#x25CF;</property>
+                                                          </object>
+                                                          <packing>
+                                                            <property name="position">0</property>
+                                                          </packing>
+                                                        </child>
+                                                        <child>
+                                                          <object class="GtkComboBox" id="xccdf:refines:selector:cb">
+                                                            <property name="model">xccdf:refines:selector:box:model</property>
+                                                            <child>
+                                                            <object class="GtkCellRendererText" id="cellrenderertext8"/>
+                                                            <attributes>
+                                                            <attribute name="text">0</attribute>
+                                                            </attributes>
+                                                            </child>
+                                                          </object>
+                                                          <packing>
+                                                            <property name="position">1</property>
+                                                          </packing>
+                                                        </child>
+                                                      </object>
+                                                      <packing>
+                                                        <property name="left_attach">1</property>
+                                                        <property name="right_attach">2</property>
+                                                        <property name="top_attach">1</property>
+                                                        <property name="bottom_attach">2</property>
+                                                        <property name="y_options">GTK_FILL</property>
                                                       </packing>
                                                     </child>
                                                   </object>
