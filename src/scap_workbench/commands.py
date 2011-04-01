@@ -1653,6 +1653,8 @@ class DHProfiles(DataHandler):
             if item == None:
                 logger.error("%s points to nonexisting item %s" % (rules[rule_k][0].object, rule_k))
                 continue
+
+            type = {openscap.OSCAP.XCCDF_RULE: "rule", openscap.OSCAP.XCCDF_GROUP: "group"}[item.type]
             self.model.append(iter, ["rule", rule_k, rules[rule_k], IMG_RULE, self.get_title(item.title) or item.id+" (ID)", color])
 
         # -- VALUES --
@@ -1786,7 +1788,7 @@ class DHProfiles(DataHandler):
             elif item.object == "xccdf_refine_value": profile.refine_values.remove(item)
             else: raise Exception("Can't remove item \"%s\" from profile %s" % (item, profile))
 
-    def add_refine(self, type, id, title, item):
+    def add_refine(self, id, title, item):
 
         profile_iter = None
         (model, iter) = self.treeView.get_selection().get_selected()
@@ -1799,7 +1801,9 @@ class DHProfiles(DataHandler):
             logger.error("Can't add data. No profile specified !")
             return
 
-        self.model.append(profile_iter, [type, id, [], {"rule":IMG_RULE, "value":IMG_VALUE}[type], title or item.id+" (ID)", None])
+        type = {openscap.OSCAP.XCCDF_RULE: "rule", openscap.OSCAP.XCCDF_GROUP: "group", openscap.OSCAP.XCCDF_VALUE: "value"}[item.type]
+
+        self.model.append(profile_iter, [type, id, [], {"group":IMG_RULE, "rule":IMG_RULE, "value":IMG_VALUE}[type], title or item.id+" (ID)", None])
 
     def update_refines(self, type, id, items, idref=None, selected=None, weight=None, value=None, selector=None, operator=None, severity=None):
         if not self.check_library(): return None
@@ -1865,7 +1869,7 @@ class DHProfiles(DataHandler):
             if operator != None and r_value.operator != operator:
                 r_value.operator = operator
 
-        else: raise AttributeError("Unknown type of refines in profile: %s" % (itype,))
+        else: raise AttributeError("Unknown type of refines in profile: %s" % (type,))
 
 class DHScan(DataHandler, EventObject):
 

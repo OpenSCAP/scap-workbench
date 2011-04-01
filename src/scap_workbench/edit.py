@@ -668,14 +668,15 @@ class MenuButtonEditProfiles(abstract.MenuButton, abstract.Func):
             refid   = self.list_profile.selected_item[1]
             objs    = self.list_profile.selected_item[2]
 
-            self.refines_selected.set_sensitive(itype == "rule")
-            self.refines_weight.set_sensitive(itype == "rule")
+            self.refines_selected.set_sensitive(itype in ["rule", "group"])
+            self.refines_weight.set_sensitive(itype in ["rule", "group"])
+            self.refines_selector.set_sensitive(itype in ["rule", "value"])
             self.refines_severity.set_sensitive(itype == "rule")
             self.refines_value.set_sensitive(itype == "value")
             self.refines_operator.set_sensitive(itype == "value")
 
             self.refines_idref.set_text(refid)
-            if itype == "rule":
+            if itype in ["rule", "group"]:
                 for rule in objs:
                     if rule.object == "xccdf_select":
                         self.refines_selected.set_active(rule.selected)
@@ -3333,7 +3334,7 @@ class FindItem(abstract.Window, abstract.ListEditor):
         if not iter:
             self.core.notify("You have to chose the item !", 2, self.info_box, msg_id="notify:dialog_notify")
             return
-        self.data_model.add_refine(self.type, model[iter][self.COLUMN_ID], model[iter][self.COLUMN_VALUE], model[iter][self.COLUMN_OBJ])
+        self.data_model.add_refine(model[iter][self.COLUMN_ID], model[iter][self.COLUMN_VALUE], model[iter][self.COLUMN_OBJ])
         self.core.selected_item = model[iter][self.COLUMN_ID]
         self.emit("update")
         self.__dialog_destroy()
@@ -3347,7 +3348,6 @@ class FindItem(abstract.Window, abstract.ListEditor):
     def dialog(self, type):
         """
         """
-        self.type = type
         builder = gtk.Builder()
         builder.add_from_file("/usr/share/scap-workbench/dialogs.glade")
         self.wdialog = builder.get_object("dialog:find_value")
