@@ -2537,10 +2537,10 @@ class EditValuesValues(abstract.ListEditor):
 
         # Different widgets for different type boolean or other
         boolean = (self.type == openscap.OSCAP.XCCDF_TYPE_BOOLEAN)
-        self.value.set_visible(not boolean)
-        self.default.set_visible(not boolean)
-        self.value_bool.set_visible(boolean)
-        self.default_bool.set_visible(boolean)
+        self.value.set_property('visible', not boolean)
+        self.default.set_property('visible', not boolean)
+        self.value_bool.set_property('visible', boolean)
+        self.default_bool.set_property('visible', boolean)
 
         self.core.notify_destroy("notify:not_selected")
         (model, iter) = self.get_selection().get_selected()
@@ -2992,7 +2992,7 @@ class AddItem(EventObject, abstract.ControlEditWindow):
 
         self.core.notify_destroy("dialog:add_item")
         self.vtype_lbl.set_property("visible", widget.get_active() == self.data_model.TYPE_VALUE)
-        self.vtype.set_visible(widget.get_active() == self.data_model.TYPE_VALUE)
+        self.vtype.set_property('visible', widget.get_active() == self.data_model.TYPE_VALUE)
 
     def __cb_do(self, widget):
 
