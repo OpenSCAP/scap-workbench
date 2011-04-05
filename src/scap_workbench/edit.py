@@ -704,6 +704,7 @@ class MenuButtonEditProfiles(abstract.MenuButton, abstract.Func):
             details = self.data_model.get_item_details(refid)
             self.__refines_box.set_sensitive(details != None)
             if not details:
+                self.__unblock_signals()
                 return
 
             self.refines_selected.set_sensitive(itype in ["rule", "group"])
