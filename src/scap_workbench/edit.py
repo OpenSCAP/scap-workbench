@@ -113,7 +113,7 @@ class ProfileList(abstract.List):
                 return
 
             if model.get_value(iter, 0) == "profile":
-                self.core.selected_profile = model.get_value(iter, 1)
+                self.core.selected_profile = model.get_value(iter, 2).id
                 self.selected_item = None
             else:
                 self.selected_item = model[iter]
@@ -139,7 +139,7 @@ class ProfileList(abstract.List):
         if iter:
             iter_next = model.iter_next(iter)
             if model.get_value(iter, 0) == "profile":
-                self.data_model.remove_item(model[iter][1])
+                self.data_model.remove_item(model[iter][2].id)
                 model.remove(iter)
             else:
                 profile = model.get_value(model.iter_parent(iter), 1)
@@ -507,6 +507,9 @@ class MenuButtonEditProfiles(abstract.MenuButton, abstract.Func):
         self.add_receiver("gui:edit:xccdf:profile:titles", "update", self.__update_item)
         self.add_sender(self.id, "update")
         
+        self.__refines_box = self.builder.get_object("xccdf:refines:box")
+        self.__profile_box = self.builder.get_object("edit:xccdf:profiles:details")
+
         # PROFILES
         self.info_box_lbl = self.builder.get_object("edit:xccdf:profile:info_box:lbl")
         self.pid = self.builder.get_object("edit:xccdf:profile:id")
@@ -587,10 +590,10 @@ class MenuButtonEditProfiles(abstract.MenuButton, abstract.Func):
             self.data_model.update(prohibit_changes=widget.get_active())
         elif widget == self.refines_idref:
             if not item: return
-            self.data_model.update_refines(item[0], item[2], idref=widget.get_text())
+            self.data_model.update_refines(item[0], item[1], item[2], idref=widget.get_text())
         elif widget == self.refines_selected:
             if not item: return
-            self.data_model.update_refines(item[0], item[2], selected=widget.get_active())
+            self.data_model.update_refines(item[0], item[1], item[2], selected=widget.get_active())
         elif widget == self.refines_weight:
             if not item: return
             weight = self.controlFloat(widget.get_text(), "Weight")
@@ -616,7 +619,7 @@ class MenuButtonEditProfiles(abstract.MenuButton, abstract.Func):
         else: 
             logger.error("Change \"%s\" not supported object in \"%s\"" % (object, widget))
             return
-        #self.emit("update")
+        self.__update_item()
 
     def __find_item(self, widget, type):
         if not self.core.selected_profile:
@@ -675,8 +678,8 @@ class MenuButtonEditProfiles(abstract.MenuButton, abstract.Func):
         if not self.core.selected_profile: return
         self.__block_signals()
         self.__clear()
-        self.builder.get_object("edit:xccdf:profiles:details").set_property('visible', self.list_profile.selected_item == None)
-        self.builder.get_object("xccdf:refines:box").set_property('visible', self.list_profile.selected_item != None)
+        self.__profile_box.set_property('visible', self.list_profile.selected_item == None)
+        self.__refines_box.set_property('visible', self.list_profile.selected_item != None)
 
         if self.list_profile.selected_item == None:
             details = self.data_model.get_profile_details(self.core.selected_profile)
@@ -697,6 +700,11 @@ class MenuButtonEditProfiles(abstract.MenuButton, abstract.Func):
             itype   = self.list_profile.selected_item[0]
             refid   = self.list_profile.selected_item[1]
             objs    = self.list_profile.selected_item[2]
+
+            details = self.data_model.get_item_details(refid)
+            self.__refines_box.set_sensitive(details != None)
+            if not details:
+                return
 
             self.refines_selected.set_sensitive(itype in ["rule", "group"])
             self.refines_weight.set_sensitive(itype in ["rule", "group"])
@@ -719,8 +727,6 @@ class MenuButtonEditProfiles(abstract.MenuButton, abstract.Func):
                     else: raise AttributeError("Unknown type of rule refine: %s" % (rule.object,))
             elif itype == "value":
                 model = self.refines_selector_value.get_model()
-                details = self.data_model.get_item_details(refid)
-
                 model.clear()
                 for inst in details["instances"]:
                     model.append([inst.selector])
@@ -744,19 +750,28 @@ class MenuButtonEditProfiles(abstract.MenuButton, abstract.Func):
         selection = self.profiles.get_selection()
         (model, iter) = selection.get_selected()
         if iter:
-            item = self.data_model.get_profile_details(model[iter][1])
-            if item == None:
-                logger.error("Can't find item with ID: \"%s\"" % (model[iter][1],))
-                return
-            model[iter][0] = item["id"] # TODO
+            if model[iter][0] == "profile":
+                profile = model[iter][2]
+                # Get the title of item
+                model[iter][4]= self.data_model.get_title(profile.title) or "%s (ID)" % (profile.id,)
+            else: # refine
+                if len(model[iter][2]) == 0:
+                    #TODO: remove ?
+                    logger.error("No objects in refines for %s" % (model[iter][1],))
+                    return
+                else:
+                    for obj in model[iter][2]:
+                        model[iter][1] = obj.item
+                        item = self.data_model.get_item(obj.item)
+                        if obj.object == "xccdf_select":
+                            model[iter][5] = ["gray", None][obj.selected]
+                        if not item:
+                            model[iter][3] = "dialog-error"
+                            model[iter][4] = "Broken reference: %s" % (obj.item,)
+                            model[iter][5] = "red"
+                        else:
+                            model[iter][4] = self.data_model.get_title(item.title) or "%s (ID)" % (item.id,)
 
-            # Get the title of item
-            title = title = item["id"]+" (ID)"
-            if len(item["titles"]) > 0:
-                if self.core.selected_lang in item["titles"].keys(): title = item["titles"][self.core.selected_lang]
-                else: title = item["titles"][item["titles"].keys()[0]]+" ["+item["titles"].keys()[0]+"]"
-
-            model[iter][1] = title
         self.emit("update")
 
             

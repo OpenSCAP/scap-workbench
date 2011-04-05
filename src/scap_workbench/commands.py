@@ -520,10 +520,14 @@ class DataHandler(object):
         file_dialog = gtk.FileChooserDialog(title,
                 action=action,
                 buttons=dialog_buttons)
+        if action == gtk.FILE_CHOOSER_ACTION_SAVE:
+            file_dialog.set_do_overwrite_confirmation(True)
 
-        file_dialog.set_current_folder(os.path.dirname(file))
-        if action == gtk.FILE_CHOOSER_ACTION_SAVE: 
-            file_dialog.set_current_name(os.path.basename(file))
+        if file:
+            path = os.path.dirname(file)
+            file_dialog.set_current_folder(path)
+            if action == gtk.FILE_CHOOSER_ACTION_SAVE: 
+                file_dialog.set_current_name(os.path.basename(file))
 
         """Init the return value"""
         result = ""
@@ -1591,14 +1595,11 @@ class DHProfiles(DataHandler):
     def update(self, id=None, version=None, abstract=None, prohibit_changes=None):
         if not self.check_library(): return None
 
-        policy = self.core.lib.policy_model.get_policy_by_id(self.core.selected_profile)
-        if not policy: 
-            logger.error("Update failed: No profile \"%s\" in benchmnark" % (self.core.selected_profile,))
-            return None
-        profile = policy.profile
+        profile = self.get_profile(self.core.selected_profile)
 
-        if id != None and profile.id != id:
+        if id != None and len(id) > 0 and profile.id != id:
             profile.id = id
+            self.core.selected_profile = id
         if version != None and profile.version != version:
             profile.version = version
         if abstract != None and profile.abstract != abstract:
@@ -1653,6 +1654,7 @@ class DHProfiles(DataHandler):
             item = self.core.lib.benchmark.get_item(rule_k)
             if item == None:
                 logger.error("%s points to nonexisting item %s" % (rules[rule_k][0].object, rule_k))
+                self.model.append(iter, ["rule", rule_k, rules[rule_k], "dialog-error", "Broken reference: %s" % (rule_k,), "red"])
                 continue
 
             type = {openscap.OSCAP.XCCDF_RULE: "rule", openscap.OSCAP.XCCDF_GROUP: "group"}[item.type]
@@ -1670,6 +1672,7 @@ class DHProfiles(DataHandler):
             item = self.core.lib.benchmark.get_item(value_k)
             if item == None: 
                 logger.error("%s points to nonexisting value %s" % (values[value_k][0].object, value_k))
+                self.model.append(iter, ["value", value_k, values[value_k], "dialog-error", "Broken reference: %s" % (value_k,), "red"])
                 continue
             self.model.append(iter, ["value", value_k, values[value_k], IMG_VALUE, self.get_title(item.title) or item.id+" (ID)", None])
 

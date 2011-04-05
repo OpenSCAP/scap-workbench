@@ -95,6 +95,7 @@ class Notification:
         box.pack_start(self.img, False, False)
         self.label = gtk.Label(text)
         self.label.set_alignment(0, 0.5)
+        self.label.modify_fg(gtk.STATE_NORMAL, gtk.gdk.Color(Notification.COLOR[lvl]))
         label_set_autowrap(self.label)
         box.pack_start(self.label, True, True)
         self.btn = gtk.Button()
