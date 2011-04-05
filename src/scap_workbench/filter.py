@@ -164,7 +164,7 @@ class Renderer(abstract.MenuButton,EventObject):
         if filter.active == False:
             self.add_filter(filter)
         else:
-            self.core.notify("Filter is already active.", 1)
+            self.core.notify("Filter is already active.", core.Notification.INFORMATION)
         
     def __cb_show_menu(self, menu, event):
         if event.type == gtk.gdk.BUTTON_PRESS:
@@ -200,7 +200,7 @@ class Renderer(abstract.MenuButton,EventObject):
             self.filters.remove(filter)
             filter.get_widget().destroy()
             self.emit("filter_del")
-        else: self.core.notify("Removing not existed filter !", 2)
+        else: self.core.notify("Removing not existed filter !", core.Notification.ERROR)
         
     def init_filter(self):
         """ clean all acive filters"""

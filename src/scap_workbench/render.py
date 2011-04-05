@@ -287,14 +287,22 @@ class MenuButtonXCCDF(abstract.MenuButton):
 
     def __cb_validate(self, widget):
         validate = self.data_model.validate()
-        self.notifications.append(self.core.notify(["Document is not valid !", "Document is valid.", 
-            "Validation process failed, check for error in log file.", "File not saved, use export first."][validate], [1, 0, 2, 1][validate], msg_id="notify:xccdf:validate"))
+        message = [ "Document is not valid !",
+                    "Document is valid.",
+                    "Validation process failed, check for error in log file.",
+                    "File not saved, use export first."][validate]
+        lvl = [ core.Notification.WARNING,
+                core.Notification.SUCCESS,
+                core.Notification.ERROR,
+                core.Notification.INFORMATION][validate]
+        self.notifications.append(self.core.notify(message, lvl, msg_id="notify:xccdf:validate"))
 
     def __cb_export(self, widget):
         file_name = self.data_model.export()
         if file_name:
             self.core.notify_destroy("notify:xccdf:validate")
-            self.notifications.append(self.core.notify("Benchmark has been exported to \"%s\"" % (file_name,), 0, msg_id="notify:xccdf:export"))
+            self.notifications.append(self.core.notify("Benchmark has been exported to \"%s\"" % (file_name,),
+                core.Notification.SUCCESS, msg_id="notify:xccdf:export"))
             self.core.xccdf_file = file_name
 
     def __menu_sensitive(self, active):

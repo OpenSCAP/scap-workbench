@@ -67,20 +67,29 @@ def label_size_allocate(widget, allocation):
 
 class Notification:
 
-    IMG = ["dialog-information", "dialog-warning", "dialog-error"]
-    COLOR = ["#C0C0FF", "#FFFFC0", "#FFC0C0" ]
+    SUCCESS = 0
+    INFORMATION = 1
+    WARNING = 2
+    ERROR = 3
+
+    IMG = ["dialog-ok", "dialog-information", "dialog-warning", "dialog-error"]
+    BG_COLOR = ["#DFF2BF", "#BDE5F8", "#FEEFB3", "#FFBABA"]
+    COLOR = ["#4F8A10", "#00529B", "#9F6000", "#D8000C"]
     DEFAULT_SIZE = gtk.ICON_SIZE_LARGE_TOOLBAR
     DEFAULT_TIME = 10
-    HIDE_LVLS = [0, 1]
+    HIDE_LVLS = [0, 1] # TODO
 
     def __init__(self, text, lvl=0):
 
-        if lvl > 2: lvl = 2
+        if lvl > 3: lvl = 3
         if lvl < 0: lvl = 0
 
         logger.debug("Notification: %s", text)
         box = gtk.HBox()
         box.set_spacing(10)
+        align = gtk.Alignment(0.5, 0.5, 1.0, 1.0)
+        align.set_padding(2, 2, 5, 2)
+        align.add(box)
         self.img = gtk.Image()
         self.img.set_from_icon_name(Notification.IMG[lvl], Notification.DEFAULT_SIZE)
         box.pack_start(self.img, False, False)
@@ -93,22 +102,22 @@ class Notification:
         self.btn.connect("clicked", self.__cb_destroy)
         self.btn.set_label("x")
         box.pack_start(self.btn, False, False)
+        self.eb = gtk.EventBox()
+        self.eb.modify_bg(gtk.STATE_NORMAL, gtk.gdk.Color(Notification.BG_COLOR[lvl]))
+        self.eb.set_border_width(1)
+        self.eb.add(align)
         self.widget = gtk.EventBox()
         self.widget.modify_bg(gtk.STATE_NORMAL, gtk.gdk.Color(Notification.COLOR[lvl]))
-        self.widget.add(box)
+        self.widget.add(self.eb)
     
-        """
-        if lvl in Notification.HIDE_LVLS: 
-            self.destroy_timeout(self.widget)
-        """
         self.widget.show_all()
 
     def __cb_destroy(self, widget):
-        widget.parent.parent.destroy()
+        self.widget.destroy()
         self.widget = None
 
     def destroy(self):
-        if self.widget: 
+        if self.widget:
             self.widget.destroy()
         
 
@@ -293,7 +302,7 @@ class SWBCore:
             self.langs.append(self.lib.benchmark.lang)
         self.selected_lang = self.lib.benchmark.lang
         if self.lib.benchmark.lang == None:
-            self.notify("XCCDF Benchmark: No language specified.", 2)
+            self.notify("XCCDF Benchmark: No language specified.", Notification.WARNING)
         return True
 
 

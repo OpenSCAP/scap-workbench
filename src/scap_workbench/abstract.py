@@ -655,17 +655,20 @@ class Func:
         if text != "":
             date = text.split("-")
             if len(date) != 3:
-                self.notifications.append(self.core.notify("The date is in incorrect format. Correct format is YYYY-MM-DD.", 2, msg_id="notify:date_format"))
+                self.notifications.append(self.core.notify("The date is in incorrect format. Correct format is YYYY-MM-DD.",
+                    core.Notification.ERROR, msg_id="notify:date_format"))
                 return None
             try :
                 d = datetime.date(int(date[0]), int(date[1]), int(date[2]))
             except Exception as ex:
-                self.notifications.append(self.core.notify("The date is in incorrect format. Correct format is YYYY-MM-DD.", 2, msg_id="notify:date_format"))
+                self.notifications.append(self.core.notify("The date is in incorrect format. Correct format is YYYY-MM-DD.",
+                    core.Notification.ERROR, msg_id="notify:date_format"))
                 return None
             try:
                 timestamp = time.mktime(d.timetuple()) 
             except Exception as ex:
-                self.notifications.append(self.core.notify("The date is out of range.", 2, msg_id="notify:date_format"))
+                self.notifications.append(self.core.notify("The date is out of range.",
+                    core.Notification.ERROR, msg_id="notify:date_format"))
 
             self.core.notify_destroy("notify:date_format")
             return timestamp
@@ -700,10 +703,12 @@ class Func:
             try:
                 data = float(data)
                 if data < 0:
-                    self.notifications.append(self.core.notify("Invalid number in %s. Please insert positive real number." % (text,), 2, info_box, msg_id="notify:float_format"))
+                    self.notifications.append(self.core.notify("Invalid number in %s. Please insert positive real number." % (text,),
+                        core.Notification.ERROR, info_box, msg_id="notify:float_format"))
                     return None
             except:
-                self.notifications.append(self.core.notify("Invalid number in %s." % (text,), 2, info_box, msg_id="notify:float_format"))
+                self.notifications.append(self.core.notify("Invalid number in %s." % (text,),
+                    core.Notification.ERROR, info_box, msg_id="notify:float_format"))
                 return None
             return data
         else:

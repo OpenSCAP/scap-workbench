@@ -71,7 +71,8 @@ class DataHandler(object):
         """Check if the library exists and the XCCDF file
         is loaded. If not return False and True otherwise"""
         if not self.core.lib or not self.core.lib.loaded:
-            #self.core.notify("Library not initialized or XCCDF file not specified", 1, msg_id="notify:xccdf:not_loaded")
+            #self.core.notify("Library not initialized or XCCDF file not specified",
+            #core.Notification.INFORMATION, msg_id="notify:xccdf:not_loaded")
             logger.debug("Library not initialized or XCCDF file not specified")
             return False
         else: return True
@@ -1694,7 +1695,7 @@ class DHProfiles(DataHandler):
                 title = "Profile: "+pvalues["titles"][self.core.selected_lang]
             else:
                 self.core.notify("No title with \"%s\" language in \"%s\" profile. Change language to proper view." % (self.core.selected_lang, item.id), 
-                                  1, msg_id="notify:global:profile:fill:no_lang") # TODO
+                                  core.Notification.INFORMATION, msg_id="notify:global:profile:fill:no_lang") # TODO
                 title = "Profile: %s (ID)" % (item.id,)
             color = None
             if self.model.__class__ == gtk.ListStore: iter = self.model.append([item.id, ""+title])
@@ -2101,7 +2102,7 @@ class DHScan(DataHandler, EventObject):
                 retval = openscap.oval.agent_reset_session(oval.session)
                 logger.debug("OVAL Agent session reset: %s" % (retval,))
                 if retval != 0: 
-                    self.core.notify("Oval agent reset session failed.", 2, msg_id="notify:scan:oval_reset")
+                    self.core.notify("Oval agent reset session failed.", core.Notification.ERROR, msg_id="notify:scan:oval_reset")
                     raise Exception, "OVAL agent reset session failed"
             self.__cancel = False
             self.__last = 0
@@ -2123,7 +2124,8 @@ class DHScan(DataHandler, EventObject):
 
         if not self.__cancel:
             self.__cancel = True
-            self.__cancel_notify = self.core.notify("Scanning canceled. Please wait for openscap to finish current task.", 0, msg_id="notify:scan:cancel")
+            self.__cancel_notify = self.core.notify("Scanning canceled. Please wait for openscap to finish current task.",
+                    core.Notification.INFORMATION, msg_id="notify:scan:cancel")
         for oval in self.core.lib.files.values():
             retval = openscap.oval.agent_abort_session(oval.session)
             logger.debug("OVAL Agent session abort: %s" % (retval,))
@@ -2157,7 +2159,8 @@ class DHScan(DataHandler, EventObject):
         retval = openscap.common.oscap_apply_xslt(file, "xccdf-report.xsl", "report.xhtml", params)
         logger.info("Export report file %s" % (["failed: %s" % (openscap.common.err_desc(),), "done"][retval],))
         browser_val = webbrowser.open("report.xhtml")
-        if not browser_val: self.core.notify("Failed to open browser \"%s\". Report file is saved in \"%s\"" % (webbrowser.get().name, "report.xhtml"), 1, msg_id="notify:scan:export_report")
+        if not browser_val: self.core.notify("Failed to open browser \"%s\". Report file is saved in \"%s\"" % (webbrowser.get().name, "report.xhtml"),
+                core.Notification.INFORMATION, msg_id="notify:scan:export_report")
 
     def scan(self):
         if self.__lock: 
