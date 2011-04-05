@@ -675,8 +675,8 @@ class MenuButtonEditProfiles(abstract.MenuButton, abstract.Func):
         if not self.core.selected_profile: return
         self.__block_signals()
         self.__clear()
-        self.builder.get_object("edit:xccdf:profiles:details").set_visible(self.list_profile.selected_item == None)
-        self.builder.get_object("xccdf:refines:box").set_visible(self.list_profile.selected_item != None)
+        self.builder.get_object("edit:xccdf:profiles:details").set_property('visible', self.list_profile.selected_item == None)
+        self.builder.get_object("xccdf:refines:box").set_property('visible', self.list_profile.selected_item != None)
 
         if self.list_profile.selected_item == None:
             details = self.data_model.get_profile_details(self.core.selected_profile)
@@ -701,8 +701,8 @@ class MenuButtonEditProfiles(abstract.MenuButton, abstract.Func):
             self.refines_selected.set_sensitive(itype in ["rule", "group"])
             self.refines_weight.set_sensitive(itype in ["rule", "group"])
             self.refines_selector.set_sensitive(itype in ["rule", "value"])
-            self.refines_selector.set_visible(itype != "value")
-            self.refines_selector_value.set_visible(itype == "value")
+            self.refines_selector.set_property('visible', itype != "value")
+            self.refines_selector_value.set_property('visible', itype == "value")
             self.refines_severity.set_sensitive(itype == "rule")
             self.refines_value.set_sensitive(itype == "value")
             self.refines_operator.set_sensitive(itype == "value")
@@ -3442,8 +3442,8 @@ class FindItem(abstract.Window, abstract.ListEditor):
         self.search.connect("changed", self.search_treeview, self.items)
         builder.get_object("dialog:find_value:btn_cancel").connect("clicked", self.__dialog_destroy)
         builder.get_object("dialog:find_value:btn_ok").connect("clicked", self.__do)
-        builder.get_object("dialog:find_value:export_name:box").set_visible(False)
-        builder.get_object("dialog:find_value:export_name:separator").set_visible(False)
+        builder.get_object("dialog:find_value:export_name:box").set_property('visible', False)
+        builder.get_object("dialog:find_value:export_name:separator").set_property('visible', False)
 
         self.core.notify_destroy("notify:not_selected")
         self.items.append_column(gtk.TreeViewColumn("ID", gtk.CellRendererText(), text=self.COLUMN_ID))
