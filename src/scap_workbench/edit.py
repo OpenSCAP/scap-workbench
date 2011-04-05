@@ -357,13 +357,8 @@ class MenuButtonEditXCCDF(abstract.MenuButton):
         self.notifications.append(self.core.notify(message, lvl, msg_id="notify:xccdf:validate"))
 
     def __cb_export(self, widget):
-        #ExportDialog(self.core)
-        file_name = self.data_model.export()
-        if file_name:
-            self.core.notify_destroy("notify:xccdf:validate")
-            self.notifications.append(self.core.notify("Benchmark has been exported to \"%s\"" % (file_name,), 
-                core.Notification.SUCCESS, msg_id="notify:xccdf:export"))
-            self.core.lib.xccdf = file_name
+        self.core.notify_destroy("notify:xccdf:validate")
+        ExportDialog(self.core, self.data_model)
 
     def __menu_sensitive(self, active):
         self.btn_close.set_sensitive(active)
@@ -412,6 +407,7 @@ class MenuButtonEditXCCDF(abstract.MenuButton):
         self.entry_lang.set_text("")
 
     def activate(self, active):
+        self.core.notify_destroy("notify:xccdf:export")
         abstract.MenuButton.activate(self, active)
         self.sub_menu.set_property("visible", active)
 
@@ -458,27 +454,77 @@ class MenuButtonEditXCCDF(abstract.MenuButton):
 
 class ExportDialog(abstract.Window):
 
-    def __init__(self, core):
+    def __init__(self, core, data_model):
 
         self.core = core
+        self.data_model = data_model
         builder = gtk.Builder()
         builder.add_from_file("/usr/share/scap-workbench/dialogs.glade")
         self.wdialog = builder.get_object("dialog:export")
-        self.f_file = builder.get_object("dialog:export:file")
-        #self.f_file.set_filename(self.core.lib.xccdf)
-        self.f_guide = builder.get_object("dialog:export:guide")
+        self.info_box = builder.get_object("dialog:export:info_box")
+        self.filechooser = builder.get_object("dialog:export:filechooser")
+        self.filechooser.set_filename(self.core.lib.xccdf)
+        self.filechooser.connect("confirm-overwrite", self.__confirm_overwrite)
         self.show = builder.get_object("dialog:export:show")
         self.profile = builder.get_object("dialog:export:profile")
+        self.profile.connect("clicked", self.__cb_profile_clicked)
+        self.profiles_cb = builder.get_object("dialog:export:profiles:cb")
         builder.get_object("dialog:export:btn_ok").connect("clicked", self.__do)
         builder.get_object("dialog:export:btn_cancel").connect("clicked", self.__dialog_destroy)
+
+        self.file_rb = builder.get_object("dialog:export:file:rb")
+        self.file_rb.connect("toggled", self.__cb_switch)
+        self.guide_rb = builder.get_object("dialog:export:guide:rb")
+        self.guide_rb.connect("toggled", self.__cb_switch)
+        self.file_box = builder.get_object("dialog:export:file:box")
+        self.guide_box = builder.get_object("dialog:export:guide:box")
+
+        profiles_model = commands.DHProfiles(core)
+        profiles_model.model = self.profiles_cb.get_model()
+        profiles_model.fill(no_default=True)
 
         self.wdialog.set_transient_for(self.core.main_window)
         self.wdialog.show()
 
+    def __cb_profile_clicked(self, widget):
+        self.profiles_cb.set_sensitive(widget.get_active())
+
+    def __cb_switch(self, widget):
+        self.guide_box.set_sensitive(widget == self.guide_rb)
+
+    def __confirm_overwrite(self, widget, more=None):
+        print widget, more
+
     def __do(self, widget=None):
-        export_file = self.f_file.get_file()
-        if export_file != None:
-            print export_file
+        export_file = self.filechooser.get_filename()
+        if export_file == None:
+            self.core.notify("Choose a file to save to first.",
+                core.Notification.INFORMATION, info_box=self.info_box, msg_id="dialog:export:notify")
+            return
+
+        if self.file_rb.get_active():
+            # we are exporting to file
+            file_name = self.data_model.export(export_file)
+            self.core.notify("Benchmark has been exported to \"%s\"" % (file_name,),
+                    core.Notification.SUCCESS, msg_id="notify:xccdf:export")
+            self.core.lib.xccdf = file_name
+        else:
+            # we are exporting as guide
+            if not self.core.lib.xccdf:
+                self.core.notify("Benchmark is not exported. Export benchmark first !",
+                        core.Notification.INFORMATION, info_box=self.info_box, msg_id="notify:xccdf:export")
+                return
+
+            profile = None
+            if self.profiles_cb.get_active() != -1:
+                profile = self.profiles_cb.get_model()[self.profiles_cb.get_active()][0]
+            self.data_model.export_guide(export_file, profile, not self.profile.get_active())
+            self.core.notify("The guide has been exported to \"%s\"" % (export_file,), core.Notification.SUCCESS, msg_id="notify:xccdf:export")
+
+            if self.show.get_active() == 1:
+                browser_val = self.data_model.open_webbrowser(export_file)
+
+        self.__dialog_destroy()
 
     def __dialog_destroy(self, widget=None):
         """

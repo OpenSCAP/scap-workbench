@@ -25,6 +25,7 @@ import gobject
 import webbrowser
 import datetime
 import time
+import core
 from datetime import datetime
 
 from events import EventObject
@@ -76,6 +77,12 @@ class DataHandler(object):
             logger.debug("Library not initialized or XCCDF file not specified")
             return False
         else: return True
+
+    def open_webbrowser(self, file):
+
+        browser_val = webbrowser.open(file)
+        if not browser_val: self.core.notify("Failed to open browser \"%s\". Report file is saved in \"%s\"" % (webbrowser.get().name, "report.xhtml"),
+                core.Notification.INFORMATION, msg_id="notify:scan:export_report")
 
     def get_title(self, titles):
         
@@ -925,11 +932,13 @@ class DHXccdf(DataHandler):
         if resolved and benchmark.resolved != resolved: benchmark.resolved = resolved
         if lang and benchmark.lang != lang: benchmark.lang = lang
 
-    def export(self):
+    def export(self, file_name=None):
 
         if not self.check_library(): return None
 
-        file_name = self.file_browse("Save XCCDF file", file=self.core.lib.xccdf)
+        if not file_name:
+            file_name = self.file_browse("Save XCCDF file", file=self.core.lib.xccdf)
+
         if file_name != "":
             self.core.lib.benchmark.export(file_name)
             logger.debug("Exported benchmark: %s", file_name)
@@ -1007,6 +1016,24 @@ class DHXccdf(DataHandler):
     def __cb_report(self, msg, plugin):
         logger.warning("Validation: %s", msg.string)
         return True
+
+    def export_guide(self, file, profile=None, hide=False):
+        if not self.core.lib: return False
+
+        params = [
+                "result-id",         None,
+                "show",              None,
+                "profile",           profile,
+                "hide-profile-info", [None, "yes"][hide],
+                "template",          None,
+                "format",            None,
+                "oval-template",     None,
+                "verbosity",         "1",
+                "oscap-version",     openscap.common.oscap_get_version(),
+                "pwd",               os.getenv("PWD"), None]
+
+        retval = openscap.common.oscap_apply_xslt(self.core.lib.xccdf, "security-guide.xsl", file, [])
+
 
 class DHValues(DataHandler):
 
@@ -2146,24 +2173,25 @@ class DHScan(DataHandler, EventObject):
             return file_name
         else: return None
 
-    def export_report(self, file):
+    def export_report(self, file, xslfile=None, expfile=None, hide_profile=None):
         params = [ 
             "result-id",         None,
             "show",              None,
             "profile",           None,
             "template",          None,
             "format",            None,
-            "hide-profile-info", None,
+            "hide-profile-info", hide_profile,
             "verbosity",         "1",
             "oscap-version",     openscap.common.oscap_get_version(),
             "pwd",               os.getenv("PWD"),
             "oval-template",    "%.result.xml", None]
 
-        retval = openscap.common.oscap_apply_xslt(file, "xccdf-report.xsl", "report.xhtml", params)
+        if not xslfile: xslfile = "xccdf-report.xsl"
+        if not expfile: expfile = "report.xhtml"
+
+        retval = openscap.common.oscap_apply_xslt(file, xslfile, expfile, params)
         logger.info("Export report file %s" % (["failed: %s" % (openscap.common.err_desc(),), "done"][retval],))
-        browser_val = webbrowser.open("report.xhtml")
-        if not browser_val: self.core.notify("Failed to open browser \"%s\". Report file is saved in \"%s\"" % (webbrowser.get().name, "report.xhtml"),
-                core.Notification.INFORMATION, msg_id="notify:scan:export_report")
+        self.open_webbrowser(expfile)
 
     def scan(self):
         if self.__lock: 
