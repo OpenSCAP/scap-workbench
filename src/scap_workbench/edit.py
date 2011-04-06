@@ -20,202 +20,274 @@
 #      Maros Barabas        <mbarabas@redhat.com>
 #      Vladimir Oberreiter  <xoberr01@stud.fit.vutbr.cz>
 
-import pygtk
-import gtk
-import gobject
-import pango
-import datetime
-import time
-import re
-import os, gio
-import threading
-import gnome, gnome.ui
+""" Importing standard python libraries
+"""
+import gtk              # GTK library
+import gobject          # gobject.TYPE_PYOBJECT
+import time             # Time functions in calendar data ::EditStatus
+import re               # Regular expressions 
+import os               # os Path join/basename, ..
+import threading        # Main window is running in thread
+import gnome, gnome.ui  # Gnome icons in HTML editor
+import tempfile         # Temporary file for XCCDF preview
 
-import abstract
-import logging
-import core
-from events import EventObject
+""" Importing SCAP Workbench modules
+"""
+import abstract                 # All abstract classes
+import logging                  # Logger for debug/info/error messages
+import core                     # Initializing of core in main window
+import commands                 # Module for handling openscap
+import filter                   # Module for handling filters
+from core import Notification   # core.Notification levels for reference
+from events import EventObject  # abstract module EventObject
+import htmltextview             # Alternative of webkit
+
+# Initializing Logger
 logger = logging.getLogger("scap-workbench")
+
+""" Importing non-standard python libraries
+These libraries are not required and should be always
+checked by:
+  if HAS_MODULE: do
+  else: notify(..)"""
 try:
-    import openscap_api as openscap
-except Exception as ex:
-    logger.error("OpenScap library initialization failed: %s", ex)
-    openscap=None
-    
-try:
+    # Import WebKit module for HTML editing 
+    # of descriptions
     import webkit as webkit
+    HAS_WEBKIT = True
 except ImportError:
-    webkit=None
+    HAS_WEBKIT = False
 
 try:
+    # 
     from BeautifulSoup import BeautifulSoup
     HAS_BEUTIFUL_SOUP = True
 except ImportError:
     HAS_BEUTIFUL_SOUP = False
 
-import commands
-import filter
-import render
+""" Import OpenSCAP library as backend.
+If anything goes wrong just end with exception"""
+try:
+    import openscap_api as openscap
+except Exception as ex:
+    logger.error("OpenScap library initialization failed: %s", ex)
+    openscap=None
+    raise ex
 
-logger = logging.getLogger("scap-workbench")
-    
-from htmltextview import HtmlTextView
-from threads import thread as threadSave
 
 class ProfileList(abstract.List):
+
+    """ List of Profiles and refine items.
+
+    This class represents TreeView in editor window which contains
+    list of profiles. Each profile contains list of selectors,
+    refine-rules, refine-values and setvalues.
+    
+    Selectors and refine-rules are grouped into one item as well as
+    refine-values and setvalues to contract the length of the list.
+    """
     
     def __init__(self, widget, core, data_model, builder=None, progress=None, filter=None):
+        """ Constructor of ProfileList.
+        """
         self.core = core
         self.builder = builder
         self.data_model = data_model
         self.selected_item = None
         abstract.List.__init__(self, "gui:edit:profile_list", core, widget)
+        
+        """ Register signals that can be emited by this class.
+        All signals are registered in EventObject (abstract class) and
+        are emited by other objects to trigger the async event.
+        """
+        self.add_sender(id, "update")
+        self.add_receiver("gui:btn:menu:edit:profiles", "update", self.__update)
+        self.add_receiver("gui:btn:menu:edit:XCCDF", "load", self.__clear_update)
+        self.add_receiver("gui:edit:xccdf:profiles:finditem", "update", self.__update)
 
-        # Popup Menu
+        """ Set objects from Glade files and connect signals
+        """
+        # Build the Popup Menu
         self.builder.get_object("profile_list:popup:add").connect("activate", self.__cb_item_add)
         self.builder.get_object("profile_list:popup:remove").connect("activate", self.__cb_item_remove)
         widget.connect("button_press_event", self.__cb_button_pressed, self.builder.get_object("profile_list:popup"))
 
         selection = self.get_TreeView().get_selection()
         selection.set_mode(gtk.SELECTION_SINGLE)
+        selection.connect("changed", self.__cb_changed, self.get_TreeView())
         self.section_list = self.builder.get_object("edit:section_list")
         self.profilesList = self.builder.get_object("edit:tw_profiles:sw")
 
-        # actions
-        self.add_receiver("gui:btn:menu:edit:profiles", "update", self.__update)
-        self.add_receiver("gui:btn:menu:edit:XCCDF", "load", self.__clear_update)
-        self.add_receiver("gui:edit:xccdf:profiles:finditem", "update", self.__update)
-        selection.connect("changed", self.cb_item_changed, self.get_TreeView())
-        self.add_sender(id, "update")
-
-        self.get_TreeView().connect("key-press-event", self.__key_press)
+        self.get_TreeView().connect("key-press-event", self.__cb_key_press)
 
     def __clear_update(self):
+        """ Remove all items from the list and update model
+        """
         self.data_model.model.clear()
         self.__update(force=True)
 
     def __update(self, force=False):
-
+        """ Update items in the list. Parameter 'force' is used to force
+        the fill function upon the list."""
         if "profile" not in self.__dict__ or force:
             self.data_model.fill(no_default=True)
             self.profile = self.core.selected_profile
         self.get_TreeView().get_model().foreach(self.set_selected, (self.core.selected_profile, self.get_TreeView(), 1))
         self.get_TreeView().get_model().foreach(self.set_selected_profile_item, (self.core.selected_profile, self.core.selected_item, self.get_TreeView(), 1))
+
+        # List is updated, trigger all events connected to this signal
         self.emit("update")
 
-    def cb_item_changed(self, widget, treeView):
-
+    def __cb_changed(self, widget, treeView):
+        """ Changed the selected item of the list
+        """
         selection = treeView.get_selection( )
         if selection != None: 
             (model, iter) = selection.get_selected( )
-            # Profile or refine ?
             if not iter: 
                 return
 
             if model.get_value(iter, 0) == "profile":
+                # If a profile is selected, change the global value of selected profile
+                # and clear the local value of item (to evade possible conflicts in selections)
+                # selected_item is used to find out what is selected TODO?
                 self.core.selected_profile = model.get_value(iter, 2).id
                 self.selected_item = None
             else:
-                self.selected_item = model[iter]
+                # If a refine item is selected, change the global value of selected item
+                # and fill the local value of selected item so details can be filled from it.
                 self.core.selected_item = model.get_value(iter, 1)
-        self.selected = self.core.selected_profile
+                self.selected_item = model[iter]
+
+        # Selection has changed, trigger all events connected to this signal
         self.emit("update")
 
-    def __key_press(self, widget, event):
-
+    def __cb_key_press(self, widget, event):
+        """ The key-press event has occured upon the list.
+        If key == delete: Delete the selected item from the list and model"""
         if event and event.type == gtk.gdk.KEY_PRESS and event.keyval == gtk.keysyms.Delete:
             selection = self.get_TreeView().get_selection()
             (model,iter) = selection.get_selected()
             if iter: self.__cb_item_remove()
 
     def __cb_button_pressed(self, treeview, event, menu):
+        """ Mouse button has been pressed. If the button is 3rd: show
+        popup menu"""
         if event.button == 3:
-            time = event.time
             menu.popup(None, None, None, event.button, event.time)
 
     def __cb_item_remove(self, widget=None):
+        """ Remove selected item from the list and model.
+        """
         selection = self.get_TreeView().get_selection()
         (model,iter) = selection.get_selected()
         if iter:
             iter_next = model.iter_next(iter)
             if model.get_value(iter, 0) == "profile":
+                # Profile selected
                 self.data_model.remove_item(model[iter][2].id)
                 model.remove(iter)
             else:
+                # Refine item selected
                 profile = model.get_value(model.iter_parent(iter), 1)
                 self.data_model.remove_refine(profile, model[iter][2])
                 model.remove(iter)
+
+            # If the removed item has successor, let's select it so we can
+            # continue in deleting or other actions without need to click the
+            # list again to select next item
             if iter_next:
                 self.get_TreeView().expand_to_path(model.get_path(iter_next))
                 selection.select_path(model.get_path(iter_next))
+
+        # Nothing selected
         else: self.notifications.append(self.core.notify("Please select at least one item to delete",
-                core.Notification.ERROR, msg_id="notify:edit:delete_item"))
+                Notification.ERROR, msg_id="notify:edit:delete_item"))
 
     def __cb_item_add(self, widget=None):
+        """ Add profile to the profile list (Item can 
+        """
         EditAddProfileDialogWindow(self.core, self.data_model, self.__update)
+
 
 class ItemList(abstract.List):
 
-    def __init__(self, widget, core, builder=None, progress=None, filter=None):
+    """ List of Rules, Groups and Values.
 
+    This class represents TreeView in editor window which contains
+    list of XCCDF Items as Rules, Groups and Values. Each Group contains
+    its content.
+    """
+
+    def __init__(self, widget, core, builder=None, progress=None):
+        """ Constructor of ProfileList.
+        """
         self.data_model = commands.DHItemsTree("gui:edit:DHItemsTree", core, progress, None, True, no_checks=True)
         abstract.List.__init__(self, "gui:edit:item_list", core, widget)
         self.core = core
         self.loaded = False
         self.filter = filter
-        self.__progress = progress
-        self.map_filter = {}
         self.builder = builder
 
+        """ Register signals that can be emited by this class.
+        All signals are registered in EventObject (abstract class) and
+        are emited by other objects to trigger the async event.
+        """
+        self.add_sender(self.id, "update")
+        self.add_receiver("gui:btn:menu:edit:items", "update", self.__update)
+        self.add_receiver("gui:btn:menu:edit:XCCDF", "load", self.__clear_update)
+
+
+        """ Set objects from Glade files and connect signals
+        """
+        selection = self.get_TreeView().get_selection()
+        selection.set_mode(gtk.SELECTION_SINGLE)
+        selection.connect("changed", self.__cb_item_changed, self.get_TreeView())
+        self.section_list = self.builder.get_object("edit:section_list")
+        self.itemsList = self.builder.get_object("edit:tw_items:sw")
+        self.with_values = self.builder.get_object("edit:list:popup:show_values")
+        self.with_values.connect("toggled", self.__update)
         # Popup Menu
         self.builder.get_object("edit:list:popup:add").connect("activate", self.__cb_item_add)
         self.builder.get_object("edit:list:popup:remove").connect("activate", self.__cb_item_remove)
-        self.with_values = self.builder.get_object("edit:list:popup:show_values")
-        self.with_values.connect("toggled", self.__update)
         widget.connect("button_press_event", self.__cb_button_pressed, self.builder.get_object("edit:list:popup"))
 
-        self.section_list = self.builder.get_object("edit:section_list")
-        self.itemsList = self.builder.get_object("edit:tw_items:sw")
-        selection = self.get_TreeView().get_selection()
-        selection.set_mode(gtk.SELECTION_SINGLE)
-        self.add_dialog = AddItem(self.core, self.data_model, self)
-
-        # actions
-        self.add_receiver("gui:btn:menu:edit:items", "update", self.__update)
-        self.add_receiver("gui:btn:edit:filter", "search", self.__search)
-        self.add_receiver("gui:btn:menu:edit:XCCDF", "load", self.__clear_update)
-
-        selection.connect("changed", self.__cb_item_changed, self.get_TreeView())
-        self.add_sender(self.id, "update")
+        self.add_dialog = AddItem(self.core, self.data_model, self) # TODO
+        self.get_TreeView().connect("key-press-event", self.__cb_key_press)
 
     def __clear_update(self):
+        """ Remove all items from the list and update model
+        """
         self.data_model.model.clear()
         self.__update(force=True)
 
     def __update(self, force=False):
-
+        """ Update items in the list. Parameter 'force' is used to force
+        the fill function upon the list."""
         if not self.loaded or force:
-            #self.get_TreeView().set_model(self.data_model.model)
-            if self.__progress:
-                self.__progress.set_text("Waiting for thread lock ...")
-                self.__progress.show()
-            self.treeView.set_sensitive(False)
             self.data_model.fill(with_values=self.with_values.get_active())
             self.loaded = True
-        # Select the last one selected if there is one         #self.core.selected_item_edit
-        if self.core.selected_item and self.selected != self.core.selected_item:
-            self.get_TreeView().get_model().foreach(self.set_selected, (self.core.selected_item, self.get_TreeView(), 1))
-            self.selected = self.core.selected_item
 
-    def __search(self):
-        self.search(self.filter.get_search_text(), 1)
-        
+        # Select the last one selected if there is one
+        self.get_TreeView().get_model().foreach(self.set_selected, (self.core.selected_item, self.get_TreeView(), 1))
+
     def __cb_button_pressed(self, treeview, event, menu):
+        """ Mouse button has been pressed. If the button is 3rd: show
+        popup menu"""
         if event.button == 3:
             time = event.time
             menu.popup(None, None, None, event.button, event.time)
 
-    def __cb_item_remove(self, widget):
+    def __cb_key_press(self, widget, event):
+        """ The key-press event has occured upon the list.
+        If key == delete: Delete the selected item from the list and model"""
+        if event and event.type == gtk.gdk.KEY_PRESS and event.keyval == gtk.keysyms.Delete:
+            self.notifications.append(self.core.notify("Delete operation is not supported yet.",
+                Notification.INFORMATION, msg_id="notify:edit:delete_item"))
+
+    def __cb_item_remove(self, widget=None):
+        """ Remove selected item from the list and model.
+        """
         selection = self.get_TreeView().get_selection()
         (model,iter) = selection.get_selected()
         if iter:
@@ -223,25 +295,22 @@ class ItemList(abstract.List):
             model.remove(iter)
         else: raise AttributeError, "Removing non-selected item or nothing selected."
 
-    def __cb_item_add(self, widget):
+    def __cb_item_add(self, widget=None):
+        """ Add item to the list and model
+        """
         self.add_dialog.dialog()
 
     def __cb_item_changed(self, widget, treeView):
-        """Make all changes in application in separate threads: workaround for annoying
-        blinking when redrawing treeView
-        """
+        """ Make all changes in application in separate threads: workaround for annoying
+        blinking when redrawing treeView """
         details = self.data_model.get_item_details(self.core.selected_item)
-        if details != None:
-            self.item = details["item"]
-        else: self.item = None
         selection = treeView.get_selection( )
         if selection != None: 
             (model, iter) = selection.get_selected( )
-            if iter: 
-                self.core.selected_item = model.get_value(iter, commands.DHItemsTree.COLUMN_ID)
-            else:
-                self.core.selected_item = None
-        self.selected = self.core.selected_item
+            if iter: self.core.selected_item = model.get_value(iter, commands.DHItemsTree.COLUMN_ID)
+            else: self.core.selected_item = None
+
+        # Selection has changed, trigger all events connected to this signal
         self.emit("update")
         treeView.columns_autosize()
 
@@ -322,7 +391,11 @@ class MenuButtonEditXCCDF(abstract.MenuButton):
         self.btn_export.connect("clicked", self.__cb_export)
 
     def __cb_new(self, widget):
-        if not self.core.init(None): return
+        """ Create new XCCDF Benchmark
+        """
+        if not self.core.init(None):return
+
+        # Update neccessary attributes of Benchmark
         self.data_model.update(id="New_SCAP_Benchmark", version="0", lang="en")
         self.core.selected_lang = "en"
         self.data_model.edit_status(self.data_model.CMD_OPER_ADD)
@@ -344,16 +417,51 @@ class MenuButtonEditXCCDF(abstract.MenuButton):
                 self.__update()
             except KeyError: pass
 
+    def __cb_preview(self, widget):
+        builder = gtk.Builder()
+        builder.add_from_file("/usr/share/scap-workbench/dialogs.glade")
+        preview_dialog = builder.get_object("dialog:description_preview")
+        preview_scw = builder.get_object("dialog:description_preview:scw")
+        builder.get_object("dialog:description_preview:btn_ok").connect("clicked", lambda w: preview_dialog.destroy())
+        # Get the background color from window and destroy it
+
+        desc = self.__model.get_value(iter, self.COLUMN_TEXT) or ""
+        desc = desc.replace("xhtml:","")
+        desc = desc.replace("xmlns:", "")
+        desc = self.data_model.substitute(desc)
+        if desc == "": desc = "No description"
+        desc = "<body><div>"+desc+"</div></body>"
+
+        if not HAS_WEBKIT:
+            description = webkit.WebView()
+            preview_scw.add(description)
+            description.load_html_string(desc, "file:///")
+            description.set_zoom_level(0.75)
+        else:
+            description = htmltextview.HtmlTextView()
+            description.set_wrap_mode(gtk.WRAP_WORD)
+            description.modify_base(gtk.STATE_NORMAL, bg_color)
+            preview_scw.add(description)
+            try:
+                description.display_html(desc)
+            except Exception as err:
+                logger.error("Exception: %s", err)
+
+
+        preview_dialog.set_transient_for(self.core.main_window)
+        preview_dialog.show_all()
+        
+
     def __cb_validate(self, widget):
         validate = self.data_model.validate()
         message = [ "Document is not valid !",
                     "Document is valid.",
                     "Validation process failed, check for error in log file.",
                     "File not saved, use export first."][validate]
-        lvl = [ core.Notification.WARNING,
-                core.Notification.SUCCESS,
-                core.Notification.ERROR,
-                core.Notification.INFORMATION][validate]
+        lvl = [ Notification.WARNING,
+                Notification.SUCCESS,
+                Notification.ERROR,
+                Notification.INFORMATION][validate]
         self.notifications.append(self.core.notify(message, lvl, msg_id="notify:xccdf:validate"))
 
     def __cb_export(self, widget):
@@ -378,7 +486,9 @@ class MenuButtonEditXCCDF(abstract.MenuButton):
     def __change(self, widget, object=None):
 
         if object == "id":
-            self.data_model.update(id=widget.get_text())
+            # Replace all white spaces with '_' (space are not allowed in ID)
+            text = re.sub("[\t ]+" , "_", widget.get_text())
+            self.data_model.update(id=text)
         elif object == "version":
             self.data_model.update(version=widget.get_text())
         elif object == "resolved":
@@ -499,30 +609,32 @@ class ExportDialog(abstract.Window):
         export_file = self.filechooser.get_filename()
         if export_file == None:
             self.core.notify("Choose a file to save to first.",
-                core.Notification.INFORMATION, info_box=self.info_box, msg_id="dialog:export:notify")
+                Notification.INFORMATION, info_box=self.info_box, msg_id="dialog:export:notify")
             return
 
         if self.file_rb.get_active():
             # we are exporting to file
             file_name = self.data_model.export(export_file)
             self.core.notify("Benchmark has been exported to \"%s\"" % (file_name,),
-                    core.Notification.SUCCESS, msg_id="notify:xccdf:export")
+                    Notification.SUCCESS, msg_id="notify:xccdf:export")
             self.core.lib.xccdf = file_name
         else:
             # we are exporting as guide
             if not self.core.lib.xccdf:
                 self.core.notify("Benchmark is not exported. Export benchmark first !",
-                        core.Notification.INFORMATION, info_box=self.info_box, msg_id="notify:xccdf:export")
+                        Notification.INFORMATION, info_box=self.info_box, msg_id="notify:xccdf:export")
                 return
 
             profile = None
             if self.profiles_cb.get_active() != -1:
                 profile = self.profiles_cb.get_model()[self.profiles_cb.get_active()][0]
             self.data_model.export_guide(export_file, profile, not self.profile.get_active())
-            self.core.notify("The guide has been exported to \"%s\"" % (export_file,), core.Notification.SUCCESS, msg_id="notify:xccdf:export")
+            self.core.notify("The guide has been exported to \"%s\"" % (export_file,), Notification.SUCCESS, msg_id="notify:xccdf:export")
 
             if self.show.get_active() == 1:
                 browser_val = self.data_model.open_webbrowser(export_file)
+            elif self.show.get_active() == 2:
+                pass
 
         self.__dialog_destroy()
 
@@ -670,7 +782,7 @@ class MenuButtonEditProfiles(abstract.MenuButton, abstract.Func):
     def __find_item(self, widget, type):
         if not self.core.selected_profile:
             self.notifications.append(self.core.notify("Please select profile first.",
-                core.Notification.INFORMATION, msg_id="notify:edit:find_item"))
+                Notification.INFORMATION, msg_id="notify:edit:find_item"))
             return
 
         self.__item_finder.dialog(type)
@@ -844,7 +956,7 @@ class MenuButtonEditItems(abstract.MenuButton, abstract.Func):
         self.filter = None
         self.tw_items = self.builder.get_object("edit:tw_items")
         titles = self.data_model.get_benchmark_titles()
-        self.list_item = ItemList(self.tw_items, self.core, builder, self.progress, self.filter)
+        self.list_item = ItemList(self.tw_items, self.core, builder, self.progress)
         self.ref_model = self.list_item.get_TreeView().get_model() # original model (not filtered)
         
         # set signals
@@ -969,7 +1081,7 @@ class MenuButtonEditItems(abstract.MenuButton, abstract.Func):
 
         model = self.href.get_model()
         if self.href.get_active() == -1:
-            self.notifications.append(self.core.notify("No definition file available", core.Notification.WARNING, msg_id="notify:definition_available"))
+            self.notifications.append(self.core.notify("No definition file available", Notification.WARNING, msg_id="notify:definition_available"))
             return
         self.content_ref_dialog.dialog(None, model[self.href.get_active()][0])
 
@@ -1001,7 +1113,7 @@ class MenuButtonEditItems(abstract.MenuButton, abstract.Func):
         elif widget == self.content_ref:
             ret, err = self.data_model.set_item_content(name=widget.get_text())
             if not ret:
-                self.notifications.append(self.core.notify(err, core.Notification.ERROR, msg_id="notify:edit:content_href"))
+                self.notifications.append(self.core.notify(err, Notification.ERROR, msg_id="notify:edit:content_href"))
         elif widget == self.href:
             if self.href.get_active() == -1 or len(self.href.get_model()) == 0:
                 return
@@ -1021,7 +1133,7 @@ class MenuButtonEditItems(abstract.MenuButton, abstract.Func):
 
         self.data_model.add_oval_reference(path)
         retval, err = self.data_model.set_item_content(href=file)
-        if not retval: self.notifications.append(self.core.notify(err, core.Notification.ERROR, msg_id="notify:set_content_ref"))
+        if not retval: self.notifications.append(self.core.notify(err, Notification.ERROR, msg_id="notify:set_content_ref"))
         self.__update()
 
     def __cb_value_clicked(self, widget, event):
@@ -1164,7 +1276,7 @@ class MenuButtonEditItems(abstract.MenuButton, abstract.Func):
         self.item_id.set_text(details["id"] or "")
         self.weight.set_text(str(details["weight"] or ""))
         self.version.set_text(details["version"] or "")
-        self.version_time.set_text(str(datetime.date.fromtimestamp(details["version_time"]) or ""))
+        #self.version_time.set_text(str(datetime.date.fromtimestamp(details["version_time"]) or "")) TODO: Add version_time
         self.cluster_id.set_text(details["cluster_id"] or "")
         self.extends.set_text(details["extends"] or "")
         self.titles.fill()
@@ -1314,7 +1426,7 @@ class EditItemValues(abstract.ListEditor):
         if iter:
             item = model[iter][self.COLUMN_ID]
         elif self.operation != self.data_model.CMD_OPER_EDIT:
-            self.core.notify("Value has to be choosen.", core.Notification.ERROR, info_box=self.info_box, msg_id="notify:dialog_notify")
+            self.core.notify("Value has to be choosen.", Notification.ERROR, info_box=self.info_box, msg_id="notify:dialog_notify")
             return
 
         if self.operation == self.data_model.CMD_OPER_EDIT:
@@ -1368,7 +1480,7 @@ class EditItemValues(abstract.ListEditor):
         elif operation == self.data_model.CMD_OPER_EDIT:
             if not iter:
                 self.notifications.append(self.core.notify("Please select at least one item to delete",
-                    core.Notification.ERROR, msg_id="notify:not_selected"))
+                    Notification.ERROR, msg_id="notify:not_selected"))
                 return
             self.values.append_column(gtk.TreeViewColumn("ID of Value", gtk.CellRendererText(), text=self.COLUMN_ID))
             self.values.append_column(gtk.TreeViewColumn("Title", gtk.CellRendererText(), text=self.COLUMN_VALUE))
@@ -1403,7 +1515,7 @@ class EditItemValues(abstract.ListEditor):
         elif operation == self.data_model.CMD_OPER_DEL:
             if not iter:
                 self.notifications.append(self.core.notify("Please select at least one item to delete",
-                    core.Notification.ERROR, msg_id="notify:not_selected"))
+                    Notification.ERROR, msg_id="notify:not_selected"))
                 return
             else: 
                 iter = self.dialogDel(self.core.main_window, self.get_selection())
@@ -1478,7 +1590,7 @@ class EditTitle(abstract.ListEditor):
         elif operation == self.data_model.CMD_OPER_EDIT:
             if not self.iter:
                 self.notifications.append(self.core.notify("Please select at least one item to edit",
-                    core.Notification.ERROR, msg_id="notify:not_selected"))
+                    Notification.ERROR, msg_id="notify:not_selected"))
                 return
             else:
                 self.lang.set_text(model[self.iter][self.COLUMN_LANG] or "")
@@ -1486,7 +1598,7 @@ class EditTitle(abstract.ListEditor):
         elif operation == self.data_model.CMD_OPER_DEL:
             if not self.iter:
                 self.notifications.append(self.core.notify("Please select at least one item to delete",
-                    core.Notification.ERROR, msg_id="notify:not_selected"))
+                    Notification.ERROR, msg_id="notify:not_selected"))
                 return
             else: 
                 iter = self.dialogDel(self.core.main_window, self.get_selection())
@@ -1520,13 +1632,16 @@ class EditDescription(abstract.ListEditor):
 
     def regexp(self, regexp):
         match = regexp.groups()
-        if match[1] in ["head", "body"]: 
+        if match[1][:6] == "xhtml:": TAG = ""
+        else: TAG = "xhtml:"
+
+        if match[1] in ["head", "body"]:
             return ""
-        elif match[1] in ["br", "hr"]: return match[0]+"xhtml:"+" ".join(match[1:3])+"/>" # unpaired tags
+        elif match[1] in ["br", "hr"]: return match[0]+TAG+" ".join(match[1:3])+"/>" # unpaired tags
         elif match[1] in ["sub"]: 
             if match[2].find("idref") != -1: return match[0]+" ".join(match[1:3])+"/>" # <sub>
             else: return "" # </sub>
-        else: return match[0]+"xhtml:"+" ".join(match[1:3]).strip()+">" # paired tags
+        else: return match[0]+TAG+" ".join(match[1:3]).strip()+">" # paired tags
 
     def __do(self, widget=None):
         """
@@ -1544,6 +1659,10 @@ class EditDescription(abstract.ListEditor):
             else:
                 self.description.execute_script("document.title=document.documentElement.innerHTML;")
                 desc = self.description.get_main_frame().get_title()
+                if HAS_BEUTIFUL_SOUP:
+                    # Use Beutiful soup to prettify the HTML
+                    soup = BeautifulSoup(desc)
+                    desc = soup.prettify()
             desc = re.sub("(< */* *)([^>/ ]*) *([^>]*)/*>", self.regexp, desc)
             retval = self.data_model.edit_description(self.operation, item, self.lang.get_text(), desc)
 
@@ -1609,16 +1728,16 @@ class EditDescription(abstract.ListEditor):
             self.description.zoom_in()
         else: self.description.zoom_out()
 
-    def __propagate(self, widget):
+    def __propagate(self, widget=None):
         
-        if widget.get_active() == 0: # TEXT -> HTML
+        if self.switcher.get_active() == 0: # TEXT -> HTML
             for child in self.description_tb.get_children():
                 child.set_sensitive(True)
             self.description_sw.set_property("visible", True)
             self.description_html_sw.set_property("visible", False)
             desc = self.description_html.get_buffer().get_text(self.description_html.get_buffer().get_start_iter(), self.description_html.get_buffer().get_end_iter())
             self.description.load_html_string(desc or "", "file:///")
-        elif widget.get_active() == 1: # HTML -> TEXT
+        elif self.switcher.get_active() == 1: # HTML -> TEXT
             for child in self.description_tb.get_children():
                 child.set_sensitive(False)
             self.description_sw.set_property("visible", False)
@@ -1632,6 +1751,9 @@ class EditDescription(abstract.ListEditor):
                 # Use Beutiful soup to prettify the HTML
                 soup = BeautifulSoup(desc)
                 desc = soup.prettify()
+            else: 
+                self.core.notify("Missing BeautifulSoup python module, HTML processing disabled.",
+                    Notification.INFORMATION, info_box=self.info_box, msg_id="")
             self.description_html.get_buffer().set_text(desc)
         self.switcher.parent.set_sensitive(True)
 
@@ -1668,7 +1790,7 @@ class EditDescription(abstract.ListEditor):
         self.switcher.connect("changed", self.__propagate)
         self.description = None
 
-        if webkit == None:
+        if not HAS_WEBKIT:
             label = gtk.Label("Missing WebKit python module")
             label.modify_fg(gtk.STATE_NORMAL, gtk.gdk.Color("red"))
             self.description_sw.add_with_viewport(label)
@@ -1676,7 +1798,7 @@ class EditDescription(abstract.ListEditor):
             self.description_tb.set_sensitive(False)
             self.description_sw.show_all()
             self.core.notify("Missing WebKit python module, HTML editing disabled.",
-                    core.Notification.INFORMATION, info_box=self.info_box, msg_id="")
+                    Notification.INFORMATION, info_box=self.info_box, msg_id="")
         else:
             self.description = webkit.WebView()
             self.description.set_editable(True)
@@ -1696,7 +1818,7 @@ class EditDescription(abstract.ListEditor):
         elif operation == self.data_model.CMD_OPER_EDIT:
             if not iter:
                 self.notifications.append(self.core.notify("Please select at least one item to edit",
-                    core.Notification.ERROR, msg_id="notify:not_selected"))
+                    Notification.ERROR, msg_id="notify:not_selected"))
                 return
             else:
                 self.lang.set_text(model[iter][self.COLUMN_LANG] or "")
@@ -1707,7 +1829,7 @@ class EditDescription(abstract.ListEditor):
         elif operation == self.data_model.CMD_OPER_DEL:
             if not iter:
                 self.notifications.append(self.core.notify("Please select at least one item to delete",
-                    core.Notification.ERROR, msg_id="notify:not_selected"))
+                    Notification.ERROR, msg_id="notify:not_selected"))
                 return
             else: 
                 retval = self.dialogDel(self.core.main_window, self.get_selection())
@@ -1754,8 +1876,7 @@ class EditWarning(abstract.ListEditor):
             category = self.category.get_model()[self.category.get_active()][0]
 
         retval = self.data_model.edit_warning(self.operation, item, category, self.lang.get_text(), buffer.get_text(buffer.get_start_iter(), buffer.get_end_iter()))
-        #if not retval: logger.error("Edit warning: %s warning \"%s:%s:%s\" failed." %(["Adding", "Editing", "Removing"][self.operation], category, 
-            #self.lang.get_text(), buffer.get_text(buffer.get_start_iter(), buffer.get_end_iter())))
+        # TODO if not retval
         self.fill()
         self.__dialog_destroy()
         self.emit("update")
@@ -1788,7 +1909,7 @@ class EditWarning(abstract.ListEditor):
         elif operation == self.data_model.CMD_OPER_EDIT:
             if not self.iter:
                 self.notifications.append(self.core.notify("Please select at least one item to edit",
-                    core.Notification.ERROR, msg_id="notify:not_selected"))
+                    Notification.ERROR, msg_id="notify:not_selected"))
                 return
             else:
                 self.category.set_active(abstract.ENUM_WARNING.pos(model[self.iter][self.COLUMN_OBJ].category) or -1)
@@ -1797,7 +1918,7 @@ class EditWarning(abstract.ListEditor):
         elif operation == self.data_model.CMD_OPER_DEL:
             if not self.iter:
                 self.notifications.append(self.core.notify("Please select at least one item to delete",
-                    core.Notification.ERROR, msg_id="notify:not_selected"))
+                    Notification.ERROR, msg_id="notify:not_selected"))
                 return
             else: 
                 iter = self.dialogDel(self.core.main_window, self.get_selection())
@@ -1817,7 +1938,7 @@ class EditWarning(abstract.ListEditor):
         for item in self.data_model.get_warnings() or []:
             category = abstract.ENUM_WARNING.map(item.category)
             index = abstract.ENUM_WARNING.pos(item.category)
-            self.append([item.text.lang, item.text.text, item, category[1]])
+            self.append([item.text.lang, re.sub("[\t ]+" , " ", item.text.text).strip(), item, category[1]])
 
 class EditNotice(abstract.ListEditor):
 
@@ -1840,13 +1961,13 @@ class EditNotice(abstract.ListEditor):
         # Check input data
         if self.wid.get_text() == "":
             self.core.notify("ID of the notice is mandatory.",
-                    core.Notification.ERROR, info_box=self.info_box, msg_id="notify:dialog_notify")
+                    Notification.ERROR, info_box=self.info_box, msg_id="notify:dialog_notify")
             self.wid.grab_focus()
             return
         for iter in self.get_model():
             if iter[self.COLUMN_ID] == self.wid.get_text():
                 self.core.notify("ID of the notice has to be unique !",
-                        core.Notification.ERROR, info_box=self.info_box, msg_id="notify:dialog_notify")
+                        Notification.ERROR, info_box=self.info_box, msg_id="notify:dialog_notify")
                 self.wid.grab_focus()
                 return
 
@@ -1856,6 +1977,7 @@ class EditNotice(abstract.ListEditor):
             item = self.get_model()[self.iter][self.COLUMN_OBJ]
 
         retval = self.data_model.edit_notice(self.operation, item, self.wid.get_text(), buffer.get_text(buffer.get_start_iter(), buffer.get_end_iter()))
+        # TODO if not retval
         self.fill()
         self.__dialog_destroy()
         self.emit("update")
@@ -1886,7 +2008,7 @@ class EditNotice(abstract.ListEditor):
         elif operation == self.data_model.CMD_OPER_EDIT:
             if not self.iter:
                 self.notifications.append(self.core.notify("Please select at least one item to edit",
-                    core.Notification.ERROR, msg_id="notify:not_selected"))
+                    Notification.ERROR, msg_id="notify:not_selected"))
                 return
             else:
                 self.wid.set_text(model[self.iter][self.COLUMN_ID] or "")
@@ -1894,7 +2016,7 @@ class EditNotice(abstract.ListEditor):
         elif operation == self.data_model.CMD_OPER_DEL:
             if not self.iter:
                 self.notifications.append(self.core.notify("Please select at least one item to delete",
-                    core.Notification.ERROR, msg_id="notify:not_selected"))
+                    Notification.ERROR, msg_id="notify:not_selected"))
                 return
             else: 
                 iter = self.dialogDel(self.core.main_window, self.get_selection())
@@ -1934,7 +2056,7 @@ class EditStatus(abstract.ListEditor):
         # Check input data
         if self.operation != self.data_model.CMD_OPER_DEL and self.status.get_active() == -1:
             self.core.notify("Status has to be choosen.",
-                    core.Notification.ERROR, info_box=self.info_box, msg_id="notify:dialog_notify")
+                    Notification.ERROR, info_box=self.info_box, msg_id="notify:dialog_notify")
             self.status.grab_focus()
             return
 
@@ -1944,6 +2066,7 @@ class EditStatus(abstract.ListEditor):
 
         year, month, day = self.calendar.get_date()
         retval = self.data_model.edit_status(self.operation, item, "%s-%s-%s" % (year, month, day), self.status.get_active())
+        # TODO if not retval
         self.fill()
         self.__dialog_destroy()
         self.emit("update")
@@ -1977,7 +2100,7 @@ class EditStatus(abstract.ListEditor):
         elif operation == self.data_model.CMD_OPER_EDIT:
             if not self.iter:
                 self.notifications.append(self.core.notify("Please select at least one item to edit",
-                    core.Notification.ERROR, msg_id="notify:not_selected"))
+                    Notification.ERROR, msg_id="notify:not_selected"))
                 return
             else:
                 day, month, year = time.strftime("%d %m %Y", time.localtime(model[self.iter][self.COLUMN_OBJ].date)).split()
@@ -1987,7 +2110,7 @@ class EditStatus(abstract.ListEditor):
         elif operation == self.data_model.CMD_OPER_DEL:
             if not self.iter:
                 self.notifications.append(self.core.notify("Please select at least one item to delete",
-                    core.Notification.ERROR, msg_id="notify:not_selected"))
+                    Notification.ERROR, msg_id="notify:not_selected"))
                 return
             else: 
                 iter = self.dialogDel(self.core.main_window, self.get_selection())
@@ -2085,6 +2208,7 @@ class EditQuestion(abstract.ListEditor):
             item = self.get_model()[self.iter][self.COLUMN_OBJ]
 
         retval = self.data_model.edit_question(self.operation, item, self.lang.get_text(), self.override.get_active(), buffer.get_text(buffer.get_start_iter(), buffer.get_end_iter()))
+        # TODO if not retval
         self.fill()
         self.__dialog_destroy()
         self.emit("update")
@@ -2116,7 +2240,7 @@ class EditQuestion(abstract.ListEditor):
         elif operation == self.data_model.CMD_OPER_EDIT:
             if not self.iter:
                 self.notifications.append(self.core.notify("Please select at least one item to edit",
-                    core.Notification.ERROR, msg_id="notify:not_selected"))
+                    Notification.ERROR, msg_id="notify:not_selected"))
                 return
             else:
                 self.lang.set_text(model[self.iter][self.COLUMN_LANG] or "")
@@ -2125,7 +2249,7 @@ class EditQuestion(abstract.ListEditor):
         elif operation == self.data_model.CMD_OPER_DEL:
             if not self.iter:
                 self.notifications.append(self.core.notify("Please select at least one item to delete",
-                    core.Notification.ERROR, msg_id="notify:not_selected"))
+                    Notification.ERROR, msg_id="notify:not_selected"))
                 return
             else: 
                 iter = self.dialogDel(self.core.main_window, self.get_selection())
@@ -2170,6 +2294,7 @@ class EditRationale(abstract.ListEditor):
             item = model[iter][self.COLUMN_OBJ]
 
         retval = self.data_model.edit_rationale(self.operation, item, self.lang.get_text(), self.override.get_active(), buffer.get_text(buffer.get_start_iter(), buffer.get_end_iter()))
+        # TODO if not retval
         self.fill()
         self.__dialog_destroy()
         self.emit("update")
@@ -2201,7 +2326,7 @@ class EditRationale(abstract.ListEditor):
         elif operation == self.data_model.CMD_OPER_EDIT:
             if not iter:
                 self.notifications.append(self.core.notify("Please select at least one item to edit",
-                    core.Notification.ERROR, msg_id="notify:not_selected"))
+                    Notification.ERROR, msg_id="notify:not_selected"))
                 return
             else:
                 self.lang.set_text(model[iter][self.COLUMN_LANG] or "")
@@ -2210,7 +2335,7 @@ class EditRationale(abstract.ListEditor):
         elif operation == self.data_model.CMD_OPER_DEL:
             if not iter:
                 self.notifications.append(self.core.notify("Please select at least one item to delete",
-                    core.Notification.ERROR, msg_id="notify:not_selected"))
+                    Notification.ERROR, msg_id="notify:not_selected"))
                 return
             else: 
                 iter = self.dialogDel(self.core.main_window, self.get_selection())
@@ -2256,14 +2381,15 @@ class EditPlatform(abstract.ListEditor):
             text = self.cpe.get_text()
             if len(text) < 6 or text[5] not in ["a", "o", "h"]:
                 self.core.notify("The part section can be \"a\", \"o\" or \"h\"",
-                        core.Notification.ERROR, self.info_box, msg_id="notify:edit")
+                        Notification.ERROR, self.info_box, msg_id="notify:edit")
                 return
             if len(text[7:].split(":")) != 6:
                 self.core.notify("Invalid number of sections: should be cpe:/part:vendor:product:version:update:edition:lang",
-                        core.Notification.ERROR, self.info_box, msg_id="notify:edit")
+                        Notification.ERROR, self.info_box, msg_id="notify:edit")
                 return
 
         retval = self.data_model.edit_platform(self.operation, item, self.cpe.get_text())
+        # TODO if not retval
         self.fill()
         self.__dialog_destroy()
         self.emit("update")
@@ -2299,7 +2425,7 @@ class EditPlatform(abstract.ListEditor):
         if len(text) > 5:
             if text[5] not in ["a", "o", "h"]: 
                 self.core.notify("The part section can be \"a\", \"o\" or \"h\"",
-                        core.Notification.ERROR, self.info_box, msg_id="notify:edit")
+                        Notification.ERROR, self.info_box, msg_id="notify:edit")
                 widget.set_text("cpe:/")
                 return
             else:
@@ -2364,14 +2490,14 @@ class EditPlatform(abstract.ListEditor):
         elif operation == self.data_model.CMD_OPER_EDIT:
             if not iter:
                 self.notifications.append(self.core.notify("Please select at least one item to edit",
-                    core.Notification.ERROR, msg_id="notify:not_selected"))
+                    Notification.ERROR, msg_id="notify:not_selected"))
                 return
             else:
                 self.cpe.set_text(model[iter][self.COLUMN_TEXT])
         elif operation == self.data_model.CMD_OPER_DEL:
             if not iter:
                 self.notifications.append(self.core.notify("Please select at least one item to delete",
-                    core.Notification.ERROR, msg_id="notify:not_selected"))
+                    Notification.ERROR, msg_id="notify:not_selected"))
                 return
             else: 
                 iter = self.dialogDel(self.core.main_window, self.get_selection())
@@ -2584,20 +2710,25 @@ class EditValuesValues(abstract.ListEditor):
         for inst in model:
             if self.selector.get_text() == inst[0] and model[iter][self.COLUMN_SELECTOR] != self.selector.get_text():
                 self.core.notify("Selector \"%s\" is already used !" % (inst[0],),
-                        core.Notification.ERROR, self.info_box, msg_id="dialog:add_value")
+                        Notification.ERROR, self.info_box, msg_id="dialog:add_value")
                 self.selector.grab_focus()
                 self.selector.modify_base(gtk.STATE_NORMAL, gtk.gdk.Color("#FFC1C2"))
                 return
         self.selector.modify_base(gtk.STATE_NORMAL, self.__entry_style)
         
         if self.type == openscap.OSCAP.XCCDF_TYPE_BOOLEAN:
-            self.data_model.edit_value_of_value(self.operation, item, self.selector.get_text(), self.value_bool.get_active(), self.default_bool.get_active(), 
-                        self.match.get_text(), None, None, self.must_match.get_active())
+            retval = self.data_model.edit_value_of_value(self.operation, item, self.selector.get_text(),
+                    self.value_bool.get_active(), self.default_bool.get_active(),
+                    self.match.get_text(), None, None, self.must_match.get_active())
         if self.type == openscap.OSCAP.XCCDF_TYPE_NUMBER:
-            self.data_model.edit_value_of_value(self.operation, item, self.selector.get_text(), self.value.get_text(), self.default.get_text(), self.match.get_text(), 
-                        self.upper_bound.get_text(), self.lower_bound.get_value_as_int(), self.must_match.get_value_as_int())
-        else: self.data_model.edit_value_of_value(self.operation, item, self.selector.get_text(), self.value.get_text(), self.default.get_text(), self.match.get_text(), None,
-                            None, self.must_match.get_active())
+            retval = self.data_model.edit_value_of_value(self.operation, item, self.selector.get_text(),
+                    self.value.get_text(), self.default.get_text(), self.match.get_text(), self.upper_bound.get_text(),
+                    self.lower_bound.get_value_as_int(), self.must_match.get_value_as_int())
+        else:
+            retval = self.data_model.edit_value_of_value(self.operation, item, self.selector.get_text(),
+                    self.value.get_text(), self.default.get_text(), self.match.get_text(), None,
+                    None, self.must_match.get_active())
+        # TODO if not retval
         self.fill()
         self.__dialog_destroy()
         self.emit("update")
@@ -2652,7 +2783,7 @@ class EditValuesValues(abstract.ListEditor):
         elif operation == self.data_model.CMD_OPER_EDIT:
             if not iter:
                 self.notifications.append(self.core.notify("Please select at least one item to edit",
-                    core.Notification.ERROR, msg_id="notify:not_selected"))
+                    Notification.ERROR, msg_id="notify:not_selected"))
                 return
             else:
                 self.selector.set_text(model[iter][self.COLUMN_SELECTOR] or "")
@@ -2667,7 +2798,7 @@ class EditValuesValues(abstract.ListEditor):
         elif operation == self.data_model.CMD_OPER_DEL:
             if not iter:
                 self.notifications.append(self.core.notify("Please select at least one item to delete",
-                    core.Notification.ERROR, msg_id="notify:not_selected"))
+                    Notification.ERROR, msg_id="notify:not_selected"))
                 return
             else: 
                 iter = self.dialogDel(self.core.main_window, self.get_selection())
@@ -3011,11 +3142,11 @@ class EditAddProfileDialogWindow(EventObject, abstract.ControlEditWindow):
 
         if len(self.pid.get_text()) == 0: 
             self.core.notify("Can't add profile with no ID !",
-                    core.Notification.ERROR, self.info_box, msg_id="notify:edit:profile:new")
+                    Notification.ERROR, self.info_box, msg_id="notify:edit:profile:new")
             return
         if len(self.title.get_text()) == 0: 
             self.core.notify("Please add title for this profile.",
-                    core.Notification.ERROR, self.info_box, msg_id="notify:edit:profile:new")
+                    Notification.ERROR, self.info_box, msg_id="notify:edit:profile:new")
             self.title.grab_focus()
             return
 
@@ -3045,7 +3176,6 @@ class AddItem(EventObject, abstract.ControlEditWindow):
         self.data_model = data_model
         self.list_item = list_item
         self.view = list_item.get_TreeView()
-        self.map_filterInfo = list_item.map_filter
         
     def dialog(self):
 
@@ -3084,14 +3214,14 @@ class AddItem(EventObject, abstract.ControlEditWindow):
         if not iter:
             if widget.get_active() in [self.data_model.RELATION_PARENT, self.data_model.RELATION_SIBLING]:
                 self.core.notify("Item can't be a parent or sibling of benchmark !",
-                        core.Notification.ERROR, self.info_box, msg_id="notify:relation")
+                        Notification.ERROR, self.info_box, msg_id="notify:relation")
                 widget.grab_focus()
                 return False
         else:
             self.core.notify_destroy("dialog:add_item")
             if model[iter][self.data_model.COLUMN_TYPE] in ["value", "rule"] and widget.get_active() == self.data_model.RELATION_CHILD:
                 self.core.notify("Item types VALUE and RULE can't be a parent !",
-                        core.Notification.ERROR, self.info_box, msg_id="notify:relation")
+                        Notification.ERROR, self.info_box, msg_id="notify:relation")
                 widget.grab_focus()
                 return False
 
@@ -3115,32 +3245,32 @@ class AddItem(EventObject, abstract.ControlEditWindow):
 
         if itype == -1:
             self.core.notify("Relation has to be chosen",
-                    core.Notification.ERROR, self.info_box, msg_id="dialog:add_item")
+                    Notification.ERROR, self.info_box, msg_id="dialog:add_item")
             self.itype.grab_focus()
             return
 
         if itype == self.data_model.TYPE_VALUE:
             if vtype == -1:
                 self.core.notify("Type of value has to be choosen",
-                        core.Notification.ERROR, self.info_box, msg_id="dialog:add_item")
+                        Notification.ERROR, self.info_box, msg_id="dialog:add_item")
                 self.vtype.grab_focus()
                 return
 
         if relation == -1:
             self.core.notify("Relation has to be chosen",
-                    core.Notification.ERROR, self.info_box, msg_id="dialog:add_item")
+                    Notification.ERROR, self.info_box, msg_id="dialog:add_item")
             self.relation.grab_focus()
             return
 
         if self.iid.get_text() == "":
             self.core.notify("The ID of item is mandatory !",
-                    core.Notification.ERROR, self.info_box, msg_id="dialog:add_item")
+                    Notification.ERROR, self.info_box, msg_id="dialog:add_item")
             self.iid.grab_focus()
             self.iid.modify_base(gtk.STATE_NORMAL, gtk.gdk.Color("#FFC1C2"))
             return
         elif self.data_model.get_item_details(self.iid.get_text()):
             self.core.notify("ID already exists",
-                    core.Notification.ERROR, self.info_box, msg_id="dialog:add_item")
+                    Notification.ERROR, self.info_box, msg_id="dialog:add_item")
             self.iid.grab_focus()
             self.iid.modify_base(gtk.STATE_NORMAL, gtk.gdk.Color("#FFC1C2"))
             return
@@ -3149,7 +3279,7 @@ class AddItem(EventObject, abstract.ControlEditWindow):
 
         if self.title.get_text() == "":
             self.core.notify("The title of item is mandatory !",
-                    core.Notification.ERROR, self.info_box, msg_id="dialog:add_item")
+                    Notification.ERROR, self.info_box, msg_id="dialog:add_item")
             self.title.grab_focus()
             self.title.modify_base(gtk.STATE_NORMAL, gtk.gdk.Color("#FFC1C2"))
             return
@@ -3158,7 +3288,7 @@ class AddItem(EventObject, abstract.ControlEditWindow):
 
         if relation == self.data_model.RELATION_PARENT:
             self.core.notify("Relation PARENT is not implemented yet",
-                    core.Notification.ERROR, self.info_box, msg_id="dialog:add_item")
+                    Notification.ERROR, self.info_box, msg_id="dialog:add_item")
             self.relation.grab_focus()
             return
 
@@ -3418,7 +3548,7 @@ class FindOvalDef(abstract.Window, abstract.ListEditor):
         (model, iter) = self.definitions.get_selection().get_selected()
         if not iter:
             self.core.notify("You have to chose the definition !",
-                    core.Notification.ERROR, self.info_box, msg_id="notify:dialog_notify")
+                    Notification.ERROR, self.info_box, msg_id="notify:dialog_notify")
             return
         ret, err = self.data_model.set_item_content(name=model[iter][self.COLUMN_ID])
         self.emit("update")
@@ -3479,7 +3609,7 @@ class FindItem(abstract.Window, abstract.ListEditor):
         (model, iter) = self.items.get_selection().get_selected()
         if not iter:
             self.core.notify("You have to chose the item !",
-                    core.Notification.ERROR, self.info_box, msg_id="notify:dialog_notify")
+                    Notification.ERROR, self.info_box, msg_id="notify:dialog_notify")
             return
         self.data_model.add_refine(model[iter][self.COLUMN_ID], model[iter][self.COLUMN_VALUE], model[iter][self.COLUMN_OBJ])
         self.core.selected_item = model[iter][self.COLUMN_ID]

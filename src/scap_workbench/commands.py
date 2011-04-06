@@ -1475,6 +1475,7 @@ class DHItemsTree(DataHandler, EventObject):
         through content to fill the tree"""
 
         # Get number of all items
+        self.treeView.set_sensitive(False)
         if self.__progress:
             self.__progress.set_fraction(0.0)
             self.__progress.show()
@@ -1709,6 +1710,7 @@ class DHProfiles(DataHandler):
         no_default parameter means that there should not be a default document representation of policy
         """
 
+        if self.treeView: self.treeView.set_sensitive(False)
         self.model.clear()
         if not self.check_library(): return None
 
@@ -1735,6 +1737,7 @@ class DHProfiles(DataHandler):
 
         if self.core.selected_profile and self.treeView:
             self.treeView.get_model().foreach(self.set_selected, (self.core.selected_profile, self.treeView, 0))
+        if self.treeView: self.treeView.set_sensitive(True)
         return True
 
     def save(self):

@@ -20,7 +20,8 @@
 #      Maros Barabas        <mbarabas@redhat.com>
 #      Vladimir Oberreiter  <xoberr01@stud.fit.vutbr.cz>
 
-import logging, logging.config
+import logging
+import logging.config
 import sys, gtk, gobject
 from events import EventHandler
 
@@ -96,6 +97,7 @@ class Notification:
         self.label = gtk.Label(text)
         self.label.set_alignment(0, 0.5)
         self.label.modify_fg(gtk.STATE_NORMAL, gtk.gdk.Color(Notification.COLOR[lvl]))
+        self.label.set_use_markup(True)
         label_set_autowrap(self.label)
         box.pack_start(self.label, True, True)
         self.btn = gtk.Button()

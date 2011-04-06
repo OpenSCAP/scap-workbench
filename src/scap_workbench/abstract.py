@@ -20,31 +20,51 @@
 #      Maros Barabas        <mbarabas@redhat.com>
 #      Vladimir Oberreiter  <xoberr01@stud.fit.vutbr.cz>
 
-import pygtk
-import gtk
-import gobject
-import re
+""" Importing standard python libraries
+"""
+import gtk              # GTK library
+import gobject          # gobject.TYPE_PYOBJECT
+import re               # Regular expressions 
 
-from events import EventObject
-import core
-import logging
+""" Importing SCAP Workbench modules
+"""
+import logging                  # Logger for debug/info/error messages
+from core import Notification   # core.Notification levels for reference
+from events import EventObject  # abstract module EventObject
 
-try:
-    import webkit as webkit
-except ImportError:
-    from htmltextview import HtmlTextView
-    webkit=None
-
+# Initializing Logger
 logger = logging.getLogger("scap-workbench")
 
+""" Importing non-standard python libraries
+These libraries are not required and should be always
+checked by:
+  if HAS_MODULE: do
+  else: notify(..)"""
+try:
+    # Import WebKit module for HTML editing 
+    # of descriptions
+    import webkit as webkit
+    HAS_WEBKIT = True
+except ImportError:
+    HAS_WEBKIT = False
+
+""" Import OpenSCAP library as backend.
+If anything goes wrong just end with exception"""
 try:
     import openscap_api as openscap
 except Exception as ex:
     logger.error("OpenScap library initialization failed: %s", ex)
     openscap=None
 
-
 class enum(tuple):
+
+    """ Enumeration inherited from tuple used for openscap
+    enumerations filled to GTK Widgets.
+
+    Use ENUM.map(id) when looking for item from model (known enum id)
+    Use ENUM.pos(id) when looking in position of item in model (known position in model)
+    Use list funtions when looking for trouble :)
+    """
 
     def map(self, id):
         for item in tuple(self):
@@ -55,6 +75,9 @@ class enum(tuple):
         for item in tuple(self):
             if item[0] == id: return tuple.index(self, item)
         return -1
+
+""" Below is the list of enumerations from OpenSCAP library
+"""
 
 ENUM_STATUS_CURRENT=enum((
         [openscap.OSCAP.XCCDF_STATUS_NOT_SPECIFIED, "NOT SPECIFIED", "Status was not specified by benchmark."],
@@ -122,13 +145,20 @@ ENUM_OPERATOR_STRING=enum((
     [openscap.OSCAP.XCCDF_OPERATOR_NOT_EQUAL, "NOT EQUAL", "Inequality"],
     [openscap.OSCAP.XCCDF_OPERATOR_PATTERN_MATCH, "PATTERN_MATCH", "Match a regular expression."]))
 
+
 class Menu(EventObject):
-    """ 
-    Create Main item for TreeToolBar_toggleButtonGroup and draw all tree Menu
+
+    """ Create Main item for TreeToolBar_toggleButtonGroup and draw all tree Menu
+
+    Menu contains all menu items as MenuButtons.
     """
+
     def __init__(self, id, widget, core):
-        """
-        @param id
+        """ Constructor of abstract.Menu item.
+
+        @param id Unique id of the object
+        @param widget GTK Widget for menu item
+        @param core SWBCore singleton
         """
         self.id = id
         self.core = core
@@ -139,78 +169,65 @@ class Menu(EventObject):
         self.widget = widget
         core.register(id, self)
 	
-    def add_item(self, item, position=None):
-        """ 
-        Add item to the menu list
-        @param item MenuButton which is added to menu.
-        @param position Position of MenuButton in menu.
+    def add_item(self, item):
+        """ Add item to the menu list
         """
 
+        # Set the first item to be default
         if len(self.btnList) == 0:
             self.set_default(item)
-        self.btnList.append(item)
-        # vizual
-        item.parent = self
 
+        self.btnList.append(item)
+        item.parent = self
+        
+        # Return added item for further configuration
         return item
 
     def show(self):
-        """
-        Show the menu and set active itme.
+        """ Show the menu and set active itme.
         """
         self.widget.show()
         self.toggle_button(self.active_item)
 
     def set_active(self, active):
-        """
-        Show or hide menu with MenuButtons.
-        @param active True/False - Show/Hide 
+        """ Show or hide menu with MenuButtons.
         """
         if active: self.show()
         else: self.widget.hide()
 
     def set_default(self, item):
-        """
-        Set default active MenuButton object in menu.
-        @param item Default active item.
+        """ Set default active MenuButton object in menu.
         """
         self.active_item = item
         self.default_item = item
 
     def toggle_button(self, item):
-        """ 
-        Toggle selected button.
-        @param item selected MenuButton object
+        """ Toggle selected button.
         """
         # Deselect all buttons
         if self.active_item: self.active_item.set_active(False)
         # Show selected button
         self.active_item = item
         self.active_item.set_active(True)
-		
-    def refresh(self):
-        """ Refresh graphic content
-        Async. method called after data change
-        """
-        raise NotImplementedError, "Function \"refresh\" is not implemented yet"
 
 class MenuButton(EventObject):
-    """ Class for tree of toogleBar with toggleButtons in group
+
+    """ Class containing GTK Widget button with the content of 
+    the page associated with this button.
     """
 
     def __init__(self, id, widget, core):
+        """ Constructor of abstract.MenuButton
+
+        @param id Unique id of the object
+        @param widget GTK Widget for menu item
+        @param core SWBCore singleton
         """
-        @param id
-        @param name Name of MenuButton
-        @param C_body Conteiner for draw of body.
-        @param sensitivity Filter function for set sensitivity of MenuButton
-        """
-        # structure
         self.core = core
         self.id = id
         super(MenuButton, self).__init__()
         self.add_sender(id, "update")
-        self.parent = None      #menu for this MenuButton
+        self.parent = None
         self.menu = None
         self.body = None
         self.widget = widget
@@ -656,19 +673,19 @@ class Func:
             date = text.split("-")
             if len(date) != 3:
                 self.notifications.append(self.core.notify("The date is in incorrect format. Correct format is YYYY-MM-DD.",
-                    core.Notification.ERROR, msg_id="notify:date_format"))
+                    Notification.ERROR, msg_id="notify:date_format"))
                 return None
             try :
                 d = datetime.date(int(date[0]), int(date[1]), int(date[2]))
             except Exception as ex:
                 self.notifications.append(self.core.notify("The date is in incorrect format. Correct format is YYYY-MM-DD.",
-                    core.Notification.ERROR, msg_id="notify:date_format"))
+                    Notification.ERROR, msg_id="notify:date_format"))
                 return None
             try:
                 timestamp = time.mktime(d.timetuple()) 
             except Exception as ex:
                 self.notifications.append(self.core.notify("The date is out of range.",
-                    core.Notification.ERROR, msg_id="notify:date_format"))
+                    Notification.ERROR, msg_id="notify:date_format"))
 
             self.core.notify_destroy("notify:date_format")
             return timestamp
@@ -704,11 +721,11 @@ class Func:
                 data = float(data)
                 if data < 0:
                     self.notifications.append(self.core.notify("Invalid number in %s. Please insert positive real number." % (text,),
-                        core.Notification.ERROR, info_box, msg_id="notify:float_format"))
+                        Notification.ERROR, info_box, msg_id="notify:float_format"))
                     return None
             except:
                 self.notifications.append(self.core.notify("Invalid number in %s." % (text,),
-                    core.Notification.ERROR, info_box, msg_id="notify:float_format"))
+                    Notification.ERROR, info_box, msg_id="notify:float_format"))
                 return None
             return data
         else:
@@ -867,7 +884,7 @@ class ListEditor(EventObject, Func, Enum_type):
         if desc == "": desc = "No description"
         desc = "<body><div>"+desc+"</div></body>"
 
-        if webkit != None:
+        if HAS_WEBKIT:
             description = webkit.WebView()
             self.preview_scw.add(description)
             description.load_html_string(desc, "file:///")
