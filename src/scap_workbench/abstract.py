@@ -845,12 +845,13 @@ class ListEditor(EventObject, Func, Enum_type):
     def __preview_dialog_destroy(self, widget):
         self.preview_dialog.destroy()
 
-    def filter_treeview(self, model, iter, data):
-        text = self.search.get_text()
+    def filter_listview(self, model, iter, data):
+        search, columns = data
+        text = search.get_text()
         if len(text) == 0: 
             return True
         pattern = re.compile(text, re.I)
-        for col in data:
+        for col in columns:
             found = re.search(pattern, model[iter][col])
             if found != None: return True
         return False

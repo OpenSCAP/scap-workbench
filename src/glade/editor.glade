@@ -434,7 +434,7 @@
                               <object class="GtkLabel" id="label74">
                                 <property name="visible">True</property>
                                 <property name="xalign">1</property>
-                                <property name="label" translatable="yes">Search:</property>
+                                <property name="label" translatable="yes">Filter:</property>
                               </object>
                               <packing>
                                 <property name="expand">False</property>

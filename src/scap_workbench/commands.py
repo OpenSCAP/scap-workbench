@@ -1825,7 +1825,9 @@ class DHProfiles(DataHandler):
     def add_refine(self, id, title, item):
 
         profile_iter = None
-        (model, iter) = self.treeView.get_selection().get_selected()
+        (filter_model, filter_iter) = self.treeView.get_selection().get_selected()
+        model = filter_model.get_model()
+        iter = filter_model.convert_iter_to_child_iter(filter_iter)
         if model.get_value(iter, 1) == self.core.selected_profile:
             profile_iter = iter
         elif model.iter_parent(iter) and model.get_value(model.iter_parent(iter), 1) == self.core.selected_profile:
@@ -1837,7 +1839,7 @@ class DHProfiles(DataHandler):
 
         type = {openscap.OSCAP.XCCDF_RULE: "rule", openscap.OSCAP.XCCDF_GROUP: "group", openscap.OSCAP.XCCDF_VALUE: "value"}[item.type]
 
-        self.model.append(profile_iter, [type, id, [], {"group":IMG_RULE, "rule":IMG_RULE, "value":IMG_VALUE}[type], title or item.id+" (ID)", None])
+        model.append(profile_iter, [type, id, [], {"group":IMG_RULE, "rule":IMG_RULE, "value":IMG_VALUE}[type], title or item.id+" (ID)", None])
 
     def update_refines(self, type, id, items, idref=None, selected=None, weight=None, value=None, selector=None, operator=None, severity=None):
         if not self.check_library(): return None

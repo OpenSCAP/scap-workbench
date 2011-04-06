@@ -134,7 +134,8 @@ class ProfileList(abstract.List):
         self.core.notify_destroy("notify:profiles:filter")
         self.__stop_search = False
         treeview.get_model().refilter()
-        return
+        self.get_TreeView().get_model().get_model().foreach(self.set_selected, (self.core.selected_profile, self.get_TreeView(), 1))
+        self.get_TreeView().get_model().get_model().foreach(self.set_selected_profile_item, (self.core.selected_profile, self.core.selected_item, self.get_TreeView(), 1))
 
     def __filter_func(self, model, iter, data=None):
         if self.__stop_search: return True
@@ -185,9 +186,11 @@ class ProfileList(abstract.List):
         """
         selection = treeView.get_selection( )
         if selection != None: 
-            (model, iter) = selection.get_selected( )
-            if not iter: 
+            (filter_model, filter_iter) = selection.get_selected( )
+            if not filter_iter: 
                 return
+            model = filter_model.get_model()
+            iter = filter_model.convert_iter_to_child_iter(filter_iter)
 
             if model.get_value(iter, 0) == "profile":
                 # If a profile is selected, change the global value of selected profile
@@ -222,8 +225,12 @@ class ProfileList(abstract.List):
         """ Remove selected item from the list and model.
         """
         selection = self.get_TreeView().get_selection()
-        (model,iter) = selection.get_selected()
-        if iter:
+        (filter_model, filter_iter) = selection.get_selected()
+        if filter_iter:
+            model = filter_model.get_model()
+            iter = filter_model.convert_iter_to_child_iter(filter_iter)
+            if not iter: raise Exception("Iter validation failed")
+
             iter_next = model.iter_next(iter)
             if model.get_value(iter, 0) == "profile":
                 # Profile selected
@@ -235,6 +242,7 @@ class ProfileList(abstract.List):
                 self.data_model.remove_refine(profile, model[iter][2])
                 model.remove(iter)
 
+            filter_model.refilter()
             # If the removed item has successor, let's select it so we can
             # continue in deleting or other actions without need to click the
             # list again to select next item
