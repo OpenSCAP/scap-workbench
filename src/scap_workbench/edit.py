@@ -26,6 +26,7 @@ import gtk              # GTK library
 import gobject          # gobject.TYPE_PYOBJECT
 import time             # Time functions in calendar data ::EditStatus
 import re               # Regular expressions 
+import sre_constants    # For re.compile exception
 import os               # os Path join/basename, ..
 import threading        # Main window is running in thread
 import gnome, gnome.ui  # Gnome icons in HTML editor
@@ -117,8 +118,49 @@ class ProfileList(abstract.List):
         selection.connect("changed", self.__cb_changed, self.get_TreeView())
         self.section_list = self.builder.get_object("edit:section_list")
         self.profilesList = self.builder.get_object("edit:tw_profiles:sw")
+        self.search = self.builder.get_object("xccdf:profiles:search")
+        self.search.connect("changed", self.__cb_search, self.get_TreeView())
+
+        """ Set the model of the list to support search
+        """
+        self.__stop_search = False
+        modelfilter = self.data_model.model.filter_new()
+        modelfilter.set_visible_func(self.__filter_func)
+        self.get_TreeView().set_model(modelfilter)
 
         self.get_TreeView().connect("key-press-event", self.__cb_key_press)
+
+    def __cb_search(self, widget, treeview):
+        self.core.notify_destroy("notify:profiles:filter")
+        self.__stop_search = False
+        treeview.get_model().refilter()
+        return
+
+    def __filter_func(self, model, iter, data=None):
+        if self.__stop_search: return True
+        columns = [0,1,4]
+        text = self.search.get_text()
+        subcmd = re.findall("^([a-z]*:)?(.*)$", text)[0]
+
+        group = subcmd[0]
+        text = subcmd[1]
+        if len(group) == 0 and len(text) == 0: return True
+
+        if group != "profile:" and model[iter][0] == "profile":
+            return True
+        if len(group) > 0 and group != "all:" and model[iter][0] != group[:-1]:
+            return False
+        try:
+            pattern = re.compile(text, re.I)
+        except sre_constants.error, err:
+            self.core.notify("Regexp entry error: %s" % (err,), Notification.ERROR, msg_id="notify:profiles:filter")
+            self.__stop_search = True
+            return True
+
+        for col in columns:
+            found = re.search(pattern, model[iter][col])
+            if found != None: return True
+        return False
 
     def __clear_update(self):
         """ Remove all items from the list and update model
@@ -132,8 +174,8 @@ class ProfileList(abstract.List):
         if "profile" not in self.__dict__ or force:
             self.data_model.fill(no_default=True)
             self.profile = self.core.selected_profile
-        self.get_TreeView().get_model().foreach(self.set_selected, (self.core.selected_profile, self.get_TreeView(), 1))
-        self.get_TreeView().get_model().foreach(self.set_selected_profile_item, (self.core.selected_profile, self.core.selected_item, self.get_TreeView(), 1))
+        self.get_TreeView().get_model().get_model().foreach(self.set_selected, (self.core.selected_profile, self.get_TreeView(), 1))
+        self.get_TreeView().get_model().get_model().foreach(self.set_selected_profile_item, (self.core.selected_profile, self.core.selected_item, self.get_TreeView(), 1))
 
         # List is updated, trigger all events connected to this signal
         self.emit("update")
@@ -481,6 +523,7 @@ class MenuButtonEditXCCDF(abstract.MenuButton):
         self.__clear()
         self.core.notify_destroy("notify:xccdf:validate")
         self.core.notify_destroy("notify:xccdf:export")
+        self.__update()
         self.emit("load")
 
     def __change(self, widget, object=None):
@@ -1466,7 +1509,7 @@ class EditItemValues(abstract.ListEditor):
             values = self.data_model.get_all_values()
             self.values.set_model(gtk.ListStore(str, str, gobject.TYPE_PYOBJECT))
             modelfilter = self.values.get_model().filter_new()
-            modelfilter.set_visible_func(self.filter_treeview, data=[0,1])
+            modelfilter.set_visible_func(self.filter_listview, data=(self.search, (0,1)))
             self.values.set_model(modelfilter)
             for value in values: 
                 item = self.data_model.parse_value(value)
@@ -1487,7 +1530,7 @@ class EditItemValues(abstract.ListEditor):
             values = self.data_model.get_all_values()
             self.values.set_model(gtk.ListStore(str, str, gobject.TYPE_PYOBJECT))
             modelfilter = self.values.get_model().filter_new()
-            modelfilter.set_visible_func(self.filter_treeview, data=[0,1])
+            modelfilter.set_visible_func(self.filter_listview, data=(self.search, (0,1)))
             self.values.set_model(modelfilter)
             for value in values: 
                 item = self.data_model.parse_value(value)
@@ -3578,7 +3621,7 @@ class FindOvalDef(abstract.Window, abstract.ListEditor):
         self.definitions.append_column(gtk.TreeViewColumn("Title", gtk.CellRendererText(), text=self.COLUMN_VALUE))
         self.definitions.set_model(gtk.ListStore(str, str))
         modelfilter = self.definitions.get_model().filter_new()
-        modelfilter.set_visible_func(self.filter_treeview, data=[0,1])
+        modelfilter.set_visible_func(self.filter_listview, data=(self.search, (0,1)))
         self.definitions.set_model(modelfilter)
 
         definitions = self.data_model.get_oval_definitions(href)
@@ -3649,7 +3692,7 @@ class FindItem(abstract.Window, abstract.ListEditor):
 
         self.items.set_model(gtk.ListStore(str, str, gobject.TYPE_PYOBJECT))
         modelfilter = self.items.get_model().filter_new()
-        modelfilter.set_visible_func(self.filter_treeview, data=[0,1])
+        modelfilter.set_visible_func(self.filter_listview, data=(self.search, (0,1)))
         self.items.set_model(modelfilter)
 
         refines = self.data_model.get_refine_ids(self.data_model.get_profile(self.core.selected_profile))

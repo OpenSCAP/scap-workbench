@@ -359,8 +359,9 @@ class List(EventObject):
         self.add_sender(id, "update")
         self.render()
 
-    def filter_treeview(self, model, iter, data):
-        text = self.search.get_text()
+    def filter_listview(self, model, iter, data):
+        search, columns = data
+        text = search.get_text()
         if len(text) == 0: 
             return True
         pattern = re.compile(text, re.I)
