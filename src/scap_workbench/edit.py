@@ -175,8 +175,8 @@ class ProfileList(abstract.List):
         if "profile" not in self.__dict__ or force:
             self.data_model.fill(no_default=True)
             self.profile = self.core.selected_profile
-        self.get_TreeView().get_model().get_model().foreach(self.set_selected, (self.core.selected_profile, self.get_TreeView(), 1))
-        self.get_TreeView().get_model().get_model().foreach(self.set_selected_profile_item, (self.core.selected_profile, self.core.selected_item, self.get_TreeView(), 1))
+        self.get_TreeView().get_model().foreach(self.set_selected, (self.core.selected_profile, self.get_TreeView(), 1))
+        self.get_TreeView().get_model().foreach(self.set_selected_profile_item, (self.core.selected_profile, self.core.selected_item, self.get_TreeView(), 1))
 
         # List is updated, trigger all events connected to this signal
         self.emit("update")
@@ -231,7 +231,10 @@ class ProfileList(abstract.List):
             iter = filter_model.convert_iter_to_child_iter(filter_iter)
             if not iter: raise Exception("Iter validation failed")
 
-            iter_next = model.iter_next(iter)
+            filter_iter_next = filter_model.iter_next(filter_iter)
+            if filter_iter_next:
+                iter_next = filter_model.convert_iter_to_child_iter(filter_iter_next)
+            else: iter_next = None
             if model.get_value(iter, 0) == "profile":
                 # Profile selected
                 self.data_model.remove_item(model[iter][2].id)
@@ -242,13 +245,12 @@ class ProfileList(abstract.List):
                 self.data_model.remove_refine(profile, model[iter][2])
                 model.remove(iter)
 
-            filter_model.refilter()
             # If the removed item has successor, let's select it so we can
             # continue in deleting or other actions without need to click the
             # list again to select next item
             if iter_next:
-                self.get_TreeView().expand_to_path(model.get_path(iter_next))
-                selection.select_path(model.get_path(iter_next))
+                self.core.selected_item = model[iter_next][1]
+                self.__update(False)
 
         # Nothing selected
         else: self.notifications.append(self.core.notify("Please select at least one item to delete",
@@ -958,8 +960,10 @@ class MenuButtonEditProfiles(abstract.MenuButton, abstract.Func):
 
     def __update_item(self):
         selection = self.profiles.get_selection()
-        (model, iter) = selection.get_selected()
-        if iter:
+        (filter_model, filter_iter) = selection.get_selected()
+        if filter_iter:
+            model = filter_model.get_model()
+            iter = filter_model.convert_iter_to_child_iter(filter_iter)
             if model[iter][0] == "profile":
                 profile = model[iter][2]
                 # Get the title of item
