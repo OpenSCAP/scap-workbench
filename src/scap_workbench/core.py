@@ -206,12 +206,13 @@ class Library:
     def destroy(self):
         """
         """
-        openscap.OSCAP.oscap_cleanup()
         if self.benchmark and self.policy_model == None:
             self.benchmark.free()
-            for oval in self.files.values(): oval.destroy()
         elif self.policy_model != None:
             self.policy_model.free()
+        for oval in self.files.values(): oval.destroy()
+        self.files = {}
+        openscap.OSCAP.oscap_cleanup()
         self.xccdf = None
         self.benchmark = None
         self.policy_model = None
@@ -305,7 +306,7 @@ class SWBCore:
             self.langs.append(self.lib.benchmark.lang)
         self.selected_lang = self.lib.benchmark.lang
         if self.lib.benchmark.lang == None:
-            self.notify("XCCDF Benchmark: No language specified.", Notification.WARNING)
+            self.notify("XCCDF Benchmark: No language specified.", Notification.WARNING, msg_id="notify:xccdf:missing_lang")
         return True
 
 
@@ -360,36 +361,3 @@ class SWBCore:
             raise Exception, "FATAL: Object %s already registered" % (id,)
         logger.debug("Registering object %s done.", id)
         self.__objects[id] = object
-
-
-class Wizard:
-
-    def __init__(self, core):
-
-        self.__core = core
-        self.__list = [ "gui:btn:main:xccdf",
-                        "gui:menu:tailoring",
-                        "gui:btn:tailoring",
-                        "gui:btn:menu:scan" ]
-        self.__active = 0
-
-    def forward(self, widget):
-        if self.__active+1 > len(self.__list):
-            raise Exception, "Wizard list out of range"
-        self.__core.get_item(self.__list[self.__active]).set_active(False)
-        self.__core.get_item("main:button_back").set_sensitive(True)
-        self.__active += 1
-        if self.__active == len(self.__list):
-            widget.set_sensitive(False)
-        self.__core.get_item(self.__list[self.__active]).set_active(True)
-
-
-    def back(self, widget):
-        if self.__active-1 < 0:
-            raise Exception, "Wizard list out of range"
-        self.__core.get_item(self.__list[self.__active]).set_active(False)
-        self.__core.get_item("main:button_forward").set_sensitive(True)
-        self.__active -= 1
-        if self.__active == 0:
-            widget.set_sensitive(False)
-        self.__core.get_item(self.__list[self.__active]).set_active(True)

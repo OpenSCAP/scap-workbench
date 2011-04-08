@@ -174,8 +174,10 @@ class ProfileList(abstract.List):
             self.data_model.model.clear()
             self.data_model.fill(no_default=True)
             self.profile = self.core.selected_profile
-        self.get_TreeView().get_model().foreach(self.set_selected, (self.core.selected_profile, self.get_TreeView(), 1))
-        self.get_TreeView().get_model().foreach(self.set_selected_profile_item, (self.core.selected_profile, self.core.selected_item, self.get_TreeView(), 1))
+        if self.core.selected_profile and self.selected:
+            self.get_TreeView().get_model().foreach(self.set_selected, (self.core.selected_profile, self.get_TreeView(), 1))
+        if self.core.selected_item and self.selected:
+            self.get_TreeView().get_model().foreach(self.set_selected_profile_item, (self.core.selected_profile, self.core.selected_item, self.get_TreeView(), 1))
 
         # List is updated, trigger all events connected to this signal
         self.emit("update")
@@ -444,11 +446,12 @@ class MenuButtonEditXCCDF(abstract.MenuButton):
     def __cb_new(self, widget):
         """ Create new XCCDF Benchmark
         """
-        if not self.core.init(None):return
+        if not self.core.init(None): return
 
         # Update neccessary attributes of Benchmark
         self.data_model.update(id="New_SCAP_Benchmark", version="0", lang="en")
         self.core.selected_lang = "en"
+        self.core.notify_destroy("notify:xccdf:missing_lang")
         self.data_model.edit_status(self.data_model.CMD_OPER_ADD)
         try:
             self.__update()
@@ -625,7 +628,7 @@ class ExportDialog(abstract.Window):
         self.wdialog = builder.get_object("dialog:export")
         self.info_box = builder.get_object("dialog:export:info_box")
         self.filechooser = builder.get_object("dialog:export:filechooser")
-        self.filechooser.set_filename(self.core.lib.xccdf)
+        self.filechooser.set_filename(self.core.lib.xccdf or "")
         self.filechooser.connect("confirm-overwrite", self.__confirm_overwrite)
         self.show = builder.get_object("dialog:export:show")
         self.profile = builder.get_object("dialog:export:profile")
@@ -829,6 +832,7 @@ class MenuButtonEditProfiles(abstract.MenuButton, abstract.Func):
             logger.error("Change \"%s\" not supported object in \"%s\"" % (object, widget))
             return
         self.__update_item()
+        self.__update()
 
     def __find_item(self, widget, type):
         if not self.core.selected_profile:
@@ -1630,7 +1634,7 @@ class EditTitle(abstract.ListEditor):
         self.core.notify_destroy("notify:not_selected")
         (model, self.iter) = self.get_selection().get_selected()
         if operation == self.data_model.CMD_OPER_ADD:
-            pass
+            if self.core.selected_lang: self.lang.set_text(self.core.selected_lang)
         elif operation == self.data_model.CMD_OPER_EDIT:
             if not self.iter:
                 self.notifications.append(self.core.notify("Please select at least one item to edit",
@@ -1858,6 +1862,7 @@ class EditDescription(abstract.ListEditor):
         self.core.notify_destroy("notify:not_selected")
         (model, iter) = self.get_selection().get_selected()
         if operation == self.data_model.CMD_OPER_ADD:
+            if self.core.selected_lang: self.lang.set_text(self.core.selected_lang)
             self.description.load_html_string("", "file:///")
         elif operation == self.data_model.CMD_OPER_EDIT:
             if not iter:
@@ -1949,7 +1954,7 @@ class EditWarning(abstract.ListEditor):
         self.core.notify_destroy("notify:not_selected")
         (model, self.iter) = self.get_selection().get_selected()
         if operation == self.data_model.CMD_OPER_ADD:
-            pass
+            if self.core.selected_lang: self.lang.set_text(self.core.selected_lang)
         elif operation == self.data_model.CMD_OPER_EDIT:
             if not self.iter:
                 self.notifications.append(self.core.notify("Please select at least one item to edit",
@@ -2251,7 +2256,8 @@ class EditQuestion(abstract.ListEditor):
         if self.iter and self.get_model() != None: 
             item = self.get_model()[self.iter][self.COLUMN_OBJ]
 
-        retval = self.data_model.edit_question(self.operation, item, self.lang.get_text(), self.override.get_active(), buffer.get_text(buffer.get_start_iter(), buffer.get_end_iter()))
+        retval = self.data_model.edit_question(self.operation, item, self.lang.get_text(),
+                self.override.get_active(), buffer.get_text(buffer.get_start_iter(), buffer.get_end_iter()))
         # TODO if not retval
         self.fill()
         self.__dialog_destroy()
@@ -2280,7 +2286,7 @@ class EditQuestion(abstract.ListEditor):
         self.core.notify_destroy("notify:not_selected")
         (model, self.iter) = self.get_selection().get_selected()
         if operation == self.data_model.CMD_OPER_ADD:
-            pass
+            if self.core.selected_lang: self.lang.set_text(self.core.selected_lang)
         elif operation == self.data_model.CMD_OPER_EDIT:
             if not self.iter:
                 self.notifications.append(self.core.notify("Please select at least one item to edit",
@@ -2337,7 +2343,8 @@ class EditRationale(abstract.ListEditor):
         if iter and model != None: 
             item = model[iter][self.COLUMN_OBJ]
 
-        retval = self.data_model.edit_rationale(self.operation, item, self.lang.get_text(), self.override.get_active(), buffer.get_text(buffer.get_start_iter(), buffer.get_end_iter()))
+        retval = self.data_model.edit_rationale(self.operation, item, self.lang.get_text(),
+                self.override.get_active(), buffer.get_text(buffer.get_start_iter(), buffer.get_end_iter()))
         # TODO if not retval
         self.fill()
         self.__dialog_destroy()
@@ -2366,7 +2373,7 @@ class EditRationale(abstract.ListEditor):
         self.core.notify_destroy("notify:not_selected")
         (model, iter) = self.get_selection().get_selected()
         if operation == self.data_model.CMD_OPER_ADD:
-            pass
+            if self.core.selected_lang: self.lang.set_text(self.core.selected_lang)
         elif operation == self.data_model.CMD_OPER_EDIT:
             if not iter:
                 self.notifications.append(self.core.notify("Please select at least one item to edit",
@@ -3660,7 +3667,10 @@ class FindItem(abstract.Window, abstract.ListEditor):
             self.core.notify("You have to chose the item !",
                     Notification.ERROR, self.info_box, msg_id="notify:dialog_notify")
             return
-        self.data_model.add_refine(model[iter][self.COLUMN_ID], model[iter][self.COLUMN_VALUE], model[iter][self.COLUMN_OBJ])
+        retval = self.data_model.add_refine(model[iter][self.COLUMN_ID], model[iter][self.COLUMN_VALUE], model[iter][self.COLUMN_OBJ])
+        if not retval:
+            self.core.notify("Item already exists in selected profile.", Notification.ERROR, info_box=self.info_box, msg_id="notify:dialog_notify")
+            return
         self.core.selected_item = model[iter][self.COLUMN_ID]
         self.emit("update")
         self.__dialog_destroy()
@@ -3720,7 +3730,7 @@ class Editor(abstract.Window, threading.Thread):
         self.builder.add_from_file("/usr/share/scap-workbench/editor.glade")
         self.builder.connect_signals(self)
         self.core = core.SWBCore(self.builder)
-        assert self.core != None, "Initialization failed, core is None"
+        if not self.core: raise Exception("Initialization failed, core is None")
 
         self.window = self.builder.get_object("main:window")
         self.core.main_window = self.window

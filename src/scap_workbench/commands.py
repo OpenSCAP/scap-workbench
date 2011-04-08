@@ -309,17 +309,17 @@ class DataHandler(object):
         return content
 
     def set_item_content(self, name=None, href=None, item=None):
-        if not self.check_library(): return None
+        if not self.check_library(): return (None, "Library not initialized.")
 
         if item == None: item = self.core.lib.benchmark.get_item(self.core.selected_item)
-        if item == None: return False, "Item \"%s\" not found" % (item or self.core.selected_item,)
+        if item == None: return (False, "Item \"%s\" not found" % (item or self.core.selected_item,))
 
         if item.type == openscap.OSCAP.XCCDF_RULE:
             rule = item.to_rule()
             if len(rule.checks) > 1:
                 return (False, "Can't set the content: More then one check is present")
             elif len(rule.checks) == 0:
-                if (not name or name == "") and (not href or href == ""): return
+                if (not name or name == "") and (not href or href == ""): return (True, "")
                 check = openscap.xccdf.check()
                 check.system="http://oval.mitre.org/XMLSchema/oval-definitions-5"
                 rule.add_check(check)
@@ -855,8 +855,8 @@ class DataHandler(object):
             return None
 
         def_model = self.core.lib.files[href].model
-
-        return def_model.definitions
+        if def_model: return def_model.definitions
+        else: return []
 
 
     def parse_oval_definition(self, definition):
@@ -1580,8 +1580,6 @@ class DHItemsTree(DataHandler, EventObject):
             select = openscap.xccdf.select()
             select.selected = True
             select.item = item_dict["id"]
-            for policy in self.core.lib.policy_model.policies:
-                policy.add_select(select)
             op = parent.add_rule
         elif itype == self.TYPE_GROUP:
             item = openscap.xccdf.group()
@@ -1836,11 +1834,17 @@ class DHProfiles(DataHandler):
             logger.error("Can't add data. No profile specified !")
             return
 
-        type = {openscap.OSCAP.XCCDF_RULE: "rule", openscap.OSCAP.XCCDF_GROUP: "group", openscap.OSCAP.XCCDF_VALUE: "value"}[item.type]
+        num = model.iter_n_children(profile_iter)
+        for nth in range(num):
+            iter = model.iter_nth_child(profile_iter, nth)
+            if model[iter][1] == id: return False
 
+        type = {openscap.OSCAP.XCCDF_RULE: "rule", openscap.OSCAP.XCCDF_GROUP: "group", openscap.OSCAP.XCCDF_VALUE: "value"}[item.type]
         model.append(profile_iter, [type, id, [],
             {"group":IMG_RULE, "rule":IMG_RULE, "value":IMG_VALUE}[type],
             title or item.id+" (ID)", ["gray", None][type=="value"]])
+
+        return True
 
     def update_refines(self, type, id, items, idref=None, selected=None, weight=None, value=None, selector=None, operator=None, severity=None):
         if not self.check_library(): return None
@@ -2253,8 +2257,6 @@ class DHEditItems(DataHandler):
             item.version_time = version_time
         if selected != None:
             item.selected = selected
-            for sel in self.core.lib.policy_model.policies[0].selects:
-                if sel.item == item.id: sel.selected = selected
         if hidden != None:
             item.hidden = hidden
         if prohibit != None:
@@ -2318,8 +2320,8 @@ class DHEditItems(DataHandler):
                 if openscap.OSCAP.oscap_err(): desc = openscap.OSCAP.oscap_err_desc()
                 else: desc = "Unknown error, please report this bug (http://bugzilla.redhat.com/)"
                 raise ImportError("Cannot create agent session for \"%s\": %s" % (f_OVAL, desc))
-            self.core.lib.files.add_file(os.path.basename(f_OVAL), sess, def_model)
-            self.core.lib.policy_model.register_engine_oval(sess)
+            self.core.lib.add_file(os.path.basename(f_OVAL), sess, def_model)
+            if self.core.lib.policy_model: self.core.lib.policy_model.register_engine_oval(sess)
         else: logger.warning("Skipping %s file which is referenced from XCCDF content" % (f_OVAL,))
 
         return True
