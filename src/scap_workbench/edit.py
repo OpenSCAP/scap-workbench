@@ -94,7 +94,6 @@ class ProfileList(abstract.List):
         self.core = core
         self.builder = builder
         self.data_model = data_model
-        self.selected_item = None
         abstract.List.__init__(self, "gui:edit:profile_list", core, widget)
         
         """ Register signals that can be emited by this class.
@@ -134,8 +133,7 @@ class ProfileList(abstract.List):
         self.core.notify_destroy("notify:profiles:filter")
         self.__stop_search = False
         treeview.get_model().refilter()
-        self.get_TreeView().get_model().get_model().foreach(self.set_selected, (self.core.selected_profile, self.get_TreeView(), 1))
-        self.get_TreeView().get_model().get_model().foreach(self.set_selected_profile_item, (self.core.selected_profile, self.core.selected_item, self.get_TreeView(), 1))
+        self.__update(False)
 
     def __filter_func(self, model, iter, data=None):
         if self.__stop_search: return True
@@ -159,7 +157,7 @@ class ProfileList(abstract.List):
             return True
 
         for col in columns:
-            found = re.search(pattern, model[iter][col])
+            found = re.search(pattern or "", model[iter][col] or "")
             if found != None: return True
         return False
 
@@ -173,6 +171,7 @@ class ProfileList(abstract.List):
         """ Update items in the list. Parameter 'force' is used to force
         the fill function upon the list."""
         if "profile" not in self.__dict__ or force:
+            self.data_model.model.clear()
             self.data_model.fill(no_default=True)
             self.profile = self.core.selected_profile
         self.get_TreeView().get_model().foreach(self.set_selected, (self.core.selected_profile, self.get_TreeView(), 1))
@@ -188,6 +187,7 @@ class ProfileList(abstract.List):
         if selection != None: 
             (filter_model, filter_iter) = selection.get_selected( )
             if not filter_iter: 
+                self.selected = None
                 return
             model = filter_model.get_model()
             iter = filter_model.convert_iter_to_child_iter(filter_iter)
@@ -195,14 +195,13 @@ class ProfileList(abstract.List):
             if model.get_value(iter, 0) == "profile":
                 # If a profile is selected, change the global value of selected profile
                 # and clear the local value of item (to evade possible conflicts in selections)
-                # selected_item is used to find out what is selected TODO?
                 self.core.selected_profile = model.get_value(iter, 2).id
-                self.selected_item = None
+                self.selected = model[iter]
             else:
                 # If a refine item is selected, change the global value of selected item
                 # and fill the local value of selected item so details can be filled from it.
                 self.core.selected_item = model.get_value(iter, 1)
-                self.selected_item = model[iter]
+                self.selected = model[iter]
 
         # Selection has changed, trigger all events connected to this signal
         self.emit("update")
@@ -259,7 +258,7 @@ class ProfileList(abstract.List):
     def __cb_item_add(self, widget=None):
         """ Add profile to the profile list (Item can 
         """
-        EditAddProfileDialogWindow(self.core, self.data_model, self.__update)
+        AddProfileDialog(self.core, self.data_model, self.__update)
 
 
 class ItemList(abstract.List):
@@ -646,6 +645,7 @@ class ExportDialog(abstract.Window):
         profiles_model.model = self.profiles_cb.get_model()
         profiles_model.fill(no_default=True)
 
+        self.__paused_export = False
         self.wdialog.set_transient_for(self.core.main_window)
         self.wdialog.show()
 
@@ -663,6 +663,12 @@ class ExportDialog(abstract.Window):
         if export_file == None:
             self.core.notify("Choose a file to save to first.",
                 Notification.INFORMATION, info_box=self.info_box, msg_id="dialog:export:notify")
+            return
+        if not self.__paused_export and export_file == self.core.lib.xccdf and self.guide_rb.get_active():
+            # We are trying to export guide to the XCCDF file (common mistake)
+            self.core.notify("You are trying to overwrite loaded XCCDF Benchmark by XCCDF Guide !\nPress OK again to proceed.", 
+                    Notification.WARNING, info_box=self.info_box, msg_id="notify:xccdf:export:dialog")
+            self.__paused_export = True
             return
 
         if self.file_rb.get_active():
@@ -714,7 +720,6 @@ class MenuButtonEditProfiles(abstract.MenuButton, abstract.Func):
 
         # set signals
         self.add_receiver("gui:edit:profile_list", "update", self.__update)
-        self.add_receiver("gui:edit:profile_list", "changed", self.__update)
         self.add_receiver("gui:edit:xccdf:profile:titles", "update", self.__update_item)
         self.add_sender(self.id, "update")
         
@@ -790,7 +795,8 @@ class MenuButtonEditProfiles(abstract.MenuButton, abstract.Func):
         if event and event.type == gtk.gdk.KEY_PRESS and event.keyval != gtk.keysyms.Return:
             return
 
-        item = self.list_profile.selected_item
+        item = self.list_profile.selected
+        if not item: return
         if widget == self.pid:
             self.data_model.update(id=widget.get_text())
         elif widget == self.version:
@@ -800,32 +806,24 @@ class MenuButtonEditProfiles(abstract.MenuButton, abstract.Func):
         elif widget == self.prohibit_changes:
             self.data_model.update(prohibit_changes=widget.get_active())
         elif widget == self.refines_idref:
-            if not item: return
             self.data_model.update_refines(item[0], item[1], item[2], idref=widget.get_text())
         elif widget == self.refines_selected:
-            if not item: return
             self.data_model.update_refines(item[0], item[1], item[2], selected=widget.get_active())
         elif widget == self.refines_weight:
-            if not item: return
             weight = self.controlFloat(widget.get_text(), "Weight")
             if weight:
                 self.data_model.update_refines(item[0], item[1], item[2], weight=weight)
         elif widget == self.refines_value:
-            if not item: return
             self.data_model.update_refines(item[0], item[1], item[2], value=widget.get_text())
         elif widget == self.refines_selector:
-            if not item: return
             self.data_model.update_refines(item[0], item[1], item[2], selector=widget.get_text())
         elif widget == self.refines_selector_value:
-            if not item: return
             active = widget.get_active()
             if active != -1:
                 self.data_model.update_refines(item[0], item[1], item[2], selector=widget.get_model()[active][0])
         elif widget == self.refines_operator:
-            if not item: return
             self.data_model.update_refines(item[0], item[1], item[2], operator=abstract.ENUM_OPERATOR[widget.get_active()][0])
         elif widget == self.refines_severity:
-            if not item: return
             self.data_model.update_refines(item[0], item[1], item[2], severity=abstract.ENUM_LEVEL[widget.get_active()][0])
         else: 
             logger.error("Change \"%s\" not supported object in \"%s\"" % (object, widget))
@@ -886,18 +884,17 @@ class MenuButtonEditProfiles(abstract.MenuButton, abstract.Func):
 
     def __update(self):
 
-        if not self.core.selected_profile: return
+        if not self.core.selected_profile or not self.list_profile.selected: return
         self.__block_signals()
         self.__clear()
-        self.__profile_box.set_property('visible', self.list_profile.selected_item == None)
-        self.__refines_box.set_property('visible', self.list_profile.selected_item != None)
+        self.__profile_box.set_property('visible', self.list_profile.selected[0] == "profile")
+        self.__refines_box.set_property('visible', self.list_profile.selected[0] != "profile")
 
-        if self.list_profile.selected_item == None:
+        if self.list_profile.selected[0] == "profile":
             details = self.data_model.get_profile_details(self.core.selected_profile)
             if not details:
                 self.__unblock_signals()
                 return
-            #self.builder.get_object("edit:xccdf:profiles:details").set_sensitive(details != None and details["id"] != None)
 
             self.pid.set_text(details["id"] or "")
             self.version.set_text(details["version"] or "")
@@ -908,9 +905,9 @@ class MenuButtonEditProfiles(abstract.MenuButton, abstract.Func):
             self.descriptions.fill()
             self.statuses.fill()
         else:
-            itype   = self.list_profile.selected_item[0]
-            refid   = self.list_profile.selected_item[1]
-            objs    = self.list_profile.selected_item[2]
+            itype   = self.list_profile.selected[0]
+            refid   = self.list_profile.selected[1]
+            objs    = self.list_profile.selected[2]
 
             details = self.data_model.get_item_details(refid)
             self.__refines_box.set_sensitive(details != None)
@@ -986,13 +983,9 @@ class MenuButtonEditProfiles(abstract.MenuButton, abstract.Func):
                         else:
                             model[iter][4] = self.data_model.get_title(item.title) or "%s (ID)" % (item.id,)
 
-        self.emit("update")
-
             
 class MenuButtonEditItems(abstract.MenuButton, abstract.Func):
-    """
-    GUI for refines.
-    """
+
     def __init__(self, builder, widget, core):
         abstract.MenuButton.__init__(self, "gui:btn:menu:edit:items", widget, core)
         self.builder = builder
@@ -1106,7 +1099,7 @@ class MenuButtonEditItems(abstract.MenuButton, abstract.Func):
         builder.get_object("edit:xccdf:dependencies:platforms:btn_del").connect("clicked", self.platforms.dialog, self.data_model.CMD_OPER_DEL)
 
         # -- CONTENT REF --
-        self.content_ref_dialog = FindOvalDef(self.core, "guid:edit:evaluation:content_ref:dialog", self.data_model)
+        self.content_ref_dialog = FindOvalDef(self.core, "gui:edit:evaluation:content_ref:dialog", self.data_model)
         self.content_ref_find.connect("clicked", self.__cb_find_oval_definition)
 
         # -------------
@@ -1128,9 +1121,9 @@ class MenuButtonEditItems(abstract.MenuButton, abstract.Func):
         self.check = self.builder.get_object("edit:operations:lv_check")
 
         self.add_receiver("gui:edit:item_list", "update", self.__update)
-        self.add_receiver("gui:edit:xccdf:values", "update", self.__update_item)
+        self.add_receiver("gui:edit:evaluation:content_ref:dialog", "update", self.__update)
         self.add_receiver("gui:edit:xccdf:values:titles", "update", self.__update_item)
-        self.add_receiver("guid:edit:evaluation:content_ref:dialog", "update", self.__update)
+        self.add_receiver("gui:edit:xccdf:items:titles", "update", self.__update_item)
 
     def __cb_find_oval_definition(self, widget):
 
@@ -1180,7 +1173,6 @@ class MenuButtonEditItems(abstract.MenuButton, abstract.Func):
         else: 
             logger.error("Change \"%s\" not supported object in \"%s\"" % (object, widget))
             return
-        #self.emit("update")
 
     def __cb_href_file_set(self, widget):
         path = widget.get_filename()
@@ -1238,17 +1230,14 @@ class MenuButtonEditItems(abstract.MenuButton, abstract.Func):
         selection = self.tw_items.get_selection()
         (model, iter) = selection.get_selected()
         if iter:
-            item = self.data_model.get_item_details(model[iter][1])
+            item = self.data_model.get_item(model[iter][1])
             if item == None:
                 logger.error("Can't find item with ID: \"%s\"" % (model[iter][1],))
                 return
-            model[iter][1] = item["id"] # TODO
+            model[iter][1] = item.id
 
             # Get the title of item
-            title = title = item["id"]+" (ID)"
-            if len(item["titles"]) > 0:
-                if self.core.selected_lang in item["titles"].keys(): title = item["titles"][self.core.selected_lang]
-                else: title = item["titles"][item["titles"].keys()[0]]+" ["+item["titles"].keys()[0]+"]"
+            title = self.data_model.get_title(item.title) or "%s (ID)" % (item.id,)
 
             model[iter][2] = title
             model[iter][4] = ""+title
@@ -2590,7 +2579,6 @@ class EditValues(abstract.MenuButton):
 
         EventObject.__init__(self, core)
         self.core.register(self.id, self)
-        self.add_sender(id, "update")
         
         #edit data of values
         # -- VALUES --
@@ -3172,7 +3160,7 @@ class EditFixOption(commands.DHEditItems,abstract.ControlEditWindow):
         self.combo_disruption.handler_unblock_by_func(self.cb_combo_fix_disruption)
         self.chbox_reboot.handler_unblock_by_func(self.cb_chbox_fix_reboot)
 
-class EditAddProfileDialogWindow(EventObject, abstract.ControlEditWindow):
+class AddProfileDialog(EventObject, abstract.ControlEditWindow):
 
     def __init__(self, core, data_model, cb):
         self.core = core
@@ -3199,6 +3187,13 @@ class EditAddProfileDialogWindow(EventObject, abstract.ControlEditWindow):
             self.core.notify("Can't add profile with no ID !",
                     Notification.ERROR, self.info_box, msg_id="notify:edit:profile:new")
             return
+        profiles = self.data_model.get_profiles()
+        for profile in profiles:
+            if profile[0] == self.pid.get_text():
+                self.core.notify("Profile \"%s\" already exists." % (self.pid.get_text(),),
+                        Notification.ERROR, self.info_box, msg_id="notify:edit:profile:new")
+                self.pid.grab_focus()
+                return
         if len(self.title.get_text()) == 0: 
             self.core.notify("Please add title for this profile.",
                     Notification.ERROR, self.info_box, msg_id="notify:edit:profile:new")
@@ -3207,7 +3202,6 @@ class EditAddProfileDialogWindow(EventObject, abstract.ControlEditWindow):
 
         self.data_model.add(id=self.pid.get_text(), lang=self.lang.get_text(), title=self.title.get_text())
         self.core.selected_profile = self.pid.get_text()
-        self.core.force_reload_profiles = True
         self.window.destroy()
         self.__update(force=True)
 
@@ -3699,7 +3693,7 @@ class FindItem(abstract.Window, abstract.ListEditor):
         if type == "rule":
             items = self.data_model.get_all_item_ids()
         elif type == "value":
-            items = self.data_model.get_all_values()
+            items = [value.to_item() for value in self.data_model.get_all_values()]
         else: raise Exception("Type \"%s\" not supported !" % (type,))
 
         self.items.set_model(gtk.ListStore(str, str, gobject.TYPE_PYOBJECT))

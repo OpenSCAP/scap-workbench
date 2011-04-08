@@ -447,6 +447,7 @@
                                 <property name="can_focus">True</property>
                                 <property name="tooltip_text" translatable="yes">Use search panel to quickly filter items shown below.
 
+- use "text" to filter refine items. Text is regular expression.
 - use "profile:text" to search in profiles,
 - use "value:text" to search in refine-value and setvalue entries,
 - use "rule:text" to search in refine-rule and selector entries,

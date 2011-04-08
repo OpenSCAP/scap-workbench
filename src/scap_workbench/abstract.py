@@ -375,11 +375,11 @@ class List(EventObject):
         return
 
     def set_selected(self, model, path, iter, usr):
-
+        
         id, view, col = usr
         selection = view.get_selection()
         
-        if model.get_value(iter, col) == id:
+        if iter and model.get_value(iter, col) == id:
             view.expand_to_path(path)
             selection.select_path(path)
             return True
@@ -388,9 +388,9 @@ class List(EventObject):
 
         profile, id, view, col = usr
         selection = view.get_selection()
-        if model.get_value(iter, col) != id:
+        if iter and model.get_value(iter, col) != id:
             return False
-        if model.get_value(iter, col) == id and model.iter_parent(iter) and model.get_value(model.iter_parent(iter), col) == profile:
+        if iter and model.get_value(iter, col) == id and model.iter_parent(iter) and model.get_value(model.iter_parent(iter), col) == profile:
             view.expand_to_path(path)
             selection.select_path(path)
             return True

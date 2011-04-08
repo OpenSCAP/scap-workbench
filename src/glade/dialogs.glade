@@ -4085,7 +4085,7 @@ Application Part - This part identifies relevant applications, services, and pac
       <object class="GtkVBox" id="dialog-vbox32">
         <property name="visible">True</property>
         <property name="orientation">vertical</property>
-        <property name="spacing">2</property>
+        <property name="spacing">5</property>
         <child>
           <object class="GtkAlignment" id="dialog:export:info_box:alig">
             <property name="visible">True</property>
@@ -4109,50 +4109,145 @@ Application Part - This part identifies relevant applications, services, and pac
         <child>
           <object class="GtkFileChooserWidget" id="dialog:export:filechooser">
             <property name="visible">True</property>
+            <property name="can_default">True</property>
             <property name="orientation">vertical</property>
             <property name="action">save</property>
             <property name="do_overwrite_confirmation">True</property>
-          </object>
-          <packing>
-            <property name="position">2</property>
-          </packing>
-        </child>
-        <child>
-          <object class="GtkVBox" id="vbox14">
-            <property name="visible">True</property>
-            <property name="orientation">vertical</property>
-            <property name="spacing">5</property>
             <child>
-              <object class="GtkAlignment" id="alignment11">
+              <object class="GtkVBox" id="vbox14">
                 <property name="visible">True</property>
-                <property name="top_padding">5</property>
-                <property name="bottom_padding">5</property>
+                <property name="orientation">vertical</property>
+                <property name="spacing">5</property>
                 <child>
-                  <object class="GtkHSeparator" id="hseparator3">
+                  <object class="GtkAlignment" id="alignment11">
                     <property name="visible">True</property>
+                    <property name="top_padding">5</property>
+                    <property name="bottom_padding">5</property>
+                    <child>
+                      <object class="GtkHSeparator" id="hseparator3">
+                        <property name="visible">True</property>
+                      </object>
+                    </child>
                   </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="position">0</property>
+                  </packing>
                 </child>
-              </object>
-              <packing>
-                <property name="expand">False</property>
-                <property name="position">0</property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkRadioButton" id="dialog:export:file:rb">
-                <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="receives_default">False</property>
-                <property name="active">True</property>
-                <property name="draw_indicator">True</property>
                 <child>
-                  <object class="GtkLabel" id="label18">
+                  <object class="GtkRadioButton" id="dialog:export:file:rb">
                     <property name="visible">True</property>
-                    <property name="label" translatable="yes">Export to file</property>
-                    <attributes>
-                      <attribute name="weight" value="bold"/>
-                    </attributes>
+                    <property name="can_focus">True</property>
+                    <property name="receives_default">False</property>
+                    <property name="active">True</property>
+                    <property name="draw_indicator">True</property>
+                    <child>
+                      <object class="GtkLabel" id="label18">
+                        <property name="visible">True</property>
+                        <property name="label" translatable="yes">Export to file</property>
+                        <attributes>
+                          <attribute name="weight" value="bold"/>
+                        </attributes>
+                      </object>
+                    </child>
                   </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="position">1</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkRadioButton" id="dialog:export:guide:rb">
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <property name="receives_default">False</property>
+                    <property name="draw_indicator">True</property>
+                    <property name="group">dialog:export:file:rb</property>
+                    <child>
+                      <object class="GtkLabel" id="label20">
+                        <property name="visible">True</property>
+                        <property name="label" translatable="yes">Export as guide</property>
+                        <attributes>
+                          <attribute name="weight" value="bold"/>
+                        </attributes>
+                      </object>
+                    </child>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="position">2</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkAlignment" id="alignment18">
+                    <property name="visible">True</property>
+                    <property name="top_padding">5</property>
+                    <property name="left_padding">12</property>
+                    <child>
+                      <object class="GtkVBox" id="dialog:export:guide:box">
+                        <property name="visible">True</property>
+                        <property name="sensitive">False</property>
+                        <property name="orientation">vertical</property>
+                        <property name="spacing">5</property>
+                        <child>
+                          <object class="GtkComboBox" id="dialog:export:show">
+                            <property name="visible">True</property>
+                            <property name="model">dialog:export:guide:show_model</property>
+                            <property name="active">0</property>
+                            <child>
+                              <object class="GtkCellRendererText" id="cellrenderertext2"/>
+                              <attributes>
+                                <attribute name="text">0</attribute>
+                              </attributes>
+                            </child>
+                          </object>
+                          <packing>
+                            <property name="expand">False</property>
+                            <property name="position">0</property>
+                          </packing>
+                        </child>
+                        <child>
+                          <object class="GtkCheckButton" id="dialog:export:profile">
+                            <property name="label" translatable="yes">Export with profile</property>
+                            <property name="visible">True</property>
+                            <property name="can_focus">True</property>
+                            <property name="receives_default">False</property>
+                            <property name="draw_indicator">True</property>
+                          </object>
+                          <packing>
+                            <property name="expand">False</property>
+                            <property name="position">1</property>
+                          </packing>
+                        </child>
+                        <child>
+                          <object class="GtkAlignment" id="alignment19">
+                            <property name="visible">True</property>
+                            <property name="left_padding">12</property>
+                            <child>
+                              <object class="GtkComboBox" id="dialog:export:profiles:cb">
+                                <property name="visible">True</property>
+                                <property name="sensitive">False</property>
+                                <property name="model">dialog:export:profiles:model</property>
+                                <child>
+                                  <object class="GtkCellRendererText" id="cellrenderertext3"/>
+                                  <attributes>
+                                    <attribute name="text">1</attribute>
+                                  </attributes>
+                                </child>
+                              </object>
+                            </child>
+                          </object>
+                          <packing>
+                            <property name="position">2</property>
+                          </packing>
+                        </child>
+                      </object>
+                    </child>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="position">3</property>
+                  </packing>
                 </child>
               </object>
               <packing>
@@ -4160,103 +4255,9 @@ Application Part - This part identifies relevant applications, services, and pac
                 <property name="position">1</property>
               </packing>
             </child>
-            <child>
-              <object class="GtkRadioButton" id="dialog:export:guide:rb">
-                <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="receives_default">False</property>
-                <property name="draw_indicator">True</property>
-                <property name="group">dialog:export:file:rb</property>
-                <child>
-                  <object class="GtkLabel" id="label20">
-                    <property name="visible">True</property>
-                    <property name="label" translatable="yes">Export as guide</property>
-                    <attributes>
-                      <attribute name="weight" value="bold"/>
-                    </attributes>
-                  </object>
-                </child>
-              </object>
-              <packing>
-                <property name="expand">False</property>
-                <property name="position">2</property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkAlignment" id="alignment18">
-                <property name="visible">True</property>
-                <property name="top_padding">5</property>
-                <property name="left_padding">12</property>
-                <child>
-                  <object class="GtkVBox" id="dialog:export:guide:box">
-                    <property name="visible">True</property>
-                    <property name="sensitive">False</property>
-                    <property name="orientation">vertical</property>
-                    <property name="spacing">5</property>
-                    <child>
-                      <object class="GtkComboBox" id="dialog:export:show">
-                        <property name="visible">True</property>
-                        <property name="model">dialog:export:guide:show_model</property>
-                        <property name="active">0</property>
-                        <child>
-                          <object class="GtkCellRendererText" id="cellrenderertext2"/>
-                          <attributes>
-                            <attribute name="text">0</attribute>
-                          </attributes>
-                        </child>
-                      </object>
-                      <packing>
-                        <property name="expand">False</property>
-                        <property name="position">0</property>
-                      </packing>
-                    </child>
-                    <child>
-                      <object class="GtkCheckButton" id="dialog:export:profile">
-                        <property name="label" translatable="yes">Export with profile</property>
-                        <property name="visible">True</property>
-                        <property name="can_focus">True</property>
-                        <property name="receives_default">False</property>
-                        <property name="draw_indicator">True</property>
-                      </object>
-                      <packing>
-                        <property name="expand">False</property>
-                        <property name="position">1</property>
-                      </packing>
-                    </child>
-                    <child>
-                      <object class="GtkAlignment" id="alignment19">
-                        <property name="visible">True</property>
-                        <property name="left_padding">12</property>
-                        <child>
-                          <object class="GtkComboBox" id="dialog:export:profiles:cb">
-                            <property name="visible">True</property>
-                            <property name="sensitive">False</property>
-                            <property name="model">dialog:export:profiles:model</property>
-                            <child>
-                              <object class="GtkCellRendererText" id="cellrenderertext3"/>
-                              <attributes>
-                                <attribute name="text">1</attribute>
-                              </attributes>
-                            </child>
-                          </object>
-                        </child>
-                      </object>
-                      <packing>
-                        <property name="position">2</property>
-                      </packing>
-                    </child>
-                  </object>
-                </child>
-              </object>
-              <packing>
-                <property name="expand">False</property>
-                <property name="position">3</property>
-              </packing>
-            </child>
           </object>
           <packing>
-            <property name="expand">False</property>
-            <property name="position">3</property>
+            <property name="position">2</property>
           </packing>
         </child>
         <child internal-child="action_area">

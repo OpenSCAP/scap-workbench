@@ -1711,7 +1711,6 @@ class DHProfiles(DataHandler):
         """
 
         if self.treeView: self.treeView.set_sensitive(False)
-        self.model.clear()
         if not self.check_library(): return None
 
         if not no_default:
@@ -1839,18 +1838,23 @@ class DHProfiles(DataHandler):
 
         type = {openscap.OSCAP.XCCDF_RULE: "rule", openscap.OSCAP.XCCDF_GROUP: "group", openscap.OSCAP.XCCDF_VALUE: "value"}[item.type]
 
-        model.append(profile_iter, [type, id, [], {"group":IMG_RULE, "rule":IMG_RULE, "value":IMG_VALUE}[type], title or item.id+" (ID)", None])
+        model.append(profile_iter, [type, id, [],
+            {"group":IMG_RULE, "rule":IMG_RULE, "value":IMG_VALUE}[type],
+            title or item.id+" (ID)", ["gray", None][type=="value"]])
 
     def update_refines(self, type, id, items, idref=None, selected=None, weight=None, value=None, selector=None, operator=None, severity=None):
         if not self.check_library(): return None
+
+        # TODO: This happened because we focused out the changed item by clicking on 
+        # profile and in the time of calling this function is current item profile
+        if type == "profile": return
 
         profile = self.get_profile(self.core.selected_profile)
 
         if idref != None and idref != id:
             if len(items) != 0:
                 for item in items: item.item = idref
-
-        if type == "rule":
+        if type in ["rule", "group"]:
             select = r_rule = None
             for item in items:
                 if item.object == "xccdf_select": select = item
@@ -1872,10 +1876,12 @@ class DHProfiles(DataHandler):
                 r_rule.item = id
                 items.append(r_rule)
                 profile.add_refine_rule(r_rule)
-            if selector != None and r_rule.selector != selector:
-                r_rule.selector = selector
             if weight != None and r_rule.weight != weight:
                 r_rule.weight = weight
+            if type == "group": return
+
+            if selector != None and r_rule.selector != selector:
+                r_rule.selector = selector
             if severity != None and r_rule.severity != severity:
                 r_rule.severity = severity
 
@@ -1899,7 +1905,7 @@ class DHProfiles(DataHandler):
                 r_value = openscap.xccdf.refine_value_new()
                 r_value.item = id
                 items.append(r_value)
-                profile.add_refine_values(r_value)
+                profile.add_refine_value(r_value)
             if selector != None and r_value.selector != selector:
                 r_value.set_selector(selector)
             if operator != None and r_value.operator != operator:
