@@ -74,6 +74,22 @@
       <column type="gchararray"/>
     </columns>
   </object>
+  <object class="GtkListStore" id="edit:xccdf:items:values:model">
+    <columns>
+      <!-- column-name ID -->
+      <column type="gchararray"/>
+      <!-- column-name Title -->
+      <column type="gchararray"/>
+      <!-- column-name Export value -->
+      <column type="gchararray"/>
+      <!-- column-name Item -->
+      <column type="GObject"/>
+      <!-- column-name Color -->
+      <column type="gchararray"/>
+      <!-- column-name Color FG -->
+      <column type="gchararray"/>
+    </columns>
+  </object>
   <object class="GtkWindow" id="main:window">
     <property name="title" translatable="yes">SCAP Workbench editor</property>
     <property name="window_position">center</property>
@@ -407,7 +423,8 @@
           </packing>
         </child>
         <child>
-          <object class="GtkHBox" id="edit:xccdf:profiles:box">
+          <object class="GtkViewport" id="profiles:box">
+            <property name="resize_mode">queue</property>
             <child>
               <object class="GtkAlignment" id="alignment23">
                 <property name="visible">True</property>
@@ -445,13 +462,6 @@
                               <object class="GtkEntry" id="xccdf:profiles:search">
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
-                                <property name="tooltip_text" translatable="yes">Use search panel to quickly filter items shown below.
-
-- use "text" to filter refine items. Text is regular expression.
-- use "profile:text" to search in profiles,
-- use "value:text" to search in refine-value and setvalue entries,
-- use "rule:text" to search in refine-rule and selector entries,
-- use "group:text" to search in refine-rule and sleector entries referencing to groups.</property>
                                 <property name="invisible_char">&#x25CF;</property>
                               </object>
                               <packing>
@@ -474,12 +484,69 @@
                                 <child>
                                   <object class="GtkMenuItem" id="menuitem6">
                                     <property name="visible">True</property>
-                                    <property name="sensitive">False</property>
                                     <property name="label" translatable="yes">Filter</property>
                                     <property name="use_underline">True</property>
                                     <child type="submenu">
                                       <object class="GtkMenu" id="menu5">
                                         <property name="visible">True</property>
+                                        <child>
+                                          <object class="GtkRadioMenuItem" id="xccdf:profiles:filter:none">
+                                            <property name="visible">True</property>
+                                            <property name="label" translatable="yes">None</property>
+                                            <property name="use_underline">True</property>
+                                            <property name="active">True</property>
+                                            <property name="draw_as_radio">True</property>
+                                          </object>
+                                        </child>
+                                        <child>
+                                          <object class="GtkRadioMenuItem" id="xccdf:profiles:filter:profiles">
+                                            <property name="visible">True</property>
+                                            <property name="label" translatable="yes">Search in profiles</property>
+                                            <property name="use_underline">True</property>
+                                            <property name="draw_as_radio">True</property>
+                                            <property name="group">xccdf:profiles:filter:none</property>
+                                          </object>
+                                        </child>
+                                        <child>
+                                          <object class="GtkRadioMenuItem" id="xccdf:profiles:filter:rules">
+                                            <property name="visible">True</property>
+                                            <property name="label" translatable="yes">Search in rules</property>
+                                            <property name="use_underline">True</property>
+                                            <property name="draw_as_radio">True</property>
+                                            <property name="group">xccdf:profiles:filter:none</property>
+                                          </object>
+                                        </child>
+                                        <child>
+                                          <object class="GtkRadioMenuItem" id="xccdf:profiles:filter:groups">
+                                            <property name="visible">True</property>
+                                            <property name="label" translatable="yes">Search in groups</property>
+                                            <property name="use_underline">True</property>
+                                            <property name="draw_as_radio">True</property>
+                                            <property name="group">xccdf:profiles:filter:none</property>
+                                          </object>
+                                        </child>
+                                        <child>
+                                          <object class="GtkRadioMenuItem" id="xccdf:profiles:filter:values">
+                                            <property name="visible">True</property>
+                                            <property name="label" translatable="yes">Search in values</property>
+                                            <property name="use_underline">True</property>
+                                            <property name="draw_as_radio">True</property>
+                                            <property name="group">xccdf:profiles:filter:none</property>
+                                          </object>
+                                        </child>
+                                        <child>
+                                          <object class="GtkSeparatorMenuItem" id="separator3">
+                                            <property name="visible">True</property>
+                                          </object>
+                                        </child>
+                                        <child>
+                                          <object class="GtkMenuItem" id="xccdf:profiles:filter:user">
+                                            <property name="visible">True</property>
+                                            <property name="sensitive">False</property>
+                                            <property name="label" translatable="yes">User defined ...</property>
+                                            <property name="use_underline">True</property>
+                                          </object>
+                                        </child>
                                       </object>
                                     </child>
                                   </object>
@@ -566,8 +633,8 @@
                         </child>
                       </object>
                       <packing>
-                        <property name="resize">False</property>
-                        <property name="shrink">True</property>
+                        <property name="resize">True</property>
+                        <property name="shrink">False</property>
                       </packing>
                     </child>
                     <child>
@@ -1148,40 +1215,6 @@
                                                       </packing>
                                                     </child>
                                                     <child>
-                                                      <object class="GtkHBox" id="hbox1">
-                                                        <property name="visible">True</property>
-                                                        <property name="spacing">5</property>
-                                                        <child>
-                                                          <object class="GtkEntry" id="xccdf:refines:idref">
-                                                            <property name="visible">True</property>
-                                                            <property name="can_focus">True</property>
-                                                            <property name="invisible_char">&#x25CF;</property>
-                                                          </object>
-                                                          <packing>
-                                                            <property name="position">0</property>
-                                                          </packing>
-                                                        </child>
-                                                        <child>
-                                                          <object class="GtkButton" id="xccdf:refines:idref:find">
-                                                            <property name="label" translatable="yes">Find</property>
-                                                            <property name="visible">True</property>
-                                                            <property name="can_focus">True</property>
-                                                            <property name="receives_default">True</property>
-                                                            <property name="image">image6</property>
-                                                          </object>
-                                                          <packing>
-                                                            <property name="expand">False</property>
-                                                            <property name="position">1</property>
-                                                          </packing>
-                                                        </child>
-                                                      </object>
-                                                      <packing>
-                                                        <property name="left_attach">1</property>
-                                                        <property name="right_attach">2</property>
-                                                        <property name="y_options">GTK_FILL</property>
-                                                      </packing>
-                                                    </child>
-                                                    <child>
                                                       <object class="GtkComboBox" id="xccdf:refines:severity">
                                                         <property name="visible">True</property>
                                                         <child>
@@ -1320,14 +1353,23 @@
                                                         <property name="y_options">GTK_FILL</property>
                                                       </packing>
                                                     </child>
+                                                    <child>
+                                                      <object class="GtkEntry" id="xccdf:refines:idref">
+                                                        <property name="visible">True</property>
+                                                        <property name="sensitive">False</property>
+                                                        <property name="can_focus">True</property>
+                                                        <property name="invisible_char">&#x25CF;</property>
+                                                      </object>
+                                                      <packing>
+                                                        <property name="left_attach">1</property>
+                                                        <property name="right_attach">2</property>
+                                                      </packing>
+                                                    </child>
                                                   </object>
                                                   <packing>
                                                     <property name="expand">False</property>
                                                     <property name="position">0</property>
                                                   </packing>
-                                                </child>
-                                                <child>
-                                                  <placeholder/>
                                                 </child>
                                                 <child>
                                                   <object class="GtkCheckButton" id="xccdf:refines:selected">
@@ -1342,7 +1384,7 @@
                                                   </object>
                                                   <packing>
                                                     <property name="expand">False</property>
-                                                    <property name="position">2</property>
+                                                    <property name="position">1</property>
                                                   </packing>
                                                 </child>
                                               </object>
@@ -1487,16 +1529,13 @@
                         </child>
                       </object>
                       <packing>
-                        <property name="resize">True</property>
-                        <property name="shrink">True</property>
+                        <property name="resize">False</property>
+                        <property name="shrink">False</property>
                       </packing>
                     </child>
                   </object>
                 </child>
               </object>
-              <packing>
-                <property name="position">0</property>
-              </packing>
             </child>
           </object>
           <packing>
@@ -1504,7 +1543,7 @@
           </packing>
         </child>
         <child>
-          <object class="GtkVBox" id="edit_xccdf:box">
+          <object class="GtkVBox" id="xccdf:box">
             <property name="orientation">vertical</property>
             <property name="spacing">5</property>
             <child>
@@ -2257,8 +2296,7 @@
           </packing>
         </child>
         <child>
-          <object class="GtkVBox" id="edit_item:box">
-            <property name="orientation">vertical</property>
+          <object class="GtkHBox" id="items:box">
             <child>
               <object class="GtkAlignment" id="edit:alig2">
                 <property name="visible">True</property>
@@ -2502,7 +2540,7 @@
                         </child>
                       </object>
                       <packing>
-                        <property name="resize">False</property>
+                        <property name="resize">True</property>
                         <property name="shrink">False</property>
                       </packing>
                     </child>
@@ -2575,7 +2613,6 @@
                                                   <object class="GtkEntry" id="edit:general:entry_version">
                                                     <property name="visible">True</property>
                                                     <property name="can_focus">True</property>
-                                                    <property name="tooltip_text" translatable="yes">Version number of Group or Rule. The version number content may be any string.</property>
                                                     <property name="invisible_char">&#x25CF;</property>
                                                   </object>
                                                   <packing>
@@ -2647,9 +2684,6 @@
                                                     <property name="visible">True</property>
                                                     <property name="can_focus">True</property>
                                                     <property name="receives_default">False</property>
-                                                    <property name="tooltip_text" translatable="yes">If true, then this Item is abstract and exists only to be extended.
-
-NOTE: The use of this field is deprecated for Group items from XCCDF version 1.2</property>
                                                     <property name="draw_indicator">True</property>
                                                   </object>
                                                   <packing>
@@ -2666,7 +2700,6 @@ NOTE: The use of this field is deprecated for Group items from XCCDF version 1.2
                                                     <property name="visible">True</property>
                                                     <property name="can_focus">True</property>
                                                     <property name="receives_default">False</property>
-                                                    <property name="tooltip_text" translatable="yes">If this item should be excluded from any generated documents.</property>
                                                     <property name="relief">none</property>
                                                     <property name="draw_indicator">True</property>
                                                   </object>
@@ -2683,8 +2716,6 @@ NOTE: The use of this field is deprecated for Group items from XCCDF version 1.2
                                                     <property name="visible">True</property>
                                                     <property name="can_focus">True</property>
                                                     <property name="receives_default">False</property>
-                                                    <property name="tooltip_text" translatable="yes">If true, this Group/Rule is selected to be processed as part of the Benchmark when it is applied to a target system.
-An unselected Group is not processed, and none of its contents are processed either (i.e., all descendants of an unselected group are implicitly unselected).</property>
                                                     <property name="relief">none</property>
                                                     <property name="draw_indicator">True</property>
                                                   </object>
@@ -2701,7 +2732,6 @@ An unselected Group is not processed, and none of its contents are processed eit
                                                     <property name="visible">True</property>
                                                     <property name="can_focus">True</property>
                                                     <property name="receives_default">False</property>
-                                                    <property name="tooltip_text" translatable="yes">If tools should prohibit changes to this Item during tailoring.</property>
                                                     <property name="draw_indicator">True</property>
                                                   </object>
                                                   <packing>
@@ -2729,8 +2759,6 @@ An unselected Group is not processed, and none of its contents are processed eit
                                                   <object class="GtkEntry" id="edit:general:entry_weight">
                                                     <property name="visible">True</property>
                                                     <property name="can_focus">True</property>
-                                                    <property name="tooltip_text" translatable="yes">The relative scoring weight of this Group/Rule, for computing a compliance score; can be overriden by a Profile.
-Weight must be a positive real number.</property>
                                                     <property name="invisible_char">&#x25CF;</property>
                                                   </object>
                                                   <packing>
@@ -2746,7 +2774,6 @@ Weight must be a positive real number.</property>
                                                     <property name="visible">True</property>
                                                     <property name="sensitive">False</property>
                                                     <property name="can_focus">True</property>
-                                                    <property name="tooltip_text" translatable="yes">The unique ID of the Group / Rule.</property>
                                                     <property name="invisible_char">&#x25CF;</property>
                                                   </object>
                                                   <packing>
@@ -3557,6 +3584,46 @@ Weight must be a positive real number.</property>
                                                   <object class="GtkTreeView" id="edit:xccdf:items:values">
                                                     <property name="visible">True</property>
                                                     <property name="can_focus">True</property>
+                                                    <property name="model">edit:xccdf:items:values:model</property>
+                                                    <child>
+                                                      <object class="GtkTreeViewColumn" id="treeviewcolumn1">
+                                                        <property name="title">ID</property>
+                                                        <child>
+                                                          <object class="GtkCellRendererText" id="cellrenderertext13"/>
+                                                          <attributes>
+                                                            <attribute name="background">4</attribute>
+                                                            <attribute name="foreground">5</attribute>
+                                                            <attribute name="text">0</attribute>
+                                                          </attributes>
+                                                        </child>
+                                                      </object>
+                                                    </child>
+                                                    <child>
+                                                      <object class="GtkTreeViewColumn" id="treeviewcolumn2">
+                                                        <property name="title">Title</property>
+                                                        <child>
+                                                          <object class="GtkCellRendererText" id="cellrenderertext14"/>
+                                                          <attributes>
+                                                            <attribute name="background">4</attribute>
+                                                            <attribute name="foreground">5</attribute>
+                                                            <attribute name="text">1</attribute>
+                                                          </attributes>
+                                                        </child>
+                                                      </object>
+                                                    </child>
+                                                    <child>
+                                                      <object class="GtkTreeViewColumn" id="treeviewcolumn3">
+                                                        <property name="title">Export Value</property>
+                                                        <child>
+                                                          <object class="GtkCellRendererText" id="cellrenderertext22"/>
+                                                          <attributes>
+                                                            <attribute name="background">4</attribute>
+                                                            <attribute name="foreground">5</attribute>
+                                                            <attribute name="text">2</attribute>
+                                                          </attributes>
+                                                        </child>
+                                                      </object>
+                                                    </child>
                                                   </object>
                                                 </child>
                                               </object>
@@ -4961,7 +5028,6 @@ Weight must be a positive real number.</property>
                                                   <object class="GtkEntry" id="edit:values:version">
                                                     <property name="visible">True</property>
                                                     <property name="can_focus">True</property>
-                                                    <property name="tooltip_text" translatable="yes">Version number of the Value. The version number content may be any string.</property>
                                                     <property name="invisible_char">&#x25CF;</property>
                                                   </object>
                                                   <packing>
@@ -5034,7 +5100,6 @@ Weight must be a positive real number.</property>
                                                     <property name="visible">True</property>
                                                     <property name="can_focus">True</property>
                                                     <property name="receives_default">False</property>
-                                                    <property name="tooltip_text" translatable="yes">If tools should prohibit changes to this Item during tailoring.</property>
                                                     <property name="draw_indicator">True</property>
                                                   </object>
                                                   <packing>
@@ -5049,7 +5114,6 @@ Weight must be a positive real number.</property>
                                                     <property name="visible">True</property>
                                                     <property name="sensitive">False</property>
                                                     <property name="can_focus">True</property>
-                                                    <property name="tooltip_text" translatable="yes">The unique ID of the Value.</property>
                                                     <property name="invisible_char">&#x25CF;</property>
                                                   </object>
                                                   <packing>
@@ -5075,7 +5139,6 @@ Weight must be a positive real number.</property>
                                                     <property name="visible">True</property>
                                                     <property name="sensitive">False</property>
                                                     <property name="can_focus">True</property>
-                                                    <property name="tooltip_text" translatable="yes">The data type of the Value: "string", "number", or "boolean".</property>
                                                     <property name="invisible_char">&#x25CF;</property>
                                                   </object>
                                                   <packing>
@@ -5092,7 +5155,6 @@ Weight must be a positive real number.</property>
                                                     <property name="visible">True</property>
                                                     <property name="can_focus">True</property>
                                                     <property name="receives_default">False</property>
-                                                    <property name="tooltip_text" translatable="yes">Tailoring for this Value should also be performed during Benchmark application.</property>
                                                     <property name="draw_indicator">True</property>
                                                   </object>
                                                   <packing>
@@ -5120,7 +5182,6 @@ Weight must be a positive real number.</property>
                                                 <child>
                                                   <object class="GtkComboBox" id="edit:values:operator">
                                                     <property name="visible">True</property>
-                                                    <property name="tooltip_text" translatable="yes">The operator should be used for comparing this Value to some part of the test system's configuration.</property>
                                                     <child>
                                                       <object class="GtkCellRendererText" id="text"/>
                                                       <attributes>
@@ -5142,7 +5203,6 @@ Weight must be a positive real number.</property>
                                                     <property name="visible">True</property>
                                                     <property name="can_focus">True</property>
                                                     <property name="receives_default">False</property>
-                                                    <property name="tooltip_text" translatable="yes">If true, then this Value is abstract and exists only to be extended.</property>
                                                     <property name="draw_indicator">True</property>
                                                   </object>
                                                   <packing>
@@ -5797,7 +5857,7 @@ Weight must be a positive real number.</property>
                         </child>
                       </object>
                       <packing>
-                        <property name="resize">True</property>
+                        <property name="resize">False</property>
                         <property name="shrink">False</property>
                       </packing>
                     </child>
@@ -5816,15 +5876,10 @@ Weight must be a positive real number.</property>
       </object>
     </child>
   </object>
-  <object class="GtkImage" id="image5">
-    <property name="visible">True</property>
-    <property name="pixel_size">16</property>
-    <property name="icon_name">edit-find</property>
-  </object>
-  <object class="GtkMenu" id="edit:list:popup">
+  <object class="GtkMenu" id="xccdf:items:popup">
     <property name="visible">True</property>
     <child>
-      <object class="GtkCheckMenuItem" id="edit:list:popup:show_values">
+      <object class="GtkCheckMenuItem" id="xccdf:items:popup:show_values">
         <property name="visible">True</property>
         <property name="label" translatable="yes">Show values</property>
         <property name="use_underline">True</property>
@@ -5837,7 +5892,7 @@ Weight must be a positive real number.</property>
       </object>
     </child>
     <child>
-      <object class="GtkImageMenuItem" id="edit:list:popup:add">
+      <object class="GtkImageMenuItem" id="xccdf:items:popup:add">
         <property name="label" translatable="yes">Add Item</property>
         <property name="visible">True</property>
         <property name="image">image1</property>
@@ -5846,10 +5901,9 @@ Weight must be a positive real number.</property>
       </object>
     </child>
     <child>
-      <object class="GtkImageMenuItem" id="edit:list:popup:remove">
+      <object class="GtkImageMenuItem" id="xccdf:items:popup:remove">
         <property name="label" translatable="yes">Remove</property>
         <property name="visible">True</property>
-        <property name="sensitive">False</property>
         <property name="image">image2</property>
         <property name="use_stock">False</property>
         <property name="always_show_image">True</property>
@@ -5938,7 +5992,7 @@ This selector designates the Value constraints to be applied during tailoring, f
     <property name="yalign">0.47999998927116394</property>
     <property name="icon_name">document-revert</property>
   </object>
-  <object class="GtkImage" id="image6">
+  <object class="GtkImage" id="image5">
     <property name="visible">True</property>
     <property name="pixel_size">16</property>
     <property name="icon_name">edit-find</property>

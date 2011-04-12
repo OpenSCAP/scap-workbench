@@ -4190,23 +4190,6 @@ Application Part - This part identifies relevant applications, services, and pac
                         <property name="orientation">vertical</property>
                         <property name="spacing">5</property>
                         <child>
-                          <object class="GtkComboBox" id="dialog:export:show">
-                            <property name="visible">True</property>
-                            <property name="model">dialog:export:guide:show_model</property>
-                            <property name="active">0</property>
-                            <child>
-                              <object class="GtkCellRendererText" id="cellrenderertext2"/>
-                              <attributes>
-                                <attribute name="text">0</attribute>
-                              </attributes>
-                            </child>
-                          </object>
-                          <packing>
-                            <property name="expand">False</property>
-                            <property name="position">0</property>
-                          </packing>
-                        </child>
-                        <child>
                           <object class="GtkCheckButton" id="dialog:export:profile">
                             <property name="label" translatable="yes">Export with profile</property>
                             <property name="visible">True</property>
@@ -4216,7 +4199,7 @@ Application Part - This part identifies relevant applications, services, and pac
                           </object>
                           <packing>
                             <property name="expand">False</property>
-                            <property name="position">1</property>
+                            <property name="position">0</property>
                           </packing>
                         </child>
                         <child>
@@ -4238,7 +4221,7 @@ Application Part - This part identifies relevant applications, services, and pac
                             </child>
                           </object>
                           <packing>
-                            <property name="position">2</property>
+                            <property name="position">1</property>
                           </packing>
                         </child>
                       </object>

@@ -621,7 +621,13 @@ class DataHandler(object):
         item = self.get_item(id)
         logger.info("Removing item %s" %(id,))
         parent = item.parent
-        parent.content.remove(item)
+        if item.type == openscap.OSCAP.XCCDF_VALUE: item = item.to_value()
+        if parent.type == openscap.OSCAP.XCCDF_GROUP: parent = parent.to_group()
+        elif parent.type == openscap.OSCAP.XCCDF_BENCHMARK: parent = parent.to_benchmark()
+
+        if item in parent.content: parent.content.remove(item)
+        elif item in parent.values: parent.values.remove(item)
+        else: raise Exception("Can't remove item %s from %s" % (item, parent.content+parent.values))
 
     def edit_title(self, operation, obj, lang, text, item=None):
 
@@ -1032,7 +1038,9 @@ class DHXccdf(DataHandler):
                 "oscap-version",     openscap.common.oscap_get_version(),
                 "pwd",               os.getenv("PWD"), None]
 
-        retval = openscap.common.oscap_apply_xslt(self.core.lib.xccdf, "security-guide.xsl", file, [])
+        retval = openscap.common.oscap_apply_xslt(self.core.lib.xccdf, "security-guide.xsl", file, params)
+        # TODO If this call is not executed, there will come some strange behaviour
+        logger.info("Export guide %s" % (["failed: %s" % (openscap.common.err_desc(),), "done"][retval],))
 
 
 class DHValues(DataHandler):
@@ -2205,6 +2213,7 @@ class DHScan(DataHandler, EventObject):
         if not expfile: expfile = "report.xhtml"
 
         retval = openscap.common.oscap_apply_xslt(file, xslfile, expfile, params)
+        # TODO If this call is not executed, there will come some strange behaviour
         logger.info("Export report file %s" % (["failed: %s" % (openscap.common.err_desc(),), "done"][retval],))
         self.open_webbrowser(expfile)
 

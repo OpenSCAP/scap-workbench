@@ -791,14 +791,16 @@ class ListEditor(EventObject, Func, Enum_type):
 
         self.widget         = widget
         self.__treeView     = widget
-        self.__model        = model
+        self.__model        = model or widget.get_model()
 
         if model: self.__treeView.set_model(model)
 
     def append_column(self, column):
         """For ControlEditWindow, remove after
         """
-        return self.widget.append_column(column)
+        retval = self.widget.append_column(column)
+        if retval: return column
+        else: return None
 
     def get_model(self):
         """For ControlEditWindow, remove after
@@ -860,13 +862,14 @@ class ListEditor(EventObject, Func, Enum_type):
         treeview.get_model().refilter()
         return
 
-    def preview(self, widget):
+    def preview(self, widget=None, desc=None):
 
-        selection = self.widget.get_selection()
-        if selection != None: 
-            (model, iter) = selection.get_selected()
-            if not iter: return False
-        else: return False
+        if widget:
+            selection = self.widget.get_selection()
+            if selection != None: 
+                (model, iter) = selection.get_selected()
+                if not iter: return False
+            else: return False
 
         builder = gtk.Builder()
         builder.add_from_file("/usr/share/scap-workbench/dialogs.glade")
@@ -879,12 +882,13 @@ class ListEditor(EventObject, Func, Enum_type):
         bg_color = window.get_style().bg[gtk.STATE_NORMAL]
         window.destroy()
 
-        desc = self.__model.get_value(iter, self.COLUMN_TEXT) or ""
-        desc = desc.replace("xhtml:","")
-        desc = desc.replace("xmlns:", "")
-        desc = self.data_model.substitute(desc)
-        if desc == "": desc = "No description"
-        desc = "<body><div>"+desc+"</div></body>"
+        if not desc:
+            desc = self.__model.get_value(iter, self.COLUMN_TEXT) or ""
+            desc = desc.replace("xhtml:","")
+            desc = desc.replace("xmlns:", "")
+            desc = self.data_model.substitute(desc)
+            if desc == "": desc = "No description"
+            desc = "<body><div>"+desc+"</div></body>"
 
         if HAS_WEBKIT:
             description = webkit.WebView()

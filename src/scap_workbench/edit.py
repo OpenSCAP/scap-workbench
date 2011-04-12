@@ -118,6 +118,16 @@ class ProfileList(abstract.List):
         self.section_list = self.builder.get_object("edit:section_list")
         self.profilesList = self.builder.get_object("edit:tw_profiles:sw")
         self.search = self.builder.get_object("xccdf:profiles:search")
+        self.filter_none = self.builder.get_object("xccdf:profiles:filter:none")
+        self.filter_none.connect("toggled", self.__set_filter, "")
+        self.filter_profiles = self.builder.get_object("xccdf:profiles:filter:profiles")
+        self.filter_profiles.connect("toggled", self.__set_filter, "profile:")
+        self.filter_rules = self.builder.get_object("xccdf:profiles:filter:rules")
+        self.filter_rules.connect("toggled", self.__set_filter, "rule:")
+        self.filter_groups = self.builder.get_object("xccdf:profiles:filter:groups")
+        self.filter_groups.connect("toggled", self.__set_filter, "group:")
+        self.filter_values = self.builder.get_object("xccdf:profiles:filter:values")
+        self.filter_values.connect("toggled", self.__set_filter, "value:")
         self.search.connect("changed", self.__cb_search, self.get_TreeView())
 
         """ Set the model of the list to support search
@@ -129,9 +139,22 @@ class ProfileList(abstract.List):
 
         self.get_TreeView().connect("key-press-event", self.__cb_key_press)
 
+    def __set_filter(self, widget, filter):
+        filters = { "" : self.filter_none,
+                    "profile:": self.filter_profiles,
+                    "rule:": self.filter_rules,
+                    "group:": self.filter_groups,
+                    "value:": self.filter_values }
+        if not widget and filter in filters.keys(): filters[filter].set_active(True)
+        elif filter in filters.keys():
+            sub = re.findall("^([a-z]*:)?(.*)$", self.search.get_text())[0]
+            self.search.set_text(filter+sub[1])
+
     def __cb_search(self, widget, treeview):
         self.core.notify_destroy("notify:profiles:filter")
         self.__stop_search = False
+        sub = re.findall("^([a-z]*:)?(.*)$", self.search.get_text())[0]
+        self.__set_filter(None, sub[0])
         treeview.get_model().refilter()
         self.__update(False)
 
@@ -298,12 +321,12 @@ class ItemList(abstract.List):
         selection.connect("changed", self.__cb_item_changed, self.get_TreeView())
         self.section_list = self.builder.get_object("edit:section_list")
         self.itemsList = self.builder.get_object("edit:tw_items:sw")
-        self.with_values = self.builder.get_object("edit:list:popup:show_values")
+        self.with_values = self.builder.get_object("xccdf:items:popup:show_values")
         self.with_values.connect("toggled", self.__update)
         # Popup Menu
-        self.builder.get_object("edit:list:popup:add").connect("activate", self.__cb_item_add)
-        self.builder.get_object("edit:list:popup:remove").connect("activate", self.__cb_item_remove)
-        widget.connect("button_press_event", self.__cb_button_pressed, self.builder.get_object("edit:list:popup"))
+        self.builder.get_object("xccdf:items:popup:add").connect("activate", self.__cb_item_add)
+        self.builder.get_object("xccdf:items:popup:remove").connect("activate", self.__cb_item_remove)
+        widget.connect("button_press_event", self.__cb_button_pressed, self.builder.get_object("xccdf:items:popup"))
 
         self.add_dialog = AddItem(self.core, self.data_model, self) # TODO
         self.get_TreeView().connect("key-press-event", self.__cb_key_press)
@@ -377,7 +400,7 @@ class MenuButtonEditXCCDF(abstract.MenuButton):
         self.data_model = commands.DHXccdf(core)
         
         #draw body
-        self.body = self.builder.get_object("edit_xccdf:box")
+        self.body = self.builder.get_object("xccdf:box")
         self.sub_menu = self.builder.get_object("edit:sub:main")
         self.add_sender(self.id, "update")
         self.add_sender(self.id, "load")
@@ -505,7 +528,6 @@ class MenuButtonEditXCCDF(abstract.MenuButton):
         preview_dialog.set_transient_for(self.core.main_window)
         preview_dialog.show_all()
         
-
     def __cb_validate(self, widget):
         validate = self.data_model.validate()
         message = [ "Document is not valid !",
@@ -617,7 +639,7 @@ class MenuButtonEditXCCDF(abstract.MenuButton):
         self.entry_resolved.handler_unblock_by_func(self.__change)
         self.entry_lang.handler_unblock_by_func(self.__change)
 
-class ExportDialog(abstract.Window):
+class ExportDialog(abstract.Window, abstract.ListEditor):
 
     def __init__(self, core, data_model):
 
@@ -630,7 +652,6 @@ class ExportDialog(abstract.Window):
         self.filechooser = builder.get_object("dialog:export:filechooser")
         self.filechooser.set_filename(self.core.lib.xccdf or "")
         self.filechooser.connect("confirm-overwrite", self.__confirm_overwrite)
-        self.show = builder.get_object("dialog:export:show")
         self.profile = builder.get_object("dialog:export:profile")
         self.profile.connect("clicked", self.__cb_profile_clicked)
         self.profiles_cb = builder.get_object("dialog:export:profiles:cb")
@@ -648,7 +669,6 @@ class ExportDialog(abstract.Window):
         profiles_model.model = self.profiles_cb.get_model()
         profiles_model.fill(no_default=True)
 
-        self.__paused_export = False
         self.wdialog.set_transient_for(self.core.main_window)
         self.wdialog.show()
 
@@ -661,17 +681,34 @@ class ExportDialog(abstract.Window):
     def __confirm_overwrite(self, widget, more=None):
         print widget, more
 
-    def __do(self, widget=None):
+    def __action_link(self, widget, action):
+        if action == "#proceed":
+            self.core.notify_destroy("notify:xccdf:export:dialog")
+            self.__do(proceed=True)
+        elif action == "#browser":
+            self.core.notify_destroy("notify:xccdf:export")
+            browser_val = self.data_model.open_webbrowser(self.export_file)
+        elif action == "#webkit":
+            self.core.notify_destroy("notify:xccdf:export")
+            f = open(self.export_file)
+            desc = f.read()
+            f.close()
+            self.preview(widget=None, desc=desc)
+
+        return True
+
+    def __do(self, widget=None, proceed=False):
         export_file = self.filechooser.get_filename()
         if export_file == None:
             self.core.notify("Choose a file to save to first.",
                 Notification.INFORMATION, info_box=self.info_box, msg_id="dialog:export:notify")
             return
-        if not self.__paused_export and export_file == self.core.lib.xccdf and self.guide_rb.get_active():
+        
+        self.export_file = export_file
+        if not proceed and export_file == self.core.lib.xccdf and self.guide_rb.get_active():
             # We are trying to export guide to the XCCDF file (common mistake)
-            self.core.notify("You are trying to overwrite loaded XCCDF Benchmark by XCCDF Guide !\nPress OK again to proceed.", 
-                    Notification.WARNING, info_box=self.info_box, msg_id="notify:xccdf:export:dialog")
-            self.__paused_export = True
+            self.core.notify("You are trying to overwrite loaded XCCDF Benchmark by XCCDF Guide ! <a href='#proceed'>Proceed</a>", 
+                    Notification.WARNING, info_box=self.info_box, msg_id="notify:xccdf:export:dialog", link_cb=self.__action_link)
             return
 
         if self.file_rb.get_active():
@@ -691,12 +728,8 @@ class ExportDialog(abstract.Window):
             if self.profiles_cb.get_active() != -1:
                 profile = self.profiles_cb.get_model()[self.profiles_cb.get_active()][0]
             self.data_model.export_guide(export_file, profile, not self.profile.get_active())
-            self.core.notify("The guide has been exported to \"%s\"" % (export_file,), Notification.SUCCESS, msg_id="notify:xccdf:export")
-
-            if self.show.get_active() == 1:
-                browser_val = self.data_model.open_webbrowser(export_file)
-            elif self.show.get_active() == 2:
-                pass
+            self.core.notify("The guide has been exported to \"%s\". <a href='#browser'>View in browser</a> <a href='#webkit'>View in WebKit</a>" % (export_file,),
+                    Notification.SUCCESS, msg_id="notify:xccdf:export", link_cb=self.__action_link)
 
         self.__dialog_destroy()
 
@@ -717,7 +750,7 @@ class MenuButtonEditProfiles(abstract.MenuButton, abstract.Func):
         self.__item_finder = FindItem(self.core, "gui:edit:xccdf:profiles:finditem", self.data_model)
 
         #draw body
-        self.body = self.builder.get_object("edit:xccdf:profiles:box")
+        self.body = self.builder.get_object("profiles:box")
         self.profiles = self.builder.get_object("edit:xccdf:profiles")
         self.list_profile = ProfileList(self.profiles, self.core, self.data_model, builder, None, None)
 
@@ -782,9 +815,6 @@ class MenuButtonEditProfiles(abstract.MenuButton, abstract.Func):
         self.refines_operator.connect("changed", self.__change)
         self.refines_severity = self.builder.get_object("xccdf:refines:severity")
         self.refines_severity.connect("changed", self.__change)
-        self.refines_idref_find = self.builder.get_object("xccdf:refines:idref:find")
-        self.refines_idref_find.set_sensitive(False)# TODO
-        self.refines_idref.set_sensitive(False)# TODO
 
         self.refines_operator.set_model(abstract.Enum_type.combo_model_operator_number)
         self.refines_severity.set_model(abstract.Enum_type.combo_model_level)
@@ -1000,7 +1030,7 @@ class MenuButtonEditItems(abstract.MenuButton, abstract.Func):
         self.current_page = 0
 
         #draw body
-        self.body = self.builder.get_object("edit_item:box")
+        self.body = self.builder.get_object("items:box")
         self.progress = self.builder.get_object("edit:progress")
         self.progress.hide()
         #self.filter = filter.ItemFilter(self.core, self.builder,"edit:box_filter", "gui:btn:edit:filter")
@@ -1455,15 +1485,12 @@ class EditItemValues(abstract.ListEditor):
     COLUMN_VALUE    = 1
     COLUMN_EXPORT   = 2
     COLUMN_OBJ      = 3
+    COLUMN_COLOR    = 4
 
     def __init__(self, core, id, widget, data_model):
 
         self.data_model = data_model
-        abstract.ListEditor.__init__(self, id, core, widget=widget, model=gtk.ListStore(str, str, str, gobject.TYPE_PYOBJECT))
-
-        self.widget.append_column(gtk.TreeViewColumn("ID", gtk.CellRendererText(), text=self.COLUMN_ID))
-        self.widget.append_column(gtk.TreeViewColumn("Title", gtk.CellRendererText(), text=self.COLUMN_VALUE))
-        self.widget.append_column(gtk.TreeViewColumn("Export value", gtk.CellRendererText(), text=self.COLUMN_EXPORT))
+        abstract.ListEditor.__init__(self, id, core, widget=widget, model=gtk.ListStore(str, str, str, gobject.TYPE_PYOBJECT, str, str))
 
     def __do(self, widget=None):
         """
@@ -1578,15 +1605,14 @@ class EditItemValues(abstract.ListEditor):
         """
         """
         self.clear()
-        checks = self.data_model.get_item_check_exports()
-        for item in self.data_model.get_item_values(self.core.selected_item):
-            if len(item["titles"]) > 0:
-                if self.core.selected_lang in item["titles"].keys(): title = item["titles"][self.core.selected_lang]
-                else: title = item["titles"][item["titles"].keys()[0]]+" ["+item["titles"].keys()[0]+"]"
-            ref = ""
-            for check in checks or []:
-                if check[0] == item["id"]: ref = check[1]
-            self.append([item["id"], (" ".join(title.split())), ref, self.data_model.get_item(item["id"])])
+        ref = ""
+        for check in self.data_model.get_item_check_exports() or []:
+            item = self.data_model.get_item(check[0])
+            if item:
+                title = self.data_model.get_title(item.title) or ""
+                self.append([check[0], (" ".join(title.split())), check[1], item, None, None])
+            else:
+                self.append([check[0], "(Missing item)", check[1], None, "red", "white"])
 
 class EditTitle(abstract.ListEditor):
 

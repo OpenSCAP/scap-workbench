@@ -80,7 +80,7 @@ class Notification:
     DEFAULT_TIME = 10
     HIDE_LVLS = [0, 1] # TODO
 
-    def __init__(self, text, lvl=0):
+    def __init__(self, text, lvl=0, link_cb=None):
 
         if lvl > 3: lvl = 3
         if lvl < 0: lvl = 0
@@ -94,12 +94,15 @@ class Notification:
         self.img = gtk.Image()
         self.img.set_from_icon_name(Notification.IMG[lvl], Notification.DEFAULT_SIZE)
         box.pack_start(self.img, False, False)
-        self.label = gtk.Label(text)
-        self.label.set_alignment(0, 0.5)
-        self.label.modify_fg(gtk.STATE_NORMAL, gtk.gdk.Color(Notification.COLOR[lvl]))
-        self.label.set_use_markup(True)
-        label_set_autowrap(self.label)
-        box.pack_start(self.label, True, True)
+        if type(text) == str:
+            self.label = gtk.Label(text)
+            if link_cb: self.label.connect("activate-link", link_cb)
+            self.label.set_alignment(0, 0.5)
+            self.label.modify_fg(gtk.STATE_NORMAL, gtk.gdk.Color(Notification.COLOR[lvl]))
+            self.label.set_use_markup(True)
+            label_set_autowrap(self.label)
+            box.pack_start(self.label, True, True)
+        else: box.pack_start(text, True, True)
         self.btn = gtk.Button()
         self.btn.set_relief(gtk.RELIEF_NONE)
         self.btn.connect("clicked", self.__cb_destroy)
@@ -310,9 +313,9 @@ class SWBCore:
         return True
 
 
-    def notify(self, text, lvl=0, info_box=None, msg_id=None):
+    def notify(self, text, lvl=0, info_box=None, msg_id=None, link_cb=None):
 
-        notification = Notification(text, lvl)
+        notification = Notification(text, lvl, link_cb)
         if msg_id:
             if msg_id in self.__global_notifications:
                 self.__global_notifications[msg_id].destroy()
