@@ -80,13 +80,13 @@
       <column type="gchararray"/>
       <!-- column-name Title -->
       <column type="gchararray"/>
-      <!-- column-name Export value -->
+      <!-- column-name Export -->
       <column type="gchararray"/>
       <!-- column-name Item -->
       <column type="GObject"/>
       <!-- column-name Color -->
       <column type="gchararray"/>
-      <!-- column-name Color FG -->
+      <!-- column-name Color1 -->
       <column type="gchararray"/>
     </columns>
   </object>
@@ -223,6 +223,52 @@
                 <property name="sensitive">False</property>
                 <property name="label" translatable="yes">_View</property>
                 <property name="use_underline">True</property>
+                <child type="submenu">
+                  <object class="GtkMenu" id="menu6">
+                    <property name="visible">True</property>
+                    <child>
+                      <object class="GtkCheckMenuItem" id="menu:view:toolbar">
+                        <property name="visible">True</property>
+                        <property name="label" translatable="yes">Toolbar</property>
+                        <property name="use_underline">True</property>
+                        <property name="active">True</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkSeparatorMenuItem" id="separator5">
+                        <property name="visible">True</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkImageMenuItem" id="menu:view:notifications">
+                        <property name="label" translatable="yes">Notification log</property>
+                        <property name="visible">True</property>
+                        <property name="image">image7</property>
+                        <property name="use_stock">False</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkSeparatorMenuItem" id="separator4">
+                        <property name="visible">True</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkImageMenuItem" id="menuitem7">
+                        <property name="label" translatable="yes">Preview in browser</property>
+                        <property name="visible">True</property>
+                        <property name="image">image6</property>
+                        <property name="use_stock">False</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkMenuItem" id="menuitem8">
+                        <property name="visible">True</property>
+                        <property name="label" translatable="yes">Preview in internal browser</property>
+                        <property name="use_underline">True</property>
+                      </object>
+                    </child>
+                  </object>
+                </child>
               </object>
             </child>
             <child>
@@ -297,9 +343,7 @@
               </packing>
             </child>
             <child>
-              <object class="GtkSeparatorToolItem" id="main:toolbar:separator">
-                <property name="visible">True</property>
-              </object>
+              <object class="GtkSeparatorToolItem" id="main:toolbar:separator"/>
               <packing>
                 <property name="expand">False</property>
                 <property name="homogeneous">True</property>
@@ -307,7 +351,6 @@
             </child>
             <child>
               <object class="GtkToolButton" id="main:toolbar:settings">
-                <property name="visible">True</property>
                 <property name="sensitive">False</property>
                 <property name="label" translatable="yes">Settings</property>
                 <property name="use_underline">True</property>
@@ -370,7 +413,6 @@
             </child>
             <child>
               <object class="GtkToolButton" id="edit:sub:validate">
-                <property name="visible">True</property>
                 <property name="is_important">True</property>
                 <property name="label" translatable="yes">Validate</property>
                 <property name="use_underline">True</property>
@@ -540,7 +582,7 @@
                                           </object>
                                         </child>
                                         <child>
-                                          <object class="GtkMenuItem" id="xccdf:profiles:filter:user">
+                                          <object class="GtkCheckMenuItem" id="xccdf:profiles:filter:user">
                                             <property name="visible">True</property>
                                             <property name="sensitive">False</property>
                                             <property name="label" translatable="yes">User defined ...</property>
@@ -1627,7 +1669,6 @@
                     <child>
                       <object class="GtkComboBox" id="edit:xccdf:resolved">
                         <property name="visible">True</property>
-                        <property name="sensitive">False</property>
                         <property name="model">edit:xccdf:resolved:model</property>
                         <child>
                           <object class="GtkCellRendererText" id="cellrenderertext3"/>
@@ -2772,7 +2813,6 @@
                                                 <child>
                                                   <object class="GtkEntry" id="edit:general:entry_id">
                                                     <property name="visible">True</property>
-                                                    <property name="sensitive">False</property>
                                                     <property name="can_focus">True</property>
                                                     <property name="invisible_char">&#x25CF;</property>
                                                   </object>
@@ -5112,7 +5152,6 @@
                                                 <child>
                                                   <object class="GtkEntry" id="edit:values:id">
                                                     <property name="visible">True</property>
-                                                    <property name="sensitive">False</property>
                                                     <property name="can_focus">True</property>
                                                     <property name="invisible_char">&#x25CF;</property>
                                                   </object>
@@ -5996,5 +6035,13 @@ This selector designates the Value constraints to be applied during tailoring, f
     <property name="visible">True</property>
     <property name="pixel_size">16</property>
     <property name="icon_name">edit-find</property>
+  </object>
+  <object class="GtkImage" id="image6">
+    <property name="visible">True</property>
+    <property name="icon_name">applications-internet</property>
+  </object>
+  <object class="GtkImage" id="image7">
+    <property name="visible">True</property>
+    <property name="icon_name">accessories-text-editor</property>
   </object>
 </interface>

@@ -382,6 +382,7 @@ class List(EventObject):
         if iter and model.get_value(iter, col) == id:
             view.expand_to_path(path)
             selection.select_path(path)
+            view.scroll_to_cell(path)
             return True
 
     def set_selected_profile_item(self, model, path, iter, usr):
@@ -393,6 +394,7 @@ class List(EventObject):
         if iter and model.get_value(iter, col) == id and model.iter_parent(iter) and model.get_value(model.iter_parent(iter), col) == profile:
             view.expand_to_path(path)
             selection.select_path(path)
+            view.scroll_to_cell(path)
             return True
 
     def get_TreeView(self):
@@ -409,6 +411,7 @@ class List(EventObject):
 
     def __match_func(self, model, iter, data):
         """ search pattern in column of model"""
+        logger.warning("Deprecation warning: This function should not be used.") # TODO
         column, key = data # data is a tuple containing column number and key
         pattern = re.compile(key,re.IGNORECASE)
         return pattern.search(model.get_value(iter, column)) != None
@@ -420,6 +423,7 @@ class List(EventObject):
             @param data is a tuple containing column number and key
             @return iter or None
         """
+        logger.warning("Deprecation warning: This function should not be used.") # TODO
         while iter:
             # If all data was searched, stop the search. 
             if iter_start == model.get_string_from_iter(iter):
@@ -437,6 +441,7 @@ class List(EventObject):
 
     def search(self, key, column):
         """ search in treeview"""
+        logger.warning("Deprecation warning: This function should not be used.") # TODO
         selection = self.treeView.get_selection()
         model, iter =  selection.get_selected()
         iter_old = iter
@@ -487,6 +492,86 @@ class List(EventObject):
             self.get_TreeView().expand_to_path(path)
             selection.select_path(path)
             self.get_TreeView().scroll_to_cell(path)
+
+    def recursive_search(self, pattern, columns, parent=None):
+        """ Search the treeview by regular expression
+        in "pattern" variable. Search in columns specified by the
+        list in "columns" variable.
+
+        Let parent None if you want to start the search. "parent"
+        variable is used to set recursivity.
+        
+        iter - local variable used for iteration thru iters
+        """
+        if pattern == None or columns == None or len(columns) == 0:
+            return False
+
+        selection = self.treeView.get_selection()
+        model, i_start =  selection.get_selected()
+        if not parent:
+            if i_start == None:
+                # Nothing selected, search from the first iter
+                i_start = model.get_iter_root()
+                # TODO: Add check here to cover the root iter
+                if not i_start: return True # Tree is empty
+
+        iter = model.iter_children(parent or i_start)
+        while iter:
+            # Look for the pattern in specified columns
+            for col in columns:
+                found = re.search(pattern or "", model[iter][col] or "")
+                if found != None:
+                    path = model.get_path(iter)
+                    self.treeView.expand_to_path(path)
+                    selection.select_path(path)
+                    self.treeView.scroll_to_cell(path)
+                    return True
+
+            # Look within this child.
+            retval = self.recursive_search(pattern, columns, iter)
+            if retval: return True
+            
+            # Not found, let's continue
+            iter = model.iter_next(iter)
+        """ If the the iter is None there is no more items as
+        children of the start item. We have to continue to next
+        iter in parent level of the tree """
+
+        """ We have parent specified but no child is found
+        This is the point we are returning up from recursive call
+        """
+        if parent != None: return False
+
+        """ This is the start of the second recursive search because
+        we haven't found anything within the selected item. 
+
+        We have to go thru parents now, but not the parent of selected
+        item. """
+        i_parent = i_start
+        while i_parent:
+            iter = model.iter_next(i_parent)
+            if iter:
+                # Look for the pattern in specified columns
+                for col in columns:
+                    found = re.search(pattern or "", model[iter][col] or "")
+                    if found != None:
+                        path = model.get_path(iter)
+                        self.treeView.expand_to_path(path)
+                        selection.select_path(path)
+                        self.treeView.scroll_to_cell(path)
+                        return True
+
+                # Look within this child.
+                retval = self.recursive_search(pattern, columns, iter)
+                if retval: return retval
+            
+            # Not found, let's continue
+            i_parent = model.iter_parent(i_parent)
+
+        """ We didn't find anything
+        """
+        return False
+
 
     def copy_row(self, model, iter , new_model, iter_parent, n_columns):
         row = []
@@ -873,9 +958,9 @@ class ListEditor(EventObject, Func, Enum_type):
 
         builder = gtk.Builder()
         builder.add_from_file("/usr/share/scap-workbench/dialogs.glade")
-        self.preview_dialog = builder.get_object("dialog:description_preview")
-        self.preview_scw = builder.get_object("dialog:description_preview:scw")
-        builder.get_object("dialog:description_preview:btn_ok").connect("clicked", self.__preview_dialog_destroy)
+        self.preview_dialog = builder.get_object("dialog:preview")
+        self.preview_scw = builder.get_object("dialog:preview:scw")
+        builder.get_object("dialog:preview:btn_ok").connect("clicked", self.__preview_dialog_destroy)
         # Get the background color from window and destroy it
         window = gtk.Window()
         window.realize()

@@ -104,6 +104,7 @@ class ProfileList(abstract.List):
         self.add_receiver("gui:btn:menu:edit:profiles", "update", self.__update)
         self.add_receiver("gui:btn:menu:edit:XCCDF", "load", self.__clear_update)
         self.add_receiver("gui:edit:xccdf:profiles:finditem", "update", self.__update)
+        self.add_receiver("gui:edit:item_list", "delete", self.__clear_update)
 
         """ Set objects from Glade files and connect signals
         """
@@ -310,6 +311,7 @@ class ItemList(abstract.List):
         are emited by other objects to trigger the async event.
         """
         self.add_sender(self.id, "update")
+        self.add_sender(self.id, "delete")
         self.add_receiver("gui:btn:menu:edit:items", "update", self.__update)
         self.add_receiver("gui:btn:menu:edit:XCCDF", "load", self.__clear_update)
 
@@ -358,17 +360,27 @@ class ItemList(abstract.List):
         """ The key-press event has occured upon the list.
         If key == delete: Delete the selected item from the list and model"""
         if event and event.type == gtk.gdk.KEY_PRESS and event.keyval == gtk.keysyms.Delete:
-            self.notifications.append(self.core.notify("Delete operation is not supported yet.",
-                Notification.INFORMATION, msg_id="notify:edit:delete_item"))
+            selection = self.get_TreeView().get_selection()
+            (model,iter) = selection.get_selected()
+            if iter: self.__cb_item_remove()
 
     def __cb_item_remove(self, widget=None):
         """ Remove selected item from the list and model.
         """
         selection = self.get_TreeView().get_selection()
-        (model,iter) = selection.get_selected()
+        (model, iter) = selection.get_selected()
         if iter:
+            iter_next = model.iter_next(iter)
             self.data_model.remove_item(model[iter][1])
             model.remove(iter)
+
+            # If the removed item has successor, let's select it so we can
+            # continue in deleting or other actions without need to click the
+            # list again to select next item
+            if iter_next:
+                self.core.selected_item = model[iter_next][1]
+                self.__update(False)
+            self.emit("delete") 
         else: raise AttributeError, "Removing non-selected item or nothing selected."
 
     def __cb_item_add(self, widget=None):
@@ -482,8 +494,7 @@ class MenuButtonEditXCCDF(abstract.MenuButton):
 
         self.emit("load")
 
-    def __cb_import(self, widget):
-        file = self.data_model.file_browse("Load XCCDF file", action=gtk.FILE_CHOOSER_ACTION_OPEN)
+    def __import(self, file):
         if file != "":
             self.__cb_close(None)
             logger.debug("Loading XCCDF file %s", file)
@@ -497,9 +508,9 @@ class MenuButtonEditXCCDF(abstract.MenuButton):
     def __cb_preview(self, widget):
         builder = gtk.Builder()
         builder.add_from_file("/usr/share/scap-workbench/dialogs.glade")
-        preview_dialog = builder.get_object("dialog:description_preview")
-        preview_scw = builder.get_object("dialog:description_preview:scw")
-        builder.get_object("dialog:description_preview:btn_ok").connect("clicked", lambda w: preview_dialog.destroy())
+        preview_dialog = builder.get_object("dialog:preview")
+        preview_scw = builder.get_object("dialog:preview:scw")
+        builder.get_object("dialog:preview:btn_ok").connect("clicked", lambda w: preview_dialog.destroy())
         # Get the background color from window and destroy it
 
         desc = self.__model.get_value(iter, self.COLUMN_TEXT) or ""
@@ -529,19 +540,22 @@ class MenuButtonEditXCCDF(abstract.MenuButton):
         preview_dialog.show_all()
         
     def __cb_validate(self, widget):
+        """ Deprecated: Validate button from main file is not visible
+        anymore. This function is not reachable. Leting here for
+        further reference """
         validate = self.data_model.validate()
         message = [ "Document is not valid !",
                     "Document is valid.",
-                    "Validation process failed, check for error in log file.",
-                    "File not saved, use export first."][validate]
+                    "Validation process failed, check for error in log file."][validate]
         lvl = [ Notification.WARNING,
                 Notification.SUCCESS,
-                Notification.ERROR,
-                Notification.INFORMATION][validate]
+                Notification.ERROR][validate]
         self.notifications.append(self.core.notify(message, lvl, msg_id="notify:xccdf:validate"))
 
+    def __cb_import(self, widget):
+        ImportDialog(self.core, self.data_model, self.__import)
+
     def __cb_export(self, widget):
-        self.core.notify_destroy("notify:xccdf:validate")
         ExportDialog(self.core, self.data_model)
 
     def __menu_sensitive(self, active):
@@ -639,6 +653,89 @@ class MenuButtonEditXCCDF(abstract.MenuButton):
         self.entry_resolved.handler_unblock_by_func(self.__change)
         self.entry_lang.handler_unblock_by_func(self.__change)
 
+class ImportDialog(abstract.Window, abstract.ListEditor):
+
+    def __init__(self, core, data_model, cb):
+
+        self.core = core
+        self.__import = cb
+        self.data_model = data_model
+        builder = gtk.Builder()
+        builder.add_from_file("/usr/share/scap-workbench/dialogs.glade")
+        self.wdialog = builder.get_object("dialog:import")
+        self.info_box = builder.get_object("dialog:import:info_box")
+        self.filechooser = builder.get_object("dialog:import:filechooser")
+        self.filechooser.set_filename(self.core.lib.xccdf or "")
+        self.valid = builder.get_object("dialog:import:valid")
+        builder.get_object("dialog:import:btn_ok").connect("clicked", self.__do)
+        builder.get_object("dialog:import:btn_cancel").connect("clicked", self.__dialog_destroy)
+
+        if not callable(self.__import):
+            logger.critical("FATAL: Function for import is not callable")
+            self.core.notify("<b>FATAL !</b> Function for import is not callable ! <a href='#bug'>Report</a>", 
+                    Notification.FATAL, msg_id="notify:xccdf:import:dialog", link_cb=self.__action_link)
+            return
+            
+        self.wdialog.set_transient_for(self.core.main_window)
+        self.wdialog.show()
+        self.log = []
+
+    def __cb_report(self, msg, plugin):
+        self.log.append(msg.string)
+        return True
+
+    def __action_link(self, widget, action):
+        if action == "#overvalid":
+            self.core.notify_destroy("notify:xccdf:import:dialog")
+            self.__do(overvalid=True)
+        elif action == "#log":
+            builder = gtk.Builder()
+            builder.add_from_file("/usr/share/scap-workbench/dialogs.glade")
+            preview_dialog = builder.get_object("dialog:preview")
+            box = gtk.VBox()
+            box.set_spacing(2)
+            builder.get_object("dialog:preview:scw").add_with_viewport(box)
+            builder.get_object("dialog:preview:btn_ok").connect("clicked", lambda w: preview_dialog.destroy())
+            for entry in self.log:
+                self.core.notify("%s" % (entry,), Notification.WARNING, info_box=box)
+            preview_dialog.set_transient_for(self.wdialog)
+            preview_dialog.show_all()
+
+        elif action == "#bug":
+            browser_val = self.data_model.open_webbrowser("http://bugzilla.redhat.com")
+        else: return False
+
+        return True
+
+    def __do(self, widget=None, overvalid=False):
+        #self.progress.set_transient_for(self.wdialog)
+        #self.progress.show()
+        import_file = self.filechooser.get_filename()
+        if import_file == None:
+            self.core.notify("Choose a file to first.",
+                Notification.INFORMATION, info_box=self.info_box, msg_id="notify:xccdf:import:dialog")
+            #self.progress.destroy()
+            return
+        
+        if not overvalid and self.valid.get_active():
+            # Test the validity of exported model
+            self.log = []
+            retval = self.data_model.validate_file(import_file, reporter=self.__cb_report)
+            if retval != True:
+                self.core.notify("You are trying to import non-valid XCCDF Benchmark ! <a href='#overvalid'>Proceed</a> <a href='#log'>More</a>", 
+                        Notification.WARNING, info_box=self.info_box, msg_id="notify:xccdf:import:dialog", link_cb=self.__action_link)
+                #self.progress.destroy()
+                return
+
+        self.__import(import_file)
+        self.__dialog_destroy()
+
+    def __dialog_destroy(self, widget=None):
+        """
+        """
+        if self.wdialog: 
+            self.wdialog.destroy()
+
 class ExportDialog(abstract.Window, abstract.ListEditor):
 
     def __init__(self, core, data_model):
@@ -648,10 +745,12 @@ class ExportDialog(abstract.Window, abstract.ListEditor):
         builder = gtk.Builder()
         builder.add_from_file("/usr/share/scap-workbench/dialogs.glade")
         self.wdialog = builder.get_object("dialog:export")
+        self.progress = builder.get_object("dialog:progress")
         self.info_box = builder.get_object("dialog:export:info_box")
         self.filechooser = builder.get_object("dialog:export:filechooser")
         self.filechooser.set_filename(self.core.lib.xccdf or "")
         self.filechooser.connect("confirm-overwrite", self.__confirm_overwrite)
+        self.valid = builder.get_object("dialog:export:valid")
         self.profile = builder.get_object("dialog:export:profile")
         self.profile.connect("clicked", self.__cb_profile_clicked)
         self.profiles_cb = builder.get_object("dialog:export:profiles:cb")
@@ -682,9 +781,12 @@ class ExportDialog(abstract.Window, abstract.ListEditor):
         print widget, more
 
     def __action_link(self, widget, action):
-        if action == "#proceed":
+        if action == "#overwrite":
             self.core.notify_destroy("notify:xccdf:export:dialog")
-            self.__do(proceed=True)
+            self.__do(overwrite=True)
+        if action == "#overvalid":
+            self.core.notify_destroy("notify:xccdf:export:dialog")
+            self.__do(overvalid=True)
         elif action == "#browser":
             self.core.notify_destroy("notify:xccdf:export")
             browser_val = self.data_model.open_webbrowser(self.export_file)
@@ -697,19 +799,33 @@ class ExportDialog(abstract.Window, abstract.ListEditor):
 
         return True
 
-    def __do(self, widget=None, proceed=False):
+    def __do(self, widget=None, overwrite=False, overvalid=False):
+        #self.progress.set_transient_for(self.wdialog)
+        #self.progress.show()
         export_file = self.filechooser.get_filename()
         if export_file == None:
             self.core.notify("Choose a file to save to first.",
                 Notification.INFORMATION, info_box=self.info_box, msg_id="dialog:export:notify")
+            #self.progress.destroy()
             return
         
         self.export_file = export_file
-        if not proceed and export_file == self.core.lib.xccdf and self.guide_rb.get_active():
+
+        if not overwrite and export_file == self.core.lib.xccdf and self.guide_rb.get_active():
             # We are trying to export guide to the XCCDF file (common mistake)
-            self.core.notify("You are trying to overwrite loaded XCCDF Benchmark by XCCDF Guide ! <a href='#proceed'>Proceed</a>", 
+            self.core.notify("You are trying to overwrite loaded XCCDF Benchmark by XCCDF Guide ! <a href='#overwrite'>Proceed</a>", 
                     Notification.WARNING, info_box=self.info_box, msg_id="notify:xccdf:export:dialog", link_cb=self.__action_link)
+            #self.progress.destroy()
             return
+
+        if not overvalid and self.valid.get_active():
+            # Test the validity of exported model
+            retval = self.data_model.validate()
+            if not retval:
+                self.core.notify("You are trying to export non-valid XCCDF Benchmark ! <a href='#overvalid'>Proceed</a>", 
+                        Notification.WARNING, info_box=self.info_box, msg_id="notify:xccdf:export:dialog", link_cb=self.__action_link)
+                #self.progress.destroy()
+                return
 
         if self.file_rb.get_active():
             # we are exporting to file
@@ -719,17 +835,27 @@ class ExportDialog(abstract.Window, abstract.ListEditor):
             self.core.lib.xccdf = file_name
         else:
             # we are exporting as guide
-            if not self.core.lib.xccdf:
+            if not self.data_model.resolve():
+                self.core.notify("Benchmark resolveing failed",
+                        Notification.ERROR, info_box=self.info_box, msg_id="notify:xccdf:export")
+                #self.progress.destroy()
+                return
+            elif not self.core.lib.xccdf:
                 self.core.notify("Benchmark is not exported. Export benchmark first !",
                         Notification.INFORMATION, info_box=self.info_box, msg_id="notify:xccdf:export")
+                #self.progress.destroy()
                 return
 
+            temp = tempfile.NamedTemporaryFile()
+            retval = self.data_model.export(temp.name)
             profile = None
             if self.profiles_cb.get_active() != -1:
                 profile = self.profiles_cb.get_model()[self.profiles_cb.get_active()][0]
-            self.data_model.export_guide(export_file, profile, not self.profile.get_active())
+            self.data_model.export_guide(temp.name, export_file, profile, not self.profile.get_active())
             self.core.notify("The guide has been exported to \"%s\". <a href='#browser'>View in browser</a> <a href='#webkit'>View in WebKit</a>" % (export_file,),
                     Notification.SUCCESS, msg_id="notify:xccdf:export", link_cb=self.__action_link)
+            temp.close()
+            #self.progress.destroy()
 
         self.__dialog_destroy()
 
@@ -1050,6 +1176,8 @@ class MenuButtonEditItems(abstract.MenuButton, abstract.Func):
 
         # Get widgets from GLADE
         self.item_id = self.builder.get_object("edit:general:entry_id")
+        self.item_id.connect("focus-out-event", self.__change)
+        self.item_id.connect("key-press-event", self.__change)
         self.version = self.builder.get_object("edit:general:entry_version")
         self.version.connect("focus-out-event", self.__change)
         self.version.connect("key-press-event", self.__change)
@@ -1158,6 +1286,7 @@ class MenuButtonEditItems(abstract.MenuButton, abstract.Func):
         self.add_receiver("gui:edit:evaluation:content_ref:dialog", "update", self.__update)
         self.add_receiver("gui:edit:xccdf:values:titles", "update", self.__update_item)
         self.add_receiver("gui:edit:xccdf:items:titles", "update", self.__update_item)
+        self.add_receiver("gui:edit:xccdf:values", "update_item", self.__update_item)
 
     def __cb_find_oval_definition(self, widget):
 
@@ -1172,7 +1301,10 @@ class MenuButtonEditItems(abstract.MenuButton, abstract.Func):
         if event and event.type == gtk.gdk.KEY_PRESS and event.keyval != gtk.keysyms.Return:
             return
 
-        if widget == self.version:
+        if widget == self.item_id:
+            self.data_model.update(id=widget.get_text())
+            self.__update_item()
+        elif widget == self.version:
             self.data_model.update(version=widget.get_text())
         elif widget == self.version_time:
             timestamp = self.controlDate(widget.get_text())
@@ -1265,6 +1397,8 @@ class MenuButtonEditItems(abstract.MenuButton, abstract.Func):
         (model, iter) = selection.get_selected()
         if iter:
             item = self.data_model.get_item(model[iter][1])
+            if item == None:
+                item = self.data_model.get_item(self.core.selected_item)
             if item == None:
                 logger.error("Can't find item with ID: \"%s\"" % (model[iter][1],))
                 return
@@ -2612,6 +2746,7 @@ class EditValues(abstract.MenuButton):
 
         EventObject.__init__(self, core)
         self.core.register(self.id, self)
+        self.add_sender(id, "update_item")
         
         #edit data of values
         # -- VALUES --
@@ -2656,6 +2791,8 @@ class EditValues(abstract.MenuButton):
         # -------------
         
         self.vid = self.builder.get_object("edit:values:id")
+        self.vid.connect("focus-out-event", self.__change)
+        self.vid.connect("key-press-event", self.__change)
         self.version = self.builder.get_object("edit:values:version")
         self.version.connect("focus-out-event", self.__change)
         self.version.connect("key-press-event", self.__change)
@@ -2689,7 +2826,10 @@ class EditValues(abstract.MenuButton):
         if event and event.type == gtk.gdk.KEY_PRESS and event.keyval != gtk.keysyms.Return:
             return
 
-        if widget == self.version:
+        if widget == self.vid:
+            self.data_model.edit_value(id=widget.get_text())
+            self.emit("update_item")
+        elif widget == self.version:
             self.data_model.edit_value(version=widget.get_text())
         elif widget == self.version_time:
             timestamp = self.controlDate(widget.get_text())

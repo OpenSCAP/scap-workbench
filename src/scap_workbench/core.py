@@ -22,6 +22,7 @@
 
 import logging
 import logging.config
+import pango
 import sys, gtk, gobject
 from events import EventHandler
 
@@ -72,17 +73,18 @@ class Notification:
     INFORMATION = 1
     WARNING = 2
     ERROR = 3
+    FATAL = 4
 
-    IMG = ["dialog-ok", "dialog-information", "dialog-warning", "dialog-error"]
-    BG_COLOR = ["#DFF2BF", "#BDE5F8", "#FEEFB3", "#FFBABA"]
-    COLOR = ["#4F8A10", "#00529B", "#9F6000", "#D8000C"]
+    IMG = ["dialog-ok", "dialog-information", "dialog-warning", "dialog-error", "software-update-urgent"]
+    BG_COLOR = ["#DFF2BF", "#BDE5F8", "#FEEFB3", "#FFBABA", "#FFBABA"]
+    COLOR = ["#4F8A10", "#00529B", "#9F6000", "#D8000C", "#D8000C"]
     DEFAULT_SIZE = gtk.ICON_SIZE_LARGE_TOOLBAR
     DEFAULT_TIME = 10
     HIDE_LVLS = [0, 1] # TODO
 
     def __init__(self, text, lvl=0, link_cb=None):
 
-        if lvl > 3: lvl = 3
+        if lvl > 4: lvl = 4
         if lvl < 0: lvl = 0
 
         logger.debug("Notification: %s", text)
@@ -100,14 +102,16 @@ class Notification:
             self.label.set_alignment(0, 0.5)
             self.label.modify_fg(gtk.STATE_NORMAL, gtk.gdk.Color(Notification.COLOR[lvl]))
             self.label.set_use_markup(True)
+            #self.label.set_line_wrap(True)
+            self.label.set_line_wrap_mode(pango.WRAP_WORD)
             label_set_autowrap(self.label)
             box.pack_start(self.label, True, True)
         else: box.pack_start(text, True, True)
-        self.btn = gtk.Button()
-        self.btn.set_relief(gtk.RELIEF_NONE)
-        self.btn.connect("clicked", self.__cb_destroy)
-        self.btn.set_label("x")
-        box.pack_start(self.btn, False, False)
+        self.close_btn = gtk.Button()
+        self.close_btn.set_relief(gtk.RELIEF_NONE)
+        self.close_btn.connect("clicked", self.__cb_destroy)
+        self.close_btn.set_label("x")
+        box.pack_start(self.close_btn, False, False)
         self.eb = gtk.EventBox()
         self.eb.modify_bg(gtk.STATE_NORMAL, gtk.gdk.Color(Notification.BG_COLOR[lvl]))
         self.eb.set_border_width(1)
@@ -323,8 +327,8 @@ class SWBCore:
         else:
             self.__global_notifications[None].append(notification)
 
-        if info_box: info_box.pack_start(notification.widget)
-        else: self.info_box.pack_start(notification.widget)
+        if info_box: info_box.pack_start(notification.widget, False, True)
+        else: self.info_box.pack_start(notification.widget, False, True)
         return notification
 
     def notify_destroy(self, msg_id):

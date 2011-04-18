@@ -27,6 +27,7 @@ import datetime
 import time
 import core
 from datetime import datetime
+import tempfile         # Temporary file for XCCDF preview
 
 from events import EventObject
 from htmltextview import HtmlTextView
@@ -935,8 +936,15 @@ class DHXccdf(DataHandler):
 
         if id and benchmark.id != id: benchmark.id = id
         if version and benchmark.version != version: benchmark.version = version
-        if resolved and benchmark.resolved != resolved: benchmark.resolved = resolved
+        if resolved != None and benchmark.resolved != resolved: benchmark.resolved = resolved
         if lang and benchmark.lang != lang: benchmark.lang = lang
+
+    def resolve(self):
+
+        if not self.check_library(): return None
+
+        retval = self.core.lib.benchmark.resolve()
+        return True
 
     def export(self, file_name=None):
 
@@ -951,12 +959,26 @@ class DHXccdf(DataHandler):
             return file_name
         return None
 
-    def validate(self):
-        if not self.check_library(): return 2
+    def validate_file(self, file, reporter=None):
+        if reporter and not callable(reporter):
+            logger.error("Given callback \"%s\" is not callable" % (reporter,))
 
-        if os.access(self.core.lib.xccdf or "", os.R_OK):
-            retval = openscap.common.validate_document(self.core.lib.xccdf, openscap.OSCAP.OSCAP_DOCUMENT_XCCDF, None, self.__cb_report, None)
+        if os.access(file or "", os.R_OK):
+            retval = openscap.common.validate_document(file, openscap.OSCAP.OSCAP_DOCUMENT_XCCDF, None,
+                    reporter or self.__cb_report, None)
         else: return 3
+        return retval
+
+    def validate(self, reporter=None):
+        if not self.check_library(): return 2
+        if reporter and not callable(reporter):
+            logger.error("Given callback \"%s\" is not callable" % (reporter,))
+
+        temp = tempfile.NamedTemporaryFile()
+        retval = self.export(temp.name)
+        retval = openscap.common.validate_document(temp.name, openscap.OSCAP.OSCAP_DOCUMENT_XCCDF, None,
+                reporter or self.__cb_report, None)
+        temp.close()
         return retval
 
     def get_titles(self):
@@ -1023,7 +1045,7 @@ class DHXccdf(DataHandler):
         logger.warning("Validation: %s", msg.string)
         return True
 
-    def export_guide(self, file, profile=None, hide=False):
+    def export_guide(self, xccdf, file, profile=None, hide=False):
         if not self.core.lib: return False
 
         params = [
@@ -1038,8 +1060,8 @@ class DHXccdf(DataHandler):
                 "oscap-version",     openscap.common.oscap_get_version(),
                 "pwd",               os.getenv("PWD"), None]
 
-        retval = openscap.common.oscap_apply_xslt(self.core.lib.xccdf, "security-guide.xsl", file, params)
-        # TODO If this call is not executed, there will come some strange behaviour
+        retval = openscap.common.oscap_apply_xslt(xccdf, "security-guide.xsl", file, params)
+        # TODO If this call (below) is not executed, there will come some strange behaviour
         logger.info("Export guide %s" % (["failed: %s" % (openscap.common.err_desc(),), "done"][retval],))
 
 
@@ -1132,7 +1154,7 @@ class DHValues(DataHandler):
     def get_rationales(self):
         raise Exception("According to XCCDF Version 1.2: No rationale for value item")
 
-    def edit_value(self, version=None, version_time=None, prohibit_changes=None, abstract=None, cluster_id=None, interactive=None, operator=None):
+    def edit_value(self, id=None, version=None, version_time=None, prohibit_changes=None, abstract=None, cluster_id=None, interactive=None, operator=None):
         if not self.check_library(): return None
 
         item = self.core.lib.benchmark.get_item(self.core.selected_item)
@@ -1140,6 +1162,9 @@ class DHValues(DataHandler):
             raise Exception("Edit items update: No item selected !")
         item = item.to_value()
 
+        if id != None and len(id) > 0 and item.id != id:
+            item.id = id
+            self.core.selected_item = id
         if version != None and item.version != version:
             item.version = version
         if version_time != None:
@@ -1276,11 +1301,8 @@ class DHItemsTree(DataHandler, EventObject):
         self.__total = None
         self.__step = None
         self.map_filter = None
+        self.model = None
         
-    def new_model(self):
-        # Type, ID, Name, Picture, Text, Font color, selected, parent-selected
-        return gtk.TreeStore(str, str, str, str, str, str, bool, bool)
-
     def render(self, treeView):
         """Make a model ListStore of Dependencies object"""
 
@@ -1335,9 +1357,6 @@ class DHItemsTree(DataHandler, EventObject):
         """Check if library is initialized, 
         return otherwise"""
         if not self.check_library(): return None
-
-        """You can't select items when in no profile policy"""
-        if self.core.selected_profile == None: return
 
         """model is alternative attribute for previous
         model if filters were applied"""
@@ -2213,7 +2232,7 @@ class DHScan(DataHandler, EventObject):
         if not expfile: expfile = "report.xhtml"
 
         retval = openscap.common.oscap_apply_xslt(file, xslfile, expfile, params)
-        # TODO If this call is not executed, there will come some strange behaviour
+        # TODO If this call (below) is not executed, there will come some strange behaviour
         logger.info("Export report file %s" % (["failed: %s" % (openscap.common.err_desc(),), "done"][retval],))
         self.open_webbrowser(expfile)
 
@@ -2253,13 +2272,16 @@ class DHEditItems(DataHandler):
         self.item = None # TODO: bug workaround - commands.py:1589 AttributeError: DHEditItems instance has no attribute 'item'
         self.core = core
 
-    def update(self, version=None, version_time=None, selected=None, hidden=None, prohibit=None, abstract=None, cluster_id=None, weight=None):
+    def update(self, id=None, version=None, version_time=None, selected=None, hidden=None, prohibit=None, abstract=None, cluster_id=None, weight=None):
         if not self.check_library(): return None
 
         item = self.core.lib.benchmark.get_item(self.core.selected_item)
         if item == None:
             raise Exception("Edit items update: No item selected !")
 
+        if id != None and len(id) > 0 and item.id != id:
+            item.id = id
+            self.core.selected_item = id
         if version != None and item.version != version:
             item.version = version
         if version_time != None:

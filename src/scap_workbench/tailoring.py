@@ -20,36 +20,46 @@
 #      Maros Barabas        <mbarabas@redhat.com>
 #      Vladimir Oberreiter  <xoberr01@stud.fit.vutbr.cz>
 
-import pygtk
-import gtk
-import gobject
-import pango
+""" Importing standard python libraries
+"""
+import gtk              # GTK library
+import pango            # pango library for WRAP* variables
+import re               # Regular expressions 
+import sre_constants    # For re.compile exception
 
-import abstract
-import logging
-import core
-from events import EventObject
+""" Importing SCAP Workbench modules
+"""
+import abstract                 # All abstract classes
+import logging                  # Logger for debug/info/error messages
+import core                     # Initializing of core in main window
+import commands                 # Module for handling openscap
+import filter                   # Module for handling filters
+from core import Notification   # core.Notification levels for reference
+from events import EventObject  # abstract module EventObject
+import htmltextview             # Alternative of webkit
 
-    
-import commands
-import filter
-import render
-
-from htmltextview import HtmlTextView
 from threads import thread_free as threadFree
+from htmltextview import HtmlTextView
 
+# Initializing Logger
 logger = logging.getLogger("scap-workbench")
 
 class ItemList(abstract.List):
     
-    def __init__(self, builder, core, progress=None, filter=None):
+    def __init__(self, builder, core, progress=None):
         self.core = core
-        self.filter = filter
+        self.builder = builder
         self.__progress = progress
         self.profiles = builder.get_object("tailoring:profile")
         self.data_model = commands.DHItemsTree("gui:tailoring:DHItemsTree", core, progress, self.profiles)
         abstract.List.__init__(self, "gui:tailoring:item_list", core, builder.get_object("tailoring:tw_items"))
         self.__has_model_changed = False
+        self.filter_box = self.builder.get_object("tailoring:filter:box")
+        self.filter_toggle = self.builder.get_object("tailoring:filter:toggle")
+        self.filter_toggle.connect("toggled", self.__cb_filter_toggle)
+        self.search = self.builder.get_object("tailoring:filter:search")
+        #self.search.connect("changed", self.__cb_search, self.get_TreeView())
+        self.search.connect("key-press-event", self.__cb_search, self.get_TreeView())
         
         selection = self.get_TreeView().get_selection()
         selection.set_mode(gtk.SELECTION_SINGLE)
@@ -63,15 +73,51 @@ class ItemList(abstract.List):
         
         builder.get_object("tailoring:items:toggled:cellrenderer").connect("toggled", self.data_model.cb_toggled)
         selection.connect("changed", self.__cb_item_changed, self.get_TreeView())
+        self.__cb_filter_toggle()
 
-        self.init_filters(self.filter, self.data_model.model, self.data_model.new_model())
+    def __filter(self, model, path, iter, usr):
+        
+        pattern, columns = usr
+
+        selection = self.get_TreeView().get_selection()
+        if not iter: return False
+
+        for col in columns:
+            found = re.search(pattern or "", model[iter][col] or "")
+            if found != None:
+                self.get_TreeView().expand_to_path(path)
+                selection.select_path(path)
+                self.get_TreeView().scroll_to_cell(path)
+                return True
+
+        return False
+
+    def __cb_search(self, widget, event, treeview):
+        try:
+            text = self.search.get_text() or ""
+            pattern = re.compile(text, re.I)
+        except sre_constants.error, err:
+            self.core.notify("Regexp entry error: %s" % (err,), Notification.ERROR, msg_id="notify:profiles:filter")
+            return True
+
+        if event and event.type == gtk.gdk.KEY_PRESS and event.keyval == gtk.keysyms.Return:
+            """ User pressed the Enter button to search more
+            """
+            retval = self.recursive_search(pattern, [1,2])
+            if retval: return True
+
+        treeview.get_model().foreach(self.__filter, (pattern, [1,2]))
+
+    def __cb_filter_toggle(self, widget=None):
+
+        self.filter_box.set_property('visible', self.filter_toggle.get_active())
 
     def __update(self):
 
         if not self.core.lib.loaded: self.data_model.model.clear()
         if "profile" not in self.__dict__ or self.profile != self.core.selected_profile or self.core.force_reload_items:
             self.profile = self.core.selected_profile
-            self.get_TreeView().set_model(self.data_model.model)
+            #self.get_TreeView().set_model(self.data_model.model)
             self.profiles.set_sensitive(False)
             self.treeView.set_sensitive(False)
             self.data_model.fill()
@@ -96,7 +142,7 @@ class ItemList(abstract.List):
         self.get_TreeView().get_model().foreach(self.set_selected, (self.core.selected_item, self.get_TreeView(), 1))
 
     def __filter_refresh(self):
-        self.data_model.map_filter = self.filter_del(self.filter.filters)
+        #self.data_model.map_filter = self.filter_del(self.filter.filters)
         self.get_TreeView().get_model().foreach(self.set_selected, (self.core.selected_item, self.get_TreeView(), 1))
 
     @threadFree
@@ -210,7 +256,7 @@ class ItemDetails(EventObject):
             label.set_line_wrap(True)
             label.set_line_wrap_mode(pango.WRAP_WORD) 
             label.set_alignment(0,0)
-            label.connect("size-allocate", render.label_size_allocate)
+            label.connect("size-allocate", core.label_size_allocate)
             hbox.show_all()
             self.refBox.pack_start(hbox, True, True)
 
@@ -260,7 +306,7 @@ class ItemDetails(EventObject):
         self.title = gtk.Label("")
         self.title.set_line_wrap(True)
         self.title.set_line_wrap_mode(pango.WRAP_WORD)
-        render.label_set_autowrap(self.title)
+        core.label_set_autowrap(self.title)
         self.title.set_alignment(0,0)
         hbox.pack_start(self.title, expand=True, fill=True, padding=1)
         vbox.pack_start(hbox, expand=False, fill=False, padding=1)
@@ -490,10 +536,10 @@ class MenuButtonTailoring(abstract.MenuButton):
         self.draw_nb(self.builder.get_object("tailoring:box_nb"))
         self.progress = self.builder.get_object("tailoring:progress")
         self.progress.hide()
-        self.filter = filter.ItemFilter(self.core, self.builder, "tailoring:box_filter", "gui:btn:tailoring:filter")
-        self.rules_list = ItemList(builder, self.core, self.progress, self.filter)
+        #self.filter = filter.ItemFilter(self.core, self.builder, "tailoring:box_filter", "gui:btn:tailoring:filter")
+        self.rules_list = ItemList(builder, self.core, self.progress)
         self.values = ValuesList(self.builder.get_object("tailoring:tw_values"), self.core, self.builder)
-        self.filter.expander.cb_changed()
+        #self.filter.expander.cb_changed()
 
         # set signals
         self.add_sender(self.id, "update")
