@@ -7,7 +7,7 @@
 Summary: Scanning, tailoring, editing and validation tool for SCAP content
 Name: scap-workbench
 URL: https://fedorahosted.org/scap-workbench/
-Version: 0.2.3
+Version: 0.3.0
 Release: 1%{?dist}
 License: GPLv3+
 Group: System Environment/Base
@@ -15,7 +15,7 @@ Source0: https://fedorahosted.org/released/scap-workbench/%{name}-%{version}.tar
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}
 BuildArch: noarch
 BuildRequires: python2-devel desktop-file-utils
-Requires: openscap-python >= 0.7.1
+Requires: openscap-python >= 0.7.2
 Requires: pywebkitgtk python-BeautifulSoup
 
 %description
@@ -48,10 +48,19 @@ rm -rf $RPM_BUILD_ROOT
 %dir %{_datadir}/scap-workbench/
 %{_datadir}/scap-workbench/*
 %{_mandir}/man8/scap-workbench.8.gz
+%{_mandir}/man8/scap-workbench-editor.8.gz
 %{_datadir}/applications/scap-workbench.desktop
 %{_datadir}/pixmaps/scap-workbench.png
 
 %changelog
+* Fri Apr 29 2011 Maros Barabas <mbarabas@redhat.com> 0.3.0-1
+- Split scanner and editor to two separate parts
+- New import and export dialogs in Editor
+- Improved HTML editing of descriptions
+- New notifications
+- New editing of profiles with refines
+- Fixes and small changes
+
 * Fri Mar 11 2011 Maros Barabas <mbarabas@redhat.com> 0.2.3-1
 - Refactoring of editor, more code added to glade files
 - Improved UI, added new classes for editing

@@ -1,7 +1,7 @@
 PKG=scap-workbench
 PKG_EDITOR=scap-workbench-editor
 WRK_PKG=scap_workbench
-VERSION="0.2.3"
+VERSION="0.3.0"
 
 PY_LIB := $(shell python -c "from distutils.sysconfig import get_python_lib; print get_python_lib()")
 PY_VER := python$(shell python -c "import sys; print sys.version[:3]")
@@ -42,7 +42,9 @@ install:
 	$(INSTALL) $(MODE_REG) src/glade/*.glade $(DATADIR)/$(PKG)
 	$(INSTALL) $(MODE_REG) src/$(WRK_PKG)/filters/*.py $(DATADIR)/$(PKG)/filters
 	$(INSTALL) $(MODE_REG) src/man/scap-workbench.8 $(MANDIR)/man8
+	$(INSTALL) $(MODE_REG) src/man/scap-workbench-editor.8 $(MANDIR)/man8
 	gzip -f $(MANDIR)/man8/scap-workbench.8
+	gzip -f $(MANDIR)/man8/scap-workbench-editor.8
 	$(INSTALL) $(MODE_REG) scap-workbench.png $(DATADIR)/pixmaps/scap-workbench.png
 	$(INSTALL) $(MODE_REG) scap-workbench.desktop $(DATADIR)/applications/scap-workbench.desktop
 
