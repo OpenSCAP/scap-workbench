@@ -58,7 +58,6 @@ class ItemList(abstract.List):
         self.filter_toggle = self.builder.get_object("tailoring:filter:toggle")
         self.filter_toggle.connect("toggled", self.__cb_filter_toggle)
         self.search = self.builder.get_object("tailoring:filter:search")
-        #self.search.connect("changed", self.__cb_search, self.get_TreeView())
         self.search.connect("key-press-event", self.__cb_search, self.get_TreeView())
         
         selection = self.get_TreeView().get_selection()
@@ -66,10 +65,6 @@ class ItemList(abstract.List):
 
         # actions
         self.add_receiver("gui:btn:menu:tailoring", "update", self.__update)
-        self.add_receiver("gui:btn:tailoring:filter", "search", self.__search)
-        self.add_receiver("gui:btn:tailoring:filter", "filter_add", self.__filter_add)
-        self.add_receiver("gui:btn:tailoring:filter", "filter_del", self.__filter_del)
-        self.add_receiver("gui:tailoring:DHItemsTree", "filled", self.__filter_refresh)
         
         builder.get_object("tailoring:items:toggled:cellrenderer").connect("toggled", self.data_model.cb_toggled)
         selection.connect("changed", self.__cb_item_changed, self.get_TreeView())
@@ -117,7 +112,6 @@ class ItemList(abstract.List):
         if not self.core.lib.loaded: self.data_model.model.clear()
         if "profile" not in self.__dict__ or self.profile != self.core.selected_profile or self.core.force_reload_items:
             self.profile = self.core.selected_profile
-            #self.get_TreeView().set_model(self.data_model.model)
             self.profiles.set_sensitive(False)
             self.treeView.set_sensitive(False)
             self.data_model.fill()
@@ -189,10 +183,11 @@ class ValuesList(abstract.List):
 
 class ItemDetails(EventObject):
 
-    def __init__(self, core):
+    def __init__(self, builder, core):
         
         #create view
         self.core = core
+        self.builder = builder
         EventObject.__init__(self, self.core)
         self.data_model = commands.DataHandler(self.core)
 
@@ -275,7 +270,9 @@ class ItemDetails(EventObject):
             logger.warning("Exception: %s: (%s)", err, text)
 
     def draw(self):
-        self.box_details = gtk.VBox()
+        self.box_details = self.builder.get_object("tailoring:details:box")
+
+        # TODO: Move to Glade
 
         #info (id, title, type)
         expander = gtk.Expander("<b>Info</b>")
@@ -404,6 +401,7 @@ class ItemDetails(EventObject):
         expander.add(alig)
         vbox.pack_start(sw, expand=True, fill=True, padding=1)
         self.box_details.pack_start(expander, expand=True, fill=True, padding=1)
+        self.box_details.show_all()
 
 class RefineDetails(EventObject):
     
@@ -413,70 +411,53 @@ class RefineDetails(EventObject):
         self.core = core
         EventObject.__init__(self, self.core)
         self.data_model = commands.DHProfiles(self.core)
-        self.func = abstract.Func()
+        self.func = abstract.Func(core)
         self.add_receiver("gui:tailoring:item_list", "update", self.__update)
         self.add_receiver("gui:tailoring:item_list", "changed", self.__update)
 
-        self.draw()
+        self.role = self.builder.get_object("tailoring:refines:role")
+        self.role.set_model(abstract.ENUM_ROLE.get_model())
+        self.role.connect('changed', self.__cb_edit)
+        
+        self.severity = self.builder.get_object("tailoring:refines:severity")
+        self.severity.set_model(abstract.ENUM_LEVEL.get_model())
+        self.severity.connect('changed', self.__cb_edit)
+        
+        self.weight = self.builder.get_object("tailoring:refines:weight")
+        self.weight.connect("focus-out-event", self.__cb_edit)
 
     def __update(self):
 
         details = self.data_model.get_item_details(self.core.selected_item)
         if details == None: return
 
-        self.combo_role.handler_block_by_func(self.__cb_edit)
-        self.combo_severity.handler_block_by_func(self.__cb_edit)
+        self.role.handler_block_by_func(self.__cb_edit)
+        self.severity.handler_block_by_func(self.__cb_edit)
+        self.weight.handler_block_by_func(self.__cb_edit)
+        self.role.set_sensitive(details["typetext"] == "Rule")
+        self.severity.set_sensitive(details["typetext"] == "Rule")
+        self.weight.set_sensitive(details["typetext"] == "Rule")
         if details["typetext"] == "Rule":
 
-            self.combo_role.set_model(self.model_role)
-            if "role" in details:
-                self.func.set_active_comboBox(self.combo_role, details["role"] or 1, 0)
+            if "role" in details and details["role"] != 0:
+                self.role.set_active(abstract.ENUM_ROLE.pos(details["role"]))
             else:
-                self.combo_role.set_active(0)
+                self.role.set_active(0)
 
-            self.combo_severity.set_model(self.model_severity)
             if "severity" in details:
-                self.func.set_active_comboBox(self.combo_severity, details["severity"] or 1, 0)
+                self.severity.set_active(abstract.ENUM_LEVEL.pos(details["severity"]))
             else:
-                self.combo_severity.set_active(0)
+                self.severity.set_active(0)
             
-            self.entry_weight.set_sensitive(True)
             if "weight" in details:
-                self.entry_weight.set_text(str(details["weight"]))
+                self.weight.set_text(str(details["weight"]))
             else:
-                self.entry_weight.set_text("")
-            
-        else:
-            self.combo_role.set_model(gtk.ListStore(str))
-            self.combo_severity.set_model(gtk.ListStore(str))
-            self.entry_weight.set_text("")
-            self.entry_weight.set_sensitive(False)
+                self.weight.set_text("")
 
-        self.combo_role.handler_unblock_by_func(self.__cb_edit)
-        self.combo_severity.handler_unblock_by_func(self.__cb_edit)
+        self.role.handler_unblock_by_func(self.__cb_edit)
+        self.severity.handler_unblock_by_func(self.__cb_edit)
+        self.weight.handler_unblock_by_func(self.__cb_edit)
             
-    def draw(self):
-        
-        self.vbox_refines = gtk.VBox()
-        alig = gtk.Alignment(0, 0)
-        alig.set_padding(10, 10, 10, 10)
-        self.vbox_refines.pack_start(alig, True, True)
-        vbox_refines = gtk.VBox()
-        alig.add(vbox_refines)
-        
-        self.model_role = abstract.Enum_type.combo_model_role
-        self.combo_role = self.add_widget(vbox_refines, "<b>Role</b>", False, gtk.ComboBox())
-        self.func.set_model_to_comboBox(self.combo_role, self.model_role, 1)
-        self.combo_role.connect('changed', self.__cb_edit)
-        
-        self.model_severity = abstract.Enum_type.combo_model_level
-        self.combo_severity = self.add_widget(vbox_refines, "<b>Severity</b>", False, gtk.ComboBox())
-        self.func.set_model_to_comboBox(self.combo_severity, self.model_severity, 1)
-        self.combo_severity.connect('changed', self.__cb_edit)
-        
-        self.entry_weight = self.add_widget(vbox_refines, "<b>Weight</b>", False, gtk.Entry())
-        self.entry_weight.connect("focus-out-event", self.__cb_edit)
-        
     def add_widget(self, body, text, expand, widget):
                 
         frame = gtk.Frame(text)
@@ -492,14 +473,13 @@ class RefineDetails(EventObject):
         return widget
         
     def __cb_edit(self, widget, event=None):
-        weight = self.__cb_get_weight()
-        self.data_model.change_refines( severity= abstract.Enum_type.combo_model_level[self.combo_severity.get_active()][0],
-                                        role=abstract.Enum_type.combo_model_role[self.combo_role.get_active()][0],
-                                        weight=weight)
-        #raise NotImplementedError("Changing refines of \"%s\" not implemented." % (data,))
+        severity = role = None
+        if self.severity.get_active() != -1: severity = abstract.ENUM_LEVEL[self.severity.get_active()][0]
+        if self.role.get_active() != -1: role = abstract.ENUM_ROLE[self.role.get_active()][0]
+        self.data_model.change_refines( severity=severity, role=role, weight=self.__cb_get_weight())
     
     def __cb_get_weight(self):
-        weight = self.func.controlFloat(self.entry_weight.get_text(), "Weight", self.core.main_window)
+        weight = self.func.controlFloat(self.weight.get_text(), "Weight", self.core.main_window)
         if weight:
             return weight
         else: 
@@ -521,58 +501,55 @@ class MenuButtonTailoring(abstract.MenuButton):
 
         # Profiles combo box
         self.profiles = self.builder.get_object("tailoring:profile")
-        self.profile_model = commands.DHProfiles(core)
-        self.profile_model.model = self.profiles.get_model()
-        self.profile_model.fill()
-        self.profiles.set_active(0)
+        self.data_model = commands.DHProfiles(core)
+        self.data_model.model = self.profiles.get_model()
+        self.__profiles_update()
         self.profiles.connect("changed", self.__cb_profile_changed, self.profiles.get_model())
 
         self.add_receiver("gui:btn:main:xccdf", "load", self.__profiles_update)
-        self.add_receiver("gui:edit:profile_list", "update_profiles", self.__profiles_update)
-        self.add_receiver("gui:btn:menu:edit:profiles", "update", self.__profiles_update)
 
         #draw body
         self.body = self.builder.get_object("tailoring:box")
-        self.draw_nb(self.builder.get_object("tailoring:box_nb"))
+        ItemDetails(self.builder, self.core)
+        RefineDetails(self.builder, self.core)
         self.progress = self.builder.get_object("tailoring:progress")
         self.progress.hide()
-        #self.filter = filter.ItemFilter(self.core, self.builder, "tailoring:box_filter", "gui:btn:tailoring:filter")
         self.rules_list = ItemList(builder, self.core, self.progress)
         self.values = ValuesList(self.builder.get_object("tailoring:tw_values"), self.core, self.builder)
-        #self.filter.expander.cb_changed()
 
         # set signals
         self.add_sender(self.id, "update")
 
-    def update(self):
-        for i, profile in enumerate(self.profile_model.model):
-            if self.core.selected_profile == profile[0]:
-                self.profiles.set_active(i)
-
     def __profiles_update(self):
+        """ Fill profiles into the combobox above the tailoring
+        item tree """
 
-        # need update because of new file loaded
-        if self.profile_model.fill():
-            self.update()
-            self.core.selected_profile = self.profile_model.model[self.profiles.get_active()][0]
+        if not self.data_model.check_library(): return None
+        model = self.profiles.get_model()
+        model.clear()
+
+        """ Append the first "No Profile" item. This use to be the
+        representation of the benchmark not altered by profiles """
+        model.append([None, "(No profile)"])
+        
+        """ For each profile in the benchmark append the title of 
+        current language or the title with ID of profile """
+        for item in self.core.lib.benchmark.profiles:
+            title = self.data_model.get_title(item.title) or "%s (ID)" % (item.id,)
+            iter = model.append([item.id, ""+title])
+
+        """ Set the current selected profile TODO: This would
+        always be the 0-profile """
+        if not self.core.selected_profile:
+            self.profiles.set_active(0)
+        else:
+            for i, profile in enumerate(model):
+                if self.core.selected_profile == profile[0]:
+                    self.profiles.set_active(i)
 
     def __cb_profile_changed(self, widget, model):
-
+        """ If user change the selected profile
+        """
         if self.profiles.get_active() != -1:
             self.core.selected_profile = model[self.profiles.get_active()][0]
             self.emit("update")
-
-    # draw notebook
-    def draw_nb(self, box):
-        # notebook for details and refines
-        notebook = gtk.Notebook()
-        box.pack_start(notebook, True, True)
- 
-        #Details 
-        box_details = ItemDetails(self.core)
-        notebook.append_page(box_details.box_details, gtk.Label("Details"))
-
-        #set refines
-        redDetails = RefineDetails(self.builder, self.core)
-        notebook.append_page(redDetails.vbox_refines, gtk.Label("Refines"))
-        notebook.show_all()

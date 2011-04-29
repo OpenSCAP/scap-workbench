@@ -1645,7 +1645,7 @@ class DHProfiles(DataHandler):
         self.model = gtk.TreeStore(str, str, gobject.TYPE_PYOBJECT, str, str, str)
         self.treeView.set_model(self.model)
 
-    def update(self, id=None, version=None, abstract=None, prohibit_changes=None):
+    def update(self, id=None, version=None, extends=None, abstract=None, prohibit_changes=None):
         if not self.check_library(): return None
 
         profile = self.get_profile(self.core.selected_profile)
@@ -1653,6 +1653,8 @@ class DHProfiles(DataHandler):
         if id != None and len(id) > 0 and profile.id != id:
             profile.id = id
             self.core.selected_profile = id
+        if extends != None and profile.extends != extends:
+            profile.extends = extends
         if version != None and profile.version != version:
             profile.version = version
         if abstract != None and profile.abstract != abstract:
@@ -1707,17 +1709,24 @@ class DHProfiles(DataHandler):
             item = self.core.lib.benchmark.get_item(rule_k)
             if item == None:
                 logger.error("%s points to nonexisting item %s" % (rules[rule_k][0].object, rule_k))
+                gtk.gdk.threads_enter()
                 self.model.append(iter, ["rule", rule_k, rules[rule_k], "dialog-error", "Broken reference: %s" % (rule_k,), "red"])
+                gtk.gdk.threads_leave()
                 continue
 
             type = {openscap.OSCAP.XCCDF_RULE: "rule", openscap.OSCAP.XCCDF_GROUP: "group"}[item.type]
+            gtk.gdk.threads_enter()
             self.model.append(iter, ["rule", rule_k, rules[rule_k], IMG_RULE, self.get_title(item.title) or item.id+" (ID)", color])
+            gtk.gdk.threads_leave()
 
         # -- VALUES --
         values = {}
         for value in profile.setvalues: values[value.item] = [value]
         for value in profile.refine_values:
-            if value.item in values: values[value.item].append(value)
+            if value.item in values:
+                gtk.gdk.threads_enter()
+                values[value.item].append(value)
+                gtk.gdk.threads_leave()
             else: values[value.item] = [value]
 
         for value_k in values.keys():
@@ -1725,44 +1734,63 @@ class DHProfiles(DataHandler):
             item = self.core.lib.benchmark.get_item(value_k)
             if item == None: 
                 logger.error("%s points to nonexisting value %s" % (values[value_k][0].object, value_k))
+                gtk.gdk.threads_enter()
                 self.model.append(iter, ["value", value_k, values[value_k], "dialog-error", "Broken reference: %s" % (value_k,), "red"])
+                gtk.gdk.threads_leave()
                 continue
+            gtk.gdk.threads_enter()
             self.model.append(iter, ["value", value_k, values[value_k], IMG_VALUE, self.get_title(item.title) or item.id+" (ID)", None])
+            gtk.gdk.threads_leave()
 
     @threadSave
     def fill(self, item=None, parent=None, no_default=False):
-        """Clear the model and fill it with existing profiles from loaded benchmark
+        """Fill the model with existing profiles from loaded benchmark
         no_default parameter means that there should not be a default document representation of policy
         """
-
+        gtk.gdk.threads_enter()
         if self.treeView: self.treeView.set_sensitive(False)
+        self.model.clear()
+        gtk.gdk.threads_leave()
         if not self.check_library(): return None
 
         if not no_default:
             logger.debug("Adding profile (No profile)")
+            gtk.gdk.threads_enter()
             if self.model.__class__ == gtk.ListStore: self.model.append([None, "(No profile)"])
             else: self.model.append(None, ["profile", None, item, IMG_GROUP, "(No profile)", None])
+            gtk.gdk.threads_leave()
 
         # Go thru all profiles from benchmark and add them into the model
         for item in self.core.lib.benchmark.profiles:
             logger.debug("Adding profile \"%s\"", item.id)
             pvalues = self.get_profile_details(item.id)
-            if self.core.selected_lang in pvalues["titles"]:
-                title = "Profile: "+pvalues["titles"][self.core.selected_lang]
-            else:
-                self.core.notify("No title with \"%s\" language in \"%s\" profile. Change language to proper view." % (self.core.selected_lang, item.id), 
-                                  core.Notification.INFORMATION, msg_id="notify:global:profile:fill:no_lang") # TODO
-                title = "Profile: %s (ID)" % (item.id,)
+            title = self.get_title(item.title) or "%s (ID)" % (item.id,)
             color = None
-            if self.model.__class__ == gtk.ListStore: iter = self.model.append([item.id, ""+title])
+            if self.model.__class__ == gtk.ListStore:
+                gtk.gdk.threads_enter()
+                iter = self.model.append([item.id, ""+title])
+                gtk.gdk.threads_leave()
             else:
+                gtk.gdk.threads_enter()
                 iter = self.model.append(None, ["profile", item.id, item, IMG_GROUP, ""+title, color])
+                gtk.gdk.threads_leave()
                 self.__fill_refines(item, iter)
 
+        gtk.gdk.threads_enter()
         if self.core.selected_profile and self.treeView:
             self.treeView.get_model().foreach(self.set_selected, (self.core.selected_profile, self.treeView, 0))
         if self.treeView: self.treeView.set_sensitive(True)
+        gtk.gdk.threads_leave()
         return True
+
+    def get_profiles(self):
+        if not self.check_library(): return None
+
+        profiles = []
+        for item in self.core.lib.benchmark.profiles:
+            profiles.append(item)
+
+        return profiles
 
     def save(self):
         """Save the profile in the benchmark. Profile still exists just as policy and
@@ -1805,7 +1833,7 @@ class DHProfiles(DataHandler):
 
         policy = self.core.lib.policy_model.get_policy_by_id(self.core.selected_profile)
         if policy:
-            logger.debug("Changing refine_rules: item(%s): severity(%s), role(%s), weight(%s)" % (self.core.selected_item, severity, role, weight))
+            logger.warning("Changing refine_rules: item(%s): severity(%s), role(%s), weight(%s)" % (self.core.selected_item, severity, role, weight))
             refine = policy.set_refine_rule(self.core.selected_item, weight, severity, role)
 
     def __get_current_profile(self):

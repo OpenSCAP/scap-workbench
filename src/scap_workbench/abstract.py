@@ -63,6 +63,7 @@ class enum(tuple):
 
     Use ENUM.map(id) when looking for item from model (known enum id)
     Use ENUM.pos(id) when looking in position of item in model (known position in model)
+    Use ENUM.get_model() when creating model for this enumeration
     Use list funtions when looking for trouble :)
     """
 
@@ -75,6 +76,12 @@ class enum(tuple):
         for item in tuple(self):
             if item[0] == id: return tuple.index(self, item)
         return -1
+
+    def get_model(self):
+        model = gtk.ListStore(int, str, str)
+        for item in tuple(self):
+            model.append(item)
+        return model
 
 """ Below is the list of enumerations from OpenSCAP library
 """
@@ -411,19 +418,17 @@ class List(EventObject):
 
     def __match_func(self, model, iter, data):
         """ search pattern in column of model"""
-        logger.warning("Deprecation warning: This function should not be used.") # TODO
         column, key = data # data is a tuple containing column number and key
         pattern = re.compile(key,re.IGNORECASE)
         return pattern.search(model.get_value(iter, column)) != None
 
-    def search_branch(self, model, iter, iter_start, data):
+    def __search_branch(self, model, iter, iter_start, data):
         """ Search data in model from iter next. Search terminates when a row is found. 
             @param model is gtk.treeModel
             @param iter is start position
             @param data is a tuple containing column number and key
             @return iter or None
         """
-        logger.warning("Deprecation warning: This function should not be used.") # TODO
         while iter:
             # If all data was searched, stop the search. 
             if iter_start == model.get_string_from_iter(iter):
@@ -432,7 +437,7 @@ class List(EventObject):
             if self.__match_func(model, iter, data):
                 return iter
 
-            result = self.search_branch(model, model.iter_children(iter), iter_start, data)
+            result = self.__search_branch(model, model.iter_children(iter), iter_start, data)
             if result: 
                 return result
 
@@ -449,7 +454,7 @@ class List(EventObject):
         if iter == None:
             # nothing selected
             iter = model.get_iter_root()
-            iter = self.search_branch(model, iter, None, (column, key))
+            iter = self.__search_branch(model, iter, None, (column, key))
 
         else:
             # row selected move to next node
@@ -470,20 +475,20 @@ class List(EventObject):
             # for search in parent node and search from end to start
             if iter != None:
                 iter_old = iter
-                iter = self.search_branch(model, iter, iter_start, (column, key))
+                iter = self.__search_branch(model, iter, iter_start, (column, key))
                 while iter == None:
                     iter_parent = model.iter_parent(iter_old)
                     while iter_parent != None:
                         iter = model.iter_next(iter_parent)
                         if iter != None:
                             iter_old = iter
-                            iter = self.search_branch(model, iter, iter_start, (column, key))
+                            iter = self.__search_branch(model, iter, iter_start, (column, key))
                             break
                         else:
                             iter_parent = model.iter_parent(iter_parent)
                     if iter_parent == None:
                         # searched to end (not found) and will go to search from start 
-                        iter = self.search_branch(model, model.get_iter_root(), iter_start, (column, key))
+                        iter = self.__search_branch(model, model.get_iter_root(), iter_start, (column, key))
                         break
 
         # if find search text
@@ -679,6 +684,10 @@ class List(EventObject):
 
 class Func:
     
+    def __init__(self, core=None):
+
+        self.core = core
+
     def dialogDel(self, window, selection):
         """
         Function Show dialogue if you wont to delete row if yes return iter of row.
@@ -702,8 +711,9 @@ class Func:
             self.dialogInfo("Choose row which you want delete.", window)
 
     def dialogNotSelected(self, window):
+        logger.warning("Deprecation warning: This function should not be used.") # TODO
+        return
         self.dialogInfo("Choose row which you want edit.", window)
-        
         
     def dialogInfo(self, text, window):
         #window = self.core.main_window

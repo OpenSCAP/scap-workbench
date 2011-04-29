@@ -90,6 +90,14 @@
       <column type="gchararray"/>
     </columns>
   </object>
+  <object class="GtkListStore" id="xccdf:profile:extends:model">
+    <columns>
+      <!-- column-name ID -->
+      <column type="gchararray"/>
+      <!-- column-name Title -->
+      <column type="gchararray"/>
+    </columns>
+  </object>
   <object class="GtkWindow" id="main:window">
     <property name="title" translatable="yes">SCAP Workbench editor</property>
     <property name="window_position">center</property>
@@ -475,7 +483,7 @@
                 <property name="left_padding">12</property>
                 <property name="right_padding">12</property>
                 <child>
-                  <object class="GtkHPaned" id="edit:tw_profiles:box">
+                  <object class="GtkHPaned" id="xccdf:tw_profiles:box">
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="position">500</property>
@@ -606,14 +614,14 @@
                           </packing>
                         </child>
                         <child>
-                          <object class="GtkScrolledWindow" id="edit:tw_profiles:sw">
+                          <object class="GtkScrolledWindow" id="xccdf:tw_profiles:sw">
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
                             <property name="hscrollbar_policy">automatic</property>
                             <property name="vscrollbar_policy">automatic</property>
                             <property name="shadow_type">in</property>
                             <child>
-                              <object class="GtkTreeView" id="edit:xccdf:profiles">
+                              <object class="GtkTreeView" id="xccdf:profiles">
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
                                 <property name="model">xccdf:profiles:model</property>
@@ -684,7 +692,7 @@
                         <property name="visible">True</property>
                         <property name="orientation">vertical</property>
                         <child>
-                          <object class="GtkViewport" id="edit:xccdf:profiles:details">
+                          <object class="GtkViewport" id="xccdf:profiles:details">
                             <property name="visible">True</property>
                             <property name="resize_mode">queue</property>
                             <child>
@@ -695,7 +703,7 @@
                                 <property name="left_padding">5</property>
                                 <property name="right_padding">5</property>
                                 <child>
-                                  <object class="GtkVBox" id="edit:profile:box">
+                                  <object class="GtkVBox" id="profile:box">
                                     <property name="visible">True</property>
                                     <property name="orientation">vertical</property>
                                     <property name="spacing">10</property>
@@ -732,7 +740,7 @@
                                                       </packing>
                                                     </child>
                                                     <child>
-                                                      <object class="GtkEntry" id="edit:xccdf:profile:id">
+                                                      <object class="GtkEntry" id="xccdf:profile:id">
                                                         <property name="visible">True</property>
                                                         <property name="can_focus">True</property>
                                                         <property name="invisible_char">&#x25CF;</property>
@@ -757,7 +765,7 @@
                                                       </packing>
                                                     </child>
                                                     <child>
-                                                      <object class="GtkEntry" id="edit:xccdf:profile:version">
+                                                      <object class="GtkEntry" id="xccdf:profile:version">
                                                         <property name="visible">True</property>
                                                         <property name="can_focus">True</property>
                                                         <property name="invisible_char">&#x25CF;</property>
@@ -771,8 +779,15 @@
                                                       </packing>
                                                     </child>
                                                     <child>
-                                                      <object class="GtkComboBox" id="edit:xccdf:profile:extends">
+                                                      <object class="GtkComboBox" id="xccdf:profile:extends">
                                                         <property name="visible">True</property>
+                                                        <property name="model">xccdf:profile:extends:model</property>
+                                                        <child>
+                                                          <object class="GtkCellRendererText" id="cellrenderertext23"/>
+                                                          <attributes>
+                                                            <attribute name="text">1</attribute>
+                                                          </attributes>
+                                                        </child>
                                                       </object>
                                                       <packing>
                                                         <property name="left_attach">1</property>
@@ -802,10 +817,9 @@
                                                   </packing>
                                                 </child>
                                                 <child>
-                                                  <object class="GtkCheckButton" id="edit:xccdf:profile:abstract">
+                                                  <object class="GtkCheckButton" id="xccdf:profile:abstract">
                                                     <property name="label" translatable="yes">Abstract profile</property>
                                                     <property name="visible">True</property>
-                                                    <property name="sensitive">False</property>
                                                     <property name="can_focus">True</property>
                                                     <property name="receives_default">False</property>
                                                     <property name="relief">none</property>
@@ -819,7 +833,7 @@
                                                   </packing>
                                                 </child>
                                                 <child>
-                                                  <object class="GtkCheckButton" id="edit:xccdf:profile:prohibit_changes">
+                                                  <object class="GtkCheckButton" id="xccdf:profile:prohibit_changes">
                                                     <property name="label" translatable="yes">Prohibit changes</property>
                                                     <property name="visible">True</property>
                                                     <property name="sensitive">False</property>
@@ -886,7 +900,7 @@
                                                     <property name="vscrollbar_policy">automatic</property>
                                                     <property name="shadow_type">in</property>
                                                     <child>
-                                                      <object class="GtkTreeView" id="edit:xccdf:profile:titles">
+                                                      <object class="GtkTreeView" id="xccdf:profile:titles">
                                                         <property name="visible">True</property>
                                                         <property name="can_focus">True</property>
                                                         <property name="enable_grid_lines">both</property>
@@ -903,7 +917,7 @@
                                                     <property name="spacing">5</property>
                                                     <property name="layout_style">end</property>
                                                     <child>
-                                                      <object class="GtkButton" id="edit:xccdf:profile:titles:btn_add">
+                                                      <object class="GtkButton" id="xccdf:profile:titles:btn_add">
                                                         <property name="label" translatable="yes">Add</property>
                                                         <property name="visible">True</property>
                                                         <property name="can_focus">True</property>
@@ -916,7 +930,7 @@
                                                       </packing>
                                                     </child>
                                                     <child>
-                                                      <object class="GtkButton" id="edit:xccdf:profile:titles:btn_edit">
+                                                      <object class="GtkButton" id="xccdf:profile:titles:btn_edit">
                                                         <property name="label" translatable="yes">Edit</property>
                                                         <property name="visible">True</property>
                                                         <property name="can_focus">True</property>
@@ -929,7 +943,7 @@
                                                       </packing>
                                                     </child>
                                                     <child>
-                                                      <object class="GtkButton" id="edit:xccdf:profile:titles:btn_del">
+                                                      <object class="GtkButton" id="xccdf:profile:titles:btn_del">
                                                         <property name="label" translatable="yes">Delete</property>
                                                         <property name="visible">True</property>
                                                         <property name="can_focus">True</property>
@@ -980,7 +994,7 @@
                                                     <property name="vscrollbar_policy">automatic</property>
                                                     <property name="shadow_type">out</property>
                                                     <child>
-                                                      <object class="GtkTreeView" id="edit:xccdf:profile:descriptions">
+                                                      <object class="GtkTreeView" id="xccdf:profile:descriptions">
                                                         <property name="visible">True</property>
                                                         <property name="can_focus">True</property>
                                                         <property name="enable_grid_lines">both</property>
@@ -997,7 +1011,7 @@
                                                     <property name="spacing">5</property>
                                                     <property name="layout_style">end</property>
                                                     <child>
-                                                      <object class="GtkButton" id="edit:xccdf:profile:descriptions:btn_add">
+                                                      <object class="GtkButton" id="xccdf:profile:descriptions:btn_add">
                                                         <property name="label" translatable="yes">Add</property>
                                                         <property name="visible">True</property>
                                                         <property name="can_focus">True</property>
@@ -1010,7 +1024,7 @@
                                                       </packing>
                                                     </child>
                                                     <child>
-                                                      <object class="GtkButton" id="edit:xccdf:profile:descriptions:btn_edit">
+                                                      <object class="GtkButton" id="xccdf:profile:descriptions:btn_edit">
                                                         <property name="label" translatable="yes">Edit</property>
                                                         <property name="visible">True</property>
                                                         <property name="can_focus">True</property>
@@ -1023,7 +1037,7 @@
                                                       </packing>
                                                     </child>
                                                     <child>
-                                                      <object class="GtkButton" id="edit:xccdf:profile:descriptions:btn_del">
+                                                      <object class="GtkButton" id="xccdf:profile:descriptions:btn_del">
                                                         <property name="label" translatable="yes">Delete</property>
                                                         <property name="visible">True</property>
                                                         <property name="can_focus">True</property>
@@ -1036,7 +1050,7 @@
                                                       </packing>
                                                     </child>
                                                     <child>
-                                                      <object class="GtkButton" id="edit:xccdf:profile:descriptions:btn_preview">
+                                                      <object class="GtkButton" id="xccdf:profile:descriptions:btn_preview">
                                                         <property name="label" translatable="yes">Preview</property>
                                                         <property name="visible">True</property>
                                                         <property name="can_focus">True</property>
@@ -1091,7 +1105,7 @@
                                                     <property name="vscrollbar_policy">automatic</property>
                                                     <property name="shadow_type">out</property>
                                                     <child>
-                                                      <object class="GtkTreeView" id="edit:xccdf:profile:statuses">
+                                                      <object class="GtkTreeView" id="xccdf:profile:statuses">
                                                         <property name="visible">True</property>
                                                         <property name="can_focus">True</property>
                                                         <property name="enable_grid_lines">both</property>
@@ -1108,7 +1122,7 @@
                                                     <property name="spacing">5</property>
                                                     <property name="layout_style">end</property>
                                                     <child>
-                                                      <object class="GtkButton" id="edit:xccdf:profile:statuses:btn_add">
+                                                      <object class="GtkButton" id="xccdf:profile:statuses:btn_add">
                                                         <property name="label" translatable="yes">Add</property>
                                                         <property name="visible">True</property>
                                                         <property name="can_focus">True</property>
@@ -1121,7 +1135,7 @@
                                                       </packing>
                                                     </child>
                                                     <child>
-                                                      <object class="GtkButton" id="edit:xccdf:profile:statuses:btn_edit">
+                                                      <object class="GtkButton" id="xccdf:profile:statuses:btn_edit">
                                                         <property name="label" translatable="yes">Edit</property>
                                                         <property name="visible">True</property>
                                                         <property name="can_focus">True</property>
@@ -1134,7 +1148,7 @@
                                                       </packing>
                                                     </child>
                                                     <child>
-                                                      <object class="GtkButton" id="edit:xccdf:profile:statuses:btn_del">
+                                                      <object class="GtkButton" id="xccdf:profile:statuses:btn_del">
                                                         <property name="label" translatable="yes">Delete</property>
                                                         <property name="visible">True</property>
                                                         <property name="can_focus">True</property>
@@ -1481,7 +1495,7 @@
                                                     <property name="vscrollbar_policy">automatic</property>
                                                     <property name="shadow_type">in</property>
                                                     <child>
-                                                      <object class="GtkTreeView" id="edit:xccdf:profile:titles1">
+                                                      <object class="GtkTreeView" id="xccdf:profile:titles1">
                                                         <property name="visible">True</property>
                                                         <property name="can_focus">True</property>
                                                         <property name="enable_grid_lines">both</property>
@@ -1498,7 +1512,7 @@
                                                     <property name="spacing">5</property>
                                                     <property name="layout_style">end</property>
                                                     <child>
-                                                      <object class="GtkButton" id="edit:xccdf:profile:titles:btn_add1">
+                                                      <object class="GtkButton" id="xccdf:profile:titles:btn_add1">
                                                         <property name="label" translatable="yes">Add</property>
                                                         <property name="visible">True</property>
                                                         <property name="can_focus">True</property>
@@ -1511,7 +1525,7 @@
                                                       </packing>
                                                     </child>
                                                     <child>
-                                                      <object class="GtkButton" id="edit:xccdf:profile:titles:btn_edit1">
+                                                      <object class="GtkButton" id="xccdf:profile:titles:btn_edit1">
                                                         <property name="label" translatable="yes">Edit</property>
                                                         <property name="visible">True</property>
                                                         <property name="can_focus">True</property>
@@ -1524,7 +1538,7 @@
                                                       </packing>
                                                     </child>
                                                     <child>
-                                                      <object class="GtkButton" id="edit:xccdf:profile:titles:btn_del1">
+                                                      <object class="GtkButton" id="xccdf:profile:titles:btn_del1">
                                                         <property name="label" translatable="yes">Delete</property>
                                                         <property name="visible">True</property>
                                                         <property name="can_focus">True</property>

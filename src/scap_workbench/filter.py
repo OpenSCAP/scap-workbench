@@ -87,6 +87,7 @@ class Search(EventObject):
 
     def __init__(self, renderer):
 
+        logger.warning("Class Search is deprecated: Use search function of list instead")
         self.renderer = renderer
         self.renderer.add_sender(id, "search")
         self.__render()
@@ -384,6 +385,29 @@ class ItemFilter(Renderer):
             return True
         else: return (model.get_value(iter, COLUMN_SELECTED) == [0,1,0][params["selected"]])
 
+
+class AdvancedFilterModel(gtk.TreeStore):
+
+    def __init__(self, *args):
+        if not args:
+            raise AttributeError("AdvancedFilterModel constructor requires at least one argument")
+
+        super(gtk.TreeModel, self).__init__()
+        self.__args = args
+        self.__reference = self.TreeStore(args)
+
+    def set_ref_model(self, model):
+        """Set the reference model for the TreeView
+        """
+        if not model:
+            raise AttributeError("AdvancedFilterModel::set_ref_model requires TreeModel as argument")
+        if model != gtk.TreeModel:
+            raise AttributeError("AdvancedFilterModel::set_ref_model takes TreeModel as argument %s found" % (model.__class__,))
+        self.__reference = model
+
+        """ Let's build the filter model by creating nodes in the model that
+        refer to the reference model """
+        
 
 class ScanFilter(Renderer):
 

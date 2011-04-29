@@ -116,8 +116,8 @@ class ProfileList(abstract.List):
         selection = self.get_TreeView().get_selection()
         selection.set_mode(gtk.SELECTION_SINGLE)
         selection.connect("changed", self.__cb_changed, self.get_TreeView())
-        self.section_list = self.builder.get_object("edit:section_list")
-        self.profilesList = self.builder.get_object("edit:tw_profiles:sw")
+        self.section_list = self.builder.get_object("xccdf:section_list")
+        self.profilesList = self.builder.get_object("xccdf:tw_profiles:sw")
         self.search = self.builder.get_object("xccdf:profiles:search")
         self.filter_none = self.builder.get_object("xccdf:profiles:filter:none")
         self.filter_none.connect("toggled", self.__set_filter, "")
@@ -877,7 +877,7 @@ class MenuButtonEditProfiles(abstract.MenuButton, abstract.Func):
 
         #draw body
         self.body = self.builder.get_object("profiles:box")
-        self.profiles = self.builder.get_object("edit:xccdf:profiles")
+        self.profiles = self.builder.get_object("xccdf:profiles")
         self.list_profile = ProfileList(self.profiles, self.core, self.data_model, builder, None, None)
 
         # set signals
@@ -886,40 +886,41 @@ class MenuButtonEditProfiles(abstract.MenuButton, abstract.Func):
         self.add_sender(self.id, "update")
         
         self.__refines_box = self.builder.get_object("xccdf:refines:box")
-        self.__profile_box = self.builder.get_object("edit:xccdf:profiles:details")
+        self.__profile_box = self.builder.get_object("xccdf:profiles:details")
 
         # PROFILES
-        self.info_box_lbl = self.builder.get_object("edit:xccdf:profile:info_box:lbl")
-        self.pid = self.builder.get_object("edit:xccdf:profile:id")
+        self.info_box_lbl = self.builder.get_object("xccdf:profile:info_box:lbl")
+        self.pid = self.builder.get_object("xccdf:profile:id")
         self.pid.connect("focus-out-event", self.__change)
         self.pid.connect("key-press-event", self.__change)
-        self.version = self.builder.get_object("edit:xccdf:profile:version")
+        self.version = self.builder.get_object("xccdf:profile:version")
         self.version.connect("focus-out-event", self.__change)
         self.version.connect("key-press-event", self.__change)
-        self.extends = self.builder.get_object("edit:xccdf:profile:extends")
-        self.abstract = self.builder.get_object("edit:xccdf:profile:abstract")
+        self.extends = self.builder.get_object("xccdf:profile:extends")
+        self.extends.connect("changed", self.__change)
+        self.abstract = self.builder.get_object("xccdf:profile:abstract")
         self.abstract.connect("toggled", self.__change)
-        self.prohibit_changes = self.builder.get_object("edit:xccdf:profile:prohibit_changes")
+        self.prohibit_changes = self.builder.get_object("xccdf:profile:prohibit_changes")
         self.prohibit_changes.connect("toggled", self.__change)
 
         # -- TITLE --
-        self.titles = EditTitle(self.core, "gui:edit:xccdf:profile:titles", builder.get_object("edit:xccdf:profile:titles"), self.data_model)
-        builder.get_object("edit:xccdf:profile:titles:btn_add").connect("clicked", self.titles.dialog, self.data_model.CMD_OPER_ADD)
-        builder.get_object("edit:xccdf:profile:titles:btn_edit").connect("clicked", self.titles.dialog, self.data_model.CMD_OPER_EDIT)
-        builder.get_object("edit:xccdf:profile:titles:btn_del").connect("clicked", self.titles.dialog, self.data_model.CMD_OPER_DEL)
+        self.titles = EditTitle(self.core, "gui:edit:xccdf:profile:titles", builder.get_object("xccdf:profile:titles"), self.data_model)
+        builder.get_object("xccdf:profile:titles:btn_add").connect("clicked", self.titles.dialog, self.data_model.CMD_OPER_ADD)
+        builder.get_object("xccdf:profile:titles:btn_edit").connect("clicked", self.titles.dialog, self.data_model.CMD_OPER_EDIT)
+        builder.get_object("xccdf:profile:titles:btn_del").connect("clicked", self.titles.dialog, self.data_model.CMD_OPER_DEL)
 
         # -- DESCRIPTION --
-        self.descriptions = EditDescription(self.core, "gui:edit:xccdf:profile:descriptions", builder.get_object("edit:xccdf:profile:descriptions"), self.data_model)
-        self.builder.get_object("edit:xccdf:profile:descriptions:btn_add").connect("clicked", self.descriptions.dialog, self.data_model.CMD_OPER_ADD)
-        self.builder.get_object("edit:xccdf:profile:descriptions:btn_edit").connect("clicked", self.descriptions.dialog, self.data_model.CMD_OPER_EDIT)
-        self.builder.get_object("edit:xccdf:profile:descriptions:btn_del").connect("clicked", self.descriptions.dialog, self.data_model.CMD_OPER_DEL)
-        self.builder.get_object("edit:xccdf:profile:descriptions:btn_preview").connect("clicked", self.descriptions.preview)
+        self.descriptions = EditDescription(self.core, "gui:edit:xccdf:profile:descriptions", builder.get_object("xccdf:profile:descriptions"), self.data_model)
+        self.builder.get_object("xccdf:profile:descriptions:btn_add").connect("clicked", self.descriptions.dialog, self.data_model.CMD_OPER_ADD)
+        self.builder.get_object("xccdf:profile:descriptions:btn_edit").connect("clicked", self.descriptions.dialog, self.data_model.CMD_OPER_EDIT)
+        self.builder.get_object("xccdf:profile:descriptions:btn_del").connect("clicked", self.descriptions.dialog, self.data_model.CMD_OPER_DEL)
+        self.builder.get_object("xccdf:profile:descriptions:btn_preview").connect("clicked", self.descriptions.preview)
 
         # -- STATUS --
-        self.statuses = EditStatus(self.core, "gui:edit:xccdf:profile:statuses", builder.get_object("edit:xccdf:profile:statuses"), self.data_model)
-        self.builder.get_object("edit:xccdf:profile:statuses:btn_add").connect("clicked", self.statuses.dialog, self.data_model.CMD_OPER_ADD)
-        self.builder.get_object("edit:xccdf:profile:statuses:btn_edit").connect("clicked", self.statuses.dialog, self.data_model.CMD_OPER_EDIT)
-        self.builder.get_object("edit:xccdf:profile:statuses:btn_del").connect("clicked", self.statuses.dialog, self.data_model.CMD_OPER_DEL)
+        self.statuses = EditStatus(self.core, "gui:edit:xccdf:profile:statuses", builder.get_object("xccdf:profile:statuses"), self.data_model)
+        self.builder.get_object("xccdf:profile:statuses:btn_add").connect("clicked", self.statuses.dialog, self.data_model.CMD_OPER_ADD)
+        self.builder.get_object("xccdf:profile:statuses:btn_edit").connect("clicked", self.statuses.dialog, self.data_model.CMD_OPER_EDIT)
+        self.builder.get_object("xccdf:profile:statuses:btn_del").connect("clicked", self.statuses.dialog, self.data_model.CMD_OPER_DEL)
 
         # -- REFINES --
 
@@ -960,6 +961,10 @@ class MenuButtonEditProfiles(abstract.MenuButton, abstract.Func):
             self.data_model.update(id=widget.get_text())
         elif widget == self.version:
             self.data_model.update(version=widget.get_text())
+        elif widget == self.extends:
+            active = widget.get_active()
+            if active != -1:
+                self.data_model.update(extends=widget.get_model()[active][0])
         elif widget == self.abstract:
             self.data_model.update(abstract=widget.get_active())
         elif widget == self.prohibit_changes:
@@ -985,7 +990,7 @@ class MenuButtonEditProfiles(abstract.MenuButton, abstract.Func):
         elif widget == self.refines_severity:
             self.data_model.update_refines(item[0], item[1], item[2], severity=abstract.ENUM_LEVEL[widget.get_active()][0])
         else: 
-            logger.error("Change \"%s\" not supported object in \"%s\"" % (object, widget))
+            logger.error("Change not supported object in \"%s\"" % (widget,))
             return
         self.__update_item()
         self.__update()
@@ -1001,6 +1006,7 @@ class MenuButtonEditProfiles(abstract.MenuButton, abstract.Func):
     def __block_signals(self):
         self.pid.handler_block_by_func(self.__change)
         self.version.handler_block_by_func(self.__change)
+        self.extends.handler_block_by_func(self.__change)
         self.abstract.handler_block_by_func(self.__change)
         self.prohibit_changes.handler_block_by_func(self.__change)
         #self.refines_idref.handler_block_by_func(self.__change)
@@ -1015,6 +1021,7 @@ class MenuButtonEditProfiles(abstract.MenuButton, abstract.Func):
     def __unblock_signals(self):
         self.pid.handler_unblock_by_func(self.__change)
         self.version.handler_unblock_by_func(self.__change)
+        self.extends.handler_unblock_by_func(self.__change)
         self.abstract.handler_unblock_by_func(self.__change)
         self.prohibit_changes.handler_unblock_by_func(self.__change)
         #self.refines_idref.handler_unblock_by_func(self.__change)
@@ -1041,6 +1048,7 @@ class MenuButtonEditProfiles(abstract.MenuButton, abstract.Func):
         self.refines_selector.set_text("")
         self.refines_operator.set_active(-1)
         self.refines_severity.set_active(-1)
+        self.extends.get_model().clear()
 
     def __update(self):
 
@@ -1058,7 +1066,15 @@ class MenuButtonEditProfiles(abstract.MenuButton, abstract.Func):
 
             self.pid.set_text(details["id"] or "")
             self.version.set_text(details["version"] or "")
-            #self.profile_extend.set_text(str(details["extends"] or ""))
+
+            # Set extend profile
+            self.extends.get_model().append(["", ""])
+            for profile in self.data_model.get_profiles():
+                if profile.id != details["id"]:
+                    title = self.data_model.get_title(profile.title) or "%s (ID)" % (profile.id,)
+                    iter = self.extends.get_model().append([profile.id, title])
+                    if details["extends"] == profile.id: self.extends.set_active_iter(iter)
+
             self.abstract.set_active(details["abstract"])
             self.prohibit_changes.set_active(details["prohibit_changes"])
             self.titles.fill()
