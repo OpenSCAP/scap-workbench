@@ -3378,7 +3378,7 @@ class AddProfileDialog(EventObject, abstract.ControlEditWindow):
             return
         profiles = self.data_model.get_profiles()
         for profile in profiles:
-            if profile[0] == self.pid.get_text():
+            if profile.id == self.pid.get_text():
                 self.core.notify("Profile \"%s\" already exists." % (self.pid.get_text(),),
                         Notification.ERROR, self.info_box, msg_id="notify:edit:profile:new")
                 self.pid.grab_focus()
