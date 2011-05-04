@@ -4354,7 +4354,7 @@ Application Part - This part identifies relevant applications, services, and pac
   </object>
   <object class="GtkDialog" id="dialog:import">
     <property name="border_width">5</property>
-    <property name="title" translatable="yes">Export Benchmark</property>
+    <property name="title" translatable="yes">Import Benchmark</property>
     <property name="modal">True</property>
     <property name="window_position">center-on-parent</property>
     <property name="default_width">800</property>

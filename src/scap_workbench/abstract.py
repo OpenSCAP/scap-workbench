@@ -789,7 +789,7 @@ class Func:
             self.core.notify_destroy("notify:date_format")
             return None
             
-    def controlImpactMetric(self, text, window):
+    def controlImpactMetric(self, text, core):
         """
         Function control impact metrix
         """
@@ -801,13 +801,12 @@ class Func:
         if patternBase.search(text) != None or patternTempo.search(text) != None or patternEnvi.search(text) != None:
             return True
         else:
-            error = "Incorrect value of Impact Metrix, correct is:\n\n"
-            error = error + "Metric Value    Description \n\n"
-            error = error + "Base =    AV:[L,A,N]/AC:[H,M,L]/Au:[M,S,N]/C:[N,P,C]/I:[N,P,C]/A:[N,P,C]\n\n"
-            error = error + "Temporal =     E:[U,POC,F,H,ND]/RL:[OF,TF,W,U,ND]/RC:[UC,UR,C,ND]\n\n"
+            error = "Incorrect value of Impact Metrix, correct is: Metric Value Description \n"
+            error = error + "Base =    AV:[L,A,N]/AC:[H,M,L]/Au:[M,S,N]/C:[N,P,C]/I:[N,P,C]/A:[N,P,C]\n"
+            error = error + "Temporal =     E:[U,POC,F,H,ND]/RL:[OF,TF,W,U,ND]/RC:[UC,UR,C,ND]\n"
             error = error + "Environmental =    CDP:[N,L,LM,MH,H,ND]/TD:[N,L,M,H,ND]/CR:[L,M,H,ND]/IR:[L,M,H,ND]/AR:[L,M,H,ND]"
             
-            self.dialogInfo(error, window)
+            self.notifications.append(core.notify(error, Notification.ERROR, msg_id="notify:control:metric"))
             return False
 
     def controlFloat(self, data, text, info_box=None):

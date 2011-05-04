@@ -1391,7 +1391,7 @@ class MenuButtonEditItems(abstract.MenuButton, abstract.Func):
 
     def cb_control_impact_metrix(self, widget, event):
         text = widget.get_text()
-        if text != "" and self.controlImpactMetric(text):
+        if text != "" and self.controlImpactMetric(text, self.core):
             self.data_model.DHEditImpactMetrix(self.item, text)
 
     def show(self, sensitive):

@@ -1694,6 +1694,7 @@ class DHProfiles(DataHandler):
 
         # -- RULES --
         rules = {}
+        color = None
         for rule in profile.selects: rules[rule.item] = [rule]
         for rule in profile.refine_rules:
             if rule.item in rules: rules[rule.item].append(rule)
