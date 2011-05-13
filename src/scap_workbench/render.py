@@ -33,6 +33,7 @@ import tailoring
 import scan
 import logging
 import commands
+import enum as ENUM             # For enumeration from openscap library
 
 logger = logging.getLogger("scap-workbench")
 
@@ -213,7 +214,7 @@ class MenuButtonXCCDF(abstract.MenuButton):
         else: self.label_description.set_text(details["descs"][lang] or "")
         self.label_version.set_text(details["version"] or "")
         self.label_url.set_text(details["id"] or "")
-        self.label_status_current.set_text(abstract.ENUM_STATUS_CURRENT.map(details["status_current"])[1])
+        self.label_status_current.set_text(ENUM.STATUS_CURRENT.map(details["status_current"])[1])
         self.label_resolved.set_text(["no", "yes"][details["resolved"]])
         self.label_warnings.set_text("\n".join(["%s: %s" % (warn[0], warn[1].text) for warn in details["warnings"]]) or "None")
         self.label_notices.set_text("\n".join(["%s: %s" % (notice[0], notice[1].text) for notice in details["notices"]]) or "None")

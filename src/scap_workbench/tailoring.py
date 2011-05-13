@@ -37,6 +37,7 @@ import filter                   # Module for handling filters
 from core import Notification   # core.Notification levels for reference
 from events import EventObject  # abstract module EventObject
 import htmltextview             # Alternative of webkit
+import enum as ENUM             # For enumeration from openscap library
 
 from threads import thread_free as threadFree
 from htmltextview import HtmlTextView
@@ -416,11 +417,11 @@ class RefineDetails(EventObject):
         self.add_receiver("gui:tailoring:item_list", "changed", self.__update)
 
         self.role = self.builder.get_object("tailoring:refines:role")
-        self.role.set_model(abstract.ENUM_ROLE.get_model())
+        self.role.set_model(ENUM.ROLE.get_model())
         self.role.connect('changed', self.__cb_edit)
         
         self.severity = self.builder.get_object("tailoring:refines:severity")
-        self.severity.set_model(abstract.ENUM_LEVEL.get_model())
+        self.severity.set_model(ENUM.LEVEL.get_model())
         self.severity.connect('changed', self.__cb_edit)
         
         self.weight = self.builder.get_object("tailoring:refines:weight")
@@ -440,12 +441,12 @@ class RefineDetails(EventObject):
         if details["typetext"] == "Rule":
 
             if "role" in details and details["role"] != 0:
-                self.role.set_active(abstract.ENUM_ROLE.pos(details["role"]))
+                self.role.set_active(ENUM.ROLE.pos(details["role"]))
             else:
                 self.role.set_active(0)
 
             if "severity" in details:
-                self.severity.set_active(abstract.ENUM_LEVEL.pos(details["severity"]))
+                self.severity.set_active(ENUM.LEVEL.pos(details["severity"]))
             else:
                 self.severity.set_active(0)
             
@@ -474,8 +475,8 @@ class RefineDetails(EventObject):
         
     def __cb_edit(self, widget, event=None):
         severity = role = None
-        if self.severity.get_active() != -1: severity = abstract.ENUM_LEVEL[self.severity.get_active()][0]
-        if self.role.get_active() != -1: role = abstract.ENUM_ROLE[self.role.get_active()][0]
+        if self.severity.get_active() != -1: severity = ENUM.LEVEL[self.severity.get_active()][0]
+        if self.role.get_active() != -1: role = ENUM.ROLE[self.role.get_active()][0]
         self.data_model.change_refines( severity=severity, role=role, weight=self.__cb_get_weight())
     
     def __cb_get_weight(self):

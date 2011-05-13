@@ -42,6 +42,7 @@ import filter                   # Module for handling filters
 from core import Notification   # core.Notification levels for reference
 from events import EventObject  # abstract module EventObject
 import htmltextview             # Alternative of webkit
+import enum as ENUM             # For enumeration from openscap library
 
 # Initializing Logger
 logger = logging.getLogger("scap-workbench")
@@ -141,6 +142,16 @@ class ProfileList(abstract.List):
         self.get_TreeView().connect("key-press-event", self.__cb_key_press)
 
     def __set_filter(self, widget, filter):
+        """ This function is called when setting up some filter.
+
+        There are 2 use cases:
+        1) When user clicked on particular filter button, it will write
+           unique string which correspond to the filter in the beginning
+           of filter text entry.
+        2) When user wrote to the filter text entry unique string which
+           corresponds to some filter (see below) it will select this 
+           filter explicitly.
+        """
         filters = { "" : self.filter_none,
                     "profile:": self.filter_profiles,
                     "rule:": self.filter_rules,
@@ -152,6 +163,8 @@ class ProfileList(abstract.List):
             self.search.set_text(filter+sub[1])
 
     def __cb_search(self, widget, treeview):
+        """ Callback when filter text entry was changed
+        """
         self.core.notify_destroy("notify:profiles:filter")
         self.__stop_search = False
         sub = re.findall("^([a-z]*:)?(.*)$", self.search.get_text())[0]
@@ -160,19 +173,42 @@ class ProfileList(abstract.List):
         self.__update(False)
 
     def __filter_func(self, model, iter, data=None):
+        """ TreeModelFilter filter function which is called
+        upon all model items. This function will decide if the
+        item will be visible or not.
+        """
         if self.__stop_search: return True
-        columns = [0,1,4]
-        text = self.search.get_text()
-        subcmd = re.findall("^([a-z]*:)?(.*)$", text)[0]
+        columns = [0,1,4]                                   # In which columns we should look for regexp match ?
+        text = self.search.get_text()                       # Regular expression text
+        subcmd = re.findall("^([a-z]*:)?(.*)$", text)[0]    # Split to <filter>:text
 
-        group = subcmd[0]
-        text = subcmd[1]
-        if len(group) == 0 and len(text) == 0: return True
+        group = subcmd[0]                                   # Group is particular filter (see __set_filter func)
+        text = subcmd[1]                                    # Text is regular expression string
+        if len(group) == 0 and len(text) == 0: return True  # It is pointless to search nothing
 
+        """ This is kind of tricky: When we are looking for anything
+        within the tree but the profiles, when each profile does not
+        match this search, it will be hidden - BUT it will also hide
+        everything inside the node of every profile in the TreeView.
+        Therefor we need to return True (it will be visible) for all
+        profiles unless we explicitly say that we are looking just
+        within profiles (by profile:text)
+        """
         if group != "profile:" and model[iter][0] == "profile":
             return True
+
+        """ If we have set up some filter and the filter rule does
+        not match the current item requirement, just skip further
+        search.
+        """
         if len(group) > 0 and group != "all:" and model[iter][0] != group[:-1]:
             return False
+
+        """ Everything matched so far, let's make a pattern from the
+        regexp we have in "text" field. If compilation of this regexp
+        fail for whatever reason, show notification and top search
+        process.
+        """
         try:
             pattern = re.compile(text, re.I)
         except sre_constants.error, err:
@@ -180,6 +216,10 @@ class ProfileList(abstract.List):
             self.__stop_search = True
             return True
 
+        """ Compilation of regexp is done. For each column specified
+        in "columns" variable (each column should be a text field)
+        look for pattern (compiled regular expression from "text").
+        """
         for col in columns:
             found = re.search(pattern or "", model[iter][col] or "")
             if found != None: return True
@@ -198,12 +238,16 @@ class ProfileList(abstract.List):
             self.data_model.model.clear()
             self.data_model.fill(no_default=True)
             self.profile = self.core.selected_profile
+
         if self.core.selected_profile and self.selected:
+            """ We have a profile selected, let's find it and select """
             self.get_TreeView().get_model().foreach(self.set_selected, (self.core.selected_profile, self.get_TreeView(), 1))
         if self.core.selected_item and self.selected:
+            """ We have an item selected, let's find it and select """
             self.get_TreeView().get_model().foreach(self.set_selected_profile_item, (self.core.selected_profile, self.core.selected_item, self.get_TreeView(), 1))
 
-        # List is updated, trigger all events connected to this signal
+        """List is updated, trigger all events 
+        connected to this signal"""
         self.emit("update")
 
     def __cb_changed(self, widget, treeView):
@@ -219,17 +263,18 @@ class ProfileList(abstract.List):
             iter = filter_model.convert_iter_to_child_iter(filter_iter)
 
             if model.get_value(iter, 0) == "profile":
-                # If a profile is selected, change the global value of selected profile
-                # and clear the local value of item (to evade possible conflicts in selections)
+                """ If a profile is selected, change the global value of selected profile
+                and clear the local value of item (to evade possible conflicts in selections)"""
                 self.core.selected_profile = model.get_value(iter, 2).id
                 self.selected = model[iter]
             else:
-                # If a refine item is selected, change the global value of selected item
-                # and fill the local value of selected item so details can be filled from it.
+                """ If a refine item is selected, change the global value of selected item
+                and fill the local value of selected item so details can be filled from it."""
                 self.core.selected_item = model.get_value(iter, 1)
                 self.selected = model[iter]
 
-        # Selection has changed, trigger all events connected to this signal
+        """Selection has changed, trigger all events
+        connected to this signal"""
         self.emit("update")
 
     def __cb_key_press(self, widget, event):
@@ -270,9 +315,9 @@ class ProfileList(abstract.List):
                 self.data_model.remove_refine(profile, model[iter][2])
                 model.remove(iter)
 
-            # If the removed item has successor, let's select it so we can
-            # continue in deleting or other actions without need to click the
-            # list again to select next item
+            """ If the removed item has successor, let's select it so we can
+            continue in deleting or other actions without need to click the
+            list again to select next item"""
             if iter_next:
                 self.core.selected_item = model[iter_next][1]
                 self.__update(False)
@@ -585,7 +630,7 @@ class MenuButtonEditXCCDF(abstract.MenuButton):
         elif object == "resolved":
             self.data_model.update(resolved=(widget.get_active() == 1))
         elif object == "status":
-            self.data_model.update(status=abstract.ENUM_STATUS_CURRENT[widget.get_active()][0])
+            self.data_model.update(status=ENUM.STATUS_CURRENT[widget.get_active()][0])
         elif object == "lang":
             self.data_model.update(lang=widget.get_text())
         else: 
@@ -749,7 +794,6 @@ class ExportDialog(abstract.Window, abstract.ListEditor):
         self.info_box = builder.get_object("dialog:export:info_box")
         self.filechooser = builder.get_object("dialog:export:filechooser")
         self.filechooser.set_filename(self.core.lib.xccdf or "")
-        self.filechooser.connect("confirm-overwrite", self.__confirm_overwrite)
         self.valid = builder.get_object("dialog:export:valid")
         self.profile = builder.get_object("dialog:export:profile")
         self.profile.connect("clicked", self.__cb_profile_clicked)
@@ -776,9 +820,6 @@ class ExportDialog(abstract.Window, abstract.ListEditor):
 
     def __cb_switch(self, widget):
         self.guide_box.set_sensitive(widget == self.guide_rb)
-
-    def __confirm_overwrite(self, widget, more=None):
-        print widget, more
 
     def __action_link(self, widget, action):
         if action == "#overwrite":
@@ -943,8 +984,8 @@ class MenuButtonEditProfiles(abstract.MenuButton, abstract.Func):
         self.refines_severity = self.builder.get_object("xccdf:refines:severity")
         self.refines_severity.connect("changed", self.__change)
 
-        self.refines_operator.set_model(abstract.Enum_type.combo_model_operator_number)
-        self.refines_severity.set_model(abstract.Enum_type.combo_model_level)
+        self.refines_operator.set_model(ENUM.OPERATOR.get_model())
+        self.refines_severity.set_model(ENUM.LEVEL.get_model())
         # -------------
 
         self.builder.get_object("profile_list:popup:sub:select").connect("activate", self.__find_item, "rule")
@@ -986,9 +1027,9 @@ class MenuButtonEditProfiles(abstract.MenuButton, abstract.Func):
             if active != -1:
                 self.data_model.update_refines(item[0], item[1], item[2], selector=widget.get_model()[active][0])
         elif widget == self.refines_operator:
-            self.data_model.update_refines(item[0], item[1], item[2], operator=abstract.ENUM_OPERATOR[widget.get_active()][0])
+            self.data_model.update_refines(item[0], item[1], item[2], operator=ENUM.OPERATOR[widget.get_active()][0])
         elif widget == self.refines_severity:
-            self.data_model.update_refines(item[0], item[1], item[2], severity=abstract.ENUM_LEVEL[widget.get_active()][0])
+            self.data_model.update_refines(item[0], item[1], item[2], severity=ENUM.LEVEL[widget.get_active()][0])
         else: 
             logger.error("Change not supported object in \"%s\"" % (widget,))
             return
@@ -1108,7 +1149,7 @@ class MenuButtonEditProfiles(abstract.MenuButton, abstract.Func):
                     elif rule.object == "xccdf_refine_rule":
                         self.refines_selector.set_text(rule.selector or "")
                         self.refines_weight.set_text(`rule.weight`)
-                        self.refines_severity.set_active(abstract.ENUM_LEVEL.pos(rule.severity))
+                        self.refines_severity.set_active(ENUM.LEVEL.pos(rule.severity))
                     else: raise AttributeError("Unknown type of rule refine: %s" % (rule.object,))
             elif itype == "value":
                 model = self.refines_selector_value.get_model()
@@ -1125,7 +1166,7 @@ class MenuButtonEditProfiles(abstract.MenuButton, abstract.Func):
                     elif value.object == "xccdf_refine_value":
                         for row in model:
                             if not has_value and row[0] == value.selector: self.refines_selector_value.set_active_iter(row.iter)
-                        self.refines_operator.set_active(abstract.ENUM_OPERATOR.pos(value.oper))
+                        self.refines_operator.set_active(ENUM.OPERATOR.pos(value.oper))
                     else: raise AttributeError("Unknown type of value refine: %s" % (value.object,))
                 
             else: raise AttributeError("Unknown type of refines in profile: %s" % (itype,))
@@ -1292,7 +1333,7 @@ class MenuButtonEditItems(abstract.MenuButton, abstract.Func):
         self.fix = EditFix(self.core, self.builder)
         
         self.severity = self.builder.get_object("edit:operations:combo_severity")
-        self.severity.set_model(abstract.Enum_type.combo_model_level)
+        self.severity.set_model(ENUM.TYPE.get_model())
         self.severity.connect( "changed", self.__change)
         self.impact_metric = self.builder.get_object("edit:operations:entry_impact_metric")
         self.impact_metric.connect("focus-out-event", self.cb_control_impact_metrix)
@@ -1529,7 +1570,7 @@ class MenuButtonEditItems(abstract.MenuButton, abstract.Func):
             self.item_values_main.set_sensitive(True)
             self.operations.set_sensitive(True)
 
-            self.severity.set_active(abstract.ENUM_LEVEL.pos(details["severity"]) or -1)
+            self.severity.set_active(ENUM.LEVEL.pos(details["severity"]) or -1)
             self.impact_metric.set_text(details["imapct_metric"] or "")
             self.fixtext.fill(details["item"])
             self.fix.fill(details["item"])
@@ -1854,18 +1895,34 @@ class EditDescription(abstract.ListEditor):
         self.widget.append_column(gtk.TreeViewColumn("Language", gtk.CellRendererText(), text=self.COLUMN_LANG))
         self.widget.append_column(gtk.TreeViewColumn("Description", gtk.CellRendererText(), text=self.COLUMN_TEXT))
 
-    def regexp(self, regexp):
+    def __regexp(self, regexp):
         match = regexp.groups()
+
+        """ If there is no xhtml: prefix of HTML tag, we need to add it
+        due validity of document """
         if match[1][:6] == "xhtml:": TAG = ""
         else: TAG = "xhtml:"
 
+        """ If there is no long namespace defined and this is not ending
+        tag of paired tags we need to define long namespace """
+        if match[2].find("xmlns:xhtml") != -1 or match[0] == "</": NS_TAG = ""
+        else: NS_TAG = ' xmlns:xhtml="http://www.w3.org/1999/xhtml"'
+
+        # Bugfix: Correction of double "//" inserted in the end (present in match[2] after group)
+        if len(match[2]) > 0 and match[2][-1] == "/": END_TAG = ">"
+        else: END_TAG = "/>"
+
+        """ Head and Body should be removed
+        Unpaired tags should have format <xhtml:TAG xmlns:xhtml="..." />
+        if tag is sub and contains idref attribute it should have format <sub ... />
+        Paired tags should have format <xhtml:TAG xmlns:xhtml="..."> ... </TAG> """
         if match[1] in ["head", "body"]:
             return ""
-        elif match[1] in ["br", "hr"]: return match[0]+TAG+" ".join(match[1:3])+"/>" # unpaired tags
+        elif match[1] in ["br", "hr"]: return match[0]+TAG+" ".join(match[1:3])+NS_TAG+END_TAG # unpaired tags
         elif match[1] in ["sub"]: 
-            if match[2].find("idref") != -1: return match[0]+" ".join(match[1:3])+"/>" # <sub>
+            if match[2].find("idref") != -1: return match[0]+" ".join(match[1:3])+NS_TAG+END_TAG # <sub>
             else: return "" # </sub>
-        else: return match[0]+TAG+" ".join(match[1:3]).strip()+">" # paired tags
+        else: return match[0]+TAG+" ".join(match[1:3]).strip()+NS_TAG+">" # paired tags
 
     def __do(self, widget=None):
         """
@@ -1887,7 +1944,7 @@ class EditDescription(abstract.ListEditor):
                     # Use Beutiful soup to prettify the HTML
                     soup = BeautifulSoup(desc)
                     desc = soup.prettify()
-            desc = re.sub("(< */* *)([^>/ ]*) *([^>]*)/*>", self.regexp, desc)
+            desc = re.sub("(< */* *)([^>/ ]*) *([^>]*?)/?>", self.__regexp, desc)
             retval = self.data_model.edit_description(self.operation, item, self.lang.get_text(), desc)
 
         self.fill()
@@ -2123,7 +2180,7 @@ class EditWarning(abstract.ListEditor):
         self.lang = builder.get_object("dialog:edit_warning:lang")
         self.warning = builder.get_object("dialog:edit_warning:warning")
         self.category = builder.get_object("dialog:edit_warning:category")
-        self.category.set_model(self.combo_model_warning)
+        self.category.set_model(ENUM.WARNING.get_model())
         builder.get_object("dialog:edit_warning:btn_cancel").connect("clicked", self.__dialog_destroy)
         builder.get_object("dialog:edit_warning:btn_ok").connect("clicked", self.__do)
 
@@ -2137,7 +2194,7 @@ class EditWarning(abstract.ListEditor):
                     Notification.ERROR, msg_id="notify:not_selected"))
                 return
             else:
-                self.category.set_active(abstract.ENUM_WARNING.pos(model[self.iter][self.COLUMN_OBJ].category) or -1)
+                self.category.set_active(ENUM.WARNING.pos(model[self.iter][self.COLUMN_OBJ].category) or -1)
                 self.lang.set_text(model[self.iter][self.COLUMN_LANG] or "")
                 self.warning.get_buffer().set_text(model[self.iter][self.COLUMN_TEXT] or "")
         elif operation == self.data_model.CMD_OPER_DEL:
@@ -2161,8 +2218,8 @@ class EditWarning(abstract.ListEditor):
 
         self.clear()
         for item in self.data_model.get_warnings() or []:
-            category = abstract.ENUM_WARNING.map(item.category)
-            index = abstract.ENUM_WARNING.pos(item.category)
+            category = ENUM.WARNING.map(item.category)
+            index = ENUM.WARNING.pos(item.category)
             self.append([item.text.lang, re.sub("[\t ]+" , " ", item.text.text).strip(), item, category[1]])
 
 class EditNotice(abstract.ListEditor):
@@ -2312,7 +2369,7 @@ class EditStatus(abstract.ListEditor):
         self.info_box = builder.get_object("dialog:edit_status:info_box")
         self.calendar = builder.get_object("dialog:edit_status:calendar")
         self.status = builder.get_object("dialog:edit_status:status")
-        self.status.set_model(self.combo_model_status)
+        self.status.set_model(ENUM.STATUS_CURRENT.get_model())
         builder.get_object("dialog:edit_status:btn_cancel").connect("clicked", self.__dialog_destroy)
         builder.get_object("dialog:edit_status:btn_ok").connect("clicked", self.__do)
 
@@ -2331,7 +2388,7 @@ class EditStatus(abstract.ListEditor):
                 day, month, year = time.strftime("%d %m %Y", time.localtime(model[self.iter][self.COLUMN_OBJ].date)).split()
                 self.calendar.select_month(int(month), int(year))
                 self.calendar.select_day(int(day))
-                self.status.set_active(abstract.ENUM_STATUS_CURRENT.pos(model[self.iter][self.COLUMN_OBJ].status) or -1)
+                self.status.set_active(ENUM.STATUS_CURRENT.pos(model[self.iter][self.COLUMN_OBJ].status) or -1)
         elif operation == self.data_model.CMD_OPER_DEL:
             if not self.iter:
                 self.notifications.append(self.core.notify("Please select at least one item to delete",
@@ -2353,8 +2410,8 @@ class EditStatus(abstract.ListEditor):
 
         self.clear()
         for item in self.data_model.get_statuses() or []:
-            status = abstract.ENUM_STATUS_CURRENT.map(item.status)
-            index = abstract.ENUM_STATUS_CURRENT.pos(item.status)
+            status = ENUM.STATUS_CURRENT.map(item.status)
+            index = ENUM.STATUS_CURRENT.pos(item.status)
             self.append([time.strftime("%d-%m-%Y", time.localtime(item.date)), status[1], item])
 
 class EditIdent(commands.DHEditItems,abstract.ControlEditWindow):
@@ -2828,7 +2885,7 @@ class EditValues(abstract.MenuButton):
         self.interactive = self.builder.get_object("edit:values:interactive")
         self.interactive.connect("toggled", self.__change)
 
-        self.operator.set_model(abstract.Enum_type.combo_model_operator_number)
+        self.operator.set_model(ENUM.OPERATOR.get_model())
         
     def show(self, active):
         self.values.set_sensitive(active)
@@ -2854,7 +2911,7 @@ class EditValues(abstract.MenuButton):
         elif widget == self.cluster_id:
             self.data_model.edit_value(cluster_id=widget.get_text())
         elif widget == self.operator:
-            self.data_model.edit_value(operator=abstract.ENUM_OPERATOR[widget.get_active()][0])
+            self.data_model.edit_value(operator=ENUM.OPERATOR[widget.get_active()][0])
         elif widget == self.abstract:
             self.data_model.edit_value(abstract=widget.get_active())
         elif widget == self.prohibit_changes:
@@ -2892,11 +2949,11 @@ class EditValues(abstract.MenuButton):
             self.version.set_text(details["version"] or "")
             self.version_time.set_text(details["version_time"] or "")
             self.cluster_id.set_text(details["cluster_id"] or "")
-            self.vtype.set_text(abstract.ENUM_TYPE.map(details["vtype"])[1])
+            self.vtype.set_text(ENUM.TYPE.map(details["vtype"])[1])
             self.abstract.set_active(details["abstract"])
             self.prohibit_changes.set_active(details["prohibit_changes"])
             self.interactive.set_active(details["interactive"])
-            self.operator.set_active(abstract.ENUM_OPERATOR.pos(details["oper"]))
+            self.operator.set_active(ENUM.OPERATOR.pos(details["oper"]))
             self.titles.fill()
             self.descriptions.fill()
             self.warnings.fill()
@@ -3143,15 +3200,15 @@ class EditFixtextOption(commands.DHEditItems,abstract.ControlEditWindow):
         self.entry_reference.connect("focus-out-event",self.cb_entry_fixtext_reference)
         
         self.combo_strategy = self.builder.get_object("edit:operations:fixtext:combo_strategy1")
-        self.combo_strategy.set_model(abstract.Enum_type.combo_model_strategy)
+        self.combo_strategy.set_model(ENUM.STRATEGY.get_model())
         self.combo_strategy.connect( "changed", self.cb_combo_fixtext_strategy)
         
         self.combo_complexity = self.builder.get_object("edit:operations:fixtext:combo_complexity1")
-        self.combo_complexity.set_model(abstract.Enum_type.combo_model_level)
+        self.combo_complexity.set_model(ENUM.LEVEL.get_model())
         self.combo_complexity.connect( "changed", self.cb_combo_fixtext_complexity)
     
         self.combo_disruption = self.builder.get_object("edit:operations:fixtext:combo_disruption1")
-        self.combo_disruption.set_model(abstract.Enum_type.combo_model_level)
+        self.combo_disruption.set_model(ENUM.LEVEL.get_model())
         self.combo_disruption.connect( "changed", self.cb_combo_fixtext_disruption)
     
         self.chbox_reboot = self.builder.get_object("edit:operations:fixtext:chbox_reboot1")
@@ -3294,15 +3351,15 @@ class EditFixOption(commands.DHEditItems,abstract.ControlEditWindow):
         self.entry_platform.connect("focus-out-event",self.cb_entry_fix_platform)
         
         self.combo_strategy = self.builder.get_object("edit:operations:fix:combo_strategy")
-        self.combo_strategy.set_model(abstract.Enum_type.combo_model_strategy)
+        self.combo_strategy.set_model(ENUM.STRATEGY.get_model())
         self.combo_strategy.connect( "changed", self.cb_combo_fix_strategy)
         
         self.combo_complexity = self.builder.get_object("edit:operations:fix:combo_complexity")
-        self.combo_complexity.set_model(abstract.Enum_type.combo_model_level)
+        self.combo_complexity.set_model(ENUM.LEVEL.get_model())
         self.combo_complexity.connect( "changed", self.cb_combo_fix_complexity)
     
         self.combo_disruption = self.builder.get_object("edit:operations:fix:combo_disruption")
-        self.combo_disruption.set_model(abstract.Enum_type.combo_model_level)
+        self.combo_disruption.set_model(ENUM.LEVEL.get_model())
         self.combo_disruption.connect( "changed", self.cb_combo_fix_disruption)
     
         self.chbox_reboot = self.builder.get_object("edit:operations:fix:chbox_reboot")

@@ -27,7 +27,16 @@ logger = logging.getLogger("scap-workbench")
 
 class EventObject(gobject.GObject):
 
+    """ EventObject is abstract class handling all events between various object
+    in application and general notifications.
+
+    All objects should implement this  class.
+    """
+
     def __init__(self, core=None):
+        """ Constructor of EventObject. Call Gobject constructor for 
+        signals handling. Register objects.
+        """
         self.__gobject_init__()
         self.core = core
         gobject.type_register(EventObject)
@@ -37,11 +46,23 @@ class EventObject(gobject.GObject):
         self.notifications = []
     
     def emit(self, signal):
+        """ Emit signal. This is overwritten function of GObject
+        for better logging.
+
+        signal: string representing the signal
+        """
         logger.debug("Emiting signal %s from %s", signal, self.id)
         gobject.GObject.emit(self, signal)
 
     def add_sender(self, id, signal, *args):
+        """ Each object should register itself for sending some type
+        of signal. Without registering it will be prohibited to propagate
+        that signal to recievers.
 
+        ID: unique identificator of sender
+        signal: string representing the signal
+        *args: optional arguments (TODO: propagation not implemented)
+        """
         if not gobject.signal_lookup(signal, EventObject): 
             logger.debug("Creating signal %s::%s", id, signal)
             gobject.signal_new(signal, EventObject, gobject.SIGNAL_RUN_FIRST, gobject.TYPE_NONE, ())
@@ -49,10 +70,18 @@ class EventObject(gobject.GObject):
         if self.core != None: self.core.set_sender(signal, self)
 
     def add_receiver(self, id, signal, callback, *args):
+        """ Add receiver by specifing what type of signal from what
+        sender it should handle.
 
+        ID: unique identifier of SENDER! of signal
+        signal: identifier of signal
+        callback: callable function called when signal is emitted
+        """
         if self.core != None: self.core.set_receiver(id, signal, callback, args)
 
     def activate(self, active):
+        """ This function is used to clear all general notifications
+        """
         if not active:
             for notify in self.notifications:
                 notify.destroy()
@@ -60,19 +89,36 @@ class EventObject(gobject.GObject):
 
 class EventHandler(EventObject):
 
+    """ Class EventHandler is used by CORE class and should be always
+    a singleton (as well as the core object).
+
+    This class is used to save senders and receivers and handling
+    propagations of signals within them.
+    """
+
     def __init__(self, core):
-        """
-        event is dictionary: "<action_name>": list of actions
+        """ Constructor of EventHandler class. EventHandler inherits
+        EventObject and contains dictionary of receivers.
         """
         super(EventHandler, self).__init__(core)
         self.core = core
         self.receivers = {}
 
     def set_sender(self, signal, sender):
-        sender.connect(signal, self.propagate, signal)
+        """ This is used to connect the signal to the sender
+        to call __propagate function on emit.
+
+        The third argument of connect function is used to
+        pass the name of signal to __propagate function
+        """
+        sender.connect(signal, self.__propagate, signal)
 
     def register_receiver(self, sender_id, signal, callback, *args):
-
+        """ Register the receiver object. There is a receivers dictionary
+        which contains senders as keys and signal dictionary as value of receiver
+        dictionary. The signal dictionary contains signal strings as keys
+        and list of callbacks as value of the dictionary.
+        """
         if not callable(callback):
             logger.error("Given callback is not callable: %s", callback)
             return False
@@ -88,7 +134,10 @@ class EventHandler(EventObject):
 
         return True
 
-    def propagate(self, sender, signal):
+    def __propagate(self, sender, signal):
+        """ Propagate the signal to all receivers from the sender.
+        If callback is not callable, raise Exception.
+        """
         if sender.id in self.receivers:
             if signal in self.receivers[sender.id]:
                 for cb in self.receivers[sender.id][signal]:

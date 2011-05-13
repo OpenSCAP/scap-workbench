@@ -56,103 +56,6 @@ except Exception as ex:
     logger.error("OpenScap library initialization failed: %s", ex)
     openscap=None
 
-class enum(tuple):
-
-    """ Enumeration inherited from tuple used for openscap
-    enumerations filled to GTK Widgets.
-
-    Use ENUM.map(id) when looking for item from model (known enum id)
-    Use ENUM.pos(id) when looking in position of item in model (known position in model)
-    Use ENUM.get_model() when creating model for this enumeration
-    Use list funtions when looking for trouble :)
-    """
-
-    def map(self, id):
-        for item in tuple(self):
-            if item[0] == id: return item
-        return None
-
-    def pos(self, id):
-        for item in tuple(self):
-            if item[0] == id: return tuple.index(self, item)
-        return -1
-
-    def get_model(self):
-        model = gtk.ListStore(int, str, str)
-        for item in tuple(self):
-            model.append(item)
-        return model
-
-""" Below is the list of enumerations from OpenSCAP library
-"""
-
-ENUM_STATUS_CURRENT=enum((
-        [openscap.OSCAP.XCCDF_STATUS_NOT_SPECIFIED, "NOT SPECIFIED", "Status was not specified by benchmark."],
-        [openscap.OSCAP.XCCDF_STATUS_ACCEPTED, "ACCEPTED", "Accepted."],
-        [openscap.OSCAP.XCCDF_STATUS_DEPRECATED, "DEPRECATED", "Deprecated."],
-        [openscap.OSCAP.XCCDF_STATUS_DRAFT, "DRAFT ", "Draft item."],
-        [openscap.OSCAP.XCCDF_STATUS_INCOMPLETE, "INCOMPLETE", "The item is not complete. "],
-        [openscap.OSCAP.XCCDF_STATUS_INTERIM, "INTERIM", "Interim."]))
-
-ENUM_WARNING=enum((
-    [0, "UNKNOWN", "Unknown."],
-    [openscap.OSCAP.XCCDF_WARNING_GENERAL, "GENERAL", "General-purpose warning."],
-    [openscap.OSCAP.XCCDF_WARNING_FUNCTIONALITY, "FUNCTIONALITY", "Warning about possible impacts to functionality."],
-    [openscap.OSCAP.XCCDF_WARNING_PERFORMANCE, "PERFORMANCE", "  Warning about changes to target system performance."],
-    [openscap.OSCAP.XCCDF_WARNING_HARDWARE, "HARDWARE", "Warning about hardware restrictions or possible impacts to hardware."],
-    [openscap.OSCAP.XCCDF_WARNING_LEGAL, "LEGAL", "Warning about legal implications."],
-    [openscap.OSCAP.XCCDF_WARNING_REGULATORY, "REGULATORY", "Warning about regulatory obligations."],
-    [openscap.OSCAP.XCCDF_WARNING_MANAGEMENT, "MANAGEMENT", "Warning about impacts to the mgmt or administration of the target system."],
-    [openscap.OSCAP.XCCDF_WARNING_AUDIT, "AUDIT", "Warning about impacts to audit or logging."],
-    [openscap.OSCAP.XCCDF_WARNING_DEPENDENCY, "DEPENDENCY", "Warning about dependencies between this Rule and other parts of the target system."]))
-
-ENUM_OPERATOR=enum((
-    [openscap.OSCAP.XCCDF_OPERATOR_EQUALS, "EQUALS", "Equality"],
-    [openscap.OSCAP.XCCDF_OPERATOR_NOT_EQUAL, "NOT EQUAL", "Inequality"],
-    [openscap.OSCAP.XCCDF_OPERATOR_GREATER, "GREATER", "Greater than"],
-    [openscap.OSCAP.XCCDF_OPERATOR_GREATER_EQUAL, "GREATER OR EQUAL", "Greater than or equal."],
-    [openscap.OSCAP.XCCDF_OPERATOR_LESS , "LESS", "Less than."],
-    [openscap.OSCAP.XCCDF_OPERATOR_LESS_EQUAL, "LESS OR EQUAL", "Less than or equal."]))
-
-ENUM_TYPE=enum((
-    [0, "UNKNOWN", "Unknown."],
-    [openscap.OSCAP.XCCDF_TYPE_NUMBER, "NUMBER", ""],
-    [openscap.OSCAP.XCCDF_TYPE_STRING, "STRING", ""],
-    [openscap.OSCAP.XCCDF_TYPE_BOOLEAN, "BOOLEAN", ""]))
-
-ENUM_LEVEL=enum((
-    [openscap.OSCAP.XCCDF_UNKNOWN, "UNKNOWN", "Unknown."],
-    [openscap.OSCAP.XCCDF_INFO, "INFO", "Info."],
-    [openscap.OSCAP.XCCDF_LOW, "LOW", "Low."],
-    [openscap.OSCAP.XCCDF_MEDIUM, "MEDIUM", "Medium"],
-    [openscap.OSCAP.XCCDF_HIGH, "HIGH", "High."]))
-
-ENUM_ROLE=enum((
-    [openscap.OSCAP.XCCDF_ROLE_FULL, "FULL", "Check the rule and let the result contriburte to the score and appear in reports.."],
-    [openscap.OSCAP.XCCDF_ROLE_UNSCORED, "UNSCORED", "Check the rule and include the result in reports, but do not include it into score computations"],
-    [openscap.OSCAP.XCCDF_ROLE_UNCHECKED, "UNCHECKED", "Don't check the rule, result will be XCCDF_RESULT_UNKNOWN."]))
-
-ENUM_STRATEGY=enum((
-    [openscap.OSCAP.XCCDF_STRATEGY_UNKNOWN, "UNKNOWN", "Strategy not defined."],
-    [openscap.OSCAP.XCCDF_STRATEGY_CONFIGURE, "CONFIGURE", "Adjust target config or settings."],
-    [openscap.OSCAP.XCCDF_STRATEGY_DISABLE, "DISABLE", "Turn off or deinstall something."],
-    [openscap.OSCAP.XCCDF_STRATEGY_ENABLE, "ENABLE", "Turn on or install something."],
-    [openscap.OSCAP.XCCDF_STRATEGY_PATCH, "PATCH", "Apply a patch, hotfix, or update."],
-    [openscap.OSCAP.XCCDF_STRATEGY_POLICY, "POLICY", "Remediation by changing policies/procedures."],
-    [openscap.OSCAP.XCCDF_STRATEGY_RESTRICT, "RESTRICT", "Adjust permissions or ACLs."],
-    [openscap.OSCAP.XCCDF_STRATEGY_UPDATE, "UPDATE", "Install upgrade or update the system"],
-    [openscap.OSCAP.XCCDF_STRATEGY_COMBINATION, "COMBINATION", "Combo of two or more of the above."]))
-
-ENUM_OPERATOR_BOOL=enum((
-    [openscap.OSCAP.XCCDF_OPERATOR_EQUALS, "EQUALS", "Equality"],
-    [openscap.OSCAP.XCCDF_OPERATOR_NOT_EQUAL, "NOT EQUAL", "Inequality"]))
-
-ENUM_OPERATOR_STRING=enum((
-    [openscap.OSCAP.XCCDF_OPERATOR_EQUALS, "EQUALS", "Equality"],
-    [openscap.OSCAP.XCCDF_OPERATOR_NOT_EQUAL, "NOT EQUAL", "Inequality"],
-    [openscap.OSCAP.XCCDF_OPERATOR_PATTERN_MATCH, "PATTERN_MATCH", "Match a regular expression."]))
-
-
 class Menu(EventObject):
 
     """ Create Main item for TreeToolBar_toggleButtonGroup and draw all tree Menu
@@ -826,50 +729,7 @@ class Func:
         else:
             return float('nan')
 
-class Enum_type:
-    
-    COMBO_COLUMN_DATA = 0
-    COMBO_COLUMN_VIEW = 1
-    COMBO_COLUMN_INFO = 2
-    
-    # 0 is undefined here 
-    combo_model_level = gtk.ListStore(int, str, str)
-    for item in ENUM_LEVEL:
-        combo_model_level.append(item)
-    
-    combo_model_strategy = gtk.ListStore(int, str, str)
-    for item in ENUM_STRATEGY:
-        combo_model_strategy.append(item)
-    
-    combo_model_status = gtk.ListStore(int, str, str)
-    for item in ENUM_STATUS_CURRENT:
-        combo_model_status.append(item)
-    
-    combo_model_warning = gtk.ListStore(int, str, str)
-    for item in ENUM_WARNING:
-        combo_model_warning.append(item)
-
-    combo_model_role = gtk.ListStore(int, str, str)
-    for item in ENUM_ROLE:
-        combo_model_role.append(item)
-
-    combo_model_type = gtk.ListStore(int, str, str)
-    for item in ENUM_TYPE:
-        combo_model_type.append(item)
-
-    combo_model_operator_number = gtk.ListStore(int, str, str)
-    for item in ENUM_OPERATOR:
-        combo_model_operator_number.append(item)
-
-    combo_model_operator_bool = gtk.ListStore(int, str, str)
-    for item in ENUM_OPERATOR_BOOL:
-        combo_model_operator_bool.append(item)
-
-    combo_model_operator_string = gtk.ListStore(int, str, str)
-    for item in ENUM_OPERATOR_STRING:
-        combo_model_operator_string.append(item)
-
-class ListEditor(EventObject, Func, Enum_type):
+class ListEditor(EventObject, Func):
     """ Abstract class for implementing all edit formulars that appear as list/tree view and 
     has add, edit and del buttons """
 
@@ -1192,7 +1052,7 @@ class EnterList(EventObject):
         pass
 
 
-class ControlEditWindow(Func, Enum_type):
+class ControlEditWindow(Func):
     
     def __init__(self, core, lv, values):
         self.core = core
