@@ -60,13 +60,6 @@ try:
 except ImportError:
     HAS_WEBKIT = False
 
-try:
-    # 
-    from BeautifulSoup import BeautifulSoup
-    HAS_BEUTIFUL_SOUP = True
-except ImportError:
-    HAS_BEUTIFUL_SOUP = False
-
 """ Import OpenSCAP library as backend.
 If anything goes wrong just end with exception"""
 try:
@@ -419,9 +412,9 @@ class ItemList(abstract.List):
             self.data_model.remove_item(model[iter][1])
             model.remove(iter)
 
-            # If the removed item has successor, let's select it so we can
-            # continue in deleting or other actions without need to click the
-            # list again to select next item
+            """ If the removed item has successor, let's select it so we can
+            continue in deleting or other actions without need to click the
+            list again to select next item """
             if iter_next:
                 self.core.selected_item = model[iter_next][1]
                 self.__update(False)
@@ -700,6 +693,10 @@ class MenuButtonEditXCCDF(abstract.MenuButton):
 
 class ImportDialog(abstract.Window, abstract.ListEditor):
 
+    """ ImportDialog class for importing XCCDF documents from main
+    page of editor.
+    """
+
     def __init__(self, core, data_model, cb):
 
         self.core = core
@@ -730,6 +727,9 @@ class ImportDialog(abstract.Window, abstract.ListEditor):
         return True
 
     def __action_link(self, widget, action):
+        """ This function is called when user clicked on hyperlink
+        in the text of notification message.
+        """
         if action == "#overvalid":
             self.core.notify_destroy("notify:xccdf:import:dialog")
             self.__do(overvalid=True)
@@ -750,6 +750,7 @@ class ImportDialog(abstract.Window, abstract.ListEditor):
             browser_val = self.data_model.open_webbrowser("http://bugzilla.redhat.com")
         else: return False
 
+        # return True to stop handling this event by builtin mechanism
         return True
 
     def __do(self, widget=None, overvalid=False):
@@ -782,6 +783,10 @@ class ImportDialog(abstract.Window, abstract.ListEditor):
             self.wdialog.destroy()
 
 class ExportDialog(abstract.Window, abstract.ListEditor):
+
+    """ ExportDialog class for exporting XCCDF documents from main
+    page of editor.
+    """
 
     def __init__(self, core, data_model):
 
@@ -822,6 +827,9 @@ class ExportDialog(abstract.Window, abstract.ListEditor):
         self.guide_box.set_sensitive(widget == self.guide_rb)
 
     def __action_link(self, widget, action):
+        """ This function is called when user clicked on hyperlink
+        in the text of notification message.
+        """
         if action == "#overwrite":
             self.core.notify_destroy("notify:xccdf:export:dialog")
             self.__do(overwrite=True)
@@ -838,6 +846,7 @@ class ExportDialog(abstract.Window, abstract.ListEditor):
             f.close()
             self.preview(widget=None, desc=desc)
 
+        # return True to stop handling this event by builtin mechanism
         return True
 
     def __do(self, widget=None, overwrite=False, overvalid=False):
@@ -1321,6 +1330,13 @@ class MenuButtonEditItems(abstract.MenuButton, abstract.Func):
         self.content_ref_dialog = FindOvalDef(self.core, "gui:edit:evaluation:content_ref:dialog", self.data_model)
         self.content_ref_find.connect("clicked", self.__cb_find_oval_definition)
 
+        # -- FIXTEXTS --
+        self.fixtext = EditFixtext(self.core, "id:edit:xccdf:items:fixtext", builder.get_object("edit:xccdf:items:fixtext"), self.data_model)
+        builder.get_object("edit:xccdf:items:fixtext:btn_add").connect("clicked", self.fixtext.dialog, self.data_model.CMD_OPER_ADD)
+        builder.get_object("edit:xccdf:items:fixtext:btn_edit").connect("clicked", self.fixtext.dialog, self.data_model.CMD_OPER_EDIT)
+        builder.get_object("edit:xccdf:items:fixtext:btn_del").connect("clicked", self.fixtext.dialog, self.data_model.CMD_OPER_DEL)
+        builder.get_object("edit:xccdf:items:fixtext:btn_preview").connect("clicked", self.fixtext.preview)
+
         # -------------
 
         """Get widgets from Glade: Part main.glade in edit
@@ -1329,7 +1345,6 @@ class MenuButtonEditItems(abstract.MenuButton, abstract.Func):
         self.requires = EditRequires(self.core, self.builder,self.list_item.get_TreeView().get_model())
         self.ident = EditIdent(self.core, self.builder)
         self.values = EditValues(self.core, "gui:edit:xccdf:values", self.builder)
-        self.fixtext = EditFixtext(self.core, self.builder)
         self.fix = EditFix(self.core, self.builder)
         
         self.severity = self.builder.get_object("edit:operations:combo_severity")
@@ -1393,8 +1408,10 @@ class MenuButtonEditItems(abstract.MenuButton, abstract.Func):
                 href = iter[1]
                 self.data_model.set_item_content(href=href)
                 self.core.notify_destroy("notify:definition_available")
+        elif widget == self.severity:
+            self.data_model.update(severity=ENUM.LEVEL.value(widget.get_active()))
         else: 
-            logger.error("Change \"%s\" not supported object in \"%s\"" % (object, widget))
+            logger.error("Change of \"%s\" is not supported " % (widget,))
             return
 
     def __cb_href_file_set(self, widget):
@@ -1502,6 +1519,7 @@ class MenuButtonEditItems(abstract.MenuButton, abstract.Func):
         #self.extends.set_text("None")
         self.content_ref.set_text("")
         self.href.get_model().clear()
+        self.severity.set_active(-1)
 
         self.titles.clear()
         self.descriptions.clear()
@@ -1514,7 +1532,7 @@ class MenuButtonEditItems(abstract.MenuButton, abstract.Func):
         self.requires.fill(None)
         self.platforms.fill()
         self.fix.fill(None)
-        self.fixtext.fill(None)
+        self.fixtext.fill()
         self.__unblock_signals()
 
     def __update(self):
@@ -1565,14 +1583,16 @@ class MenuButtonEditItems(abstract.MenuButton, abstract.Func):
 
         self.items.set_sensitive(True)
 
-        if details["type"] == openscap.OSCAP.XCCDF_RULE: # Item is Rule
-            self.ident.set_sensitive(True)
-            self.item_values_main.set_sensitive(True)
-            self.operations.set_sensitive(True)
+        # Set sensitivity for rule / group
+        self.ident.set_sensitive(details["type"] == openscap.OSCAP.XCCDF_RULE)
+        self.item_values_main.set_sensitive(details["type"] == openscap.OSCAP.XCCDF_RULE)
+        self.operations.set_sensitive(details["type"] == openscap.OSCAP.XCCDF_RULE)
+        self.severity.set_sensitive(details["type"] == openscap.OSCAP.XCCDF_RULE)
 
-            self.severity.set_active(ENUM.LEVEL.pos(details["severity"]) or -1)
+        if details["type"] == openscap.OSCAP.XCCDF_RULE: # Item is Rule
+            self.severity.set_active(ENUM.LEVEL.pos(details["severity"]))
             self.impact_metric.set_text(details["imapct_metric"] or "")
-            self.fixtext.fill(details["item"])
+            self.fixtext.fill()
             self.fix.fill(details["item"])
             self.ident.fill(details["item"])
             content = self.data_model.get_item_content()
@@ -1588,14 +1608,9 @@ class MenuButtonEditItems(abstract.MenuButton, abstract.Func):
             self.item_values.fill()
             
         else: # Item is GROUP
-            # clean data only for rule and set insensitive
-            self.ident.set_sensitive(False)
-            self.item_values_main.set_sensitive(False)
-            self.operations.set_sensitive(False)
-
             self.severity.set_active(-1)
             self.impact_metric.set_text("")
-            self.fixtext.fill(None)
+            self.fixtext.fill()
             self.fix.fill(None)
             self.ident.fill(None)
 
@@ -1884,7 +1899,7 @@ class EditTitle(abstract.ListEditor):
         for data in self.data_model.get_titles() or []:
             self.append([data.lang, (" ".join(data.text.split())), data])
 
-class EditDescription(abstract.ListEditor):
+class EditDescription(abstract.HTMLEditor):
 
     def __init__(self, core, id, widget, data_model):
 
@@ -1894,35 +1909,6 @@ class EditDescription(abstract.ListEditor):
 
         self.widget.append_column(gtk.TreeViewColumn("Language", gtk.CellRendererText(), text=self.COLUMN_LANG))
         self.widget.append_column(gtk.TreeViewColumn("Description", gtk.CellRendererText(), text=self.COLUMN_TEXT))
-
-    def __regexp(self, regexp):
-        match = regexp.groups()
-
-        """ If there is no xhtml: prefix of HTML tag, we need to add it
-        due validity of document """
-        if match[1][:6] == "xhtml:": TAG = ""
-        else: TAG = "xhtml:"
-
-        """ If there is no long namespace defined and this is not ending
-        tag of paired tags we need to define long namespace """
-        if match[2].find("xmlns:xhtml") != -1 or match[0] == "</": NS_TAG = ""
-        else: NS_TAG = ' xmlns:xhtml="http://www.w3.org/1999/xhtml"'
-
-        # Bugfix: Correction of double "//" inserted in the end (present in match[2] after group)
-        if len(match[2]) > 0 and match[2][-1] == "/": END_TAG = ">"
-        else: END_TAG = "/>"
-
-        """ Head and Body should be removed
-        Unpaired tags should have format <xhtml:TAG xmlns:xhtml="..." />
-        if tag is sub and contains idref attribute it should have format <sub ... />
-        Paired tags should have format <xhtml:TAG xmlns:xhtml="..."> ... </TAG> """
-        if match[1] in ["head", "body"]:
-            return ""
-        elif match[1] in ["br", "hr"]: return match[0]+TAG+" ".join(match[1:3])+NS_TAG+END_TAG # unpaired tags
-        elif match[1] in ["sub"]: 
-            if match[2].find("idref") != -1: return match[0]+" ".join(match[1:3])+NS_TAG+END_TAG # <sub>
-            else: return "" # </sub>
-        else: return match[0]+TAG+" ".join(match[1:3]).strip()+NS_TAG+">" # paired tags
 
     def __do(self, widget=None):
         """
@@ -1935,16 +1921,7 @@ class EditDescription(abstract.ListEditor):
         if self.operation == self.data_model.CMD_OPER_DEL:
             retval = self.data_model.edit_description(self.operation, item, None, None)
         else:
-            if self.switcher.get_active() == 1:
-                desc = self.description_html.get_buffer().get_text(self.description_html.get_buffer().get_start_iter(), self.description_html.get_buffer().get_end_iter())
-            else:
-                self.description.execute_script("document.title=document.documentElement.innerHTML;")
-                desc = self.description.get_main_frame().get_title()
-                if HAS_BEUTIFUL_SOUP:
-                    # Use Beutiful soup to prettify the HTML
-                    soup = BeautifulSoup(desc)
-                    desc = soup.prettify()
-            desc = re.sub("(< */* *)([^>/ ]*) *([^>]*?)/?>", self.__regexp, desc)
+            desc = self.get_text()
             retval = self.data_model.edit_description(self.operation, item, self.lang.get_text(), desc)
 
         self.fill()
@@ -1957,87 +1934,6 @@ class EditDescription(abstract.ListEditor):
         if self.wdialog: 
             self.wdialog.destroy()
 
-    def __on_color_set(self, widget):
-        dialog = gtk.ColorSelectionDialog("Select Color")
-        if dialog.run() == gtk.RESPONSE_OK:
-            gc = str(dialog.colorsel.get_current_color())
-            color = "#" + "".join([gc[1:3], gc[5:7], gc[9:11]])
-            self.description.execute_script("document.execCommand('forecolor', null, '%s');" % color)
-        dialog.destroy()
-
-    def __on_font_set(self, widget):
-        dialog = gtk.FontSelectionDialog("Select a font")
-        if dialog.run() == gtk.RESPONSE_OK:
-            fname, fsize = dialog.fontsel.get_family().get_name(), dialog.fontsel.get_size()
-            self.description.execute_script("document.execCommand('fontname', null, '%s');" % fname)
-            self.description.execute_script("document.execCommand('fontsize', null, '%s');" % fsize)
-        dialog.destroy()
-
-    def __on_link_set(self, widget):
-        dialog = gtk.Dialog("Enter a URL:", self.core.main_window, 0,
-        (gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL, gtk.STOCK_OK, gtk.RESPONSE_OK))
-
-        entry = gtk.Entry()
-        dialog.vbox.pack_start(entry)
-        dialog.show_all()
-
-        if dialog.run() == gtk.RESPONSE_OK:
-            text = entry.get_text()
-            text = "<sub xmlns=\"http://checklists.nist.gov/xccdf/1.1\" idref=\""+text+"\"/>"
-            self.description.execute_script("document.execCommand('InsertHTML', true, '%s');" % text)
-        dialog.destroy()
-
-    def __on_code_set(self, action):
-        self.description.execute_script("document.execCommand('SetMark', null, 'code');")
-
-    def __on_action(self, action):
-        """
-        """
-        MAP = { "dialog:edit_description:action:bold":      "bold",
-                "dialog:edit_description:action:italic":    "italic",
-                "dialog:edit_description:action:underline": "underline",
-                "dialog:edit_description:action:outdent":   "Outdent",
-                "dialog:edit_description:action:indent":    "Indent",
-                "dialog:edit_description:action:bul_list":  "InsertUnorderedList",
-                "dialog:edit_description:action:num_list":  "InsertOrderedList"}
-        self.description.execute_script("document.execCommand('%s', false, false);" % MAP[action.get_name()])
-
-    def __on_zoom(self, action):
-        """
-        """
-        if action.get_name().split(":")[-1] == "zoomin":
-            self.description.zoom_in()
-        else: self.description.zoom_out()
-
-    def __propagate(self, widget=None):
-        
-        if self.switcher.get_active() == 0: # TEXT -> HTML
-            for child in self.description_tb.get_children():
-                child.set_sensitive(True)
-            self.description_sw.set_property("visible", True)
-            self.description_html_sw.set_property("visible", False)
-            desc = self.description_html.get_buffer().get_text(self.description_html.get_buffer().get_start_iter(), self.description_html.get_buffer().get_end_iter())
-            self.description.load_html_string(desc or "", "file:///")
-        elif self.switcher.get_active() == 1: # HTML -> TEXT
-            for child in self.description_tb.get_children():
-                child.set_sensitive(False)
-            self.description_sw.set_property("visible", False)
-            self.description_html_sw.set_property("visible", True)
-            self.description.execute_script("document.title=document.documentElement.innerHTML;")
-            desc = self.description.get_main_frame().get_title()
-            desc = desc.replace("<head></head>", "")
-            desc = desc.replace("<body>", "").replace("</body>", "")
-
-            if HAS_BEUTIFUL_SOUP:
-                # Use Beutiful soup to prettify the HTML
-                soup = BeautifulSoup(desc)
-                desc = soup.prettify()
-            else: 
-                self.core.notify("Missing BeautifulSoup python module, HTML processing disabled.",
-                    Notification.INFORMATION, info_box=self.info_box, msg_id="")
-            self.description_html.get_buffer().set_text(desc)
-        self.switcher.parent.set_sensitive(True)
-
     def dialog(self, widget, operation):
         """
         """
@@ -2047,56 +1943,32 @@ class EditDescription(abstract.ListEditor):
         self.wdialog = builder.get_object("dialog:edit_description")
         self.info_box = builder.get_object("dialog:edit_description:info_box")
         self.lang = builder.get_object("dialog:edit_description:lang")
-        self.description_sw = builder.get_object("dialog:edit_description:description:sw")
-        self.description_tb = builder.get_object("dialog:edit_description:toolbar")
-        self.description_html = builder.get_object("dialog:edit_description:html")
-        self.description_html_sw = builder.get_object("dialog:edit_description:html:sw")
-        builder.get_object("dialog:edit_description:action:bold").connect("activate", self.__on_action)
-        builder.get_object("dialog:edit_description:action:italic").connect("activate", self.__on_action)
-        builder.get_object("dialog:edit_description:action:underline").connect("activate", self.__on_action)
-        builder.get_object("dialog:edit_description:action:code").connect("activate", self.__on_code_set)
-        builder.get_object("dialog:edit_description:action:num_list").connect("activate", self.__on_action)
-        builder.get_object("dialog:edit_description:action:bul_list").connect("activate", self.__on_action)
-        builder.get_object("dialog:edit_description:action:outdent").connect("activate", self.__on_action)
-        builder.get_object("dialog:edit_description:action:indent").connect("activate", self.__on_action)
-        builder.get_object("dialog:edit_description:action:link").connect("activate", self.__on_link_set)
-        builder.get_object("dialog:edit_description:action:zoomin").connect("activate", self.__on_zoom)
-        builder.get_object("dialog:edit_description:action:zoomout").connect("activate", self.__on_zoom)
-        builder.get_object("dialog:edit_description:tb:color").connect("clicked", self.__on_color_set)
-        builder.get_object("dialog:edit_description:tb:font").connect("clicked", self.__on_font_set)
+        self.toolbar = builder.get_object("dialog:edit_description:toolbar")
+        self.html_box = builder.get_object("dialog:edit_description:html:box")
+        builder.get_object("dialog:edit_description:action:bold").connect("activate", self.on_action, "bold")
+        builder.get_object("dialog:edit_description:action:italic").connect("activate", self.on_action, "italic")
+        builder.get_object("dialog:edit_description:action:underline").connect("activate", self.on_action, "underline")
+        builder.get_object("dialog:edit_description:action:code").connect("activate", self.on_code_set, "code")
+        builder.get_object("dialog:edit_description:action:num_list").connect("activate", self.on_action, "InsertOrderedList")
+        builder.get_object("dialog:edit_description:action:bul_list").connect("activate", self.on_action, "InsertUnorderedList")
+        builder.get_object("dialog:edit_description:action:outdent").connect("activate", self.on_action, "Outdent")
+        builder.get_object("dialog:edit_description:action:indent").connect("activate", self.on_action, "Indent")
+        builder.get_object("dialog:edit_description:action:link").connect("activate", self.on_link_set)
+        builder.get_object("dialog:edit_description:action:zoomin").connect("activate", self.on_zoom)
+        builder.get_object("dialog:edit_description:action:zoomout").connect("activate", self.on_zoom)
+        builder.get_object("dialog:edit_description:tb:color").connect("clicked", self.on_color_set)
+        builder.get_object("dialog:edit_description:tb:font").connect("clicked", self.on_font_set)
         builder.get_object("dialog:edit_description:btn_cancel").connect("clicked", self.__dialog_destroy)
         builder.get_object("dialog:edit_description:btn_ok").connect("clicked", self.__do)
         self.switcher = builder.get_object("dialog:edit_description:switcher")
-        self.switcher.set_active(1)
-        self.switcher.connect("changed", self.__propagate)
-        self.description = None
 
-        if not HAS_WEBKIT:
-            label = gtk.Label("Missing WebKit python module")
-            label.modify_fg(gtk.STATE_NORMAL, gtk.gdk.Color("red"))
-            self.description_sw.add_with_viewport(label)
-            builder.get_object("dialog:edit_description:btn_ok").set_sensitive(False)
-            self.description_tb.set_sensitive(False)
-            self.description_sw.show_all()
-            self.core.notify("Missing WebKit python module, HTML editing disabled.",
-                    Notification.INFORMATION, info_box=self.info_box, msg_id="")
-        else:
-            self.description = webkit.WebView()
-            self.description.set_editable(True)
-            self.description_sw.add(self.description)
-            self.description.set_zoom_level(0.75)
-            self.description_sw.show_all()
-        self.description_html_sw.show_all()
-        self.description_sw.set_property("visible", False)
-        for child in self.description_tb.get_children():
-            child.set_sensitive(False)
-        self.switcher.parent.set_sensitive(True)
+        self.render(self.html_box, self.toolbar, self.switcher)
 
         self.core.notify_destroy("notify:not_selected")
         (model, iter) = self.get_selection().get_selected()
         if operation == self.data_model.CMD_OPER_ADD:
             if self.core.selected_lang: self.lang.set_text(self.core.selected_lang)
-            self.description.load_html_string("", "file:///")
+            self.load_html("", "file:///")
         elif operation == self.data_model.CMD_OPER_EDIT:
             if not iter:
                 self.notifications.append(self.core.notify("Please select at least one item to edit",
@@ -2106,8 +1978,7 @@ class EditDescription(abstract.ListEditor):
                 self.lang.set_text(model[iter][self.COLUMN_LANG] or "")
                 desc = model[iter][self.COLUMN_TEXT]
                 desc = desc.replace("xhtml:","")
-                #if self.description: self.description.load_html_string(desc or "", "file:///")
-                self.description_html.get_buffer().set_text(desc or "")
+                self.load_html(desc or "", "file:///")
         elif operation == self.data_model.CMD_OPER_DEL:
             if not iter:
                 self.notifications.append(self.core.notify("Please select at least one item to delete",
@@ -2129,7 +2000,112 @@ class EditDescription(abstract.ListEditor):
 
         self.clear()
         for data in self.data_model.get_descriptions() or []:
-            self.append([data.lang, re.sub("[\t ]+" , " ", data.text).strip(), data])
+            self.append([data.lang, re.sub("[\t ]+" , " ", data.text or "").strip(), data])
+
+class EditFixtext(abstract.HTMLEditor):
+    
+    COLUMN_LANG = 0
+    COLUMN_TEXT = 1
+
+    def __init__(self, core, id, widget, data_model):
+
+        self.data_model = data_model 
+        abstract.ListEditor.__init__(self, id, core, widget=widget, model=gtk.ListStore(str, str, gobject.TYPE_PYOBJECT))
+        self.add_sender(id, "update")
+
+        self.widget.append_column(gtk.TreeViewColumn("Language", gtk.CellRendererText(), text=self.COLUMN_LANG))
+        self.widget.append_column(gtk.TreeViewColumn("Description", gtk.CellRendererText(), text=self.COLUMN_TEXT))
+
+    def __do(self, widget=None):
+        """
+        """
+        item = None
+        (model, iter) = self.get_selection().get_selected()
+        if iter and model != None: 
+            item = model[iter][self.COLUMN_OBJ]
+
+        if self.operation == self.data_model.CMD_OPER_DEL:
+            retval = self.data_model.edit_fixtext(self.operation, item, None, None)
+        else:
+            desc = self.get_text()
+            retval = self.data_model.edit_fixtext(self.operation, item, self.lang.get_text(), desc)
+
+        self.fill()
+        self.__dialog_destroy()
+        self.emit("update")
+
+    def __dialog_destroy(self, widget=None):
+        """
+        """
+        if self.wdialog: 
+            self.wdialog.destroy()
+
+    def dialog(self, widget, operation):
+        """
+        """
+        self.operation = operation
+        builder = gtk.Builder()
+        builder.add_from_file("/usr/share/scap-workbench/dialogs.glade")
+        self.wdialog = builder.get_object("dialog:edit_description")
+        self.info_box = builder.get_object("dialog:edit_description:info_box")
+        self.lang = builder.get_object("dialog:edit_description:lang")
+        self.toolbar = builder.get_object("dialog:edit_description:toolbar")
+        self.html_box = builder.get_object("dialog:edit_description:html:box")
+        builder.get_object("dialog:edit_description:action:bold").connect("activate", self.on_action, "bold")
+        builder.get_object("dialog:edit_description:action:italic").connect("activate", self.on_action, "italic")
+        builder.get_object("dialog:edit_description:action:underline").connect("activate", self.on_action, "underline")
+        builder.get_object("dialog:edit_description:action:code").connect("activate", self.on_code_set, "code")
+        builder.get_object("dialog:edit_description:action:num_list").connect("activate", self.on_action, "InsertOrderedList")
+        builder.get_object("dialog:edit_description:action:bul_list").connect("activate", self.on_action, "InsertUnorderedList")
+        builder.get_object("dialog:edit_description:action:outdent").connect("activate", self.on_action, "Outdent")
+        builder.get_object("dialog:edit_description:action:indent").connect("activate", self.on_action, "Indent")
+        builder.get_object("dialog:edit_description:action:link").connect("activate", self.on_link_set)
+        builder.get_object("dialog:edit_description:action:zoomin").connect("activate", self.on_zoom)
+        builder.get_object("dialog:edit_description:action:zoomout").connect("activate", self.on_zoom)
+        builder.get_object("dialog:edit_description:tb:color").connect("clicked", self.on_color_set)
+        builder.get_object("dialog:edit_description:tb:font").connect("clicked", self.on_font_set)
+        builder.get_object("dialog:edit_description:btn_cancel").connect("clicked", self.__dialog_destroy)
+        builder.get_object("dialog:edit_description:btn_ok").connect("clicked", self.__do)
+        self.switcher = builder.get_object("dialog:edit_description:switcher")
+
+        self.render(self.html_box, self.toolbar, self.switcher)
+
+        self.core.notify_destroy("notify:not_selected")
+        (model, iter) = self.get_selection().get_selected()
+        if operation == self.data_model.CMD_OPER_ADD:
+            if self.core.selected_lang: self.lang.set_text(self.core.selected_lang)
+            self.load_html("", "file:///")
+        elif operation == self.data_model.CMD_OPER_EDIT:
+            if not iter:
+                self.notifications.append(self.core.notify("Please select at least one item to edit",
+                    Notification.ERROR, msg_id="notify:not_selected"))
+                return
+            else:
+                self.lang.set_text(model[iter][self.COLUMN_LANG] or "")
+                desc = model[iter][self.COLUMN_TEXT]
+                desc = desc.replace("xhtml:","")
+                self.load_html(desc or "", "file:///")
+        elif operation == self.data_model.CMD_OPER_DEL:
+            if not iter:
+                self.notifications.append(self.core.notify("Please select at least one item to delete",
+                    Notification.ERROR, msg_id="notify:not_selected"))
+                return
+            else: 
+                retval = self.dialogDel(self.core.main_window, self.get_selection())
+                if retval != None:
+                    self.__do()
+                return
+        else: 
+            logger.error("Unknown operation for description dialog: \"%s\"" % (operation,))
+            return
+
+        self.wdialog.set_transient_for(self.core.main_window)
+        self.wdialog.show()
+
+    def fill(self):
+        self.clear()
+        for data in self.data_model.get_fixtexts() or []:
+            self.append([data.text.lang, re.sub("[\t ]+" , " ", data.text.text or "").strip(), data])
 
 
 class EditWarning(abstract.ListEditor):
@@ -3114,78 +3090,7 @@ class EditValuesValues(abstract.ListEditor):
                          instance["match"], 
                          instance["item"]])
 
-#======================================= EDIT FIXTEXT ==========================================
 
-class EditFixtext(abstract.ListEditor):
-    
-    COLUMN_TEXT = 0
-
-    def __init__(self, core, builder):
-        
-        self.core = core
-        self.builder = builder
-        self.data_model = commands.DHEditItems(core)
-        abstract.ListEditor.__init__(self, "gui:edit:items:operations:fixtext", self.core, widget=self.builder.get_object("edit:operations:lv_fixtext"), model=gtk.ListStore(str, gobject.TYPE_PYOBJECT))
-        self.builder.get_object("edit:operations:btn_fixtext_preview").connect("clicked", self.preview)
-        
-        # Register Event Object
-        self.add_sender(self.id, "item_changed")
-        self.edit_fixtext_option = EditFixtextOption(core, builder)
-        self.add_receiver("gui:edit:items:operations:fixtext", "item_changed", self.__update)
-        
-        #information for new/edit dialog
-        values = {
-                    "name_dialog":  "Fixtext",
-                    "view":         self,
-                    "cb":           self.data_model.DHEditFixtextText,
-                    "textView":     {"name":    "Value",
-                                    "column":   0,
-                                    "empty":    False, 
-                                    "unique":   False}
-                        }
-        btn_add = builder.get_object("edit:operations:btn_fixtext_add")
-        btn_edit = builder.get_object("edit:operations:btn_fixtext_edit")
-        btn_del = builder.get_object("edit:operations:btn_fixtext_del")
-        
-        # set callBack to btn
-        btn_add.connect("clicked", self.cb_add_row, values)
-        btn_edit.connect("clicked", self.cb_edit_row, values)
-        btn_del.connect("clicked", self.cb_del_row, values)
-        
-        self.widget.get_selection().connect("changed", self.__cb_item_changed, self.widget)
-        
-        self.box_main = self.builder.get_object("edit:operations:fixtext:box")
-        
-        self.widget.append_column(gtk.TreeViewColumn("Text", gtk.CellRendererText(), text=0))
-        
-    def fill(self, item):
-        self.clear()
-        self.emit("item_changed")
-        if item:
-            self.item = item
-            rule = item.to_rule()
-            if rule.fixtexts:
-                for obj in rule.fixtexts:
-                    self.append([re.sub("[\t ]+" , " ", obj.text.text).strip(), obj])
-        else:
-            self.item = None
-    
-    def set_sensitive(self, sensitive):
-        self.box_main.set_sensitive(sensitive)
-        
-    def __cb_item_changed(self, widget, treeView):
-        self.emit("item_changed")
-        treeView.columns_autosize()
-    
-    def __update(self):
-        (model,iter) = self.get_selection().get_selected()
- 
-        if iter:
-            self.edit_fixtext_option.fill(model.get_value(iter, 1))
-        else:
-            self.edit_fixtext_option.fill(None)
-
-            
 class EditFixtextOption(commands.DHEditItems,abstract.ControlEditWindow):
     
     def __init__(self, core, builder):
@@ -3250,8 +3155,6 @@ class EditFixtextOption(commands.DHEditItems,abstract.ControlEditWindow):
         self.chbox_reboot.handler_unblock_by_func(self.cb_chbox_fixtext_reboot)
             
             
-
-#======================================= EDIT FIX ==========================================
 
 class EditFix(commands.DHEditItems, abstract.ControlEditWindow, EventObject):
     

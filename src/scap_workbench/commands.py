@@ -1628,7 +1628,6 @@ class DHItemsTree(DataHandler, EventObject):
         selection.select_iter(item_it)
         return True
 
-
 class DHProfiles(DataHandler):
 
     def __init__(self, core):
@@ -2301,7 +2300,55 @@ class DHEditItems(DataHandler):
         self.item = None # TODO: bug workaround - commands.py:1589 AttributeError: DHEditItems instance has no attribute 'item'
         self.core = core
 
-    def update(self, id=None, version=None, version_time=None, selected=None, hidden=None, prohibit=None, abstract=None, cluster_id=None, weight=None):
+    def get_fixtexts(self):
+        if not self.check_library(): return None
+        item = self.core.lib.benchmark.get_item(self.core.selected_item)
+        if item and item.type == openscap.OSCAP.XCCDF_RULE: return item.to_rule().fixtexts
+        else: return []
+
+    def edit_fixtext(self, operation, fixtext=None, lang=None, description=None, fixref=None, complexity=None, disruption=None, reboot=None, strategy=None):
+        if not self.check_library(): return None
+
+        item = self.core.lib.benchmark.get_item(self.core.selected_item)
+        if item == None:
+            raise Exception("Edit items update: No item selected !")
+        item = item.to_rule()
+
+        if operation == self.CMD_OPER_ADD:
+            fixtext = openscap.xccdf.fixtext_new()
+            fixtext.text = openscap.common.text()
+            fixtext.text.lang = lang
+            fixtext.text.text = description
+
+            item.add_fixtext(fixtext)
+
+        elif operation == self.CMD_OPER_EDIT:
+            if fixtext == None: return False
+            if lang != None and lang != fixtext.text.lang:
+                fixtext.text.lang = lang
+            if description != None and description != fixtext.text.text:
+                fixtext.text.text = description
+            if fixref != None and fixref != fixtext.fixref:
+                fixtext.fixref = fixref
+            if complexity != None and complexity != fixtext.complexity:
+                fixtext.complexity = complexity
+            if disruption != None and disruption != fixtext.disruption:
+                fixtext.disruption = disruption
+            if reboot != None and reboot != fixtext.reboot:
+                fixtext.reboot = reboot
+            if strategy != None and strategy != fixtext.strategy:
+                fixtext.strategy = strategy
+
+        elif operation == self.CMD_OPER_DEL:
+            if fixtext == None: return False
+            item.fixtexts.remove(fixtext)
+        else: raise Exception("Edit items update fixtext: Unsupported operation %s" % operation)
+
+        return True
+        
+
+    def update(self, id=None, version=None, version_time=None, selected=None, hidden=None, prohibit=None, 
+            abstract=None, cluster_id=None, weight=None, severity=None):
         if not self.check_library(): return None
 
         item = self.core.lib.benchmark.get_item(self.core.selected_item)
@@ -2327,6 +2374,11 @@ class DHEditItems(DataHandler):
             item.cluster_id = cluster_id
         if weight != None and item.weight != weight:
             item.weight = weight
+
+        if item.type == openscap.OSCAP.XCCDF_RULE:
+            item = item.to_rule()
+            if severity != None and item.severity != severity:
+                item.severity = severity
 
     def item_edit_value(self, operation, value, export_name):
         if not self.check_library(): return None

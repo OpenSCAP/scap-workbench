@@ -1913,7 +1913,7 @@ Note: This property holds the default value displayed to the user by tools durin
               </packing>
             </child>
             <child>
-              <object class="GtkVBox" id="vbox13">
+              <object class="GtkVBox" id="dialog:edit_description:html:box">
                 <property name="visible">True</property>
                 <property name="orientation">vertical</property>
                 <child>
@@ -2184,37 +2184,7 @@ Note: This property holds the default value displayed to the user by tools durin
                   </packing>
                 </child>
                 <child>
-                  <object class="GtkScrolledWindow" id="dialog:edit_description:description:sw">
-                    <property name="visible">True</property>
-                    <property name="can_focus">True</property>
-                    <property name="hscrollbar_policy">automatic</property>
-                    <property name="vscrollbar_policy">automatic</property>
-                    <property name="shadow_type">in</property>
-                    <child>
-                      <placeholder/>
-                    </child>
-                  </object>
-                  <packing>
-                    <property name="position">1</property>
-                  </packing>
-                </child>
-                <child>
-                  <object class="GtkScrolledWindow" id="dialog:edit_description:html:sw">
-                    <property name="can_focus">True</property>
-                    <property name="hscrollbar_policy">automatic</property>
-                    <property name="vscrollbar_policy">automatic</property>
-                    <property name="shadow_type">in</property>
-                    <child>
-                      <object class="GtkTextView" id="dialog:edit_description:html">
-                        <property name="visible">True</property>
-                        <property name="can_focus">True</property>
-                        <property name="wrap_mode">word</property>
-                      </object>
-                    </child>
-                  </object>
-                  <packing>
-                    <property name="position">2</property>
-                  </packing>
+                  <placeholder/>
                 </child>
               </object>
               <packing>

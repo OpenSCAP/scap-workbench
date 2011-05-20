@@ -48,6 +48,13 @@ try:
 except ImportError:
     HAS_WEBKIT = False
 
+try:
+    # For prettifing the source code of HTML Editors
+    from BeautifulSoup import BeautifulSoup
+    HAS_BEUTIFUL_SOUP = True
+except ImportError:
+    HAS_BEUTIFUL_SOUP = False
+
 """ Import OpenSCAP library as backend.
 If anything goes wrong just end with exception"""
 try:
@@ -864,6 +871,187 @@ class ListEditor(EventObject, Func):
 
         self.preview_dialog.set_transient_for(self.core.main_window)
         self.preview_dialog.show_all()
+
+class HTMLEditor(ListEditor):
+
+    """ Abstract class for implementing all edit formulars that appear as list/tree view and 
+    has add, edit and del buttons """
+
+    COLUMN_LANG = 0
+    COLUMN_TEXT = 1
+    COLUMN_OBJ  = 2
+
+    def __init__(self, id, core, widget=None, model=None):
+        ListEditor.__init__(self, id, core, widget, model)
+
+        self.__html = None
+        self.__plain = None
+
+    def render(self, box, toolbar, switcher):
+        self.__switcher = switcher
+        # Make active 1 if you want to have plain text default
+        # and 0 if you want to have HTML WebKit as default
+        self.__switcher.set_active(1)
+        self.__switcher.connect("changed", self.__propagate)
+        self.__toolbar = toolbar
+
+        # Make ScrollWindows for both HTML and PLAIN views
+        self.__html_sw = gtk.ScrolledWindow()
+        box.pack_start(self.__html_sw, True, True)
+        self.__plain_sw = gtk.ScrolledWindow()
+        box.pack_start(self.__plain_sw, True, True)
+        self.__plain = gtk.TextView()
+        self.__plain_sw.add(self.__plain)
+        self.__plain_sw.show_all()
+
+        if not HAS_WEBKIT:
+            label = gtk.Label("Missing WebKit python module")
+            label.modify_fg(gtk.STATE_NORMAL, gtk.gdk.Color("red"))
+            self.__html_sw.add_with_viewport(label)
+            self.__toolbar.set_sensitive(False)
+            self.__html_sw.show_all()
+            self.core.notify("Missing WebKit python module, HTML editing disabled.",
+                    Notification.INFORMATION, info_box=self.info_box, msg_id="")
+        else:
+            self.__html = webkit.WebView()
+            self.__html.set_editable(True)
+            self.__html.set_zoom_level(0.75)
+            self.__html_sw.add(self.__html)
+            self.__html_sw.show_all()
+
+        self.__html_sw.set_property("visible", self.__switcher.get_active() == 0)
+        self.__plain_sw.set_property("visible", self.__switcher.get_active() == 1)
+
+        for child in self.__toolbar.get_children():
+            child.set_sensitive(False)
+        self.__switcher.parent.set_sensitive(True)
+
+    def load_html(self, text, url):
+        if self.__switcher.get_active() == 0 and self.__html:
+            self.__html.load_html_string(text, url)
+        else:
+            self.__plain.get_buffer().set_text(text)
+
+    def get_text(self):
+
+        if self.__switcher.get_active() == 1:
+            desc = self.__plain.get_buffer().get_text(self.__plain.get_buffer().get_start_iter(), self.__plain.get_buffer().get_end_iter())
+        else:
+            self.__html.execute_script("document.title=document.documentElement.innerHTML;")
+            desc = self.__html.get_main_frame().get_title()
+            if HAS_BEUTIFUL_SOUP:
+                # Use Beutiful soup to prettify the HTML
+                soup = BeautifulSoup(desc)
+                desc = soup.prettify()
+        desc = re.sub("(< */* *)([^>/ ]*) *([^>]*?)/?>", self.__regexp, desc)
+        return desc
+
+    def __regexp(self, regexp):
+        match = regexp.groups()
+
+        """ If there is no xhtml: prefix of HTML tag, we need to add it
+        due validity of document """
+        if match[1][:6] == "xhtml:": TAG = ""
+        else: TAG = "xhtml:"
+
+        """ If there is no long namespace defined and this is not ending
+        tag of paired tags we need to define long namespace """
+        if match[2].find("xmlns:xhtml") != -1 or match[0] == "</": NS_TAG = ""
+        else: NS_TAG = ' xmlns:xhtml="http://www.w3.org/1999/xhtml"'
+
+        # Bugfix: Correction of double "//" inserted in the end (present in match[2] after group)
+        if len(match[2]) > 0 and match[2][-1] == "/": END_TAG = ">"
+        else: END_TAG = "/>"
+
+        """ Head and Body should be removed
+        Unpaired tags should have format <xhtml:TAG xmlns:xhtml="..." />
+        if tag is sub and contains idref attribute it should have format <sub ... />
+        Paired tags should have format <xhtml:TAG xmlns:xhtml="..."> ... </TAG> """
+        if match[1] in ["head", "body"]:
+            return ""
+        elif match[1] in ["br", "hr"]: return match[0]+TAG+" ".join(match[1:3])+NS_TAG+END_TAG # unpaired tags
+        elif match[1] in ["sub"]: 
+            if match[2].find("idref") != -1: return match[0]+" ".join(match[1:3])+NS_TAG+END_TAG # <sub>
+            else: return "" # </sub>
+        else: return match[0]+TAG+" ".join(match[1:3]).strip()+NS_TAG+">" # paired tags
+
+    def set_htmlwidget(self, widget):
+        self.__html = widget
+
+    def on_color_set(self, widget):
+        dialog = gtk.ColorSelectionDialog("Select Color")
+        if dialog.run() == gtk.RESPONSE_OK:
+            gc = str(dialog.colorsel.get_current_color())
+            color = "#" + "".join([gc[1:3], gc[5:7], gc[9:11]])
+            self.__html.execute_script("document.execCommand('forecolor', null, '%s');" % color)
+        dialog.destroy()
+
+    def on_font_set(self, widget):
+        dialog = gtk.FontSelectionDialog("Select a font")
+        if dialog.run() == gtk.RESPONSE_OK:
+            fname, fsize = dialog.fontsel.get_family().get_name(), dialog.fontsel.get_size()
+            self.__html.execute_script("document.execCommand('fontname', null, '%s');" % fname)
+            self.__html.execute_script("document.execCommand('fontsize', null, '%s');" % fsize)
+        dialog.destroy()
+
+    def on_link_set(self, widget):
+        dialog = gtk.Dialog("Enter a URL:", self.core.main_window, 0,
+        (gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL, gtk.STOCK_OK, gtk.RESPONSE_OK))
+
+        entry = gtk.Entry()
+        dialog.vbox.pack_start(entry)
+        dialog.show_all()
+
+        if dialog.run() == gtk.RESPONSE_OK:
+            text = entry.get_text()
+            text = "<sub xmlns=\"http://checklists.nist.gov/xccdf/1.1\" idref=\""+text+"\"/>"
+            self.__html.execute_script("document.execCommand('InsertHTML', true, '%s');" % text)
+        dialog.destroy()
+
+    def on_code_set(self, action):
+        self.__html.execute_script("document.execCommand('SetMark', null, 'code');")
+
+    def on_action(self, action, command):
+        """
+        """
+        self.__html.execute_script("document.execCommand('%s', false, false);" % command)
+
+    def on_zoom(self, action):
+        """
+        """
+        if action.get_name().split(":")[-1] == "zoomin":
+            self.__html.zoom_in()
+        else: self.__html.zoom_out()
+
+    def __propagate(self, widget=None):
+        
+        if self.switcher.get_active() == 0: # TEXT -> HTML
+            for child in self.__html.get_children():
+                child.set_sensitive(True)
+            self.__html_sw.set_property("visible", True)
+            self.__plain_sw.set_property("visible", False)
+            desc = self.__plain.get_buffer().get_text(self.__plain.get_buffer().get_start_iter(), self.__plain.get_buffer().get_end_iter())
+            self.__html.load_html_string(desc or "", "file:///")
+        elif self.switcher.get_active() == 1: # HTML -> TEXT
+            for child in self.__toolbar.get_children():
+                child.set_sensitive(False)
+            self.__html_sw.set_property("visible", False)
+            self.__plain_sw.set_property("visible", True)
+            self.__html.execute_script("document.title=document.documentElement.innerHTML;")
+            desc = self.__html.get_main_frame().get_title()
+            desc = desc.replace("<head></head>", "")
+            desc = desc.replace("<body>", "").replace("</body>", "")
+
+            if HAS_BEUTIFUL_SOUP:
+                # Use Beutiful soup to prettify the HTML
+                soup = BeautifulSoup(desc)
+                desc = soup.prettify()
+            else: 
+                self.core.notify("Missing BeautifulSoup python module, HTML processing disabled.",
+                    Notification.INFORMATION, info_box=self.info_box, msg_id="")
+            self.__plain.get_buffer().set_text(desc)
+        self.__switcher.parent.set_sensitive(True)
+
 
 class CellRendererTextWrap(gtk.CellRendererText):
     """ pokus asi nebude pouzito necham najindy pozeji smazu"""

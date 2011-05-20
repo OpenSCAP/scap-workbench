@@ -44,9 +44,14 @@ class enum(tuple):
     enumerations filled to GTK Widgets.
 
     Use ENUM.map(id) when looking for item from model (known enum id)
-    Use ENUM.pos(id) when looking in position of item in model (known position in model)
+    Use ENUM.pos(id) when looking for position of item in model (known position in model)
+    Use ENUM.value(pos) when looking for first value of enumeration when known position in model
     Use ENUM.get_model() when creating model for this enumeration
     Use list funtions when looking for trouble :)
+
+    if you are updating openscap model after selecting some item from model in GUI,
+    use returning ENUM.XXX[widget.get_active()] for all item (list)
+    or use ENUM.value()
     """
 
     def map(self, id):
@@ -58,6 +63,11 @@ class enum(tuple):
         for item in tuple(self):
             if item[0] == id: return tuple.index(self, item)
         return -1
+
+    def value(self, id):
+        if id > len(tuple(self)) or len(tuple(self)[id]) < 1:
+            return None
+        else: return tuple(self)[id][0]
 
     def get_model(self):
         model = gtk.ListStore(int, str, str)

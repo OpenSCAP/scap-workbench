@@ -2632,11 +2632,11 @@
                                           <object class="GtkVBox" id="tailoring:refines:box_nb1">
                                             <property name="visible">True</property>
                                             <property name="orientation">vertical</property>
-                                            <property name="spacing">2</property>
+                                            <property name="spacing">5</property>
                                             <child>
                                               <object class="GtkTable" id="table6">
                                                 <property name="visible">True</property>
-                                                <property name="n_rows">7</property>
+                                                <property name="n_rows">8</property>
                                                 <property name="n_columns">2</property>
                                                 <property name="column_spacing">12</property>
                                                 <property name="row_spacing">5</property>
@@ -2744,8 +2744,8 @@
                                                   <packing>
                                                     <property name="left_attach">1</property>
                                                     <property name="right_attach">2</property>
-                                                    <property name="top_attach">5</property>
-                                                    <property name="bottom_attach">6</property>
+                                                    <property name="top_attach">6</property>
+                                                    <property name="bottom_attach">7</property>
                                                     <property name="y_options">GTK_FILL</property>
                                                   </packing>
                                                 </child>
@@ -2759,8 +2759,8 @@
                                                     <property name="draw_indicator">True</property>
                                                   </object>
                                                   <packing>
-                                                    <property name="top_attach">6</property>
-                                                    <property name="bottom_attach">7</property>
+                                                    <property name="top_attach">7</property>
+                                                    <property name="bottom_attach">8</property>
                                                     <property name="x_options">GTK_FILL</property>
                                                     <property name="y_options">GTK_FILL</property>
                                                   </packing>
@@ -2775,8 +2775,8 @@
                                                     <property name="draw_indicator">True</property>
                                                   </object>
                                                   <packing>
-                                                    <property name="top_attach">5</property>
-                                                    <property name="bottom_attach">6</property>
+                                                    <property name="top_attach">6</property>
+                                                    <property name="bottom_attach">7</property>
                                                     <property name="x_options">GTK_FILL</property>
                                                     <property name="y_options">GTK_FILL</property>
                                                   </packing>
@@ -2792,8 +2792,8 @@
                                                   <packing>
                                                     <property name="left_attach">1</property>
                                                     <property name="right_attach">2</property>
-                                                    <property name="top_attach">6</property>
-                                                    <property name="bottom_attach">7</property>
+                                                    <property name="top_attach">7</property>
+                                                    <property name="bottom_attach">8</property>
                                                     <property name="y_options">GTK_FILL</property>
                                                   </packing>
                                                 </child>
@@ -2833,6 +2833,37 @@
                                                   <packing>
                                                     <property name="left_attach">1</property>
                                                     <property name="right_attach">2</property>
+                                                  </packing>
+                                                </child>
+                                                <child>
+                                                  <object class="GtkLabel" id="label59">
+                                                    <property name="visible">True</property>
+                                                    <property name="xalign">0</property>
+                                                    <property name="label" translatable="yes">Severity:</property>
+                                                  </object>
+                                                  <packing>
+                                                    <property name="top_attach">5</property>
+                                                    <property name="bottom_attach">6</property>
+                                                    <property name="x_options">GTK_FILL</property>
+                                                    <property name="y_options">GTK_FILL</property>
+                                                  </packing>
+                                                </child>
+                                                <child>
+                                                  <object class="GtkComboBox" id="edit:operations:combo_severity">
+                                                    <property name="visible">True</property>
+                                                    <child>
+                                                      <object class="GtkCellRendererText" id="cellrenderertext15"/>
+                                                      <attributes>
+                                                        <attribute name="text">1</attribute>
+                                                      </attributes>
+                                                    </child>
+                                                  </object>
+                                                  <packing>
+                                                    <property name="left_attach">1</property>
+                                                    <property name="right_attach">2</property>
+                                                    <property name="top_attach">5</property>
+                                                    <property name="bottom_attach">6</property>
+                                                    <property name="y_options">GTK_FILL</property>
                                                   </packing>
                                                 </child>
                                               </object>
@@ -3782,65 +3813,40 @@
                                             <property name="left_padding">12</property>
                                             <property name="right_padding">12</property>
                                             <child>
-                                              <object class="GtkTable" id="table9">
+                                              <object class="GtkVBox" id="vbox34">
                                                 <property name="visible">True</property>
-                                                <property name="n_rows">3</property>
-                                                <property name="n_columns">2</property>
-                                                <property name="column_spacing">12</property>
-                                                <property name="row_spacing">5</property>
+                                                <property name="orientation">vertical</property>
+                                                <property name="spacing">5</property>
                                                 <child>
-                                                  <object class="GtkLabel" id="label59">
+                                                  <object class="GtkHBox" id="hbox1">
                                                     <property name="visible">True</property>
-                                                    <property name="xalign">0</property>
-                                                    <property name="label" translatable="yes">Severity:</property>
-                                                  </object>
-                                                  <packing>
-                                                    <property name="x_options">GTK_FILL</property>
-                                                    <property name="y_options">GTK_FILL</property>
-                                                  </packing>
-                                                </child>
-                                                <child>
-                                                  <object class="GtkLabel" id="label60">
-                                                    <property name="visible">True</property>
-                                                    <property name="xalign">0</property>
-                                                    <property name="yalign">0</property>
-                                                    <property name="label" translatable="yes">Impact metric:</property>
-                                                  </object>
-                                                  <packing>
-                                                    <property name="top_attach">1</property>
-                                                    <property name="bottom_attach">2</property>
-                                                    <property name="x_options">GTK_FILL</property>
-                                                    <property name="y_options">GTK_FILL</property>
-                                                  </packing>
-                                                </child>
-                                                <child>
-                                                  <object class="GtkComboBox" id="edit:operations:combo_severity">
-                                                    <property name="visible">True</property>
+                                                    <property name="spacing">5</property>
                                                     <child>
-                                                      <object class="GtkCellRendererText" id="cellrenderertext15"/>
-                                                      <attributes>
-                                                        <attribute name="text">1</attribute>
-                                                      </attributes>
+                                                      <object class="GtkLabel" id="label60">
+                                                        <property name="visible">True</property>
+                                                        <property name="xalign">0</property>
+                                                        <property name="yalign">0</property>
+                                                        <property name="label" translatable="yes">Impact metric:</property>
+                                                      </object>
+                                                      <packing>
+                                                        <property name="expand">False</property>
+                                                        <property name="position">0</property>
+                                                      </packing>
+                                                    </child>
+                                                    <child>
+                                                      <object class="GtkEntry" id="edit:operations:entry_impact_metric">
+                                                        <property name="visible">True</property>
+                                                        <property name="can_focus">True</property>
+                                                        <property name="invisible_char">&#x25CF;</property>
+                                                      </object>
+                                                      <packing>
+                                                        <property name="position">1</property>
+                                                      </packing>
                                                     </child>
                                                   </object>
                                                   <packing>
-                                                    <property name="left_attach">1</property>
-                                                    <property name="right_attach">2</property>
-                                                    <property name="y_options">GTK_FILL</property>
-                                                  </packing>
-                                                </child>
-                                                <child>
-                                                  <object class="GtkEntry" id="edit:operations:entry_impact_metric">
-                                                    <property name="visible">True</property>
-                                                    <property name="can_focus">True</property>
-                                                    <property name="invisible_char">&#x25CF;</property>
-                                                  </object>
-                                                  <packing>
-                                                    <property name="left_attach">1</property>
-                                                    <property name="right_attach">2</property>
-                                                    <property name="top_attach">1</property>
-                                                    <property name="bottom_attach">2</property>
-                                                    <property name="y_options">GTK_FILL</property>
+                                                    <property name="expand">False</property>
+                                                    <property name="position">0</property>
                                                   </packing>
                                                 </child>
                                                 <child>
@@ -3867,7 +3873,7 @@
                                                             <property name="vscrollbar_policy">automatic</property>
                                                             <property name="shadow_type">out</property>
                                                             <child>
-                                                            <object class="GtkTreeView" id="edit:operations:lv_fixtext">
+                                                            <object class="GtkTreeView" id="edit:xccdf:items:fixtext">
                                                             <property name="visible">True</property>
                                                             <property name="can_focus">True</property>
                                                             <property name="enable_grid_lines">both</property>
@@ -3884,7 +3890,7 @@
                                                             <property name="spacing">5</property>
                                                             <property name="layout_style">end</property>
                                                             <child>
-                                                            <object class="GtkButton" id="edit:operations:btn_fixtext_add">
+                                                            <object class="GtkButton" id="edit:xccdf:items:fixtext:btn_add">
                                                             <property name="label" translatable="yes">Add</property>
                                                             <property name="visible">True</property>
                                                             <property name="can_focus">True</property>
@@ -3897,7 +3903,7 @@
                                                             </packing>
                                                             </child>
                                                             <child>
-                                                            <object class="GtkButton" id="edit:operations:btn_fixtext_edit">
+                                                            <object class="GtkButton" id="edit:xccdf:items:fixtext:btn_edit">
                                                             <property name="label" translatable="yes">Edit</property>
                                                             <property name="visible">True</property>
                                                             <property name="can_focus">True</property>
@@ -3910,7 +3916,7 @@
                                                             </packing>
                                                             </child>
                                                             <child>
-                                                            <object class="GtkButton" id="edit:operations:btn_fixtext_del">
+                                                            <object class="GtkButton" id="edit:xccdf:items:fixtext:btn_del">
                                                             <property name="label" translatable="yes">Delete</property>
                                                             <property name="visible">True</property>
                                                             <property name="can_focus">True</property>
@@ -3923,7 +3929,7 @@
                                                             </packing>
                                                             </child>
                                                             <child>
-                                                            <object class="GtkButton" id="edit:operations:btn_fixtext_preview">
+                                                            <object class="GtkButton" id="edit:xccdf:items:fixtext:btn_preview">
                                                             <property name="label" translatable="yes">Preview</property>
                                                             <property name="visible">True</property>
                                                             <property name="can_focus">True</property>
@@ -4427,9 +4433,7 @@
                                                     </child>
                                                   </object>
                                                   <packing>
-                                                    <property name="right_attach">2</property>
-                                                    <property name="top_attach">2</property>
-                                                    <property name="bottom_attach">3</property>
+                                                    <property name="position">1</property>
                                                   </packing>
                                                 </child>
                                               </object>
