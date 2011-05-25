@@ -3948,7 +3948,7 @@
                                                             </packing>
                                                             </child>
                                                             <child>
-                                                            <object class="GtkFrame" id="edit:operations:fixtext:frame">
+                                                            <object class="GtkFrame" id="items:fixtext">
                                                             <property name="visible">True</property>
                                                             <property name="label_xalign">0</property>
                                                             <property name="shadow_type">none</property>
@@ -3977,7 +3977,7 @@
                                                             </packing>
                                                             </child>
                                                             <child>
-                                                            <object class="GtkEntry" id="edit:operations:fixtext:entry_reference1">
+                                                            <object class="GtkEntry" id="items:fixtext:fixref">
                                                             <property name="visible">True</property>
                                                             <property name="can_focus">True</property>
                                                             <property name="invisible_char">&#x25CF;</property>
@@ -3991,7 +3991,7 @@
                                                             </packing>
                                                             </child>
                                                             <child>
-                                                            <object class="GtkComboBox" id="edit:operations:fixtext:combo_strategy1">
+                                                            <object class="GtkComboBox" id="items:fixtext:strategy">
                                                             <property name="visible">True</property>
                                                             <child>
                                                             <object class="GtkCellRendererText" id="cellrenderertext19"/>
@@ -4009,7 +4009,7 @@
                                                             </packing>
                                                             </child>
                                                             <child>
-                                                            <object class="GtkComboBox" id="edit:operations:fixtext:combo_complexity1">
+                                                            <object class="GtkComboBox" id="items:fixtext:complexity">
                                                             <property name="visible">True</property>
                                                             <child>
                                                             <object class="GtkCellRendererText" id="cellrenderertext20"/>
@@ -4027,7 +4027,7 @@
                                                             </packing>
                                                             </child>
                                                             <child>
-                                                            <object class="GtkComboBox" id="edit:operations:fixtext:combo_disruption1">
+                                                            <object class="GtkComboBox" id="items:fixtext:disruption">
                                                             <property name="visible">True</property>
                                                             <child>
                                                             <object class="GtkCellRendererText" id="cellrenderertext21"/>
@@ -4045,7 +4045,7 @@
                                                             </packing>
                                                             </child>
                                                             <child>
-                                                            <object class="GtkCheckButton" id="edit:operations:fixtext:chbox_reboot1">
+                                                            <object class="GtkCheckButton" id="items:fixtext:reboot">
                                                             <property name="label" translatable="yes">Reboot</property>
                                                             <property name="visible">True</property>
                                                             <property name="can_focus">True</property>

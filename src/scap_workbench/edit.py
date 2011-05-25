@@ -17,7 +17,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 # Authors:
-#      Maros Barabas        <mbarabas@redhat.com>
+#      Maros Barabas        <xbarry@gmail.com>
 #      Vladimir Oberreiter  <xoberr01@stud.fit.vutbr.cz>
 
 """ Importing standard python libraries
@@ -1331,7 +1331,7 @@ class MenuButtonEditItems(abstract.MenuButton, abstract.Func):
         self.content_ref_find.connect("clicked", self.__cb_find_oval_definition)
 
         # -- FIXTEXTS --
-        self.fixtext = EditFixtext(self.core, "id:edit:xccdf:items:fixtext", builder.get_object("edit:xccdf:items:fixtext"), self.data_model)
+        self.fixtext = EditFixtext(self.core, "id:edit:xccdf:items:fixtext", builder.get_object("edit:xccdf:items:fixtext"), self.data_model, builder)
         builder.get_object("edit:xccdf:items:fixtext:btn_add").connect("clicked", self.fixtext.dialog, self.data_model.CMD_OPER_ADD)
         builder.get_object("edit:xccdf:items:fixtext:btn_edit").connect("clicked", self.fixtext.dialog, self.data_model.CMD_OPER_EDIT)
         builder.get_object("edit:xccdf:items:fixtext:btn_del").connect("clicked", self.fixtext.dialog, self.data_model.CMD_OPER_DEL)
@@ -1348,7 +1348,7 @@ class MenuButtonEditItems(abstract.MenuButton, abstract.Func):
         self.fix = EditFix(self.core, self.builder)
         
         self.severity = self.builder.get_object("edit:operations:combo_severity")
-        self.severity.set_model(ENUM.TYPE.get_model())
+        self.severity.set_model(ENUM.LEVEL.get_model())
         self.severity.connect( "changed", self.__change)
         self.impact_metric = self.builder.get_object("edit:operations:entry_impact_metric")
         self.impact_metric.connect("focus-out-event", self.cb_control_impact_metrix)
@@ -2006,15 +2006,64 @@ class EditFixtext(abstract.HTMLEditor):
     
     COLUMN_LANG = 0
     COLUMN_TEXT = 1
+    COLUMN_OBJ  = 2
 
-    def __init__(self, core, id, widget, data_model):
+    def __init__(self, core, id, widget, data_model, builder):
 
-        self.data_model = data_model 
+        self.data_model = data_model
+        self.builder = builder
         abstract.ListEditor.__init__(self, id, core, widget=widget, model=gtk.ListStore(str, str, gobject.TYPE_PYOBJECT))
         self.add_sender(id, "update")
 
         self.widget.append_column(gtk.TreeViewColumn("Language", gtk.CellRendererText(), text=self.COLUMN_LANG))
         self.widget.append_column(gtk.TreeViewColumn("Description", gtk.CellRendererText(), text=self.COLUMN_TEXT))
+
+        """ Here are all attributes of fixtext
+        """
+        self.__attr_frame = self.builder.get_object("items:fixtext")
+        self.__attr_frame.set_sensitive(False)
+        self.__attr_fixref = self.builder.get_object("items:fixtext:fixref")
+        self.__attr_fixref.connect("focus-out-event", self.__change)
+        self.__attr_fixref.connect("key-press-event", self.__change)
+        self.__attr_strategy = self.builder.get_object("items:fixtext:strategy")
+        self.__attr_strategy.set_model(ENUM.STRATEGY.get_model())
+        self.__attr_strategy.connect( "changed", self.__change)
+        self.__attr_complexity = self.builder.get_object("items:fixtext:complexity")
+        self.__attr_complexity.set_model(ENUM.LEVEL.get_model())
+        self.__attr_complexity.connect( "changed", self.__change)
+        self.__attr_disruption = self.builder.get_object("items:fixtext:disruption")
+        self.__attr_disruption.set_model(ENUM.LEVEL.get_model())
+        self.__attr_disruption.connect( "changed", self.__change)
+        self.__attr_reboot = self.builder.get_object("items:fixtext:reboot")
+        self.__attr_reboot.connect("toggled", self.__change)
+ 
+        self.widget.get_selection().connect("changed", self.__attr_fill)
+
+    def __change(self, widget, event=None):
+
+        if event and event.type == gtk.gdk.KEY_PRESS and event.keyval != gtk.keysyms.Return:
+            return
+
+        (model, iter) = self.get_selection().get_selected()
+        if not iter:
+            logger.debug("Changing attribute of fixtext failed. HINT: Use enter to save your changes")
+            return
+        data = model[iter][self.COLUMN_OBJ]
+
+        if widget == self.__attr_fixref:
+            retval = self.data_model.edit_fixtext(self.data_model.CMD_OPER_EDIT, fixtext=data, fixref=widget.get_text())
+        elif widget == self.__attr_strategy:
+            retval = self.data_model.edit_fixtext(self.data_model.CMD_OPER_EDIT, fixtext=data, strategy=ENUM.STRATEGY.value(widget.get_active()))
+        elif widget == self.__attr_complexity:
+            retval = self.data_model.edit_fixtext(self.data_model.CMD_OPER_EDIT, fixtext=data, complexity=ENUM.LEVEL.value(widget.get_active()))
+        elif widget == self.__attr_disruption:
+            retval = self.data_model.edit_fixtext(self.data_model.CMD_OPER_EDIT, fixtext=data, disruption=ENUM.LEVEL.value(widget.get_active()))
+        elif widget == self.__attr_reboot:
+            retval = self.data_model.edit_fixtext(self.data_model.CMD_OPER_EDIT, fixtext=data, reboot=widget.get_active())
+        else: 
+            logger.error("Change of \"%s\" is not supported " % (widget,))
+            return
+
 
     def __do(self, widget=None):
         """
@@ -2102,11 +2151,53 @@ class EditFixtext(abstract.HTMLEditor):
         self.wdialog.set_transient_for(self.core.main_window)
         self.wdialog.show()
 
+    def __block_signals(self):
+        self.__attr_fixref.handler_block_by_func(self.__change)
+        self.__attr_strategy.handler_block_by_func(self.__change)
+        self.__attr_complexity.handler_block_by_func(self.__change)
+        self.__attr_disruption.handler_block_by_func(self.__change)
+        self.__attr_reboot.handler_block_by_func(self.__change)
+
+    def __unblock_signals(self):
+        self.__attr_fixref.handler_unblock_by_func(self.__change)
+        self.__attr_strategy.handler_unblock_by_func(self.__change)
+        self.__attr_complexity.handler_unblock_by_func(self.__change)
+        self.__attr_disruption.handler_unblock_by_func(self.__change)
+        self.__attr_reboot.handler_unblock_by_func(self.__change)
+
+    def __attrs_clear(self):
+        self.__block_signals()
+        self.__attr_frame.set_sensitive(False)
+        self.__attr_fixref.set_text("")
+        self.__attr_strategy.set_active(-1)
+        self.__attr_complexity.set_active(-1)
+        self.__attr_disruption.set_active(-1)
+        self.__attr_reboot.set_active(False)
+        self.__unblock_signals()
+
+    def __attr_fill(self, widget=None):
+        
+        (model, iter) = self.get_selection().get_selected()
+
+        self.__attr_frame.set_sensitive(iter is not None)
+        if not iter: return
+
+        data = model[iter][self.COLUMN_OBJ]
+        
+        self.__block_signals()
+        self.__attr_fixref.set_text(data.fixref or "")
+        self.__attr_strategy.set_active(ENUM.STRATEGY.pos(data.strategy))
+        self.__attr_complexity.set_active(ENUM.LEVEL.pos(data.complexity))
+        self.__attr_disruption.set_active(ENUM.LEVEL.pos(data.disruption))
+        self.__attr_reboot.set_active(data.reboot)
+        self.__unblock_signals()
+
     def fill(self):
         self.clear()
+        self.__attrs_clear()
+
         for data in self.data_model.get_fixtexts() or []:
             self.append([data.text.lang, re.sub("[\t ]+" , " ", data.text.text or "").strip(), data])
-
 
 class EditWarning(abstract.ListEditor):
 
@@ -3090,71 +3181,6 @@ class EditValuesValues(abstract.ListEditor):
                          instance["match"], 
                          instance["item"]])
 
-
-class EditFixtextOption(commands.DHEditItems,abstract.ControlEditWindow):
-    
-    def __init__(self, core, builder):
-    
-        # set  models
-        self.core = core
-        self.builder = builder
-        abstract.ControlEditWindow.__init__(self, core, None, None)
-        
-        #edit data of fictext
-        self.entry_reference = self.builder.get_object("edit:operations:fixtext:entry_reference1")
-        self.entry_reference.connect("focus-out-event",self.cb_entry_fixtext_reference)
-        
-        self.combo_strategy = self.builder.get_object("edit:operations:fixtext:combo_strategy1")
-        self.combo_strategy.set_model(ENUM.STRATEGY.get_model())
-        self.combo_strategy.connect( "changed", self.cb_combo_fixtext_strategy)
-        
-        self.combo_complexity = self.builder.get_object("edit:operations:fixtext:combo_complexity1")
-        self.combo_complexity.set_model(ENUM.LEVEL.get_model())
-        self.combo_complexity.connect( "changed", self.cb_combo_fixtext_complexity)
-    
-        self.combo_disruption = self.builder.get_object("edit:operations:fixtext:combo_disruption1")
-        self.combo_disruption.set_model(ENUM.LEVEL.get_model())
-        self.combo_disruption.connect( "changed", self.cb_combo_fixtext_disruption)
-    
-        self.chbox_reboot = self.builder.get_object("edit:operations:fixtext:chbox_reboot1")
-        self.chbox_reboot.connect("toggled",self.cb_chbox_fixtext_reboot)
-
-        self.box_detail= self.builder.get_object("edit:operations:fixtext:frame")
-        
-    def fill(self, fixtext):
-        self.item = fixtext
-        self.combo_strategy.handler_block_by_func(self.cb_combo_fixtext_strategy)
-        self.combo_complexity.handler_block_by_func(self.cb_combo_fixtext_complexity)
-        self.combo_disruption.handler_block_by_func(self.cb_combo_fixtext_disruption)
-        self.chbox_reboot.handler_block_by_func(self.cb_chbox_fixtext_reboot)
-        if fixtext:
-
-            self.box_detail.set_sensitive(True)
-
-            if fixtext.fixref:
-                self.entry_reference.set_text(fixtext.fixref)
-            else:
-                self.entry_reference.set_text("")
-            
-            self.chbox_reboot.set_active(fixtext.reboot)
-            self.set_active_comboBox(self.combo_strategy, fixtext.strategy, self.COMBO_COLUMN_DATA, "fixtext strategy")
-            self.set_active_comboBox(self.combo_complexity, fixtext.complexity, self.COMBO_COLUMN_DATA, "fixtext complexity")
-            self.set_active_comboBox(self.combo_disruption, fixtext.disruption, self.COMBO_COLUMN_DATA, "fixtext disruption")
-        else:
-            self.item = None
-            self.box_detail.set_sensitive(False)
-            self.entry_reference.set_text("")
-            self.chbox_reboot.set_active(False)
-            self.combo_strategy.set_active(-1)
-            self.combo_complexity.set_active(-1)
-            self.combo_disruption.set_active(-1)
-            
-        self.combo_strategy.handler_unblock_by_func(self.cb_combo_fixtext_strategy)
-        self.combo_complexity.handler_unblock_by_func(self.cb_combo_fixtext_complexity)
-        self.combo_disruption.handler_unblock_by_func(self.cb_combo_fixtext_disruption)
-        self.chbox_reboot.handler_unblock_by_func(self.cb_chbox_fixtext_reboot)
-            
-            
 
 class EditFix(commands.DHEditItems, abstract.ControlEditWindow, EventObject):
     

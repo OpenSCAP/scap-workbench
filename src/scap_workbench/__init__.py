@@ -17,8 +17,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 # Authors:
-#      Maros Barabas        <mbarabas@redhat.com>
-#      Vladimir Oberreiter  <xoberr01@stud.fit.vutbr.cz>
+#      Maros Barabas        <xbarry@gmail.com>
 
 from render import MainWindow
 from edit import Editor

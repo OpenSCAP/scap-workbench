@@ -17,7 +17,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 # Authors:
-#      Maros Barabas        <mbarabas@redhat.com>
+#      Maros Barabas        <xbarry@gmail.com>
 
 """ Importing standard python libraries
 """
@@ -43,9 +43,9 @@ class enum(tuple):
     """ Enumeration inherited from tuple used for openscap
     enumerations filled to GTK Widgets.
 
-    Use ENUM.map(id) when looking for item from model (known enum id)
-    Use ENUM.pos(id) when looking for position of item in model (known position in model)
-    Use ENUM.value(pos) when looking for first value of enumeration when known position in model
+    Use ENUM.map(id) when looking for an item from the model (known value of item from library)
+    Use ENUM.pos(id) when looking for a position of item in the model (known value of item from library)
+    Use ENUM.value(pos) when looking for a first value of enumeration when known position in the model
     Use ENUM.get_model() when creating model for this enumeration
     Use list funtions when looking for trouble :)
 

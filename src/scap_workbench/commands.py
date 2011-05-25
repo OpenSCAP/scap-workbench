@@ -17,7 +17,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 # Authors:
-#      Maros Barabas        <mbarabas@redhat.com>
+#      Maros Barabas        <xbarry@gmail.com>
 #      Vladimir Oberreiter  <xoberr01@stud.fit.vutbr.cz>
 
 import gtk, logging, sys, re, time, os
@@ -2619,54 +2619,6 @@ class DHEditItems(DataHandler):
         else:
             logger.error("Error: Not read item.")
             
-    def cb_entry_fixtext_reference(self, widget, event):
-        if self.item :
-            self.item.set_fixref(widget.get_text())
-        else:
-            logger.error("Error: Not read rule.")
-
-    def cb_combo_fixtext_strategy(self, widget):
-        
-        COLUMN_DATA = 0
-        if self.item:
-            active = widget.get_active()
-            if active > 0:
-                model = widget.get_model()
-                if not self.item.set_strategy(model[active][COLUMN_DATA]):
-                    logger.error("Strategy have not set in Fixtext.")
-        else:
-            logger.error("Error: Not fixtex.")
-
-    def cb_combo_fixtext_complexity(self, widget):
-
-        COLUMN_DATA = 0
-        if self.item:
-            active = widget.get_active()
-            if active > 0:
-                model = widget.get_model()
-                if not self.item.set_complexity(model[active][COLUMN_DATA]):
-                    logger.error("Strategy have not setted in Fixtext.")
-        else:
-            logger.error("Error: Not fixtex.")
-    
-    def cb_combo_fixtext_disruption(self, widget):
-        COLUMN_DATA = 0
-        if self.item:
-            active = widget.get_active()
-            if active > 0:
-                model = widget.get_model()
-                if not self.item.set_disruption(model[active][COLUMN_DATA]):
-                    logger.error("Disruption have not set in Fixtext.")
-        else:
-            logger.error("Error: Not fixtex.")
-    
-    def cb_chbox_fixtext_reboot(self, widget):
-
-        if self.item:
-            self.item.set_reboot(widget.get_active())
-        else:
-            logger.error("Error: Not fixtex.")
-    
     # DH fix ======================================================
     def DHEditFix(self, item, model, iter, column, value, delete=False):
         

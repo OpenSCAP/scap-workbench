@@ -17,7 +17,7 @@
 # 
 # Authors:
 #      Gustavo J. A. M. Carneiro
-#      Modifications: Maros Barabas <mbarabas@redhat.com>
+#      Modifications: Maros Barabas <xbarry@gmail.com>
 
 '''
 A gtk.TextView-based renderer for XHTML-IM, as described in:
