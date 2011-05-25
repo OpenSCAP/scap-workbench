@@ -1331,12 +1331,17 @@ class MenuButtonEditItems(abstract.MenuButton, abstract.Func):
         self.content_ref_find.connect("clicked", self.__cb_find_oval_definition)
 
         # -- FIXTEXTS --
-        self.fixtext = EditFixtext(self.core, "id:edit:xccdf:items:fixtext", builder.get_object("edit:xccdf:items:fixtext"), self.data_model, builder)
-        builder.get_object("edit:xccdf:items:fixtext:btn_add").connect("clicked", self.fixtext.dialog, self.data_model.CMD_OPER_ADD)
-        builder.get_object("edit:xccdf:items:fixtext:btn_edit").connect("clicked", self.fixtext.dialog, self.data_model.CMD_OPER_EDIT)
-        builder.get_object("edit:xccdf:items:fixtext:btn_del").connect("clicked", self.fixtext.dialog, self.data_model.CMD_OPER_DEL)
-        builder.get_object("edit:xccdf:items:fixtext:btn_preview").connect("clicked", self.fixtext.preview)
+        self.fixtext = EditFixtext(self.core, "id:edit:xccdf:items:fixtext", builder.get_object("xccdf:items:fixtext"), self.data_model, builder)
+        builder.get_object("xccdf:items:fixtext:btn_add").connect("clicked", self.fixtext.dialog, self.data_model.CMD_OPER_ADD)
+        builder.get_object("xccdf:items:fixtext:btn_edit").connect("clicked", self.fixtext.dialog, self.data_model.CMD_OPER_EDIT)
+        builder.get_object("xccdf:items:fixtext:btn_del").connect("clicked", self.fixtext.dialog, self.data_model.CMD_OPER_DEL)
+        builder.get_object("xccdf:items:fixtext:btn_preview").connect("clicked", self.fixtext.preview)
 
+        # -- FIXES --
+        self.fix = EditFix(self.core, "id:edit:xccdf:items:fix", builder.get_object("xccdf:items:fix"), self.data_model, builder)
+        builder.get_object("xccdf:items:fix:btn_add").connect("clicked", self.fix.dialog, self.data_model.CMD_OPER_ADD)
+        builder.get_object("xccdf:items:fix:btn_edit").connect("clicked", self.fix.dialog, self.data_model.CMD_OPER_EDIT)
+        builder.get_object("xccdf:items:fix:btn_del").connect("clicked", self.fix.dialog, self.data_model.CMD_OPER_DEL)
         # -------------
 
         """Get widgets from Glade: Part main.glade in edit
@@ -1345,7 +1350,6 @@ class MenuButtonEditItems(abstract.MenuButton, abstract.Func):
         self.requires = EditRequires(self.core, self.builder,self.list_item.get_TreeView().get_model())
         self.ident = EditIdent(self.core, self.builder)
         self.values = EditValues(self.core, "gui:edit:xccdf:values", self.builder)
-        self.fix = EditFix(self.core, self.builder)
         
         self.severity = self.builder.get_object("edit:operations:combo_severity")
         self.severity.set_model(ENUM.LEVEL.get_model())
@@ -1531,7 +1535,7 @@ class MenuButtonEditItems(abstract.MenuButton, abstract.Func):
         self.conflicts.fill(None)
         self.requires.fill(None)
         self.platforms.fill()
-        self.fix.fill(None)
+        self.fix.fill()
         self.fixtext.fill()
         self.__unblock_signals()
 
@@ -1593,7 +1597,7 @@ class MenuButtonEditItems(abstract.MenuButton, abstract.Func):
             self.severity.set_active(ENUM.LEVEL.pos(details["severity"]))
             self.impact_metric.set_text(details["imapct_metric"] or "")
             self.fixtext.fill()
-            self.fix.fill(details["item"])
+            self.fix.fill()
             self.ident.fill(details["item"])
             content = self.data_model.get_item_content()
  
@@ -1611,7 +1615,7 @@ class MenuButtonEditItems(abstract.MenuButton, abstract.Func):
             self.severity.set_active(-1)
             self.impact_metric.set_text("")
             self.fixtext.fill()
-            self.fix.fill(None)
+            self.fix.fill()
             self.ident.fill(None)
 
         self.__unblock_signals()
@@ -2198,6 +2202,192 @@ class EditFixtext(abstract.HTMLEditor):
 
         for data in self.data_model.get_fixtexts() or []:
             self.append([data.text.lang, re.sub("[\t ]+" , " ", data.text.text or "").strip(), data])
+
+class EditFix(abstract.ListEditor):
+    
+    COLUMN_ID   = 0
+    COLUMN_TEXT = 1
+    COLUMN_OBJ  = 2
+
+    def __init__(self, core, id, widget, data_model, builder):
+
+        self.data_model = data_model
+        self.builder = builder
+        abstract.ListEditor.__init__(self, id, core, widget=widget, model=gtk.ListStore(str, str, gobject.TYPE_PYOBJECT))
+        self.add_sender(id, "update")
+
+        self.widget.append_column(gtk.TreeViewColumn("ID", gtk.CellRendererText(), text=self.COLUMN_LANG))
+        self.widget.append_column(gtk.TreeViewColumn("Content", gtk.CellRendererText(), text=self.COLUMN_TEXT))
+
+        """ Here are all attributes of fix
+        """
+        self.__attr_frame = self.builder.get_object("items:fix")
+        self.__attr_frame.set_sensitive(False)
+        self.__attr_system = self.builder.get_object("items:fix:system")
+        self.__attr_system.connect("focus-out-event", self.__change)
+        self.__attr_system.connect("key-press-event", self.__change)
+        self.__attr_platform = self.builder.get_object("items:fix:platform")
+        self.__attr_platform.connect("focus-out-event", self.__change)
+        self.__attr_platform.connect("key-press-event", self.__change)
+        self.__attr_strategy = self.builder.get_object("items:fix:strategy")
+        self.__attr_strategy.set_model(ENUM.STRATEGY.get_model())
+        self.__attr_strategy.connect( "changed", self.__change)
+        self.__attr_complexity = self.builder.get_object("items:fix:complexity")
+        self.__attr_complexity.set_model(ENUM.LEVEL.get_model())
+        self.__attr_complexity.connect( "changed", self.__change)
+        self.__attr_disruption = self.builder.get_object("items:fix:disruption")
+        self.__attr_disruption.set_model(ENUM.LEVEL.get_model())
+        self.__attr_disruption.connect( "changed", self.__change)
+        self.__attr_reboot = self.builder.get_object("items:fix:reboot")
+        self.__attr_reboot.connect("toggled", self.__change)
+ 
+        self.widget.get_selection().connect("changed", self.__attr_fill)
+
+    def __change(self, widget, event=None):
+
+        if event and event.type == gtk.gdk.KEY_PRESS and event.keyval != gtk.keysyms.Return:
+            return
+
+        (model, iter) = self.get_selection().get_selected()
+        if not iter:
+            logger.debug("Changing attribute of fix failed. HINT: Use enter to save your changes")
+            return
+        data = model[iter][self.COLUMN_OBJ]
+
+        if widget == self.__attr_system:
+            retval = self.data_model.edit_fix(self.data_model.CMD_OPER_EDIT, fix=data, system=widget.get_text())
+        elif widget == self.__attr_platform:
+            retval = self.data_model.edit_fix(self.data_model.CMD_OPER_EDIT, fix=data, platform=widget.get_text())
+        elif widget == self.__attr_strategy:
+            retval = self.data_model.edit_fix(self.data_model.CMD_OPER_EDIT, fix=data, strategy=ENUM.STRATEGY.value(widget.get_active()))
+        elif widget == self.__attr_complexity:
+            retval = self.data_model.edit_fix(self.data_model.CMD_OPER_EDIT, fix=data, complexity=ENUM.LEVEL.value(widget.get_active()))
+        elif widget == self.__attr_disruption:
+            retval = self.data_model.edit_fix(self.data_model.CMD_OPER_EDIT, fix=data, disruption=ENUM.LEVEL.value(widget.get_active()))
+        elif widget == self.__attr_reboot:
+            retval = self.data_model.edit_fix(self.data_model.CMD_OPER_EDIT, fix=data, reboot=widget.get_active())
+        else: 
+            logger.error("Change of \"%s\" is not supported " % (widget,))
+            return
+
+
+    def __do(self, widget=None):
+        """
+        """
+        item = None
+        (model, iter) = self.get_selection().get_selected()
+        if iter and model != None: 
+            item = model[iter][self.COLUMN_OBJ]
+
+        buffer = self.content.get_buffer()
+        if self.operation == self.data_model.CMD_OPER_DEL:
+            retval = self.data_model.edit_fix(self.operation, fix=item)
+        else:
+            retval = self.data_model.edit_fix(self.operation, fix=item, id=self.fid.get_text(), content=buffer.get_text(buffer.get_start_iter(), buffer.get_end_iter()))
+
+        self.fill()
+        self.__dialog_destroy()
+        self.emit("update")
+
+    def __dialog_destroy(self, widget=None):
+        """
+        """
+        if self.wdialog: 
+            self.wdialog.destroy()
+
+    def dialog(self, widget, operation):
+        """
+        """
+        self.operation = operation
+        builder = gtk.Builder()
+        builder.add_from_file("/usr/share/scap-workbench/dialogs.glade")
+        self.wdialog = builder.get_object("dialog:edit_fix")
+        self.info_box = builder.get_object("dialog:edit_fix:info_box")
+        self.fid = builder.get_object("dialog:edit_fix:id")
+        self.content = builder.get_object("dialog:edit_fix:content")
+        builder.get_object("dialog:edit_fix:btn_cancel").connect("clicked", self.__dialog_destroy)
+        builder.get_object("dialog:edit_fix:btn_ok").connect("clicked", self.__do)
+
+        self.core.notify_destroy("notify:not_selected")
+        (model, iter) = self.get_selection().get_selected()
+        if operation == self.data_model.CMD_OPER_ADD:
+            pass
+        elif operation == self.data_model.CMD_OPER_EDIT:
+            if not iter:
+                self.notifications.append(self.core.notify("Please select at least one item to edit",
+                    Notification.ERROR, msg_id="notify:not_selected"))
+                return
+            else:
+                self.fid.set_text(model[iter][self.COLUMN_ID] or "")
+                self.content.get_buffer().set_text(model[iter][self.COLUMN_TEXT] or "")
+        elif operation == self.data_model.CMD_OPER_DEL:
+            if not iter:
+                self.notifications.append(self.core.notify("Please select at least one item to delete",
+                    Notification.ERROR, msg_id="notify:not_selected"))
+                return
+            else: 
+                retval = self.dialogDel(self.core.main_window, self.get_selection())
+                if retval != None:
+                    self.__do()
+                return
+        else: 
+            logger.error("Unknown operation for fix content dialog: \"%s\"" % (operation,))
+            return
+
+        self.wdialog.set_transient_for(self.core.main_window)
+        self.wdialog.show()
+
+    def __block_signals(self):
+        self.__attr_system.handler_block_by_func(self.__change)
+        self.__attr_platform.handler_block_by_func(self.__change)
+        self.__attr_strategy.handler_block_by_func(self.__change)
+        self.__attr_complexity.handler_block_by_func(self.__change)
+        self.__attr_disruption.handler_block_by_func(self.__change)
+        self.__attr_reboot.handler_block_by_func(self.__change)
+
+    def __unblock_signals(self):
+        self.__attr_system.handler_unblock_by_func(self.__change)
+        self.__attr_platform.handler_unblock_by_func(self.__change)
+        self.__attr_strategy.handler_unblock_by_func(self.__change)
+        self.__attr_complexity.handler_unblock_by_func(self.__change)
+        self.__attr_disruption.handler_unblock_by_func(self.__change)
+        self.__attr_reboot.handler_unblock_by_func(self.__change)
+
+    def __attrs_clear(self):
+        self.__block_signals()
+        self.__attr_frame.set_sensitive(False)
+        self.__attr_system.set_text("")
+        self.__attr_platform.set_text("")
+        self.__attr_strategy.set_active(-1)
+        self.__attr_complexity.set_active(-1)
+        self.__attr_disruption.set_active(-1)
+        self.__attr_reboot.set_active(False)
+        self.__unblock_signals()
+
+    def __attr_fill(self, widget=None):
+        
+        (model, iter) = self.get_selection().get_selected()
+
+        self.__attr_frame.set_sensitive(iter is not None)
+        if not iter: return
+
+        data = model[iter][self.COLUMN_OBJ]
+        
+        self.__block_signals()
+        self.__attr_system.set_text(data.system or "")
+        self.__attr_platform.set_text(data.platform or "")
+        self.__attr_strategy.set_active(ENUM.STRATEGY.pos(data.strategy))
+        self.__attr_complexity.set_active(ENUM.LEVEL.pos(data.complexity))
+        self.__attr_disruption.set_active(ENUM.LEVEL.pos(data.disruption))
+        self.__attr_reboot.set_active(data.reboot)
+        self.__unblock_signals()
+
+    def fill(self):
+        self.clear()
+        self.__attrs_clear()
+
+        for data in self.data_model.get_fixes() or []:
+            self.append([data.id,  (data.content or "").strip(), data])
 
 class EditWarning(abstract.ListEditor):
 
@@ -3180,160 +3370,6 @@ class EditValuesValues(abstract.ListEditor):
                          instance["must_match"], 
                          instance["match"], 
                          instance["item"]])
-
-
-class EditFix(commands.DHEditItems, abstract.ControlEditWindow, EventObject):
-    
-    COLUMN_ID = 0
-    COLUMN_TEXT = 1
-    COLUMN_OBJECT = 2
-    
-    def __init__(self, core, builder):
-        
-        self.id = "gui:btn:menu:edit:fix"
-        self.builder = builder
-        self.core = core
-        
-        EventObject.__init__(self, core)
-        self.core.register(self.id, self)
-        self.add_sender(self.id, "item_changed")
-        
-        self.edit_fix_option = EditFixOption(core, builder)
-        self.add_receiver("gui:btn:menu:edit:fix", "item_changed", self.__update)
-        
-        self.model = gtk.ListStore(str, str, gobject.TYPE_PYOBJECT)
-        lv = self.builder.get_object("edit:operations:lv_fix")
-        lv.set_model(self.model)
-        
-                #information for new/edit dialog
-        values = {
-                    "name_dialog":  "Fix",
-                    "view":         lv,
-                    "cb":           self.DHEditFix,
-                    "textEntry":    {"name":    "ID",
-                                    "column":   self.COLUMN_ID,
-                                    "empty":    False, 
-                                    "unique":   True},
-                    "textView":     {"name":    "Content",
-                                    "column":   self.COLUMN_TEXT,
-                                    "empty":    False, 
-                                    "unique":   False}
-                        }
-        abstract.ControlEditWindow.__init__(self, core, lv, values)
-        btn_add = builder.get_object("edit:operations:btn_fix_add")
-        btn_edit = builder.get_object("edit:operations:btn_fix_edit")
-        btn_del = builder.get_object("edit:operations:btn_fix_del")
-        
-        # set callBack to btn
-        btn_add.connect("clicked", self.cb_add_row)
-        btn_edit.connect("clicked", self.cb_edit_row)
-        btn_del.connect("clicked", self.cb_del_row)
-        
-        abstract.ControlEditWindow.__init__(self, core, lv, values)
-        self.selection.connect("changed", self.__cb_item_changed, lv)
-        
-        self.box_main = self.builder.get_object("edit:operations:fix:box")
-        
-        self.addColumn("ID",self.COLUMN_ID)
-        self.addColumn("Content",self.COLUMN_TEXT)
-        
-    def fill(self, item):
-        self.model.clear()
-        self.emit("item_changed")
-        if item:
-            self.item = item
-            rule = item.to_rule()
-            for object in rule.fixes:
-                self.model.append([object.id, object.content, object])
-        else:
-            self.item = None
-    
-    def set_sensitive(self, sensitive):
-        self.box_main.set_sensitive(sensitive)
-        
-    def __cb_item_changed(self, widget, treeView):
-        self.emit("item_changed")
-        treeView.columns_autosize()
-    
-    def __update(self):
-        (model,iter) = self.selection.get_selected()
- 
-        if iter:
-            self.edit_fix_option.fill(model.get_value(iter,self.COLUMN_OBJECT))
-        else:
-            self.edit_fix_option.fill(None)
-
-            
-class EditFixOption(commands.DHEditItems,abstract.ControlEditWindow):
-    
-    def __init__(self, core, builder):
-    
-        # set  models
-        self.core = core
-        self.builder = builder
-
-        #edit data of fictext
-        self.entry_system = self.builder.get_object("edit:operations:fix:entry_system")
-        self.entry_system.connect("focus-out-event",self.cb_entry_fix_system)
-        
-        self.entry_platform = self.builder.get_object("edit:operations:fix:entry_platform")
-        self.entry_platform.connect("focus-out-event",self.cb_entry_fix_platform)
-        
-        self.combo_strategy = self.builder.get_object("edit:operations:fix:combo_strategy")
-        self.combo_strategy.set_model(ENUM.STRATEGY.get_model())
-        self.combo_strategy.connect( "changed", self.cb_combo_fix_strategy)
-        
-        self.combo_complexity = self.builder.get_object("edit:operations:fix:combo_complexity")
-        self.combo_complexity.set_model(ENUM.LEVEL.get_model())
-        self.combo_complexity.connect( "changed", self.cb_combo_fix_complexity)
-    
-        self.combo_disruption = self.builder.get_object("edit:operations:fix:combo_disruption")
-        self.combo_disruption.set_model(ENUM.LEVEL.get_model())
-        self.combo_disruption.connect( "changed", self.cb_combo_fix_disruption)
-    
-        self.chbox_reboot = self.builder.get_object("edit:operations:fix:chbox_reboot")
-        self.chbox_reboot.connect("toggled",self.cb_chbox_fix_reboot)
-
-        self.box_detail= self.builder.get_object("edit:operations:fix:frame")
-        
-    def fill(self, fix):
-        self.item = fix
-        self.combo_strategy.handler_block_by_func(self.cb_combo_fix_strategy)
-        self.combo_complexity.handler_block_by_func(self.cb_combo_fix_complexity)
-        self.combo_disruption.handler_block_by_func(self.cb_combo_fix_disruption)
-        self.chbox_reboot.handler_block_by_func(self.cb_chbox_fix_reboot)
-        if fix:
-
-            self.box_detail.set_sensitive(True)
-
-            if fix.system:
-                self.entry_system.set_text(fix.system)
-            else:
-                self.entry_system.set_text("")
-
-            if fix.platform:
-                self.entry_platform.set_text(fix.platform)
-            else:
-                self.entry_platform.set_text("")
-                
-            self.chbox_reboot.set_active(fix.reboot)
-            self.set_active_comboBox(self.combo_strategy, fix.strategy, self.COMBO_COLUMN_DATA,  "fix strategy")
-            self.set_active_comboBox(self.combo_complexity, fix.complexity, self.COMBO_COLUMN_DATA, "fix complexity")
-            self.set_active_comboBox(self.combo_disruption, fix.disruption, self.COMBO_COLUMN_DATA, "fix disruption")
-        else:
-            self.item = None
-            self.box_detail.set_sensitive(False)
-            self.entry_system.set_text("")
-            self.entry_platform.set_text("")
-            self.chbox_reboot.set_active(False)
-            self.combo_strategy.set_active(-1)
-            self.combo_complexity.set_active(-1)
-            self.combo_disruption.set_active(-1)
-            
-        self.combo_strategy.handler_unblock_by_func(self.cb_combo_fix_strategy)
-        self.combo_complexity.handler_unblock_by_func(self.cb_combo_fix_complexity)
-        self.combo_disruption.handler_unblock_by_func(self.cb_combo_fix_disruption)
-        self.chbox_reboot.handler_unblock_by_func(self.cb_chbox_fix_reboot)
 
 class AddProfileDialog(EventObject, abstract.ControlEditWindow):
 

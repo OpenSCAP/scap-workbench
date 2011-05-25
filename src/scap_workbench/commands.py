@@ -2306,12 +2306,59 @@ class DHEditItems(DataHandler):
         if item and item.type == openscap.OSCAP.XCCDF_RULE: return item.to_rule().fixtexts
         else: return []
 
+    def get_fixes(self):
+        if not self.check_library(): return None
+        item = self.core.lib.benchmark.get_item(self.core.selected_item)
+        if item and item.type == openscap.OSCAP.XCCDF_RULE: return item.to_rule().fixes
+        else: return []
+
+    def edit_fix(self, operation, fix=None, id=None, content=None, system=None, platform=None, complexity=None, disruption=None, reboot=None, strategy=None):
+        if not self.check_library(): return None
+
+        item = self.core.lib.benchmark.get_item(self.core.selected_item)
+        if item == None:
+            raise Exception("Edit items update fix: No item selected !")
+        item = item.to_rule()
+
+        if operation == self.CMD_OPER_ADD:
+            fix = openscap.xccdf.fix_new()
+            fix.id = id
+            fix.content = content
+
+            item.add_fix(fix)
+
+        elif operation == self.CMD_OPER_EDIT:
+            if fix == None: return False
+            if id != None and id != fix.id:
+                fix.id = id
+            if content != None and content != fix.content:
+                fix.content = content
+            if system != None and system != fix.system:
+                fix.system = system
+            if platform != None and platform != fix.platform:
+                fix.platform = platform
+            if complexity != None and complexity != fix.complexity:
+                fix.complexity = complexity
+            if disruption != None and disruption != fix.disruption:
+                fix.disruption = disruption
+            if reboot != None and reboot != fix.reboot:
+                fix.reboot = reboot
+            if strategy != None and strategy != fix.strategy:
+                fix.strategy = strategy
+
+        elif operation == self.CMD_OPER_DEL:
+            if fix == None: return False
+            item.fixes.remove(fix)
+        else: raise Exception("Edit items update fix: Unsupported operation %s" % operation)
+
+        return True
+        
     def edit_fixtext(self, operation, fixtext=None, lang=None, description=None, fixref=None, complexity=None, disruption=None, reboot=None, strategy=None):
         if not self.check_library(): return None
 
         item = self.core.lib.benchmark.get_item(self.core.selected_item)
         if item == None:
-            raise Exception("Edit items update: No item selected !")
+            raise Exception("Edit items update fixtext: No item selected !")
         item = item.to_rule()
 
         if operation == self.CMD_OPER_ADD:
@@ -2590,111 +2637,3 @@ class DHEditItems(DataHandler):
         else:
             logger.debug("Add requires: Unsupported not-add function")
         
-    # DH fixtext ===============================
-    def DHEditFixtextText(self, item, model, iter, column, value, delete=False):
-        
-        COLUMN_TEXT = 0
-        COLUMN_OBJECT = 1
-
-        if item:
-            object = model.get_value(iter, COLUMN_OBJECT)
-            rule = item.to_rule()
-            if not object:
-                object = openscap.xccdf.fixtext_new()
-                rule.add_fixtext(object)
-                model.set_value(iter, COLUMN_OBJECT, object)
-            elif  not delete:
-                if column == COLUMN_TEXT:
-                    object_text = object.get_text()
-                    if not object_text: 
-                        object_text  = openscap.common.text_new()
-                        object.set_text(object_text) 
-                    object_text.set_text(value)
-                else:
-                    logger.error("Bad number of column.")
-            else:
-                logger.debug("Removing %s" %(object,))
-                rule.fixtexts.remove(object)
-                model.remove(iter)
-        else:
-            logger.error("Error: Not read item.")
-            
-    # DH fix ======================================================
-    def DHEditFix(self, item, model, iter, column, value, delete=False):
-        
-        COLUMN_ID = 0
-        COLUMN_TEXT = 1
-        COLUMN_OBJECT = 2
-
-        if item:
-            object = model.get_value(iter, COLUMN_OBJECT)
-            rule = item.to_rule()
-            
-            if not object:
-                object = openscap.xccdf.fix_new()
-                rule.add_fix(object)
-                model.set_value(iter, COLUMN_OBJECT, object)
-            elif  not delete:
-                if column == COLUMN_TEXT:
-                    object.set_content(value)
-                elif column == COLUMN_ID:
-                    object.set_id(value)
-                else:
-                    logger.error("Bad number of column.")
-            else:
-                logger.debug("Removing %s" %(object,))
-                rule.fixes.remove(object)
-                model.remove(iter)
-        else:
-            logger.error("Error: Not read item.")
-           
-    def cb_entry_fix_system(self, widget, event):
-        if self.item:
-            self.item.set_system(widget.get_text())
-        else:
-            logger.error("Error: Not read fix.")
-    
-    def cb_entry_fix_platform(self, widget, event):
-        if self.item:
-            self.item.set_platform(widget.get_text())
-        else:
-            logger.error("Error: Not read fix.")
-    
-    def cb_combo_fix_strategy(self, widget):
-        
-        COLUMN_DATA = 0
-        if self.item:
-            active = widget.get_active()
-            if active > 0:
-                model = widget.get_model()
-                self.item.set_strategy(model[active][COLUMN_DATA])
-        else:
-            logger.error("Error: Not fix.")
-
-    def cb_combo_fix_complexity(self, widget):
-
-        COLUMN_DATA = 0
-        if self.item:
-            active = widget.get_active()
-            if active > 0:
-                model = widget.get_model()
-                self.item.set_complexity(model[active][COLUMN_DATA])
-        else:
-            logger.error("Error: Not fix.")
-    
-    def cb_combo_fix_disruption(self, widget):
-        COLUMN_DATA = 0
-        if self.item:
-            active = widget.get_active()
-            if active > 0:
-                model = widget.get_model()
-                self.item.set_disruption(model[active][COLUMN_DATA])
-        else:
-            logger.error("Error: Not fix.")
-            
-    def cb_chbox_fix_reboot(self, widget):
-
-        if self.item:
-            self.item.set_reboot(widget.get_active())
-        else:
-            logger.error("Error: Not fix.")

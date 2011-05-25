@@ -3873,7 +3873,7 @@
                                                             <property name="vscrollbar_policy">automatic</property>
                                                             <property name="shadow_type">out</property>
                                                             <child>
-                                                            <object class="GtkTreeView" id="edit:xccdf:items:fixtext">
+                                                            <object class="GtkTreeView" id="xccdf:items:fixtext">
                                                             <property name="visible">True</property>
                                                             <property name="can_focus">True</property>
                                                             <property name="enable_grid_lines">both</property>
@@ -3890,7 +3890,7 @@
                                                             <property name="spacing">5</property>
                                                             <property name="layout_style">end</property>
                                                             <child>
-                                                            <object class="GtkButton" id="edit:xccdf:items:fixtext:btn_add">
+                                                            <object class="GtkButton" id="xccdf:items:fixtext:btn_add">
                                                             <property name="label" translatable="yes">Add</property>
                                                             <property name="visible">True</property>
                                                             <property name="can_focus">True</property>
@@ -3903,7 +3903,7 @@
                                                             </packing>
                                                             </child>
                                                             <child>
-                                                            <object class="GtkButton" id="edit:xccdf:items:fixtext:btn_edit">
+                                                            <object class="GtkButton" id="xccdf:items:fixtext:btn_edit">
                                                             <property name="label" translatable="yes">Edit</property>
                                                             <property name="visible">True</property>
                                                             <property name="can_focus">True</property>
@@ -3916,7 +3916,7 @@
                                                             </packing>
                                                             </child>
                                                             <child>
-                                                            <object class="GtkButton" id="edit:xccdf:items:fixtext:btn_del">
+                                                            <object class="GtkButton" id="xccdf:items:fixtext:btn_del">
                                                             <property name="label" translatable="yes">Delete</property>
                                                             <property name="visible">True</property>
                                                             <property name="can_focus">True</property>
@@ -3929,7 +3929,7 @@
                                                             </packing>
                                                             </child>
                                                             <child>
-                                                            <object class="GtkButton" id="edit:xccdf:items:fixtext:btn_preview">
+                                                            <object class="GtkButton" id="xccdf:items:fixtext:btn_preview">
                                                             <property name="label" translatable="yes">Preview</property>
                                                             <property name="visible">True</property>
                                                             <property name="can_focus">True</property>
@@ -4158,7 +4158,7 @@
                                                             <property name="vscrollbar_policy">automatic</property>
                                                             <property name="shadow_type">out</property>
                                                             <child>
-                                                            <object class="GtkTreeView" id="edit:operations:lv_fix">
+                                                            <object class="GtkTreeView" id="xccdf:items:fix">
                                                             <property name="visible">True</property>
                                                             <property name="can_focus">True</property>
                                                             <property name="enable_grid_lines">both</property>
@@ -4175,7 +4175,7 @@
                                                             <property name="spacing">5</property>
                                                             <property name="layout_style">end</property>
                                                             <child>
-                                                            <object class="GtkButton" id="edit:operations:btn_fix_add">
+                                                            <object class="GtkButton" id="xccdf:items:fix:btn_add">
                                                             <property name="label" translatable="yes">Add</property>
                                                             <property name="visible">True</property>
                                                             <property name="can_focus">True</property>
@@ -4188,7 +4188,7 @@
                                                             </packing>
                                                             </child>
                                                             <child>
-                                                            <object class="GtkButton" id="edit:operations:btn_fix_edit">
+                                                            <object class="GtkButton" id="xccdf:items:fix:btn_edit">
                                                             <property name="label" translatable="yes">Edit</property>
                                                             <property name="visible">True</property>
                                                             <property name="can_focus">True</property>
@@ -4201,7 +4201,7 @@
                                                             </packing>
                                                             </child>
                                                             <child>
-                                                            <object class="GtkButton" id="edit:operations:btn_fix_del">
+                                                            <object class="GtkButton" id="xccdf:items:fix:btn_del">
                                                             <property name="label" translatable="yes">Delete</property>
                                                             <property name="visible">True</property>
                                                             <property name="can_focus">True</property>
@@ -4220,7 +4220,7 @@
                                                             </packing>
                                                             </child>
                                                             <child>
-                                                            <object class="GtkFrame" id="edit:operations:fix:frame">
+                                                            <object class="GtkFrame" id="items:fix">
                                                             <property name="visible">True</property>
                                                             <property name="label_xalign">0</property>
                                                             <property name="shadow_type">none</property>
@@ -4247,7 +4247,7 @@
                                                             </packing>
                                                             </child>
                                                             <child>
-                                                            <object class="GtkCheckButton" id="edit:operations:fix:chbox_reboot">
+                                                            <object class="GtkCheckButton" id="items:fix:reboot">
                                                             <property name="label" translatable="yes">Reboot</property>
                                                             <property name="visible">True</property>
                                                             <property name="can_focus">True</property>
@@ -4315,7 +4315,7 @@
                                                             </packing>
                                                             </child>
                                                             <child>
-                                                            <object class="GtkComboBox" id="edit:operations:fix:combo_disruption">
+                                                            <object class="GtkComboBox" id="items:fix:disruption">
                                                             <property name="visible">True</property>
                                                             <child>
                                                             <object class="GtkCellRendererText" id="cellrenderertext16"/>
@@ -4333,7 +4333,7 @@
                                                             </packing>
                                                             </child>
                                                             <child>
-                                                            <object class="GtkComboBox" id="edit:operations:fix:combo_complexity">
+                                                            <object class="GtkComboBox" id="items:fix:complexity">
                                                             <property name="visible">True</property>
                                                             <child>
                                                             <object class="GtkCellRendererText" id="cellrenderertext17"/>
@@ -4351,7 +4351,7 @@
                                                             </packing>
                                                             </child>
                                                             <child>
-                                                            <object class="GtkComboBox" id="edit:operations:fix:combo_strategy">
+                                                            <object class="GtkComboBox" id="items:fix:strategy">
                                                             <property name="visible">True</property>
                                                             <child>
                                                             <object class="GtkCellRendererText" id="cellrenderertext18"/>
@@ -4369,7 +4369,7 @@
                                                             </packing>
                                                             </child>
                                                             <child>
-                                                            <object class="GtkEntry" id="edit:operations:fix:entry_platform">
+                                                            <object class="GtkEntry" id="items:fix:platform">
                                                             <property name="visible">True</property>
                                                             <property name="can_focus">True</property>
                                                             <property name="invisible_char">&#x25CF;</property>
@@ -4383,7 +4383,7 @@
                                                             </packing>
                                                             </child>
                                                             <child>
-                                                            <object class="GtkEntry" id="edit:operations:fix:entry_system">
+                                                            <object class="GtkEntry" id="items:fix:system">
                                                             <property name="visible">True</property>
                                                             <property name="can_focus">True</property>
                                                             <property name="invisible_char">&#x25CF;</property>
