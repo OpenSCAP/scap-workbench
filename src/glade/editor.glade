@@ -1947,7 +1947,6 @@
                     </child>
                     <child>
                       <object class="GtkAlignment" id="edit:xccdf:warnings:box">
-                        <property name="visible">True</property>
                         <property name="top_padding">5</property>
                         <property name="bottom_padding">5</property>
                         <property name="left_padding">5</property>

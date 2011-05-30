@@ -107,6 +107,9 @@ class ItemList(abstract.List):
     def __cb_filter_toggle(self, widget=None):
 
         self.filter_box.set_property('visible', self.filter_toggle.get_active())
+        self.filter_box.set_property('sensitive', self.filter_toggle.get_active())
+        if self.filter_toggle.get_active():
+            self.search.grab_focus()
 
     def __update(self):
 

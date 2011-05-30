@@ -970,12 +970,13 @@ class DHXccdf(DataHandler):
         return retval
 
     def validate(self, reporter=None):
-        if not self.check_library(): return 2
         if reporter and not callable(reporter):
             logger.error("Given callback \"%s\" is not callable" % (reporter,))
 
         temp = tempfile.NamedTemporaryFile()
         retval = self.export(temp.name)
+        if not retval:
+            return retval
         retval = openscap.common.validate_document(temp.name, openscap.OSCAP.OSCAP_DOCUMENT_XCCDF, None,
                 reporter or self.__cb_report, None)
         temp.close()
@@ -1163,7 +1164,8 @@ class DHValues(DataHandler):
         item = item.to_value()
 
         if id != None and len(id) > 0 and item.id != id:
-            item.id = id
+            retval = item.set_id(id)
+            if not retval: return False
             self.core.selected_item = id
         if version != None and item.version != version:
             item.version = version
@@ -1179,6 +1181,8 @@ class DHValues(DataHandler):
             item.interactive = interactive
         if operator != None:
             item.oper = operator
+
+        return True
 
     def edit_value_of_value(self, operation, obj, selector, value, default, match, upper_bound, lower_bound, must_match):
         if not self.check_library(): return None
@@ -1650,7 +1654,8 @@ class DHProfiles(DataHandler):
         profile = self.get_profile(self.core.selected_profile)
 
         if id != None and len(id) > 0 and profile.id != id:
-            profile.id = id
+            retval = profile.set_id(id)
+            if not retval: return False
             self.core.selected_profile = id
         if extends != None and profile.extends != extends:
             profile.extends = extends
@@ -1660,6 +1665,8 @@ class DHProfiles(DataHandler):
             profile.abstract = abstract
         if prohibit_changes != None and profile.prohibit_changes != prohibit_changes:
             profile.prohibit_changes = prohibit_changes
+
+        return True
 
     def add(self, id, lang, title):
         """Add a new profile to the benchmark.
@@ -1965,8 +1972,14 @@ class DHProfiles(DataHandler):
                 r_value.item = id
                 items.append(r_value)
                 profile.add_refine_value(r_value)
-            if selector != None and r_value.selector != selector:
-                r_value.set_selector(selector)
+            if selector != None:
+                """ If we update selector, (which is always overrided by
+                setvalue, we need to clear that setvalue or this will have
+                no effect.
+                """
+                if setvalue: items.remove(setvalue)
+                if r_value.selector != selector:
+                    r_value.set_selector(selector)
             if operator != None and r_value.operator != operator:
                 r_value.set_oper(operator)
 
@@ -2330,7 +2343,8 @@ class DHEditItems(DataHandler):
         elif operation == self.CMD_OPER_EDIT:
             if fix == None: return False
             if id != None and id != fix.id:
-                fix.id = id
+                retval = fix.set_id(id)
+                if not retval: return False
             if content != None and content != fix.content:
                 fix.content = content
             if system != None and system != fix.system:
@@ -2403,7 +2417,8 @@ class DHEditItems(DataHandler):
             raise Exception("Edit items update: No item selected !")
 
         if id != None and len(id) > 0 and item.id != id:
-            item.id = id
+            retval = item.set_id(id)
+            if not retval: return False
             self.core.selected_item = id
         if version != None and item.version != version:
             item.version = version
@@ -2426,6 +2441,8 @@ class DHEditItems(DataHandler):
             item = item.to_rule()
             if severity != None and item.severity != severity:
                 item.severity = severity
+
+        return True
 
     def item_edit_value(self, operation, value, export_name):
         if not self.check_library(): return None

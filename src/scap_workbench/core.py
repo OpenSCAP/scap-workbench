@@ -316,7 +316,6 @@ class SWBCore:
             self.notify("XCCDF Benchmark: No language specified.", Notification.WARNING, msg_id="notify:xccdf:missing_lang")
         return True
 
-
     def notify(self, text, lvl=0, info_box=None, msg_id=None, link_cb=None):
 
         notification = Notification(text, lvl, link_cb)

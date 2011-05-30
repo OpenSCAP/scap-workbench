@@ -597,6 +597,7 @@ class Func:
     def __init__(self, core=None):
 
         self.core = core
+        self.notifications = []
 
     def dialogDel(self, window, selection):
         """
@@ -845,6 +846,7 @@ class ListEditor(EventObject, Func):
 
         if not desc:
             desc = self.__model.get_value(iter, self.COLUMN_TEXT) or ""
+            desc = re.sub("xmlns:xhtml=\"[^\"]*\"", lambda x: "", desc)
             desc = desc.replace("xhtml:","")
             desc = desc.replace("xmlns:", "")
             desc = self.data_model.substitute(desc)
@@ -1025,16 +1027,12 @@ class HTMLEditor(ListEditor):
 
     def __propagate(self, widget=None):
         
-        if self.switcher.get_active() == 0: # TEXT -> HTML
-            for child in self.__html.get_children():
-                child.set_sensitive(True)
+        if self.__switcher.get_active() == 0: # TEXT -> HTML
             self.__html_sw.set_property("visible", True)
             self.__plain_sw.set_property("visible", False)
             desc = self.__plain.get_buffer().get_text(self.__plain.get_buffer().get_start_iter(), self.__plain.get_buffer().get_end_iter())
             self.__html.load_html_string(desc or "", "file:///")
-        elif self.switcher.get_active() == 1: # HTML -> TEXT
-            for child in self.__toolbar.get_children():
-                child.set_sensitive(False)
+        elif self.__switcher.get_active() == 1: # HTML -> TEXT
             self.__html_sw.set_property("visible", False)
             self.__plain_sw.set_property("visible", True)
             self.__html.execute_script("document.title=document.documentElement.innerHTML;")
@@ -1042,6 +1040,9 @@ class HTMLEditor(ListEditor):
             desc = desc.replace("<head></head>", "")
             desc = desc.replace("<body>", "").replace("</body>", "")
 
+            """ We use Beautiful soup to pretify formatting of plain text
+            when we switched from HTML to PLAIN view, cause we get only one-line
+            text from WebView (WebKit module)"""
             if HAS_BEUTIFUL_SOUP:
                 # Use Beutiful soup to prettify the HTML
                 soup = BeautifulSoup(desc)
@@ -1050,6 +1051,14 @@ class HTMLEditor(ListEditor):
                 self.core.notify("Missing BeautifulSoup python module, HTML processing disabled.",
                     Notification.INFORMATION, info_box=self.info_box, msg_id="")
             self.__plain.get_buffer().set_text(desc)
+
+        """ Set sensitivity of HTML toolbar. If swither is 0 (we have switched to HTML)
+        we need to enable toolbar to set properties of HTML text """
+        for child in self.__toolbar.get_children():
+            child.set_sensitive(self.__switcher.get_active() == 0)
+
+        """ Switcher has to stay enabled in all cases
+        """
         self.__switcher.parent.set_sensitive(True)
 
 

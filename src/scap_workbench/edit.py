@@ -793,6 +793,7 @@ class ExportDialog(abstract.Window, abstract.ListEditor):
         self.core = core
         self.data_model = data_model
         builder = gtk.Builder()
+        self.log = []
         builder.add_from_file("/usr/share/scap-workbench/dialogs.glade")
         self.wdialog = builder.get_object("dialog:export")
         self.progress = builder.get_object("dialog:progress")
@@ -826,6 +827,10 @@ class ExportDialog(abstract.Window, abstract.ListEditor):
     def __cb_switch(self, widget):
         self.guide_box.set_sensitive(widget == self.guide_rb)
 
+    def __cb_report(self, msg, plugin):
+        self.log.append(msg.string)
+        return True
+
     def __action_link(self, widget, action):
         """ This function is called when user clicked on hyperlink
         in the text of notification message.
@@ -845,6 +850,18 @@ class ExportDialog(abstract.Window, abstract.ListEditor):
             desc = f.read()
             f.close()
             self.preview(widget=None, desc=desc)
+        elif action == "#log":
+            builder = gtk.Builder()
+            builder.add_from_file("/usr/share/scap-workbench/dialogs.glade")
+            preview_dialog = builder.get_object("dialog:preview")
+            box = gtk.VBox()
+            box.set_spacing(2)
+            builder.get_object("dialog:preview:scw").add_with_viewport(box)
+            builder.get_object("dialog:preview:btn_ok").connect("clicked", lambda w: preview_dialog.destroy())
+            for entry in self.log:
+                self.core.notify("%s" % (entry,), Notification.WARNING, info_box=box)
+            preview_dialog.set_transient_for(self.wdialog)
+            preview_dialog.show_all()
 
         # return True to stop handling this event by builtin mechanism
         return True
@@ -870,9 +887,10 @@ class ExportDialog(abstract.Window, abstract.ListEditor):
 
         if not overvalid and self.valid.get_active():
             # Test the validity of exported model
-            retval = self.data_model.validate()
+            self.log = []
+            retval = self.data_model.validate(reporter=self.__cb_report)
             if not retval:
-                self.core.notify("You are trying to export non-valid XCCDF Benchmark ! <a href='#overvalid'>Proceed</a>", 
+                self.core.notify("You are trying to export non-valid XCCDF Benchmark ! <a href='#overvalid'>Proceed</a> <a href='#log'>More</a>", 
                         Notification.WARNING, info_box=self.info_box, msg_id="notify:xccdf:export:dialog", link_cb=self.__action_link)
                 #self.progress.destroy()
                 return
@@ -1008,7 +1026,11 @@ class MenuButtonEditProfiles(abstract.MenuButton, abstract.Func):
         item = self.list_profile.selected
         if not item: return
         if widget == self.pid:
-            self.data_model.update(id=widget.get_text())
+            retval = self.data_model.update(id=widget.get_text())
+            if not retval:
+                self.notifications.append(self.core.notify("Setting ID failed: ID \"%s\" already exists." % (widget.get_text(),),
+                    Notification.ERROR, msg_id="notify:not_selected"))
+                widget.set_text(self.core.selected_profile)
         elif widget == self.version:
             self.data_model.update(version=widget.get_text())
         elif widget == self.extends:
@@ -1378,7 +1400,12 @@ class MenuButtonEditItems(abstract.MenuButton, abstract.Func):
             return
 
         if widget == self.item_id:
-            self.data_model.update(id=widget.get_text())
+            retval = self.data_model.update(id=widget.get_text())
+            if not retval:
+                self.notifications.append(self.core.notify("Setting ID failed: ID \"%s\" already exists." % (widget.get_text(),),
+                    Notification.ERROR, msg_id="notify:not_selected"))
+                widget.set_text(self.core.selected_item)
+                return
             self.__update_item()
         elif widget == self.version:
             self.data_model.update(version=widget.get_text())
@@ -3157,7 +3184,12 @@ class EditValues(abstract.MenuButton):
             return
 
         if widget == self.vid:
-            self.data_model.edit_value(id=widget.get_text())
+            retval = self.data_model.edit_value(id=widget.get_text())
+            if not retval:
+                self.notifications.append(self.core.notify("Setting ID failed: ID \"%s\" already exists." % (widget.get_text(),),
+                    Notification.ERROR, msg_id="notify:not_selected"))
+                widget.set_text(self.core.selected_item)
+                return
             self.emit("update_item")
         elif widget == self.version:
             self.data_model.edit_value(version=widget.get_text())
@@ -3390,6 +3422,7 @@ class AddProfileDialog(EventObject, abstract.ControlEditWindow):
         self.lang = builder.get_object("profile_add:entry_lang")
         self.lang.set_text(self.core.selected_lang or "")
 
+        self.__entry_style = self.pid.get_style().base[gtk.STATE_NORMAL]
         self.show()
 
     def __cb_do(self, widget):
@@ -3404,12 +3437,16 @@ class AddProfileDialog(EventObject, abstract.ControlEditWindow):
                 self.core.notify("Profile \"%s\" already exists." % (self.pid.get_text(),),
                         Notification.ERROR, self.info_box, msg_id="notify:edit:profile:new")
                 self.pid.grab_focus()
+                self.pid.modify_base(gtk.STATE_NORMAL, gtk.gdk.Color("#FFC1C2"))
                 return
+        self.pid.modify_base(gtk.STATE_NORMAL, self.__entry_style)
         if len(self.title.get_text()) == 0: 
             self.core.notify("Please add title for this profile.",
                     Notification.ERROR, self.info_box, msg_id="notify:edit:profile:new")
             self.title.grab_focus()
+            self.title.modify_base(gtk.STATE_NORMAL, gtk.gdk.Color("#FFC1C2"))
             return
+        self.title.modify_base(gtk.STATE_NORMAL, self.__entry_style)
 
         self.data_model.add(id=self.pid.get_text(), lang=self.lang.get_text(), title=self.title.get_text())
         self.core.selected_profile = self.pid.get_text()
