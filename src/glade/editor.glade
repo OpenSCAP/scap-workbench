@@ -3836,6 +3836,9 @@
                                                       <object class="GtkEntry" id="edit:operations:entry_impact_metric">
                                                         <property name="visible">True</property>
                                                         <property name="can_focus">True</property>
+                                                        <property name="tooltip_text" translatable="yes">A string representation of the potential impact of failure to conform to a Rule. The content must be a CVSS base vector, expressed using the format defined in the CVSS 2.0 specification.
+
+This attribute is DEPRECATED and appears in the specification only for backward compatibility.</property>
                                                         <property name="invisible_char">&#x25CF;</property>
                                                       </object>
                                                       <packing>
@@ -3969,8 +3972,6 @@
                                                             <property name="label" translatable="yes">Reference:</property>
                                                             </object>
                                                             <packing>
-                                                            <property name="top_attach">1</property>
-                                                            <property name="bottom_attach">2</property>
                                                             <property name="x_options">GTK_FILL</property>
                                                             <property name="y_options">GTK_FILL</property>
                                                             </packing>
@@ -3979,76 +3980,21 @@
                                                             <object class="GtkEntry" id="items:fixtext:fixref">
                                                             <property name="visible">True</property>
                                                             <property name="can_focus">True</property>
+                                                            <property name="tooltip_text" translatable="yes">A reference to the id of a fix element</property>
                                                             <property name="invisible_char">&#x25CF;</property>
                                                             </object>
                                                             <packing>
                                                             <property name="left_attach">1</property>
                                                             <property name="right_attach">2</property>
-                                                            <property name="top_attach">1</property>
-                                                            <property name="bottom_attach">2</property>
-                                                            <property name="y_options">GTK_FILL</property>
-                                                            </packing>
-                                                            </child>
-                                                            <child>
-                                                            <object class="GtkComboBox" id="items:fixtext:strategy">
-                                                            <property name="visible">True</property>
-                                                            <child>
-                                                            <object class="GtkCellRendererText" id="cellrenderertext19"/>
-                                                            <attributes>
-                                                            <attribute name="text">1</attribute>
-                                                            </attributes>
-                                                            </child>
-                                                            </object>
-                                                            <packing>
-                                                            <property name="left_attach">1</property>
-                                                            <property name="right_attach">2</property>
-                                                            <property name="top_attach">2</property>
-                                                            <property name="bottom_attach">3</property>
-                                                            <property name="y_options">GTK_FILL</property>
-                                                            </packing>
-                                                            </child>
-                                                            <child>
-                                                            <object class="GtkComboBox" id="items:fixtext:complexity">
-                                                            <property name="visible">True</property>
-                                                            <child>
-                                                            <object class="GtkCellRendererText" id="cellrenderertext20"/>
-                                                            <attributes>
-                                                            <attribute name="text">1</attribute>
-                                                            </attributes>
-                                                            </child>
-                                                            </object>
-                                                            <packing>
-                                                            <property name="left_attach">1</property>
-                                                            <property name="right_attach">2</property>
-                                                            <property name="top_attach">3</property>
-                                                            <property name="bottom_attach">4</property>
-                                                            <property name="y_options">GTK_FILL</property>
-                                                            </packing>
-                                                            </child>
-                                                            <child>
-                                                            <object class="GtkComboBox" id="items:fixtext:disruption">
-                                                            <property name="visible">True</property>
-                                                            <child>
-                                                            <object class="GtkCellRendererText" id="cellrenderertext21"/>
-                                                            <attributes>
-                                                            <attribute name="text">1</attribute>
-                                                            </attributes>
-                                                            </child>
-                                                            </object>
-                                                            <packing>
-                                                            <property name="left_attach">1</property>
-                                                            <property name="right_attach">2</property>
-                                                            <property name="top_attach">4</property>
-                                                            <property name="bottom_attach">5</property>
                                                             <property name="y_options">GTK_FILL</property>
                                                             </packing>
                                                             </child>
                                                             <child>
                                                             <object class="GtkCheckButton" id="items:fixtext:reboot">
-                                                            <property name="label" translatable="yes">Reboot</property>
                                                             <property name="visible">True</property>
                                                             <property name="can_focus">True</property>
                                                             <property name="receives_default">False</property>
+                                                            <property name="tooltip_text" translatable="yes">If the remediation described in the fixtext will require a reboot of target operation</property>
                                                             <property name="draw_indicator">True</property>
                                                             </object>
                                                             <packing>
@@ -4066,8 +4012,8 @@
                                                             <property name="label" translatable="yes">Strategy:</property>
                                                             </object>
                                                             <packing>
-                                                            <property name="top_attach">2</property>
-                                                            <property name="bottom_attach">3</property>
+                                                            <property name="top_attach">1</property>
+                                                            <property name="bottom_attach">2</property>
                                                             <property name="x_options">GTK_FILL</property>
                                                             <property name="y_options">GTK_FILL</property>
                                                             </packing>
@@ -4079,8 +4025,8 @@
                                                             <property name="label" translatable="yes">Complexity:</property>
                                                             </object>
                                                             <packing>
-                                                            <property name="top_attach">3</property>
-                                                            <property name="bottom_attach">4</property>
+                                                            <property name="top_attach">2</property>
+                                                            <property name="bottom_attach">3</property>
                                                             <property name="x_options">GTK_FILL</property>
                                                             <property name="y_options">GTK_FILL</property>
                                                             </packing>
@@ -4092,6 +4038,76 @@
                                                             <property name="label" translatable="yes">Disruption:</property>
                                                             </object>
                                                             <packing>
+                                                            <property name="top_attach">3</property>
+                                                            <property name="bottom_attach">4</property>
+                                                            <property name="x_options">GTK_FILL</property>
+                                                            <property name="y_options">GTK_FILL</property>
+                                                            </packing>
+                                                            </child>
+                                                            <child>
+                                                            <object class="GtkComboBox" id="items:fixtext:strategy">
+                                                            <property name="visible">True</property>
+                                                            <property name="tooltip_text" translatable="yes">A keyword that designates the approach or method that the fix uses</property>
+                                                            <child>
+                                                            <object class="GtkCellRendererText" id="cellrenderertext19"/>
+                                                            <attributes>
+                                                            <attribute name="text">1</attribute>
+                                                            </attributes>
+                                                            </child>
+                                                            </object>
+                                                            <packing>
+                                                            <property name="left_attach">1</property>
+                                                            <property name="right_attach">2</property>
+                                                            <property name="top_attach">1</property>
+                                                            <property name="bottom_attach">2</property>
+                                                            <property name="y_options">GTK_FILL</property>
+                                                            </packing>
+                                                            </child>
+                                                            <child>
+                                                            <object class="GtkComboBox" id="items:fixtext:complexity">
+                                                            <property name="visible">True</property>
+                                                            <property name="tooltip_text" translatable="yes">A keyword that indicates the difficulty or complexity of applying the described fix to the target</property>
+                                                            <child>
+                                                            <object class="GtkCellRendererText" id="cellrenderertext20"/>
+                                                            <attributes>
+                                                            <attribute name="text">1</attribute>
+                                                            </attributes>
+                                                            </child>
+                                                            </object>
+                                                            <packing>
+                                                            <property name="left_attach">1</property>
+                                                            <property name="right_attach">2</property>
+                                                            <property name="top_attach">2</property>
+                                                            <property name="bottom_attach">3</property>
+                                                            <property name="y_options">GTK_FILL</property>
+                                                            </packing>
+                                                            </child>
+                                                            <child>
+                                                            <object class="GtkComboBox" id="items:fixtext:disruption">
+                                                            <property name="visible">True</property>
+                                                            <property name="tooltip_text" translatable="yes">A keyword that designates the potencial for disruption or degradation of target operation</property>
+                                                            <child>
+                                                            <object class="GtkCellRendererText" id="cellrenderertext21"/>
+                                                            <attributes>
+                                                            <attribute name="text">1</attribute>
+                                                            </attributes>
+                                                            </child>
+                                                            </object>
+                                                            <packing>
+                                                            <property name="left_attach">1</property>
+                                                            <property name="right_attach">2</property>
+                                                            <property name="top_attach">3</property>
+                                                            <property name="bottom_attach">4</property>
+                                                            <property name="y_options">GTK_FILL</property>
+                                                            </packing>
+                                                            </child>
+                                                            <child>
+                                                            <object class="GtkLabel" id="label75">
+                                                            <property name="visible">True</property>
+                                                            <property name="xalign">0</property>
+                                                            <property name="label" translatable="yes">Overrides:</property>
+                                                            </object>
+                                                            <packing>
                                                             <property name="top_attach">4</property>
                                                             <property name="bottom_attach">5</property>
                                                             <property name="x_options">GTK_FILL</property>
@@ -4099,13 +4115,33 @@
                                                             </packing>
                                                             </child>
                                                             <child>
-                                                            <placeholder/>
+                                                            <object class="GtkLabel" id="label76">
+                                                            <property name="visible">True</property>
+                                                            <property name="xalign">0</property>
+                                                            <property name="label" translatable="yes">Reboot:</property>
+                                                            </object>
+                                                            <packing>
+                                                            <property name="top_attach">5</property>
+                                                            <property name="bottom_attach">6</property>
+                                                            <property name="x_options">GTK_FILL</property>
+                                                            <property name="y_options">GTK_FILL</property>
+                                                            </packing>
                                                             </child>
                                                             <child>
-                                                            <placeholder/>
-                                                            </child>
-                                                            <child>
-                                                            <placeholder/>
+                                                            <object class="GtkCheckButton" id="items:fixtext:overrides">
+                                                            <property name="visible">True</property>
+                                                            <property name="can_focus">True</property>
+                                                            <property name="receives_default">False</property>
+                                                            <property name="tooltip_text" translatable="yes">This attribute controls how the fixtext property is inherited, if the Rule extends another Rule.</property>
+                                                            <property name="draw_indicator">True</property>
+                                                            </object>
+                                                            <packing>
+                                                            <property name="left_attach">1</property>
+                                                            <property name="right_attach">2</property>
+                                                            <property name="top_attach">4</property>
+                                                            <property name="bottom_attach">5</property>
+                                                            <property name="y_options">GTK_FILL</property>
+                                                            </packing>
                                                             </child>
                                                             </object>
                                                             </child>
@@ -4247,10 +4283,10 @@
                                                             </child>
                                                             <child>
                                                             <object class="GtkCheckButton" id="items:fix:reboot">
-                                                            <property name="label" translatable="yes">Reboot</property>
                                                             <property name="visible">True</property>
                                                             <property name="can_focus">True</property>
                                                             <property name="receives_default">False</property>
+                                                            <property name="tooltip_text" translatable="yes">If remediation will require a reboot or hard reset of the target</property>
                                                             <property name="draw_indicator">True</property>
                                                             </object>
                                                             <packing>
@@ -4316,6 +4352,7 @@
                                                             <child>
                                                             <object class="GtkComboBox" id="items:fix:disruption">
                                                             <property name="visible">True</property>
+                                                            <property name="tooltip_text" translatable="yes">A keyword that designates the potential for disruption or degradation of target operation.</property>
                                                             <child>
                                                             <object class="GtkCellRendererText" id="cellrenderertext16"/>
                                                             <attributes>
@@ -4334,6 +4371,7 @@
                                                             <child>
                                                             <object class="GtkComboBox" id="items:fix:complexity">
                                                             <property name="visible">True</property>
+                                                            <property name="tooltip_text" translatable="yes">A keyword that indicates the complexity or difficulty of applying the fix to the target.</property>
                                                             <child>
                                                             <object class="GtkCellRendererText" id="cellrenderertext17"/>
                                                             <attributes>
@@ -4352,6 +4390,7 @@
                                                             <child>
                                                             <object class="GtkComboBox" id="items:fix:strategy">
                                                             <property name="visible">True</property>
+                                                            <property name="tooltip_text" translatable="yes">A keyword that designates the approach or method that the fix uses.</property>
                                                             <child>
                                                             <object class="GtkCellRendererText" id="cellrenderertext18"/>
                                                             <attributes>
@@ -4371,6 +4410,7 @@
                                                             <object class="GtkEntry" id="items:fix:platform">
                                                             <property name="visible">True</property>
                                                             <property name="can_focus">True</property>
+                                                            <property name="tooltip_text" translatable="yes">A platform identifier; this should appear on a fix when the content applies to only one platform out of several to which the Rule could apply.</property>
                                                             <property name="invisible_char">&#x25CF;</property>
                                                             </object>
                                                             <packing>
@@ -4385,6 +4425,7 @@
                                                             <object class="GtkEntry" id="items:fix:system">
                                                             <property name="visible">True</property>
                                                             <property name="can_focus">True</property>
+                                                            <property name="tooltip_text" translatable="yes">A URI that identifies the scheme, language, or engine for which the fix is written. Several general URIs are defined, but platform-specific URIs may be expected.</property>
                                                             <property name="invisible_char">&#x25CF;</property>
                                                             </object>
                                                             <packing>
@@ -4394,7 +4435,17 @@
                                                             </packing>
                                                             </child>
                                                             <child>
-                                                            <placeholder/>
+                                                            <object class="GtkLabel" id="label77">
+                                                            <property name="visible">True</property>
+                                                            <property name="xalign">0</property>
+                                                            <property name="label" translatable="yes">Reboot:</property>
+                                                            </object>
+                                                            <packing>
+                                                            <property name="top_attach">5</property>
+                                                            <property name="bottom_attach">6</property>
+                                                            <property name="x_options">GTK_FILL</property>
+                                                            <property name="y_options">GTK_FILL</property>
+                                                            </packing>
                                                             </child>
                                                             </object>
                                                             </child>

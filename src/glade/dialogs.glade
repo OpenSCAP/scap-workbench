@@ -1722,24 +1722,10 @@ Note: This property holds the default value displayed to the user by tools durin
             <child>
               <object class="GtkTable" id="table4">
                 <property name="visible">True</property>
-                <property name="n_rows">2</property>
+                <property name="n_rows">3</property>
                 <property name="n_columns">2</property>
                 <property name="column_spacing">12</property>
                 <property name="row_spacing">5</property>
-                <child>
-                  <object class="GtkLabel" id="lbl_textView1">
-                    <property name="visible">True</property>
-                    <property name="xalign">1</property>
-                    <property name="yalign">0</property>
-                    <property name="label" translatable="yes">Title:</property>
-                  </object>
-                  <packing>
-                    <property name="top_attach">1</property>
-                    <property name="bottom_attach">2</property>
-                    <property name="x_options">GTK_FILL</property>
-                    <property name="y_options">GTK_FILL</property>
-                  </packing>
-                </child>
                 <child>
                   <object class="GtkEntry" id="dialog:edit_title:lang">
                     <property name="visible">True</property>
@@ -1766,6 +1752,33 @@ Note: This property holds the default value displayed to the user by tools durin
                   </packing>
                 </child>
                 <child>
+                  <object class="GtkLabel" id="lbl_textView1">
+                    <property name="visible">True</property>
+                    <property name="xalign">1</property>
+                    <property name="yalign">0</property>
+                    <property name="label" translatable="yes">Title:</property>
+                  </object>
+                  <packing>
+                    <property name="top_attach">2</property>
+                    <property name="bottom_attach">3</property>
+                    <property name="x_options">GTK_FILL</property>
+                    <property name="y_options">GTK_FILL</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkLabel" id="lbl_entryText21">
+                    <property name="visible">True</property>
+                    <property name="xalign">1</property>
+                    <property name="label" translatable="yes">Override:</property>
+                  </object>
+                  <packing>
+                    <property name="top_attach">1</property>
+                    <property name="bottom_attach">2</property>
+                    <property name="x_options">GTK_FILL</property>
+                    <property name="y_options">GTK_FILL</property>
+                  </packing>
+                </child>
+                <child>
                   <object class="GtkScrolledWindow" id="sw_textView1">
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
@@ -1782,8 +1795,27 @@ Note: This property holds the default value displayed to the user by tools durin
                   <packing>
                     <property name="left_attach">1</property>
                     <property name="right_attach">2</property>
+                    <property name="top_attach">2</property>
+                    <property name="bottom_attach">3</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkComboBox" id="dialog:edit_title:overrides">
+                    <property name="visible">True</property>
+                    <property name="model">dialog:model:boolean</property>
+                    <child>
+                      <object class="GtkCellRendererText" id="text7"/>
+                      <attributes>
+                        <attribute name="text">0</attribute>
+                      </attributes>
+                    </child>
+                  </object>
+                  <packing>
+                    <property name="left_attach">1</property>
+                    <property name="right_attach">2</property>
                     <property name="top_attach">1</property>
                     <property name="bottom_attach">2</property>
+                    <property name="y_options">GTK_FILL</property>
                   </packing>
                 </child>
               </object>
@@ -1913,6 +1945,42 @@ Note: This property holds the default value displayed to the user by tools durin
               </packing>
             </child>
             <child>
+              <object class="GtkHBox" id="dialog:edit_description:lang:box1">
+                <property name="visible">True</property>
+                <property name="spacing">5</property>
+                <child>
+                  <object class="GtkLabel" id="lbl_entryText22">
+                    <property name="visible">True</property>
+                    <property name="xalign">1</property>
+                    <property name="label" translatable="yes">Overrides:</property>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="position">0</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkComboBox" id="dialog:edit_description:overrides">
+                    <property name="visible">True</property>
+                    <property name="model">dialog:model:boolean</property>
+                    <child>
+                      <object class="GtkCellRendererText" id="text6"/>
+                      <attributes>
+                        <attribute name="text">0</attribute>
+                      </attributes>
+                    </child>
+                  </object>
+                  <packing>
+                    <property name="position">1</property>
+                  </packing>
+                </child>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="position">1</property>
+              </packing>
+            </child>
+            <child>
               <object class="GtkVBox" id="dialog:edit_description:html:box">
                 <property name="visible">True</property>
                 <property name="orientation">vertical</property>
@@ -1956,8 +2024,9 @@ Note: This property holds the default value displayed to the user by tools durin
                         <property name="visible">True</property>
                         <property name="related_action">dialog:edit_description:action:zoomin</property>
                         <property name="use_action_appearance">True</property>
-                        <property name="label" translatable="yes">Zoom in</property>
+                        <property name="label" translatable="yes">_Zoom in</property>
                         <property name="use_underline">True</property>
+                        <property name="stock_id">gtk-zoom-in</property>
                       </object>
                       <packing>
                         <property name="expand">False</property>
@@ -1969,8 +2038,9 @@ Note: This property holds the default value displayed to the user by tools durin
                         <property name="visible">True</property>
                         <property name="related_action">dialog:edit_description:action:zoomout</property>
                         <property name="use_action_appearance">True</property>
-                        <property name="label" translatable="yes">Zoom out</property>
+                        <property name="label" translatable="yes">_Zoom out</property>
                         <property name="use_underline">True</property>
+                        <property name="stock_id">gtk-zoom-out</property>
                       </object>
                       <packing>
                         <property name="expand">False</property>
@@ -1991,8 +2061,9 @@ Note: This property holds the default value displayed to the user by tools durin
                         <property name="visible">True</property>
                         <property name="related_action">dialog:edit_description:action:bold</property>
                         <property name="use_action_appearance">True</property>
-                        <property name="label" translatable="yes">Bold</property>
+                        <property name="label" translatable="yes">_Bold</property>
                         <property name="use_underline">True</property>
+                        <property name="stock_id">gtk-bold</property>
                       </object>
                       <packing>
                         <property name="expand">False</property>
@@ -2004,8 +2075,9 @@ Note: This property holds the default value displayed to the user by tools durin
                         <property name="visible">True</property>
                         <property name="related_action">dialog:edit_description:action:italic</property>
                         <property name="use_action_appearance">True</property>
-                        <property name="label" translatable="yes">Italic</property>
+                        <property name="label" translatable="yes">_Italic</property>
                         <property name="use_underline">True</property>
+                        <property name="stock_id">gtk-italic</property>
                       </object>
                       <packing>
                         <property name="expand">False</property>
@@ -2017,8 +2089,9 @@ Note: This property holds the default value displayed to the user by tools durin
                         <property name="visible">True</property>
                         <property name="related_action">dialog:edit_description:action:underline</property>
                         <property name="use_action_appearance">True</property>
-                        <property name="label" translatable="yes">Underline</property>
+                        <property name="label" translatable="yes">_Underline</property>
                         <property name="use_underline">True</property>
+                        <property name="stock_id">gtk-underline</property>
                       </object>
                       <packing>
                         <property name="expand">False</property>
@@ -2039,9 +2112,9 @@ Note: This property holds the default value displayed to the user by tools durin
                         <property name="visible">True</property>
                         <property name="related_action">dialog:edit_description:action:bul_list</property>
                         <property name="use_action_appearance">True</property>
-                        <property name="is_important">True</property>
-                        <property name="label" translatable="yes">Mum. List</property>
+                        <property name="label" translatable="yes">_Bullet List</property>
                         <property name="use_underline">True</property>
+                        <property name="stock_id">gnome-stock-text-bulleted-list</property>
                       </object>
                       <packing>
                         <property name="expand">False</property>
@@ -2053,9 +2126,9 @@ Note: This property holds the default value displayed to the user by tools durin
                         <property name="visible">True</property>
                         <property name="related_action">dialog:edit_description:action:num_list</property>
                         <property name="use_action_appearance">True</property>
-                        <property name="is_important">True</property>
-                        <property name="label" translatable="yes">List</property>
+                        <property name="label" translatable="yes">_Num List</property>
                         <property name="use_underline">True</property>
+                        <property name="stock_id">gnome-stock-text-numbered-list</property>
                       </object>
                       <packing>
                         <property name="expand">False</property>
@@ -2068,8 +2141,9 @@ Note: This property holds the default value displayed to the user by tools durin
                         <property name="sensitive">False</property>
                         <property name="related_action">dialog:edit_description:action:outdent</property>
                         <property name="use_action_appearance">True</property>
-                        <property name="label" translatable="yes">Outdent</property>
+                        <property name="label" translatable="yes">_Outdent</property>
                         <property name="use_underline">True</property>
+                        <property name="stock_id">gtk-unindent</property>
                       </object>
                       <packing>
                         <property name="expand">False</property>
@@ -2081,8 +2155,9 @@ Note: This property holds the default value displayed to the user by tools durin
                         <property name="visible">True</property>
                         <property name="related_action">dialog:edit_description:action:indent</property>
                         <property name="use_action_appearance">True</property>
-                        <property name="label" translatable="yes">Indent</property>
+                        <property name="label" translatable="yes">_Indent</property>
                         <property name="use_underline">True</property>
+                        <property name="stock_id">gtk-indent</property>
                       </object>
                       <packing>
                         <property name="expand">False</property>
@@ -2156,8 +2231,9 @@ Note: This property holds the default value displayed to the user by tools durin
                         <property name="visible">True</property>
                         <property name="related_action">dialog:edit_description:action:code</property>
                         <property name="use_action_appearance">True</property>
-                        <property name="label" translatable="yes">Code</property>
+                        <property name="label" translatable="yes">_Code</property>
                         <property name="use_underline">True</property>
+                        <property name="icon_name">format-text-code</property>
                       </object>
                       <packing>
                         <property name="expand">False</property>
@@ -2169,8 +2245,9 @@ Note: This property holds the default value displayed to the user by tools durin
                         <property name="visible">True</property>
                         <property name="related_action">dialog:edit_description:action:link</property>
                         <property name="use_action_appearance">True</property>
-                        <property name="label" translatable="yes">Link</property>
+                        <property name="label" translatable="yes">_Link</property>
                         <property name="use_underline">True</property>
+                        <property name="icon_name">insert-link</property>
                       </object>
                       <packing>
                         <property name="expand">False</property>
@@ -2188,7 +2265,7 @@ Note: This property holds the default value displayed to the user by tools durin
                 </child>
               </object>
               <packing>
-                <property name="position">1</property>
+                <property name="position">2</property>
               </packing>
             </child>
           </object>
@@ -2285,7 +2362,7 @@ Note: This property holds the default value displayed to the user by tools durin
             <child>
               <object class="GtkTable" id="table7">
                 <property name="visible">True</property>
-                <property name="n_rows">3</property>
+                <property name="n_rows">4</property>
                 <property name="n_columns">2</property>
                 <property name="column_spacing">12</property>
                 <property name="row_spacing">5</property>
@@ -2297,8 +2374,8 @@ Note: This property holds the default value displayed to the user by tools durin
                     <property name="label" translatable="yes">Warning:</property>
                   </object>
                   <packing>
-                    <property name="top_attach">2</property>
-                    <property name="bottom_attach">3</property>
+                    <property name="top_attach">3</property>
+                    <property name="bottom_attach">4</property>
                     <property name="x_options">GTK_FILL</property>
                     <property name="y_options">GTK_FILL</property>
                   </packing>
@@ -2333,27 +2410,6 @@ Note: This property holds the default value displayed to the user by tools durin
                   </packing>
                 </child>
                 <child>
-                  <object class="GtkScrolledWindow" id="sw_textView3">
-                    <property name="visible">True</property>
-                    <property name="can_focus">True</property>
-                    <property name="hscrollbar_policy">automatic</property>
-                    <property name="vscrollbar_policy">automatic</property>
-                    <property name="shadow_type">in</property>
-                    <child>
-                      <object class="GtkTextView" id="dialog:edit_warning:warning">
-                        <property name="visible">True</property>
-                        <property name="can_focus">True</property>
-                      </object>
-                    </child>
-                  </object>
-                  <packing>
-                    <property name="left_attach">1</property>
-                    <property name="right_attach">2</property>
-                    <property name="top_attach">2</property>
-                    <property name="bottom_attach">3</property>
-                  </packing>
-                </child>
-                <child>
                   <object class="GtkLabel" id="lbl_entryText4">
                     <property name="visible">True</property>
                     <property name="xalign">1</property>
@@ -2377,6 +2433,59 @@ Note: This property holds the default value displayed to the user by tools durin
                   <packing>
                     <property name="left_attach">1</property>
                     <property name="right_attach">2</property>
+                    <property name="y_options">GTK_FILL</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkScrolledWindow" id="sw_textView3">
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <property name="hscrollbar_policy">automatic</property>
+                    <property name="vscrollbar_policy">automatic</property>
+                    <property name="shadow_type">in</property>
+                    <child>
+                      <object class="GtkTextView" id="dialog:edit_warning:warning">
+                        <property name="visible">True</property>
+                        <property name="can_focus">True</property>
+                      </object>
+                    </child>
+                  </object>
+                  <packing>
+                    <property name="left_attach">1</property>
+                    <property name="right_attach">2</property>
+                    <property name="top_attach">3</property>
+                    <property name="bottom_attach">4</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkLabel" id="lbl_entryText23">
+                    <property name="visible">True</property>
+                    <property name="xalign">1</property>
+                    <property name="label" translatable="yes">Overrides:</property>
+                  </object>
+                  <packing>
+                    <property name="top_attach">2</property>
+                    <property name="bottom_attach">3</property>
+                    <property name="x_options">GTK_FILL</property>
+                    <property name="y_options">GTK_FILL</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkComboBox" id="dialog:edit_warning:overrides">
+                    <property name="visible">True</property>
+                    <property name="model">dialog:model:boolean</property>
+                    <child>
+                      <object class="GtkCellRendererText" id="text5"/>
+                      <attributes>
+                        <attribute name="text">0</attribute>
+                      </attributes>
+                    </child>
+                  </object>
+                  <packing>
+                    <property name="left_attach">1</property>
+                    <property name="right_attach">2</property>
+                    <property name="top_attach">2</property>
+                    <property name="bottom_attach">3</property>
                     <property name="y_options">GTK_FILL</property>
                   </packing>
                 </child>

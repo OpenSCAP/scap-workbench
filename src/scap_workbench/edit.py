@@ -1853,13 +1853,19 @@ class EditItemValues(abstract.ListEditor):
 
 class EditTitle(abstract.ListEditor):
 
+    COLUMN_LANG         = 0
+    COLUMN_OVERRIDES    = 1
+    COLUMN_TEXT         = 2
+    COLUMN_OBJ          = 3
+
     def __init__(self, core, id, widget, data_model):
 
         self.data_model = data_model
-        abstract.ListEditor.__init__(self, id, core, widget=widget, model=gtk.ListStore(str, str, gobject.TYPE_PYOBJECT))
+        abstract.ListEditor.__init__(self, id, core, widget=widget, model=gtk.ListStore(str, bool, str, gobject.TYPE_PYOBJECT))
         self.add_sender(id, "update")
 
         self.widget.append_column(gtk.TreeViewColumn("Language", gtk.CellRendererText(), text=self.COLUMN_LANG))
+        self.widget.append_column(gtk.TreeViewColumn("Overrides", gtk.CellRendererText(), text=self.COLUMN_OVERRIDES))
         self.widget.append_column(gtk.TreeViewColumn("Title", gtk.CellRendererText(), text=self.COLUMN_TEXT))
 
     def __do(self, widget=None):
@@ -1870,7 +1876,8 @@ class EditTitle(abstract.ListEditor):
         if self.iter and self.get_model() != None: 
             item = self.get_model()[self.iter][self.COLUMN_OBJ]
 
-        retval = self.data_model.edit_title(self.operation, item, self.lang.get_text(), buffer.get_text(buffer.get_start_iter(), buffer.get_end_iter()))
+        retval = self.data_model.edit_title(self.operation, item, self.lang.get_text(), buffer.get_text(buffer.get_start_iter(), buffer.get_end_iter()), 
+                                            self.overrides.get_active())
         self.fill()
         self.__dialog_destroy()
         self.emit("update")
@@ -1891,6 +1898,7 @@ class EditTitle(abstract.ListEditor):
         self.info_box = builder.get_object("dialog:edit_title:info_box")
         self.lang = builder.get_object("dialog:edit_title:lang")
         self.title = builder.get_object("dialog:edit_title:title")
+        self.overrides = builder.get_object("dialog:edit_title:overrides")
         builder.get_object("dialog:edit_title:btn_cancel").connect("clicked", self.__dialog_destroy)
         builder.get_object("dialog:edit_title:btn_ok").connect("clicked", self.__do)
 
@@ -1905,6 +1913,7 @@ class EditTitle(abstract.ListEditor):
                 return
             else:
                 self.lang.set_text(model[self.iter][self.COLUMN_LANG] or "")
+                self.overrides.set_active(model[self.iter][self.COLUMN_OVERRIDES])
                 self.title.get_buffer().set_text(model[self.iter][self.COLUMN_TEXT] or "")
         elif operation == self.data_model.CMD_OPER_DEL:
             if not self.iter:
@@ -1928,17 +1937,23 @@ class EditTitle(abstract.ListEditor):
         """
         self.clear()
         for data in self.data_model.get_titles() or []:
-            self.append([data.lang, (" ".join(data.text.split())), data])
+            self.append([data.lang, data.overrides, (" ".join(data.text.split())), data])
 
 class EditDescription(abstract.HTMLEditor):
+
+    COLUMN_LANG         = 0
+    COLUMN_OVERRIDES    = 1
+    COLUMN_TEXT         = 2
+    COLUMN_OBJ          = 3
 
     def __init__(self, core, id, widget, data_model):
 
         self.data_model = data_model 
-        abstract.ListEditor.__init__(self, id, core, widget=widget, model=gtk.ListStore(str, str, gobject.TYPE_PYOBJECT))
+        abstract.ListEditor.__init__(self, id, core, widget=widget, model=gtk.ListStore(str, bool, str, gobject.TYPE_PYOBJECT))
         self.add_sender(id, "update")
 
         self.widget.append_column(gtk.TreeViewColumn("Language", gtk.CellRendererText(), text=self.COLUMN_LANG))
+        self.widget.append_column(gtk.TreeViewColumn("Overrides", gtk.CellRendererText(), text=self.COLUMN_OVERRIDES))
         self.widget.append_column(gtk.TreeViewColumn("Description", gtk.CellRendererText(), text=self.COLUMN_TEXT))
 
     def __do(self, widget=None):
@@ -1950,10 +1965,10 @@ class EditDescription(abstract.HTMLEditor):
             item = model[iter][self.COLUMN_OBJ]
 
         if self.operation == self.data_model.CMD_OPER_DEL:
-            retval = self.data_model.edit_description(self.operation, item, None, None)
+            retval = self.data_model.edit_description(self.operation, item, None, None, None)
         else:
             desc = self.get_text()
-            retval = self.data_model.edit_description(self.operation, item, self.lang.get_text(), desc)
+            retval = self.data_model.edit_description(self.operation, item, self.lang.get_text(), desc, self.overrides.get_active())
 
         self.fill()
         self.__dialog_destroy()
@@ -1974,6 +1989,7 @@ class EditDescription(abstract.HTMLEditor):
         self.wdialog = builder.get_object("dialog:edit_description")
         self.info_box = builder.get_object("dialog:edit_description:info_box")
         self.lang = builder.get_object("dialog:edit_description:lang")
+        self.overrides = builder.get_object("dialog:edit_description:overrides")
         self.toolbar = builder.get_object("dialog:edit_description:toolbar")
         self.html_box = builder.get_object("dialog:edit_description:html:box")
         builder.get_object("dialog:edit_description:action:bold").connect("activate", self.on_action, "bold")
@@ -2007,6 +2023,7 @@ class EditDescription(abstract.HTMLEditor):
                 return
             else:
                 self.lang.set_text(model[iter][self.COLUMN_LANG] or "")
+                self.overrides.set_active(model[iter][self.COLUMN_OVERRIDES])
                 desc = model[iter][self.COLUMN_TEXT]
                 desc = desc.replace("xhtml:","")
                 self.load_html(desc or "", "file:///")
@@ -2031,7 +2048,7 @@ class EditDescription(abstract.HTMLEditor):
 
         self.clear()
         for data in self.data_model.get_descriptions() or []:
-            self.append([data.lang, re.sub("[\t ]+" , " ", data.text or "").strip(), data])
+            self.append([data.lang, data.overrides, re.sub("[\t ]+" , " ", data.text or "").strip(), data])
 
 class EditFixtext(abstract.HTMLEditor):
     
@@ -2060,13 +2077,15 @@ class EditFixtext(abstract.HTMLEditor):
         self.__attr_strategy.set_model(ENUM.STRATEGY.get_model())
         self.__attr_strategy.connect( "changed", self.__change)
         self.__attr_complexity = self.builder.get_object("items:fixtext:complexity")
-        self.__attr_complexity.set_model(ENUM.LEVEL.get_model())
+        self.__attr_complexity.set_model(ENUM.COMPLEXITY.get_model())
         self.__attr_complexity.connect( "changed", self.__change)
         self.__attr_disruption = self.builder.get_object("items:fixtext:disruption")
-        self.__attr_disruption.set_model(ENUM.LEVEL.get_model())
+        self.__attr_disruption.set_model(ENUM.DISRUPTION.get_model())
         self.__attr_disruption.connect( "changed", self.__change)
         self.__attr_reboot = self.builder.get_object("items:fixtext:reboot")
         self.__attr_reboot.connect("toggled", self.__change)
+        self.__attr_overrides = self.builder.get_object("items:fixtext:overrides")
+        self.__attr_overrides.connect("toggled", self.__change)
  
         self.widget.get_selection().connect("changed", self.__attr_fill)
 
@@ -2086,11 +2105,13 @@ class EditFixtext(abstract.HTMLEditor):
         elif widget == self.__attr_strategy:
             retval = self.data_model.edit_fixtext(self.data_model.CMD_OPER_EDIT, fixtext=data, strategy=ENUM.STRATEGY.value(widget.get_active()))
         elif widget == self.__attr_complexity:
-            retval = self.data_model.edit_fixtext(self.data_model.CMD_OPER_EDIT, fixtext=data, complexity=ENUM.LEVEL.value(widget.get_active()))
+            retval = self.data_model.edit_fixtext(self.data_model.CMD_OPER_EDIT, fixtext=data, complexity=ENUM.COMPLEXITY.value(widget.get_active()))
         elif widget == self.__attr_disruption:
-            retval = self.data_model.edit_fixtext(self.data_model.CMD_OPER_EDIT, fixtext=data, disruption=ENUM.LEVEL.value(widget.get_active()))
+            retval = self.data_model.edit_fixtext(self.data_model.CMD_OPER_EDIT, fixtext=data, disruption=ENUM.DISRUPTION.value(widget.get_active()))
         elif widget == self.__attr_reboot:
             retval = self.data_model.edit_fixtext(self.data_model.CMD_OPER_EDIT, fixtext=data, reboot=widget.get_active())
+        elif widget == self.__attr_overrides:
+            retval = self.data_model.edit_fixtext(self.data_model.CMD_OPER_EDIT, fixtext=data, overrides=widget.get_active())
         else: 
             logger.error("Change of \"%s\" is not supported " % (widget,))
             return
@@ -2188,6 +2209,7 @@ class EditFixtext(abstract.HTMLEditor):
         self.__attr_complexity.handler_block_by_func(self.__change)
         self.__attr_disruption.handler_block_by_func(self.__change)
         self.__attr_reboot.handler_block_by_func(self.__change)
+        self.__attr_overrides.handler_block_by_func(self.__change)
 
     def __unblock_signals(self):
         self.__attr_fixref.handler_unblock_by_func(self.__change)
@@ -2195,6 +2217,7 @@ class EditFixtext(abstract.HTMLEditor):
         self.__attr_complexity.handler_unblock_by_func(self.__change)
         self.__attr_disruption.handler_unblock_by_func(self.__change)
         self.__attr_reboot.handler_unblock_by_func(self.__change)
+        self.__attr_overrides.handler_unblock_by_func(self.__change)
 
     def __attrs_clear(self):
         self.__block_signals()
@@ -2204,6 +2227,7 @@ class EditFixtext(abstract.HTMLEditor):
         self.__attr_complexity.set_active(-1)
         self.__attr_disruption.set_active(-1)
         self.__attr_reboot.set_active(False)
+        self.__attr_overrides.set_active(False)
         self.__unblock_signals()
 
     def __attr_fill(self, widget=None):
@@ -2218,9 +2242,10 @@ class EditFixtext(abstract.HTMLEditor):
         self.__block_signals()
         self.__attr_fixref.set_text(data.fixref or "")
         self.__attr_strategy.set_active(ENUM.STRATEGY.pos(data.strategy))
-        self.__attr_complexity.set_active(ENUM.LEVEL.pos(data.complexity))
-        self.__attr_disruption.set_active(ENUM.LEVEL.pos(data.disruption))
+        self.__attr_complexity.set_active(ENUM.COMPLEXITY.pos(data.complexity))
+        self.__attr_disruption.set_active(ENUM.DISRUPTION.pos(data.disruption))
         self.__attr_reboot.set_active(data.reboot)
+        self.__attr_overrides.set_active(data.text.overrides)
         self.__unblock_signals()
 
     def fill(self):
@@ -2418,15 +2443,20 @@ class EditFix(abstract.ListEditor):
 
 class EditWarning(abstract.ListEditor):
 
-    COLUMN_CATEGORY = 3
+    COLUMN_LANG         = 0
+    COLUMN_OVERRIDES    = 1
+    COLUMN_CATEGORY     = 2
+    COLUMN_TEXT         = 3
+    COLUMN_OBJ          = 4
 
     def __init__(self, core, id, widget, data_model):
         
         self.data_model = data_model
-        abstract.ListEditor.__init__(self, id, core, widget=widget, model=gtk.ListStore(str, str, gobject.TYPE_PYOBJECT, str))
+        abstract.ListEditor.__init__(self, id, core, widget=widget, model=gtk.ListStore(str, bool, str, str, gobject.TYPE_PYOBJECT))
         self.add_sender(id, "update")
 
         self.widget.append_column(gtk.TreeViewColumn("Language", gtk.CellRendererText(), text=self.COLUMN_LANG))
+        self.widget.append_column(gtk.TreeViewColumn("Overrides", gtk.CellRendererText(), text=self.COLUMN_OVERRIDES))
         self.widget.append_column(gtk.TreeViewColumn("Category", gtk.CellRendererText(), text=self.COLUMN_CATEGORY))
         self.widget.append_column(gtk.TreeViewColumn("Warning", gtk.CellRendererText(), text=self.COLUMN_TEXT))
 
@@ -2441,7 +2471,8 @@ class EditWarning(abstract.ListEditor):
         if self.category.get_active() != -1:
             category = self.category.get_model()[self.category.get_active()][0]
 
-        retval = self.data_model.edit_warning(self.operation, item, category, self.lang.get_text(), buffer.get_text(buffer.get_start_iter(), buffer.get_end_iter()))
+        retval = self.data_model.edit_warning(self.operation, item, category, self.lang.get_text(), buffer.get_text(buffer.get_start_iter(), buffer.get_end_iter()),
+                                              self.overrides.get_active())
         # TODO if not retval
         self.fill()
         self.__dialog_destroy()
@@ -2462,6 +2493,7 @@ class EditWarning(abstract.ListEditor):
         self.wdialog = builder.get_object("dialog:edit_warning")
         self.info_box = builder.get_object("dialog:edit_warning:info_box")
         self.lang = builder.get_object("dialog:edit_warning:lang")
+        self.overrides = builder.get_object("dialog:edit_warning:overrides")
         self.warning = builder.get_object("dialog:edit_warning:warning")
         self.category = builder.get_object("dialog:edit_warning:category")
         self.category.set_model(ENUM.WARNING.get_model())
@@ -2479,6 +2511,7 @@ class EditWarning(abstract.ListEditor):
                 return
             else:
                 self.category.set_active(ENUM.WARNING.pos(model[self.iter][self.COLUMN_OBJ].category) or -1)
+                self.overrides.set_active(model[self.iter][self.COLUMN_OVERRIDES])
                 self.lang.set_text(model[self.iter][self.COLUMN_LANG] or "")
                 self.warning.get_buffer().set_text(model[self.iter][self.COLUMN_TEXT] or "")
         elif operation == self.data_model.CMD_OPER_DEL:
@@ -2504,7 +2537,7 @@ class EditWarning(abstract.ListEditor):
         for item in self.data_model.get_warnings() or []:
             category = ENUM.WARNING.map(item.category)
             index = ENUM.WARNING.pos(item.category)
-            self.append([item.text.lang, re.sub("[\t ]+" , " ", item.text.text).strip(), item, category[1]])
+            self.append([item.text.lang, item.text.overrides, category[1], re.sub("[\t ]+" , " ", item.text.text).strip(), item])
 
 class EditNotice(abstract.ListEditor):
 
@@ -2753,7 +2786,7 @@ class EditIdent(commands.DHEditItems,abstract.ControlEditWindow):
 
 class EditQuestion(abstract.ListEditor):
 
-    COLUMN_OVERRIDE = 3
+    COLUMN_OVERRIDES = 3
     
     def __init__(self, core, id, widget, data_model):
 
@@ -2762,7 +2795,7 @@ class EditQuestion(abstract.ListEditor):
         self.add_sender(id, "update")
 
         self.widget.append_column(gtk.TreeViewColumn("Language", gtk.CellRendererText(), text=self.COLUMN_LANG))
-        self.widget.append_column(gtk.TreeViewColumn("Override", gtk.CellRendererText(), text=self.COLUMN_OVERRIDE))
+        self.widget.append_column(gtk.TreeViewColumn("Overrides", gtk.CellRendererText(), text=self.COLUMN_OVERRIDES))
         self.widget.append_column(gtk.TreeViewColumn("Question", gtk.CellRendererText(), text=self.COLUMN_TEXT))
 
     def __do(self, widget=None):
@@ -2811,7 +2844,7 @@ class EditQuestion(abstract.ListEditor):
                 return
             else:
                 self.lang.set_text(model[self.iter][self.COLUMN_LANG] or "")
-                self.override.set_active(model[self.iter][self.COLUMN_OVERRIDE])
+                self.override.set_active(model[self.iter][self.COLUMN_OVERRIDES])
                 self.question.get_buffer().set_text(model[self.iter][self.COLUMN_TEXT] or "")
         elif operation == self.data_model.CMD_OPER_DEL:
             if not self.iter:
@@ -2839,7 +2872,7 @@ class EditQuestion(abstract.ListEditor):
 
 class EditRationale(abstract.ListEditor):
 
-    COLUMN_OVERRIDE = 3
+    COLUMN_OVERRIDES = 3
     
     def __init__(self, core, id, widget, data_model):
 
@@ -2848,7 +2881,7 @@ class EditRationale(abstract.ListEditor):
         self.add_sender(id, "update")
 
         self.widget.append_column(gtk.TreeViewColumn("Language", gtk.CellRendererText(), text=self.COLUMN_LANG))
-        self.widget.append_column(gtk.TreeViewColumn("Override", gtk.CellRendererText(), text=self.COLUMN_OVERRIDE))
+        self.widget.append_column(gtk.TreeViewColumn("Overrides", gtk.CellRendererText(), text=self.COLUMN_OVERRIDES))
         self.widget.append_column(gtk.TreeViewColumn("Rationale", gtk.CellRendererText(), text=self.COLUMN_TEXT))
 
     def __do(self, widget=None):
@@ -2898,7 +2931,7 @@ class EditRationale(abstract.ListEditor):
                 return
             else:
                 self.lang.set_text(model[iter][self.COLUMN_LANG] or "")
-                self.override.set_active(model[iter][self.COLUMN_OVERRIDE])
+                self.override.set_active(model[iter][self.COLUMN_OVERRIDES])
                 self.rationale.get_buffer().set_text(model[iter][self.COLUMN_TEXT] or "")
         elif operation == self.data_model.CMD_OPER_DEL:
             if not iter:

@@ -47,12 +47,13 @@ install:
 	gzip -f $(MANDIR)/man8/scap-workbench-editor.8
 	$(INSTALL) $(MODE_REG) scap-workbench.png $(DATADIR)/pixmaps/scap-workbench.png
 	$(INSTALL) $(MODE_REG) scap-workbench.desktop $(DATADIR)/applications/scap-workbench.desktop
+	$(INSTALL) $(MODE_REG) scap-workbench-editor.desktop $(DATADIR)/applications/scap-workbench-editor.desktop
 
 archive: clean
 	@rm -rf $(PKG)-$(VERSION).tar.bz2
 	@rm -rf /tmp/$(PKG)-$(VERSION)
 	@mkdir /tmp/$(PKG)-$(VERSION)
-	@cp -a COPYING README Makefile scap-workbench.desktop scap-workbench.png src /tmp/$(PKG)-$(VERSION)
+	@cp -a COPYING README Makefile scap-workbench.desktop scap-workbench-editor.desktop scap-workbench.png src /tmp/$(PKG)-$(VERSION)
 	@dir=$$PWD; cd /tmp; tar --bzip2 -cSpf $$dir/$(PKG)-$(VERSION).tar.bz2 $(PKG)-$(VERSION)
 	@rm -rf /tmp/$(PKG)-$(VERSION)
 	@echo "The archive is in $(PKG)-$(VERSION).tar.bz2"

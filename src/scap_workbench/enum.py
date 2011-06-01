@@ -75,6 +75,10 @@ class enum(tuple):
             model.append(item)
         return model
 
+BOOLEAN=enum((
+    [False, "FALSE", ""],
+    [True, "TRUE", ""]))
+
 """ Below is the list of enumerations from OpenSCAP library
 """
 
@@ -112,6 +116,18 @@ TYPE=enum((
     [openscap.OSCAP.XCCDF_TYPE_STRING, "STRING", ""],
     [openscap.OSCAP.XCCDF_TYPE_BOOLEAN, "BOOLEAN", ""]))
 
+COMPLEXITY=enum((
+    [openscap.OSCAP.XCCDF_UNKNOWN, "UNKNOWN", "Default, complexity not defined"],
+    [openscap.OSCAP.XCCDF_LOW, "LOW", "The fix is very simple to apply"],
+    [openscap.OSCAP.XCCDF_MEDIUM, "MEDIUM", "The fix is moderately difficult or complex"],
+    [openscap.OSCAP.XCCDF_HIGH, "HIGH", "The fix is very complex to apply"]))
+
+DISRUPTION=enum((
+    [openscap.OSCAP.XCCDF_UNKNOWN, "UNKNOWN", "Default, disruption not defined"],
+    [openscap.OSCAP.XCCDF_LOW, "LOW", "Little or no disruption expected"],
+    [openscap.OSCAP.XCCDF_MEDIUM, "MEDIUM", "Potential for minor or short-lived disruption"],
+    [openscap.OSCAP.XCCDF_HIGH, "HIGH", "Potential for serious disruption"]))
+
 LEVEL=enum((
     [openscap.OSCAP.XCCDF_UNKNOWN, "UNKNOWN", "Unknown."],
     [openscap.OSCAP.XCCDF_INFO, "INFO", "Info."],
@@ -125,13 +141,13 @@ ROLE=enum((
     [openscap.OSCAP.XCCDF_ROLE_UNCHECKED, "UNCHECKED", "Don't check the rule, result will be XCCDF_RESULT_UNKNOWN."]))
 
 STRATEGY=enum((
-    [openscap.OSCAP.XCCDF_STRATEGY_UNKNOWN, "UNKNOWN", "Strategy not defined."],
-    [openscap.OSCAP.XCCDF_STRATEGY_CONFIGURE, "CONFIGURE", "Adjust target config or settings."],
-    [openscap.OSCAP.XCCDF_STRATEGY_DISABLE, "DISABLE", "Turn off or deinstall something."],
-    [openscap.OSCAP.XCCDF_STRATEGY_ENABLE, "ENABLE", "Turn on or install something."],
-    [openscap.OSCAP.XCCDF_STRATEGY_PATCH, "PATCH", "Apply a patch, hotfix, or update."],
-    [openscap.OSCAP.XCCDF_STRATEGY_POLICY, "POLICY", "Remediation by changing policies/procedures."],
-    [openscap.OSCAP.XCCDF_STRATEGY_RESTRICT, "RESTRICT", "Adjust permissions or ACLs."],
+    [openscap.OSCAP.XCCDF_STRATEGY_UNKNOWN, "UNKNOWN", "Default, strategy not defined"],
+    [openscap.OSCAP.XCCDF_STRATEGY_CONFIGURE, "CONFIGURE", "Adjust target configuration/settings"],
+    [openscap.OSCAP.XCCDF_STRATEGY_DISABLE, "DISABLE", "Turn off or uninstall a target component"],
+    [openscap.OSCAP.XCCDF_STRATEGY_ENABLE, "ENABLE", "Turn on or install target component"],
+    [openscap.OSCAP.XCCDF_STRATEGY_PATCH, "PATCH", "Apply a patch, hotfix, update, etc."],
+    [openscap.OSCAP.XCCDF_STRATEGY_POLICY, "POLICY", "Remediation requires out-of-band adjustements to policies or procedures"],
+    [openscap.OSCAP.XCCDF_STRATEGY_RESTRICT, "RESTRICT", "Adjust permissions, access rights, filters, or other access restrictions"],
     [openscap.OSCAP.XCCDF_STRATEGY_UPDATE, "UPDATE", "Install upgrade or update the system"],
     [openscap.OSCAP.XCCDF_STRATEGY_COMBINATION, "COMBINATION", "Combo of two or more of the above."]))
 

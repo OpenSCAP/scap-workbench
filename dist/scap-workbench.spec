@@ -32,6 +32,7 @@ is based on OpenSCAP library.
 rm -rf $RPM_BUILD_ROOT
 make install DESTDIR=$RPM_BUILD_ROOT
 desktop-file-validate $RPM_BUILD_ROOT%{_datadir}/applications/scap-workbench.desktop
+desktop-file-validate $RPM_BUILD_ROOT%{_datadir}/applications/scap-workbench-editor.desktop
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -50,6 +51,7 @@ rm -rf $RPM_BUILD_ROOT
 %{_mandir}/man8/scap-workbench.8.gz
 %{_mandir}/man8/scap-workbench-editor.8.gz
 %{_datadir}/applications/scap-workbench.desktop
+%{_datadir}/applications/scap-workbench-editor.desktop
 %{_datadir}/pixmaps/scap-workbench.png
 
 %changelog

@@ -524,6 +524,16 @@ class MenuButtonTailoring(abstract.MenuButton):
         # set signals
         self.add_sender(self.id, "update")
 
+    def activate(self, active):
+        abstract.MenuButton.activate(self, active)
+        if active:
+            # Let's change selected profile
+            self.profiles.handler_block_by_func(self.__cb_profile_changed)
+            for row in self.profiles.get_model():
+                if row[0] == self.core.selected_profile:
+                    self.profiles.set_active_iter(row.iter)
+            self.profiles.handler_unblock_by_func(self.__cb_profile_changed)
+
     def __profiles_update(self):
         """ Fill profiles into the combobox above the tailoring
         item tree """

@@ -630,7 +630,7 @@ class DataHandler(object):
         elif item in parent.values: parent.values.remove(item)
         else: raise Exception("Can't remove item %s from %s" % (item, parent.content+parent.values))
 
-    def edit_title(self, operation, obj, lang, text, item=None):
+    def edit_title(self, operation, obj, lang, text, overrides, item=None):
 
         if not self.check_library(): return None
 
@@ -641,6 +641,7 @@ class DataHandler(object):
             title = openscap.common.text()
             title.text = text
             title.lang = lang
+            title.overrides = overrides
             return item.add_title(title)
 
         elif operation == self.CMD_OPER_EDIT:
@@ -648,6 +649,7 @@ class DataHandler(object):
                 return False
             obj.lang = lang
             obj.text = text
+            obj.overrides = overrides
             return True
 
         elif operation == self.CMD_OPER_DEL:
@@ -655,7 +657,7 @@ class DataHandler(object):
 
         else: raise AttributeError("Edit title: Unknown operation %s" % (operation,))
 
-    def edit_description(self, operation, obj, lang, text, item=None):
+    def edit_description(self, operation, obj, lang, text, overrides, item=None):
 
         if not self.check_library(): return None
 
@@ -663,9 +665,10 @@ class DataHandler(object):
             item = self.core.lib.benchmark.get_item(self.core.selected_item)
 
         if operation == self.CMD_OPER_ADD:
-            description = openscap.common.text()
+            description = openscap.common.text.new_html()
             description.text = text
             description.lang = lang
+            description.overrides = overrides
         
             return item.add_description(description)
 
@@ -674,6 +677,7 @@ class DataHandler(object):
                 return False
             obj.lang = lang
             obj.text = text
+            obj.overrides = overrides
             return True
 
         elif operation == self.CMD_OPER_DEL:
@@ -681,7 +685,7 @@ class DataHandler(object):
 
         else: raise AttributeError("Edit description: Unknown operation %s" % (operation,))
 
-    def edit_warning(self, operation, obj, category, lang, text, item=None):
+    def edit_warning(self, operation, obj, category, lang, text, overrides, item=None):
 
         if not self.check_library(): return None
 
@@ -693,6 +697,7 @@ class DataHandler(object):
             new_text = openscap.common.text()
             new_text.text = text
             new_text.lang = lang
+            new_text.overrides = overrides
             warning.text = new_text
             if category != None: warning.category = category
     
@@ -703,6 +708,7 @@ class DataHandler(object):
                 return False
             obj.text.lang = lang
             obj.text.text = text
+            obj.text.overrides = overrides
             if category != None: obj.category = category
             return True
 
@@ -1001,17 +1007,17 @@ class DHXccdf(DataHandler):
         if not self.check_library(): return None
         return self.core.lib.benchmark.platforms
 
-    def edit_title(self, operation, obj, lang, text):
+    def edit_title(self, operation, obj, lang, text, overrides):
         if not self.check_library(): return None
-        super(DHXccdf, self).edit_title(operation, obj, lang, text, item=self.core.lib.benchmark)
+        super(DHXccdf, self).edit_title(operation, obj, lang, text, overrides, item=self.core.lib.benchmark)
 
-    def edit_description(self, operation, obj, lang, text):
+    def edit_description(self, operation, obj, lang, text, overrides):
         if not self.check_library(): return None
-        super(DHXccdf, self).edit_description(operation, obj, lang, text, item=self.core.lib.benchmark)
+        super(DHXccdf, self).edit_description(operation, obj, lang, text, overrides, item=self.core.lib.benchmark)
 
-    def edit_warning(self, operation, obj, category, lang, text):
+    def edit_warning(self, operation, obj, category, lang, text, overrides):
         if not self.check_library(): return None
-        super(DHXccdf, self).edit_warning(operation, obj, category, lang, text, item=self.core.lib.benchmark.to_item())
+        super(DHXccdf, self).edit_warning(operation, obj, category, lang, text, overrides, item=self.core.lib.benchmark.to_item())
 
     def edit_status(self, operation, obj=None, date=None, status=None):
         if not self.check_library(): return None
@@ -1856,13 +1862,13 @@ class DHProfiles(DataHandler):
         if not self.check_library(): return None
         return self.__get_current_profile().statuses
 
-    def edit_title(self, operation, obj, lang, text):
+    def edit_title(self, operation, obj, lang, text, overrides):
         if not self.check_library(): return None
-        super(DHProfiles, self).edit_title(operation, obj, lang, text, item=self.__get_current_profile())
+        super(DHProfiles, self).edit_title(operation, obj, lang, text, overrides, item=self.__get_current_profile())
 
-    def edit_description(self, operation, obj, lang, text):
+    def edit_description(self, operation, obj, lang, text, overrides):
         if not self.check_library(): return None
-        super(DHProfiles, self).edit_description(operation, obj, lang, text, item=self.__get_current_profile())
+        super(DHProfiles, self).edit_description(operation, obj, lang, text, overrides, item=self.__get_current_profile())
 
     def edit_status(self, operation, obj, date, status):
         if not self.check_library(): return None
@@ -2088,7 +2094,7 @@ class DHScan(DataHandler, EventObject):
         
         # choose color for cell, and text of result
         if  item[DHScan.COLUMN_RESULT] == None:
-            text = "Runnig .."
+            text = "Running .."
             color_backG = DHScan.BG_WHITE
             colorText_title = DHScan.FG_BLACK
             colorText_ID = DHScan.FG_BLACK
@@ -2334,11 +2340,12 @@ class DHEditItems(DataHandler):
         item = item.to_rule()
 
         if operation == self.CMD_OPER_ADD:
-            fix = openscap.xccdf.fix_new()
-            fix.id = id
-            fix.content = content
+            newfix = openscap.xccdf.fix_new()
+            retval = newfix.set_id(id)
+            if not retval: return False
+            newfix.content = content
 
-            item.add_fix(fix)
+            item.add_fix(newfix)
 
         elif operation == self.CMD_OPER_EDIT:
             if fix == None: return False
@@ -2367,7 +2374,8 @@ class DHEditItems(DataHandler):
 
         return True
         
-    def edit_fixtext(self, operation, fixtext=None, lang=None, description=None, fixref=None, complexity=None, disruption=None, reboot=None, strategy=None):
+    def edit_fixtext(self, operation, fixtext=None, lang=None, description=None, fixref=None, complexity=None, disruption=None,
+                     reboot=None, strategy=None, overrides=None):
         if not self.check_library(): return None
 
         item = self.core.lib.benchmark.get_item(self.core.selected_item)
@@ -2399,6 +2407,8 @@ class DHEditItems(DataHandler):
                 fixtext.reboot = reboot
             if strategy != None and strategy != fixtext.strategy:
                 fixtext.strategy = strategy
+            if overrides != None and overrides != fixtext.text.overrides:
+                fixtext.text.overrides = overrides
 
         elif operation == self.CMD_OPER_DEL:
             if fixtext == None: return False
