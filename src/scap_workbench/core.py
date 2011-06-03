@@ -178,13 +178,16 @@ class Library:
         openscap.OSCAP.oscap_init()
         self.xccdf = xccdf
         self.benchmark = openscap.xccdf.benchmark_import(xccdf)
-        dirname = os.path.dirname(xccdf)
+        """ Look for OVAL files in CWD, current XCCDF directory and
+        in openscap default content directory
+        """
+        dirnames = [".", os.path.dirname(xccdf), "/usr/share/openscap"]
 
         for file in self.benchmark.to_item().get_files().strings:
-            if os.path.exists(file):
-                def_model = openscap.oval.definition_model_import(file)
-            else:
-                def_model = openscap.oval.definition_model_import(os.path.join(dirname, file))
+            for directory in dirnames:
+                if os.path.exists(os.path.join(directory, file)):
+                    def_model = openscap.oval.definition_model_import(os.path.join(directory, file))
+                    break
 
             if def_model:
                 self.files[file] = Library.OVAL(file, None, def_model)

@@ -2025,10 +2025,8 @@ class DHScan(DataHandler, EventObject):
         DataHandler.__init__(self, core)
         self.__progress=progress
         self.__cancel = False
-        self.__last = 0
-        self.__result = None
-        self.__cancel_notify = None
-        self.__lock = False
+        self.count_current = 0
+        self.result = None
 
         core.register(id, self)
         self.add_sender(self.id, "filled")
@@ -2168,6 +2166,9 @@ class DHScan(DataHandler, EventObject):
         return iter
 
     def __callback_start(self, msg, plugin):
+        """ Start callback is registered in "prepare" method and is called
+        on each test start.
+        """
         result = msg.user2num
         if result == openscap.OSCAP.XCCDF_RESULT_NOT_SELECTED: 
             return self.__cancel
@@ -2182,14 +2183,17 @@ class DHScan(DataHandler, EventObject):
             fract = self.__progress.get_fraction()+self.step
             if fract < 1.0: self.__progress.set_fraction(fract)
             else: self.__progress.set_fraction(1.0)
-            self.__progress.set_text("Scanning rule %s ... (%s/%s)" % (msg.user1str, int(self.__progress.get_fraction()/self.step), self.__rules_count))
-            logger.debug("[%s/%s] Scanning rule %s" % (int(self.__progress.get_fraction()/self.step), self.__rules_count, msg.user1str))
+            self.__progress.set_text("Scanning rule %s ... (%s/%s)" % (msg.user1str, int(self.__progress.get_fraction()/self.step), self.count_all))
+            logger.debug("[%s/%s] Scanning rule %s" % (int(self.__progress.get_fraction()/self.step), self.count_all, msg.user1str))
             self.__progress.set_tooltip_text("Scanning rule %s" % (" ".join(msg.user3str.split()),))
             gtk.gdk.threads_leave()
 
         return self.__cancel
 
     def __callback_end(self, msg, plugin):
+        """ Start callback is registered in "prepare" method and is called
+        on each test end.
+        """
         result = msg.user2num
         if result == openscap.OSCAP.XCCDF_RESULT_NOT_SELECTED: 
             return self.__cancel
@@ -2203,12 +2207,12 @@ class DHScan(DataHandler, EventObject):
         self.fill([msg.user1str, msg.user2num, False, title, desc], iter=self.__current_iter)
         self.emit("filled")
         self.treeView.queue_draw()
-        self.__last = int(round(self.__progress.get_fraction()/self.step))
+        self.count_current = int(round(self.__progress.get_fraction()/self.step))
         gtk.gdk.threads_leave()
 
         return self.__cancel
 
-    def __prepaire(self):
+    def prepare(self):
         """Prepaire system for evaluation
         return False if something goes wrong, True otherwise
         """
@@ -2224,7 +2228,6 @@ class DHScan(DataHandler, EventObject):
                     self.core.notify("Oval agent reset session failed.", core.Notification.ERROR, msg_id="notify:scan:oval_reset")
                     raise Exception, "OVAL agent reset session failed"
             self.__cancel = False
-            self.__last = 0
 
         self.model.clear()
 
@@ -2232,31 +2235,30 @@ class DHScan(DataHandler, EventObject):
             self.policy = self.core.lib.policy_model.policies[0]
         else: self.policy = self.core.lib.policy_model.get_policy_by_id(self.core.selected_profile)
 
-        #self.__rules_count = 0
-        self.__rules_count = len(self.policy.selected_rules)
+        self.count_current = 0
+        self.count_all = len(self.policy.selected_rules)
         self.core.registered_callbacks = True
-        self.step = (100.0/(self.__rules_count or 1.0))/100.0
+        self.step = (100.0/(self.count_all or 1.0))/100.0
         return True
         
     def cancel(self):
+        """ Called by user event when stop button pressed
+        """
+        self.__cancel = True
         if not self.check_library(): return None
-
-        if not self.__cancel:
-            self.__cancel = True
-            self.__cancel_notify = self.core.notify("Scanning canceled. Please wait for openscap to finish current task.",
-                    core.Notification.INFORMATION, msg_id="notify:scan:cancel")
         for oval in self.core.lib.files.values():
             retval = openscap.oval.agent_abort_session(oval.session)
             logger.debug("OVAL Agent session abort: %s" % (retval,))
 
-    def export(self):
-        if not self.core.lib or self.__result == None: return False
-        file_name = self.file_browse("Save results", file="results.xml")
+    def export(self, file_name, result):
+        if self.core.lib == None:
+            return False
+        if not file_name: file_name = self.file_browse("Save results", file="results.xml")
         if file_name != "":
             sessions = {}
             for oval in self.core.lib.files.values():
                 sessions[oval.path] = oval.session
-            files = self.policy.export(self.__result, DHScan.RESULT_NAME, file_name, file_name, self.core.lib.xccdf, sessions)
+            files = self.policy.export(result, DHScan.RESULT_NAME, file_name, file_name, self.core.lib.xccdf, sessions)
             for file in files:
                 logger.debug("Exported: %s", file)
             return file_name
@@ -2280,37 +2282,8 @@ class DHScan(DataHandler, EventObject):
 
         retval = openscap.common.oscap_apply_xslt(file, xslfile, expfile, params)
         # TODO If this call (below) is not executed, there will come some strange behaviour
-        logger.info("Export report file %s" % (["failed: %s" % (openscap.common.err_desc(),), "done"][retval],))
-        self.open_webbrowser(expfile)
-
-    def scan(self):
-        if self.__lock: 
-            logger.error("Scan already running")
-        #elif self.core.selected_profile:  TODO: Why ?
-        else:
-            self.__prepaire()
-            self.__lock = True
-            self.th_scan()
-
-    @threadSave
-    def th_scan(self):
-        if not self.check_library(): return None
-
-        logger.debug("Scanning %s ..", self.policy.id)
-        if self.__progress != None:
-            gtk.gdk.threads_enter()
-            self.__progress.set_fraction(0.0)
-            self.__progress.set_text("Prepairing ...")
-            gtk.gdk.threads_leave()
-
-        self.__result = self.policy.evaluate()
-        if self.__progress: 
-            self.__progress.set_fraction(1.0)
-            self.__progress.set_text("Finished %s of %s rules" % (self.__last, self.__rules_count))
-            self.__progress.set_has_tooltip(False)
-        logger.debug("Finished scanning")
-        if self.__cancel_notify: self.__cancel_notify.destroy()
-        self.__lock = False
+        logger.debug("Export report file %s" % (["failed: %s" % (openscap.common.err_desc(),), "done"][retval],))
+        return expfile
 
 class DHEditItems(DataHandler):
     

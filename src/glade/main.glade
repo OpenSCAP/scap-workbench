@@ -751,7 +751,7 @@
                             </child>
                             <child>
                               <object class="GtkButton" id="xccdf:btn_import">
-                                <property name="label" translatable="yes">Import</property>
+                                <property name="label" translatable="yes">Load</property>
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
                                 <property name="receives_default">True</property>
@@ -765,7 +765,7 @@
                             </child>
                             <child>
                               <object class="GtkButton" id="xccdf:btn_export">
-                                <property name="label" translatable="yes">Export</property>
+                                <property name="label" translatable="yes">Save</property>
                                 <property name="visible">True</property>
                                 <property name="sensitive">False</property>
                                 <property name="can_focus">True</property>
@@ -1451,6 +1451,7 @@
                                   <object class="GtkButton" id="scan:btn_stop">
                                     <property name="label">gtk-stop</property>
                                     <property name="visible">True</property>
+                                    <property name="sensitive">False</property>
                                     <property name="can_focus">True</property>
                                     <property name="receives_default">True</property>
                                     <property name="use_stock">True</property>
@@ -1465,6 +1466,7 @@
                                   <object class="GtkButton" id="scan:btn_export">
                                     <property name="label" translatable="yes">Export results</property>
                                     <property name="visible">True</property>
+                                    <property name="sensitive">False</property>
                                     <property name="can_focus">True</property>
                                     <property name="receives_default">True</property>
                                     <property name="image">scan:btn_export:img</property>
@@ -1477,12 +1479,13 @@
                                   </packing>
                                 </child>
                                 <child>
-                                  <object class="GtkButton" id="scan:btn_help">
-                                    <property name="label">gtk-help</property>
+                                  <object class="GtkButton" id="scan:btn_results">
+                                    <property name="label" translatable="yes">View results</property>
                                     <property name="visible">True</property>
+                                    <property name="sensitive">False</property>
                                     <property name="can_focus">True</property>
                                     <property name="receives_default">True</property>
-                                    <property name="use_stock">True</property>
+                                    <property name="image">scan:btn_resutls</property>
                                   </object>
                                   <packing>
                                     <property name="expand">False</property>
@@ -1491,12 +1494,12 @@
                                   </packing>
                                 </child>
                                 <child>
-                                  <object class="GtkButton" id="scan:btn_results">
-                                    <property name="label" translatable="yes">Results</property>
+                                  <object class="GtkButton" id="scan:btn_help">
+                                    <property name="label">gtk-help</property>
                                     <property name="visible">True</property>
                                     <property name="can_focus">True</property>
                                     <property name="receives_default">True</property>
-                                    <property name="image">scan:btn_resutls</property>
+                                    <property name="use_stock">True</property>
                                   </object>
                                   <packing>
                                     <property name="expand">False</property>

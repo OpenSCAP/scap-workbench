@@ -397,7 +397,7 @@
               <object class="GtkToolButton" id="edit:sub:import">
                 <property name="visible">True</property>
                 <property name="is_important">True</property>
-                <property name="label" translatable="yes">Import</property>
+                <property name="label" translatable="yes">Load</property>
                 <property name="use_underline">True</property>
                 <property name="stock_id">gtk-open</property>
               </object>
@@ -410,7 +410,7 @@
               <object class="GtkToolButton" id="edit:sub:export">
                 <property name="visible">True</property>
                 <property name="is_important">True</property>
-                <property name="label" translatable="yes">Export</property>
+                <property name="label" translatable="yes">Save</property>
                 <property name="use_underline">True</property>
                 <property name="stock_id">gtk-save-as</property>
               </object>

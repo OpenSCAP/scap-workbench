@@ -20,21 +20,24 @@
 #      Maros Barabas        <xbarry@gmail.com>
 #      Vladimir Oberreiter  <xoberr01@stud.fit.vutbr.cz>
 
-import pygtk
-import gtk
-import gobject
-import pango
+""" Importing standard python libraries
+"""
+import gtk              # GTK library
+import gobject          # gobject.TYPE_PYOBJECT
+import tempfile         # Temporary file for XCCDF preview
+from threads import thread as threadSave
 
-import abstract
-import logging
-import core
-import filter
-import commands
-import render
+""" Importing SCAP Workbench modules
+"""
+import abstract                 # All abstract classes
+import logging                  # Logger for debug/info/error messages
+import core                     # Initializing of core in main window
+import commands                 # Module for handling openscap
+import filter                   # Module for handling filters
+from core import Notification   # core.Notification levels for reference
+from events import EventObject  # abstract module EventObject
 
-import logging
-from events import EventObject
-
+# Initializing Logger
 logger = logging.getLogger("scap-workbench")
 
 class ScanList(abstract.List):
@@ -51,7 +54,6 @@ class ScanList(abstract.List):
 
         # actions
         self.add_receiver("gui:btn:menu:scan", "scan", self.__scan)
-        self.add_receiver("gui:btn:menu:scan", "cancel", self.__cancel)
         self.add_receiver("gui:btn:menu:scan:filter", "search", self.__search)
         self.add_receiver("gui:btn:menu:scan:filter", "filter_add", self.__filter_add)
         self.add_receiver("gui:btn:menu:scan:filter", "filter_del", self.__filter_del)
@@ -59,12 +61,8 @@ class ScanList(abstract.List):
         
         self.init_filters(self.filter, self.data_model.model, self.data_model.new_model())
         
-    def __cancel(self):
-        self.data_model.cancel()
-
     def __scan(self):
         self.get_TreeView().set_model(self.data_model.model)
-        self.data_model.scan()
 
     def __search(self):
         self.search(self.filter.get_search_text(),3)
@@ -78,7 +76,7 @@ class ScanList(abstract.List):
     def __filter_refresh(self):
         self.filter_del(self.filter.filters)
         
-class MenuButtonScan(abstract.MenuButton):
+class MenuButtonScan(abstract.MenuButton, abstract.Func):
     """
     GUI for refines.
     """
@@ -87,6 +85,8 @@ class MenuButtonScan(abstract.MenuButton):
         abstract.MenuButton.__init__(self, "gui:btn:menu:scan", widget, core)
         self.core = core
         self.exported_file = None
+        self.__lock = False
+        self.selected_profile = None
 
         self.progress = self.builder.get_object("scan:progress")
         self.data_model = commands.DHScan("gui:scan:DHScan", core, self.progress)
@@ -100,29 +100,32 @@ class MenuButtonScan(abstract.MenuButton):
         self.profile = self.builder.get_object("scan:btn_profile")
         self.profile.connect("clicked", self.__cb_profile)
         self.scan = self.builder.get_object("scan:btn_scan")
-        self.scan.connect("clicked", self.__cb_start)
+        self.scan.connect("clicked", self.__cb_scan)
         self.stop = self.builder.get_object("scan:btn_stop")
         self.stop.connect("clicked", self.__cb_cancel)
         self.export = self.builder.get_object("scan:btn_export")
         self.export.connect("clicked", self.__cb_export)
         self.help = self.builder.get_object("scan:btn_help")
         self.help.connect("clicked", self.__cb_help)
-        self.results_btn = self.builder.get_object("scan:btn_results")
-        self.results_btn.connect("clicked", self.__cb_export_report)
+        self.results = self.builder.get_object("scan:btn_results")
+        self.results.connect("clicked", self.__cb_export_report)
 
         # set signals
         self.add_sender(self.id, "scan")
-        self.add_sender(self.id, "cancel")
-        self.add_sender(self.id, "export")
-        self.add_receiver("gui:btn:menu:scan", "export", self.__export)
 
     def __update_profile(self):
+        self.core.notify_destroy("notify:scan:selected_profile")
         if self.core.selected_profile != None:
             profile = self.data_model.get_profile_details(self.core.selected_profile)
             if self.core.selected_lang in profile["titles"]: title = profile["titles"][self.core.selected_lang]
             else: title = "%s (ID)" % (profile["id"],)
-            self.notifications.append(self.core.notify("Selected profile: \"%s\"." % (title,), core.Notification.SUCCESS))
-        elif self.core.lib.loaded: self.notifications.append(self.core.notify("Selected default document profile.", core.Notification.SUCCESS))
+            if self.selected_profile != self.core.selected_profile:
+                self.notifications.append(self.core.notify("Selected profile: \"%s\"." % (title,), core.Notification.SUCCESS, msg_id="notify:scan:selected_profile"))
+            self.selected_profile = self.core.selected_profile
+        elif self.core.lib.loaded:
+            if self.selected_profile != self.core.selected_profile:
+                self.notifications.append(self.core.notify("Selected default document profile.", core.Notification.SUCCESS, msg_id="notify:scan:selected_profile"))
+            self.selected_profile = None
 
     def activate(self, active):
         if active:
@@ -132,21 +135,23 @@ class MenuButtonScan(abstract.MenuButton):
                 notify.destroy()
             self.core.notify_destroy("notify:scan:cancel")
 
-    #callback function
     def __cb_export_report(self, widget):
-        if self.exported_file:
-            self.core.notify_destroy("notify:scan:no_results")
-            self.data_model.export_report(self.exported_file)
-        else: self.notifications.append(self.core.notify("Please export results first.",
-            core.Notification.ERROR, msg_id="notify:scan:no_results"))
-        self.core.notify_destroy("notify:scan:export_notify")
-
-    def __export(self):
-        self.exported_file = self.data_model.export()
-        if self.exported_file: 
-            self.notifications.append(self.core.notify("Results exported successfuly. You can see them by pushing the \"Results\" button.",
-                core.Notification.SUCCESS, msg_id="notify:scan:export_notify"))
-            self.results_btn.set_sensitive(True)
+        if self.result:
+            self.prepare_preview()
+            gtk.gdk.flush()
+            temp = tempfile.NamedTemporaryFile()
+            retval = self.data_model.export(temp.name, self.result)
+            if not retval:
+                self.notifications.append(self.core.notify("Export failed.", core.Notification.ERROR, msg_id="notify:scan:export"))
+                return
+            expfile = self.data_model.export_report(retval)
+            f = open(expfile)
+            desc = f.read()
+            f.close()
+            self.preview(widget=None, desc=desc)
+            temp.close()
+        else:
+            self.notifications.append(self.core.notify("Nothing to export.", core.Notification.ERROR, msg_id="notify:scan:export"))
 
     def __cb_profile(self, widget):
         for notify in self.notifications:
@@ -157,17 +162,64 @@ class MenuButtonScan(abstract.MenuButton):
             return
         ProfileChooser(self.core, self.__update_profile)
 
-    def __cb_start(self, widget):
+    def __cb_scan(self, widget=None):
         self.exported_file = None
         for notify in self.notifications:
             notify.destroy()
-        self.emit("scan")
+        if self.__lock: 
+            logger.error("Scan already running")
+        else:
+            self.emit("scan")
+            self.data_model.prepare()
+            self.__lock = True
+            self.__set_sensitive(True)
+            self.__th_scan()
+
+    def __set_sensitive(self, active):
+        self.stop.set_sensitive(active)
+        self.scan.set_sensitive(not active)
+        self.export.set_sensitive(not active)
+        self.results.set_sensitive(not active)
+        self.profile.set_sensitive(not active)
+
+    @threadSave
+    def __th_scan(self):
+        if not self.data_model.check_library(): return None
+
+        logger.debug("Scanning %s ..", self.data_model.policy.id)
+        if self.progress != None:
+            gtk.gdk.threads_enter()
+            self.progress.set_fraction(0.0)
+            self.progress.set_text("Prepairing ...")
+            gtk.gdk.threads_leave()
+
+        self.result = self.data_model.policy.evaluate()
+        gtk.gdk.threads_enter()
+        if self.progress: 
+            self.progress.set_fraction(1.0)
+            self.progress.set_text("Finished %s of %s rules" % (self.data_model.count_current, self.data_model.count_all))
+            self.progress.set_has_tooltip(False)
+        logger.debug("Finished scanning")
+        self.core.notify("Scanning finished succesfully", core.Notification.SUCCESS, msg_id="notify:scan:complete")
+        gtk.gdk.threads_leave()
+        self.core.notify_destroy("notify:scan:cancel")
+        self.__lock = False
+        self.__set_sensitive(False)
 
     def __cb_cancel(self, widget):
-        self.emit("cancel")
+        """ Called by user event when stop button pressed
+        """
+        if self.__lock:
+            self.core.notify("Scanning canceled. Please wait for openscap to finish current task.", core.Notification.INFORMATION, msg_id="notify:scan:cancel")
+            self.data_model.cancel()
 
     def __cb_export(self, widget):
-        self.emit("export")
+        if self.result:
+            retval = self.data_model.export(None, self.result)
+            if not retval:
+                self.notifications.append(self.core.notify("Export failed.", core.Notification.ERROR, msg_id="notify:scan:export"))
+        else:
+            self.notifications.append(self.core.notify("Nothing to export.", core.Notification.ERROR, msg_id="notify:scan:export"))
 
     def __cb_help(self, widget):
         window = HelpWindow(self.core)

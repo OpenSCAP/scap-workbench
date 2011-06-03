@@ -4153,7 +4153,7 @@ Application Part - This part identifies relevant applications, services, and pac
   </object>
   <object class="GtkDialog" id="dialog:export">
     <property name="border_width">5</property>
-    <property name="title" translatable="yes">Export Benchmark</property>
+    <property name="title" translatable="yes">Save Benchmark</property>
     <property name="modal">True</property>
     <property name="window_position">center-on-parent</property>
     <property name="default_width">800</property>
@@ -4215,7 +4215,7 @@ Application Part - This part identifies relevant applications, services, and pac
                 </child>
                 <child>
                   <object class="GtkCheckButton" id="dialog:export:valid">
-                    <property name="label" translatable="yes">Check the validity before export</property>
+                    <property name="label" translatable="yes">Check the validity before save</property>
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="receives_default">False</property>
@@ -4236,7 +4236,7 @@ Application Part - This part identifies relevant applications, services, and pac
                     <child>
                       <object class="GtkLabel" id="label18">
                         <property name="visible">True</property>
-                        <property name="label" translatable="yes">Export to file</property>
+                        <property name="label" translatable="yes">Save to file</property>
                         <attributes>
                           <attribute name="weight" value="bold"/>
                         </attributes>
@@ -4258,7 +4258,7 @@ Application Part - This part identifies relevant applications, services, and pac
                     <child>
                       <object class="GtkLabel" id="label20">
                         <property name="visible">True</property>
-                        <property name="label" translatable="yes">Export as guide</property>
+                        <property name="label" translatable="yes">Save as guide</property>
                         <attributes>
                           <attribute name="weight" value="bold"/>
                         </attributes>
@@ -4283,7 +4283,7 @@ Application Part - This part identifies relevant applications, services, and pac
                         <property name="spacing">5</property>
                         <child>
                           <object class="GtkCheckButton" id="dialog:export:profile">
-                            <property name="label" translatable="yes">Export with profile</property>
+                            <property name="label" translatable="yes">Save with profile</property>
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
                             <property name="receives_default">False</property>
@@ -4433,7 +4433,7 @@ Application Part - This part identifies relevant applications, services, and pac
   </object>
   <object class="GtkDialog" id="dialog:import">
     <property name="border_width">5</property>
-    <property name="title" translatable="yes">Import Benchmark</property>
+    <property name="title" translatable="yes">Load Benchmark</property>
     <property name="modal">True</property>
     <property name="window_position">center-on-parent</property>
     <property name="default_width">800</property>
@@ -4494,7 +4494,7 @@ Application Part - This part identifies relevant applications, services, and pac
                 </child>
                 <child>
                   <object class="GtkCheckButton" id="dialog:import:valid">
-                    <property name="label" translatable="yes">Validate importing file</property>
+                    <property name="label" translatable="yes">Validate loaded file</property>
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="receives_default">False</property>

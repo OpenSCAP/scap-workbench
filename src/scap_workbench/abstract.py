@@ -599,6 +599,83 @@ class Func:
         self.core = core
         self.notifications = []
 
+    def prepare_preview(self):
+
+        builder = gtk.Builder()
+        builder.add_from_file("/usr/share/scap-workbench/dialogs.glade")
+        self.preview_dialog = builder.get_object("dialog:preview")
+        self.preview_scw = builder.get_object("dialog:preview:scw")
+        builder.get_object("dialog:preview:btn_ok").connect("clicked", lambda w: self.preview_dialog.destroy())
+        # Get the background color from window and destroy it
+        window = gtk.Window()
+        window.realize()
+        bg_color = window.get_style().bg[gtk.STATE_NORMAL]
+        window.destroy()
+
+        desc="""
+        <style type="text/css">
+            #center { position:relative; top:50%; height:10em; margin-top:-5em }
+            body { text-align: center; }
+        </style>
+        <html>
+          <body>
+            <div id="center">
+                    <center><h1>Loading ...</h1></center>
+            </div>
+          </body>
+        </html>
+        """
+        if HAS_WEBKIT:
+            self.description_widget = webkit.WebView()
+            self.description_widget.load_html_string(desc, "file:///")
+            self.description_widget.set_zoom_level(0.75)
+            #description.modify_bg(gtk.STATE_NORMAL, bg_color)
+            #description.parent.modify_bg(gtk.STATE_NORMAL, bg_color)
+        else:
+            self.description_widget = HtmlTextView()
+            self.description_widget.set_wrap_mode(gtk.WRAP_WORD)
+            self.description_widget.modify_base(gtk.STATE_NORMAL, bg_color)
+            try:
+                self.description_widget.display_html(desc)
+            except Exception as err:
+                logger.error("Exception: %s", err)
+        self.preview_scw.add(self.description_widget)
+        #self.preview_dialog.window.set_cursor(gtk.gdk.Cursor(gtk.gdk.WATCH))
+
+        self.preview_dialog.set_transient_for(self.core.main_window)
+        self.preview_dialog.show_all()
+
+    def preview(self, widget=None, desc=None):
+
+        if widget:
+            selection = self.widget.get_selection()
+            if selection != None: 
+                (model, iter) = selection.get_selected()
+                if not iter: return False
+            else: return False
+        
+        if 'preview_dialog' not in self.__dict__:
+            self.prepare_preview()
+
+        if not desc:
+            desc = self.model.get_value(iter, self.COLUMN_TEXT) or ""
+            desc = re.sub("xmlns:xhtml=\"[^\"]*\"", lambda x: "", desc or "")
+            desc = desc.replace("xhtml:","")
+            desc = desc.replace("xmlns:", "")
+            desc = self.data_model.substitute(desc)
+            if desc == "": desc = "No description"
+            desc = "<body><div>"+desc+"</div></body>"
+
+        if HAS_WEBKIT:
+            self.description_widget.load_html_string(desc, "file:///")
+        else:
+            try:
+                self.description_widget.display_html(desc)
+            except Exception as err:
+                logger.error("Exception: %s", err)
+        #self.preview_dialog.window.set_cursor(gtk.gdk.Cursor(gtk.gdk.ARROW))
+
+
     def dialogDel(self, window, selection):
         """
         Function Show dialogue if you wont to delete row if yes return iter of row.
@@ -753,7 +830,7 @@ class ListEditor(EventObject, Func):
 
         self.widget         = widget
         self.__treeView     = widget
-        self.__model        = model or widget.get_model()
+        self.model        = model or widget.get_model()
 
         if model: self.__treeView.set_model(model)
 
@@ -767,7 +844,7 @@ class ListEditor(EventObject, Func):
     def get_model(self):
         """For ControlEditWindow, remove after
         """
-        return self.__model
+        return self.model
 
     def get_selection(self):
         """For ControlEditWindow, remove after
@@ -799,15 +876,12 @@ class ListEditor(EventObject, Func):
         self.__treeView.set_model(model)
 
     def clear(self):
-        self.__model.clear()
+        self.model.clear()
 
     def append(self, item):
         try:
-            self.__model.append(item)
+            self.model.append(item)
         except ValueError, err: raise ValueError("Value Error in model appending \"%s\": %s" % (item, err))
-
-    def __preview_dialog_destroy(self, widget):
-        self.preview_dialog.destroy()
 
     def filter_listview(self, model, iter, data):
         search, columns = data
@@ -824,55 +898,6 @@ class ListEditor(EventObject, Func):
         treeview.get_model().refilter()
         return
 
-    def preview(self, widget=None, desc=None):
-
-        if widget:
-            selection = self.widget.get_selection()
-            if selection != None: 
-                (model, iter) = selection.get_selected()
-                if not iter: return False
-            else: return False
-
-        builder = gtk.Builder()
-        builder.add_from_file("/usr/share/scap-workbench/dialogs.glade")
-        self.preview_dialog = builder.get_object("dialog:preview")
-        self.preview_scw = builder.get_object("dialog:preview:scw")
-        builder.get_object("dialog:preview:btn_ok").connect("clicked", self.__preview_dialog_destroy)
-        # Get the background color from window and destroy it
-        window = gtk.Window()
-        window.realize()
-        bg_color = window.get_style().bg[gtk.STATE_NORMAL]
-        window.destroy()
-
-        if not desc:
-            desc = self.__model.get_value(iter, self.COLUMN_TEXT) or ""
-            desc = re.sub("xmlns:xhtml=\"[^\"]*\"", lambda x: "", desc)
-            desc = desc.replace("xhtml:","")
-            desc = desc.replace("xmlns:", "")
-            desc = self.data_model.substitute(desc)
-            if desc == "": desc = "No description"
-            desc = "<body><div>"+desc+"</div></body>"
-
-        if HAS_WEBKIT:
-            description = webkit.WebView()
-            self.preview_scw.add(description)
-            description.load_html_string(desc, "file:///")
-            description.set_zoom_level(0.75)
-            #description.modify_bg(gtk.STATE_NORMAL, bg_color)
-            #description.parent.modify_bg(gtk.STATE_NORMAL, bg_color)
-        else:
-            description = HtmlTextView()
-            description.set_wrap_mode(gtk.WRAP_WORD)
-            description.modify_base(gtk.STATE_NORMAL, bg_color)
-            self.preview_scw.add(description)
-            try:
-                description.display_html(desc)
-            except Exception as err:
-                logger.error("Exception: %s", err)
-
-
-        self.preview_dialog.set_transient_for(self.core.main_window)
-        self.preview_dialog.show_all()
 
 class HTMLEditor(ListEditor):
 

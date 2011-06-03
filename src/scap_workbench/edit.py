@@ -543,40 +543,6 @@ class MenuButtonEditXCCDF(abstract.MenuButton):
                 self.__update()
             except KeyError: pass
 
-    def __cb_preview(self, widget):
-        builder = gtk.Builder()
-        builder.add_from_file("/usr/share/scap-workbench/dialogs.glade")
-        preview_dialog = builder.get_object("dialog:preview")
-        preview_scw = builder.get_object("dialog:preview:scw")
-        builder.get_object("dialog:preview:btn_ok").connect("clicked", lambda w: preview_dialog.destroy())
-        # Get the background color from window and destroy it
-
-        desc = self.__model.get_value(iter, self.COLUMN_TEXT) or ""
-        desc = desc.replace("xhtml:","")
-        desc = desc.replace("xmlns:", "")
-        desc = self.data_model.substitute(desc)
-        if desc == "": desc = "No description"
-        desc = "<body><div>"+desc+"</div></body>"
-
-        if not HAS_WEBKIT:
-            description = webkit.WebView()
-            preview_scw.add(description)
-            description.load_html_string(desc, "file:///")
-            description.set_zoom_level(0.75)
-        else:
-            description = htmltextview.HtmlTextView()
-            description.set_wrap_mode(gtk.WRAP_WORD)
-            description.modify_base(gtk.STATE_NORMAL, bg_color)
-            preview_scw.add(description)
-            try:
-                description.display_html(desc)
-            except Exception as err:
-                logger.error("Exception: %s", err)
-
-
-        preview_dialog.set_transient_for(self.core.main_window)
-        preview_dialog.show_all()
-        
     def __cb_validate(self, widget):
         """ Deprecated: Validate button from main file is not visible
         anymore. This function is not reachable. Leting here for
@@ -615,9 +581,14 @@ class MenuButtonEditXCCDF(abstract.MenuButton):
     def __change(self, widget, object=None):
 
         if object == "id":
+            self.core.notify_destroy("notify:xccdf:id")
             # Replace all white spaces with '_' (space are not allowed in ID)
             text = re.sub("[\t ]+" , "_", widget.get_text())
-            self.data_model.update(id=text)
+            # Check if ID doesn't start with number
+            if len(text) == 0 or re.search("[A-Za-z_]", text[0]) == None:
+                self.notifications.append(self.core.notify("First character of ID has to be from A-Z (case insensitive) or \"_\"",
+                    Notification.ERROR, msg_id="notify:xccdf:id"))
+            else: self.data_model.update(id=text)
         elif object == "version":
             self.data_model.update(version=widget.get_text())
         elif object == "resolved":
@@ -1026,7 +997,14 @@ class MenuButtonEditProfiles(abstract.MenuButton, abstract.Func):
         item = self.list_profile.selected
         if not item: return
         if widget == self.pid:
-            retval = self.data_model.update(id=widget.get_text())
+            # Check if ID doesn't start with number
+            self.core.notify_destroy("notify:xccdf:id")
+            text = widget.get_text()
+            if len(text) == 0 or re.search("[A-Za-z_]", text[0]) == None:
+                self.notifications.append(self.core.notify("First character of ID has to be from A-Z (case insensitive) or \"_\"",
+                    Notification.ERROR, msg_id="notify:xccdf:id"))
+                return
+            else: retval = self.data_model.update(id=text)
             if not retval:
                 self.notifications.append(self.core.notify("Setting ID failed: ID \"%s\" already exists." % (widget.get_text(),),
                     Notification.ERROR, msg_id="notify:not_selected"))
@@ -1400,7 +1378,13 @@ class MenuButtonEditItems(abstract.MenuButton, abstract.Func):
             return
 
         if widget == self.item_id:
-            retval = self.data_model.update(id=widget.get_text())
+            self.core.notify_destroy("notify:xccdf:id")
+            text = widget.get_text()
+            if len(text) == 0 or re.search("[A-Za-z_]", text[0]) == None:
+                self.notifications.append(self.core.notify("First character of ID has to be from A-Z (case insensitive) or \"_\"",
+                    Notification.ERROR, msg_id="notify:xccdf:id"))
+                return
+            else: retval = self.data_model.update(id=text)
             if not retval:
                 self.notifications.append(self.core.notify("Setting ID failed: ID \"%s\" already exists." % (widget.get_text(),),
                     Notification.ERROR, msg_id="notify:not_selected"))
@@ -2326,16 +2310,23 @@ class EditFix(abstract.ListEditor):
     def __do(self, widget=None):
         """
         """
+        self.core.notify_destroy("notify:xccdf:id")
         item = None
         (model, iter) = self.get_selection().get_selected()
         if iter and model != None: 
             item = model[iter][self.COLUMN_OBJ]
 
+        text_id = self.fid.get_text()
+        if len(text_id) == 0 or re.search("[A-Za-z_]", text_id[0]) == None:
+            self.core.notify("First character of ID has to be from A-Z (case insensitive) or \"_\"",
+                Notification.ERROR, msg_id="notify:xccdf:id")
+            return
+
         buffer = self.content.get_buffer()
         if self.operation == self.data_model.CMD_OPER_DEL:
             retval = self.data_model.edit_fix(self.operation, fix=item)
         else:
-            retval = self.data_model.edit_fix(self.operation, fix=item, id=self.fid.get_text(), content=buffer.get_text(buffer.get_start_iter(), buffer.get_end_iter()))
+            retval = self.data_model.edit_fix(self.operation, fix=item, id=text_id, content=buffer.get_text(buffer.get_start_iter(), buffer.get_end_iter()))
 
         self.fill()
         self.__dialog_destroy()
