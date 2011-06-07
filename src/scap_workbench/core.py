@@ -178,6 +178,10 @@ class Library:
         openscap.OSCAP.oscap_init()
         self.xccdf = xccdf
         self.benchmark = openscap.xccdf.benchmark_import(xccdf)
+        if self.benchmark.instance == None:
+            if openscap.common.err(): desc = openscap.common.err_desc()
+            else: desc = "Unknown error, please report this bug (http://bugzilla.redhat.com/)"
+            raise ImportError("Benchmark \"%s\" loading failed: %s" % (f_XCCDF, desc))
         """ Look for OVAL files in CWD, current XCCDF directory and
         in openscap default content directory
         """
@@ -187,6 +191,10 @@ class Library:
             for directory in dirnames:
                 if os.path.exists(os.path.join(directory, file)):
                     def_model = openscap.oval.definition_model_import(os.path.join(directory, file))
+                    if def_model.instance == None:
+                        if openscap.commonerr(): desc = openscap.common.err_desc()
+                        else: desc = "Unknown error, please report this bug (http://bugzilla.redhat.com/)"
+                        raise ImportError("Cannot import definition model for \"%s\": %s" % (f_OVAL, desc))
                     break
 
             if def_model:
@@ -198,20 +206,18 @@ class Library:
             raise Exception("Can't initialize openscap library, Benchmark import failed.")
         self.loaded = True
 
-    def parse(self, lib):
+    def init_policy(self):
         """
         """
-        self.xccdf = lib["xccdf_path"]
-        self.policy_model = lib["policy_model"]
-        if self.policy_model:
-            self.benchmark = self.policy_model.benchmark
-            if self.benchmark == None or self.benchmark.instance == None:
-                logger.error("XCCDF benchmark does not exists. Can't fill data")
-                raise Error, "XCCDF benchmark does not exists. Can't fill data"
-        if lib["names"]:
-            for name in lib["names"].keys():
-                self.files[name] = Library.OVAL(name, lib["names"][name][0], lib["names"][name][1])
-        self.loaded = True
+        self.policy_model = openscap.xccdf.policy_model_new(self.benchmark)
+        for file in self.files:
+            sess = openscap.oval.agent_new_session(self.files[file].model, file)
+            if sess == None or sess.instance == None:
+                if OSCAP.oscap_err(): desc = OSCAP.oscap_err_desc()
+                else: desc = "Unknown error, please report this bug (http://bugzilla.redhat.com/)"
+                raise ImportError("Cannot create agent session for \"%s\": %s" % (f_OVAL, desc))
+            self.files[file].session = sess
+            self.policy_model.register_engine_oval(sess)
 
     def destroy(self):
         """
@@ -302,8 +308,8 @@ class SWBCore:
         else:
             # Trying to import XCCDF in scanner - we need policies
             try:
-                lib = openscap.xccdf.init(XCCDF)
-                self.lib.parse(lib)
+                self.lib.import_xccdf(XCCDF)
+                self.lib.init_policy()
             except ImportError, err:
                 logger.error(err)
                 return False
