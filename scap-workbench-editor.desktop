@@ -1,0 +1,11 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=SCAP Workbench Editor
+Comment=A graphical tool for maintaining the XCCDF benchmark files
+TryExec=scap-workbench-editor
+Exec=scap-workbench-editor
+Icon=scap-workbench
+Categories=System;
+X-Desktop-File-Install-Version=0.3
+Encoding=UTF-8
