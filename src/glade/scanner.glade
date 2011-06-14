@@ -737,19 +737,6 @@
                             <property name="homogeneous">True</property>
                             <property name="layout_style">start</property>
                             <child>
-                              <object class="GtkButton" id="xccdf:btn_new">
-                                <property name="label">gtk-new</property>
-                                <property name="can_focus">True</property>
-                                <property name="receives_default">True</property>
-                                <property name="use_stock">True</property>
-                              </object>
-                              <packing>
-                                <property name="expand">False</property>
-                                <property name="fill">False</property>
-                                <property name="position">0</property>
-                              </packing>
-                            </child>
-                            <child>
                               <object class="GtkButton" id="xccdf:btn_import">
                                 <property name="label" translatable="yes">Load</property>
                                 <property name="visible">True</property>
@@ -760,7 +747,7 @@
                               <packing>
                                 <property name="expand">False</property>
                                 <property name="fill">False</property>
-                                <property name="position">1</property>
+                                <property name="position">0</property>
                               </packing>
                             </child>
                             <child>
@@ -775,21 +762,7 @@
                               <packing>
                                 <property name="expand">False</property>
                                 <property name="fill">False</property>
-                                <property name="position">2</property>
-                              </packing>
-                            </child>
-                            <child>
-                              <object class="GtkButton" id="xccdf:btn_validate">
-                                <property name="label" translatable="yes">Validate</property>
-                                <property name="sensitive">False</property>
-                                <property name="can_focus">True</property>
-                                <property name="receives_default">True</property>
-                                <property name="image">xccdf:btn_validate:img</property>
-                              </object>
-                              <packing>
-                                <property name="expand">False</property>
-                                <property name="fill">False</property>
-                                <property name="position">3</property>
+                                <property name="position">1</property>
                               </packing>
                             </child>
                             <child>
@@ -804,7 +777,7 @@
                               <packing>
                                 <property name="expand">False</property>
                                 <property name="fill">False</property>
-                                <property name="position">4</property>
+                                <property name="position">2</property>
                               </packing>
                             </child>
                           </object>
@@ -1606,10 +1579,6 @@
   <object class="GtkImage" id="xccdf:btn_export:img">
     <property name="visible">True</property>
     <property name="stock">gtk-save-as</property>
-  </object>
-  <object class="GtkImage" id="xccdf:btn_validate:img">
-    <property name="visible">True</property>
-    <property name="stock">gtk-about</property>
   </object>
   <object class="GtkMenu" id="edit:profile_list:popup">
     <property name="visible">True</property>

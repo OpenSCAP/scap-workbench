@@ -4398,7 +4398,6 @@ Application Part - This part identifies relevant applications, services, and pac
     <property name="urgency_hint">True</property>
     <property name="deletable">False</property>
     <property name="opacity">0.5</property>
-    <property name="mnemonics_visible">False</property>
     <child internal-child="vbox">
       <object class="GtkVBox" id="dialog-vbox34">
         <property name="visible">True</property>
