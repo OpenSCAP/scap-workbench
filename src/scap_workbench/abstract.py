@@ -605,6 +605,8 @@ class Func:
         builder.add_from_file("/usr/share/scap-workbench/dialogs.glade")
         self.preview_dialog = builder.get_object("dialog:preview")
         self.preview_scw = builder.get_object("dialog:preview:scw")
+        self.info_box = builder.get_object("dialog:preview:info_box")
+        self.save = builder.get_object("dialog:preview:btn_save")
         builder.get_object("dialog:preview:btn_ok").connect("clicked", lambda w: self.preview_dialog.destroy())
         # Get the background color from window and destroy it
         window = gtk.Window()
@@ -645,7 +647,7 @@ class Func:
         self.preview_dialog.set_transient_for(self.core.main_window)
         self.preview_dialog.show_all()
 
-    def preview(self, widget=None, desc=None):
+    def preview(self, widget=None, desc=None, save=None):
 
         if widget:
             selection = self.widget.get_selection()
@@ -674,6 +676,25 @@ class Func:
             except Exception as err:
                 logger.error("Exception: %s", err)
         #self.preview_dialog.window.set_cursor(gtk.gdk.Cursor(gtk.gdk.ARROW))
+
+        if save != None:
+            """ We want to have option to save what we see in the preview dialog.
+            In this case pass the callback function as "save" parameter it should
+            have format as widget callback method
+            """
+            if not callable(save):
+                raise Exception("Passed not callable callback to preview function")
+
+            def __callback_wrapper(widget, self):
+                """ Nested function to call callback function from parent
+                and show the notification in the info_box of the preview dialog
+                """
+                retval, text = save()
+                if retval != None:
+                    self.notifications.append(self.core.notify(text, retval, info_box=self.info_box))
+
+            self.save.set_property("visible", True)
+            self.save.connect("clicked", __callback_wrapper, self)
 
 
     def dialogDel(self, window, selection):

@@ -271,7 +271,7 @@ class ItemDetails(EventObject):
         try:
             self.fixes.display_html(text)
         except Exception as err:
-            logger.warning("Exception: %s: (%s)", err, text)
+            logger.debug("HTML display Exception: %s: (%s)", err, text)
 
     def draw(self):
         self.box_details = self.builder.get_object("tailoring:details:box")

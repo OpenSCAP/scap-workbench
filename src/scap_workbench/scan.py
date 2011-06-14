@@ -148,10 +148,34 @@ class MenuButtonScan(abstract.MenuButton, abstract.Func):
             f = open(expfile)
             desc = f.read()
             f.close()
-            self.preview(widget=None, desc=desc)
+            self.preview(widget=None, desc=desc, save=self.__cb_save_report)
             temp.close()
         else:
             self.notifications.append(self.core.notify("Nothing to export.", core.Notification.ERROR, msg_id="notify:scan:export"))
+
+    def __cb_save_report(self):
+        """ This method is used as callback to preview dialog window. When user press "save" button
+        this function will be called and saved the report to the file. This function should return
+        """
+        
+        chooser = gtk.FileChooserDialog(title="Save report", action=gtk.FILE_CHOOSER_ACTION_SAVE,
+                buttons=(gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL, gtk.STOCK_SAVE, gtk.RESPONSE_OK))
+        chooser.set_current_name("report.xhtml")
+        response = chooser.run()
+        if response == gtk.RESPONSE_OK:
+            file_name = chooser.get_filename()
+        elif response == gtk.RESPONSE_CANCEL:
+            chooser.destroy()
+            return None, None
+        chooser.destroy()
+
+        retval = self.data_model.export(file_name, self.result)
+        if not retval: 
+            return Notification.ERROR, "Export failed"
+
+        expfile = self.data_model.export_report(retval)
+
+        return Notification.SUCCESS, "Report file saved successfully"
 
     def __cb_profile(self, widget):
         for notify in self.notifications:

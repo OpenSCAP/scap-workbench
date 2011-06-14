@@ -16,6 +16,26 @@
         <property name="orientation">vertical</property>
         <property name="spacing">2</property>
         <child>
+          <object class="GtkAlignment" id="info_box:alig2">
+            <property name="visible">True</property>
+            <property name="bottom_padding">5</property>
+            <child>
+              <object class="GtkVBox" id="dialog:preview:info_box">
+                <property name="visible">True</property>
+                <property name="orientation">vertical</property>
+                <property name="spacing">1</property>
+                <child>
+                  <placeholder/>
+                </child>
+              </object>
+            </child>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="position">1</property>
+          </packing>
+        </child>
+        <child>
           <object class="GtkScrolledWindow" id="dialog:preview:scw">
             <property name="visible">True</property>
             <property name="can_focus">True</property>
@@ -26,7 +46,7 @@
             </child>
           </object>
           <packing>
-            <property name="position">1</property>
+            <property name="position">2</property>
           </packing>
         </child>
         <child internal-child="action_area">
@@ -34,7 +54,17 @@
             <property name="visible">True</property>
             <property name="layout_style">end</property>
             <child>
-              <placeholder/>
+              <object class="GtkButton" id="dialog:preview:btn_save">
+                <property name="label">gtk-save</property>
+                <property name="can_focus">True</property>
+                <property name="receives_default">True</property>
+                <property name="use_stock">True</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">False</property>
+                <property name="position">0</property>
+              </packing>
             </child>
             <child>
               <object class="GtkButton" id="dialog:preview:btn_ok">
@@ -60,6 +90,7 @@
       </object>
     </child>
     <action-widgets>
+      <action-widget response="0">dialog:preview:btn_save</action-widget>
       <action-widget response="0">dialog:preview:btn_ok</action-widget>
     </action-widgets>
   </object>

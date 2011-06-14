@@ -2271,7 +2271,7 @@ class DHScan(DataHandler, EventObject):
             "template",          None,
             "format",            None,
             "hide-profile-info", hide_profile,
-            "verbosity",         "1",
+            "verbosity",         None,
             "oscap-version",     openscap.common.oscap_get_version(),
             "pwd",               os.getenv("PWD"),
             "oval-template",    "%.result.xml", None]
