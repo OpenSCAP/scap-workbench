@@ -931,7 +931,6 @@ class DHXccdf(DataHandler):
             info[name]["product_version"] = def_model.generator.product_version
             info[name]["schema_version"] = def_model.generator.schema_version
             info[name]["timestamp"] = def_model.generator.timestamp
-            info[name]["valid"] = ["yes", "no"][def_model.is_valid()]
         
         return info
 
