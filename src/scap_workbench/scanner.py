@@ -96,9 +96,6 @@ class MenuButtonXCCDF(abstract.MenuButton):
         self.box_references = self.builder.get_object("xccdf:box_references")
         self.files_box = self.builder.get_object("xccdf:files:box")
 
-        self.btn_new = self.builder.get_object("xccdf:btn_new")
-        self.btn_new.connect("clicked", self.__cb_new)
-
         self.btn_import = self.builder.get_object("xccdf:btn_import")
         self.btn_import.connect("clicked", self.__cb_import)
 
@@ -339,7 +336,7 @@ class MainWindow(abstract.Window, threading.Thread):
         threading.Thread.__init__(self)
         logger = logging.getLogger(self.__class__.__name__)
         self.builder = gtk.Builder()
-        self.builder.add_from_file("/usr/share/scap-workbench/main.glade")
+        self.builder.add_from_file("/usr/share/scap-workbench/scanner.glade")
         self.builder.connect_signals(self)
         self.core = core.SWBCore(self.builder, True)
         assert self.core != None, "Initialization failed, core is None"

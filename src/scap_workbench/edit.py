@@ -1102,7 +1102,7 @@ class MenuButtonEditItems(abstract.MenuButton, abstract.Func):
         builder.get_object("xccdf:items:fix:btn_del").connect("clicked", self.fix.dialog, self.data_model.CMD_OPER_DEL)
         # -------------
 
-        """Get widgets from Glade: Part main.glade in edit
+        """Get widgets from Glade: Part editor.glade in edit
         """
         self.conflicts = EditConflicts(self.core, self.builder,self.list_item.get_TreeView().get_model())
         self.requires = EditRequires(self.core, self.builder,self.list_item.get_TreeView().get_model())
