@@ -781,7 +781,6 @@
                             <child>
                               <object class="GtkButton" id="xccdf:btn_validate">
                                 <property name="label" translatable="yes">Validate</property>
-                                <property name="visible">True</property>
                                 <property name="sensitive">False</property>
                                 <property name="can_focus">True</property>
                                 <property name="receives_default">True</property>

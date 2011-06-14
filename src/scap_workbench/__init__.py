@@ -19,6 +19,6 @@
 # Authors:
 #      Maros Barabas        <xbarry@gmail.com>
 
-from render import MainWindow
+from scanner import MainWindow
 from edit import Editor
 __all__= ['abstract', 'commands', 'core', 'events', 'filter', 'htmltextview', 'profiles', 'render', 'scan', 'tailoring']

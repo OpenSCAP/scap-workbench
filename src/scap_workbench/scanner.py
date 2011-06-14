@@ -20,22 +20,29 @@
 #      Maros Barabas        <xbarry@gmail.com>
 #      Vladimir Oberreiter  <xoberr01@stud.fit.vutbr.cz>
 
-import pygtk
-import gtk, gnome, gnome.ui
-import gobject
-import logging
-import pango
-import threading
+""" Importing standard python libraries
+"""
+import gtk              # GTK library
+import threading        # Main window is running in thread
+import gnome, gnome.ui  # Gnome icons in HTML editor
+import pango            # Pango enumeration constants
 
-import core
-import abstract
-import tailoring
-import scan
-import logging
-import commands
+""" Importing SCAP Workbench modules
+"""
+import abstract                 # All abstract classes
+import logging                  # Logger for debug/info/error messages
+import core                     # Initializing of core in main window
+import commands                 # Module for handling openscap
+import filter                   # Module for handling filters
+import dialogs                  # Module with dialog classes
+import tailoring                # For initializing GUI for tailoring
+import scan                     # For initializing GIU for scan
+from core import Notification   # core.Notification levels for reference
 import enum as ENUM             # For enumeration from openscap library
 
+# Initializing Logger
 logger = logging.getLogger("scap-workbench")
+
 
 def label_set_autowrap(widget): 
     "Make labels automatically re-wrap if their containers are resized.  Accepts label or container widgets."
@@ -94,9 +101,6 @@ class MenuButtonXCCDF(abstract.MenuButton):
 
         self.btn_import = self.builder.get_object("xccdf:btn_import")
         self.btn_import.connect("clicked", self.__cb_import)
-
-        self.btn_validate = self.builder.get_object("xccdf:btn_validate")
-        self.btn_validate.connect("clicked", self.__cb_validate)
 
         self.btn_export = self.builder.get_object("xccdf:btn_export")
         self.btn_export.connect("clicked", self.__cb_export)
@@ -173,9 +177,6 @@ class MenuButtonXCCDF(abstract.MenuButton):
             label = gtk.Label(file_info["timestamp"])
             label.set_alignment(0.0, 0.50)
             table.attach(label, 1, 2, 3, 4, xoptions=gtk.EXPAND|gtk.FILL, yoptions=gtk.FILL, xpadding=0, ypadding=0)
-            label = gtk.Label(file_info["valid"])
-            label.set_alignment(0.0, 0.50)
-            table.attach(label, 1, 2, 4, 5, xoptions=gtk.EXPAND|gtk.FILL, yoptions=gtk.FILL, xpadding=0, ypadding=0)
 
         expander.add(align)
         self.files_box.pack_start(expander, False, False)
@@ -221,7 +222,6 @@ class MenuButtonXCCDF(abstract.MenuButton):
         self.label_language.set_text(lang or "")
         
         self.btn_close.set_sensitive(True)
-        self.btn_validate.set_sensitive(True)
         self.btn_export.set_sensitive(True)
         self.__menu_sensitive(True)
 
@@ -274,8 +274,7 @@ class MenuButtonXCCDF(abstract.MenuButton):
 
         self.emit("load")
 
-    def __cb_import(self, widget):
-        file = self.data_model.file_browse("Load XCCDF file", action=gtk.FILE_CHOOSER_ACTION_OPEN)
+    def __import(self, file):
         if file != "":
             self.__cb_close(None)
             logger.debug("Loading XCCDF file %s", file)
@@ -286,24 +285,14 @@ class MenuButtonXCCDF(abstract.MenuButton):
                 self.__update()
             except KeyError: pass
 
-    def __cb_validate(self, widget):
-        validate = self.data_model.validate()
-        message = [ "Document is not valid !",
-                    "Document is valid.",
-                    "Validation process failed, check for error in log file.",
-                    "File not saved, use export first."][validate]
-        lvl = [ core.Notification.WARNING,
-                core.Notification.SUCCESS,
-                core.Notification.ERROR,
-                core.Notification.INFORMATION][validate]
-        self.notifications.append(self.core.notify(message, lvl, msg_id="notify:xccdf:validate"))
+    def __cb_import(self, widget):
+        dialogs.ImportDialog(self.core, self.data_model, self.__import)
 
     def __cb_export(self, widget):
         file_name = self.data_model.export()
         if file_name:
-            self.core.notify_destroy("notify:xccdf:validate")
             self.notifications.append(self.core.notify("Benchmark has been exported to \"%s\"" % (file_name,),
-                core.Notification.SUCCESS, msg_id="notify:xccdf:export"))
+                Notification.SUCCESS, msg_id="notify:xccdf:export"))
             self.core.xccdf_file = file_name
 
     def __menu_sensitive(self, active):
@@ -312,12 +301,10 @@ class MenuButtonXCCDF(abstract.MenuButton):
 
     def __cb_close(self, widget):
         self.btn_close.set_sensitive(False)
-        self.btn_validate.set_sensitive(False)
         self.btn_export.set_sensitive(False)
         self.__menu_sensitive(False)
         self.core.destroy()
         self.__clear()
-        self.core.notify_destroy("notify:xccdf:validate")
         self.core.notify_destroy("notify:xccdf:export")
         self.emit("load")
     
