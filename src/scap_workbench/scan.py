@@ -112,6 +112,7 @@ class MenuButtonScan(abstract.MenuButton, abstract.Func):
 
         # set signals
         self.add_sender(self.id, "scan")
+        self.add_receiver("gui:main", "quit", self.__cb_cancel)
 
     def __update_profile(self):
         self.core.notify_destroy("notify:scan:selected_profile")
@@ -230,7 +231,7 @@ class MenuButtonScan(abstract.MenuButton, abstract.Func):
         self.__lock = False
         self.__set_sensitive(False)
 
-    def __cb_cancel(self, widget):
+    def __cb_cancel(self, widget=None):
         """ Called by user event when stop button pressed
         """
         if self.__lock:

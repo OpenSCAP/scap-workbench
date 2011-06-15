@@ -18,23 +18,30 @@
 #
 # Authors:
 #      Maros Barabas        <xbarry@gmail.com>
-#      Vladimir Oberreiter  <xoberr01@stud.fit.vutbr.cz>
 
-import logging
-import logging.config
-import pango
-import sys, gtk, gobject
-from events import EventHandler
+""" Importing standard python libraries
+"""
+import gtk      # GTK library
+import os       # os Path join/basename, ..
+import sys      # system library for standard in/out and exit
+import pango    # For pango enumeration constants
+import getopt   # Parsing program parameters
 
+""" Importing SCAP Workbench modules
+"""
+import logging                  # Logger for debug/info/error messages
+import logging.config           # For configuration of Logger
+from events import EventHandler # abstract module EventHandler
 from threads import ThreadManager
-import getopt
-import os
 
+# Initializing and configuring Logger
 LOGGER_CONFIG_FILE='/etc/scap-workbench/logger.conf'
 FILTER_DIR="/usr/share/scap-workbench/filters"
 logging.config.fileConfig(LOGGER_CONFIG_FILE)
 logger = logging.getLogger("scap-workbench")
 
+""" Import OpenSCAP library as backend.
+If anything goes wrong just end with exception"""
 try:
     import openscap_api as openscap
 except Exception as ex:
@@ -69,21 +76,31 @@ def label_size_allocate(widget, allocation):
 
 class Notification:
 
-    SUCCESS = 0
-    INFORMATION = 1
-    WARNING = 2
-    ERROR = 3
-    FATAL = 4
+    """
+    This class implements the notification message.
+    """
 
+    SUCCESS = 0         # Use when some action ends with success
+    INFORMATION = 1     # This is a blue informational message
+    WARNING = 2         # Use to warn user that something is failing but it is not critical
+    ERROR = 3           # Use when action failed, information is missing, input data are not valid
+    FATAL = 4           # This is for application specific errors that failed the action
+
+    # Image on the left side of the message
     IMG = ["dialog-ok", "dialog-information", "dialog-warning", "dialog-error", "software-update-urgent"]
+    # Color of the backround
     BG_COLOR = ["#DFF2BF", "#BDE5F8", "#FEEFB3", "#FFBABA", "#FFBABA"]
+    # Foreground color
     COLOR = ["#4F8A10", "#00529B", "#9F6000", "#D8000C", "#D8000C"]
+    # Default size of the image
     DEFAULT_SIZE = gtk.ICON_SIZE_LARGE_TOOLBAR
+    # This is not used, but can be implemented auto-hide of the notification
     DEFAULT_TIME = 10
     HIDE_LVLS = [0, 1] # TODO
 
     def __init__(self, text, lvl=0, link_cb=None):
 
+        # Check the boundaries
         if lvl > 4: lvl = 4
         if lvl < 0: lvl = 0
 
@@ -207,7 +224,7 @@ class Library:
         self.loaded = True
 
     def init_policy(self):
-        """
+        """ Scanner needs a policy_model initialized. This is not wanted in editor
         """
         self.policy_model = openscap.xccdf.policy_model_new(self.benchmark)
         for file in self.files:
@@ -220,7 +237,7 @@ class Library:
             self.policy_model.register_engine_oval(sess)
 
     def destroy(self):
-        """
+        """ Destroy the library objects
         """
         if self.benchmark and self.policy_model == None:
             self.benchmark.free()
@@ -326,20 +343,32 @@ class SWBCore:
         return True
 
     def notify(self, text, lvl=0, info_box=None, msg_id=None, link_cb=None):
-
+        """ Create a notification with the text and level from Notification class.
+        info_box parameter is the gtk.Container that will be a parent for the notification
+        window.
+        msg_id is unique identificator of type of notification to prevent for showing
+        same type of notification more times. None are used for global notifications
+        link_cb is callback function that is called when label is clicked
+        """
         notification = Notification(text, lvl, link_cb)
         if msg_id:
             if msg_id in self.__global_notifications:
                 self.__global_notifications[msg_id].destroy()
             self.__global_notifications[msg_id] = notification
-        else:
+        else: # If we don't specify msg_id, set it as global notification
             self.__global_notifications[None].append(notification)
 
+        # Either add this to the info_box provided or to the global info_box
         if info_box: info_box.pack_start(notification.widget, False, True)
         else: self.info_box.pack_start(notification.widget, False, True)
         return notification
 
     def notify_destroy(self, msg_id):
+        """ Used to destroy some specific message, for example when warning message is created
+        when user input the wrong data, this message has to be destroyed itself when the data are
+        corrected.
+        msg_id is the unique identificator of that type of notification
+        """
         if not msg_id:
             raise AttributeError("notify_destroy: msg_id can't be None -> not allowed to destroy global notifications")
         if msg_id in self.__global_notifications:
@@ -352,6 +381,9 @@ class SWBCore:
         self.eventHandler.register_receiver(sender_id, signal, callback, args)
 
     def __set_force(self):
+        """ Force lists and object to reload
+        This is used in case of new file is loaded
+        """
         self.registered_callbacks = False
         self.force_reload_items = True
         self.force_reload_profiles = True

@@ -339,11 +339,13 @@ class MainWindow(abstract.Window, threading.Thread):
         self.builder.add_from_file("/usr/share/scap-workbench/scanner.glade")
         self.builder.connect_signals(self)
         self.core = core.SWBCore(self.builder, True)
+        abstract.Window.__init__(self, "gui:main", self.core)
         assert self.core != None, "Initialization failed, core is None"
 
         self.window = self.builder.get_object("main:window")
         self.core.main_window = self.window
         self.main_box = self.builder.get_object("main:box")
+        self.add_sender(self.id, "quit") # Quit the application
 
         # abstract the main menu
         self.menu = abstract.Menu("gui:menu", self.builder.get_object("main:toolbar"), self.core)
@@ -363,6 +365,7 @@ class MainWindow(abstract.Window, threading.Thread):
     def delete_event(self, widget, event, data=None):
         """ close the window and quit
         """
+        self.emit("quit")
         gtk.gdk.threads_leave()
         gtk.main_quit()
         return False
