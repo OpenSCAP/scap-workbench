@@ -145,7 +145,7 @@ class MenuButtonScan(abstract.MenuButton, abstract.Func):
             if not retval:
                 self.notifications.append(self.core.notify("Export failed.", core.Notification.ERROR, msg_id="notify:scan:export"))
                 return
-            expfile = self.data_model.export_report(retval)
+            expfile = self.data_model.export_report(retval, result_id=self.result.id)
             f = open(expfile)
             desc = f.read()
             f.close()
@@ -174,7 +174,7 @@ class MenuButtonScan(abstract.MenuButton, abstract.Func):
         if not retval: 
             return Notification.ERROR, "Export failed"
 
-        expfile = self.data_model.export_report(retval)
+        expfile = self.data_model.export_report(retval, result_id=self.result.id)
 
         return Notification.SUCCESS, "Report file saved successfully"
 

@@ -617,6 +617,12 @@ class DataHandler(object):
         item = self.core.lib.benchmark.get_item(self.core.selected_item)
         if item: return item.platforms
         else: return []
+    def get_idents(self):
+        if not self.check_library(): return None
+        item = self.core.lib.benchmark.get_item(self.core.selected_item)
+        if item: item = item.to_rule()
+        if item: return item.idents
+        else: return []
 
     def remove_item(self, id):
         item = self.get_item(id)
@@ -853,6 +859,36 @@ class DataHandler(object):
                 
         return None
 
+    def edit_ident(self, operation, obj, id, system, item=None):
+
+        if not self.check_library(): return None
+
+        if item == None:
+            item = self.core.lib.benchmark.get_item(self.core.selected_item)
+            if item: item = item.to_rule()
+
+        if operation == self.CMD_OPER_ADD:
+            ident = openscap.xccdf.ident_new()
+            ident.id = id
+            ident.system = system
+    
+            return item.add_ident(ident)
+
+        elif operation == self.CMD_OPER_EDIT:
+            if obj == None: 
+                return False
+            obj.system = system
+            obj.id = id
+            return True
+
+        elif operation == self.CMD_OPER_DEL:
+            if not item:
+                return False
+            return item.idents.remove(obj)
+
+        else: raise AttributeError("Edit notice: Unknown operation %s" % (operation,))
+
+
     def substitute(self, description, with_policy=False):
         policy = None
         if with_policy: policy = self.core.lib.policy_model.get_policy_by_id(self.core.selected_profile)
@@ -993,9 +1029,6 @@ class DHXccdf(DataHandler):
     def get_descriptions(self):
         if not self.check_library(): return None
         return self.core.lib.benchmark.description
-    def get_warnings(self):
-        if not self.check_library(): return None
-        return self.core.lib.benchmark.warnings
     def get_notices(self):
         if not self.check_library(): return None
         return self.core.lib.benchmark.notices
@@ -2263,15 +2296,15 @@ class DHScan(DataHandler, EventObject):
             return file_name
         else: return None
 
-    def export_report(self, file, xslfile=None, expfile=None, hide_profile=None):
+    def export_report(self, file, xslfile=None, expfile=None, hide_profile=None, result_id=None):
         params = [ 
-            "result-id",         None,
+            "result-id",         result_id,
             "show",              None,
-            "profile",           None,
+            "profile",           self.core.selected_profile,
             "template",          None,
             "format",            None,
             "hide-profile-info", hide_profile,
-            "verbosity",         None,
+            "verbosity",         "",
             "oscap-version",     openscap.common.oscap_get_version(),
             "pwd",               os.getenv("PWD"),
             "oval-template",    "%.result.xml", None]

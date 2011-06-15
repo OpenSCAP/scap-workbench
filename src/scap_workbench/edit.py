@@ -1033,6 +1033,7 @@ class MenuButtonEditItems(abstract.MenuButton, abstract.Func):
         self.href_dialog = self.builder.get_object("edit:xccdf:items:evaluation:href:dialog")
         self.href_dialog.connect("file-set", self.__cb_href_file_set)
         self.item_values_main = self.builder.get_object("edit:values:sw_main")
+        self.ident_box = self.builder.get_object("xccdf:items:ident:box")
         
         # -- TITLES --
         self.titles = EditTitle(self.core, "gui:edit:xccdf:items:titles", builder.get_object("edit:general:lv_title"), self.data_model)
@@ -1100,13 +1101,18 @@ class MenuButtonEditItems(abstract.MenuButton, abstract.Func):
         builder.get_object("xccdf:items:fix:btn_add").connect("clicked", self.fix.dialog, self.data_model.CMD_OPER_ADD)
         builder.get_object("xccdf:items:fix:btn_edit").connect("clicked", self.fix.dialog, self.data_model.CMD_OPER_EDIT)
         builder.get_object("xccdf:items:fix:btn_del").connect("clicked", self.fix.dialog, self.data_model.CMD_OPER_DEL)
+
+        # -- IDENTS --
+        self.ident = EditIdent(self.core, "id:edit:xccdf:items:ident", builder.get_object("xccdf:items:ident"), self.data_model)
+        builder.get_object("xccdf:items:ident:btn_add").connect("clicked", self.ident.dialog, self.data_model.CMD_OPER_ADD)
+        builder.get_object("xccdf:items:ident:btn_edit").connect("clicked", self.ident.dialog, self.data_model.CMD_OPER_EDIT)
+        builder.get_object("xccdf:items:ident:btn_del").connect("clicked", self.ident.dialog, self.data_model.CMD_OPER_DEL)
         # -------------
 
         """Get widgets from Glade: Part editor.glade in edit
         """
         self.conflicts = EditConflicts(self.core, self.builder,self.list_item.get_TreeView().get_model())
         self.requires = EditRequires(self.core, self.builder,self.list_item.get_TreeView().get_model())
-        self.ident = EditIdent(self.core, self.builder)
         self.values = EditValues(self.core, "gui:edit:xccdf:values", self.builder)
         
         self.severity = self.builder.get_object("edit:operations:combo_severity")
@@ -1357,7 +1363,7 @@ class MenuButtonEditItems(abstract.MenuButton, abstract.Func):
         self.items.set_sensitive(True)
 
         # Set sensitivity for rule / group
-        self.ident.set_sensitive(details["type"] == openscap.OSCAP.XCCDF_RULE)
+        self.ident_box.set_sensitive(details["type"] == openscap.OSCAP.XCCDF_RULE)
         self.item_values_main.set_sensitive(details["type"] == openscap.OSCAP.XCCDF_RULE)
         self.operations.set_sensitive(details["type"] == openscap.OSCAP.XCCDF_RULE)
         self.severity.set_sensitive(details["type"] == openscap.OSCAP.XCCDF_RULE)
@@ -1367,7 +1373,7 @@ class MenuButtonEditItems(abstract.MenuButton, abstract.Func):
             self.impact_metric.set_text(details["imapct_metric"] or "")
             self.fixtext.fill()
             self.fix.fill()
-            self.ident.fill(details["item"])
+            self.ident.fill()
             content = self.data_model.get_item_content()
  
             if len(self.core.lib.files) > 0:
@@ -1385,7 +1391,7 @@ class MenuButtonEditItems(abstract.MenuButton, abstract.Func):
             self.impact_metric.set_text("")
             self.fixtext.fill()
             self.fix.fill()
-            self.ident.fill(None)
+            self.ident.fill()
 
         self.__unblock_signals()
                 
@@ -2480,58 +2486,106 @@ class EditStatus(abstract.ListEditor):
             index = ENUM.STATUS_CURRENT.pos(item.status)
             self.append([time.strftime("%d-%m-%Y", time.localtime(item.date)), status[1], item])
 
-class EditIdent(commands.DHEditItems,abstract.ControlEditWindow):
+class EditIdent(abstract.ListEditor):
 
     COLUMN_ID = 0
-    COLUMN_SYSTEM = 1
-    COLUMN_OBJECTS = 2
+    COLUMN_LANG = -1
 
-    def __init__(self, core, builder):
+    def __init__(self, core, id, widget, data_model):
 
-        #set listView and model
-        lv = builder.get_object("edit:dependencies:lv_ident")
-        self.box_ident = builder.get_object("edit:dependencies:box_ident")
-        model = gtk.ListStore(str, str, gobject.TYPE_PYOBJECT)
-        lv.set_model(model)
-        
-        #information for new/edit dialog
-        values = {
-                        "name_dialog":  "Edit Question",
-                        "view":         lv,
-                        "cb":           self.DHEditIdent,
-                        "textEntry":    {"name":    "ID",
-                                        "column":   self.COLUMN_ID,
-                                        "empty":    False, 
-                                        "unique":   True},
-                        "textView":     {"name":    "System",
-                                        "column":   self.COLUMN_SYSTEM,
-                                        "empty":    False, 
-                                        "unique":   False},
-                        }
+        self.data_model = data_model 
+        abstract.ListEditor.__init__(self, id, core, widget=widget, model=gtk.ListStore(str, str, gobject.TYPE_PYOBJECT))
+        self.add_sender(id, "update")
 
-        abstract.ControlEditWindow.__init__(self, core, lv, values)
-        btn_add = builder.get_object("edit:dependencies:btn_ident_add")
-        btn_edit = builder.get_object("edit:dependencies:btn_ident_edit")
-        btn_del = builder.get_object("edit:dependencies:btn_ident_del")
-        
-        # set callBack
-        btn_add.connect("clicked", self.cb_add_row)
-        btn_edit.connect("clicked", self.cb_edit_row)
-        btn_del.connect("clicked", self.cb_del_row)
+        self.widget.append_column(gtk.TreeViewColumn("ID", gtk.CellRendererText(), text=self.COLUMN_ID))
+        self.widget.append_column(gtk.TreeViewColumn("System", gtk.CellRendererText(), text=self.COLUMN_TEXT))
 
-        self.addColumn("ID",self.COLUMN_ID)
-        self.addColumn("System",self.COLUMN_SYSTEM)
+    def __do(self, widget=None):
+        """
+        """
+        self.core.notify_destroy("notify:dialog_notify")
+        item = None
+        buffer = self.system.get_buffer()
+        if self.iter and self.get_model() != None: 
+            item = self.get_model()[self.iter][self.COLUMN_OBJ]
 
-    def fill(self, item):
-        self.item = item
-        self.model.clear()
-        if item:
-            self.item = item.to_rule()
-            for data in self.item.idents:
-                self.model.append([data.id, data.system, data])
-                
-    def set_sensitive(self, sensitive):
-        self.box_ident.set_sensitive(sensitive)
+        if self.operation == self.data_model.CMD_OPER_DEL:
+            self.data_model.edit_ident(self.operation, item, None, None, None)
+        else:
+            # Check input data
+            if self.wid.get_text() == "":
+                self.core.notify("ID of the ident is mandatory.",
+                        Notification.ERROR, info_box=self.info_box, msg_id="notify:dialog_notify")
+                self.wid.grab_focus()
+                return
+            if self.operation == self.data_model.CMD_OPER_ADD:
+                for iter in self.get_model():
+                    if iter[self.COLUMN_ID] == self.wid.get_text():
+                        self.core.notify("ID of the ident has to be unique !",
+                                Notification.ERROR, info_box=self.info_box, msg_id="notify:dialog_notify")
+                        self.wid.grab_focus()
+                        return
+
+            retval = self.data_model.edit_ident(self.operation, item, self.wid.get_text(), buffer.get_text(buffer.get_start_iter(), buffer.get_end_iter()))
+
+        # TODO if not retval
+        self.fill()
+        self.__dialog_destroy()
+        self.emit("update")
+
+    def __dialog_destroy(self, widget=None):
+        """
+        """
+        if self.wdialog: 
+            self.wdialog.destroy()
+
+    def dialog(self, widget, operation):
+        """
+        """
+        self.operation = operation
+        builder = gtk.Builder()
+        builder.add_from_file("/usr/share/scap-workbench/dialogs.glade")
+        self.wdialog = builder.get_object("dialog:edit_ident")
+        self.info_box = builder.get_object("dialog:edit_ident:info_box")
+        self.wid = builder.get_object("dialog:edit_ident:id")
+        self.system = builder.get_object("dialog:edit_ident:system")
+        builder.get_object("dialog:edit_ident:btn_cancel").connect("clicked", self.__dialog_destroy)
+        builder.get_object("dialog:edit_ident:btn_ok").connect("clicked", self.__do)
+
+        self.core.notify_destroy("notify:not_selected")
+        (model, self.iter) = self.get_selection().get_selected()
+        if operation == self.data_model.CMD_OPER_ADD:
+            pass
+        elif operation == self.data_model.CMD_OPER_EDIT:
+            if not self.iter:
+                self.notifications.append(self.core.notify("Please select at least one item to edit",
+                    Notification.ERROR, msg_id="notify:not_selected"))
+                return
+            else:
+                self.wid.set_text(model[self.iter][self.COLUMN_ID] or "")
+                self.system.get_buffer().set_text(model[self.iter][self.COLUMN_TEXT] or "")
+        elif operation == self.data_model.CMD_OPER_DEL:
+            if not self.iter:
+                self.notifications.append(self.core.notify("Please select at least one item to delete",
+                    Notification.ERROR, msg_id="notify:not_selected"))
+                return
+            else: 
+                iter = self.dialogDel(self.core.main_window, self.get_selection())
+                if iter != None:
+                    self.__do()
+                return
+        else: 
+            logger.error("Unknown operation for description dialog: \"%s\"" % (operation,))
+            return
+
+        self.wdialog.set_transient_for(self.core.main_window)
+        self.wdialog.show_all()
+
+    def fill(self):
+
+        self.get_model().clear()
+        for data in self.data_model.get_idents() or []:
+            self.append([data.id, re.sub("[\t ]+" , " ", data.system or "").strip(), data])
 
 class EditQuestion(abstract.ListEditor):
 

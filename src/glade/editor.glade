@@ -4841,7 +4841,7 @@ This attribute is DEPRECATED and appears in the specification only for backward 
                                                   </packing>
                                                 </child>
                                                 <child>
-                                                  <object class="GtkAlignment" id="edit:dependencies:box_ident">
+                                                  <object class="GtkAlignment" id="xccdf:items:ident:box">
                                                     <property name="visible">True</property>
                                                     <property name="top_padding">5</property>
                                                     <property name="bottom_padding">5</property>
@@ -4860,7 +4860,7 @@ This attribute is DEPRECATED and appears in the specification only for backward 
                                                             <property name="vscrollbar_policy">automatic</property>
                                                             <property name="shadow_type">out</property>
                                                             <child>
-                                                            <object class="GtkTreeView" id="edit:dependencies:lv_ident">
+                                                            <object class="GtkTreeView" id="xccdf:items:ident">
                                                             <property name="visible">True</property>
                                                             <property name="can_focus">True</property>
                                                             <property name="enable_grid_lines">both</property>
@@ -4877,7 +4877,7 @@ This attribute is DEPRECATED and appears in the specification only for backward 
                                                             <property name="spacing">5</property>
                                                             <property name="layout_style">end</property>
                                                             <child>
-                                                            <object class="GtkButton" id="edit:dependencies:btn_ident_add">
+                                                            <object class="GtkButton" id="xccdf:items:ident:btn_add">
                                                             <property name="label" translatable="yes">Add</property>
                                                             <property name="visible">True</property>
                                                             <property name="can_focus">True</property>
@@ -4890,7 +4890,7 @@ This attribute is DEPRECATED and appears in the specification only for backward 
                                                             </packing>
                                                             </child>
                                                             <child>
-                                                            <object class="GtkButton" id="edit:dependencies:btn_ident_edit">
+                                                            <object class="GtkButton" id="xccdf:items:ident:btn_edit">
                                                             <property name="label" translatable="yes">Edit</property>
                                                             <property name="visible">True</property>
                                                             <property name="can_focus">True</property>
@@ -4903,7 +4903,7 @@ This attribute is DEPRECATED and appears in the specification only for backward 
                                                             </packing>
                                                             </child>
                                                             <child>
-                                                            <object class="GtkButton" id="edit:dependencies:btn_ident_del">
+                                                            <object class="GtkButton" id="xccdf:items:ident:btn_del">
                                                             <property name="label" translatable="yes">Delete</property>
                                                             <property name="visible">True</property>
                                                             <property name="can_focus">True</property>
