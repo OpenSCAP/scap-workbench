@@ -198,7 +198,7 @@ class Library:
         if self.benchmark.instance == None:
             if openscap.common.err(): desc = openscap.common.err_desc()
             else: desc = "Unknown error, please report this bug (http://bugzilla.redhat.com/)"
-            raise ImportError("Benchmark \"%s\" loading failed: %s" % (f_XCCDF, desc))
+            raise ImportError("Benchmark \"%s\" loading failed: %s" % (xccdf, desc))
         """ Look for OVAL files in CWD, current XCCDF directory and
         in openscap default content directory
         """
@@ -211,7 +211,7 @@ class Library:
                     if def_model.instance == None:
                         if openscap.commonerr(): desc = openscap.common.err_desc()
                         else: desc = "Unknown error, please report this bug (http://bugzilla.redhat.com/)"
-                        raise ImportError("Cannot import definition model for \"%s\": %s" % (f_OVAL, desc))
+                        raise ImportError("Cannot import definition model for \"%s\": %s" % (file, desc))
                     break
 
             if def_model:

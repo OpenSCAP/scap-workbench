@@ -599,6 +599,11 @@ class Func:
         self.core = core
         self.notifications = []
 
+    def destroy_preview(self, widget=None):
+        if 'preview_dialog' in self.__dict__ and self.preview_dialog != None:
+            self.preview_dialog.destroy()
+            self.preview_dialog = None
+
     def prepare_preview(self):
 
         builder = gtk.Builder()
@@ -607,7 +612,8 @@ class Func:
         self.preview_scw = builder.get_object("dialog:preview:scw")
         self.info_box = builder.get_object("dialog:preview:info_box")
         self.save = builder.get_object("dialog:preview:btn_save")
-        builder.get_object("dialog:preview:btn_ok").connect("clicked", lambda w: self.preview_dialog.destroy())
+        builder.get_object("dialog:preview:btn_ok").connect("clicked", self.destroy_preview)
+        self.preview_dialog.connect("destroy", self.destroy_preview)
         # Get the background color from window and destroy it
         window = gtk.Window()
         window.realize()
@@ -656,7 +662,7 @@ class Func:
                 if not iter: return False
             else: return False
         
-        if 'preview_dialog' not in self.__dict__:
+        if 'preview_dialog' not in self.__dict__ or self.preview_dialog == None:
             self.prepare_preview()
 
         if not desc:
@@ -677,6 +683,7 @@ class Func:
                 logger.error("Exception: %s", err)
         #self.preview_dialog.window.set_cursor(gtk.gdk.Cursor(gtk.gdk.ARROW))
 
+        self.save.set_property("visible", save != None)
         if save != None:
             """ We want to have option to save what we see in the preview dialog.
             In this case pass the callback function as "save" parameter it should
@@ -693,7 +700,6 @@ class Func:
                 if retval != None:
                     self.notifications.append(self.core.notify(text, retval, info_box=self.info_box))
 
-            self.save.set_property("visible", True)
             self.save.connect("clicked", __callback_wrapper, self)
 
 
