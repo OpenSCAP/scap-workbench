@@ -1197,9 +1197,9 @@ class DHValues(DataHandler):
         if not self.check_library(): return None
 
         item = self.core.lib.benchmark.get_item(self.core.selected_item)
+        if item: item = item.to_value()
         if item == None:
             raise Exception("Edit items update: No item selected !")
-        item = item.to_value()
 
         if id != None and len(id) > 0 and item.id != id:
             retval = item.set_id(id)

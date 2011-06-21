@@ -3016,6 +3016,9 @@ class EditValues(abstract.MenuButton):
 
     def __change(self, widget, event=None):
 
+        item = self.data_model.get_item(self.core.selected_item)
+        if item.type != openscap.OSCAP.XCCDF_VALUE: return
+
         if event and event.type == gtk.gdk.KEY_PRESS and event.keyval != gtk.keysyms.Return:
             return
 
@@ -3047,19 +3050,35 @@ class EditValues(abstract.MenuButton):
             logger.error("Change: not supported object in \"%s\"" % (widget,))
             return
 
+    def __block_signals(self):
+
+        self.operator.handler_block_by_func(self.__change)
+        self.interactive.handler_block_by_func(self.__change)
+        self.version.handler_block_by_func(self.__change)
+        self.version_time.handler_block_by_func(self.__change)
+        self.vid.handler_block_by_func(self.__change)
+        self.cluster_id.handler_block_by_func(self.__change)
+
+    def __unblock_signals(self):
+        self.operator.handler_unblock_by_func(self.__change)
+        self.interactive.handler_unblock_by_func(self.__change)
+        self.version.handler_unblock_by_func(self.__change)
+        self.version_time.handler_unblock_by_func(self.__change)
+        self.cluster_id.handler_unblock_by_func(self.__change)
+
     def __clear(self):
+        self.__block_signals()
         self.titles.clear()
         self.descriptions.clear()
         self.warnings.clear()
         self.statuses.clear()
         self.questions.clear()
         self.values_values.clear()
-        self.operator.set_active(-1)
-        self.interactive.set_active(False)
-        self.vtype.set_text("")
+        self.__unblock_signals()
 
     def __update(self):
 
+        self.__block_signals()
         details = self.data_model.get_item_details(self.core.selected_item)
 
         self.values.set_sensitive(details != None)
@@ -3085,6 +3104,7 @@ class EditValues(abstract.MenuButton):
             self.statuses.fill()
             self.questions.fill()
             self.values_values.fill()
+        self.__unblock_signals()
 
             
 class EditValuesValues(abstract.ListEditor):
