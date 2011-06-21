@@ -1715,7 +1715,7 @@ class EditDescription(abstract.HTMLEditor):
         if self.operation == self.data_model.CMD_OPER_DEL:
             retval = self.data_model.edit_description(self.operation, item, None, None, None)
         else:
-            desc = self.get_text()
+            desc = self.get_text().strip()
             retval = self.data_model.edit_description(self.operation, item, self.lang.get_text(), desc, self.overrides.get_active())
 
         self.fill()

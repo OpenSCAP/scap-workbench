@@ -1011,7 +1011,8 @@ class HTMLEditor(ListEditor):
         """ If there is no long namespace defined and this is not ending
         tag of paired tags we need to define long namespace """
         if match[2].find("xmlns:xhtml") != -1 or match[0] == "</": NS_TAG = ""
-        else: NS_TAG = ' xmlns:xhtml="http://www.w3.org/1999/xhtml"'
+        #else: NS_TAG = ' xmlns:xhtml="http://www.w3.org/1999/xhtml"'
+        else: NS_TAG = ""
 
         # Bugfix: Correction of double "//" inserted in the end (present in match[2] after group)
         if len(match[2]) > 0 and match[2][-1] == "/": END_TAG = ">"
