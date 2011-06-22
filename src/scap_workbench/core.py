@@ -59,7 +59,6 @@ def label_set_autowrap(widget):
     elif isinstance(widget, gtk.Label) and widget.get_line_wrap():
         widget.connect_after("size-allocate", label_size_allocate)
 
-
 def label_size_allocate(widget, allocation):
     "Callback which re-allocates the size of a label."
     layout = widget.get_layout()
@@ -202,8 +201,8 @@ class Library:
         """ Look for OVAL files in CWD, current XCCDF directory and
         in openscap default content directory
         """
-        dirnames = [".", os.path.dirname(xccdf), "/usr/share/openscap"]
-
+        dirnames = [".", os.path.dirname(xccdf)]
+        def_model = None
         for file in self.benchmark.to_item().get_files().strings:
             for directory in dirnames:
                 if os.path.exists(os.path.join(directory, file)):
@@ -216,6 +215,7 @@ class Library:
 
             if def_model:
                 self.files[file] = Library.OVAL(file, None, def_model)
+            else: print "WARNING: Skipping %s file which is referenced from XCCDF content" % (file,)
 
         if self.benchmark: logger.debug("Initialization done.")
         else:

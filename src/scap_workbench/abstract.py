@@ -657,7 +657,6 @@ class Func:
 
     def preview(self, widget=None, desc=None, save=None):
 
-        print save
         if widget:
             selection = self.widget.get_selection()
             if selection != None: 

@@ -508,12 +508,10 @@ class MenuButtonEditXCCDF(abstract.MenuButton):
 
         self.btn_new = self.builder.get_object("edit:sub:new")
         self.btn_close = self.builder.get_object("edit:sub:close")
-        self.btn_validate = self.builder.get_object("edit:sub:validate")
         self.btn_import = self.builder.get_object("edit:sub:import")
         self.btn_export = self.builder.get_object("edit:sub:export")
         self.btn_new.connect("clicked", self.__cb_new)
         self.btn_close.connect("clicked", self.__cb_close)
-        self.btn_validate.connect("clicked", self.__cb_validate)
         self.btn_import.connect("clicked", self.__cb_import)
         self.btn_export.connect("clicked", self.__cb_export)
 
@@ -564,8 +562,9 @@ class MenuButtonEditXCCDF(abstract.MenuButton):
         dialogs.ExportDialog(self.core, self.data_model)
 
     def __menu_sensitive(self, active):
+        self.btn_new.set_sensitive(not active)
+        self.btn_import.set_sensitive(not active)
         self.btn_close.set_sensitive(active)
-        self.btn_validate.set_sensitive(active)
         self.btn_export.set_sensitive(active)
         self.core.get_item("gui:btn:menu:edit:profiles").set_sensitive(active)
         self.core.get_item("gui:btn:menu:edit:items").set_sensitive(active)
