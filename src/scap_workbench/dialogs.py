@@ -86,12 +86,14 @@ class ImportDialog(abstract.Window, abstract.ListEditor):
             preview_dialog = builder.get_object("dialog:preview")
             box = gtk.VBox()
             box.set_spacing(2)
+            box.show()
             builder.get_object("dialog:preview:scw").add_with_viewport(box)
             builder.get_object("dialog:preview:btn_ok").connect("clicked", lambda w: preview_dialog.destroy())
+            builder.get_object("dialog:preview:btn_save").set_property("visible", False)
             for entry in self.log:
                 self.core.notify("%s" % (entry,), Notification.WARNING, info_box=box)
             preview_dialog.set_transient_for(self.wdialog)
-            preview_dialog.show_all()
+            preview_dialog.show()
 
         elif action == "#bug":
             browser_val = self.data_model.open_webbrowser("http://bugzilla.redhat.com")
@@ -200,12 +202,14 @@ class ExportDialog(abstract.Window, abstract.ListEditor):
             preview_dialog = builder.get_object("dialog:preview")
             box = gtk.VBox()
             box.set_spacing(2)
+            box.show()
             builder.get_object("dialog:preview:scw").add_with_viewport(box)
             builder.get_object("dialog:preview:btn_ok").connect("clicked", lambda w: preview_dialog.destroy())
+            builder.get_object("dialog:preview:btn_save").set_property("visible", False)
             for entry in self.log:
                 self.core.notify("%s" % (entry,), Notification.WARNING, info_box=box)
             preview_dialog.set_transient_for(self.wdialog)
-            preview_dialog.show_all()
+            preview_dialog.show()
 
         # return True to stop handling this event by builtin mechanism
         return True

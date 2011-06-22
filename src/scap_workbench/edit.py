@@ -586,7 +586,7 @@ class MenuButtonEditXCCDF(abstract.MenuButton):
             # Replace all white spaces with '_' (space are not allowed in ID)
             text = re.sub("[\t ]+" , "_", widget.get_text())
             # Check if ID doesn't start with number
-            if len(text) == 0 or re.search("[A-Za-z_]", text[0]) == None:
+            if len(text) != 0 and re.search("[A-Za-z_]", text[0]) == None:
                 self.notifications.append(self.core.notify("First character of ID has to be from A-Z (case insensitive) or \"_\"",
                     Notification.ERROR, msg_id="notify:xccdf:id"))
             else: self.data_model.update(id=text)
@@ -758,7 +758,7 @@ class MenuButtonEditProfiles(abstract.MenuButton, abstract.Func):
             # Check if ID doesn't start with number
             self.core.notify_destroy("notify:xccdf:id")
             text = widget.get_text()
-            if len(text) == 0 or re.search("[A-Za-z_]", text[0]) == None:
+            if len(text) != 0 and re.search("[A-Za-z_]", text[0]) == None:
                 self.notifications.append(self.core.notify("First character of ID has to be from A-Z (case insensitive) or \"_\"",
                     Notification.ERROR, msg_id="notify:xccdf:id"))
                 return
@@ -1144,7 +1144,7 @@ class MenuButtonEditItems(abstract.MenuButton, abstract.Func):
         if widget == self.item_id:
             self.core.notify_destroy("notify:xccdf:id")
             text = widget.get_text()
-            if len(text) == 0 or re.search("[A-Za-z_]", text[0]) == None:
+            if len(text) != 0 and re.search("[A-Za-z_]", text[0]) == None:
                 self.notifications.append(self.core.notify("First character of ID has to be from A-Z (case insensitive) or \"_\"",
                     Notification.ERROR, msg_id="notify:xccdf:id"))
                 return
@@ -2081,7 +2081,7 @@ class EditFix(abstract.ListEditor):
             item = model[iter][self.COLUMN_OBJ]
 
         text_id = self.fid.get_text()
-        if len(text_id) == 0 or re.search("[A-Za-z_]", text_id[0]) == None:
+        if len(text_id) != 0 and re.search("[A-Za-z_]", text_id[0]) == None:
             self.core.notify("First character of ID has to be from A-Z (case insensitive) or \"_\"",
                 Notification.ERROR, msg_id="notify:xccdf:id")
             return

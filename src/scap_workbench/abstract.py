@@ -612,6 +612,7 @@ class Func:
         self.preview_scw = builder.get_object("dialog:preview:scw")
         self.info_box = builder.get_object("dialog:preview:info_box")
         self.save = builder.get_object("dialog:preview:btn_save")
+        self.save.set_property("visible", False)
         builder.get_object("dialog:preview:btn_ok").connect("clicked", self.destroy_preview)
         self.preview_dialog.connect("destroy", self.destroy_preview)
         # Get the background color from window and destroy it
@@ -648,13 +649,15 @@ class Func:
             except Exception as err:
                 logger.error("Exception: %s", err)
         self.preview_scw.add(self.description_widget)
+        self.description_widget.show()
         #self.preview_dialog.window.set_cursor(gtk.gdk.Cursor(gtk.gdk.WATCH))
 
         self.preview_dialog.set_transient_for(self.core.main_window)
-        self.preview_dialog.show_all()
+        self.preview_dialog.show()
 
     def preview(self, widget=None, desc=None, save=None):
 
+        print save
         if widget:
             selection = self.widget.get_selection()
             if selection != None: 
