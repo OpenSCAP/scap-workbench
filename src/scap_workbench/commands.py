@@ -1420,8 +1420,7 @@ class DHItemsTree(DataHandler, EventObject):
         """OpenSCAP library block:
            1) Get selected policy and raise exception if there is no policy - how could this happened ?
            2) Get selector by ID from selected item in treeView
-           3) If there is no selector create one and set up by attributes from treeView
-           """
+           3) If there is no selector create one and set up by attributes from treeView"""
         policy = self.core.lib.policy_model.get_policy_by_id(self.core.selected_profile)
         if policy == None: 
             raise Exception, "Policy %s does not exist" % (self.core.selected_profile,)
@@ -1431,9 +1430,13 @@ class DHItemsTree(DataHandler, EventObject):
             newselect = openscap.xccdf.select()
             newselect.item = model[path][DHItemsTree.COLUMN_ID]
             newselect.selected = model[path][DHItemsTree.COLUMN_SELECTED]
-            policy.select = newselect
+            policy.add_select(newselect.clone())
+            policy.profile.add_select(newselect)
         else:
             select.selected = model[path][DHItemsTree.COLUMN_SELECTED]
+            for select in policy.profile.selects:
+                if select.item == model[path][DHItemsTree.COLUMN_ID]:
+                    select.selected = model[path][DHItemsTree.COLUMN_SELECTED]
 
         """This could be a group and we need set the sensitivity
         for all childs."""
@@ -1459,12 +1462,9 @@ class DHItemsTree(DataHandler, EventObject):
             gtk.gdk.threads_leave()
 
         """Check the item if it's selected. If the parent or the item is not selected
-        change the color of the font to the fgray"""
-        if self.items_model:
-            selected = self.get_selected(item, self.items_model)
-        else:
-            selected = self.get_selected(item, self.items_model)
-            color = ["gray", None][selected and pselected]
+        change the color of the font to the gray"""
+        selected = self.get_selected(item, self.items_model)
+        color = ["gray", None][not self.items_model and selected and pselected]
         
         """If item is not None let's fill the model with groups and rules.
         """
