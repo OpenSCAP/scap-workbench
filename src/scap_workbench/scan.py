@@ -22,6 +22,7 @@
 
 """ Importing standard python libraries
 """
+import os               # For path basedir
 import gtk              # GTK library
 import gobject          # gobject.TYPE_PYOBJECT
 import tempfile         # Temporary file for XCCDF preview
@@ -145,7 +146,7 @@ class MenuButtonScan(abstract.MenuButton, abstract.Func):
             if not retval:
                 self.notifications.append(self.core.notify("Export failed.", core.Notification.ERROR, msg_id="notify:scan:export"))
                 return
-            expfile = self.data_model.export_report(retval, result_id=self.result.id)
+            expfile = self.data_model.export_report(retval, result_id=self.result.id, oval_path=os.path.dirname(retval))
             f = open(expfile)
             desc = f.read()
             f.close()

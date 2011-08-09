@@ -2296,7 +2296,7 @@ class DHScan(DataHandler, EventObject):
             return file_name
         else: return None
 
-    def export_report(self, file, xslfile=None, expfile=None, hide_profile=None, result_id=None):
+    def export_report(self, file, xslfile=None, expfile=None, hide_profile=None, result_id=None, oval_path=None):
         params = [ 
             "result-id",         result_id,
             "show",              None,
@@ -2307,7 +2307,7 @@ class DHScan(DataHandler, EventObject):
             "verbosity",         "",
             "oscap-version",     openscap.common.oscap_get_version(),
             "pwd",               os.getenv("PWD"),
-            "oval-template",    "%.result.xml", None]
+            "oval-template",     os.path.join(oval_path,"%.result.xml"), None]
 
         if not xslfile: xslfile = "xccdf-report.xsl"
         if not expfile: expfile = "report.xhtml"

@@ -28,9 +28,10 @@ import re               # Regular expressions
 
 """ Importing SCAP Workbench modules
 """
-import logging                  # Logger for debug/info/error messages
-from core import Notification   # core.Notification levels for reference
-from events import EventObject  # abstract module EventObject
+import logging                          # Logger for debug/info/error messages
+from core import Notification           # core.Notification levels for reference
+from events import EventObject          # abstract module EventObject
+from htmltextview import HtmlTextView   # Widget for viewing HTML when WebKit is not available
 
 # Initializing Logger
 logger = logging.getLogger("scap-workbench")
