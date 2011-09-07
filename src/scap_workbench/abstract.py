@@ -593,7 +593,7 @@ class List(EventObject):
         #refilter filters after deleted filter
         return self.filter_add(filters)
 
-class Func:
+class Func(object):
     
     def __init__(self, core=None):
 

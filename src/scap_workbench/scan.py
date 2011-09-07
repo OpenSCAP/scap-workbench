@@ -251,7 +251,7 @@ class MenuButtonScan(abstract.MenuButton, abstract.Func):
         window = HelpWindow(self.core)
 
 
-class ProfileChooser:
+class ProfileChooser(object):
     """
     Modal window for choosing profile before scan
     """

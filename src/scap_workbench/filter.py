@@ -30,7 +30,7 @@ import sys, os
 
 logger = logging.getLogger("scap-workbench")
 
-class Filter:
+class Filter(object):
     """Abstract class for defining filters"""
 
     def __init__(self, name="", description="", params={}, istree=True, renderer=None, func=None):
@@ -517,7 +517,7 @@ class ScanFilter(Renderer):
         return True
   
 
-class Loader:
+class Loader(object):
 
     def __init__(self, core):
 

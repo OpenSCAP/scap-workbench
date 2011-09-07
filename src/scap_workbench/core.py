@@ -73,7 +73,7 @@ def label_size_allocate(widget, allocation):
         widget.set_size_request(-1, lh / pango.SCALE)
 
 
-class Notification:
+class Notification(object):
 
     """
     This class implements the notification message.
@@ -147,11 +147,11 @@ class Notification:
             self.widget.destroy()
         
 
-class Library:
+class Library(object):
     """ Abstract model of library variables that
     are static and should be singletons"""
 
-    class OVAL:
+    class OVAL(object):
         """ Class that represents OVAL file that is imported to
         library and used by XCCDF file"""
         def __init__(self, path, sess, model):
@@ -251,7 +251,7 @@ class Library:
         self.policy_model = None
         self.loaded = False
 
-class SWBCore:
+class SWBCore(object):
 
     def __init__(self, builder, with_policy=False):
 

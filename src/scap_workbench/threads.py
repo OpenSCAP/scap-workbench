@@ -39,7 +39,7 @@ def thread_free(func):
     return callback
 
 
-class ThreadManager:
+class ThreadManager(object):
 
     def __init__(self, core):
         self.core = core
