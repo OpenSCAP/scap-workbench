@@ -374,5 +374,7 @@ class MainWindow(abstract.Window, threading.Thread):
         return False
 
     def run(self):
-        gnome.init("SCAP Workbench", "0.2.3")
+        import version
+        
+        gnome.init("SCAP Workbench", version.as_string)
         gtk.main()
