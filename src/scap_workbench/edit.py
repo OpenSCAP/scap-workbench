@@ -3859,7 +3859,7 @@ class Editor(abstract.Window, threading.Thread):
     def run(self):
         import version
         
-        gnome.init("SCAP Workbench", version.as_string)
+        gnome.init("SCAP Workbench Editor", version.as_string)
         gtk.main()
 
 if __name__ == '__main__':

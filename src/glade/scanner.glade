@@ -121,7 +121,7 @@
     </columns>
   </object>
   <object class="GtkWindow" id="main:window">
-    <property name="title" translatable="yes">SCAP Work-bench</property>
+    <property name="title" translatable="yes">SCAP Workbench Scanner</property>
     <property name="window_position">center</property>
     <property name="default_width">1024</property>
     <property name="default_height">700</property>
