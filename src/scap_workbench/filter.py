@@ -538,13 +538,13 @@ class Loader:
         for f in os.listdir(os.path.abspath(dpath)):
             name, ext = os.path.splitext(f)
             if ext == '.py':
-                 logger.debug("Imported filter module: %s" % (name,))
-                 module = __import__(name)
-                 for obj in dir(module):
-                     try:
-                         if issubclass(module.__getattribute__(obj), Filter):
-                             list.append(module.__getattribute__(obj))
-                     except TypeError:
-                         pass
+                logger.debug("Imported filter module: %s" % (name,))
+                module = __import__(name)
+                for obj in dir(module):
+                    try:
+                        if issubclass(module.__getattribute__(obj), Filter):
+                            list.append(module.__getattribute__(obj))
+                    except TypeError:
+                        pass
 
         return list

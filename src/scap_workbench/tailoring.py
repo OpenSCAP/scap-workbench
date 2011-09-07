@@ -249,9 +249,12 @@ class ItemDetails(EventObject):
             hbox.pack_start(label, True, True)
             label.set_tooltip_text(ref["title"])
             label.set_use_markup(True)
-	    try:
+            
+            try:
                 label.set_track_visited_links(True)
-	    except AttributeError: pass
+            except AttributeError:
+                pass
+            
             label.set_line_wrap(True)
             label.set_line_wrap_mode(pango.WRAP_WORD) 
             label.set_alignment(0,0)

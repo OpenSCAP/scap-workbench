@@ -2657,7 +2657,7 @@ class DHEditItems(DataHandler):
                 return None
         if match != None:
             if not instance.set_match(match):
-               return None
+                return None
         return instance
         
     def DHEditRequires(self, item, id, add):
