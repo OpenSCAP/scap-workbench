@@ -219,12 +219,19 @@ class MenuButtonScan(abstract.MenuButton, abstract.Func):
             self.progress.set_text("Preparing ...")
             gtk.gdk.threads_leave()
 
+        # at this point evaluation will keep working in this thread,
+        # DHScan.__callback_start and DHScan.__callback_end will get called when each
+        # of the tests will run and that is what is filling the scan results table
         self.result = self.data_model.policy.evaluate()
+        
+        # the scan finished (successfully or maybe it was canceled)
         gtk.gdk.threads_enter()
-        if self.progress: 
+        if self.progress:
+            # set the progress to 100% regardless of how many tests were actually run
             self.progress.set_fraction(1.0)
             self.progress.set_text("Finished %s of %s rules" % (self.data_model.count_current, self.data_model.count_all))
             self.progress.set_has_tooltip(False)
+            
         logger.debug("Finished scanning")
         self.core.notify("Scanning finished succesfully", core.Notification.SUCCESS, msg_id="notify:scan:complete")
         gtk.gdk.threads_leave()

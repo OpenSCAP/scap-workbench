@@ -2202,7 +2202,7 @@ class DHScan(DataHandler, EventObject):
         """Decodes a callback message and returns a 3-tuple containing the
         result, title and description of the test performed, in that order.
         
-        This method is only to be used in __callback_start and __callback_end.
+        This method is only to be used in __callback_start and __callback_output.
         """
         
         id = msg.user1str
@@ -2222,10 +2222,10 @@ class DHScan(DataHandler, EventObject):
         """Start callback is registered in "prepare" method and is called
         when each of the tests to be performed starts.
         
-        When a test ends, __callback_end is called for it. __callback_end is always
+        When a test ends, __callback_output is called for it. __callback_output is always
         called after __callback_start has been called for that particular test.
         
-        See __callback_end
+        See __callback_output
         """
         
         id, result, title, desc = DHScan.__decode_callback_message(msg)
@@ -2251,8 +2251,8 @@ class DHScan(DataHandler, EventObject):
 
         return self.__cancel
 
-    def __callback_end(self, msg, plugin):
-        """Start callback is registered in "prepare" method and is called
+    def __callback_output(self, msg, plugin):
+        """The output callback is registered in "prepare" method and is called
         when each of the tests to be performed ends (regardless of the result).
         
         See __callback_start
@@ -2279,7 +2279,7 @@ class DHScan(DataHandler, EventObject):
 
         if self.core.registered_callbacks == False:
             self.core.lib.policy_model.register_start_callback(self.__callback_start, self)
-            self.core.lib.policy_model.register_output_callback(self.__callback_end, self)
+            self.core.lib.policy_model.register_output_callback(self.__callback_output, self)
             self.core.registered_callbacks = True
             
         else:
