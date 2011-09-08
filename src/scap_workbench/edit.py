@@ -858,14 +858,27 @@ class MenuButtonEditProfiles(abstract.MenuButton, abstract.Func):
         self.extends.get_model().clear()
 
     def __update(self):
-
-        if not self.core.selected_profile or not self.list_profile.selected: return
+        if not self.core.selected_profile or not self.list_profile.selected:
+            # this will make sure that the box that was previously visible gets disabled
+            
+            # NOTE: we could also just hide it but that makes the interface jump around.
+            #       in my opinion disabling it surprises the user much less
+            self.__profile_box.set_sensitive(False)
+            self.__refines_box.set_sensitive(False)
+            
+            return
+        
         self.__block_signals()
         self.__clear()
-        self.__profile_box.set_property('visible', self.list_profile.selected[0] == "profile")
-        self.__refines_box.set_property('visible', self.list_profile.selected[0] != "profile")
-
+        
         if self.list_profile.selected[0] == "profile":
+            # a profile is selected, make sure the profile box is visible and enabled
+            self.__profile_box.set_visible(True)
+            self.__profile_box.set_sensitive(True)
+            
+            # and hide the refine box
+            self.__refines_box.set_visible(False)
+            
             details = self.data_model.get_profile_details(self.core.selected_profile)
             if not details:
                 self.__unblock_signals()
@@ -887,7 +900,16 @@ class MenuButtonEditProfiles(abstract.MenuButton, abstract.Func):
             self.titles.fill()
             self.descriptions.fill()
             self.statuses.fill()
+            
         else:
+            # at this point we assume a refine of a profile is selected, so lets show
+            # the refine box
+            self.__refines_box.set_visible(True)
+            self.__refines_box.set_sensitive(True)
+            
+            # and hide the profile box
+            self.__profile_box.set_visible(False)
+
             itype   = self.list_profile.selected[0]
             refid   = self.list_profile.selected[1]
             objs    = self.list_profile.selected[2]
@@ -936,6 +958,7 @@ class MenuButtonEditProfiles(abstract.MenuButton, abstract.Func):
                     else: raise AttributeError("Unknown type of value refine: %s" % (value.object,))
                 
             else: raise AttributeError("Unknown type of refines in profile: %s" % (itype,))
+            
         self.__unblock_signals()
 
     def __update_item(self):

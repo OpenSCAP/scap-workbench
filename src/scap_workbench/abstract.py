@@ -1128,8 +1128,8 @@ class CellRendererTextWrap(gtk.CellRendererText):
         self.set_property("wrap-mode", True)
         
     def do_render(self, window, wid, bg_area, cell_area, expose_area, flags):
-       self.set_property("wrap-width", cell_area.width )
-       gtk.CellRendererText.do_render( self, window, wid, bg_area,cell_area, expose_area, flags)
+        self.set_property("wrap-width", cell_area.width )
+        gtk.CellRendererText.do_render( self, window, wid, bg_area,cell_area, expose_area, flags)
        
 gobject.type_register(CellRendererTextWrap)
 
