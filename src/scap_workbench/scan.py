@@ -116,18 +116,37 @@ class MenuButtonScan(abstract.MenuButton, abstract.Func):
         self.add_receiver("gui:main", "quit", self.__cb_cancel)
 
     def __update_profile(self):
+        """Called whenever current profile changes (for example by the profile chooser dialog - see scan.ProfileChooser)
+        
+        Practically synchronizes self.selected_profile to self.core.selected_profile (which takes priority)
+        """
+        
         self.core.notify_destroy("notify:scan:selected_profile")
-        if self.core.selected_profile != None:
+        
+        if not self.core.lib.loaded:
+            return
+        
+        if self.core.selected_profile is not None:
             profile = self.data_model.get_profile_details(self.core.selected_profile)
-            if self.core.selected_lang in profile["titles"]: title = profile["titles"][self.core.selected_lang]
-            else: title = "%s (ID)" % (profile["id"],)
+            
+            if self.core.selected_lang in profile["titles"]:
+                title = profile["titles"][self.core.selected_lang]
+            else:
+                title = "%s (ID)" % (profile["id"],)
+                
             if self.selected_profile != self.core.selected_profile:
                 self.notifications.append(self.core.notify("Selected profile: \"%s\"." % (title,), core.Notification.SUCCESS, msg_id="notify:scan:selected_profile"))
             self.selected_profile = self.core.selected_profile
-        elif self.core.lib.loaded:
+            
+            self.profile.set_tooltip_text("Current profile: %s" % (title))
+            
+        else:
+            # if self.core.selected_profile is None the current profile is "No profile"
             if self.selected_profile != self.core.selected_profile:
                 self.notifications.append(self.core.notify("Selected default document profile.", core.Notification.SUCCESS, msg_id="notify:scan:selected_profile"))
             self.selected_profile = None
+            
+            self.profile.set_tooltip_text("Current profile: (No profile)")
 
     def activate(self, active):
         if active:
