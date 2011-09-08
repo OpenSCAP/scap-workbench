@@ -216,7 +216,7 @@ class MenuButtonScan(abstract.MenuButton, abstract.Func):
         if self.progress != None:
             gtk.gdk.threads_enter()
             self.progress.set_fraction(0.0)
-            self.progress.set_text("Prepairing ...")
+            self.progress.set_text("Preparing ...")
             gtk.gdk.threads_leave()
 
         self.result = self.data_model.policy.evaluate()

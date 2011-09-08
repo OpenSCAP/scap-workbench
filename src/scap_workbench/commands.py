@@ -2197,46 +2197,74 @@ class DHScan(DataHandler, EventObject):
                 )
         return iter
 
-    def __callback_start(self, msg, plugin):
-        """ Start callback is registered in "prepare" method and is called
-        on each test start.
+    @classmethod
+    def __decode_callback_message(cls, msg):
+        """Decodes a callback message and returns a 3-tuple containing the
+        result, title and description of the test performed, in that order.
+        
+        This method is only to be used in __callback_start and __callback_end.
         """
+        
+        id = msg.user1str
         result = msg.user2num
+        
+        # The join of split string is used to convert all whitespace characters,
+        # including newlines, tabs, etc, to plain spaces.
+        #
+        # In this case we need to do this because we are filling a table and
+        # only have one line for all entries
+        title = " ".join(msg.user3str.split()) if msg.user3str is not None else ""
+        desc  = " ".join(msg.string.split()) if msg.string is not None else ""
+        
+        return (id, result, title, desc)        
+
+    def __callback_start(self, msg, plugin):
+        """Start callback is registered in "prepare" method and is called
+        when each of the tests to be performed starts.
+        
+        When a test ends, __callback_end is called for it. __callback_end is always
+        called after __callback_start has been called for that particular test.
+        
+        See __callback_end
+        """
+        
+        id, result, title, desc = DHScan.__decode_callback_message(msg)
         if result == openscap.OSCAP.XCCDF_RESULT_NOT_SELECTED: 
             return self.__cancel
 
-        if msg.user3str == None: title = ""
-        else: title = " ".join(msg.user3str.split())
-        if msg.string == None: desc = ""
-        else: desc = " ".join(msg.string.split())
         self.__current_iter = self.fill([msg.user1str, None, False, title, desc])
+        
         if self.__progress != None:
             gtk.gdk.threads_enter()
-            fract = self.__progress.get_fraction()+self.step
-            if fract < 1.0: self.__progress.set_fraction(fract)
-            else: self.__progress.set_fraction(1.0)
-            self.__progress.set_text("Scanning rule %s ... (%s/%s)" % (msg.user1str, int(self.__progress.get_fraction()/self.step), self.count_all))
-            logger.debug("[%s/%s] Scanning rule %s" % (int(self.__progress.get_fraction()/self.step), self.count_all, msg.user1str))
-            self.__progress.set_tooltip_text("Scanning rule %s" % (" ".join(msg.user3str.split()),))
+            
+            # don't let progress fraction exceed 1.0 = 100%
+            fract = min(self.__progress.get_fraction() + self.step, 1.0)
+            self.__progress.set_fraction(fract)
+            self.count_current = int(round(fract / self.step))
+            
+            self.__progress.set_text("Scanning rule '%s' ... (%s/%s)" % (id, self.count_current, self.count_all))
+            logger.debug("[%s/%s] Scanning rule '%s'" % (self.count_current, self.count_all, id))
+            
+            self.__progress.set_tooltip_text("Scanning rule '%s'" % (title))
+            
             gtk.gdk.threads_leave()
 
         return self.__cancel
 
     def __callback_end(self, msg, plugin):
-        """ Start callback is registered in "prepare" method and is called
-        on each test end.
+        """Start callback is registered in "prepare" method and is called
+        when each of the tests to be performed ends (regardless of the result).
+        
+        See __callback_start
         """
-        result = msg.user2num
+        
+        id, result, title, desc = DHScan.__decode_callback_message(msg)
         if result == openscap.OSCAP.XCCDF_RESULT_NOT_SELECTED: 
             return self.__cancel
 
         gtk.gdk.threads_enter()
-        #ID, Result, Fix, Title, Desc
-        if msg.user3str == None: title = ""
-        else: title = " ".join(msg.user3str.split())
-        if msg.string == None: desc = ""
-        else: desc = " ".join(msg.string.split())
-        self.fill([msg.user1str, msg.user2num, False, title, desc], iter=self.__current_iter)
+            
+        self.fill([id, result, False, title, desc], iter=self.__current_iter)
         self.emit("filled")
         self.treeView.queue_draw()
         self.count_current = int(round(self.__progress.get_fraction()/self.step))
@@ -2245,13 +2273,15 @@ class DHScan(DataHandler, EventObject):
         return self.__cancel
 
     def prepare(self):
-        """Prepaire system for evaluation
+        """Prepare system for evaluation
         return False if something goes wrong, True otherwise
         """
 
         if self.core.registered_callbacks == False:
             self.core.lib.policy_model.register_start_callback(self.__callback_start, self)
             self.core.lib.policy_model.register_output_callback(self.__callback_end, self)
+            self.core.registered_callbacks = True
+            
         else:
             for oval in self.core.lib.files.values():
                 retval = openscap.oval.agent_reset_session(oval.session)
@@ -2269,8 +2299,8 @@ class DHScan(DataHandler, EventObject):
 
         self.count_current = 0
         self.count_all = len(self.policy.selected_rules)
-        self.core.registered_callbacks = True
         self.step = (100.0/(self.count_all or 1.0))/100.0
+        
         return True
         
     def cancel(self):
