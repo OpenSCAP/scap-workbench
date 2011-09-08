@@ -2079,14 +2079,14 @@ class DHScan(DataHandler, EventObject):
 
         # ID Rule
         txtcell = gtk.CellRendererText()
-        column = gtk.TreeViewColumn("Role ID", txtcell, text=DHScan.COLUMN_ID)
+        column = gtk.TreeViewColumn("Rule ID", txtcell, text=DHScan.COLUMN_ID)
         column.add_attribute(txtcell, 'foreground', DHScan.COLUMN_COLOR_TEXT_ID)
         column.set_resizable(True)
         treeView.append_column(column)
 
         #Result
         txtcell = gtk.CellRendererText()
-        column = gtk.TreeViewColumn("     Result     ", txtcell, text=DHScan.COLUMN_RESULT)
+        column = gtk.TreeViewColumn("Result", txtcell, text=DHScan.COLUMN_RESULT)
         column.add_attribute(txtcell, 'background', DHScan.COLUMN_COLOR_BACKG)
         column.set_resizable(True)
         treeView.append_column(column)
