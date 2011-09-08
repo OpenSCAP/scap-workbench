@@ -856,7 +856,7 @@
                                         <child type="label">
                                           <object class="GtkLabel" id="label33">
                                             <property name="visible">True</property>
-                                            <property name="label" translatable="yes">&lt;b&gt;General&lt;/b&gt;</property>
+                                            <property name="label" translatable="yes">&lt;b&gt;Selected profile properties&lt;/b&gt;</property>
                                             <property name="use_markup">True</property>
                                           </object>
                                         </child>
@@ -1450,7 +1450,7 @@
                                         <child type="label">
                                           <object class="GtkLabel" id="label49">
                                             <property name="visible">True</property>
-                                            <property name="label" translatable="yes">&lt;b&gt;General&lt;/b&gt;</property>
+                                            <property name="label" translatable="yes">&lt;b&gt;Selected refine properties&lt;/b&gt;</property>
                                             <property name="use_markup">True</property>
                                           </object>
                                         </child>
