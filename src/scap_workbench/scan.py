@@ -78,13 +78,16 @@ class ScanList(abstract.List):
         self.filter_del(self.filter.filters)
         
 class MenuButtonScan(abstract.MenuButton, abstract.Func):
+    """Button and GUI for scanning, contains results and various buttons to control
+    the scanning process.
     """
-    GUI for refines.
-    """
+    
     def __init__(self, builder, widget, core):
         self.builder = builder
+        
         abstract.MenuButton.__init__(self, "gui:btn:menu:scan", widget, core)
-        self.core = core
+        abstract.Func.__init__(self, core)
+        
         self.exported_file = None
         self.__lock = False
         self.selected_profile = None
@@ -118,7 +121,8 @@ class MenuButtonScan(abstract.MenuButton, abstract.Func):
     def __update_profile(self):
         """Called whenever current profile changes (for example by the profile chooser dialog - see scan.ProfileChooser)
         
-        Practically synchronizes self.selected_profile to self.core.selected_profile (which takes priority)
+        Practically sets self.selected_profile to self.core.selected_profile
+        (this duplication appears to be used mainly to test whether a change actually happened or not)
         """
         
         self.core.notify_destroy("notify:scan:selected_profile")
@@ -216,11 +220,15 @@ class MenuButtonScan(abstract.MenuButton, abstract.Func):
         else:
             self.emit("scan")
             self.data_model.prepare()
-            self.__lock = True
-            self.__set_sensitive(True)
             self.__th_scan()
 
-    def __set_sensitive(self, active):
+    def set_scan_in_progress(self, active):
+        """This method manages sensitivity of various buttons according to whether scanning
+        is in progress or not. Also manages self.__lock
+        """
+        
+        self.__lock = active
+        
         self.stop.set_sensitive(active)
         self.scan.set_sensitive(not active)
         self.export.set_sensitive(not active)
@@ -229,8 +237,14 @@ class MenuButtonScan(abstract.MenuButton, abstract.Func):
 
     @threadSave
     def __th_scan(self):
-        if not self.data_model.check_library(): return None
+        """Starts scanning in a separate thread (via the @threadSave decorator, see threads.py)
+        """
+        
+        if not self.data_model.check_library():
+            return None
 
+        self.set_scan_in_progress(True)
+        
         logger.debug("Scanning %s ..", self.data_model.policy.id)
         if self.progress != None:
             gtk.gdk.threads_enter()
@@ -255,8 +269,8 @@ class MenuButtonScan(abstract.MenuButton, abstract.Func):
         self.core.notify("Scanning finished succesfully", core.Notification.SUCCESS, msg_id="notify:scan:complete")
         gtk.gdk.threads_leave()
         self.core.notify_destroy("notify:scan:cancel")
-        self.__lock = False
-        self.__set_sensitive(False)
+
+        self.set_scan_in_progress(False)
 
     def __cb_cancel(self, widget=None):
         """ Called by user event when stop button pressed
