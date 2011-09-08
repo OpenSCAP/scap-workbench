@@ -108,7 +108,7 @@ class MenuButtonScan(abstract.MenuButton, abstract.Func):
         self.stop = self.builder.get_object("scan:btn_stop")
         self.stop.connect("clicked", self.__cb_cancel)
         self.export = self.builder.get_object("scan:btn_export")
-        self.export.connect("clicked", lambda widget: self.__cb_save_report())
+        self.export.connect("clicked", lambda widget: self.__cb_save_report(append_notifications = True))
         self.help = self.builder.get_object("scan:btn_help")
         self.help.connect("clicked", self.__cb_help)
         self.results = self.builder.get_object("scan:btn_results")
@@ -183,11 +183,12 @@ class MenuButtonScan(abstract.MenuButton, abstract.Func):
         else:
             self.notifications.append(self.core.notify("Nothing to export.", core.Notification.ERROR, msg_id="notify:scan:export"))
 
-    def __cb_save_report(self):
+    def __cb_save_report(self, append_notifications = False):
         """ This method is used as callback to preview dialog window. When user press "save" button
         this function will be called and saved the report to the file.
         
-        This function returns a notification 2-tuple 
+        append_notifications - if True this method will immediately append notifications as necessary,
+                               otherwise it will return a notification 2-tuple 
         """
         
         chooser = gtk.FileChooserDialog(title="Save report", action=gtk.FILE_CHOOSER_ACTION_SAVE,
@@ -204,10 +205,12 @@ class MenuButtonScan(abstract.MenuButton, abstract.Func):
         chooser.destroy()
 
         retval = self.data_model.export(file_name, self.result)
-        if not retval: 
-            return Notification.ERROR, "Export failed"
-
-        return Notification.SUCCESS, "Report file saved successfully"
+        ret = (Notification.ERROR, "Export failed") if not retval else (Notification.SUCCESS, "Report file saved successfully")
+        
+        if append_notifications:
+            self.notifications.append(self.core.notify(ret[1], ret[0], msg_id="notify:scan:export"))
+        else:
+            return ret
 
     def __cb_profile(self, widget):
         for notify in self.notifications:
