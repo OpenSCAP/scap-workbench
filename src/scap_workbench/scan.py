@@ -169,17 +169,26 @@ class MenuButtonScan(abstract.MenuButton, abstract.Func):
         if self.result:
             self.prepare_preview()
             gtk.gdk.flush()
-            temp = tempfile.NamedTemporaryFile()
-            retval = self.data_model.export(temp.name, self.result)
-            if not retval:
+            
+            raw_temp = tempfile.NamedTemporaryFile()
+            transformed_temp = tempfile.NamedTemporaryFile()
+            
+            if not self.data_model.export(raw_temp.name, self.result):
                 self.notifications.append(self.core.notify("Export failed.", core.Notification.ERROR, msg_id="notify:scan:export"))
                 return
-            expfile = self.data_model.export_report(retval, result_id=self.result.id, oval_path=os.path.dirname(retval))
-            f = open(expfile)
-            desc = f.read()
-            f.close()
-            self.preview(widget=None, desc=desc, save=self.__cb_save_report)
-            temp.close()
+            
+            self.data_model.perform_xslt_transformation(file = raw_temp.name,
+                                                        expfile = transformed_temp.name,
+                                                        result_id = self.result.id,
+                                                        oval_path = os.path.dirname(raw_temp.name))
+            
+            desc = transformed_temp.read()
+            
+            self.preview(widget = None, desc = desc, save = self.__cb_save_report)
+            
+            raw_temp.close()
+            transformed_temp.close()
+            
         else:
             self.notifications.append(self.core.notify("Nothing to export.", core.Notification.ERROR, msg_id="notify:scan:export"))
 

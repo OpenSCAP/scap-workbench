@@ -2313,20 +2313,35 @@ class DHScan(DataHandler, EventObject):
             logger.debug("OVAL Agent session abort: %s" % (retval,))
 
     def export(self, file_name, result):
+        """Exports a raw XML results file"""
+        
         if self.core.lib == None:
             return False
-        if not file_name: file_name = self.file_browse("Save results", file="results.xml")
+        
+        if file_name is None:
+            file_name = self.file_browse("Save results", file="results.xml")
+            
         if file_name != "":
             sessions = {}
             for oval in self.core.lib.files.values():
                 sessions[oval.path] = oval.session
             files = self.policy.export(result, DHScan.RESULT_NAME, file_name, file_name, self.core.lib.xccdf, sessions)
+            
             for file in files:
                 logger.debug("Exported: %s", file)
+            
             return file_name
-        else: return None
+        
+        else:
+            return None
 
-    def export_report(self, file, xslfile=None, expfile=None, hide_profile=None, result_id=None, oval_path=None):
+    def perform_xslt_transformation(self, file, xslfile=None, expfile=None, hide_profile=None, result_id=None, oval_path=None):
+        """Performs XSLT transformation on given file (raw XML results data, from DHScan.export for example).
+        
+        The resulting file (expfile) is the given raw XML results file transformed. Depending on the XSLT transformation
+        used this can be anything XHTML, PDF, ...
+        """
+        
         params = [ 
             "result-id",         result_id,
             "show",              None,
@@ -2339,8 +2354,11 @@ class DHScan(DataHandler, EventObject):
             "pwd",               os.getenv("PWD"),
             "oval-template",     os.path.join(oval_path,"%.result.xml"), None]
 
-        if not xslfile: xslfile = "xccdf-report.xsl"
-        if not expfile: expfile = "report.xhtml"
+        if not xslfile:
+            xslfile = "xccdf-report.xsl"
+            
+        if not expfile:
+            expfile = "report.xhtml"
 
         retval = openscap.common.oscap_apply_xslt(file, xslfile, expfile, params)
         # TODO If this call (below) is not executed, there will come some strange behaviour
