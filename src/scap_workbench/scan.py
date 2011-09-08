@@ -108,11 +108,11 @@ class MenuButtonScan(abstract.MenuButton, abstract.Func):
         self.stop = self.builder.get_object("scan:btn_stop")
         self.stop.connect("clicked", self.__cb_cancel)
         self.export = self.builder.get_object("scan:btn_export")
-        self.export.connect("clicked", self.__cb_export)
+        self.export.connect("clicked", lambda widget: self.__cb_save_report())
         self.help = self.builder.get_object("scan:btn_help")
         self.help.connect("clicked", self.__cb_help)
         self.results = self.builder.get_object("scan:btn_results")
-        self.results.connect("clicked", self.__cb_export_report)
+        self.results.connect("clicked", self.__cb_preview_report)
 
         # set signals
         self.add_sender(self.id, "scan")
@@ -160,7 +160,12 @@ class MenuButtonScan(abstract.MenuButton, abstract.Func):
                 notify.destroy()
             self.core.notify_destroy("notify:scan:cancel")
 
-    def __cb_export_report(self, widget):
+    def __cb_preview_report(self, widget):
+        """Creates a preview of the exported report. Allows user to save it using the Save button.
+        
+        See MenuButtonScan.__cb_save_report
+        """
+        
         if self.result:
             self.prepare_preview()
             gtk.gdk.flush()
@@ -180,25 +185,27 @@ class MenuButtonScan(abstract.MenuButton, abstract.Func):
 
     def __cb_save_report(self):
         """ This method is used as callback to preview dialog window. When user press "save" button
-        this function will be called and saved the report to the file. This function should return
+        this function will be called and saved the report to the file.
+        
+        This function returns a notification 2-tuple 
         """
         
         chooser = gtk.FileChooserDialog(title="Save report", action=gtk.FILE_CHOOSER_ACTION_SAVE,
                 buttons=(gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL, gtk.STOCK_SAVE, gtk.RESPONSE_OK))
         chooser.set_current_name("report.xhtml")
         response = chooser.run()
+        
         if response == gtk.RESPONSE_OK:
             file_name = chooser.get_filename()
         elif response == gtk.RESPONSE_CANCEL:
             chooser.destroy()
             return None, None
+        
         chooser.destroy()
 
         retval = self.data_model.export(file_name, self.result)
         if not retval: 
             return Notification.ERROR, "Export failed"
-
-        expfile = self.data_model.export_report(retval, result_id=self.result.id)
 
         return Notification.SUCCESS, "Report file saved successfully"
 
@@ -278,14 +285,6 @@ class MenuButtonScan(abstract.MenuButton, abstract.Func):
         if self.__lock:
             self.core.notify("Scanning canceled. Please wait for openscap to finish current task.", core.Notification.INFORMATION, msg_id="notify:scan:cancel")
             self.data_model.cancel()
-
-    def __cb_export(self, widget):
-        if self.result:
-            retval = self.data_model.export(None, self.result)
-            if not retval:
-                self.notifications.append(self.core.notify("Export failed.", core.Notification.ERROR, msg_id="notify:scan:export"))
-        else:
-            self.notifications.append(self.core.notify("Nothing to export.", core.Notification.ERROR, msg_id="notify:scan:export"))
 
     def __cb_help(self, widget):
         window = HelpWindow(self.core)
