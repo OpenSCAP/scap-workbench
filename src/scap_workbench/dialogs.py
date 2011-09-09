@@ -43,7 +43,14 @@ class ImportDialog(abstract.Window, abstract.ListEditor):
     """
 
     def __init__(self, core, data_model, cb):
-
+        """Constructor
+        
+        core - the SWBCore singleton instance
+        data_model - commands.DXccdf instance (actually it's a DataHandler, not model!)
+        cb - the import callback, if the import dialog succeeds in choosing a file this
+             will be called to import the file
+        """
+        
         self.core = core
         self.__import = cb
         self.data_model = data_model
@@ -57,6 +64,8 @@ class ImportDialog(abstract.Window, abstract.ListEditor):
         builder.get_object("dialog:import:btn_ok").connect("clicked", self.__do)
         builder.get_object("dialog:import:btn_cancel").connect("clicked", self.__dialog_destroy)
 
+        # TODO: Shouldn't this rather just raise an exception? Is there a use case
+        #       where user can choose a callback?
         if not callable(self.__import):
             logger.critical("FATAL: Function for import is not callable")
             self.core.notify("<b>FATAL !</b> Function for import is not callable ! <a href='#bug'>Report</a>", 
@@ -103,6 +112,12 @@ class ImportDialog(abstract.Window, abstract.ListEditor):
         return True
 
     def __do(self, widget=None, overvalid=False):
+        """Performs the import.
+        
+        widget - the widget (usually the OK button) that caused this to happen
+        overvalid - if True the validation step will be skipped
+        """
+        
         import_file = self.filechooser.get_filename()
         if import_file == None:
             self.core.notify("Choose a file to first.",
@@ -123,7 +138,9 @@ class ImportDialog(abstract.Window, abstract.ListEditor):
         self.__dialog_destroy()
 
     def __dialog_destroy(self, widget=None):
-        """
+        """Destroy the dialog window, usually as a reponse to Cancel being clicked.
+        
+        widget - the widget that caused this to happen
         """
         if self.wdialog: 
             self.wdialog.destroy()

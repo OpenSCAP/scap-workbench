@@ -74,7 +74,6 @@ class MenuButtonXCCDF(abstract.MenuButton):
     """
     def __init__(self, builder, widget, core):
         self.builder = builder
-        logger = logging.getLogger(self.__class__.__name__)
         self.data_model = commands.DHXccdf(core)
         abstract.MenuButton.__init__(self, "gui:btn:main:xccdf", widget, core)
         self.widget = widget
@@ -296,6 +295,12 @@ class MenuButtonXCCDF(abstract.MenuButton):
             self.core.xccdf_file = file_name
 
     def __menu_sensitive(self, active):
+        """This gets called as a reaction to a file being loaded or closed.
+        
+        If active is True this will make the latter 2 buttons in the top menu sensitive,
+        otherwise it will make them insensitive.
+        """
+        
         self.core.get_item("gui:btn:menu:tailoring").set_sensitive(active)
         self.core.get_item("gui:btn:menu:scan").set_sensitive(active)
 

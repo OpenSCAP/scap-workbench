@@ -80,6 +80,10 @@ class DataHandler(object):
         else: return True
 
     def open_webbrowser(self, file):
+        """Opens client's web browser using the webbrowser module. Assumes given file is a report.
+        
+        file - file to open with the web browser
+        """
 
         browser_val = webbrowser.open(file)
         if not browser_val: self.core.notify("Failed to open browser \"%s\". Report file is saved in \"%s\"" % (webbrowser.get().name, "report.xhtml"),
