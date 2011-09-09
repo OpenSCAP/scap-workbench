@@ -213,16 +213,25 @@ class MenuButtonScan(abstract.MenuButton, abstract.Func):
         
         chooser.destroy()
 
-        retval = self.data_model.export(file_name, self.result)
-        ret = (Notification.ERROR, "Export failed") if not retval else (Notification.SUCCESS, "Report file saved successfully")
-        
-        # TODO: We should be more robust and do more error checking here
-        self.data_model.perform_xslt_transformation(retval, result_id = self.result.id, oval_path = os.path.dirname(retval))
-        
-        if append_notifications:
-            self.notifications.append(self.core.notify(ret[1], ret[0], msg_id="notify:scan:export"))
+        if not os.access(file_name, os.W_OK):
+            ret = (Notification.ERROR, "Export failed - chosen file path isn't accessible for writing")
+            if append_notifications:
+                self.notifications.append(self.core.notify(ret[1], ret[0], msg_id="notify:scan:export"))
+            else:
+                return ret
+            
         else:
-            return ret
+            retval = self.data_model.export(file_name, self.result)
+            # TODO: More info about the error
+            ret = (Notification.ERROR, "Export failed") if not retval else (Notification.SUCCESS, "Report file saved successfully")
+            
+            # TODO: We should be more robust and do more error checking here
+            self.data_model.perform_xslt_transformation(retval, result_id = self.result.id, oval_path = os.path.dirname(retval))
+            
+            if append_notifications:
+                self.notifications.append(self.core.notify(ret[1], ret[0], msg_id="notify:scan:export"))
+            else:
+                return ret
 
     def __cb_profile(self, widget):
         for notify in self.notifications:
