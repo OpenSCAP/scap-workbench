@@ -1200,6 +1200,10 @@ class DHValues(DataHandler):
     def edit_value(self, id=None, version=None, version_time=None, prohibit_changes=None, abstract=None, cluster_id=None, interactive=None, operator=None):
         if not self.check_library(): return None
 
+        print abstract.__class__
+        print version_time.__class__
+        print version_time
+        
         item = self.core.lib.benchmark.get_item(self.core.selected_item)
         if item: item = item.to_value()
         if item == None:
@@ -2356,6 +2360,7 @@ class DHScan(DataHandler, EventObject):
             "verbosity",         "",
             "oscap-version",     openscap.common.oscap_get_version(),
             "pwd",               os.getenv("PWD"),
+            # TODO: oval_path actually can't be None or this fails! We need to find a more sensible default value
             "oval-template",     os.path.join(oval_path,"%.result.xml"), None]
 
         if not xslfile:
@@ -2625,12 +2630,12 @@ class DHEditItems(DataHandler):
         else:
             logger.error("Error: Not read item.")
             
-    def DHEditImpactMetrix(self, rule, text):
+    def DHEditImpactMetric(self, rule, text):
         if rule:
             if rule != openscap.OSCAP.XCCDF_RULE:
                 rule = rule.to_rule()
             if not rule.set_impact_metric(text):
-                logger.error("Error: Impact metrix not set.")
+                logger.error("Error: Impact metric not set.")
         else:
             logger.error("Error: Not read rule.")
 

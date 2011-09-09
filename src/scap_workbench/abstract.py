@@ -24,7 +24,9 @@
 """
 import gtk              # GTK library
 import gobject          # gobject.TYPE_PYOBJECT
-import re               # Regular expressions 
+import re               # Regular expressions
+import datetime
+import time
 
 """ Importing SCAP Workbench modules
 """
@@ -86,7 +88,7 @@ class Menu(EventObject):
         self.default_item = None
         self.widget = widget
         core.register(id, self)
-	
+    
     def add_item(self, item):
         """ Add item to the menu list
         """
@@ -143,7 +145,7 @@ class MenuButton(EventObject):
         """
         self.core = core
         self.id = id
-        super(MenuButton, self).__init__()
+        super(MenuButton, self).__init__(core)
         self.add_sender(id, "update")
         self.parent = None
         self.menu = None
@@ -789,12 +791,13 @@ class Func(object):
                 self.notifications.append(self.core.notify("The date is in incorrect format. Correct format is YYYY-MM-DD.",
                     Notification.ERROR, msg_id="notify:date_format"))
                 return None
-            try :
+            try:
                 d = datetime.date(int(date[0]), int(date[1]), int(date[2]))
             except Exception as ex:
                 self.notifications.append(self.core.notify("The date is in incorrect format. Correct format is YYYY-MM-DD.",
                     Notification.ERROR, msg_id="notify:date_format"))
                 return None
+            
             try:
                 timestamp = time.mktime(d.timetuple()) 
             except Exception as ex:
@@ -809,7 +812,7 @@ class Func(object):
             
     def controlImpactMetric(self, text, core):
         """
-        Function control impact metrix
+        Function control impact metric
         """
         #pattern = re.compile ("^AV:[L,A,N]/AC:[H,M,L]/Au:[M,S,N]/C:[N,P,C]/I:[N,P,C]/A:[N,P,C]$|^E:[U,POC,F,H,ND]/RL:[OF,TF,W,U,ND]/RC:[UC,UR,C,ND]$|^CDP:[N,L,LM,MH,H,ND]/TD:[N,L,M,H,ND]/CR:[L,M,H,ND]/ IR:[L,M,H,ND]/AR:[L,M,H,ND]$",re.IGNORECASE)
         patternBase = re.compile("^AV:[L,A,N]/AC:[H,M,L]/Au:[M,S,N]/C:[N,P,C]/I:[N,P,C]/A:[N,P,C]$",re.IGNORECASE)
@@ -819,7 +822,7 @@ class Func(object):
         if patternBase.search(text) != None or patternTempo.search(text) != None or patternEnvi.search(text) != None:
             return True
         else:
-            error = "Incorrect value of Impact Metrix, correct is: Metric Value Description \n"
+            error = "Incorrect value of Impact Metric, correct is: Metric Value Description \n"
             error = error + "Base =    AV:[L,A,N]/AC:[H,M,L]/Au:[M,S,N]/C:[N,P,C]/I:[N,P,C]/A:[N,P,C]\n"
             error = error + "Temporal =     E:[U,POC,F,H,ND]/RL:[OF,TF,W,U,ND]/RC:[UC,UR,C,ND]\n"
             error = error + "Environmental =    CDP:[N,L,LM,MH,H,ND]/TD:[N,L,M,H,ND]/CR:[L,M,H,ND]/IR:[L,M,H,ND]/AR:[L,M,H,ND]"

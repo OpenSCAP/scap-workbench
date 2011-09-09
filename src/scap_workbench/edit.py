@@ -1141,7 +1141,7 @@ class MenuButtonEditItems(abstract.MenuButton, abstract.Func):
         self.severity.set_model(ENUM.LEVEL.get_model())
         self.severity.connect( "changed", self.__change)
         self.impact_metric = self.builder.get_object("edit:operations:entry_impact_metric")
-        self.impact_metric.connect("focus-out-event", self.cb_control_impact_metrix)
+        self.impact_metric.connect("focus-out-event", self.cb_control_impact_metric)
         self.check = self.builder.get_object("edit:operations:lv_check")
 
         self.add_receiver("gui:edit:item_list", "update", self.__update)
@@ -1248,10 +1248,10 @@ class MenuButtonEditItems(abstract.MenuButton, abstract.Func):
             self.section_list.get_model().append(["PROFILES", "XCCDF: "+title+" (Profiles)"])
             self.section_list.set_active(0)
 
-    def cb_control_impact_metrix(self, widget, event):
+    def cb_control_impact_metric(self, widget, event):
         text = widget.get_text()
         if text != "" and self.controlImpactMetric(text, self.core):
-            self.data_model.DHEditImpactMetrix(self.item, text)
+            self.data_model.DHEditImpactMetric(self.item, text)
 
     def show(self, sensitive):
         self.items.set_sensitive(sensitive)
@@ -2942,7 +2942,7 @@ class EditPlatform(abstract.ListEditor):
         for item in self.data_model.get_platforms() or []:
             self.get_model().append([item])
 
-class EditValues(abstract.MenuButton):
+class EditValues(abstract.MenuButton, abstract.Func):
     
     COLUMN_ID = 0
     COLUMN_TITLE = 1
@@ -2953,12 +2953,15 @@ class EditValues(abstract.MenuButton):
     COLUMN_CHECK_EXPORT = 6
     
     def __init__(self, core, id, builder):
+        # FIXME: We are not calling constructor of abstract.MenuButton, this could backfire sometime in the future!
+        abstract.Func.__init__(self, core)
 
         self.data_model = commands.DHValues(core) 
         self.core = core
         self.builder = builder
         self.id = id
 
+        # FIXME: Calling constructors of classes that are not direct ancestors!
         EventObject.__init__(self, core)
         self.core.register(self.id, self)
         self.add_sender(id, "update_item")
@@ -3057,7 +3060,7 @@ class EditValues(abstract.MenuButton):
         elif widget == self.version_time:
             timestamp = self.controlDate(widget.get_text())
             if timestamp:
-                self.data_model.update(version_time=timestamp)
+                self.data_model.edit_value(version_time=timestamp)
         elif widget == self.cluster_id:
             self.data_model.edit_value(cluster_id=widget.get_text())
         elif widget == self.operator:
