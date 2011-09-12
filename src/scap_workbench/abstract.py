@@ -67,10 +67,10 @@ except Exception as ex:
     openscap=None
 
 class Menu(EventObject):
+    """Create Main item for TreeToolBar_toggleButtonGroup and draw all tree Menu
 
-    """ Create Main item for TreeToolBar_toggleButtonGroup and draw all tree Menu
-
-    Menu contains all menu items as MenuButtons.
+    Menu contains all menu items as MenuButtons. MenuButtons themselves have their
+    content contained within.
     """
 
     def __init__(self, id, widget, core):
@@ -131,8 +131,7 @@ class Menu(EventObject):
         self.active_item.set_active(True)
 
 class MenuButton(EventObject):
-
-    """ Class containing GTK Widget button with the content of 
+    """Class containing GTK Widget button with the content of 
     the page associated with this button.
     """
 
@@ -143,18 +142,17 @@ class MenuButton(EventObject):
         @param widget GTK Widget for menu item
         @param core SWBCore singleton
         """
-        self.core = core
-        self.id = id
         super(MenuButton, self).__init__(core)
+
+        self.id = id
         self.add_sender(id, "update")
         self.parent = None
         self.menu = None
         self.body = None
         self.widget = widget
         core.register(id, self)
-        self.notifications = []
 
-        # setings
+        # signals
         self.widget.connect("toggled", self.cb_toggle)
 
     def add_frame_vp(self,body, text,pos = 1):
@@ -200,11 +198,6 @@ class MenuButton(EventObject):
 
     def update(self):
         pass
-
-    def activate(self, active):
-        if not active:
-            for notify in self.notifications:
-                notify.destroy()
 
     def set_active(self, active):
         """
