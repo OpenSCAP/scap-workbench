@@ -244,24 +244,29 @@ class MenuButton(EventObject):
                 self.body.hide()
 
 class Window(EventObject):
-
-    def __init__(self, id, core=None):
+    """Free floating Window
+    """
+    
+    def __init__(self, id, core = None):
+        """Constructor
         
-        #create view
-        self.core = core
-        self.id = id
+        id - unique id of the object
+        core - SWBCore singleton instance
+        """
+        
         EventObject.__init__(self, core)
+
+        self.id = id
         self.core.register(id, self)
 
 class List(EventObject):
     
     def __init__(self, id, core=None, widget=None):
+        super(List, self).__init__(core)
         
         #create view
-        self.core = core
         self.id = id
         self.core.register(id, self)
-        super(List, self).__init__(core)
         self.filter_model = None
         self.selected = None
         
@@ -589,6 +594,17 @@ class List(EventObject):
         return self.filter_add(filters)
 
 class Func(object):
+    """Provides miscellaneous functionality like preview, datetime helper methods, etc...
+    The only reason the methods are not classmethods or staticmethods are the notifications
+    (self.notifications).
+    
+    The intended usage is probably as a mixin class to a class with EventObject as one of the
+    base classes.
+    """
+    
+    # FIXME: This is almost exclusively used as a mixin class and its constructor is not called
+    #        IMO it creates a very strange pseudo-diamond hierarchy that should be removed
+    #        at some point in the future
     
     def __init__(self, core=None):
 
@@ -1142,6 +1158,7 @@ class EnterList(EventObject):
         self.cb_action = cb_action
         if not cb_action:
             self.selected_old = None
+            # FIXME: Only calling constructor of the super class conditionally?!
             super(EnterList, self).__init__(core)
             self.core.register(id, self)
             self.add_sender(id, "del")
