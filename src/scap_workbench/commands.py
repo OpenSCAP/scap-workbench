@@ -87,7 +87,7 @@ class DataHandler(object):
 
         browser_val = webbrowser.open(file)
         if not browser_val: self.core.notify("Failed to open browser \"%s\". Report file is saved in \"%s\"" % (webbrowser.get().name, "report.xhtml"),
-                core.Notification.INFORMATION, msg_id="notify:scan:export_report")
+            core.Notification.INFORMATION, msg_id="notify:scan:export_report")
 
     def get_title(self, titles):
         

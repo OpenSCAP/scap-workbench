@@ -951,7 +951,7 @@ class HTMLEditor(ListEditor):
     COLUMN_OBJ  = 2
 
     def __init__(self, id, core, widget=None, model=None):
-        ListEditor.__init__(self, id, core, widget, model)
+        super(HTMLEditor, self).__init__(id, core, widget, model)
 
         self.__html = None
         self.__plain = None
@@ -1147,7 +1147,7 @@ gobject.type_register(CellRendererTextWrap)
 
 class EnterList(EventObject):
     """
-    Abstrac class for enter listView
+    Abstract class for enter listView
     """
     COLUMN_MARK_ROW = 0
 
@@ -1319,9 +1319,9 @@ class EnterList(EventObject):
 
 
 class ControlEditWindow(Func):
-    
     def __init__(self, core, lv, values):
-        self.core = core
+        super(ControlEditWindow, self).__init__(core)
+        
         self.values = values
         self.item = None
         if lv:
@@ -1349,8 +1349,8 @@ class ControlEditWindow(Func):
 
 class EditDialogWindow(EventObject):
     """ 
-    Class create window for add/edit data acording the information in strucure.
-    Class control set data acordin data in structure
+    Class create window for add/edit data acording the information in structure.
+    Class control set data acording to data in the structure
     Example of struct
         values = {
                     "name_dialog":  "Fix",
@@ -1367,8 +1367,8 @@ class EditDialogWindow(EventObject):
                         }
     """
     def __init__(self, item, core, values, new=True):
-        
-        self.core = core
+        super(EditDialogWindow, self).__init__(core)
+
         self.new = new
         self.values = values
         self.item = item
