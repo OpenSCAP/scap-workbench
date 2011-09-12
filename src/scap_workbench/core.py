@@ -305,16 +305,20 @@ class SWBCore(object):
         self.set_receiver("gui:btn:main:xccdf", "load", self.__set_force)
 
     def init(self, XCCDF):
-        """Free self.lib
+        """Initializes the scanner or editor to use the given XCCDF.
+        If XCCDF is None a new one is created.
         """
-        if self.lib: self.lib.destroy()
+        
+        if self.lib:
+            self.lib.destroy()
+            
         if self.info_box:
             for child in self.info_box:
                 child.destroy()
 
-        if openscap == None:
+        if openscap is None:
             logger.error("Can't initialize openscap library.")
-            raise Exception("Can't initialize openscap library")
+            raise RuntimeError("Can't initialize openscap library")
 
         if not XCCDF:
             # No XCCDF specified: Create new Benchmark

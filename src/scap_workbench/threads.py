@@ -26,11 +26,25 @@ import time
 logger = logging.getLogger("scap-workbench")
 
 def thread(func):
+    """Usually used as a decorator to make a method start a thread
+    and execute itself in it. The central self.core.thread_handler
+    is used (despite being called thread_handler it is actually
+    threads.ThreadManager).
+    
+    IMPORTANT: Only use on methods from classes that have attribute "core",
+               so that self.core is accessible!
+    """
+    
     def callback(self, *args, **kwargs):
         self.core.thread_handler.new_thread(func, self, *args, **kwargs)
     return callback
 
 def thread_free(func):
+    """See threads.thread decorated. The difference is that a new thread
+    handler is created instead of using self.core.thread_handler,
+    so this can be used in cases where self.core isn't accessible.
+    """
+    
     def callback(self, *args, **kwargs):
         handler = ThreadHandler(None, func, self, *args, **kwargs)
         if handler:
@@ -40,6 +54,12 @@ def thread_free(func):
 
 
 class ThreadManager(object):
+    """A singleton thread manager used to start new threads. You can access it
+    via core.thread_handler.
+    
+    Instead of using it directly, consider using one of the decorators defined
+    in this module.
+    """
 
     def __init__(self, core):
         self.core = core
@@ -65,7 +85,9 @@ class ThreadManager(object):
         self.handlers.remove(func)
 
 class ThreadHandler(threading.Thread):
-    """
+    """A callable wrapper used to execute such a callable in a thread.
+    
+    Not intended to be used directly! Use one of the 2 decorators or ThreadManager instead.
     """
     def __init__(self, master, func, obj, *args, **kwargs):
         """ Initializing variables """
