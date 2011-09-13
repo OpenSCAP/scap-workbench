@@ -1100,7 +1100,8 @@ class DHXccdf(DataHandler):
                 "oval-template",     None,
                 "verbosity",         "1",
                 "oscap-version",     openscap.common.oscap_get_version(),
-                "pwd",               os.getenv("PWD"), None]
+                "pwd",               os.getenv("PWD")
+        ]
 
         retval = openscap.common.oscap_apply_xslt(xccdf, "security-guide.xsl", file, params)
         # TODO If this call (below) is not executed, there will come some strange behaviour
@@ -2360,7 +2361,8 @@ class DHScan(DataHandler, EventObject):
             "oscap-version",     openscap.common.oscap_get_version(),
             "pwd",               os.getenv("PWD"),
             # TODO: oval_path actually can't be None or this fails! We need to find a more sensible default value
-            "oval-template",     os.path.join(oval_path,"%.result.xml"), None]
+            "oval-template",     os.path.join(oval_path,"%.result.xml")
+        ]
 
         if not xslfile:
             xslfile = "xccdf-report.xsl"
