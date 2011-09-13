@@ -932,8 +932,7 @@ class DataHandler(object):
 class DHXccdf(DataHandler):
 
     def __init__(self, core):
-        
-        DataHandler.__init__(self, core)
+        super(DHXccdf, self).__init__(core)
 
     def get_details(self):
     
@@ -1111,10 +1110,9 @@ class DHXccdf(DataHandler):
 class DHValues(DataHandler):
 
     def __init__(self, core, items_model=False):
+        super(DHValues, self).__init__(core)
         self.items_model = items_model
         
-        DataHandler.__init__(self, core)
-
     def render(self, treeView):
         """Make a model ListStore of Dependencies object"""
         self.treeView = treeView
@@ -1338,11 +1336,12 @@ class DHItemsTree(DataHandler, EventObject):
         """
         param items_model if False use selected profile is selected. If true use base model.
         """
+        DataHandler.__init__(self, core)
+        EventObject.__init__(self, core)
+
+        self.id = id
         self.combo_box = combo_box
         self.items_model = items_model
-        self.id = id
-        EventObject.__init__(self)
-        DataHandler.__init__(self, core)
         self.no_checks = no_checks
         
         core.register(id, self)
@@ -1681,8 +1680,8 @@ class DHItemsTree(DataHandler, EventObject):
 class DHProfiles(DataHandler):
 
     def __init__(self, core):
+        super(DHProfiles, self).__init__(core)
         
-        DataHandler.__init__(self, core)
         self.treeView = None
         self.model = None
 
@@ -2059,10 +2058,10 @@ class DHScan(DataHandler, EventObject):
     RESULT_NAME = "SCAP WORKBENCH Test Result"
 
     def __init__(self, id, core, progress=None):
-
-        self.id = id
-        EventObject.__init__(self)
         DataHandler.__init__(self, core)
+        EventObject.__init__(self, core)
+        
+        self.id = id
         self.__progress=progress
         self.__cancel = False
         self.count_current = 0
@@ -2076,7 +2075,7 @@ class DHScan(DataHandler, EventObject):
 
     def render(self, treeView):
         """ define treeView"""
-         
+        
         self.treeView = treeView
 
         #model: id rule, result, fix, description, color text desc, color background, color text res
@@ -2377,10 +2376,10 @@ class DHScan(DataHandler, EventObject):
 class DHEditItems(DataHandler):
     
     def __init__(self, core=None):
-
+        super(DHEditItems, self).__init__(core)
+        
         self.item = None # TODO: bug workaround - commands.py:1589 AttributeError: DHEditItems instance has no attribute 'item'
-        self.core = core
-
+        
     def get_fixtexts(self):
         if not self.check_library(): return None
         item = self.core.lib.benchmark.get_item(self.core.selected_item)

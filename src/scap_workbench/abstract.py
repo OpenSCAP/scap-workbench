@@ -80,9 +80,10 @@ class Menu(EventObject):
         @param widget GTK Widget for menu item
         @param core SWBCore singleton
         """
+        
+        super(Menu, self).__init__(core)
+        
         self.id = id
-        self.core = core
-        super(Menu, self).__init__()
         self.btnList = []
         self.active_item = None
         self.default_item = None
@@ -142,6 +143,7 @@ class MenuButton(EventObject):
         @param widget GTK Widget for menu item
         @param core SWBCore singleton
         """
+        
         super(MenuButton, self).__init__(core)
 
         self.id = id
@@ -275,6 +277,7 @@ class List(EventObject):
         else:
             self.treeView = widget
         self.add_sender(id, "update")
+        # FIXME: self.data_model has to be set at this point, otherwise render() will fail!
         self.render()
 
     def filter_listview(self, model, iter, data):
@@ -865,9 +868,10 @@ class ListEditor(EventObject, Func):
     COLUMN_OBJ  = 2
 
     def __init__(self, id, core, widget=None, model=None):
-        self.id = id
-        self.core = core
         EventObject.__init__(self, core)
+        Func.__init__(self, core)
+
+        self.id = id
         self.core.register(self.id, self)
 
         self.widget         = widget

@@ -51,7 +51,10 @@ class ImportDialog(abstract.Window, abstract.ListEditor):
              will be called to import the file
         """
         
+        # FIXME: constructors of both base classes are not called here!
+        
         self.core = core
+        
         self.__import = cb
         self.data_model = data_model
         builder = gtk.Builder()
@@ -152,8 +155,10 @@ class ExportDialog(abstract.Window, abstract.ListEditor):
     """
 
     def __init__(self, core, data_model):
-
+        # FIXME: Constructors of both base classes are not called here!
+        
         self.core = core
+        
         self.data_model = data_model
         builder = gtk.Builder()
         self.log = []

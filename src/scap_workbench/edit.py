@@ -86,10 +86,11 @@ class ProfileList(abstract.List):
     def __init__(self, widget, core, data_model, builder=None, progress=None, filter=None):
         """ Constructor of ProfileList.
         """
-        self.core = core
-        self.builder = builder
+        
         self.data_model = data_model
-        abstract.List.__init__(self, "gui:edit:profile_list", core, widget)
+        super(ProfileList, self).__init__("gui:edit:profile_list", core, widget)
+        
+        self.builder = builder
         
         """ Register signals that can be emited by this class.
         All signals are registered in EventObject (abstract class) and
@@ -339,8 +340,8 @@ class ItemList(abstract.List):
         """ Constructor of ProfileList.
         """
         self.data_model = commands.DHItemsTree("gui:edit:DHItemsTree", core, progress, None, True, no_checks=True)
-        abstract.List.__init__(self, "gui:edit:item_list", core, widget)
-        self.core = core
+        super(ItemList, self).__init__("gui:edit:item_list", core, widget)
+        
         self.loaded = False
         self.filter = filter
         self.builder = builder
@@ -445,9 +446,9 @@ class ItemList(abstract.List):
 class MenuButtonEditXCCDF(abstract.MenuButton):
 
     def __init__(self, builder, widget, core):
-        abstract.MenuButton.__init__(self, "gui:btn:menu:edit:XCCDF", widget, core)
+        super(MenuButtonEditXCCDF, self).__init__("gui:btn:menu:edit:XCCDF", widget, core)
+        
         self.builder = builder
-        self.core = core
         self.data_model = commands.DHXccdf(core)
         
         #draw body
@@ -666,8 +667,9 @@ class MenuButtonEditProfiles(abstract.MenuButton, abstract.Func):
 
     def __init__(self, builder, widget, core):
         abstract.MenuButton.__init__(self, "gui:btn:menu:edit:profiles", widget, core)
+        abstract.Func.__init__(self, core)
+        
         self.builder = builder
-        self.core = core
         self.data_model = commands.DHProfiles(self.core)
         self.__item_finder = FindItem(self.core, "gui:edit:xccdf:profiles:finditem", self.data_model)
 
@@ -994,8 +996,9 @@ class MenuButtonEditItems(abstract.MenuButton, abstract.Func):
 
     def __init__(self, builder, widget, core):
         abstract.MenuButton.__init__(self, "gui:btn:menu:edit:items", widget, core)
+        abstract.Func.__init__(self, core)
+        
         self.builder = builder
-        self.core = core
         self.data_model = commands.DHEditItems(self.core)
         self.item = None
         self.func = abstract.Func()
@@ -1428,7 +1431,9 @@ class EditConflicts(commands.DHEditItems, abstract.ControlEditWindow):
         model = gtk.ListStore(str)
         lv.set_model(model)
         
+        commands.DHEditItems.__init__(self, core)
         abstract.ControlEditWindow.__init__(self, core, lv, None)
+        
         btn_add = builder.get_object("edit:dependencies:btn_conflict_add")
         btn_del = builder.get_object("edit:dependencies:btn_conflict_del")
         
@@ -1463,7 +1468,9 @@ class EditRequires(commands.DHEditItems,abstract.ControlEditWindow):
         model = gtk.ListStore(str)
         lv.set_model(model)
 
+        commands.DHEditItems.__init__(self, core)
         abstract.ControlEditWindow.__init__(self, core, lv, None)
+        
         btn_add = builder.get_object("edit:dependencies:btn_requires_add")
         btn_del = builder.get_object("edit:dependencies:btn_requires_del")
         
@@ -1495,9 +1502,9 @@ class EditItemValues(abstract.ListEditor):
     COLUMN_COLOR    = 4
 
     def __init__(self, core, id, widget, data_model):
+        super(EditItemValues, self).__init__(id, core, widget=widget, model=gtk.ListStore(str, str, str, gobject.TYPE_PYOBJECT, str, str))
 
         self.data_model = data_model
-        abstract.ListEditor.__init__(self, id, core, widget=widget, model=gtk.ListStore(str, str, str, gobject.TYPE_PYOBJECT, str, str))
 
     def __do(self, widget=None):
         """
@@ -1631,7 +1638,7 @@ class EditTitle(abstract.ListEditor):
     def __init__(self, core, id, widget, data_model):
 
         self.data_model = data_model
-        abstract.ListEditor.__init__(self, id, core, widget=widget, model=gtk.ListStore(str, bool, str, gobject.TYPE_PYOBJECT))
+        super(EditTitle, self).__init__(id, core, widget=widget, model=gtk.ListStore(str, bool, str, gobject.TYPE_PYOBJECT))
         self.add_sender(id, "update")
 
         self.widget.append_column(gtk.TreeViewColumn("Language", gtk.CellRendererText(), text=self.COLUMN_LANG))
@@ -1719,7 +1726,7 @@ class EditDescription(abstract.HTMLEditor):
     def __init__(self, core, id, widget, data_model):
 
         self.data_model = data_model 
-        abstract.ListEditor.__init__(self, id, core, widget=widget, model=gtk.ListStore(str, bool, str, gobject.TYPE_PYOBJECT))
+        super(EditDescription, self).__init__(id, core, widget=widget, model=gtk.ListStore(str, bool, str, gobject.TYPE_PYOBJECT))
         self.add_sender(id, "update")
 
         self.widget.append_column(gtk.TreeViewColumn("Language", gtk.CellRendererText(), text=self.COLUMN_LANG))
@@ -1830,7 +1837,7 @@ class EditFixtext(abstract.HTMLEditor):
 
         self.data_model = data_model
         self.builder = builder
-        abstract.ListEditor.__init__(self, id, core, widget=widget, model=gtk.ListStore(str, str, gobject.TYPE_PYOBJECT))
+        super(EditFixtext, self).__init__(id, core, widget=widget, model=gtk.ListStore(str, str, gobject.TYPE_PYOBJECT))
         self.add_sender(id, "update")
 
         self.widget.append_column(gtk.TreeViewColumn("Language", gtk.CellRendererText(), text=self.COLUMN_LANG))
@@ -2035,7 +2042,7 @@ class EditFix(abstract.ListEditor):
 
         self.data_model = data_model
         self.builder = builder
-        abstract.ListEditor.__init__(self, id, core, widget=widget, model=gtk.ListStore(str, str, gobject.TYPE_PYOBJECT))
+        super(EditFix, self).__init__(id, core, widget=widget, model=gtk.ListStore(str, str, gobject.TYPE_PYOBJECT))
         self.add_sender(id, "update")
 
         self.widget.append_column(gtk.TreeViewColumn("ID", gtk.CellRendererText(), text=self.COLUMN_LANG))
@@ -2229,7 +2236,7 @@ class EditWarning(abstract.ListEditor):
     def __init__(self, core, id, widget, data_model):
         
         self.data_model = data_model
-        abstract.ListEditor.__init__(self, id, core, widget=widget, model=gtk.ListStore(str, bool, str, str, gobject.TYPE_PYOBJECT))
+        super(EditWarning, self).__init__(id, core, widget=widget, model=gtk.ListStore(str, bool, str, str, gobject.TYPE_PYOBJECT))
         self.add_sender(id, "update")
 
         self.widget.append_column(gtk.TreeViewColumn("Language", gtk.CellRendererText(), text=self.COLUMN_LANG))
@@ -2324,7 +2331,7 @@ class EditNotice(abstract.ListEditor):
     def __init__(self, core, id, widget, data_model):
 
         self.data_model = data_model 
-        abstract.ListEditor.__init__(self, id, core, widget=widget, model=gtk.ListStore(str, str, gobject.TYPE_PYOBJECT))
+        super(EditNotice, self).__init__(id, core, widget=widget, model=gtk.ListStore(str, str, gobject.TYPE_PYOBJECT))
         self.add_sender(id, "update")
 
         self.widget.append_column(gtk.TreeViewColumn("ID", gtk.CellRendererText(), text=self.COLUMN_ID))
@@ -2419,7 +2426,7 @@ class EditStatus(abstract.ListEditor):
     def __init__(self, core, id, widget, data_model):
 
         self.data_model = data_model 
-        abstract.ListEditor.__init__(self, id, core, widget=widget, model=gtk.ListStore(str, str, gobject.TYPE_PYOBJECT))
+        super(EditStatus, self).__init__(id, core, widget=widget, model=gtk.ListStore(str, str, gobject.TYPE_PYOBJECT))
         self.add_sender(id, "update")
 
         self.widget.append_column(gtk.TreeViewColumn("Date", gtk.CellRendererText(), text=self.COLUMN_DATE))
@@ -2516,7 +2523,7 @@ class EditIdent(abstract.ListEditor):
     def __init__(self, core, id, widget, data_model):
 
         self.data_model = data_model 
-        abstract.ListEditor.__init__(self, id, core, widget=widget, model=gtk.ListStore(str, str, gobject.TYPE_PYOBJECT))
+        super(EditIdent, self).__init__(id, core, widget=widget, model=gtk.ListStore(str, str, gobject.TYPE_PYOBJECT))
         self.add_sender(id, "update")
 
         self.widget.append_column(gtk.TreeViewColumn("ID", gtk.CellRendererText(), text=self.COLUMN_ID))
@@ -2616,7 +2623,7 @@ class EditQuestion(abstract.ListEditor):
     def __init__(self, core, id, widget, data_model):
 
         self.data_model = data_model 
-        abstract.ListEditor.__init__(self, id, core, widget=widget, model=gtk.ListStore(str, str, gobject.TYPE_PYOBJECT, bool))
+        super(EditQuestion, self).__init__(id, core, widget=widget, model=gtk.ListStore(str, str, gobject.TYPE_PYOBJECT, bool))
         self.add_sender(id, "update")
 
         self.widget.append_column(gtk.TreeViewColumn("Language", gtk.CellRendererText(), text=self.COLUMN_LANG))
@@ -2702,7 +2709,7 @@ class EditRationale(abstract.ListEditor):
     def __init__(self, core, id, widget, data_model):
 
         self.data_model = data_model 
-        abstract.ListEditor.__init__(self, id, core, widget=widget, model=gtk.ListStore(str, str, gobject.TYPE_PYOBJECT, bool))
+        super(EditRationale, self).__init__(id, core, widget=widget, model=gtk.ListStore(str, str, gobject.TYPE_PYOBJECT, bool))
         self.add_sender(id, "update")
 
         self.widget.append_column(gtk.TreeViewColumn("Language", gtk.CellRendererText(), text=self.COLUMN_LANG))
@@ -2788,8 +2795,8 @@ class EditPlatform(abstract.ListEditor):
 
     def __init__(self, core, id, widget, data_model):
 
-        self.data_model = data_model 
-        abstract.ListEditor.__init__(self, id, core, widget=widget, model=gtk.ListStore(str))
+        self.data_model = data_model
+        super(EditPlatform, self).__init__(id, core, widget=widget, model=gtk.ListStore(str))
         self.add_sender(id, "update")
 
         self.widget.append_column(gtk.TreeViewColumn("CPE Name", gtk.CellRendererText(), text=self.COLUMN_LANG))
@@ -2957,7 +2964,6 @@ class EditValues(abstract.MenuButton, abstract.Func):
         abstract.Func.__init__(self, core)
 
         self.data_model = commands.DHValues(core) 
-        self.core = core
         self.builder = builder
         self.id = id
 
@@ -3146,7 +3152,7 @@ class EditValuesValues(abstract.ListEditor):
     def __init__(self, core, id, widget, data_model):
 
         self.data_model = data_model 
-        abstract.ListEditor.__init__(self, id, core, widget=widget, model=gtk.ListStore(str, str, str, str, str, bool, str, gobject.TYPE_PYOBJECT))
+        super(EditValuesValues, self).__init__(id, core, widget=widget, model=gtk.ListStore(str, str, str, str, str, bool, str, gobject.TYPE_PYOBJECT))
         self.add_sender(id, "update")
 
         self.widget.append_column(gtk.TreeViewColumn("Selector", gtk.CellRendererText(), text=self.COLUMN_SELECTOR))
@@ -3284,10 +3290,11 @@ class EditValuesValues(abstract.ListEditor):
                          instance["match"], 
                          instance["item"]])
 
-class AddProfileDialog(EventObject, abstract.ControlEditWindow):
+class AddProfileDialog(EventObject):
 
     def __init__(self, core, data_model, cb):
-        self.core = core
+        super(AddProfileDialog, self).__init__(core)
+        
         self.data_model = data_model
         self.__update = cb
         builder = gtk.Builder()
@@ -3342,15 +3349,15 @@ class AddProfileDialog(EventObject, abstract.ControlEditWindow):
         self.window.destroy()
         
 
-class AddItem(EventObject, abstract.ControlEditWindow):
+class AddItem(EventObject):
     
     COMBO_COLUMN_DATA = 0
     COMBO_COLUMN_VIEW = 1
     COMBO_COLUMN_INFO = 2
     
     def __init__(self, core, data_model, list_item):
+        super(AddItem, self).__init__(core)
         
-        self.core = core
         self.data_model = data_model
         self.list_item = list_item
         self.view = list_item.get_TreeView()
@@ -3481,7 +3488,7 @@ class AddItem(EventObject, abstract.ControlEditWindow):
         self.core.notify_destroy("dialog:add_item")
         self.window.destroy()
 
-class EditSelectIdDialogWindow():
+class EditSelectIdDialogWindow(object):
     
     COLUMN_ID = 0
     COLUMN_TITLE = 1
@@ -3717,6 +3724,8 @@ class FindOvalDef(abstract.Window, abstract.ListEditor):
         self.data_model = data_model
         self.core = core
         abstract.Window.__init__(self, id, core)
+        # FIXME: We can't call the constructor of abstract.ListEditor here because it would register our id
+        #        and instance again (Window's constructor has already done that)
         self.add_sender(id, "update")
 
     def __do(self, widget=None):
@@ -3725,7 +3734,7 @@ class FindOvalDef(abstract.Window, abstract.ListEditor):
         self.core.notify_destroy("notify:dialog_notify")
         (model, iter) = self.definitions.get_selection().get_selected()
         if not iter:
-            self.core.notify("You have to chose the definition !",
+            self.core.notify("You have to choose the definition !",
                     Notification.ERROR, self.info_box, msg_id="notify:dialog_notify")
             return
         ret, err = self.data_model.set_item_content(name=model[iter][self.COLUMN_ID])
@@ -3778,6 +3787,8 @@ class FindItem(abstract.Window, abstract.ListEditor):
         self.data_model = data_model
         self.core = core
         abstract.Window.__init__(self, id, core)
+        # FIXME: We can't call the constructor of abstract.ListEditor here because it would register our id
+        #        and instance again (Window's constructor has already done that)
         self.add_sender(id, "update")
 
     def __do(self, widget=None):
@@ -3843,16 +3854,17 @@ class FindItem(abstract.Window, abstract.ListEditor):
         self.wdialog.show()
 
 class Editor(abstract.Window, threading.Thread):
-
+    """The central window of scap-workbench-editor
+    """
+    
     def __init__(self):
-
         threading.Thread.__init__(self)
-        logger = logging.getLogger(self.__class__.__name__)
         self.builder = gtk.Builder()
         self.builder.add_from_file("/usr/share/scap-workbench/editor.glade")
         self.builder.connect_signals(self)
-        self.core = core.SWBCore(self.builder)
-        if not self.core: raise Exception("Initialization failed, core is None")
+        abstract.Window.__init__(self, "main:window", core.SWBCore(self.builder))
+
+        logger = logging.getLogger(self.__class__.__name__)
 
         self.window = self.builder.get_object("main:window")
         self.core.main_window = self.window
