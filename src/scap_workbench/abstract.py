@@ -249,17 +249,21 @@ class Window(EventObject):
     """Free floating Window
     """
     
-    def __init__(self, id, core = None):
+    def __init__(self, id, core = None, skip_registration = False):
         """Constructor
         
         id - unique id of the object
         core - SWBCore singleton instance
+        skip_registration - if True the window won't be registered in SWBCore
+                            (mainly for windows that get repeatedly created and destroyed)
         """
         
         EventObject.__init__(self, core)
 
         self.id = id
-        self.core.register(id, self)
+        
+        if not skip_registration and self.core is not None:
+            self.core.register(id, self)
 
 class List(EventObject):
     
