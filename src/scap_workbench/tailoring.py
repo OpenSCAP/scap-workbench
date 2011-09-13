@@ -48,12 +48,12 @@ logger = logging.getLogger("scap-workbench")
 class ItemList(abstract.List):
     
     def __init__(self, builder, core, progress=None):
-        self.core = core
         self.builder = builder
         self.__progress = progress
         self.profiles = builder.get_object("tailoring:profile")
         self.data_model = commands.DHItemsTree("gui:tailoring:DHItemsTree", core, progress, self.profiles)
-        abstract.List.__init__(self, "gui:tailoring:item_list", core, builder.get_object("tailoring:tw_items"))
+        super(ItemList, self).__init__("gui:tailoring:item_list", core, builder.get_object("tailoring:tw_items"))
+        
         self.__has_model_changed = False
         self.filter_box = self.builder.get_object("tailoring:filter:box")
         self.filter_toggle = self.builder.get_object("tailoring:filter:toggle")
@@ -164,10 +164,10 @@ class ItemList(abstract.List):
 class ValuesList(abstract.List):
     
     def __init__(self, widget, core, builder):
-        self.core = core
         self.builder = builder
         self.data_model = commands.DHValues(core)
-        abstract.List.__init__(self, "gui:tailoring:values_list", core, widget)
+        super(ValuesList, self).__init__("gui:tailoring:values_list", core, widget)
+        
         self.get_TreeView().set_enable_tree_lines(True)
 
         selection = self.get_TreeView().get_selection()
@@ -188,16 +188,16 @@ class ValuesList(abstract.List):
 class ItemDetails(EventObject):
 
     def __init__(self, builder, core):
+        super(ItemDetails, self).__init__(core)
         
         #create view
-        self.core = core
         self.builder = builder
-        EventObject.__init__(self, self.core)
         self.data_model = commands.DataHandler(self.core)
 
         self.add_receiver("gui:tailoring:item_list", "update", self.__update)
         self.add_receiver("gui:tailoring:item_list", "changed", self.__update)
         self.add_receiver("gui:tailoring:values_list", "update", self.__update)
+        
         self.draw()
 
     def __update(self):
@@ -413,10 +413,11 @@ class ItemDetails(EventObject):
 class RefineDetails(EventObject):
     
     def __init__(self, builder, core):
+        super(RefineDetails, self).__init__(core)
+
         #create view
         self.builder = builder
-        self.core = core
-        EventObject.__init__(self, self.core)
+
         self.data_model = commands.DHProfiles(self.core)
         self.func = abstract.Func(core)
         self.add_receiver("gui:tailoring:item_list", "update", self.__update)
@@ -502,9 +503,9 @@ class MenuButtonTailoring(abstract.MenuButton):
     GUI for refines.
     """
     def __init__(self, builder, widget, core):
-        abstract.MenuButton.__init__(self, "gui:btn:menu:tailoring", widget, core)
+        super(MenuButtonTailoring, self).__init__("gui:btn:menu:tailoring", widget, core)
+        
         self.builder = builder
-        self.core = core
 
         # Profiles combo box
         self.profiles = self.builder.get_object("tailoring:profile")

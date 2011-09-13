@@ -75,9 +75,9 @@ class MenuButtonXCCDF(abstract.MenuButton):
     def __init__(self, builder, widget, core):
         self.builder = builder
         self.data_model = commands.DHXccdf(core)
-        abstract.MenuButton.__init__(self, "gui:btn:main:xccdf", widget, core)
+        super(MenuButtonXCCDF, self).__init__("gui:btn:main:xccdf", widget, core)
+        
         self.widget = widget
-        self.core = core
         
         self.body = self.builder.get_object("xccdf:box")
 
@@ -317,7 +317,8 @@ class MenuButtonOVAL(abstract.MenuButton):
 
     def __init__(self, box, widget, core):
         logger = logging.getLogger(self.__class__.__name__)
-        abstract.MenuButton.__init__(self, "gui:btn:main:oval", widget, core)
+        super(MenuButtonOVAL, self).__init__("gui:btn:main:oval", widget, core)
+        
         self.box = box
         self.title = None
         self.description = None
@@ -325,7 +326,6 @@ class MenuButtonOVAL(abstract.MenuButton):
         self.url = None
         self.language = None
         self.body = self.draw_body()
-
 
     def draw_body(self):
         body = gtk.VBox()
