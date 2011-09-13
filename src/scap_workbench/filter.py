@@ -83,8 +83,10 @@ class Filter(object):
     def get_widget(self):
         return self.eb
 
-class Search(EventObject):
-
+class Search(object):
+    """Deprecated search helper class. Creates it's own widget hierarchy.
+    """
+    
     def __init__(self, renderer):
         logger.warning("Class Search is deprecated: Use search function of list instead")
         self.renderer = renderer
