@@ -129,11 +129,10 @@ class Renderer(abstract.MenuButton,EventObject):
     #        into this class.
 
     def __init__(self,id, core, box):
+        EventObject.__init__(self, core)
 
-        self.core = core
         self.filters = []
         self.id = id
-        EventObject.__init__(self, self.core)
         self.core.register(id, self)
         self.render(box)
         self.add_sender(id, "filter_add")

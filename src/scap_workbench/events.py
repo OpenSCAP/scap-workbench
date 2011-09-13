@@ -46,13 +46,14 @@ class EventObject(gobject.GObject):
         self.notifications = []
     
     def emit(self, signal):
-        """ Emit signal. This is overwritten function of GObject
+        """ Emit signal. This is overriding GObject's method
         for better logging.
 
         signal: string representing the signal
         """
+        
         logger.debug("Emiting signal %s from %s", signal, self.id)
-        gobject.GObject.emit(self, signal)
+        super(EventObject, self).emit(signal)
 
     def add_sender(self, id, signal, *args):
         """ Each object should register itself for sending some type
@@ -101,7 +102,7 @@ class EventHandler(EventObject):
         EventObject and contains dictionary of receivers.
         """
         super(EventHandler, self).__init__(core)
-        self.core = core
+        
         self.receivers = {}
 
     def set_sender(self, signal, sender):

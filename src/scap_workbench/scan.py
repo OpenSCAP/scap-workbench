@@ -44,10 +44,10 @@ logger = logging.getLogger("scap-workbench")
 class ScanList(abstract.List):
     
     def __init__(self, widget, core, filter, data_model):
-        self.core = core
-        self.filter = filter
         self.data_model = data_model
-        abstract.List.__init__(self, "gui:scan:scan_list", core, widget=widget)
+        super(ScanList, self).__init__("gui:scan:scan_list", core, widget=widget)
+
+        self.filter = filter
 
         selection = self.get_TreeView().get_selection()
         selection.set_mode(gtk.SELECTION_SINGLE)
@@ -364,9 +364,16 @@ class ProfileChooser(object):
         return self.core.selected_profile
 
 class HelpWindow(abstract.Window):
+    """Window that opens up when user clicks the "Help" button in the "Scan" section of scap-workbench.
+    
+    For now it only displays rule result legend.
+    """
 
     def __init__(self, core=None):
-        self.core = core
+        # we don't want to register this window with SWBCore since we will be creating and destroying it
+        # regularly (each time user clicks the help button)
+        super(HelpWindow, self).__init__("scan:help:window", core, skip_registration = True)
+        
         self.builder = gtk.Builder()
         self.builder.add_from_file("/usr/share/scap-workbench/scan_help.glade")
         self.draw_window()
