@@ -277,12 +277,16 @@ class MenuButtonXCCDF(abstract.MenuButton):
         if file != "":
             self.__cb_close(None)
             logger.debug("Loading XCCDF file %s", file)
-            if not self.core.init(file): return
+            if not self.core.init(file):
+                return
             self.emit("load")
 
             try:
                 self.__update()
-            except KeyError: pass
+            except KeyError:
+                pass
+            
+            self.btn_import.set_sensitive(False)
 
     def __cb_import(self, widget):
         dialogs.ImportDialog(self.core, self.data_model, self.__import)
@@ -305,13 +309,15 @@ class MenuButtonXCCDF(abstract.MenuButton):
         self.core.get_item("gui:btn:menu:scan").set_sensitive(active)
 
     def __cb_close(self, widget):
-        self.btn_close.set_sensitive(False)
-        self.btn_export.set_sensitive(False)
         self.__menu_sensitive(False)
         self.core.destroy()
         self.__clear()
         self.core.notify_destroy("notify:xccdf:export")
         self.emit("load")
+
+        self.btn_close.set_sensitive(False)
+        self.btn_export.set_sensitive(False)
+        self.btn_import.set_sensitive(True)
     
 class MenuButtonOVAL(abstract.MenuButton):
 
