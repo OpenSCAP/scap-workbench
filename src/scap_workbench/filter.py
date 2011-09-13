@@ -86,7 +86,6 @@ class Filter(object):
 class Search(EventObject):
 
     def __init__(self, renderer):
-
         logger.warning("Class Search is deprecated: Use search function of list instead")
         self.renderer = renderer
         self.renderer.add_sender(id, "search")
@@ -124,6 +123,8 @@ class Search(EventObject):
         return self.box
 
 class Renderer(abstract.MenuButton,EventObject):
+    # FIXME: This is not a MenuButton! MenuButton is just used as a mixin to get add_frame method
+    #        into this class.
 
     def __init__(self,id, core, box):
 
@@ -226,9 +227,11 @@ class ExpandBox(abstract.EventObject):
         """
         @param box Container for this expandBox.
         @param text Button name for show or hide expandBox
-        @param show If ExpanBox should be hidden/showed False/True
+        @param core SWBCore singleton
         """
-        self.core = core
+        
+        super(ExpandBox, self).__init__(core)
+        
         self.focus_widget = None
         
         # body for expandBox
@@ -286,19 +289,20 @@ class ExpandBox(abstract.EventObject):
         return self.btn
 
 class ItemFilter(Renderer):
+    """User filter used in scap-workbench-editor to filter through tailorings
+    """
     
     def __init__(self, core, builder, widget, signal):
-
-        self.core = core
-        self.id_filter = 0
         self.builder = builder
         self.box_filter = self.builder.get_object(widget)
+        super(ItemFilter, self).__init__(signal, core, self.box_filter)
+
+        self.id_filter = 0
         self.user_filter_builder = gtk.Builder()
         self.user_filter_builder.add_from_file("/usr/share/scap-workbench/filter_tailoring.glade")
         self.user_filter_window = self.user_filter_builder.get_object("user_filter:dialog")
         self.user_filter_window.connect("delete-event", self.__cb_cancel)
-        Renderer.__init__(self, signal, core, self.box_filter)
-
+        
         # get objects from glade
         self.user_filter_id = self.user_filter_builder.get_object("entry_id")
         self.user_filter_description = self.user_filter_builder.get_object("entry_description")
@@ -385,31 +389,9 @@ class ItemFilter(Renderer):
             return True
         else: return (model.get_value(iter, COLUMN_SELECTED) == [0,1,0][params["selected"]])
 
-
-class AdvancedFilterModel(gtk.TreeStore):
-
-    def __init__(self, *args):
-        if not args:
-            raise AttributeError("AdvancedFilterModel constructor requires at least one argument")
-
-        super(gtk.TreeModel, self).__init__()
-        self.__args = args
-        self.__reference = self.TreeStore(args)
-
-    def set_ref_model(self, model):
-        """Set the reference model for the TreeView
-        """
-        if not model:
-            raise AttributeError("AdvancedFilterModel::set_ref_model requires TreeModel as argument")
-        if model != gtk.TreeModel:
-            raise AttributeError("AdvancedFilterModel::set_ref_model takes TreeModel as argument %s found" % (model.__class__,))
-        self.__reference = model
-
-        """ Let's build the filter model by creating nodes in the model that
-        refer to the reference model """
-        
-
 class ScanFilter(Renderer):
+    """User filter used in scap-workbench (scanner) to filter through scan results
+    """
 
     #data in model
     COLUMN_ID = 0               # id of rule
@@ -422,14 +404,15 @@ class ScanFilter(Renderer):
     COLUMN_COLOR_TEXT_ID = 7    # Color of text ID
         
     def __init__(self, core, builder):
-        self.id_filter = 0
         self.builder = builder
         self.box_filter = self. builder.get_object("scan:box_filter")
+        super(ScanFilter, self).__init__("gui:btn:menu:scan:filter", core, self.box_filter)
+
+        self.id_filter = 0
         self.user_filter_builder = gtk.Builder()
         self.user_filter_builder.add_from_file("/usr/share/scap-workbench/filter_scan.glade")
         self.user_filter_window = self.user_filter_builder.get_object("user_filter:dialog")
         self.user_filter_window.connect("delete-event", self.__cb_cancel)
-        Renderer.__init__(self, "gui:btn:menu:scan:filter", core, self.box_filter)
 
         self.user_filter_id = self.user_filter_builder.get_object("entry_id")
         self.user_filter_description = self.user_filter_builder.get_object("entry_description")
@@ -518,6 +501,8 @@ class ScanFilter(Renderer):
   
 
 class Loader(object):
+    """Filter loader that loads all .py files in the filter directory
+    """
 
     def __init__(self, core):
 
@@ -538,7 +523,7 @@ class Loader(object):
         for f in os.listdir(os.path.abspath(dpath)):
             name, ext = os.path.splitext(f)
             if ext == '.py':
-                logger.debug("Imported filter module: %s" % (name,))
+                logger.debug("Importing filter module: %s" % (name,))
                 module = __import__(name)
                 for obj in dir(module):
                     try:
