@@ -815,7 +815,7 @@ class Func(object):
                 return None
             
             try:
-                timestamp = time.mktime(d.timetuple()) 
+                timestamp = int(time.mktime(d.timetuple())) 
             except Exception as ex:
                 self.notifications.append(self.core.notify("The date is out of range.",
                     Notification.ERROR, msg_id="notify:date_format"))

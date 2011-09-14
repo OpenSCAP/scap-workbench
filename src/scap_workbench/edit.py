@@ -31,6 +31,7 @@ import os               # os Path join/basename, ..
 import threading        # Main window is running in thread
 import gnome, gnome.ui  # Gnome icons in HTML editor
 import tempfile         # Temporary file for XCCDF preview
+import datetime
 
 """ Importing SCAP Workbench modules
 """
@@ -1184,7 +1185,7 @@ class MenuButtonEditItems(abstract.MenuButton, abstract.Func):
             self.data_model.update(version=widget.get_text())
         elif widget == self.version_time:
             timestamp = self.controlDate(widget.get_text())
-            if timestamp:
+            if timestamp > 0:
                 self.data_model.update(version_time=timestamp)
         elif widget == self.selected:
             self.data_model.update(selected=widget.get_active())
@@ -1367,7 +1368,7 @@ class MenuButtonEditItems(abstract.MenuButton, abstract.Func):
         self.item_id.set_text(details["id"] or "")
         self.weight.set_text(str(details["weight"] or ""))
         self.version.set_text(details["version"] or "")
-        #self.version_time.set_text(str(datetime.date.fromtimestamp(details["version_time"]) or "")) TODO: Add version_time
+        self.version_time.set_text("" if details["version_time"] <= 0 else str(datetime.date.fromtimestamp(details["version_time"])))
         self.cluster_id.set_text(details["cluster_id"] or "")
         self.extends.set_text(details["extends"] or "")
         self.titles.fill()
@@ -3065,7 +3066,7 @@ class EditValues(abstract.MenuButton, abstract.Func):
             self.data_model.edit_value(version=widget.get_text())
         elif widget == self.version_time:
             timestamp = self.controlDate(widget.get_text())
-            if timestamp:
+            if timestamp > 0:
                 self.data_model.edit_value(version_time=timestamp)
         elif widget == self.cluster_id:
             self.data_model.edit_value(cluster_id=widget.get_text())
@@ -3122,7 +3123,7 @@ class EditValues(abstract.MenuButton, abstract.Func):
 
             self.vid.set_text(details["id"] or "")
             self.version.set_text(details["version"] or "")
-            self.version_time.set_text(details["version_time"] or "")
+            self.version_time.set_text("" if details["version_time"] <= 0 else str(datetime.date.fromtimestamp(details["version_time"])))
             self.cluster_id.set_text(details["cluster_id"] or "")
             self.vtype.set_text(ENUM.TYPE.map(details["vtype"])[1])
             self.abstract.set_active(details["abstract"])
