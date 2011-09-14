@@ -1199,10 +1199,6 @@ class DHValues(DataHandler):
     def edit_value(self, id=None, version=None, version_time=None, prohibit_changes=None, abstract=None, cluster_id=None, interactive=None, operator=None):
         if not self.check_library(): return None
 
-        print abstract.__class__
-        print version_time.__class__
-        print version_time
-        
         item = self.core.lib.benchmark.get_item(self.core.selected_item)
         if item: item = item.to_value()
         if item == None:
