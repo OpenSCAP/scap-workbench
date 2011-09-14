@@ -1243,7 +1243,7 @@ class DHValues(DataHandler):
             elif item.type == openscap.OSCAP.XCCDF_TYPE_BOOLEAN:
                 if default != -1: new_instance.defval_boolean = bool(default)
                 if value != -1: new_instance.value_boolean = bool(value)
-            else: raise Exception("Get value instances: Typ of instance not supported: \"%s\"" % (instance.type,))
+            else: raise Exception("Get value instances: Type of instance not supported: \"%s\"" % (item.type,))
             if match: new_instance.match = match
             if upper_bound != None: new_instance.upper_bound = upper_bound
             if lower_bound != None: new_instance.lower_bound = lower_bound
@@ -1266,7 +1266,9 @@ class DHValues(DataHandler):
             elif item.type == openscap.OSCAP.XCCDF_TYPE_BOOLEAN:
                 if default != -1: obj.defval_string = default
                 if value != -1: obj.value_string = value
-            else: raise Exception("Get value instances: Typ of instance not supported: \"%s\"" % (instance.type,))
+            else:
+                raise Exception("Get value instances: Type of instance not supported: \"%s\"" % (item.type,))
+            
             obj.match = match
             if upper_bound != None: obj.upper_bound = upper_bound
             if lower_bound != None: obj.lower_bound = lower_bound
@@ -1664,10 +1666,9 @@ class DHItemsTree(DataHandler, EventObject):
         item.id = item_dict["id"]
         item.add_title(title)
 
-        if parent == self.core.lib.benchmark:
-            retval = op(parent, item)
-        else: retval = op(parent, item)
-
+        # op is a bound callable selected above, depending on which type of item is being added
+        op(parent, item)
+        
         item_it = self.model.append(iter, [["group", "rule", "value"][itype], item_dict["id"], item_dict["title"], #TODO: type
             ["emblem-documents", "document-new", "emblem-downloads"][itype], ""+item_dict["title"], None, True, parent.selected])
         self.treeView.expand_to_path(model.get_path(item_it))
