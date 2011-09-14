@@ -276,6 +276,10 @@ class MenuButtonScan(abstract.MenuButton, abstract.Func):
 
         self.set_scan_in_progress(True)
         
+        gtk.gdk.threads_enter()
+        self.core.notify_destroy("notify:scan:complete")
+        gtk.gdk.threads_leave()
+        
         logger.debug("Scanning %s ..", self.data_model.policy.id)
         if self.progress != None:
             gtk.gdk.threads_enter()
@@ -293,13 +297,17 @@ class MenuButtonScan(abstract.MenuButton, abstract.Func):
         if self.progress:
             # set the progress to 100% regardless of how many tests were actually run
             self.progress.set_fraction(1.0)
-            self.progress.set_text("Finished %s of %s rules" % (self.data_model.count_current, self.data_model.count_all))
+            self.progress.set_text("Finished %i of %i rules" % (self.data_model.count_current, self.data_model.count_all))
             self.progress.set_has_tooltip(False)
             
         logger.debug("Finished scanning")
-        self.core.notify("Scanning finished succesfully", core.Notification.SUCCESS, msg_id="notify:scan:complete")
-        gtk.gdk.threads_leave()
+        if self.data_model.count_current == self.data_model.count_all:
+            self.core.notify("Scanning finished successfully", core.Notification.SUCCESS, msg_id="notify:scan:complete")
+        else:
+            self.core.notify("Scanning prematurely interrupted by user", core.Notification.INFORMATION, msg_id="notify:scan:complete")
+        
         self.core.notify_destroy("notify:scan:cancel")
+        gtk.gdk.threads_leave()
 
         self.set_scan_in_progress(False)
 
