@@ -215,12 +215,16 @@ class Library(object):
 
             if def_model:
                 self.files[file] = Library.OVAL(file, None, def_model)
-            else: print "WARNING: Skipping %s file which is referenced from XCCDF content" % (file,)
+            else:
+                logger.warning("WARNING: Skipping %s file which is referenced from XCCDF content" % (file))
 
-        if self.benchmark: logger.debug("Initialization done.")
+        if self.benchmark:
+            logger.debug("Initialization done.")
         else:
+            
             logger.debug("Initialization failed. Benchmark can't be imported")
             raise Exception("Can't initialize openscap library, Benchmark import failed.")
+        
         self.loaded = True
 
     def init_policy(self):

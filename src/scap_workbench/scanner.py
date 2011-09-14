@@ -43,39 +43,14 @@ import enum as ENUM             # For enumeration from openscap library
 # Initializing Logger
 logger = logging.getLogger("scap-workbench")
 
-
-def label_set_autowrap(widget): 
-    "Make labels automatically re-wrap if their containers are resized.  Accepts label or container widgets."
-    # For this to work the label in the glade file must be set to wrap on words.
-    if isinstance(widget, gtk.Container):
-        children = widget.get_children()
-        for i in xrange(len(children)):
-            label_set_autowrap(children[i])
-    elif isinstance(widget, gtk.Label) and widget.get_line_wrap():
-        widget.connect_after("size-allocate", label_size_allocate)
-
-
-def label_size_allocate(widget, allocation):
-    "Callback which re-allocates the size of a label."
-    layout = widget.get_layout()
-    lw_old, lh_old = layout.get_size()
-    # fixed width labels
-    if lw_old / pango.SCALE == allocation.width:
-        return
-    # set wrap width to the pango.Layout of the labels
-    layout.set_width(allocation.width * pango.SCALE)
-    lw, lh = layout.get_size()  # lw is unused.
-    if lh_old != lh:
-        widget.set_size_request(-1, lh / pango.SCALE)
-
 class MenuButtonXCCDF(abstract.MenuButton):
     """
     GUI for operations with xccdf file.
     """
-    def __init__(self, builder, widget, core):
+    def __init__(self, builder, widget, _core):
         self.builder = builder
-        self.data_model = commands.DHXccdf(core)
-        super(MenuButtonXCCDF, self).__init__("gui:btn:main:xccdf", widget, core)
+        self.data_model = commands.DHXccdf(_core)
+        super(MenuButtonXCCDF, self).__init__("gui:btn:main:xccdf", widget, _core)
         
         self.widget = widget
         
@@ -115,10 +90,10 @@ class MenuButtonXCCDF(abstract.MenuButton):
         self.add_receiver("gui:edit:xccdf:notice", "update", self.__update)
         self.add_receiver("gui:edit:xccdf:status", "update", self.__update)
 
-        label_set_autowrap(self.label_title)
-        label_set_autowrap(self.label_description)
-        label_set_autowrap(self.label_warnings)
-        label_set_autowrap(self.label_notices)
+        core.label_set_autowrap(self.label_title)
+        core.label_set_autowrap(self.label_description)
+        core.label_set_autowrap(self.label_warnings)
+        core.label_set_autowrap(self.label_notices)
 
     def __add_file_info(self, name, file_info):
 
@@ -244,7 +219,7 @@ class MenuButtonXCCDF(abstract.MenuButton):
             label.set_line_wrap(True)
             label.set_line_wrap_mode(pango.WRAP_WORD) 
             label.set_alignment(0,0)
-            label.connect("size-allocate", label_size_allocate)
+            label.connect("size-allocate", core.label_size_allocate)
             label.show()
 
         # OVAL Files
