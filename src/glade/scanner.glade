@@ -1259,8 +1259,8 @@
                                                   </object>
                                                 </child>
                                                 <child>
-                                                  <object class="GtkTreeViewColumn" id="Values">
-                                                    <property name="title">Values</property>
+                                                  <object class="GtkTreeViewColumn" id="Value">
+                                                    <property name="title">Value</property>
                                                     <child>
                                                       <object class="GtkCellRendererCombo" id="tailoring:tw_values:cell_values">
                                                         <property name="editable">True</property>
