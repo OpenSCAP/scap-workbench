@@ -13,7 +13,7 @@
     <property name="message_type">warning</property>
     <property name="text" translatable="yes">Exception was raised but wasn't caught! This is very likely a bug in the application.
 
-It's questionable whether the editor is in a valid state at this point - the data could have been corrupted. Backup your old data before saving!
+It's questionable whether the application is in a valid state at this point - the data could have been corrupted. Backup your old data before saving!
 
 Please consider submitting a &lt;a href="https://fedorahosted.org/scap-workbench/"&gt;bug report&lt;/a&gt;! Please copy and paste contents of the box below into the report.</property>
     <property name="use_markup">True</property>
