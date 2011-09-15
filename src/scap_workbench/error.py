@@ -36,6 +36,8 @@ class ExceptionDialog(object):
         self.builder.add_from_file("/usr/share/scap-workbench/error.glade")
         
         self.window = self.builder.get_object("exception_dialog")
+        # keep the window above to prevent the user from ignoring it
+        self.window.set_keep_above(True)
         self.details = self.builder.get_object("exception_dialog:details")
         
         self.builder.connect_signals(self)

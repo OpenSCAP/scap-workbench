@@ -7,16 +7,16 @@
     <property name="title" translatable="yes">Uncaught exception</property>
     <property name="modal">True</property>
     <property name="window_position">center</property>
-    <property name="default_width">4000</property>
-    <property name="default_height">4000</property>
     <property name="type_hint">dialog</property>
     <property name="skip_taskbar_hint">True</property>
+    <property name="deletable">False</property>
     <property name="message_type">warning</property>
     <property name="text" translatable="yes">Exception was raised but wasn't caught! This is very likely a bug in the application.
 
 It's questionable whether the editor is in a valid state at this point - the data could have been corrupted. Backup your old data before saving!
 
-Please consider submitting a bug report!</property>
+Please consider submitting a &lt;a href="https://fedorahosted.org/scap-workbench/"&gt;bug report&lt;/a&gt;! Please copy and paste contents of the box below into the report.</property>
+    <property name="use_markup">True</property>
     <child internal-child="vbox">
       <object class="GtkBox" id="exception_dialog:vbox">
         <property name="can_focus">False</property>
@@ -77,6 +77,7 @@ Please consider submitting a bug report!</property>
               <object class="GtkTextView" id="exception_dialog:details">
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
+                <property name="editable">False</property>
               </object>
             </child>
           </object>
