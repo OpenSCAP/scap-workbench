@@ -40,6 +40,8 @@ import scan                     # For initializing GIU for scan
 from core import Notification   # core.Notification levels for reference
 import enum as ENUM             # For enumeration from openscap library
 
+import error
+
 # Initializing Logger
 logger = logging.getLogger("scap-workbench")
 
@@ -321,6 +323,7 @@ class MainWindow(abstract.Window, threading.Thread):
     """
 
     def __init__(self):
+        error.ErrorHandler.install_exception_hook()
 
         threading.Thread.__init__(self)
         logger = logging.getLogger(self.__class__.__name__)
@@ -356,6 +359,9 @@ class MainWindow(abstract.Window, threading.Thread):
         """
         self.emit("quit")
         gtk.gdk.threads_leave()
+        
+        # since we are quitting gtk we can't be popping a dialog when exception happens anymore
+        error.ErrorHandler.uninstall_exception_hook()
         gtk.main_quit()
         return False
 

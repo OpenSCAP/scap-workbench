@@ -46,6 +46,8 @@ from events import EventObject  # abstract module EventObject
 import htmltextview             # Alternative of webkit
 import enum as ENUM             # For enumeration from openscap library
 
+import error
+
 # Initializing Logger
 logger = logging.getLogger("scap-workbench")
 
@@ -3859,6 +3861,8 @@ class Editor(abstract.Window, threading.Thread):
     """
     
     def __init__(self):
+        error.ErrorHandler.install_exception_hook()
+        
         threading.Thread.__init__(self)
         self.builder = gtk.Builder()
         self.builder.add_from_file("/usr/share/scap-workbench/editor.glade")
@@ -3892,6 +3896,9 @@ class Editor(abstract.Window, threading.Thread):
         """ close the window and quit
         """
         #gtk.gdk.threads_leave()
+        
+        # since we are quitting gtk we can't be popping a dialog when exception happens anymore
+        error.ErrorHandler.uninstall_exception_hook()
         gtk.main_quit()
         return False
 

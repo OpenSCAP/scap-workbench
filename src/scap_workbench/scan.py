@@ -165,7 +165,7 @@ class MenuButtonScan(abstract.MenuButton, abstract.Func):
         
         See MenuButtonScan.__cb_save_report
         """
-        
+
         if self.result:
             self.prepare_preview()
             gtk.gdk.flush()
