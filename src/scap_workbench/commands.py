@@ -984,11 +984,14 @@ class DHXccdf(DataHandler):
         if lang and benchmark.lang != lang: benchmark.lang = lang
 
     def resolve(self):
+        """Resolves the current benchmark and returns True if successful and False
+        if there are dependency loops.
+        """
+        
+        if not self.check_library():
+            return False
 
-        if not self.check_library(): return None
-
-        retval = self.core.lib.benchmark.resolve()
-        return True
+        return self.core.lib.benchmark.resolve()
 
     def export(self, file_name=None):
 

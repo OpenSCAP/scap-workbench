@@ -274,7 +274,7 @@ class ExportDialog(abstract.Window, abstract.ListEditor):
         else:
             # we are exporting as guide
             if not self.data_model.resolve():
-                self.core.notify("Benchmark resolveing failed",
+                self.core.notify("Benchmark resolving failed",
                         Notification.ERROR, info_box=self.info_box, msg_id="notify:xccdf:export")
                 #self.progress.destroy()
                 return
