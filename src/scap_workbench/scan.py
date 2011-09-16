@@ -210,7 +210,12 @@ class MenuButtonScan(abstract.MenuButton, abstract.Func):
         
             chooser.destroy()
     
-            if not os.access(file_name, os.W_OK):
+            # this would have better been solved with exceptions (see http://en.wikipedia.org/wiki/Time-of-check-to-time-of-use)
+            # however in this case we have to work with what we have and openscap won't return this info in any form we could use
+            
+            # the reason for the double check is that os.access("nonexistant file but user can create it", os.W_OK) returns False,
+            # so we check the parent directory for writing instead in that case
+            if (os.path.isfile(file_name) and not os.access(file_name, os.W_OK)) or (not os.access(os.path.dirname(file_name), os.W_OK)):
                 ret = (Notification.ERROR, "Export failed - chosen file path isn't accessible for writing")
                 if append_notifications:
                     self.notifications.append(self.core.notify(ret[1], ret[0], msg_id="notify:scan:export"))
