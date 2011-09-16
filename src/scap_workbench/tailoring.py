@@ -437,15 +437,20 @@ class RefineDetails(EventObject):
     def __update(self):
 
         details = self.data_model.get_item_details(self.core.selected_item)
-        if details == None: return
+        if details is None:
+            # in case the item details can't be acquired we still want the comboboxes
+            # to be blank and insensitive
+            details = {"typetext" : "unknown"}
 
         self.role.handler_block_by_func(self.__cb_edit)
         self.severity.handler_block_by_func(self.__cb_edit)
         self.weight.handler_block_by_func(self.__cb_edit)
-        self.role.set_sensitive(details["typetext"] == "Rule")
-        self.severity.set_sensitive(details["typetext"] == "Rule")
-        self.weight.set_sensitive(details["typetext"] == "Rule")
+
+        # role, severity and weight only apply to "Rule"
         if details["typetext"] == "Rule":
+            self.role.set_sensitive(True)
+            self.severity.set_sensitive(True)
+            self.weight.set_sensitive(True)
 
             if "role" in details and details["role"] != 0:
                 self.role.set_active(ENUM.ROLE.pos(details["role"]))
@@ -461,6 +466,16 @@ class RefineDetails(EventObject):
                 self.weight.set_text(str(details["weight"]))
             else:
                 self.weight.set_text("")
+        
+        else:
+            self.role.set_sensitive(False)
+            self.severity.set_sensitive(False)
+            self.weight.set_sensitive(False)
+            
+            # -1 means no combobox item is active, the combobox will appear blank
+            self.role.set_active(-1)
+            self.severity.set_active(-1)
+            self.weight.set_text("")
 
         self.role.handler_unblock_by_func(self.__cb_edit)
         self.severity.handler_unblock_by_func(self.__cb_edit)
