@@ -1883,7 +1883,7 @@ class DHProfiles(DataHandler):
 
         policy = self.core.lib.policy_model.get_policy_by_id(self.core.selected_profile)
         if policy:
-            logger.warning("Changing refine_rules: item(%s): severity(%s), role(%s), weight(%s)" % (self.core.selected_item, severity, role, weight))
+            logger.debug("Changing refine_rules: item(%s): severity(%s), role(%s), weight(%s)" % (self.core.selected_item, severity, role, weight))
             refine = policy.set_refine_rule(self.core.selected_item, weight, severity, role)
 
     def __get_current_profile(self):
