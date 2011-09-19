@@ -20,11 +20,13 @@
 #      Martin Preisler <mpreisle@redhat.com>
 
 """This module holds path prefixes and is mostly useful for
-packages
+packagers
 
 (they can just patch this file with the standard location
-on the target distro)
+on the target distro / platform)
 """
+
+import os.path
 
 # reasonable defaults for GNU/Linux distributions
 
@@ -35,6 +37,6 @@ usr_share_prefix = "/usr/share/scap-workbench"
 # where .glade UI files are stored
 glade_prefix = usr_share_prefix
 # all filter modules are in this folder
-filters_prefix = "%s/filters" % (usr_share_prefix)
+filters_prefix = os.path.join(usr_share_prefix, "filters")
 # stock data from openscap is at this location
 stock_data_prefix = "/usr/share/openscap"
