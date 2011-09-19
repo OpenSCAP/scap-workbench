@@ -45,6 +45,7 @@ from core import Notification   # core.Notification levels for reference
 from events import EventObject  # abstract module EventObject
 import htmltextview             # Alternative of webkit
 import enum as ENUM             # For enumeration from openscap library
+import paths
 
 import error
 
@@ -1540,7 +1541,7 @@ class EditItemValues(abstract.ListEditor):
         """
         self.operation = operation
         builder = gtk.Builder()
-        builder.add_from_file("/usr/share/scap-workbench/dialogs.glade")
+        builder.add_from_file(os.path.join(paths.glade_prefix, "dialogs.glade"))
         self.wdialog = builder.get_object("dialog:find_value")
         self.info_box = builder.get_object("dialog:find_value:info_box")
         self.values = builder.get_object("dialog:find_value:values")
@@ -1673,7 +1674,7 @@ class EditTitle(abstract.ListEditor):
         """
         self.operation = operation
         builder = gtk.Builder()
-        builder.add_from_file("/usr/share/scap-workbench/dialogs.glade")
+        builder.add_from_file(os.path.join(paths.glade_prefix, "dialogs.glade"))
         self.wdialog = builder.get_object("dialog:edit_title")
         self.info_box = builder.get_object("dialog:edit_title:info_box")
         self.lang = builder.get_object("dialog:edit_title:lang")
@@ -1765,7 +1766,7 @@ class EditDescription(abstract.HTMLEditor):
         """
         self.operation = operation
         builder = gtk.Builder()
-        builder.add_from_file("/usr/share/scap-workbench/dialogs.glade")
+        builder.add_from_file(os.path.join(paths.glade_prefix, "dialogs.glade"))
         self.wdialog = builder.get_object("dialog:edit_description")
         self.info_box = builder.get_object("dialog:edit_description:info_box")
         self.lang = builder.get_object("dialog:edit_description:lang")
@@ -1926,7 +1927,7 @@ class EditFixtext(abstract.HTMLEditor):
         """
         self.operation = operation
         builder = gtk.Builder()
-        builder.add_from_file("/usr/share/scap-workbench/dialogs.glade")
+        builder.add_from_file(os.path.join(paths.glade_prefix, "dialogs.glade"))
         self.wdialog = builder.get_object("dialog:edit_description")
         self.info_box = builder.get_object("dialog:edit_description:info_box")
         self.lang = builder.get_object("dialog:edit_description:lang")
@@ -2139,7 +2140,7 @@ class EditFix(abstract.ListEditor):
         """
         self.operation = operation
         builder = gtk.Builder()
-        builder.add_from_file("/usr/share/scap-workbench/dialogs.glade")
+        builder.add_from_file(os.path.join(paths.glade_prefix, "dialogs.glade"))
         self.wdialog = builder.get_object("dialog:edit_fix")
         self.info_box = builder.get_object("dialog:edit_fix:info_box")
         self.fid = builder.get_object("dialog:edit_fix:id")
@@ -2276,7 +2277,7 @@ class EditWarning(abstract.ListEditor):
         """
         self.operation = operation
         builder = gtk.Builder()
-        builder.add_from_file("/usr/share/scap-workbench/dialogs.glade")
+        builder.add_from_file(os.path.join(paths.glade_prefix, "dialogs.glade"))
         self.wdialog = builder.get_object("dialog:edit_warning")
         self.info_box = builder.get_object("dialog:edit_warning:info_box")
         self.lang = builder.get_object("dialog:edit_warning:lang")
@@ -2379,7 +2380,7 @@ class EditNotice(abstract.ListEditor):
         """
         self.operation = operation
         builder = gtk.Builder()
-        builder.add_from_file("/usr/share/scap-workbench/dialogs.glade")
+        builder.add_from_file(os.path.join(paths.glade_prefix, "dialogs.glade"))
         self.wdialog = builder.get_object("dialog:edit_notice")
         self.info_box = builder.get_object("dialog:edit_notice:info_box")
         self.wid = builder.get_object("dialog:edit_notice:id")
@@ -2468,7 +2469,7 @@ class EditStatus(abstract.ListEditor):
         """
         self.operation = operation
         builder = gtk.Builder()
-        builder.add_from_file("/usr/share/scap-workbench/dialogs.glade")
+        builder.add_from_file(os.path.join(paths.glade_prefix, "dialogs.glade"))
         self.wdialog = builder.get_object("dialog:edit_status")
         self.info_box = builder.get_object("dialog:edit_status:info_box")
         self.calendar = builder.get_object("dialog:edit_status:calendar")
@@ -2576,7 +2577,7 @@ class EditIdent(abstract.ListEditor):
         """
         self.operation = operation
         builder = gtk.Builder()
-        builder.add_from_file("/usr/share/scap-workbench/dialogs.glade")
+        builder.add_from_file(os.path.join(paths.glade_prefix, "dialogs.glade"))
         self.wdialog = builder.get_object("dialog:edit_ident")
         self.info_box = builder.get_object("dialog:edit_ident:info_box")
         self.wid = builder.get_object("dialog:edit_ident:id")
@@ -2659,7 +2660,7 @@ class EditQuestion(abstract.ListEditor):
         """
         self.operation = operation
         builder = gtk.Builder()
-        builder.add_from_file("/usr/share/scap-workbench/dialogs.glade")
+        builder.add_from_file(os.path.join(paths.glade_prefix, "dialogs.glade"))
         self.wdialog = builder.get_object("dialog:edit_question")
         self.info_box = builder.get_object("dialog:edit_question:info_box")
         self.lang = builder.get_object("dialog:edit_question:lang")
@@ -2746,7 +2747,7 @@ class EditRationale(abstract.ListEditor):
         """
         self.operation = operation
         builder = gtk.Builder()
-        builder.add_from_file("/usr/share/scap-workbench/dialogs.glade")
+        builder.add_from_file(os.path.join(paths.glade_prefix, "dialogs.glade"))
         self.wdialog = builder.get_object("dialog:edit_rationale")
         self.info_box = builder.get_object("dialog:edit_rationale:info_box")
         self.lang = builder.get_object("dialog:edit_rationale:lang")
@@ -2895,7 +2896,7 @@ class EditPlatform(abstract.ListEditor):
         """
         self.operation = operation
         builder = gtk.Builder()
-        builder.add_from_file("/usr/share/scap-workbench/dialogs.glade")
+        builder.add_from_file(os.path.join(paths.glade_prefix, "dialogs.glade"))
         self.wdialog = builder.get_object("dialog:edit_platform")
         self.info_box = builder.get_object("dialog:edit_platform:info_box")
         self.cpe = builder.get_object("dialog:edit_platform:cpe")
@@ -3212,7 +3213,7 @@ class EditValuesValues(abstract.ListEditor):
         """
         self.operation = operation
         builder = gtk.Builder()
-        builder.add_from_file("/usr/share/scap-workbench/dialogs.glade")
+        builder.add_from_file(os.path.join(paths.glade_prefix, "dialogs.glade"))
         self.wdialog = builder.get_object("dialog:edit_value")
         self.info_box = builder.get_object("dialog:edit_value:info_box")
         self.selector = builder.get_object("dialog:edit_value:selector")
@@ -3301,7 +3302,7 @@ class AddProfileDialog(EventObject):
         self.data_model = data_model
         self.__update = cb
         builder = gtk.Builder()
-        builder.add_from_file("/usr/share/scap-workbench/dialogs.glade")
+        builder.add_from_file(os.path.join(paths.glade_prefix, "dialogs.glade"))
         self.window = builder.get_object("dialog:profile_add")
 
         builder.get_object("profile_add:btn_ok").connect("clicked", self.__cb_do)
@@ -3368,7 +3369,7 @@ class AddItem(EventObject):
     def dialog(self):
 
         builder = gtk.Builder()
-        builder.add_from_file("/usr/share/scap-workbench/dialogs.glade")
+        builder.add_from_file(os.path.join(paths.glade_prefix, "dialogs.glade"))
         self.window = builder.get_object("dialog:add_item")
         self.window.connect("delete-event", self.__delete_event)
         
@@ -3505,7 +3506,7 @@ class EditSelectIdDialogWindow(object):
         self.model_item = model_item
         
         builder = gtk.Builder()
-        builder.add_from_file("/usr/share/scap-workbench/dialogs.glade")
+        builder.add_from_file(os.path.join(paths.glade_prefix, "dialogs.glade"))
 
         self.window = builder.get_object("dialog:add_id")
         self.window.connect("delete-event", self.__delete_event)
@@ -3754,7 +3755,7 @@ class FindOvalDef(abstract.Window, abstract.ListEditor):
         """
         """
         builder = gtk.Builder()
-        builder.add_from_file("/usr/share/scap-workbench/dialogs.glade")
+        builder.add_from_file(os.path.join(paths.glade_prefix, "dialogs.glade"))
         self.wdialog = builder.get_object("dialog:find_definition")
         self.info_box = builder.get_object("dialog:find_definition:info_box")
         self.definitions = builder.get_object("dialog:find_definition:definitions")
@@ -3821,7 +3822,7 @@ class FindItem(abstract.Window, abstract.ListEditor):
         """
         """
         builder = gtk.Builder()
-        builder.add_from_file("/usr/share/scap-workbench/dialogs.glade")
+        builder.add_from_file(os.path.join(paths.glade_prefix, "dialogs.glade"))
         self.wdialog = builder.get_object("dialog:find_value")
         self.info_box = builder.get_object("dialog:find_value:info_box")
         self.items = builder.get_object("dialog:find_value:values")
@@ -3865,7 +3866,7 @@ class Editor(abstract.Window, threading.Thread):
         
         threading.Thread.__init__(self)
         self.builder = gtk.Builder()
-        self.builder.add_from_file("/usr/share/scap-workbench/editor.glade")
+        self.builder.add_from_file(os.path.join(paths.glade_prefix, "editor.glade"))
         self.builder.connect_signals(self)
         abstract.Window.__init__(self, "main:window", core.SWBCore(self.builder))
 

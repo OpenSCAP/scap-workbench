@@ -27,6 +27,7 @@ import gobject          # gobject.TYPE_PYOBJECT
 import re               # Regular expressions
 import datetime
 import time
+import os.path
 
 """ Importing SCAP Workbench modules
 """
@@ -34,6 +35,7 @@ import logging                          # Logger for debug/info/error messages
 from core import Notification           # core.Notification levels for reference
 from events import EventObject          # abstract module EventObject
 from htmltextview import HtmlTextView   # Widget for viewing HTML when WebKit is not available
+import paths
 
 # Initializing Logger
 logger = logging.getLogger("scap-workbench")
@@ -626,7 +628,7 @@ class Func(object):
     def prepare_preview(self):
 
         builder = gtk.Builder()
-        builder.add_from_file("/usr/share/scap-workbench/dialogs.glade")
+        builder.add_from_file(os.path.join(paths.glade_prefix, "dialogs.glade"))
         self.preview_dialog = builder.get_object("dialog:preview")
         self.preview_scw = builder.get_object("dialog:preview:scw")
         self.info_box = builder.get_object("dialog:preview:info_box")
@@ -1382,7 +1384,7 @@ class EditDialogWindow(EventObject):
         self.item = item
         self.init_data = None
         builder = gtk.Builder()
-        builder.add_from_file("/usr/share/scap-workbench/dialogs.glade")
+        builder.add_from_file(os.path.join(paths.glade_prefix, "dialogs.glade"))
         
         self.window = builder.get_object("dialog:edit_item")
         self.window.connect("delete-event", self.__delete_event)

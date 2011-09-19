@@ -22,6 +22,8 @@
 import gtk
 
 import sys
+import os.path
+import paths
 import version
 
 class ExceptionDialog(object):
@@ -33,7 +35,7 @@ class ExceptionDialog(object):
 
     def __init__(self, exc_type, exc_message, exc_traceback):
         self.builder = gtk.Builder()
-        self.builder.add_from_file("/usr/share/scap-workbench/error.glade")
+        self.builder.add_from_file(os.path.join(paths.glade_prefix, "error.glade"))
         
         self.window = self.builder.get_object("exception_dialog")
         # keep the window above to prevent the user from ignoring it

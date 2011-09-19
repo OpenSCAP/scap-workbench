@@ -31,6 +31,7 @@ import abstract                 # All abstract classes
 import logging                  # Logger for debug/info/error messages
 import commands                 # Module for handling openscap
 from core import Notification   # core.Notification levels for reference
+import paths
 
 # Initializing Logger
 logger = logging.getLogger("scap-workbench")
@@ -58,7 +59,7 @@ class ImportDialog(abstract.Window, abstract.ListEditor):
         self.__import = cb
         self.data_model = data_model
         builder = gtk.Builder()
-        builder.add_from_file("/usr/share/scap-workbench/dialogs.glade")
+        builder.add_from_file(os.path.join(paths.glade_prefix, "dialogs.glade"))
         self.wdialog = builder.get_object("dialog:import")
         self.info_box = builder.get_object("dialog:import:info_box")
         self.filechooser = builder.get_object("dialog:import:filechooser")
@@ -75,8 +76,8 @@ class ImportDialog(abstract.Window, abstract.ListEditor):
                     Notification.FATAL, msg_id="notify:xccdf:import:dialog", link_cb=self.__action_link)
             return
         
-        if os.access("/usr/share/openscap", os.X_OK):
-            self.filechooser.set_current_folder("/usr/share/openscap")
+        if os.access(paths.stock_data_prefix, os.X_OK):
+            self.filechooser.set_current_folder(paths.stock_data_prefix)
         self.wdialog.set_transient_for(self.core.main_window)
         self.wdialog.show()
         self.log = []
@@ -94,7 +95,7 @@ class ImportDialog(abstract.Window, abstract.ListEditor):
             self.__do(overvalid=True)
         elif action == "#log":
             builder = gtk.Builder()
-            builder.add_from_file("/usr/share/scap-workbench/dialogs.glade")
+            builder.add_from_file(os.path.join(paths.glade_prefix, "dialogs.glade"))
             preview_dialog = builder.get_object("dialog:preview")
             box = gtk.VBox()
             box.set_spacing(2)
@@ -162,7 +163,7 @@ class ExportDialog(abstract.Window, abstract.ListEditor):
         self.data_model = data_model
         builder = gtk.Builder()
         self.log = []
-        builder.add_from_file("/usr/share/scap-workbench/dialogs.glade")
+        builder.add_from_file(os.path.join(paths.glade_prefix, "dialogs.glade"))
         self.wdialog = builder.get_object("dialog:export")
         self.progress = builder.get_object("dialog:progress")
         self.info_box = builder.get_object("dialog:export:info_box")
@@ -220,7 +221,7 @@ class ExportDialog(abstract.Window, abstract.ListEditor):
             self.preview(widget=None, desc=desc)
         elif action == "#log":
             builder = gtk.Builder()
-            builder.add_from_file("/usr/share/scap-workbench/dialogs.glade")
+            builder.add_from_file(os.path.join(paths.glade_prefix, "dialogs.glade"))
             preview_dialog = builder.get_object("dialog:preview")
             box = gtk.VBox()
             box.set_spacing(2)

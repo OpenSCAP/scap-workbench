@@ -37,6 +37,7 @@ import commands                 # Module for handling openscap
 import filter                   # Module for handling filters
 from core import Notification   # core.Notification levels for reference
 from events import EventObject  # abstract module EventObject
+import paths
 
 # Initializing Logger
 logger = logging.getLogger("scap-workbench")
@@ -339,7 +340,7 @@ class ProfileChooser(object):
         self.data_model = commands.DHProfiles(core)
 
         builder = gtk.Builder()
-        builder.add_from_file("/usr/share/scap-workbench/dialogs.glade")
+        builder.add_from_file(os.path.join(paths.glade_prefix, "dialogs.glade"))
         self.dialog = builder.get_object("dialog:profile_change")
         self.info_box = builder.get_object("dialog:profile_change:info_box")
         self.profiles = builder.get_object("dialog:profile_change:profiles")
@@ -389,7 +390,7 @@ class HelpWindow(abstract.Window):
         super(HelpWindow, self).__init__("scan:help:window", core, skip_registration = True)
         
         self.builder = gtk.Builder()
-        self.builder.add_from_file("/usr/share/scap-workbench/scan_help.glade")
+        self.builder.add_from_file(os.path.join(paths.glade_prefix, "scan_help.glade"))
         self.draw_window()
 
     def delete_event(self, widget, event):

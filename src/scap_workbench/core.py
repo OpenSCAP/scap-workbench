@@ -26,6 +26,7 @@ import os       # os Path join/basename, ..
 import sys      # system library for standard in/out and exit
 import pango    # For pango enumeration constants
 import getopt   # Parsing program parameters
+import os.path
 
 """ Importing SCAP Workbench modules
 """
@@ -33,11 +34,10 @@ import logging                  # Logger for debug/info/error messages
 import logging.config           # For configuration of Logger
 from events import EventHandler # abstract module EventHandler
 from threads import ThreadManager
+import paths
 
 # Initializing and configuring Logger
-LOGGER_CONFIG_FILE='/etc/scap-workbench/logger.conf'
-FILTER_DIR="/usr/share/scap-workbench/filters"
-logging.config.fileConfig(LOGGER_CONFIG_FILE)
+logging.config.fileConfig(os.path.join(paths.etc_prefix, "logger.conf"))
 logger = logging.getLogger("scap-workbench")
 
 """ Import OpenSCAP library as backend.
@@ -272,7 +272,7 @@ class SWBCore(object):
         self.selected_item      = None
         self.selected_lang      = ""
         self.langs              = []
-        self.filter_directory   = FILTER_DIR
+        self.filter_directory   = paths.filters_prefix
         self.with_policy = with_policy
 
         # Global notifications

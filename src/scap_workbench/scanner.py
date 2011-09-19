@@ -26,6 +26,7 @@ import gtk              # GTK library
 import threading        # Main window is running in thread
 import gnome, gnome.ui  # Gnome icons in HTML editor
 import pango            # Pango enumeration constants
+import os.path
 
 """ Importing SCAP Workbench modules
 """
@@ -39,6 +40,7 @@ import tailoring                # For initializing GUI for tailoring
 import scan                     # For initializing GIU for scan
 from core import Notification   # core.Notification levels for reference
 import enum as ENUM             # For enumeration from openscap library
+import paths
 
 import error
 
@@ -328,7 +330,7 @@ class MainWindow(abstract.Window, threading.Thread):
         threading.Thread.__init__(self)
         logger = logging.getLogger(self.__class__.__name__)
         self.builder = gtk.Builder()
-        self.builder.add_from_file("/usr/share/scap-workbench/scanner.glade")
+        self.builder.add_from_file(os.path.join(paths.glade_prefix, "scanner.glade"))
         self.builder.connect_signals(self)
         self.core = core.SWBCore(self.builder, True)
         abstract.Window.__init__(self, "gui:main", self.core)

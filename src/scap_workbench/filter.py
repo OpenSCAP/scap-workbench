@@ -25,8 +25,10 @@ import gtk
 import abstract
 import logging
 from events import EventObject
+import paths
 
-import sys, os
+import sys
+import os
 
 logger = logging.getLogger("scap-workbench")
 
@@ -300,7 +302,7 @@ class ItemFilter(Renderer):
 
         self.id_filter = 0
         self.user_filter_builder = gtk.Builder()
-        self.user_filter_builder.add_from_file("/usr/share/scap-workbench/filter_tailoring.glade")
+        self.user_filter_builder.add_from_file(os.path.join(paths.glade_prefix, "filter_tailoring.glade"))
         self.user_filter_window = self.user_filter_builder.get_object("user_filter:dialog")
         self.user_filter_window.connect("delete-event", self.__cb_cancel)
         
@@ -441,7 +443,7 @@ class ScanFilter(Renderer):
 
         self.id_filter = 0
         self.user_filter_builder = gtk.Builder()
-        self.user_filter_builder.add_from_file("/usr/share/scap-workbench/filter_scan.glade")
+        self.user_filter_builder.add_from_file(os.path.join(paths.glade_prefix, "filter_scan.glade"))
         self.user_filter_window = self.user_filter_builder.get_object("user_filter:dialog")
         self.user_filter_window.connect("delete-event", self.__cb_cancel)
 
