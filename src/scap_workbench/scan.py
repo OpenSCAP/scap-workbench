@@ -118,6 +118,8 @@ class MenuButtonScan(abstract.MenuButton, abstract.Func):
         # set signals
         self.add_sender(self.id, "scan")
         self.add_receiver("gui:main", "quit", self.__cb_cancel)
+        
+        self.set_scan_in_progress(False, previously_scanned = False)
 
     def __update_profile(self):
         """Called whenever current profile changes (for example by the profile chooser dialog - see scan.ProfileChooser)
@@ -152,6 +154,9 @@ class MenuButtonScan(abstract.MenuButton, abstract.Func):
             self.selected_profile = None
             
             self.profile.set_tooltip_text("Current profile: (No profile)")
+        
+        # profile changed so we make export and view results buttons insensitive
+        self.set_scan_in_progress(False, previously_scanned = False)
 
     def activate(self, active):
         if active:
@@ -260,17 +265,20 @@ class MenuButtonScan(abstract.MenuButton, abstract.Func):
             self.data_model.prepare()
             self.__th_scan()
 
-    def set_scan_in_progress(self, active):
+    def set_scan_in_progress(self, active, previously_scanned = True):
         """This method manages sensitivity of various buttons according to whether scanning
         is in progress or not. Also manages self.__lock
+        
+        active - whether scanning is currently underway
+        previously_scanned - have we scanned before? only applies if active if False
         """
         
         self.__lock = active
         
         self.stop.set_sensitive(active)
         self.scan.set_sensitive(not active)
-        self.export.set_sensitive(not active)
-        self.results.set_sensitive(not active)
+        self.export.set_sensitive(not active and previously_scanned)
+        self.results.set_sensitive(not active and previously_scanned)
         self.profile.set_sensitive(not active)
 
     @threadSave
