@@ -461,6 +461,8 @@ class HtmlHandler(xml.sax.handler.ContentHandler):
             pass
         elif name == 'thead':
             pass
+        elif name == 'tbody':
+            pass
         else:
             logger.warning("Unhandled element '%s'" % name)
 
@@ -479,6 +481,8 @@ class HtmlHandler(xml.sax.handler.ContentHandler):
         elif name == 'table':
             self.list_counters.pop()
         elif name == 'thead':
+            pass
+        elif name == 'tbody':
             pass
         elif name == 'td':
             self._insert_text(" ")
