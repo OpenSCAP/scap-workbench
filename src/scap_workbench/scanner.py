@@ -276,6 +276,10 @@ class MenuButtonXCCDF(abstract.MenuButton):
             self.notifications.append(self.core.notify("Benchmark has been exported to \"%s\"" % (file_name,),
                 Notification.SUCCESS, msg_id="notify:xccdf:export"))
             self.core.xccdf_file = file_name
+            
+        else:
+            self.notifications.append(self.core.notify("Export canceled or unsuccessful.",
+                Notification.INFORMATION, msg_id="notify:xccdf:export"))
 
     def __menu_sensitive(self, active):
         """This gets called as a reaction to a file being loaded or closed.

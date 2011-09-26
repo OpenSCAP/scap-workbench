@@ -1001,7 +1001,10 @@ class DHXccdf(DataHandler):
             file_name = self.file_browse("Save XCCDF file", file=self.core.lib.xccdf)
 
         if file_name != "":
-            self.core.lib.benchmark.export(file_name)
+            # according to openscap API docs, -1 means that an error happened
+            if self.core.lib.benchmark.export(file_name) == -1:
+                return None
+            
             logger.debug("Exported benchmark: %s", file_name)
             return file_name
         return None
