@@ -67,7 +67,9 @@ class ThreadManager(object):
 
     def new_thread(self, func, obj, *args, **kwargs):
         handler = ThreadHandler(self, func, obj, *args, **kwargs)
-        if handler: handler.start()
+        handler.start()
+            
+        return handler
 
     def start_thread(self, func, obj, *args, **kwargs):
         while func in self.handlers:

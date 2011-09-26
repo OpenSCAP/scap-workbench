@@ -1456,19 +1456,23 @@ class DHItemsTree(DataHandler, EventObject):
         for constructing the tree structure. Select attribute is from selected policy (profile).
         See profiles.
         
-        with_values - if the model has the values of groups"""
+        with_values - if the model has the values of groups
+        
+        Internal: The commented threads_enter and leave calls are leftover from the past when
+        the data model fill was done in a separate worker thread.
+        """
 
         """This is recusive call (item is not None) so let's get type of 
         item and add it to model. If the item is Group continue more deep with
         recursion to get all items to the tree"""
         color = None
         if self.__progress != None:
-            gtk.gdk.threads_enter()
+            #gtk.gdk.threads_enter()
             value = self.__progress.get_fraction()+self.__step
             if value > 1.0: value = 1.0
             self.__progress.set_fraction(value)
             self.__progress.set_text("Adding items %s/%s" % (int(self.__progress.get_fraction()/self.__step), self.__total))
-            gtk.gdk.threads_leave()
+            #gtk.gdk.threads_leave()
 
         """Check the item if it's selected. If the parent or the item is not selected
         change the color of the font to the gray"""
@@ -1486,10 +1490,10 @@ class DHItemsTree(DataHandler, EventObject):
             # TYPE: XCCDF_GROUP
             if item.type == openscap.OSCAP.XCCDF_GROUP:
                 item = item.to_group()
-                gtk.gdk.threads_enter()
+                #gtk.gdk.threads_enter()
                 item_it = self.model.append(parent, ["group", item.id, title, IMG_GROUP, ""+title, color, selected, pselected])
                 self.treeView.queue_draw()
-                gtk.gdk.threads_leave()
+                #gtk.gdk.threads_leave()
 
                 """For all content of the group continue with recursive fill
                 """
@@ -1504,10 +1508,10 @@ class DHItemsTree(DataHandler, EventObject):
 
             # TYPE: XCCDF_RULE
             elif item.type == openscap.OSCAP.XCCDF_RULE:
-                gtk.gdk.threads_enter()
+                #gtk.gdk.threads_enter()
                 item_it = self.model.append(parent, ["rule", item.id, title, IMG_RULE, ""+title, color, selected, pselected])
                 self.treeView.queue_draw()
-                gtk.gdk.threads_leave()
+                #gtk.gdk.threads_leave()
 
             # TYPE: XCCDF_VALUE
             elif item.type == openscap.OSCAP.XCCDF_VALUE:
@@ -1516,10 +1520,10 @@ class DHItemsTree(DataHandler, EventObject):
                     titles = dict([(title.lang, " ".join(title.text.split())) for title in item.title])
                     if self.core.selected_lang in titles.keys(): title = titles[self.core.selected_lang]
                     else: title = titles[titles.keys()[0]]
-                gtk.gdk.threads_enter()
+                #gtk.gdk.threads_enter()
                 self.model.append(parent, ["value", item.id, title, IMG_VALUE, ""+title, color, selected, pselected])
                 self.treeView.queue_draw()
-                gtk.gdk.threads_leave()
+                #gtk.gdk.threads_leave()
 
             #TYPE: UNKNOWN
             else: logger.warning("Unknown type of %s, should be Rule or Group (got %s)", item.type, item.id)
@@ -1543,9 +1547,13 @@ class DHItemsTree(DataHandler, EventObject):
                     number += self.__item_count(child, with_values=with_values)
         return number
 
-    @threadSave
+    #@threadSave
     def fill(self, item=None, parent=None, with_values=False):
-        """Thread save function to fill the treeView."""
+        """
+        Internal: The commented threads_enter and leave calls are leftover from the past when
+        the data model fill was done in a separate worker thread.
+        """
+        
         if not self.check_library(): return None
 
         """we don't know item so it's first call and we need to clear
@@ -1561,11 +1569,11 @@ class DHItemsTree(DataHandler, EventObject):
         self.__step = (100.0/(self.__total or 1.0))/100.0
 
         try:
-            gtk.gdk.threads_enter()
+            #gtk.gdk.threads_enter()
             self.model.clear()
             if self.combo_box: self.combo_box.set_sensitive(False)
             self.treeView.set_sensitive(False)
-            gtk.gdk.threads_leave()
+            #gtk.gdk.threads_leave()
 
             """Using generator for list cause we don't want to extend (add) values to content
             of benchmark again (list is benchmark content and adding cause adding to model)"""
@@ -1575,19 +1583,19 @@ class DHItemsTree(DataHandler, EventObject):
 
             for item in content:
                 if self.__progress != None:
-                    gtk.gdk.threads_enter()
+                    #gtk.gdk.threads_enter()
                     value = self.__progress.get_fraction()+self.__step
                     if value > 1.0: value = 1.0
                     self.__progress.set_fraction(value)
                     self.__progress.set_text("Adding items %s/%s" % (int(self.__progress.get_fraction()/self.__step), self.__total))
-                    gtk.gdk.threads_leave()
+                    #gtk.gdk.threads_leave()
                 self.__recursive_fill(item, with_values=with_values)
 
-            gtk.gdk.threads_enter()
+            #gtk.gdk.threads_enter()
             self.treeView.set_sensitive(True)
-            gtk.gdk.threads_leave()
+            #gtk.gdk.threads_leave()
         finally:
-            gtk.gdk.threads_enter()
+            #gtk.gdk.threads_enter()
             if self.__progress != None:
                 self.__progress.set_text("Applying filters ...")
                 self.__progress.set_fraction(1.0)
@@ -1595,7 +1603,7 @@ class DHItemsTree(DataHandler, EventObject):
             if self.core.selected_item:
                 self.treeView.get_model().foreach(self.set_selected, (self.core.selected_item, self.treeView, 1))
             if self.combo_box: self.combo_box.set_sensitive(True)
-            gtk.gdk.threads_leave()
+            #gtk.gdk.threads_leave()
             self.emit("filled")
 
         return True
@@ -1743,7 +1751,11 @@ class DHProfiles(DataHandler):
         return ids
 
     def __fill_refines(self, profile, iter):
-
+        """
+        Internal: The commented threads_enter and leave calls are leftover from the past when
+        the data model fill was done in a separate worker thread.
+        """
+        
         # -- RULES --
         rules = {}
         color = None
@@ -1762,24 +1774,24 @@ class DHProfiles(DataHandler):
             item = self.core.lib.benchmark.get_item(rule_k)
             if item == None:
                 logger.error("%s points to nonexisting item %s" % (rules[rule_k][0].object, rule_k))
-                gtk.gdk.threads_enter()
+                #gtk.gdk.threads_enter()
                 self.model.append(iter, ["rule", rule_k, rules[rule_k], "dialog-error", "Broken reference: %s" % (rule_k,), "red"])
-                gtk.gdk.threads_leave()
+                #gtk.gdk.threads_leave()
                 continue
 
             type = {openscap.OSCAP.XCCDF_RULE: "rule", openscap.OSCAP.XCCDF_GROUP: "group"}[item.type]
-            gtk.gdk.threads_enter()
+            #gtk.gdk.threads_enter()
             self.model.append(iter, ["rule", rule_k, rules[rule_k], IMG_RULE, self.get_title(item.title) or item.id+" (ID)", color])
-            gtk.gdk.threads_leave()
+            #gtk.gdk.threads_leave()
 
         # -- VALUES --
         values = {}
         for value in profile.setvalues: values[value.item] = [value]
         for value in profile.refine_values:
             if value.item in values:
-                gtk.gdk.threads_enter()
+                #gtk.gdk.threads_enter()
                 values[value.item].append(value)
-                gtk.gdk.threads_leave()
+                #gtk.gdk.threads_leave()
             else: values[value.item] = [value]
 
         for value_k in values.keys():
@@ -1787,31 +1799,34 @@ class DHProfiles(DataHandler):
             item = self.core.lib.benchmark.get_item(value_k)
             if item == None: 
                 logger.error("%s points to nonexisting value %s" % (values[value_k][0].object, value_k))
-                gtk.gdk.threads_enter()
+                #gtk.gdk.threads_enter()
                 self.model.append(iter, ["value", value_k, values[value_k], "dialog-error", "Broken reference: %s" % (value_k,), "red"])
-                gtk.gdk.threads_leave()
+                #gtk.gdk.threads_leave()
                 continue
-            gtk.gdk.threads_enter()
+            #gtk.gdk.threads_enter()
             self.model.append(iter, ["value", value_k, values[value_k], IMG_VALUE, self.get_title(item.title) or item.id+" (ID)", None])
-            gtk.gdk.threads_leave()
+            #gtk.gdk.threads_leave()
 
-    @threadSave
+    #@threadSave
     def fill(self, item=None, parent=None, no_default=False):
         """Fill the model with existing profiles from loaded benchmark
         no_default parameter means that there should not be a default document representation of policy
+        
+        Internal: The commented threads_enter and leave calls are leftover from the past when
+        the data model fill was done in a separate worker thread.
         """
-        gtk.gdk.threads_enter()
+        #gtk.gdk.threads_enter()
         if self.treeView: self.treeView.set_sensitive(False)
         self.model.clear()
-        gtk.gdk.threads_leave()
+        #gtk.gdk.threads_leave()
         if not self.check_library(): return None
 
         if not no_default:
             logger.debug("Adding profile (No profile)")
-            gtk.gdk.threads_enter()
+            #gtk.gdk.threads_enter()
             if self.model.__class__ == gtk.ListStore: self.model.append([None, "(No profile)"])
             else: self.model.append(None, ["profile", None, item, IMG_GROUP, "(No profile)", None])
-            gtk.gdk.threads_leave()
+            #gtk.gdk.threads_leave()
 
         # Go thru all profiles from benchmark and add them into the model
         for item in self.core.lib.benchmark.profiles:
@@ -1820,20 +1835,20 @@ class DHProfiles(DataHandler):
             title = self.get_title(item.title) or "%s (ID)" % (item.id,)
             color = None
             if self.model.__class__ == gtk.ListStore:
-                gtk.gdk.threads_enter()
+                #gtk.gdk.threads_enter()
                 iter = self.model.append([item.id, ""+title])
-                gtk.gdk.threads_leave()
+                #gtk.gdk.threads_leave()
             else:
-                gtk.gdk.threads_enter()
+                #gtk.gdk.threads_enter()
                 iter = self.model.append(None, ["profile", item.id, item, IMG_GROUP, ""+title, color])
-                gtk.gdk.threads_leave()
+                #gtk.gdk.threads_leave()
                 self.__fill_refines(item, iter)
 
-        gtk.gdk.threads_enter()
+        #gtk.gdk.threads_enter()
         if self.core.selected_profile and self.treeView:
             self.treeView.get_model().foreach(self.set_selected, (self.core.selected_profile, self.treeView, 0))
         if self.treeView: self.treeView.set_sensitive(True)
-        gtk.gdk.threads_leave()
+        #gtk.gdk.threads_leave()
         return True
 
     def get_profiles(self):
