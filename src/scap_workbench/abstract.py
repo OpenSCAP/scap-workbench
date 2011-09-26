@@ -993,7 +993,6 @@ class HTMLEditor(ListEditor):
                     Notification.INFORMATION, info_box=self.info_box, msg_id="")
         else:
             self.__html = webkit.WebView()
-            self.__html.set_editable(True)
             self.__html.set_zoom_level(0.75)
             self.__html_sw.add(self.__html)
             self.__html_sw.show_all()
@@ -1007,7 +1006,9 @@ class HTMLEditor(ListEditor):
 
     def load_html(self, text, url):
         if self.__switcher.get_active() == 0 and self.__html:
-            self.__html.load_html_string(text, url)
+            self.__html.load_html_string("<body contenteditable=\"true\">%s</body>" % (text), url)
+            #self.__html.set_editable(True)
+            
         else:
             self.__plain.get_buffer().set_text(text)
 
@@ -1109,14 +1110,15 @@ class HTMLEditor(ListEditor):
             self.__html_sw.set_property("visible", True)
             self.__plain_sw.set_property("visible", False)
             desc = self.__plain.get_buffer().get_text(self.__plain.get_buffer().get_start_iter(), self.__plain.get_buffer().get_end_iter())
-            self.__html.load_html_string(desc or "", "file:///")
+            self.load_html(desc or "", "file:///")
+
         elif self.__switcher.get_active() == 1: # HTML -> TEXT
             self.__html_sw.set_property("visible", False)
             self.__plain_sw.set_property("visible", True)
             self.__html.execute_script("document.title=document.documentElement.innerHTML;")
             desc = self.__html.get_main_frame().get_title()
             desc = desc.replace("<head></head>", "")
-            desc = desc.replace("<body>", "").replace("</body>", "")
+            desc = desc.replace("<body contenteditable=\"true\">", "").replace("</body>", "")
 
             """ We use Beautiful soup to pretify formatting of plain text
             when we switched from HTML to PLAIN view, cause we get only one-line
