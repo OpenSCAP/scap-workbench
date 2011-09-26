@@ -1006,6 +1006,7 @@ class HTMLEditor(ListEditor):
 
     def load_html(self, text, url):
         if self.__switcher.get_active() == 0 and self.__html:
+            # contenteditable is a new attribute in HTML5 that marks the element as WYSIWYG editable in the browser
             self.__html.load_html_string("<body contenteditable=\"true\">%s</body>" % (text), url)
             #self.__html.set_editable(True)
             
@@ -1109,14 +1110,18 @@ class HTMLEditor(ListEditor):
         if self.__switcher.get_active() == 0: # TEXT -> HTML
             self.__html_sw.set_property("visible", True)
             self.__plain_sw.set_property("visible", False)
-            desc = self.__plain.get_buffer().get_text(self.__plain.get_buffer().get_start_iter(), self.__plain.get_buffer().get_end_iter())
+            desc = self.__plain.get_buffer().get_slice(self.__plain.get_buffer().get_start_iter(), self.__plain.get_buffer().get_end_iter())
             self.load_html(desc or "", "file:///")
 
         elif self.__switcher.get_active() == 1: # HTML -> TEXT
             self.__html_sw.set_property("visible", False)
             self.__plain_sw.set_property("visible", True)
+            
+            # the following is a JavaScript trick to get exact innerHTML inside <body></body> out
+            # using document's title
             self.__html.execute_script("document.title=document.documentElement.innerHTML;")
             desc = self.__html.get_main_frame().get_title()
+            
             desc = desc.replace("<head></head>", "")
             desc = desc.replace("<body contenteditable=\"true\">", "").replace("</body>", "")
 
