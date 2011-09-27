@@ -250,30 +250,44 @@ class ProfileList(abstract.List):
         self.emit("update")
 
     def __cb_changed(self, widget, treeView):
-        """ Changed the selected item of the list
+        """Callback called when selection of the tree view (item and profile list) changes.
         """
+        
         selection = treeView.get_selection( )
         if selection != None: 
-            (filter_model, filter_iter) = selection.get_selected( )
-            if not filter_iter: 
+            (filter_model, filter_iter) = selection.get_selected()
+            
+            if not filter_iter:
+                # nothing selected
+                self.core.selected_profile = None
+                self.core.selected_item = None
                 self.selected = None
-                return
-            model = filter_model.get_model()
-            iter = filter_model.convert_iter_to_child_iter(filter_iter)
-
-            if model.get_value(iter, 0) == "profile":
-                """ If a profile is selected, change the global value of selected profile
-                and clear the local value of item (to evade possible conflicts in selections)"""
-                self.core.selected_profile = model.get_value(iter, 2).id
-                self.selected = model[iter]
+                
             else:
-                """ If a refine item is selected, change the global value of selected item
-                and fill the local value of selected item so details can be filled from it."""
-                self.core.selected_item = model.get_value(iter, 1)
-                self.selected = model[iter]
+                model = filter_model.get_model()
+                iter = filter_model.convert_iter_to_child_iter(filter_iter)
+    
+                if model.get_value(iter, 0) == "profile":
+                    # If a profile is selected, change the global value of selected profile
+                    # and clear the local value of item (to evade possible conflicts in selections)
+                    self.core.selected_profile = model.get_value(iter, 2).id
+                    self.core.selected_item = None
+                    self.selected = model[iter]
+                
+                else:
+                    # If a refine item is selected, change the global value of selected item
+                    # and fill the local value of selected item so details can be filled from it.
+                    self.core.selected_profile = None
+                    self.core.selected_item = model.get_value(iter, 1)
+                    self.selected = model[iter]
+        
+        else:
+            self.core.selected_profile = None
+            self.core.selected_item = None
+            self.selected = None
 
-        """Selection has changed, trigger all events
-        connected to this signal"""
+        # Selection has changed, trigger all events
+        # connected to this signal
         self.emit("update")
 
     def __cb_key_press(self, widget, event):
@@ -301,28 +315,29 @@ class ProfileList(abstract.List):
             if not iter: raise Exception("Iter validation failed")
 
             filter_iter_next = filter_model.iter_next(filter_iter)
-            if filter_iter_next:
-                iter_next = filter_model.convert_iter_to_child_iter(filter_iter_next)
-            else: iter_next = None
+            iter_next = filter_model.convert_iter_to_child_iter(filter_iter_next) if filter_iter_next else None
+
             if model.get_value(iter, 0) == "profile":
                 # Profile selected
                 self.data_model.remove_item(model[iter][2].id)
                 model.remove(iter)
+                
             else:
                 # Refine item selected
                 profile = model.get_value(model.iter_parent(iter), 1)
                 self.data_model.remove_refine(profile, model[iter][2])
                 model.remove(iter)
 
-            """ If the removed item has successor, let's select it so we can
-            continue in deleting or other actions without need to click the
-            list again to select next item"""
-            if iter_next:
-                self.core.selected_item = model[iter_next][1]
-                self.__update(False)
+                # If the removed item has successor, let's select it so we can
+                # continue in deleting or other actions without need to click the
+                # list again to select next item
+                if iter_next:
+                    self.core.selected_item = model[iter_next][1]
+                    self.__update(False)
 
         # Nothing selected
-        else: self.notifications.append(self.core.notify("Please select at least one item to delete",
+        else:
+            self.notifications.append(self.core.notify("Please select at least one item to delete",
                 Notification.ERROR, msg_id="notify:edit:delete_item"))
 
     def __cb_item_add(self, widget=None):
