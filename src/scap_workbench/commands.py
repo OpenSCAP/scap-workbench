@@ -2261,19 +2261,16 @@ class DHScan(DataHandler, EventObject):
         self.__current_iter = self.fill([msg.user1str, None, False, title, desc])
         
         if self.__progress != None:
-            gtk.gdk.threads_enter()
-            
-            # don't let progress fraction exceed 1.0 = 100%
-            fract = min(self.__progress.get_fraction() + self.step, 1.0)
-            self.__progress.set_fraction(fract)
-            self.count_current = int(round(fract / self.step))
-            
-            self.__progress.set_text("Scanning rule '%s' ... (%s/%s)" % (id, self.count_current, self.count_all))
-            logger.debug("[%s/%s] Scanning rule '%s'" % (self.count_current, self.count_all, id))
-            
-            self.__progress.set_tooltip_text("Scanning rule '%s'" % (title))
-            
-            gtk.gdk.threads_leave()
+            with gtk.gdk.lock:
+                # don't let progress fraction exceed 1.0 = 100%
+                fract = min(self.__progress.get_fraction() + self.step, 1.0)
+                self.__progress.set_fraction(fract)
+                self.count_current = int(round(fract / self.step))
+                
+                self.__progress.set_text("Scanning rule '%s' ... (%s/%s)" % (id, self.count_current, self.count_all))
+                logger.debug("[%s/%s] Scanning rule '%s'" % (self.count_current, self.count_all, id))
+                
+                self.__progress.set_tooltip_text("Scanning rule '%s'" % (title))
 
         return self.__cancel
 
@@ -2288,13 +2285,11 @@ class DHScan(DataHandler, EventObject):
         if result == openscap.OSCAP.XCCDF_RESULT_NOT_SELECTED: 
             return self.__cancel
 
-        gtk.gdk.threads_enter()
-            
-        self.fill([id, result, False, title, desc], iter=self.__current_iter)
-        self.emit("filled")
-        self.treeView.queue_draw()
-        self.count_current = int(round(self.__progress.get_fraction()/self.step))
-        gtk.gdk.threads_leave()
+        with gtk.gdk.lock:    
+            self.fill([id, result, False, title, desc], iter=self.__current_iter)
+            self.emit("filled")
+            self.treeView.queue_draw()
+            self.count_current = int(round(self.__progress.get_fraction()/self.step))
 
         return self.__cancel
 

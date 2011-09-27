@@ -150,17 +150,14 @@ class ItemList(abstract.List):
         TODO: Make this with idle function, not with new thread
         """
 
-        gtk.gdk.threads_enter()
-        selection = treeView.get_selection( )
-        if selection != None: 
-            (model, iter) = selection.get_selected( )
-            if iter: 
-                self.core.selected_item = model.get_value(iter, commands.DHItemsTree.COLUMN_ID)
-                self.emit("update")
+        with gtk.gdk.lock:
+            selection = treeView.get_selection( )
+            if selection != None: 
+                (model, iter) = selection.get_selected( )
+                if iter: 
+                    self.core.selected_item = model.get_value(iter, commands.DHItemsTree.COLUMN_ID)
+                    self.emit("update")
                 
-        gtk.gdk.threads_leave()
-
-
 class ValuesList(abstract.List):
     
     def __init__(self, widget, core, builder):

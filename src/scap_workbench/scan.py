@@ -291,16 +291,14 @@ class MenuButtonScan(abstract.MenuButton, abstract.Func):
 
         self.set_scan_in_progress(True)
         
-        gtk.gdk.threads_enter()
-        self.core.notify_destroy("notify:scan:complete")
-        gtk.gdk.threads_leave()
+        with gtk.gdk.lock:
+            self.core.notify_destroy("notify:scan:complete")
         
         logger.debug("Scanning %s ..", self.data_model.policy.id)
         if self.progress != None:
-            gtk.gdk.threads_enter()
-            self.progress.set_fraction(0.0)
-            self.progress.set_text("Preparing ...")
-            gtk.gdk.threads_leave()
+            with gtk.gdk.lock:
+                self.progress.set_fraction(0.0)
+                self.progress.set_text("Preparing ...")
 
         # at this point evaluation will keep working in this thread,
         # DHScan.__callback_start and DHScan.__callback_end will get called when each
@@ -308,21 +306,20 @@ class MenuButtonScan(abstract.MenuButton, abstract.Func):
         self.result = self.data_model.policy.evaluate()
         
         # the scan finished (successfully or maybe it was canceled)
-        gtk.gdk.threads_enter()
-        if self.progress:
-            # set the progress to 100% regardless of how many tests were actually run
-            self.progress.set_fraction(1.0)
-            self.progress.set_text("Finished %i of %i rules" % (self.data_model.count_current, self.data_model.count_all))
-            self.progress.set_has_tooltip(False)
+        with gtk.gdk.lock:
+            if self.progress:
+                # set the progress to 100% regardless of how many tests were actually run
+                self.progress.set_fraction(1.0)
+                self.progress.set_text("Finished %i of %i rules" % (self.data_model.count_current, self.data_model.count_all))
+                self.progress.set_has_tooltip(False)
+                
+            logger.debug("Finished scanning")
+            if self.data_model.count_current == self.data_model.count_all:
+                self.core.notify("Scanning finished successfully", core.Notification.SUCCESS, msg_id="notify:scan:complete")
+            else:
+                self.core.notify("Scanning prematurely interrupted by user", core.Notification.INFORMATION, msg_id="notify:scan:complete")
             
-        logger.debug("Finished scanning")
-        if self.data_model.count_current == self.data_model.count_all:
-            self.core.notify("Scanning finished successfully", core.Notification.SUCCESS, msg_id="notify:scan:complete")
-        else:
-            self.core.notify("Scanning prematurely interrupted by user", core.Notification.INFORMATION, msg_id="notify:scan:complete")
-        
-        self.core.notify_destroy("notify:scan:cancel")
-        gtk.gdk.threads_leave()
+            self.core.notify_destroy("notify:scan:cancel")
 
         self.set_scan_in_progress(False)
 
