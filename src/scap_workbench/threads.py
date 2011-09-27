@@ -33,6 +33,11 @@ def thread(func):
     
     IMPORTANT: Only use on methods from classes that have attribute "core",
                so that self.core is accessible!
+               
+    Despite this being very often imported as threadSave it does not
+    by any means make the function thread safe! It simply means that we
+    want to save data in a separate thread in that function to avoid
+    slowing the GUI down.
     """
     
     def callback(self, *args, **kwargs):
