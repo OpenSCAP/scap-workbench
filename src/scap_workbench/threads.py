@@ -42,6 +42,7 @@ def thread(func):
     
     def callback(self, *args, **kwargs):
         self.core.thread_handler.new_thread(func, self, *args, **kwargs)
+        
     return callback
 
 def thread_free(func):
@@ -52,11 +53,9 @@ def thread_free(func):
     
     def callback(self, *args, **kwargs):
         handler = ThreadHandler(None, func, self, *args, **kwargs)
-        if handler:
-            logger.debug("Running thread handler (free) \"%s:%s\"", func, args)
-            handler.start()
+        handler.start()
+        
     return callback
-
 
 class ThreadManager(object):
     """A singleton thread manager used to start new threads. You can access it
@@ -71,25 +70,39 @@ class ThreadManager(object):
         self.handlers = []
 
     def new_thread(self, func, obj, *args, **kwargs):
+        """Creates a handler from given parameters, immediately starts it by
+        spawning a thread. The newly spawned thread calls self.start_thread(..).
+        """
+        
         handler = ThreadHandler(self, func, obj, *args, **kwargs)
         handler.start()
             
         return handler
 
     def start_thread(self, func, obj, *args, **kwargs):
+        """Starts given func in the thread this is called in (that means that this
+        method does not spawn any new threads!). ThreadHandler calls this in its
+        overridden run(..) method.
+        """
+        
         while func in self.handlers:
             logger.debug("Handler for function %s already running, waiting..." % (func,))
             time.sleep(1.0)
 
         self.handlers.append(func)
-        func(obj, *args, **kwargs)
         logger.debug("Running thread handler \"%s:%s\"", func, args)
+        func(obj, *args, **kwargs)
 
     def stop_thread(self, func):
+        """Called when thread stops (so this does not pro-actively stop the thread!)
+        """
+        
         if func not in self.handlers:
             logger.warning("Function called stop, but no function %s running" % (func,))
-        else: logger.debug("Thread function %s stopped." % (func,))
-        self.handlers.remove(func)
+        
+        else:
+            logger.debug("Thread function %s stopped." % (func,))
+            self.handlers.remove(func)
 
 class ThreadHandler(threading.Thread):
     """A callable wrapper used to execute such a callable in a thread.
@@ -116,4 +129,7 @@ class ThreadHandler(threading.Thread):
             self.__master.stop_thread(self.__func)
             
         else:
+            logger.debug("Running thread handler (free) \"%s:%s\"", self.__func, self.__args)
             self.__func(self.__obj, *self.__args, **self.__kwargs)
+            logger.debug("Thread handler stopped (free) \"%s:%s\"", self.__func, self.__args)
+            
