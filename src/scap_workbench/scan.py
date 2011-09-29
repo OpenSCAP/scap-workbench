@@ -143,6 +143,9 @@ class MenuButtonScan(abstract.MenuButton, abstract.Func):
                 
             if self.selected_profile != self.core.selected_profile:
                 self.notifications.append(self.core.notify("Selected profile: \"%s\"." % (title,), core.Notification.SUCCESS, msg_id="notify:scan:selected_profile"))
+                # profile changed so we make export and view results buttons insensitive
+                self.set_scan_in_progress(False, previously_scanned = False)
+        
             self.selected_profile = self.core.selected_profile
             
             self.profile.set_tooltip_text("Current profile: %s" % (title))
@@ -151,15 +154,18 @@ class MenuButtonScan(abstract.MenuButton, abstract.Func):
             # if self.core.selected_profile is None the current profile is "No profile"
             if self.selected_profile != self.core.selected_profile:
                 self.notifications.append(self.core.notify("Selected default document profile.", core.Notification.SUCCESS, msg_id="notify:scan:selected_profile"))
+                # profile changed so we make export and view results buttons insensitive
+                self.set_scan_in_progress(False, previously_scanned = False)
+                
             self.selected_profile = None
             
             self.profile.set_tooltip_text("Current profile: (No profile)")
-        
-        # profile changed so we make export and view results buttons insensitive
-        self.set_scan_in_progress(False, previously_scanned = False)
 
     def activate(self, active):
-        if not active:
+        if active:
+            self.__update_profile()
+            
+        else:
             for notify in self.notifications:
                 notify.destroy()
             self.core.notify_destroy("notify:scan:cancel")
