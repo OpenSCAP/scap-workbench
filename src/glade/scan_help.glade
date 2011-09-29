@@ -1,7 +1,6 @@
-<?xml version="1.0"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <interface>
-  <requires lib="gtk+" version="2.16"/>
-  <!-- interface-naming-policy project-wide -->
+  <requires lib="gtk+" version="2.20"/>
   <object class="GtkListStore" id="scan:help:treeview:model">
     <columns>
       <!-- column-name result -->
@@ -25,12 +24,12 @@
       <row>
         <col id="0" translatable="yes">ERROR</col>
         <col id="1" translatable="yes">white</col>
-        <col id="2" translatable="yes">The checking engine encountered a system error and could not complete the test, therefore the status of the target&#x2019;s compliance with the Rule is not certain. This could happen, for example, if a Benchmark testing tool were run with insufficient privileges.</col>
+        <col id="2" translatable="yes">The checking engine encountered a system error and could not complete the test, therefore the status of the target’s compliance with the Rule is not certain. This could happen, for example, if a Benchmark testing tool were run with insufficient privileges.</col>
       </row>
       <row>
         <col id="0" translatable="yes">UNKNOWN</col>
         <col id="1" translatable="yes">white</col>
-        <col id="2" translatable="yes">The testing tool encountered some problem and the result is unknown. For example, a result of &#x2018;unknown&#x2019; might be given if the Benchmark testing tool were unable to interpret the output of the checking engine.</col>
+        <col id="2" translatable="yes">The testing tool encountered some problem and the result is unknown. For example, a result of ‘unknown’ might be given if the Benchmark testing tool were unable to interpret the output of the checking engine.</col>
       </row>
       <row>
         <col id="0" translatable="yes">NOT APPLICABLE</col>
@@ -62,6 +61,7 @@
   <object class="GtkWindow" id="scan:help:window">
     <property name="width_request">650</property>
     <property name="height_request">500</property>
+    <property name="can_focus">False</property>
     <property name="title" translatable="yes">Scan Help</property>
     <property name="resizable">False</property>
     <property name="modal">True</property>
@@ -71,44 +71,85 @@
     <property name="destroy_with_parent">True</property>
     <property name="icon_name">help-browser</property>
     <property name="type_hint">dialog</property>
-    <signal name="delete_event" handler="delete_event"/>
+    <property name="deletable">False</property>
+    <signal name="delete-event" handler="delete_event" swapped="no"/>
     <child>
-      <object class="GtkScrolledWindow" id="scan:help:scrolled_window">
+      <object class="GtkVBox" id="scan:help:vbox">
         <property name="visible">True</property>
-        <property name="can_focus">True</property>
-        <property name="hscrollbar_policy">automatic</property>
-        <property name="vscrollbar_policy">automatic</property>
-        <property name="shadow_type">in</property>
+        <property name="can_focus">False</property>
         <child>
-          <object class="GtkTreeView" id="scan:help:treeview">
+          <object class="GtkScrolledWindow" id="scan:help:scrolled_window">
             <property name="visible">True</property>
             <property name="can_focus">True</property>
-            <property name="model">scan:help:treeview:model</property>
-            <property name="headers_visible">False</property>
-            <property name="headers_clickable">False</property>
-            <property name="search_column">0</property>
+            <property name="hscrollbar_policy">never</property>
+            <property name="shadow_type">in</property>
             <child>
-              <object class="GtkTreeViewColumn" id="treeviewcolumn1">
-                <property name="title">Result</property>
-                <child>
-                  <object class="GtkCellRendererText" id="cellrenderertext1"/>
-                  <attributes>
-                    <attribute name="background">1</attribute>
-                    <attribute name="text">0</attribute>
-                  </attributes>
+              <object class="GtkTreeView" id="scan:help:treeview">
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="model">scan:help:treeview:model</property>
+                <property name="headers_visible">False</property>
+                <property name="headers_clickable">False</property>
+                <property name="search_column">0</property>
+                <child internal-child="selection">
+                  <object class="GtkTreeSelection" id="treeview-selection"/>
                 </child>
                 <child>
-                  <object class="GtkCellRendererText" id="cellrenderertext2">
-                    <property name="wrap_mode">word</property>
-                    <property name="wrap_width">525</property>
+                  <object class="GtkTreeViewColumn" id="treeviewcolumn1">
+                    <property name="title">Result</property>
+                    <child>
+                      <object class="GtkCellRendererText" id="cellrenderertext1"/>
+                      <attributes>
+                        <attribute name="background">1</attribute>
+                        <attribute name="text">0</attribute>
+                      </attributes>
+                    </child>
+                    <child>
+                      <object class="GtkCellRendererText" id="cellrenderertext2">
+                        <property name="wrap_mode">word</property>
+                        <property name="wrap_width">525</property>
+                      </object>
+                      <attributes>
+                        <attribute name="text">2</attribute>
+                      </attributes>
+                    </child>
                   </object>
-                  <attributes>
-                    <attribute name="text">2</attribute>
-                  </attributes>
                 </child>
               </object>
             </child>
           </object>
+          <packing>
+            <property name="expand">True</property>
+            <property name="fill">True</property>
+            <property name="position">0</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkHButtonBox" id="scan:help:button_box">
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <property name="layout_style">end</property>
+            <child>
+              <object class="GtkButton" id="scan:help:close_button">
+                <property name="label" translatable="yes">Close</property>
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="receives_default">True</property>
+                <property name="use_action_appearance">False</property>
+                <signal name="clicked" handler="destroy_window" swapped="no"/>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="position">0</property>
+              </packing>
+            </child>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">True</property>
+            <property name="position">1</property>
+          </packing>
         </child>
       </object>
     </child>
