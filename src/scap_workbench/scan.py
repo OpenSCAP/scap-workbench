@@ -159,9 +159,7 @@ class MenuButtonScan(abstract.MenuButton, abstract.Func):
         self.set_scan_in_progress(False, previously_scanned = False)
 
     def activate(self, active):
-        if active:
-            self.__update_profile()
-        else:
+        if not active:
             for notify in self.notifications:
                 notify.destroy()
             self.core.notify_destroy("notify:scan:cancel")
