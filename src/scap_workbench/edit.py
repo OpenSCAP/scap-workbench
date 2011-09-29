@@ -23,6 +23,7 @@
 """ Importing standard python libraries
 """
 import gtk              # GTK library
+import glib
 import gobject          # gobject.TYPE_PYOBJECT
 import time             # Time functions in calendar data ::EditStatus
 import re               # Regular expressions 
@@ -391,6 +392,9 @@ class ItemList(abstract.List):
 
         self.add_dialog = AddItem(self.core, self.data_model, self) # TODO
         self.get_TreeView().connect("key-press-event", self.__cb_key_press)
+        
+        # if True an idle worker that will perform the update (after selection changes) is already pending
+        self.item_changed_worker_pending = False
 
     def __clear_update(self):
         """ Remove all items from the list and update model
@@ -448,19 +452,30 @@ class ItemList(abstract.List):
         self.add_dialog.dialog()
 
     def __cb_item_changed(self, widget, treeView):
-        """ Make all changes in application in separate threads: workaround for annoying
-        blinking when redrawing treeView """
-        details = self.data_model.get_item_details(self.core.selected_item)
-        selection = treeView.get_selection( )
-        if selection != None: 
-            (model, iter) = selection.get_selected( )
-            if iter: self.core.selected_item = model.get_value(iter, commands.DHItemsTree.COLUMN_ID)
-            else: self.core.selected_item = None
-
-        # Selection has changed, trigger all events connected to this signal
-        self.emit("update")
-        treeView.columns_autosize()
-
+        """Callback called whenever item selection changes. Performs updates of the property box.
+        """
+        
+        def worker():
+            details = self.data_model.get_item_details(self.core.selected_item)
+            selection = treeView.get_selection( )
+            if selection != None: 
+                (model, iter) = selection.get_selected( )
+                if iter: self.core.selected_item = model.get_value(iter, commands.DHItemsTree.COLUMN_ID)
+                else: self.core.selected_item = None
+    
+            # Selection has changed, trigger all events connected to this signal
+            self.emit("update")
+            treeView.columns_autosize()
+            
+            self.item_changed_worker_pending = False
+        
+        # The reason for the item_changed_worker_pending attribute is to avoid stacking up
+        # many update requests that would all query the selection state again and do repeated
+        # work. This way the update happens only once even though the selection changes many times.
+        if not self.item_changed_worker_pending:
+            # we handle this in the idle function when no higher priority events are to be handled
+            glib.idle_add(worker)
+            self.item_changed_worker_pending = True
 
 class MenuButtonEditXCCDF(abstract.MenuButton):
 

@@ -23,6 +23,7 @@
 """ Importing standard python libraries
 """
 import gtk              # GTK library
+import glib
 import pango            # pango library for WRAP* variables
 import re               # Regular expressions 
 import sre_constants    # For re.compile exception
@@ -70,6 +71,9 @@ class ItemList(abstract.List):
         builder.get_object("tailoring:items:toggled:cellrenderer").connect("toggled", self.data_model.cb_toggled)
         selection.connect("changed", self.__cb_item_changed, self.get_TreeView())
         self.__cb_filter_toggle()
+        
+        # if True an idle worker that will perform the update (after selection changes) is already pending
+        self.item_changed_worker_pending = False
 
     def __filter(self, model, path, iter, usr):
         
@@ -143,21 +147,29 @@ class ItemList(abstract.List):
         #self.data_model.map_filter = self.filter_del(self.filter.filters)
         self.get_TreeView().get_model().foreach(self.set_selected, (self.core.selected_item, self.get_TreeView(), 1))
 
-    @threadFree
     def __cb_item_changed(self, widget, treeView):
-        """Make all changes in application in separate threads: workaround for annoying
-        blinking when redrawing treeView
-        TODO: Make this with idle function, not with new thread
+        """Callback called whenever item selection changes. Performs updates of the property box.
         """
 
-        with gtk.gdk.lock:
+        def worker():
             selection = treeView.get_selection( )
             if selection != None: 
                 (model, iter) = selection.get_selected( )
                 if iter: 
                     self.core.selected_item = model.get_value(iter, commands.DHItemsTree.COLUMN_ID)
                     self.emit("update")
-                
+                    
+            self.item_changed_worker_pending = False
+        
+        # The reason for the item_changed_worker_pending attribute is to avoid stacking up
+        # many update requests that would all query the selection state again and do repeated
+        # work. This way the update happens only once even though the selection changes many times.
+        # TODO: This is more or less copied from edit.py, should be refactored for DRY
+        if not self.item_changed_worker_pending:
+            # we handle this in the idle function when no higher priority events are to be handled
+            glib.idle_add(worker)
+            self.item_changed_worker_pending = True
+        
 class ValuesList(abstract.List):
     
     def __init__(self, widget, core, builder):
