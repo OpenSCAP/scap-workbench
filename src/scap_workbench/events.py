@@ -147,4 +147,4 @@ class EventHandler(EventObject):
                         cb()
                     else: 
                         logger.error("Callback %s is not callable", cb)
-                        raise Exception, "Registered callback is not callable: %s" % ((signal, sender.id, cb),)
+                        raise ValueError("Registered callback is not callable! signal: %s, sender id: %s, callback: %s" % (signal, sender.id, cb))

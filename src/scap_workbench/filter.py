@@ -282,8 +282,8 @@ class ExpandBox(abstract.EventObject):
             self.arrowBottom.set_from_pixbuf(self.pixbufHide)
             try:
                 if self.focus_widget: self.focus_widget.grab_focus()
-            except Exception, e:
-                logger.warning("Couldn't grab focus: %s" %(e,))
+            except Exception as e:
+                logger.warning("Couldn't grab focus: %s" %(e))
 
     def get_widget(self):
         return self.frameContent
@@ -403,7 +403,7 @@ class AdvancedFilterModel(gtk.TreeStore):
 
     def __init__(self, *args):
         if not args:
-            raise AttributeError("AdvancedFilterModel constructor requires at least one argument")
+            raise ValueError("AdvancedFilterModel constructor requires at least one argument")
 
         super(gtk.TreeStore, self).__init__()
         self.__args = args
@@ -413,9 +413,9 @@ class AdvancedFilterModel(gtk.TreeStore):
         """Set the reference model for the TreeView
         """
         if not model:
-            raise AttributeError("AdvancedFilterModel::set_ref_model requires TreeModel as argument")
+            raise ValueError("AdvancedFilterModel::set_ref_model requires TreeModel as argument")
         if model != gtk.TreeModel:
-            raise AttributeError("AdvancedFilterModel::set_ref_model takes TreeModel as argument %s found" % (model.__class__,))
+            raise ValueError("AdvancedFilterModel::set_ref_model takes TreeModel as argument %s found" % (model.__class__))
         self.__reference = model
 
         # Let's build the filter model by creating nodes in the model that

@@ -313,7 +313,8 @@ class ProfileList(abstract.List):
         if filter_iter:
             model = filter_model.get_model()
             iter = filter_model.convert_iter_to_child_iter(filter_iter)
-            if not iter: raise Exception("Iter validation failed")
+            if not iter:
+                raise RuntimeError("Iter validation failed")
 
             filter_iter_next = filter_model.iter_next(filter_iter)
             iter_next = filter_model.convert_iter_to_child_iter(filter_iter_next) if filter_iter_next else None
@@ -3871,7 +3872,8 @@ class FindItem(abstract.Window, abstract.ListEditor):
             items = self.data_model.get_all_item_ids()
         elif type == "value":
             items = [value.to_item() for value in self.data_model.get_all_values()]
-        else: raise Exception("Type \"%s\" not supported !" % (type,))
+        else:
+            raise NotImplementedError("Type \"%s\" not supported!" % (type))
 
         self.items.set_model(gtk.ListStore(str, str, gobject.TYPE_PYOBJECT))
         modelfilter = self.items.get_model().filter_new()
