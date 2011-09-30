@@ -34,8 +34,8 @@ logger = logging.getLogger("scap-workbench")
 If anything goes wrong just end with exception"""
 try:
     import openscap_api as openscap
-except Exception as ex:
-    logger.error("OpenScap library initialization failed: %s", ex)
+except ImportError as ex:
+    logger.exception("OpenScap library initialization failed: %s", ex)
     openscap=None
 
 class enum(tuple):

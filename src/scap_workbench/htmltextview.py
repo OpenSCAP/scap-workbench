@@ -426,7 +426,7 @@ class HtmlHandler(xml.sax.handler.ContentHandler):
                 loader = gtk.gdk.PixbufLoader()
                 loader.write(mem); loader.close()
                 pixbuf = loader.get_pixbuf()
-            except Exception, ex:
+            except Exception as ex:
                 pixbuf = None
                 try:
                     alt = attrs['alt']

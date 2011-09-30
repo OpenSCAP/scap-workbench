@@ -36,8 +36,8 @@ logger = logging.getLogger("scap-workbench")
 
 try:
     import openscap_api as openscap
-except Exception as ex:
-    logger.error("OpenScap library initialization failed: %s", ex)
+except ImportError as ex:
+    logger.exception("OpenScap library initialization failed: %s" % (ex))
     openscap=None
 
 from threads import thread as threadSave
@@ -184,7 +184,7 @@ class DataHandler(object):
                     try:
                         item["selected"] = (r_value.selector, item["options"][r_value.selector])
                     except KeyError:
-                        logger.error("No selector \"%s\" available in rule %s" % (r_value.selector, item["id"]))
+                        logger.exception("No selector \"%s\" available in rule %s" % (r_value.selector, item["id"]))
             for s_value in profile.setvalues:
                 if s_value.item == value.id:
                     item["selected"] = ('', s_value.value)
@@ -2704,12 +2704,19 @@ class DHEditItems(DataHandler):
             if value != None and value != '':
                 try:
                     data = int(value)
+
                 except ValueError:
                     #Try float.
-                    data = float(value)
+                    try:
+                        data = float(value)
+                        
+                    except ValueError:
+                        data = float('nan')
             else:
                 data = float('nan')
-        else: data = value
+                
+        else:
+            data = value
 
         logger.debug("Set selector to %s", selector)
         instance.set_selector(selector)
@@ -2760,8 +2767,7 @@ class DHEditItems(DataHandler):
         if add:
             try:
                 item.requires.append(id)
-            except Exception, e:
-                logger.error("Add requires: %s" % (e,))
+            except Exception as e:
+                logger.exception("Add requires: %s" % (e))
         else:
             logger.debug("Add requires: Unsupported not-add function")
-        

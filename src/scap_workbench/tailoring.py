@@ -246,7 +246,7 @@ class ItemDetails(EventObject):
         try:
             self.description.display_html(description)
         except Exception as err:
-            logger.error("Exception: %s", err)
+            logger.exception("Exception: %s" % (err))
         
         for i, ref in enumerate(details["references"]):
             hbox = gtk.HBox()
@@ -283,7 +283,7 @@ class ItemDetails(EventObject):
         try:
             self.fixes.display_html(text)
         except Exception as err:
-            logger.debug("HTML display Exception: %s: (%s)", err, text)
+            logger.exception("HTML display Exception: %s: (%s)", err, text)
 
     def draw(self):
         self.box_details = self.builder.get_object("tailoring:details:box")

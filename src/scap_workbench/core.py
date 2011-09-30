@@ -336,8 +336,9 @@ class SWBCore(object):
             try:
                 self.lib.import_xccdf(XCCDF)
                 self.lib.init_policy()
-            except ImportError, err:
-                logger.error(err)
+                
+            except ImportError as err:
+                logger.exception(err)
                 return False
 
             # Language of benchmark should be in languages

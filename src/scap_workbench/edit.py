@@ -211,9 +211,12 @@ class ProfileList(abstract.List):
         """
         try:
             pattern = re.compile(text, re.I)
-        except sre_constants.error, err:
+        
+        except sre_constants.error as err:
             self.core.notify("Regexp entry error: %s" % (err,), Notification.ERROR, msg_id="notify:profiles:filter")
             self.__stop_search = True
+            logger.exception("Regexp entry error")
+            
             return True
 
         """ Compilation of regexp is done. For each column specified
@@ -563,7 +566,8 @@ class MenuButtonEditXCCDF(abstract.MenuButton):
         self.data_model.edit_status(self.data_model.CMD_OPER_ADD)
         try:
             self.__update()
-        except KeyError: pass
+        except KeyError:
+            pass
 
         self.emit("load")
 
@@ -576,7 +580,8 @@ class MenuButtonEditXCCDF(abstract.MenuButton):
 
             try:
                 self.__update()
-            except KeyError: pass
+            except KeyError:
+                pass
 
     def __cb_validate(self, widget):
         """ Deprecated: Validate button from main file is not visible
@@ -3744,9 +3749,9 @@ class EditSelectIdDialogWindow(object):
             if res_id == None or res_title == None:
                 return False
             return True
-        except Exception, e:
+        except Exception as e:
             #self.core.notify("Can't filter items: %s" % (e,), 3)
-            logger.error("Can't filter items: %s" % (e,))
+            logger.exception("Can't filter items: %s" % (e))
             return False
 
 class FindOvalDef(abstract.Window, abstract.ListEditor):

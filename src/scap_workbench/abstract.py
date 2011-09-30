@@ -512,7 +512,7 @@ class List(EventObject):
                 res = res and item.func(model, iter, item.params)
             except Exception as e:
                 #self.core.notify("Can't filter items: %s" % (e,), 3)
-                logger.error("Can't filter items: %s" % (e,))
+                logger.exception("Can't filter items: %s" % (e))
 
         return res
 
@@ -668,8 +668,8 @@ class Func(object):
             self.description_widget.modify_base(gtk.STATE_NORMAL, bg_color)
             try:
                 self.description_widget.display_html(desc)
-            except Exception as err:
-                logger.error("Exception: %s", err)
+            except Exception:
+                logger.exception("Can't display description HTML.")
         
         self.preview_scw.add(self.description_widget)
         self.description_widget.show()
@@ -705,7 +705,8 @@ class Func(object):
             try:
                 self.description_widget.display_html(desc)
             except Exception as err:
-                logger.error("Exception: %s", err)
+                logger.exception("Exception: %s" % (err))
+                
         #self.preview_dialog.window.set_cursor(gtk.gdk.Cursor(gtk.gdk.ARROW))
 
         self.save.set_property("visible", save != None)

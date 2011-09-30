@@ -283,7 +283,7 @@ class ExpandBox(abstract.EventObject):
             try:
                 if self.focus_widget: self.focus_widget.grab_focus()
             except Exception as e:
-                logger.warning("Couldn't grab focus: %s" %(e))
+                logger.exception("Couldn't grab focus: %s" %(e))
 
     def get_widget(self):
         return self.frameContent
