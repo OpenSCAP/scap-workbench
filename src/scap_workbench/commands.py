@@ -224,14 +224,15 @@ class DataHandler(object):
         return [self.core.lib.benchmark.lang]
 
     def get_selected(self, item, items_model):
-        """DataHandler.get_selected -- get selction of rule/group
+        """DataHandler.get_selected -- get selection of rule/group
         returns boolean value"""
 
         if not self.core.lib.policy_model or self.core.selected_profile == None or items_model == True:
             return item.selected
         else:
             policy = self.core.lib.policy_model.get_policy_by_id(self.core.selected_profile)
-            if policy == None: raise Exception, "Policy %s does not exist" % (self.core.selected_profile,)
+            if policy is None:
+                raise LookupError("Policy for profile '%s' does not exist" % (self.core.selected_profile))
 
             # Get selector from policy
             select = policy.get_select_by_id(item.id)
@@ -636,9 +637,12 @@ class DataHandler(object):
         if parent.type == openscap.OSCAP.XCCDF_GROUP: parent = parent.to_group()
         elif parent.type == openscap.OSCAP.XCCDF_BENCHMARK: parent = parent.to_benchmark()
 
-        if item in parent.content: parent.content.remove(item)
-        elif item in parent.values: parent.values.remove(item)
-        else: raise Exception("Can't remove item %s from %s" % (item, parent.content+parent.values))
+        if item in parent.content:
+            parent.content.remove(item)
+        elif item in parent.values:
+            parent.values.remove(item)
+        else:
+            raise LookupError("Can't remove item %s from %s, it isn't contained there!" % (item, parent.content + parent.values))
 
     def edit_title(self, operation, obj, lang, text, overrides, item=None):
 
@@ -859,7 +863,9 @@ class DataHandler(object):
                 instance = item.instance_by_selector(None) or item.instances[0]
                 post = instance.value
             return post
-        else: raise Exception("Can substitute only VALUE item, got ID of %s" % item.type)
+        
+        else:
+            raise ValueError("Can substitute only VALUE item, got ID of %s" % item.type)
                 
         return None
 
@@ -1135,14 +1141,16 @@ class DHValues(DataHandler):
         from benchmark. Otherwise it's recursive call and the item is already
         eet up and we recursively add the parent till we hit the benchmark
         """
-        if item == None:
+        if item is None:
             self.model.clear()
-            if self.core.selected_item != None:
+            if self.core.selected_item is not None:
                 item = self.core.lib.benchmark.get_item(self.core.selected_item)
-                if item == None: 
+                if item is None: 
                     logger.error("XCCDF Item \"%s\" does not exists. Can't fill data", self.core.selected_item)
-                    raise Exception("XCCDF Item \"%s\" does not exists. Can't fill data" % (self.core.selected_item,))
-            else: return
+                    raise LookupError("XCCDF Item \"%s\" does not exists. Can't fill data" % (self.core.selected_item))
+                
+            else:
+                return
         
         # Append a couple of rows.
         item = self.core.lib.benchmark.get_item(self.core.selected_item)
@@ -1200,15 +1208,17 @@ class DHValues(DataHandler):
         logger.error("Failed regexp match: text %s does not match %s", new_text_value, "|".join(pattern_list))
 
     def get_rationales(self):
-        raise Exception("According to XCCDF Version 1.2: No rationale for value item")
+        raise NotImplementedError("According to XCCDF Version 1.2: No rationale for value item")
 
     def edit_value(self, id=None, version=None, version_time=None, prohibit_changes=None, abstract=None, cluster_id=None, interactive=None, operator=None):
         if not self.check_library(): return None
 
         item = self.core.lib.benchmark.get_item(self.core.selected_item)
-        if item: item = item.to_value()
-        if item == None:
-            raise Exception("Edit items update: No item selected !")
+        if item:
+            item = item.to_value()
+            
+        if item is None:
+            raise RuntimeError("Edit items update: No item selected !")
 
         if id != None and len(id) > 0 and item.id != id:
             retval = item.set_id(id)
@@ -1235,8 +1245,8 @@ class DHValues(DataHandler):
         if not self.check_library(): return None
         
         item = self.core.lib.benchmark.get_item(self.core.selected_item).to_value()
-        if item == None:
-            raise Exception("Edit values: No item selected")
+        if item is None:
+            raise RuntimeError("Edit values: No item selected")
 
         if operation == self.CMD_OPER_ADD:
             new_instance = item.new_instance()
@@ -1249,7 +1259,9 @@ class DHValues(DataHandler):
             elif item.type == openscap.OSCAP.XCCDF_TYPE_BOOLEAN:
                 if default != -1: new_instance.defval_boolean = bool(default)
                 if value != -1: new_instance.value_boolean = bool(value)
-            else: raise Exception("Get value instances: Type of instance not supported: \"%s\"" % (item.type,))
+            else:
+                raise NotImplementedError("Get value instances: Type of instance not supported: \"%s\"" % (item.type))
+            
             if match: new_instance.match = match
             if upper_bound != None: new_instance.upper_bound = upper_bound
             if lower_bound != None: new_instance.lower_bound = lower_bound
@@ -1260,9 +1272,10 @@ class DHValues(DataHandler):
             return item.add_instance(new_instance)
 
         elif operation == self.CMD_OPER_EDIT:
-            if obj == None: 
+            if obj is None: 
                 logger.error("Can't edit None object")
                 return False
+            
             if item.type == openscap.OSCAP.XCCDF_TYPE_NUMBER:
                 if default: obj.defval_number = default
                 if value: obj.value_number = value
@@ -1273,7 +1286,7 @@ class DHValues(DataHandler):
                 if default != -1: obj.defval_string = default
                 if value != -1: obj.value_string = value
             else:
-                raise Exception("Get value instances: Type of instance not supported: \"%s\"" % (item.type,))
+                raise NotImplementedError("Get value instances: Type of instance not supported: \"%s\"" % (item.type))
             
             obj.match = match
             if upper_bound != None: obj.upper_bound = upper_bound
@@ -1285,12 +1298,14 @@ class DHValues(DataHandler):
             return True
 
         elif operation == self.CMD_OPER_DEL:
-            if obj == None: 
+            if obj is None: 
                 logger.error("Can't remove None object")
                 return False
+            
             return item.instances.remove(obj)
 
-        else: raise AttributeError("Edit question: Unknown operation %s" % (operation,))
+        else:
+            raise NotImplementedError("Edit question: Unknown operation %s" % (operation))
 
     def get_value_instances(self, item=None):
         if not self.check_library(): return None
@@ -1308,7 +1323,8 @@ class DHValues(DataHandler):
             elif item.type == openscap.OSCAP.XCCDF_TYPE_BOOLEAN:
                 op_defval = instance.defval_boolean
                 op_value  = instance.value_boolean
-            else: raise Exception("Get value instances: Typ of instance not supported: \"%s\"" % (instance.type,))
+            else:
+                raise NotImplementedError("Get value instances: Type of instance not supported: \"%s\"" % (instance.type))
 
             instances.append({
                     "item":         instance,
@@ -1435,7 +1451,7 @@ class DHItemsTree(DataHandler, EventObject):
            3) If there is no selector create one and set up by attributes from treeView"""
         policy = self.core.lib.policy_model.get_policy_by_id(self.core.selected_profile)
         if policy == None: 
-            raise Exception, "Policy %s does not exist" % (self.core.selected_profile,)
+            raise LookupError("Policy for profile '%s' does not exist" % (self.core.selected_profile))
 
         select = policy.get_select_by_id(model[path][DHItemsTree.COLUMN_ID])
         if select == None:
@@ -1451,7 +1467,7 @@ class DHItemsTree(DataHandler, EventObject):
                     select.selected = model[path][DHItemsTree.COLUMN_SELECTED]
 
         """This could be a group and we need set the sensitivity
-        for all childs."""
+        for all children."""
         self.__set_sensitive(policy, model[path], model, model[path][DHItemsTree.COLUMN_SELECTED])
 
     def __recursive_fill(self, item=None, parent=None, pselected=True, with_values=False):
@@ -1484,7 +1500,7 @@ class DHItemsTree(DataHandler, EventObject):
         
         """If item is not None let's fill the model with groups and rules.
         """
-        if item != None:
+        if item is not None:
             # Get striped titles without white characters
             titles = dict([(title.lang, " ".join(title.text.split())) for title in item.title])
             if self.core.selected_lang in titles.keys(): title = titles[self.core.selected_lang]
@@ -1532,7 +1548,7 @@ class DHItemsTree(DataHandler, EventObject):
             else: logger.warning("Unknown type of %s, should be Rule or Group (got %s)", item.type, item.id)
 
         else: 
-            raise Exception, "Can't get data to fill. Expected XCCDF Item (got %s)" % (item,)
+            raise ValueError("Can't fill because of invalid passed data. Expected XCCDF Item (got %s)" % (item))
 
     def __item_count(self, item, with_values=False):
         """Recursive function returning count of children.
@@ -1943,7 +1959,7 @@ class DHProfiles(DataHandler):
             elif item.object == "xccdf_refine_rule": profile.refine_rules.remove(item)
             elif item.object == "xccdf_setvalue": profile.setvalues.remove(item)
             elif item.object == "xccdf_refine_value": profile.refine_values.remove(item)
-            else: raise Exception("Can't remove item \"%s\" from profile %s" % (item, profile))
+            else: raise RuntimeError("Can't remove item \"%s\" from profile %s" % (item, profile))
 
     def add_refine(self, id, title, item):
 
@@ -2309,7 +2325,7 @@ class DHScan(DataHandler, EventObject):
                 logger.debug("OVAL Agent session reset: %s" % (retval,))
                 if retval != 0: 
                     self.core.notify("Oval agent reset session failed.", core.Notification.ERROR, msg_id="notify:scan:oval_reset")
-                    raise Exception, "OVAL agent reset session failed"
+                    raise RuntimeError("OVAL agent reset session failed, openscap return value: %i" % (retval))
             self.__cancel = False
 
         self.model.clear()
@@ -2411,8 +2427,9 @@ class DHEditItems(DataHandler):
         if not self.check_library(): return None
 
         item = self.core.lib.benchmark.get_item(self.core.selected_item)
-        if item == None:
-            raise Exception("Edit items update fix: No item selected !")
+        if item is None:
+            raise RuntimeError("Edit items update fix: No item selected !")
+        
         item = item.to_rule()
 
         if operation == self.CMD_OPER_ADD:
@@ -2446,7 +2463,9 @@ class DHEditItems(DataHandler):
         elif operation == self.CMD_OPER_DEL:
             if fix == None: return False
             item.fixes.remove(fix)
-        else: raise Exception("Edit items update fix: Unsupported operation %s" % operation)
+            
+        else:
+            raise NotImplementedError("Edit items update fix: Unsupported operation %s" % (operation))
 
         return True
         
@@ -2455,8 +2474,9 @@ class DHEditItems(DataHandler):
         if not self.check_library(): return None
 
         item = self.core.lib.benchmark.get_item(self.core.selected_item)
-        if item == None:
-            raise Exception("Edit items update fixtext: No item selected !")
+        if item is None:
+            raise RuntimeError("Edit items update fixtext: No item selected!")
+        
         item = item.to_rule()
 
         if operation == self.CMD_OPER_ADD:
@@ -2489,7 +2509,8 @@ class DHEditItems(DataHandler):
         elif operation == self.CMD_OPER_DEL:
             if fixtext == None: return False
             item.fixtexts.remove(fixtext)
-        else: raise Exception("Edit items update fixtext: Unsupported operation %s" % operation)
+        else:
+            raise NotImplementedError("Edit items update fixtext: Unsupported operation %s" % operation)
 
         return True
         
@@ -2499,8 +2520,8 @@ class DHEditItems(DataHandler):
         if not self.check_library(): return None
 
         item = self.core.lib.benchmark.get_item(self.core.selected_item)
-        if item == None:
-            raise Exception("Edit items update: No item selected !")
+        if item is None:
+            raise RuntimeError("Edit items update: No item selected!")
 
         if id != None and len(id) > 0 and item.id != id:
             retval = item.set_id(id)
@@ -2535,7 +2556,8 @@ class DHEditItems(DataHandler):
 
         item = self.core.lib.benchmark.get_item(self.core.selected_item)
         if item.type != openscap.OSCAP.XCCDF_RULE:
-            raise Exception("There must be Rule For adding value !")
+            raise RuntimeError("Invalid type of item '%s', expected 'XCCDF_RULE'. We can only edit values of rules!" % (item.type))
+        
         item = item.to_rule()
 
         if operation == self.CMD_OPER_ADD:
