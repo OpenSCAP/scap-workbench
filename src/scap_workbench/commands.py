@@ -1241,6 +1241,39 @@ class DHValues(DataHandler):
 
         return True
 
+    @classmethod
+    def set_values_of_item_instance(cls, item, instance, default_value, value):
+        if item.type == openscap.OSCAP.XCCDF_TYPE_NUMBER:
+            if default_value: instance.defval_number = int(default_value)
+            if value: instance.value_number = int(value)
+        elif item.type == openscap.OSCAP.XCCDF_TYPE_STRING:
+            if default_value: instance.defval_string = default_value
+            if value: instance.value_string = value
+        elif item.type == openscap.OSCAP.XCCDF_TYPE_BOOLEAN:
+            if default_value != -1: instance.defval_boolean = bool(default_value)
+            if value != -1: instance.value_boolean = bool(value)
+        else:
+            raise NotImplementedError("Type of instance not supported: \"%s\"" % (item.type))
+
+    @classmethod
+    def get_values_from_item_instance(cls, item, instance):
+        """Returns a tuple (default_value, value)
+        """
+        
+        if item.type == openscap.OSCAP.XCCDF_TYPE_NUMBER:
+            op_defval = int(instance.defval_number)
+            op_value  = int(instance.value_number)
+        elif item.type == openscap.OSCAP.XCCDF_TYPE_STRING:
+            op_defval = instance.defval_string
+            op_value  = instance.value_string
+        elif item.type == openscap.OSCAP.XCCDF_TYPE_BOOLEAN:
+            op_defval = bool(instance.defval_boolean)
+            op_value  = bool(instance.value_boolean)
+        else:
+            raise NotImplementedError("Type of instance not supported: \"%s\"" % (instance.type))
+        
+        return op_defval, op_value
+
     def edit_value_of_value(self, operation, obj, selector, value, default, match, upper_bound, lower_bound, must_match):
         if not self.check_library(): return None
         
@@ -1250,17 +1283,7 @@ class DHValues(DataHandler):
 
         if operation == self.CMD_OPER_ADD:
             new_instance = item.new_instance()
-            if item.type == openscap.OSCAP.XCCDF_TYPE_NUMBER:
-                if default: new_instance.defval_number = int(default)
-                if value: new_instance.value_number = int(value)
-            elif item.type == openscap.OSCAP.XCCDF_TYPE_STRING:
-                if default: new_instance.defval_string = default
-                if value: new_instance.value_string = value
-            elif item.type == openscap.OSCAP.XCCDF_TYPE_BOOLEAN:
-                if default != -1: new_instance.defval_boolean = bool(default)
-                if value != -1: new_instance.value_boolean = bool(value)
-            else:
-                raise NotImplementedError("Get value instances: Type of instance not supported: \"%s\"" % (item.type))
+            DHValues.set_values_of_item_instance(item, new_instance, default, value)
             
             if match: new_instance.match = match
             if upper_bound != None: new_instance.upper_bound = upper_bound
@@ -1276,17 +1299,7 @@ class DHValues(DataHandler):
                 logger.error("Can't edit None object")
                 return False
             
-            if item.type == openscap.OSCAP.XCCDF_TYPE_NUMBER:
-                if default: obj.defval_number = default
-                if value: obj.value_number = value
-            elif item.type == openscap.OSCAP.XCCDF_TYPE_STRING:
-                if default: obj.defval_string = default
-                if value: obj.value_string = value
-            elif item.type == openscap.OSCAP.XCCDF_TYPE_BOOLEAN:
-                if default != -1: obj.defval_string = default
-                if value != -1: obj.value_string = value
-            else:
-                raise NotImplementedError("Get value instances: Type of instance not supported: \"%s\"" % (item.type))
+            DHValues.set_values_of_item_instance(item, instance, default, value)
             
             obj.match = match
             if upper_bound != None: obj.upper_bound = upper_bound
@@ -1314,18 +1327,8 @@ class DHValues(DataHandler):
         if not item: item = self.core.lib.benchmark.get_item(self.core.selected_item).to_value()
 
         for instance in item.instances:
-            if item.type == openscap.OSCAP.XCCDF_TYPE_NUMBER:
-                op_defval = instance.defval_number
-                op_value  = instance.value_number
-            elif item.type == openscap.OSCAP.XCCDF_TYPE_STRING:
-                op_defval = instance.defval_string
-                op_value  = instance.value_string
-            elif item.type == openscap.OSCAP.XCCDF_TYPE_BOOLEAN:
-                op_defval = instance.defval_boolean
-                op_value  = instance.value_boolean
-            else:
-                raise NotImplementedError("Get value instances: Type of instance not supported: \"%s\"" % (instance.type))
-
+            op_defval, op_value = DHValues.get_values_from_item_instance(item, instance)
+            
             instances.append({
                     "item":         instance,
                     "choices":      instance.choices,
