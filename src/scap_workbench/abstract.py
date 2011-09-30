@@ -278,8 +278,9 @@ class List(EventObject):
         self.filter_model = None
         self.selected = None
         
-        if not widget:
-            raise Exception("No widget for List specified")
+        # TODO: Does it really make sense to have "None" as default value of widget if that's not permitted? 
+        if widget is None:
+            raise ValueError("No widget for List specified")
         else:
             self.treeView = widget
         self.add_sender(id, "update")
@@ -509,7 +510,7 @@ class List(EventObject):
         for item in filters:
             try:
                 res = res and item.func(model, iter, item.params)
-            except Exception, e:
+            except Exception as e:
                 #self.core.notify("Can't filter items: %s" % (e,), 3)
                 logger.error("Can't filter items: %s" % (e,))
 
@@ -669,6 +670,7 @@ class Func(object):
                 self.description_widget.display_html(desc)
             except Exception as err:
                 logger.error("Exception: %s", err)
+        
         self.preview_scw.add(self.description_widget)
         self.description_widget.show()
         #self.preview_dialog.window.set_cursor(gtk.gdk.Cursor(gtk.gdk.WATCH))
@@ -713,7 +715,7 @@ class Func(object):
             have format as widget callback method
             """
             if not callable(save):
-                raise Exception("Passed not callable callback to preview function")
+                raise ValueError("Passed invalid callback to the preview function")
 
             def __callback_wrapper(widget, self):
                 """ Nested function to call callback function from parent
@@ -811,14 +813,14 @@ class Func(object):
                 return None
             try:
                 d = datetime.date(int(date[0]), int(date[1]), int(date[2]))
-            except Exception as ex:
+            except ValueError as ex:
                 self.notifications.append(self.core.notify("The date is in incorrect format. Correct format is YYYY-MM-DD.",
                     Notification.ERROR, msg_id="notify:date_format"))
                 return None
             
             try:
                 timestamp = int(time.mktime(d.timetuple())) 
-            except Exception as ex:
+            except (OverflowError, ValueError):
                 self.notifications.append(self.core.notify("The date is out of range.",
                     Notification.ERROR, msg_id="notify:date_format"))
 
@@ -857,7 +859,7 @@ class Func(object):
                     self.notifications.append(self.core.notify("Invalid number in %s. Please insert positive real number." % (text,),
                         Notification.ERROR, info_box, msg_id="notify:float_format"))
                     return None
-            except:
+            except ValueError:
                 self.notifications.append(self.core.notify("Invalid number in %s." % (text,),
                     Notification.ERROR, info_box, msg_id="notify:float_format"))
                 return None
@@ -933,7 +935,8 @@ class ListEditor(EventObject, Func):
     def append(self, item):
         try:
             self.model.append(item)
-        except ValueError, err: raise ValueError("Value Error in model appending \"%s\": %s" % (item, err))
+        except ValueError as err:
+            raise ValueError("Value Error in model appending \"%s\": %s" % (item, err))
 
     def filter_listview(self, model, iter, data):
         search, columns = data
