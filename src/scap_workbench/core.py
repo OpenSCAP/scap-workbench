@@ -174,7 +174,8 @@ class Library(object):
     def init_policy_model(self):
         """ This function should init policy model for scanning
         """
-        raise Exception, "Not implemented yet"
+        
+        raise NotImplementedError("Not implemented yet")
 
     def new(self):
         """Create new XCCDF Benchmark
@@ -223,7 +224,7 @@ class Library(object):
         else:
             
             logger.debug("Initialization failed. Benchmark can't be imported")
-            raise Exception("Can't initialize openscap library, Benchmark import failed.")
+            raise RuntimeError("Can't initialize openscap library, Benchmark import failed.")
         
         self.loaded = True
 
@@ -340,9 +341,10 @@ class SWBCore(object):
                 return False
 
             # Language of benchmark should be in languages
-        if self.lib.benchmark == None:
+        if self.lib.benchmark is None:
             logger.error("FATAL: Benchmark does not exist")
-            raise Exception("Can't initialize openscap library")
+            raise RuntimeError("Can't initialize openscap library")
+        
         if not self.lib.benchmark.lang in self.langs: 
             self.langs.append(self.lib.benchmark.lang)
         self.selected_lang = self.lib.benchmark.lang
@@ -407,12 +409,13 @@ class SWBCore(object):
 
     def get_item(self, id):
         if id not in self.__objects:
-            raise Exception, "FATAL: Object %s not registered" % (id,)
+            raise LookupError("FATAL: Object %s not registered" % (id))
+        
         return self.__objects[id]
 
     def register(self, id, object):
-
         if id in self.__objects:
-            raise Exception, "FATAL: Object %s already registered" % (id,)
+            raise LookupError("FATAL: Object %s already registered" % (id))
+        
         logger.debug("Registering object %s done.", id)
         self.__objects[id] = object
