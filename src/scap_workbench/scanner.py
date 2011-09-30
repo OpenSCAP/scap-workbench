@@ -248,7 +248,8 @@ class MenuButtonXCCDF(abstract.MenuButton):
         self.data_model.edit_status(self.data_model.CMD_OPER_ADD)
         try:
             self.__update()
-        except KeyError: pass
+        except KeyError:
+            pass
 
         self.emit("load")
 

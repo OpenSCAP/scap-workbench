@@ -2601,12 +2601,12 @@ class DHEditItems(DataHandler):
             if def_model.instance == None:
                 if openscap.OSCAP.oscap_err(): desc = openscap.OSCAP.oscap_err_desc()
                 else: desc = "Unknown error, please report this bug (http://bugzilla.redhat.com/)"
-                raise ImportError("Cannot import definition model for \"%s\": %s" % (f_OVAL, desc))
+                raise core.XCCDFImportError("Cannot import definition model for \"%s\": %s" % (f_OVAL, desc))
             sess = openscap.oval.agent_new_session(def_model, os.path.basename(f_OVAL))
             if sess == None or sess.instance == None:
                 if openscap.OSCAP.oscap_err(): desc = openscap.OSCAP.oscap_err_desc()
                 else: desc = "Unknown error, please report this bug (http://bugzilla.redhat.com/)"
-                raise ImportError("Cannot create agent session for \"%s\": %s" % (f_OVAL, desc))
+                raise core.XCCDFImportError("Cannot create agent session for \"%s\": %s" % (f_OVAL, desc))
             self.core.lib.add_file(os.path.basename(f_OVAL), sess, def_model)
             if self.core.lib.policy_model: self.core.lib.policy_model.register_engine_oval(sess)
         else: logger.warning("Skipping %s file which is referenced from XCCDF content" % (f_OVAL,))

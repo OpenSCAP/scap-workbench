@@ -27,14 +27,15 @@ import sys      # system library for standard in/out and exit
 import pango    # For pango enumeration constants
 import getopt   # Parsing program parameters
 import os.path
+import logging                  # Logger for debug/info/error messages
+import logging.config           # For configuration of Logger
 
 """ Importing SCAP Workbench modules
 """
-import logging                  # Logger for debug/info/error messages
-import logging.config           # For configuration of Logger
 from events import EventHandler # abstract module EventHandler
 from threads import ThreadManager
 import paths
+import commands
 
 # Initializing and configuring Logger
 logging.config.fileConfig(os.path.join(paths.etc_prefix, "logger.conf"))
@@ -146,6 +147,12 @@ class Notification(object):
         if self.widget:
             self.widget.destroy()
         
+class XCCDFImportError(RuntimeError):
+    """Exception thrown when import of XCCDF file fails.
+    """
+    
+    def __init__(self, *args, **kwargs):
+        super(XCCDFImportError, self).__init__(*args, **kwargs)
 
 class Library(object):
     """ Abstract model of library variables that
@@ -192,13 +199,14 @@ class Library(object):
     def import_xccdf(self, xccdf):
         """Import XCCDF Benchmark from file
         """
+        
         openscap.OSCAP.oscap_init()
         self.xccdf = xccdf
         self.benchmark = openscap.xccdf.benchmark_import(xccdf)
         if self.benchmark.instance == None:
             if openscap.common.err(): desc = openscap.common.err_desc()
             else: desc = "Unknown error, please report this bug (http://bugzilla.redhat.com/)"
-            raise ImportError("Benchmark \"%s\" loading failed: %s" % (xccdf, desc))
+            raise XCCDFImportError("Benchmark \"%s\" loading failed: %s" % (xccdf, desc))
         """ Look for OVAL files in CWD, current XCCDF directory and
         in openscap default content directory
         """
@@ -211,7 +219,7 @@ class Library(object):
                     if def_model.instance == None:
                         if openscap.commonerr(): desc = openscap.common.err_desc()
                         else: desc = "Unknown error, please report this bug (http://bugzilla.redhat.com/)"
-                        raise ImportError("Cannot import definition model for \"%s\": %s" % (file, desc))
+                        raise XCCDFImportError("Cannot import definition model for \"%s\": %s" % (file, desc))
                     break
 
             if def_model:
@@ -237,7 +245,7 @@ class Library(object):
             if sess == None or sess.instance == None:
                 if OSCAP.oscap_err(): desc = OSCAP.oscap_err_desc()
                 else: desc = "Unknown error, please report this bug (http://bugzilla.redhat.com/)"
-                raise ImportError("Cannot create agent session for \"%s\": %s" % (f_OVAL, desc))
+                raise XCCDFImportError("Cannot create agent session for \"%s\": %s" % (f_OVAL, desc))
             self.files[file].session = sess
             self.policy_model.register_engine_oval(sess)
 
@@ -337,7 +345,7 @@ class SWBCore(object):
                 self.lib.import_xccdf(XCCDF)
                 self.lib.init_policy()
                 
-            except ImportError as err:
+            except XCCDFImportError as err:
                 logger.exception(err)
                 return False
 
