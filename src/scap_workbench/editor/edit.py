@@ -33,22 +33,20 @@ import threading        # Main window is running in thread
 import gnome, gnome.ui  # Gnome icons in HTML editor
 import tempfile         # Temporary file for XCCDF preview
 import datetime
+import logging                  # Logger for debug/info/error messages
 
 """ Importing SCAP Workbench modules
 """
-import abstract                 # All abstract classes
-import logging                  # Logger for debug/info/error messages
-import core                     # Initializing of core in main window
-import commands                 # Module for handling openscap
-import filter                   # Module for handling filters
-import dialogs                  # Module with dialog classes
-from core import Notification   # core.Notification levels for reference
-from events import EventObject  # abstract module EventObject
-import htmltextview             # Alternative of webkit
-import enum as ENUM             # For enumeration from openscap library
-import paths
-
-import error
+import scap_workbench.core.abstract as abstract
+import scap_workbench.core.core as core
+import scap_workbench.core.commands as commands
+import scap_workbench.core.dialogs as dialogs
+from scap_workbench.core.core import Notification
+from scap_workbench.core.events import EventObject
+import scap_workbench.core.htmltextview as htmltextview
+import scap_workbench.core.enum as ENUM
+import scap_workbench.core.paths as paths
+import scap_workbench.core.error as error
 
 # Initializing Logger
 logger = logging.getLogger("scap-workbench")
@@ -3941,7 +3939,7 @@ class Editor(abstract.Window, threading.Thread):
         return False
 
     def run(self):
-        import version
+        from scap_workbench.core import version
         
         gnome.init("SCAP Workbench Editor", version.as_string)
         gtk.main()

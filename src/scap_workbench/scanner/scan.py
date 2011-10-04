@@ -26,18 +26,18 @@ import os               # For path basedir
 import gtk              # GTK library
 import gobject          # gobject.TYPE_PYOBJECT
 import tempfile         # Temporary file for XCCDF preview
-from threads import thread as threadSave
+from scap_workbench.core.threads import thread as threadSave
+import logging          # Logger for debug/info/error messages
 
 """ Importing SCAP Workbench modules
 """
-import abstract                 # All abstract classes
-import logging                  # Logger for debug/info/error messages
-import core                     # Initializing of core in main window
-import commands                 # Module for handling openscap
-import filter                   # Module for handling filters
-from core import Notification   # core.Notification levels for reference
-from events import EventObject  # abstract module EventObject
-import paths
+import scap_workbench.core.abstract as abstract
+import scap_workbench.core.core as core
+import scap_workbench.core.commands as commands
+import scap_workbench.core.filter as filter
+from scap_workbench.core.core import Notification
+from scap_workbench.core.events import EventObject
+import scap_workbench.core.paths as paths
 
 # Initializing Logger
 logger = logging.getLogger("scap-workbench")

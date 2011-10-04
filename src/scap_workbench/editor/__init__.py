@@ -19,4 +19,6 @@
 # Authors:
 #      Martin Preisler <mpreisle@redhat.com>
 
-# stub
+from edit import Editor as MainWindow
+
+__all__ = ["MainWindow"]

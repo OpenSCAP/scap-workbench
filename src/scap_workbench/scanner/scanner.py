@@ -27,22 +27,21 @@ import threading        # Main window is running in thread
 import gnome, gnome.ui  # Gnome icons in HTML editor
 import pango            # Pango enumeration constants
 import os.path
+import logging          # Logger for debug/info/error messages
 
 """ Importing SCAP Workbench modules
 """
-import abstract                 # All abstract classes
-import logging                  # Logger for debug/info/error messages
-import core                     # Initializing of core in main window
-import commands                 # Module for handling openscap
-import filter                   # Module for handling filters
-import dialogs                  # Module with dialog classes
-import tailoring                # For initializing GUI for tailoring
-import scan                     # For initializing GIU for scan
-from core import Notification   # core.Notification levels for reference
-import enum as ENUM             # For enumeration from openscap library
-import paths
+import scap_workbench.core.abstract as abstract
+import scap_workbench.core.core as core
+import scap_workbench.core.commands as commands
+import scap_workbench.core.dialogs as dialogs
+import tailoring
+import scan
+from scap_workbench.core.core import Notification
+import scap_workbench.core.enum as ENUM
+import scap_workbench.core.paths as paths
 
-import error
+import scap_workbench.core.error as error
 
 # Initializing Logger
 logger = logging.getLogger("scap-workbench")
@@ -373,7 +372,7 @@ class MainWindow(abstract.Window, threading.Thread):
         return False
 
     def run(self):
-        import version
+        from scap_workbench.core import version
         
         gnome.init("SCAP Workbench Scanner", version.as_string)
         gtk.main()

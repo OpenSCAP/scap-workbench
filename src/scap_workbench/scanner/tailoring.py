@@ -27,21 +27,21 @@ import glib
 import pango            # pango library for WRAP* variables
 import re               # Regular expressions 
 import sre_constants    # For re.compile exception
+import logging          # Logger for debug/info/error messages
 
 """ Importing SCAP Workbench modules
 """
-import abstract                 # All abstract classes
-import logging                  # Logger for debug/info/error messages
-import core                     # Initializing of core in main window
-import commands                 # Module for handling openscap
-import filter                   # Module for handling filters
-from core import Notification   # core.Notification levels for reference
-from events import EventObject  # abstract module EventObject
-import htmltextview             # Alternative of webkit
-import enum as ENUM             # For enumeration from openscap library
+import scap_workbench.core.abstract as abstract
+import scap_workbench.core.core as core
+import scap_workbench.core.commands as commands
+import scap_workbench.core.filter as filter
+from scap_workbench.core.core import Notification
+import scap_workbench.core.enum as ENUM
+from scap_workbench.core.events import EventObject
+import scap_workbench.core.htmltextview as htmltextview
 
-from threads import thread_free as threadFree
-from htmltextview import HtmlTextView
+from scap_workbench.core.threads import thread_free as threadFree
+from scap_workbench.core.htmltextview import HtmlTextView
 
 # Initializing Logger
 logger = logging.getLogger("scap-workbench")

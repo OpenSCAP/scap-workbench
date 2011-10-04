@@ -20,15 +20,16 @@
 # Authors:
 #      Maros Barabas        <xbarry@gmail.com>
 #      Vladimir Oberreiter  <xoberr01@stud.fit.vutbr.cz>
-
-import gtk, sys
-from scap_workbench import Editor
-
+#      Martin Preisler      <mpreisle@redhat.com>
 
 def main():
+    import gtk
+    from scap_workbench.editor import MainWindow
+	
     gtk.gdk.threads_init()
-    Editor().start()
-
+    
+    wnd = MainWindow()
+    wnd.run()
 
 if __name__ == '__main__':
     main()

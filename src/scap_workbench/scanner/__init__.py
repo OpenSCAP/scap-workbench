@@ -19,4 +19,7 @@
 # Authors:
 #      Martin Preisler <mpreisle@redhat.com>
 
-# stub
+# TODO: the files definitely need renaming
+from scap_workbench.scanner.scanner import MainWindow
+
+__all__ = ["MainWindow"]
