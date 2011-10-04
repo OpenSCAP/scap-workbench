@@ -28,7 +28,7 @@ def main():
 
     gtk.gdk.threads_init()
     
-    wnd = scap_workbench.scanner.MainWindow()
+    wnd = MainWindow()
     wnd.run()
 
 if __name__ == '__main__':
