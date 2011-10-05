@@ -32,28 +32,29 @@ import logging          # Logger for debug/info/error messages
 
 """ Importing SCAP Workbench modules
 """
-import scap_workbench.core.abstract as abstract
+import scap_workbench.core.abstract
 import scap_workbench.core.core as core
-import scap_workbench.core.commands as commands
-import scap_workbench.core.dialogs as dialogs
-import tailoring
-import scan
+import scap_workbench.core.commands
+import scap_workbench.core.dialogs
+import scap_workbench.core.paths
+import scap_workbench.core.error
+
 from scap_workbench.core.core import Notification
 import scap_workbench.core.enum as ENUM
-import scap_workbench.core.paths as paths
 
-import scap_workbench.core.error as error
+import tailoring
+import scan
 
 # Initializing Logger
 logger = logging.getLogger("scap-workbench")
 
-class MenuButtonXCCDF(abstract.MenuButton):
+class MenuButtonXCCDF(scap_workbench.core.abstract.MenuButton):
     """
     GUI for operations with xccdf file.
     """
     def __init__(self, builder, widget, _core):
         self.builder = builder
-        self.data_model = commands.DHXccdf(_core)
+        self.data_model = scap_workbench.core.commands.DHXccdf(_core)
         super(MenuButtonXCCDF, self).__init__("gui:btn:main:xccdf", widget, _core)
         
         self.widget = widget
@@ -269,7 +270,7 @@ class MenuButtonXCCDF(abstract.MenuButton):
             self.btn_import.set_sensitive(False)
 
     def __cb_import(self, widget):
-        dialogs.ImportDialog(self.core, self.data_model, self.__import)
+        scap_workbench.core.dialogs.ImportDialog(self.core, self.data_model, self.__import)
 
     def __cb_export(self, widget):
         file_name = self.data_model.export()
@@ -303,7 +304,7 @@ class MenuButtonXCCDF(abstract.MenuButton):
         self.btn_export.set_sensitive(False)
         self.btn_import.set_sensitive(True)
     
-class MenuButtonOVAL(abstract.MenuButton):
+class MenuButtonOVAL(scap_workbench.core.abstract.MenuButton):
 
     def __init__(self, box, widget, core):
         logger = logging.getLogger(self.__class__.__name__)
@@ -325,20 +326,20 @@ class MenuButtonOVAL(abstract.MenuButton):
         self.box.add(body)
         return body
 
-class MainWindow(abstract.Window, threading.Thread):
+class MainWindow(scap_workbench.core.abstract.Window, threading.Thread):
     """TODO:
     """
 
     def __init__(self):
-        error.ErrorHandler.install_exception_hook()
+        scap_workbench.core.error.ErrorHandler.install_exception_hook()
 
         threading.Thread.__init__(self)
         logger = logging.getLogger(self.__class__.__name__)
         self.builder = gtk.Builder()
-        self.builder.add_from_file(os.path.join(paths.glade_prefix, "scanner.glade"))
+        self.builder.add_from_file(os.path.join(scap_workbench.core.paths.glade_prefix, "scanner.glade"))
         self.builder.connect_signals(self)
         self.core = core.SWBCore(self.builder, True)
-        abstract.Window.__init__(self, "gui:main", self.core)
+        scap_workbench.core.abstract.Window.__init__(self, "gui:main", self.core)
         assert self.core != None, "Initialization failed, core is None"
 
         self.window = self.builder.get_object("main:window")
@@ -347,9 +348,11 @@ class MainWindow(abstract.Window, threading.Thread):
         self.add_sender(self.id, "quit") # Quit the application
 
         # abstract the main menu
-        self.menu = abstract.Menu("gui:menu", self.builder.get_object("main:toolbar"), self.core)
+        # FIXME: Instantiating an abstract class?!
+        self.menu = scap_workbench.core.abstract.Menu("gui:menu", self.builder.get_object("main:toolbar"), self.core)
         self.menu.add_item(MenuButtonXCCDF(self.builder, self.builder.get_object("main:toolbar:main"), self.core))
-        self.menu.add_item(abstract.MenuButton("gui:btn:menu:reports", self.builder.get_object("main:toolbar:reports"), self.core))
+        # FIXME: Instantiating an abstract class?!
+        self.menu.add_item(scap_workbench.core.abstract.MenuButton("gui:btn:menu:reports", self.builder.get_object("main:toolbar:reports"), self.core))
         self.menu.add_item(tailoring.MenuButtonTailoring(self.builder, self.builder.get_object("main:toolbar:tailoring"), self.core))
         self.menu.add_item(scan.MenuButtonScan(self.builder, self.builder.get_object("main:toolbar:scan"), self.core))
         
@@ -368,7 +371,7 @@ class MainWindow(abstract.Window, threading.Thread):
         gtk.gdk.threads_leave()
         
         # since we are quitting gtk we can't be popping a dialog when exception happens anymore
-        error.ErrorHandler.uninstall_exception_hook()
+        scap_workbench.core.error.ErrorHandler.uninstall_exception_hook()
         gtk.main_quit()
         return False
 
@@ -378,5 +381,5 @@ class MainWindow(abstract.Window, threading.Thread):
         gnome.init("SCAP Workbench Scanner", version.as_string)
         gtk.main()
 
-
+# we only expose the MainWindow from the entire scanner subpackage because that's all that's needed to start the app
 __all__ = ["MainWindow"]
