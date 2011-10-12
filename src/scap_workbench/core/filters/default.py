@@ -1,4 +1,4 @@
-from scap_workbench import filter
+from scap_workbench.core import filter
 import re
 
 class TailoringFilter1(filter.Filter):

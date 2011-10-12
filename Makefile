@@ -1,7 +1,7 @@
 PKG=scap-workbench
 PKG_EDITOR=scap-workbench-editor
 WRK_PKG=scap_workbench
-VERSION="0.4.1"
+VERSION="0.5.0"
 
 PY_LIB := $(shell python -c "from distutils.sysconfig import get_python_lib; print get_python_lib()")
 PY_VER := python$(shell python -c "import sys; print sys.version[:3]")
@@ -34,13 +34,19 @@ install:
 	test -d $(DATADIR)/applications || $(INSTALL) $(MODE_DIR) -d $(DATADIR)/applications
 	test -d $(PYTHON_LIB) || $(INSTALL) $(MODE_DIR) -d $(PYTHON_LIB)
 	test -d $(PYTHON_LIB_PKG) || $(INSTALL) $(MODE_DIR) -d $(PYTHON_LIB_PKG)
+	test -d $(PYTHON_LIB_PKG)/core || $(INSTALL) $(MODE_DIR) -d $(PYTHON_LIB_PKG)/core
+	test -d $(PYTHON_LIB_PKG)/editor || $(INSTALL) $(MODE_DIR) -d $(PYTHON_LIB_PKG)/editor
+	test -d $(PYTHON_LIB_PKG)/scanner || $(INSTALL) $(MODE_DIR) -d $(PYTHON_LIB_PKG)/scanner
 	test -d $(DATADIR)/$(PKG)/filters || $(INSTALL) $(MODE_DIR) -d $(DATADIR)/$(PKG)/filters
 	$(INSTALL) $(MODE_EXEC) src/bin/$(PKG) $(BINDIR)/$(PKG)
 	$(INSTALL) $(MODE_EXEC) src/bin/$(PKG_EDITOR) $(BINDIR)/$(PKG_EDITOR)
 	$(INSTALL) $(MODE_REG) src/$(WRK_PKG)/*.py $(PYTHON_LIB_PKG)
+	$(INSTALL) $(MODE_REG) src/$(WRK_PKG)/core/*.py $(PYTHON_LIB_PKG)/core
+	$(INSTALL) $(MODE_REG) src/$(WRK_PKG)/editor/*.py $(PYTHON_LIB_PKG)/editor
+	$(INSTALL) $(MODE_REG) src/$(WRK_PKG)/scanner/*.py $(PYTHON_LIB_PKG)/scanner
 	$(INSTALL) $(MODE_REG) src/etc/logger.conf $(SYSCONFDIR)/$(PKG)/logger.conf
 	$(INSTALL) $(MODE_REG) src/glade/*.glade $(DATADIR)/$(PKG)
-	$(INSTALL) $(MODE_REG) src/$(WRK_PKG)/filters/*.py $(DATADIR)/$(PKG)/filters
+	$(INSTALL) $(MODE_REG) src/$(WRK_PKG)/core/filters/*.py $(DATADIR)/$(PKG)/filters
 	$(INSTALL) $(MODE_REG) src/man/scap-workbench.8 $(MANDIR)/man8
 	$(INSTALL) $(MODE_REG) src/man/scap-workbench-editor.8 $(MANDIR)/man8
 	gzip -f $(MANDIR)/man8/scap-workbench.8
