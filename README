@@ -17,16 +17,27 @@ How to run it out of the box
 
 1) Make sure you have installed all prerequisites as 
    python and openscap-python
+
 2) Install scap workbench:
 
     $ make install
 
-3) Run scap workbench
+3a) Run the scanner
 
     $ scap-workbench
   
     With debug:
     $ scap-workbench -D
 
-    With the XCCDF file to load:
+    With an XCCDF file to load:
     $ scap-workbench /path/to/xccdf-file
+
+3b) Run the editor
+
+    $ scap-workbench-editor
+
+    With debug:
+    $ scap-workbench-editor
+
+    With an XCCDF file to load:
+    $ scap-workbench-editor /path/to/xccdf-file
