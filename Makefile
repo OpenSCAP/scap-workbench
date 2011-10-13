@@ -60,6 +60,9 @@ archive: clean
 	@rm -rf /tmp/$(PKG)-$(VERSION)
 	@mkdir /tmp/$(PKG)-$(VERSION)
 	@cp -a COPYING README Makefile scap-workbench.desktop scap-workbench-editor.desktop scap-workbench.png src /tmp/$(PKG)-$(VERSION)
+	@rm -f /tmp/$(PKG)-$(VERSION)/src/bin/runwrapper.sh
+	@find /tmp/$(PKG)-$(VERSION) -type f -name "*.pyc" | xargs rm -f
+	@find /tmp/$(PKG)-$(VERSION) -type f -name "*~" | xargs rm -f
 	@dir=$$PWD; cd /tmp; tar --bzip2 -cSpf $$dir/$(PKG)-$(VERSION).tar.bz2 $(PKG)-$(VERSION)
 	@rm -rf /tmp/$(PKG)-$(VERSION)
 	@echo "The archive is in $(PKG)-$(VERSION).tar.bz2"
