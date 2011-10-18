@@ -31,13 +31,12 @@ import logging          # Logger for debug/info/error messages
 
 """ Importing SCAP Workbench modules
 """
-import scap_workbench.core.abstract as abstract
-import scap_workbench.core.core as core
-import scap_workbench.core.commands as commands
-import scap_workbench.core.filter as filter
-from scap_workbench.core.core import Notification
+from scap_workbench.core import abstract
+from scap_workbench.core import core
+from scap_workbench.core import commands
+from scap_workbench.core import filter
 from scap_workbench.core.events import EventObject
-import scap_workbench.core.paths as paths
+from scap_workbench.core import paths
 
 # Initializing Logger
 logger = logging.getLogger("scap-workbench")
@@ -226,7 +225,7 @@ class MenuButtonScan(abstract.MenuButton, abstract.Func):
             # the reason for the double check is that os.access("nonexistant file but user can create it", os.W_OK) returns False,
             # so we check the parent directory for writing instead in that case
             if (os.path.isfile(file_name) and not os.access(file_name, os.W_OK)) or (not os.access(os.path.dirname(file_name), os.W_OK)):
-                ret = (Notification.ERROR, "Export failed - chosen file path isn't accessible for writing")
+                ret = (core.Notification.ERROR, "Export failed - chosen file path isn't accessible for writing")
                 if append_notifications:
                     self.notifications.append(self.core.notify(ret[1], ret[0], msg_id="notify:scan:export"))
                 else:
@@ -235,7 +234,7 @@ class MenuButtonScan(abstract.MenuButton, abstract.Func):
             else:
                 retval = self.data_model.export(file_name, self.result)
                 # TODO: More info about the error
-                ret = (Notification.ERROR, "Export failed") if not retval else (Notification.SUCCESS, "Report file saved successfully")
+                ret = (core.Notification.ERROR, "Export failed") if not retval else (core.Notification.SUCCESS, "Report file saved successfully")
                 
                 # TODO: We should be more robust and do more error checking here
                 self.data_model.perform_xslt_transformation(retval, result_id = self.result.id, oval_path = os.path.dirname(retval))

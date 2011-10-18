@@ -31,14 +31,13 @@ import logging          # Logger for debug/info/error messages
 
 """ Importing SCAP Workbench modules
 """
-import scap_workbench.core.abstract as abstract
-import scap_workbench.core.core as core
-import scap_workbench.core.commands as commands
-import scap_workbench.core.filter as filter
-from scap_workbench.core.core import Notification
+from scap_workbench.core import abstract
+from scap_workbench.core import core
+from scap_workbench.core import commands
+from scap_workbench.core import filter
 import scap_workbench.core.enum as ENUM
 from scap_workbench.core.events import EventObject
-import scap_workbench.core.htmltextview as htmltextview
+from scap_workbench.core import htmltextview
 
 from scap_workbench.core.threads import thread_free as threadFree
 from scap_workbench.core.htmltextview import HtmlTextView
@@ -97,7 +96,7 @@ class ItemList(abstract.List):
             text = self.search.get_text() or ""
             pattern = re.compile(text, re.I)
         except sre_constants.error, err:
-            self.core.notify("Regexp entry error: %s" % (err,), Notification.ERROR, msg_id="notify:profiles:filter")
+            self.core.notify("Regexp entry error: %s" % (err,), core.Notification.ERROR, msg_id="notify:profiles:filter")
             return True
 
         if event and event.type == gtk.gdk.KEY_PRESS and event.keyval == gtk.keysyms.Return:
