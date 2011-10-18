@@ -30,7 +30,6 @@ import re               # Regular expressions
 import sre_constants    # For re.compile exception
 import os               # os Path join/basename, ..
 import threading        # Main window is running in thread
-import gnome, gnome.ui  # Gnome icons in HTML editor
 import tempfile         # Temporary file for XCCDF preview
 import datetime
 import logging                  # Logger for debug/info/error messages
@@ -3940,9 +3939,6 @@ class Editor(scap_workbench.core.abstract.Window):
         return False
 
     def run(self):
-        from scap_workbench.core import version
-        
-        gnome.init("SCAP Workbench Editor", version.as_string)
         gtk.main()
 
 if __name__ == '__main__':

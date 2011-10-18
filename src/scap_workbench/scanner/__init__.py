@@ -25,7 +25,6 @@
 """
 import gtk              # GTK library
 import threading        # Main window is running in thread
-import gnome, gnome.ui  # Gnome icons in HTML editor
 import pango            # Pango enumeration constants
 import os.path
 import logging          # Logger for debug/info/error messages
@@ -376,9 +375,6 @@ class MainWindow(scap_workbench.core.abstract.Window, threading.Thread):
         return False
 
     def run(self):
-        from scap_workbench.core import version
-        
-        gnome.init("SCAP Workbench Scanner", version.as_string)
         gtk.main()
 
 # we only expose the MainWindow from the entire scanner subpackage because that's all that's needed to start the app
