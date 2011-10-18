@@ -22,13 +22,13 @@
 
 import re
 import gtk
-import abstract
 import logging
-from events import EventObject
-import paths
-
 import sys
 import os
+
+from scap_workbench.core import abstract
+from scap_workbench.core.events import EventObject
+from scap_workbench.core import paths
 
 logger = logging.getLogger("scap-workbench")
 

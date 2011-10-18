@@ -23,8 +23,9 @@ import gtk
 
 import sys
 import os.path
-import paths
-import version
+
+from scap_workbench.core import paths
+from scap_workbench.core import version
 
 class ExceptionDialog(object):
     """This is a dialog that gets shown whenever an exception is thrown and
