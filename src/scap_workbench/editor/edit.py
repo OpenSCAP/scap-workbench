@@ -29,22 +29,21 @@ import time             # Time functions in calendar data ::EditStatus
 import re               # Regular expressions 
 import sre_constants    # For re.compile exception
 import os               # os Path join/basename, ..
-import threading        # Main window is running in thread
 import tempfile         # Temporary file for XCCDF preview
 import datetime
 import logging                  # Logger for debug/info/error messages
 
 """ Importing SCAP Workbench modules
 """
-import scap_workbench.core.abstract
-import scap_workbench.core.core as core
-import scap_workbench.core.commands
-import scap_workbench.core.dialogs
+from scap_workbench.core import abstract
+from scap_workbench.core import core
+from scap_workbench.core import commands
+from scap_workbench.core import dialogs
 from scap_workbench.core.core import Notification
 from scap_workbench.core.events import EventObject
 import scap_workbench.core.enum as ENUM
-import scap_workbench.core.paths
-import scap_workbench.core.error
+from scap_workbench.core import paths
+from scap_workbench.core import error
 
 # Initializing Logger
 logger = logging.getLogger("scap-workbench")
@@ -72,7 +71,7 @@ except Exception as ex:
     raise ex
 
 
-class ProfileList(scap_workbench.core.abstract.List):
+class ProfileList(abstract.List):
 
     """ List of Profiles and refine items.
 
@@ -347,7 +346,7 @@ class ProfileList(scap_workbench.core.abstract.List):
         AddProfileDialog(self.core, self.data_model, self.__update)
 
 
-class ItemList(scap_workbench.core.abstract.List):
+class ItemList(abstract.List):
 
     """ List of Rules, Groups and Values.
 
@@ -359,7 +358,7 @@ class ItemList(scap_workbench.core.abstract.List):
     def __init__(self, widget, core, builder=None, progress=None):
         """ Constructor of ProfileList.
         """
-        self.data_model = scap_workbench.core.commands.DHItemsTree("gui:edit:DHItemsTree", core, progress, None, True, no_checks=True)
+        self.data_model = commands.DHItemsTree("gui:edit:DHItemsTree", core, progress, None, True, no_checks=True)
         super(ItemList, self).__init__("gui:edit:item_list", core, widget)
         
         self.loaded = False
@@ -460,7 +459,7 @@ class ItemList(scap_workbench.core.abstract.List):
             selection = treeView.get_selection( )
             if selection != None: 
                 (model, iter) = selection.get_selected( )
-                if iter: self.core.selected_item = model.get_value(iter, scap_workbench.core.commands.DHItemsTree.COLUMN_ID)
+                if iter: self.core.selected_item = model.get_value(iter, commands.DHItemsTree.COLUMN_ID)
                 else: self.core.selected_item = None
     
             # Selection has changed, trigger all events connected to this signal
@@ -477,13 +476,13 @@ class ItemList(scap_workbench.core.abstract.List):
             glib.idle_add(worker)
             self.item_changed_worker_pending = True
 
-class MenuButtonEditXCCDF(scap_workbench.core.abstract.MenuButton):
+class MenuButtonEditXCCDF(abstract.MenuButton):
 
     def __init__(self, builder, widget, core):
         super(MenuButtonEditXCCDF, self).__init__("gui:btn:menu:edit:XCCDF", widget, core)
         
         self.builder = builder
-        self.data_model = scap_workbench.core.commands.DHXccdf(core)
+        self.data_model = commands.DHXccdf(core)
         
         #draw body
         self.body = self.builder.get_object("xccdf:box")
@@ -528,7 +527,7 @@ class MenuButtonEditXCCDF(scap_workbench.core.abstract.MenuButton):
 
         # -- REFERENCE --
         # FIXME: Instantiating an abstract class?!
-        self.tv_references = scap_workbench.core.abstract.ListEditor("gui:edit:xccdf:references", self.core, widget=self.builder.get_object("edit:xccdf:references"), model=gtk.ListStore(str, str))
+        self.tv_references = abstract.ListEditor("gui:edit:xccdf:references", self.core, widget=self.builder.get_object("edit:xccdf:references"), model=gtk.ListStore(str, str))
         self.tv_references.widget.append_column(gtk.TreeViewColumn("Reference", gtk.CellRendererText(), text=0))
         self.builder.get_object("edit:xccdf:btn_references_add").set_sensitive(False)
         self.builder.get_object("edit:xccdf:btn_references_edit").set_sensitive(False)
@@ -594,10 +593,10 @@ class MenuButtonEditXCCDF(scap_workbench.core.abstract.MenuButton):
         self.notifications.append(self.core.notify(message, lvl, msg_id="notify:xccdf:validate"))
 
     def __cb_import(self, widget):
-        scap_workbench.core.dialogs.ImportDialog(self.core, self.data_model, self.__import)
+        dialogs.ImportDialog(self.core, self.data_model, self.__import)
 
     def __cb_export(self, widget):
-        scap_workbench.core.dialogs.ExportDialog(self.core, self.data_model)
+        dialogs.ExportDialog(self.core, self.data_model)
 
     def __menu_sensitive(self, active):
         self.btn_new.set_sensitive(not active)
@@ -700,14 +699,14 @@ class MenuButtonEditXCCDF(scap_workbench.core.abstract.MenuButton):
         self.entry_resolved.handler_unblock_by_func(self.__change)
         self.entry_lang.handler_unblock_by_func(self.__change)
 
-class MenuButtonEditProfiles(scap_workbench.core.abstract.MenuButton, scap_workbench.core.abstract.Func):
+class MenuButtonEditProfiles(abstract.MenuButton, abstract.Func):
 
     def __init__(self, builder, widget, core):
-        scap_workbench.core.abstract.MenuButton.__init__(self, "gui:btn:menu:edit:profiles", widget, core)
-        scap_workbench.core.abstract.Func.__init__(self, core)
+        abstract.MenuButton.__init__(self, "gui:btn:menu:edit:profiles", widget, core)
+        abstract.Func.__init__(self, core)
         
         self.builder = builder
-        self.data_model = scap_workbench.core.commands.DHProfiles(self.core)
+        self.data_model = commands.DHProfiles(self.core)
         self.__item_finder = FindItem(self.core, "gui:edit:xccdf:profiles:finditem", self.data_model)
 
         #draw body
@@ -1029,18 +1028,18 @@ class MenuButtonEditProfiles(scap_workbench.core.abstract.MenuButton, scap_workb
                             model[iter][4] = self.data_model.get_title(item.title) or "%s (ID)" % (item.id,)
 
             
-class MenuButtonEditItems(scap_workbench.core.abstract.MenuButton, scap_workbench.core.abstract.Func):
+class MenuButtonEditItems(abstract.MenuButton, abstract.Func):
 
     def __init__(self, builder, widget, core):
-        scap_workbench.core.abstract.MenuButton.__init__(self, "gui:btn:menu:edit:items", widget, core)
-        scap_workbench.core.abstract.Func.__init__(self, core)
+        abstract.MenuButton.__init__(self, "gui:btn:menu:edit:items", widget, core)
+        abstract.Func.__init__(self, core)
         
         self.builder = builder
-        self.data_model = scap_workbench.core.commands.DHEditItems(self.core)
+        self.data_model = commands.DHEditItems(self.core)
         self.item = None
         # FIXME: Instantiating abstract class
         # FIXME: We inherit Func and we are composed of it
-        self.func = scap_workbench.core.abstract.Func()
+        self.func = abstract.Func()
         self.current_page = 0
 
         #draw body
@@ -1460,7 +1459,7 @@ class MenuButtonEditItems(scap_workbench.core.abstract.MenuButton, scap_workbenc
         self.__unblock_signals()
                 
             
-class EditConflicts(scap_workbench.core.commands.DHEditItems, scap_workbench.core.abstract.ControlEditWindow):
+class EditConflicts(commands.DHEditItems, abstract.ControlEditWindow):
     
     COLUMN_ID = 0
     
@@ -1470,8 +1469,8 @@ class EditConflicts(scap_workbench.core.commands.DHEditItems, scap_workbench.cor
         model = gtk.ListStore(str)
         lv.set_model(model)
         
-        scap_workbench.core.commands.DHEditItems.__init__(self, core)
-        scap_workbench.core.abstract.ControlEditWindow.__init__(self, core, lv, None)
+        commands.DHEditItems.__init__(self, core)
+        abstract.ControlEditWindow.__init__(self, core, lv, None)
         
         btn_add = builder.get_object("edit:dependencies:btn_conflict_add")
         btn_del = builder.get_object("edit:dependencies:btn_conflict_del")
@@ -1497,7 +1496,7 @@ class EditConflicts(scap_workbench.core.commands.DHEditItems, scap_workbench.cor
     def __cb_del_row(self, widget):
         pass
 
-class EditRequires(scap_workbench.core.commands.DHEditItems, scap_workbench.core.abstract.ControlEditWindow):
+class EditRequires(commands.DHEditItems, abstract.ControlEditWindow):
     
     COLUMN_ID = 0
     
@@ -1507,8 +1506,8 @@ class EditRequires(scap_workbench.core.commands.DHEditItems, scap_workbench.core
         model = gtk.ListStore(str)
         lv.set_model(model)
 
-        scap_workbench.core.commands.DHEditItems.__init__(self, core)
-        scap_workbench.core.abstract.ControlEditWindow.__init__(self, core, lv, None)
+        commands.DHEditItems.__init__(self, core)
+        abstract.ControlEditWindow.__init__(self, core, lv, None)
         
         btn_add = builder.get_object("edit:dependencies:btn_requires_add")
         btn_del = builder.get_object("edit:dependencies:btn_requires_del")
@@ -1532,7 +1531,7 @@ class EditRequires(scap_workbench.core.commands.DHEditItems, scap_workbench.core
     def __cb_del_row(self, widget):
         pass
 
-class EditItemValues(scap_workbench.core.abstract.ListEditor):
+class EditItemValues(abstract.ListEditor):
 
     COLUMN_ID       = 0
     COLUMN_VALUE    = 1
@@ -1576,7 +1575,7 @@ class EditItemValues(scap_workbench.core.abstract.ListEditor):
         """
         self.operation = operation
         builder = gtk.Builder()
-        builder.add_from_file(os.path.join(scap_workbench.core.paths.glade_prefix, "dialogs.glade"))
+        builder.add_from_file(os.path.join(paths.glade_prefix, "dialogs.glade"))
         self.wdialog = builder.get_object("dialog:find_value")
         self.info_box = builder.get_object("dialog:find_value:info_box")
         self.values = builder.get_object("dialog:find_value:values")
@@ -1667,7 +1666,7 @@ class EditItemValues(scap_workbench.core.abstract.ListEditor):
             else:
                 self.append([check[0], "(Missing item)", check[1], None, "red", "white"])
 
-class EditTitle(scap_workbench.core.abstract.ListEditor):
+class EditTitle(abstract.ListEditor):
 
     COLUMN_LANG         = 0
     COLUMN_OVERRIDES    = 1
@@ -1709,7 +1708,7 @@ class EditTitle(scap_workbench.core.abstract.ListEditor):
         """
         self.operation = operation
         builder = gtk.Builder()
-        builder.add_from_file(os.path.join(scap_workbench.core.paths.glade_prefix, "dialogs.glade"))
+        builder.add_from_file(os.path.join(paths.glade_prefix, "dialogs.glade"))
         self.wdialog = builder.get_object("dialog:edit_title")
         self.info_box = builder.get_object("dialog:edit_title:info_box")
         self.lang = builder.get_object("dialog:edit_title:lang")
@@ -1755,7 +1754,7 @@ class EditTitle(scap_workbench.core.abstract.ListEditor):
         for data in self.data_model.get_titles() or []:
             self.append([data.lang, data.overrides, (" ".join(data.text.split())), data])
 
-class EditDescription(scap_workbench.core.abstract.HTMLEditor):
+class EditDescription(abstract.HTMLEditor):
 
     COLUMN_LANG         = 0
     COLUMN_OVERRIDES    = 1
@@ -1801,7 +1800,7 @@ class EditDescription(scap_workbench.core.abstract.HTMLEditor):
         """
         self.operation = operation
         builder = gtk.Builder()
-        builder.add_from_file(os.path.join(scap_workbench.core.paths.glade_prefix, "dialogs.glade"))
+        builder.add_from_file(os.path.join(paths.glade_prefix, "dialogs.glade"))
         self.wdialog = builder.get_object("dialog:edit_description")
         self.info_box = builder.get_object("dialog:edit_description:info_box")
         self.lang = builder.get_object("dialog:edit_description:lang")
@@ -1866,7 +1865,7 @@ class EditDescription(scap_workbench.core.abstract.HTMLEditor):
         for data in self.data_model.get_descriptions() or []:
             self.append([data.lang, data.overrides, re.sub("[\t ]+" , " ", data.text or "").strip(), data])
 
-class EditFixtext(scap_workbench.core.abstract.HTMLEditor):
+class EditFixtext(abstract.HTMLEditor):
     
     COLUMN_LANG = 0
     COLUMN_TEXT = 1
@@ -1962,7 +1961,7 @@ class EditFixtext(scap_workbench.core.abstract.HTMLEditor):
         """
         self.operation = operation
         builder = gtk.Builder()
-        builder.add_from_file(os.path.join(scap_workbench.core.paths.glade_prefix, "dialogs.glade"))
+        builder.add_from_file(os.path.join(paths.glade_prefix, "dialogs.glade"))
         self.wdialog = builder.get_object("dialog:edit_description")
         self.info_box = builder.get_object("dialog:edit_description:info_box")
         self.lang = builder.get_object("dialog:edit_description:lang")
@@ -2071,7 +2070,7 @@ class EditFixtext(scap_workbench.core.abstract.HTMLEditor):
         for data in self.data_model.get_fixtexts() or []:
             self.append([data.text.lang, re.sub("[\t ]+" , " ", data.text.text or "").strip(), data])
 
-class EditFix(scap_workbench.core.abstract.ListEditor):
+class EditFix(abstract.ListEditor):
     
     COLUMN_ID   = 0
     COLUMN_TEXT = 1
@@ -2175,7 +2174,7 @@ class EditFix(scap_workbench.core.abstract.ListEditor):
         """
         self.operation = operation
         builder = gtk.Builder()
-        builder.add_from_file(os.path.join(scap_workbench.core.paths.glade_prefix, "dialogs.glade"))
+        builder.add_from_file(os.path.join(paths.glade_prefix, "dialogs.glade"))
         self.wdialog = builder.get_object("dialog:edit_fix")
         self.info_box = builder.get_object("dialog:edit_fix:info_box")
         self.fid = builder.get_object("dialog:edit_fix:id")
@@ -2264,7 +2263,7 @@ class EditFix(scap_workbench.core.abstract.ListEditor):
         for data in self.data_model.get_fixes() or []:
             self.append([data.id,  (data.content or "").strip(), data])
 
-class EditWarning(scap_workbench.core.abstract.ListEditor):
+class EditWarning(abstract.ListEditor):
 
     COLUMN_LANG         = 0
     COLUMN_OVERRIDES    = 1
@@ -2312,7 +2311,7 @@ class EditWarning(scap_workbench.core.abstract.ListEditor):
         """
         self.operation = operation
         builder = gtk.Builder()
-        builder.add_from_file(os.path.join(scap_workbench.core.paths.glade_prefix, "dialogs.glade"))
+        builder.add_from_file(os.path.join(paths.glade_prefix, "dialogs.glade"))
         self.wdialog = builder.get_object("dialog:edit_warning")
         self.info_box = builder.get_object("dialog:edit_warning:info_box")
         self.lang = builder.get_object("dialog:edit_warning:lang")
@@ -2362,7 +2361,7 @@ class EditWarning(scap_workbench.core.abstract.ListEditor):
             index = ENUM.WARNING.pos(item.category)
             self.append([item.text.lang, item.text.overrides, category[1], re.sub("[\t ]+" , " ", item.text.text).strip(), item])
 
-class EditNotice(scap_workbench.core.abstract.ListEditor):
+class EditNotice(abstract.ListEditor):
 
     COLUMN_ID = 0
     COLUMN_LANG = -1
@@ -2415,7 +2414,7 @@ class EditNotice(scap_workbench.core.abstract.ListEditor):
         """
         self.operation = operation
         builder = gtk.Builder()
-        builder.add_from_file(os.path.join(scap_workbench.core.paths.glade_prefix, "dialogs.glade"))
+        builder.add_from_file(os.path.join(paths.glade_prefix, "dialogs.glade"))
         self.wdialog = builder.get_object("dialog:edit_notice")
         self.info_box = builder.get_object("dialog:edit_notice:info_box")
         self.wid = builder.get_object("dialog:edit_notice:id")
@@ -2458,7 +2457,7 @@ class EditNotice(scap_workbench.core.abstract.ListEditor):
         for data in self.data_model.get_notices() or []:
             self.append([data.id, re.sub("[\t ]+" , " ", data.text.text or "").strip(), data])
 
-class EditStatus(scap_workbench.core.abstract.ListEditor):
+class EditStatus(abstract.ListEditor):
 
     COLUMN_DATE = 0
 
@@ -2504,7 +2503,7 @@ class EditStatus(scap_workbench.core.abstract.ListEditor):
         """
         self.operation = operation
         builder = gtk.Builder()
-        builder.add_from_file(os.path.join(scap_workbench.core.paths.glade_prefix, "dialogs.glade"))
+        builder.add_from_file(os.path.join(paths.glade_prefix, "dialogs.glade"))
         self.wdialog = builder.get_object("dialog:edit_status")
         self.info_box = builder.get_object("dialog:edit_status:info_box")
         self.calendar = builder.get_object("dialog:edit_status:calendar")
@@ -2554,7 +2553,7 @@ class EditStatus(scap_workbench.core.abstract.ListEditor):
             index = ENUM.STATUS_CURRENT.pos(item.status)
             self.append([time.strftime("%d-%m-%Y", time.localtime(item.date)), status[1], item])
 
-class EditIdent(scap_workbench.core.abstract.ListEditor):
+class EditIdent(abstract.ListEditor):
 
     COLUMN_ID = 0
     COLUMN_LANG = -1
@@ -2612,7 +2611,7 @@ class EditIdent(scap_workbench.core.abstract.ListEditor):
         """
         self.operation = operation
         builder = gtk.Builder()
-        builder.add_from_file(os.path.join(scap_workbench.core.paths.glade_prefix, "dialogs.glade"))
+        builder.add_from_file(os.path.join(paths.glade_prefix, "dialogs.glade"))
         self.wdialog = builder.get_object("dialog:edit_ident")
         self.info_box = builder.get_object("dialog:edit_ident:info_box")
         self.wid = builder.get_object("dialog:edit_ident:id")
@@ -2655,7 +2654,7 @@ class EditIdent(scap_workbench.core.abstract.ListEditor):
         for data in self.data_model.get_idents() or []:
             self.append([data.id, re.sub("[\t ]+" , " ", data.system or "").strip(), data])
 
-class EditQuestion(scap_workbench.core.abstract.ListEditor):
+class EditQuestion(abstract.ListEditor):
 
     COLUMN_OVERRIDES = 3
     
@@ -2695,7 +2694,7 @@ class EditQuestion(scap_workbench.core.abstract.ListEditor):
         """
         self.operation = operation
         builder = gtk.Builder()
-        builder.add_from_file(os.path.join(scap_workbench.core.paths.glade_prefix, "dialogs.glade"))
+        builder.add_from_file(os.path.join(paths.glade_prefix, "dialogs.glade"))
         self.wdialog = builder.get_object("dialog:edit_question")
         self.info_box = builder.get_object("dialog:edit_question:info_box")
         self.lang = builder.get_object("dialog:edit_question:lang")
@@ -2741,7 +2740,7 @@ class EditQuestion(scap_workbench.core.abstract.ListEditor):
             self.append([data.lang, re.sub("[\t ]+" , " ", data.text).strip(), data, data.overrides])
 
 
-class EditRationale(scap_workbench.core.abstract.ListEditor):
+class EditRationale(abstract.ListEditor):
 
     COLUMN_OVERRIDES = 3
     
@@ -2782,7 +2781,7 @@ class EditRationale(scap_workbench.core.abstract.ListEditor):
         """
         self.operation = operation
         builder = gtk.Builder()
-        builder.add_from_file(os.path.join(scap_workbench.core.paths.glade_prefix, "dialogs.glade"))
+        builder.add_from_file(os.path.join(paths.glade_prefix, "dialogs.glade"))
         self.wdialog = builder.get_object("dialog:edit_rationale")
         self.info_box = builder.get_object("dialog:edit_rationale:info_box")
         self.lang = builder.get_object("dialog:edit_rationale:lang")
@@ -2828,7 +2827,7 @@ class EditRationale(scap_workbench.core.abstract.ListEditor):
             self.append([data.lang, re.sub("[\t ]+" , " ", data.text).strip(), data, data.overrides])
 
 
-class EditPlatform(scap_workbench.core.abstract.ListEditor):
+class EditPlatform(abstract.ListEditor):
 
     COLUMN_TEXT = 0
 
@@ -2931,7 +2930,7 @@ class EditPlatform(scap_workbench.core.abstract.ListEditor):
         """
         self.operation = operation
         builder = gtk.Builder()
-        builder.add_from_file(os.path.join(scap_workbench.core.paths.glade_prefix, "dialogs.glade"))
+        builder.add_from_file(os.path.join(paths.glade_prefix, "dialogs.glade"))
         self.wdialog = builder.get_object("dialog:edit_platform")
         self.info_box = builder.get_object("dialog:edit_platform:info_box")
         self.cpe = builder.get_object("dialog:edit_platform:cpe")
@@ -2988,7 +2987,7 @@ class EditPlatform(scap_workbench.core.abstract.ListEditor):
         for item in self.data_model.get_platforms() or []:
             self.get_model().append([item])
 
-class EditValues(scap_workbench.core.abstract.MenuButton, scap_workbench.core.abstract.Func):
+class EditValues(abstract.MenuButton, abstract.Func):
     
     COLUMN_ID = 0
     COLUMN_TITLE = 1
@@ -3000,9 +2999,9 @@ class EditValues(scap_workbench.core.abstract.MenuButton, scap_workbench.core.ab
     
     def __init__(self, core, id, builder):
         # FIXME: We are not calling constructor of abstract.MenuButton, this could backfire sometime in the future!
-        scap_workbench.core.abstract.Func.__init__(self, core)
+        abstract.Func.__init__(self, core)
 
-        self.data_model = scap_workbench.core.commands.DHValues(core) 
+        self.data_model = commands.DHValues(core) 
         self.builder = builder
         self.id = id
 
@@ -3177,7 +3176,7 @@ class EditValues(scap_workbench.core.abstract.MenuButton, scap_workbench.core.ab
         self.__unblock_signals()
 
             
-class EditValuesValues(scap_workbench.core.abstract.ListEditor):
+class EditValuesValues(abstract.ListEditor):
 
     COLUMN_SELECTOR     = 0
     COLUMN_VALUE        = 1
@@ -3248,7 +3247,7 @@ class EditValuesValues(scap_workbench.core.abstract.ListEditor):
         """
         self.operation = operation
         builder = gtk.Builder()
-        builder.add_from_file(os.path.join(scap_workbench.core.paths.glade_prefix, "dialogs.glade"))
+        builder.add_from_file(os.path.join(paths.glade_prefix, "dialogs.glade"))
         self.wdialog = builder.get_object("dialog:edit_value")
         self.info_box = builder.get_object("dialog:edit_value:info_box")
         self.selector = builder.get_object("dialog:edit_value:selector")
@@ -3337,7 +3336,7 @@ class AddProfileDialog(EventObject):
         self.data_model = data_model
         self.__update = cb
         builder = gtk.Builder()
-        builder.add_from_file(os.path.join(scap_workbench.core.paths.glade_prefix, "dialogs.glade"))
+        builder.add_from_file(os.path.join(paths.glade_prefix, "dialogs.glade"))
         self.window = builder.get_object("dialog:profile_add")
 
         builder.get_object("profile_add:btn_ok").connect("clicked", self.__cb_do)
@@ -3404,7 +3403,7 @@ class AddItem(EventObject):
     def dialog(self):
 
         builder = gtk.Builder()
-        builder.add_from_file(os.path.join(scap_workbench.core.paths.glade_prefix, "dialogs.glade"))
+        builder.add_from_file(os.path.join(paths.glade_prefix, "dialogs.glade"))
         self.window = builder.get_object("dialog:add_item")
         self.window.connect("delete-event", self.__delete_event)
         
@@ -3541,7 +3540,7 @@ class EditSelectIdDialogWindow(object):
         self.model_item = model_item
         
         builder = gtk.Builder()
-        builder.add_from_file(os.path.join(scap_workbench.core.paths.glade_prefix, "dialogs.glade"))
+        builder.add_from_file(os.path.join(paths.glade_prefix, "dialogs.glade"))
 
         self.window = builder.get_object("dialog:add_id")
         self.window.connect("delete-event", self.__delete_event)
@@ -3753,7 +3752,7 @@ class EditSelectIdDialogWindow(object):
             logger.exception("Can't filter items: %s" % (e))
             return False
 
-class FindOvalDef(scap_workbench.core.abstract.Window, scap_workbench.core.abstract.ListEditor):
+class FindOvalDef(abstract.Window, abstract.ListEditor):
 
     COLUMN_ID       = 0
     COLUMN_VALUE    = 1
@@ -3762,7 +3761,7 @@ class FindOvalDef(scap_workbench.core.abstract.Window, scap_workbench.core.abstr
 
         self.data_model = data_model
         self.core = core
-        scap_workbench.core.abstract.Window.__init__(self, id, core)
+        abstract.Window.__init__(self, id, core)
         # FIXME: We can't call the constructor of abstract.ListEditor here because it would register our id
         #        and instance again (Window's constructor has already done that)
         self.add_sender(id, "update")
@@ -3790,7 +3789,7 @@ class FindOvalDef(scap_workbench.core.abstract.Window, scap_workbench.core.abstr
         """
         """
         builder = gtk.Builder()
-        builder.add_from_file(os.path.join(scap_workbench.core.paths.glade_prefix, "dialogs.glade"))
+        builder.add_from_file(os.path.join(paths.glade_prefix, "dialogs.glade"))
         self.wdialog = builder.get_object("dialog:find_definition")
         self.info_box = builder.get_object("dialog:find_definition:info_box")
         self.definitions = builder.get_object("dialog:find_definition:definitions")
@@ -3815,7 +3814,7 @@ class FindOvalDef(scap_workbench.core.abstract.Window, scap_workbench.core.abstr
         self.wdialog.show_all()
 
 
-class FindItem(scap_workbench.core.abstract.Window, scap_workbench.core.abstract.ListEditor):
+class FindItem(abstract.Window, abstract.ListEditor):
 
     COLUMN_ID       = 0
     COLUMN_VALUE    = 1
@@ -3825,7 +3824,7 @@ class FindItem(scap_workbench.core.abstract.Window, scap_workbench.core.abstract
 
         self.data_model = data_model
         self.core = core
-        scap_workbench.core.abstract.Window.__init__(self, id, core)
+        abstract.Window.__init__(self, id, core)
         # FIXME: We can't call the constructor of abstract.ListEditor here because it would register our id
         #        and instance again (Window's constructor has already done that)
         self.add_sender(id, "update")
@@ -3857,7 +3856,7 @@ class FindItem(scap_workbench.core.abstract.Window, scap_workbench.core.abstract
         """
         """
         builder = gtk.Builder()
-        builder.add_from_file(os.path.join(scap_workbench.core.paths.glade_prefix, "dialogs.glade"))
+        builder.add_from_file(os.path.join(paths.glade_prefix, "dialogs.glade"))
         self.wdialog = builder.get_object("dialog:find_value")
         self.info_box = builder.get_object("dialog:find_value:info_box")
         self.items = builder.get_object("dialog:find_value:values")
@@ -3893,17 +3892,17 @@ class FindItem(scap_workbench.core.abstract.Window, scap_workbench.core.abstract
         self.wdialog.set_transient_for(self.core.main_window)
         self.wdialog.show()
 
-class Editor(scap_workbench.core.abstract.Window):
+class Editor(abstract.Window):
     """The central window of scap-workbench-editor
     """
     
     def __init__(self):
-        scap_workbench.core.error.ErrorHandler.install_exception_hook()
+        error.ErrorHandler.install_exception_hook()
         
         self.builder = gtk.Builder()
-        self.builder.add_from_file(os.path.join(scap_workbench.core.paths.glade_prefix, "editor.glade"))
+        self.builder.add_from_file(os.path.join(paths.glade_prefix, "editor.glade"))
         self.builder.connect_signals(self)
-        scap_workbench.core.abstract.Window.__init__(self, "main:window", core.SWBCore(self.builder))
+        abstract.Window.__init__(self, "main:window", core.SWBCore(self.builder))
 
         logger = logging.getLogger(self.__class__.__name__)
 
@@ -3913,7 +3912,7 @@ class Editor(scap_workbench.core.abstract.Window):
 
         # abstract the main menu
         # FIXME: Instantiating abstract class
-        self.menu = scap_workbench.core.abstract.Menu("gui:menu", self.builder.get_object("main:toolbar"), self.core)
+        self.menu = abstract.Menu("gui:menu", self.builder.get_object("main:toolbar"), self.core)
         self.menu.add_item(MenuButtonEditXCCDF(self.builder, self.builder.get_object("main:toolbar:main"), self.core))
         self.menu.add_item(MenuButtonEditProfiles(self.builder, self.builder.get_object("main:toolbar:profiles"), self.core))
         self.menu.add_item(MenuButtonEditItems(self.builder, self.builder.get_object("main:toolbar:items"), self.core))
@@ -3933,7 +3932,7 @@ class Editor(scap_workbench.core.abstract.Window):
         """ close the window and quit
         """
         # since we are quitting gtk we can't be popping a dialog when exception happens anymore
-        scap_workbench.core.error.ErrorHandler.uninstall_exception_hook()
+        error.ErrorHandler.uninstall_exception_hook()
  
         gtk.main_quit()
         return False
