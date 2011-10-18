@@ -32,10 +32,10 @@ import logging.config           # For configuration of Logger
 
 """ Importing SCAP Workbench modules
 """
-from events import EventHandler # abstract module EventHandler
-from threads import ThreadManager
-import paths
-import commands
+from scap_workbench.core.events import EventHandler # abstract module EventHandler
+from scap_workbench.core.threads import ThreadManager
+from scap_workbench.core import paths
+from scap_workbench.core import commands
 
 # Initializing and configuring Logger
 logging.config.fileConfig(os.path.join(paths.etc_prefix, "logger.conf"))

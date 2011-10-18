@@ -25,12 +25,13 @@ import gobject
 import webbrowser
 import datetime
 import time
-import core
 from datetime import datetime
 import tempfile         # Temporary file for XCCDF preview
 
-from events import EventObject
-from htmltextview import HtmlTextView
+# FIXME: Needs renaming to be changed into absolute import
+import core
+from scap_workbench.core.events import EventObject
+from scap_workbench.core.htmltextview import HtmlTextView
 
 logger = logging.getLogger("scap-workbench")
 
@@ -40,8 +41,8 @@ except ImportError as ex:
     logger.exception("OpenScap library initialization failed: %s" % (ex))
     openscap=None
 
-from threads import thread as threadSave
-                
+from scap_workbench.core.threads import thread as threadSave
+       
 IMG_GROUP   = "emblem-documents"
 IMG_RULE    = "document-new"
 IMG_VALUE   = "emblem-downloads"

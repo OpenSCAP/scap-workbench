@@ -28,14 +28,14 @@ import re               # Regular expressions
 import datetime
 import time
 import os.path
+import logging          # Logger for debug/info/error messages
 
 """ Importing SCAP Workbench modules
 """
-import logging                          # Logger for debug/info/error messages
-from core import Notification           # core.Notification levels for reference
-from events import EventObject          # abstract module EventObject
-from htmltextview import HtmlTextView   # Widget for viewing HTML when WebKit is not available
-import paths
+from scap_workbench.core.core import Notification           # core.Notification levels for reference
+from scap_workbench.core.events import EventObject          # abstract module EventObject
+from scap_workbench.core.htmltextview import HtmlTextView   # Widget for viewing HTML when WebKit is not available
+from scap_workbench.core import paths
 
 # Initializing Logger
 logger = logging.getLogger("scap-workbench")
@@ -48,7 +48,7 @@ checked by:
 try:
     # Import WebKit module for HTML editing 
     # of descriptions
-    import webkit as webkit
+    import webkit
     HAS_WEBKIT = True
 except ImportError:
     HAS_WEBKIT = False

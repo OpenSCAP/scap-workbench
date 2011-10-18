@@ -24,18 +24,18 @@
 import gtk              # GTK library
 import os               # os Path join/basename, ..
 import tempfile         # Temporary file for XCCDF preview
+import logging          # Logger for debug/info/error messages
 
 """ Importing SCAP Workbench modules
 """
-import abstract                 # All abstract classes
-import logging                  # Logger for debug/info/error messages
-import commands                 # Module for handling openscap
+from scap_workbench.core import abstract                 # All abstract classes
+from scap_workbench.core import commands                 # Module for handling openscap
+# FIXME: Needs renaming to be changed into absolute import
 from core import Notification   # core.Notification levels for reference
-import paths
+from scap_workbench.core import paths
 
 # Initializing Logger
 logger = logging.getLogger("scap-workbench")
-
 
 class ImportDialog(abstract.Window, abstract.ListEditor):
 
