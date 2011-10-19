@@ -1,7 +1,7 @@
 PKG=scap-workbench
 PKG_EDITOR=scap-workbench-editor
 WRK_PKG=scap_workbench
-VERSION="0.5.0"
+VERSION="0.5.1"
 
 PY_LIB := $(shell python -c "from distutils.sysconfig import get_python_lib; print get_python_lib()")
 PY_VER := python$(shell python -c "import sys; print sys.version[:3]")
