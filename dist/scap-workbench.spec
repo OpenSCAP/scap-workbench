@@ -7,7 +7,7 @@
 Summary: Scanning, tailoring, editing and validation tool for SCAP content
 Name: scap-workbench
 URL: https://fedorahosted.org/scap-workbench/
-Version: 0.5.0
+Version: 0.5.1
 Release: 1%{?dist}
 License: GPLv3+
 Group: System Environment/Base
@@ -55,6 +55,10 @@ rm -rf $RPM_BUILD_ROOT
 %{_datadir}/pixmaps/scap-workbench.png
 
 %changelog
+* Wed Oct 19 2011 Martin Preisler <mpreisle@redhat.com> 0.5.1-1
+- Don't use the deprecated "gnome" module
+- Only use absolute imports in intra-package modules
+
 * Wed Oct 12 2011 Martin Preisler <mpreisle@redhat.com> 0.5.0-1
 - Commenting, refactoring and code cleanup
 - New uncaught exception dialog
