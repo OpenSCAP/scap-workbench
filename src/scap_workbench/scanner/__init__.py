@@ -31,8 +31,8 @@ import logging          # Logger for debug/info/error messages
 
 """ Importing SCAP Workbench modules
 """
+from scap_workbench import core
 from scap_workbench.core import abstract
-from scap_workbench.core import core
 from scap_workbench.core import commands
 from scap_workbench.core import dialogs
 from scap_workbench.core import paths

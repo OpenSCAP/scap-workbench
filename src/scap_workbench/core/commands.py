@@ -28,8 +28,7 @@ import time
 from datetime import datetime
 import tempfile         # Temporary file for XCCDF preview
 
-# FIXME: Needs renaming to be changed into absolute import
-import core
+from scap_workbench import core
 from scap_workbench.core.events import EventObject
 from scap_workbench.core.htmltextview import HtmlTextView
 

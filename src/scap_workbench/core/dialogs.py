@@ -30,8 +30,7 @@ import logging          # Logger for debug/info/error messages
 """
 from scap_workbench.core import abstract                 # All abstract classes
 from scap_workbench.core import commands                 # Module for handling openscap
-# FIXME: Needs renaming to be changed into absolute import
-from core import Notification   # core.Notification levels for reference
+from scap_workbench.core import Notification   # core.Notification levels for reference
 from scap_workbench.core import paths
 
 # Initializing Logger
