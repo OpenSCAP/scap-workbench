@@ -1244,8 +1244,8 @@ class DHValues(DataHandler):
     @classmethod
     def set_values_of_item_instance(cls, item, instance, default_value, value):
         if item.type == openscap.OSCAP.XCCDF_TYPE_NUMBER:
-            if default_value: instance.defval_number = int(default_value)
-            if value: instance.value_number = int(value)
+            if default_value: instance.defval_number = float(default_value)
+            if value: instance.value_number = float(value)
         elif item.type == openscap.OSCAP.XCCDF_TYPE_STRING:
             if default_value: instance.defval_string = default_value
             if value: instance.value_string = value
@@ -1261,8 +1261,8 @@ class DHValues(DataHandler):
         """
         
         if item.type == openscap.OSCAP.XCCDF_TYPE_NUMBER:
-            op_defval = int(instance.defval_number)
-            op_value  = int(instance.value_number)
+            op_defval = float(instance.defval_number)
+            op_value  = float(instance.value_number)
         elif item.type == openscap.OSCAP.XCCDF_TYPE_STRING:
             op_defval = instance.defval_string
             op_value  = instance.value_string
