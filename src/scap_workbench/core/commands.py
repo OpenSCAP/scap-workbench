@@ -1299,7 +1299,7 @@ class DHValues(DataHandler):
                 logger.error("Can't edit None object")
                 return False
             
-            DHValues.set_values_of_item_instance(item, instance, default, value)
+            DHValues.set_values_of_item_instance(item, obj, default, value)
             
             obj.match = match
             if upper_bound != None: obj.upper_bound = upper_bound
