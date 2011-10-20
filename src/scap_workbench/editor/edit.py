@@ -3223,14 +3223,28 @@ class EditValuesValues(abstract.ListEditor):
             retval = self.data_model.edit_value_of_value(self.operation, item, self.selector.get_text(),
                     self.value_bool.get_active(), self.default_bool.get_active(),
                     self.match.get_text(), None, None, self.must_match.get_active())
-        if self.type == openscap.OSCAP.XCCDF_TYPE_NUMBER:
+        
+        elif self.type == openscap.OSCAP.XCCDF_TYPE_NUMBER:
+            def safe_float(x, fallback = None):
+                try:
+                    return float(x)
+                
+                except ValueError:
+                    return fallback
+            
             retval = self.data_model.edit_value_of_value(self.operation, item, self.selector.get_text(),
-                    self.value.get_text(), self.default.get_text(), self.match.get_text(), self.upper_bound.get_text(),
-                    self.lower_bound.get_value_as_int(), self.must_match.get_value_as_int())
-        else:
+                    safe_float(self.value.get_text(), 0), safe_float(self.default.get_text(), 0), self.match.get_text(),
+                    safe_float(self.upper_bound.get_text()), safe_float(self.lower_bound.get_text()),
+                    self.must_match.get_active())
+        
+        elif self.type == openscap.OSCAP.XCCDF_TYPE_STRING:
             retval = self.data_model.edit_value_of_value(self.operation, item, self.selector.get_text(),
                     self.value.get_text(), self.default.get_text(), self.match.get_text(), None,
                     None, self.must_match.get_active())
+        
+        else:
+            raise NotImplementedError("Unknown value type '%i'" % (self.type))
+        
         # TODO if not retval
         self.fill()
         self.__dialog_destroy()
