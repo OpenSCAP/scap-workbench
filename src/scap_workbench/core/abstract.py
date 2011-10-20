@@ -629,7 +629,7 @@ class Func(object):
     def prepare_preview(self):
 
         builder = gtk.Builder()
-        builder.add_from_file(os.path.join(paths.glade_prefix, "dialogs.glade"))
+        builder.add_from_file(os.path.join(paths.glade_dialog_prefix, "preview.glade"))
         self.preview_dialog = builder.get_object("dialog:preview")
         self.preview_scw = builder.get_object("dialog:preview:scw")
         self.info_box = builder.get_object("dialog:preview:info_box")

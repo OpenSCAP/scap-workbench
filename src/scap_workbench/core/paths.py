@@ -34,8 +34,10 @@ import os.path
 etc_prefix = "/etc/scap-workbench"
 # not used directly, only used to construct other paths
 usr_share_prefix = "/usr/share/scap-workbench"
-# where .glade UI files are stored
+# where .glade UI files except dialogs are stored
 glade_prefix = usr_share_prefix
+# where all dialog .glade files are stored
+glade_dialog_prefix = os.path.join(glade_prefix, "dialogs")
 # all filter modules are in this folder
 filters_prefix = os.path.join(usr_share_prefix, "filters")
 # stock data from openscap is at this location

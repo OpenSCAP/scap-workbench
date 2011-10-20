@@ -94,7 +94,7 @@ class ImportDialog(abstract.Window, abstract.ListEditor):
             self.__do(overvalid=True)
         elif action == "#log":
             builder = gtk.Builder()
-            builder.add_from_file(os.path.join(paths.glade_prefix, "dialogs.glade"))
+            builder.add_from_file(os.path.join(paths.glade_dialog_prefix, "preview.glade"))
             preview_dialog = builder.get_object("dialog:preview")
             box = gtk.VBox()
             box.set_spacing(2)
@@ -220,7 +220,7 @@ class ExportDialog(abstract.Window, abstract.ListEditor):
             self.preview(widget=None, desc=desc)
         elif action == "#log":
             builder = gtk.Builder()
-            builder.add_from_file(os.path.join(paths.glade_prefix, "dialogs.glade"))
+            builder.add_from_file(os.path.join(paths.glade_dialog_prefix, "preview.glade"))
             preview_dialog = builder.get_object("dialog:preview")
             box = gtk.VBox()
             box.set_spacing(2)
