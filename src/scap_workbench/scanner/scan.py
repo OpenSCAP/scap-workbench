@@ -348,7 +348,7 @@ class ProfileChooser(object):
         self.data_model = commands.DHProfiles(core)
 
         builder = gtk.Builder()
-        builder.add_from_file(os.path.join(paths.glade_prefix, "dialogs.glade"))
+        builder.add_from_file(os.path.join(paths.glade_dialog_prefix, "profile_change.glade"))
         self.dialog = builder.get_object("dialog:profile_change")
         self.info_box = builder.get_object("dialog:profile_change:info_box")
         self.profiles = builder.get_object("dialog:profile_change:profiles")
