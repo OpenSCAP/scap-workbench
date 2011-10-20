@@ -3402,7 +3402,8 @@ class AddItem(EventObject):
     def dialog(self):
 
         builder = gtk.Builder()
-        builder.add_from_file(os.path.join(paths.glade_prefix, "dialogs.glade"))
+        builder.add_from_file(os.path.join(paths.glade_dialog_prefix, "add_item.glade"))
+        
         self.window = builder.get_object("dialog:add_item")
         self.window.connect("delete-event", self.__delete_event)
         
