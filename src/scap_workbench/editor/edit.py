@@ -3335,7 +3335,8 @@ class AddProfileDialog(EventObject):
         self.data_model = data_model
         self.__update = cb
         builder = gtk.Builder()
-        builder.add_from_file(os.path.join(paths.glade_prefix, "dialogs.glade"))
+        builder.add_from_file(os.path.join(paths.glade_dialog_prefix, "profile_add.glade"))
+        
         self.window = builder.get_object("dialog:profile_add")
 
         builder.get_object("profile_add:btn_ok").connect("clicked", self.__cb_do)
