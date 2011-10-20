@@ -3247,7 +3247,7 @@ class EditValuesValues(abstract.ListEditor):
         """
         self.operation = operation
         builder = gtk.Builder()
-        builder.add_from_file(os.path.join(paths.glade_prefix, "dialogs.glade"))
+        builder.add_from_file(os.path.join(paths.glade_dialog_prefix, "edit_value.glade"))
         self.wdialog = builder.get_object("dialog:edit_value")
         self.info_box = builder.get_object("dialog:edit_value:info_box")
         self.selector = builder.get_object("dialog:edit_value:selector")
