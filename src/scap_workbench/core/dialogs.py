@@ -58,7 +58,7 @@ class ImportDialog(abstract.Window, abstract.ListEditor):
         self.__import = cb
         self.data_model = data_model
         builder = gtk.Builder()
-        builder.add_from_file(os.path.join(paths.glade_prefix, "dialogs.glade"))
+        builder.add_from_file(os.path.join(paths.glade_dialog_prefix, "import.glade"))
         self.wdialog = builder.get_object("dialog:import")
         self.info_box = builder.get_object("dialog:import:info_box")
         self.filechooser = builder.get_object("dialog:import:filechooser")
