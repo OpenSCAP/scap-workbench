@@ -745,7 +745,7 @@ class DataHandler(object):
             else: the_date = time.time()
             new_status = openscap.xccdf.status_new()
             new_status.date = the_date
-            new_status.status = status or openscap.OSCAP.XCCDF_STATUS_INCOMPLETE
+            new_status.status = status
 
             return item.add_status(new_status)
 
