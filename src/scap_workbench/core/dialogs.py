@@ -162,7 +162,7 @@ class ExportDialog(abstract.Window, abstract.ListEditor):
         self.data_model = data_model
         builder = gtk.Builder()
         self.log = []
-        builder.add_from_file(os.path.join(paths.glade_prefix, "dialogs.glade"))
+        builder.add_from_file(os.path.join(paths.glade_dialog_prefix, "export.glade"))
         self.wdialog = builder.get_object("dialog:export")
         self.progress = builder.get_object("dialog:progress")
         self.info_box = builder.get_object("dialog:export:info_box")
