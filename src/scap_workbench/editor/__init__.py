@@ -19,6 +19,64 @@
 # Authors:
 #      Martin Preisler <mpreisle@redhat.com>
 
-from edit import Editor as MainWindow
+from scap_workbench import core
+from scap_workbench.core import abstract
+from scap_workbench.core import error
+from scap_workbench.core import paths
 
-__all__ = ["MainWindow"]
+from scap_workbench.editor import xccdf
+from scap_workbench.editor import profiles
+from scap_workbench.editor import items
+
+import os
+import gtk
+import logging
+
+# Initializing Logger
+logger = logging.getLogger("scap-workbench")
+
+class MainWindow(abstract.Window):
+    """The central window of scap-workbench-editor
+    """
+    
+    def __init__(self):
+        error.ErrorHandler.install_exception_hook()
+        
+        self.builder = gtk.Builder()
+        self.builder.add_from_file(os.path.join(paths.glade_prefix, "editor.glade"))
+        self.builder.connect_signals(self)
+        abstract.Window.__init__(self, "main:window", core.SWBCore(self.builder))
+
+        self.window = self.builder.get_object("main:window")
+        self.core.main_window = self.window
+        self.main_box = self.builder.get_object("main:box")
+
+        # abstract the main menu
+        # FIXME: Instantiating abstract class
+        self.menu = abstract.Menu("gui:menu", self.builder.get_object("main:toolbar"), self.core)
+        self.menu.add_item(xccdf.MenuButtonEditXCCDF(self.builder, self.builder.get_object("main:toolbar:main"), self.core))
+        self.menu.add_item(profiles.MenuButtonEditProfiles(self.builder, self.builder.get_object("main:toolbar:profiles"), self.core))
+        self.menu.add_item(items.MenuButtonEditItems(self.builder, self.builder.get_object("main:toolbar:items"), self.core))
+
+        self.window.show()
+        self.builder.get_object("main:toolbar:main").set_active(True)
+
+        self.core.get_item("gui:btn:menu:edit:XCCDF").update()
+        if self.core.lib.loaded:
+            self.core.get_item("gui:btn:menu:edit:profiles").set_sensitive(True)
+            self.core.get_item("gui:btn:menu:edit:items").set_sensitive(True)
+
+    def __cb_info_close(self, widget):
+        self.core.info_box.hide()
+
+    def delete_event(self, widget, event, data=None):
+        """ close the window and quit
+        """
+        # since we are quitting gtk we can't be popping a dialog when exception happens anymore
+        error.ErrorHandler.uninstall_exception_hook()
+ 
+        gtk.main_quit()
+        return False
+
+    def run(self):
+        gtk.main()
