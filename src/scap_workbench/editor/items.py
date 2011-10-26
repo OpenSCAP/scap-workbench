@@ -883,6 +883,693 @@ class EditIdent(abstract.ListEditor):
         for data in self.data_model.get_idents() or []:
             self.append([data.id, re.sub("[\t ]+" , " ", data.system or "").strip(), data])
 
+
+class EditQuestion(abstract.ListEditor):
+
+    COLUMN_OVERRIDES = 3
+    
+    def __init__(self, core, id, widget, data_model):
+
+        self.data_model = data_model 
+        super(EditQuestion, self).__init__(id, core, widget=widget, model=gtk.ListStore(str, str, gobject.TYPE_PYOBJECT, bool))
+        self.add_sender(id, "update")
+
+        self.widget.append_column(gtk.TreeViewColumn("Language", gtk.CellRendererText(), text=self.COLUMN_LANG))
+        self.widget.append_column(gtk.TreeViewColumn("Overrides", gtk.CellRendererText(), text=self.COLUMN_OVERRIDES))
+        self.widget.append_column(gtk.TreeViewColumn("Question", gtk.CellRendererText(), text=self.COLUMN_TEXT))
+
+    def __do(self, widget=None):
+        """
+        """
+        item = None
+        buffer = self.question.get_buffer()
+        if self.iter and self.get_model() != None: 
+            item = self.get_model()[self.iter][self.COLUMN_OBJ]
+
+        retval = self.data_model.edit_question(self.operation, item, self.lang.get_text(),
+                self.override.get_active(), buffer.get_text(buffer.get_start_iter(), buffer.get_end_iter()))
+        # TODO if not retval
+        self.fill()
+        self.__dialog_destroy()
+        self.emit("update")
+
+    def __dialog_destroy(self, widget=None):
+        """
+        """
+        if self.wdialog: 
+            self.wdialog.destroy()
+
+    def dialog(self, widget, operation):
+        """
+        """
+        self.operation = operation
+        builder = gtk.Builder()
+        builder.add_from_file(os.path.join(paths.glade_dialog_prefix, "edit_question.glade"))
+        self.wdialog = builder.get_object("dialog:edit_question")
+        self.info_box = builder.get_object("dialog:edit_question:info_box")
+        self.lang = builder.get_object("dialog:edit_question:lang")
+        self.question = builder.get_object("dialog:edit_question:question")
+        self.override = builder.get_object("dialog:edit_question:override")
+        builder.get_object("dialog:edit_question:btn_cancel").connect("clicked", self.__dialog_destroy)
+        builder.get_object("dialog:edit_question:btn_ok").connect("clicked", self.__do)
+
+        self.core.notify_destroy("notify:not_selected")
+        (model, self.iter) = self.get_selection().get_selected()
+        if operation == self.data_model.CMD_OPER_ADD:
+            if self.core.selected_lang: self.lang.set_text(self.core.selected_lang)
+        elif operation == self.data_model.CMD_OPER_EDIT:
+            if not self.iter:
+                self.notifications.append(self.core.notify("Please select at least one item to edit",
+                    core.Notification.ERROR, msg_id="notify:not_selected"))
+                return
+            else:
+                self.lang.set_text(model[self.iter][self.COLUMN_LANG] or "")
+                self.override.set_active(model[self.iter][self.COLUMN_OVERRIDES])
+                self.question.get_buffer().set_text(model[self.iter][self.COLUMN_TEXT] or "")
+        elif operation == self.data_model.CMD_OPER_DEL:
+            if not self.iter:
+                self.notifications.append(self.core.notify("Please select at least one item to delete",
+                    core.Notification.ERROR, msg_id="notify:not_selected"))
+                return
+            else: 
+                iter = self.dialogDel(self.core.main_window, self.get_selection())
+                if iter != None:
+                    self.__do()
+                return
+        else: 
+            logger.error("Unknown operation for question dialog: \"%s\"" % (operation,))
+            return
+
+        self.wdialog.set_transient_for(self.core.main_window)
+        self.wdialog.show_all()
+
+    def fill(self):
+
+        self.clear()
+        for data in self.data_model.get_questions() or []:
+            self.append([data.lang, re.sub("[\t ]+" , " ", data.text).strip(), data, data.overrides])
+
+class EditRationale(abstract.ListEditor):
+
+    COLUMN_OVERRIDES = 3
+    
+    def __init__(self, core, id, widget, data_model):
+
+        self.data_model = data_model 
+        super(EditRationale, self).__init__(id, core, widget=widget, model=gtk.ListStore(str, str, gobject.TYPE_PYOBJECT, bool))
+        self.add_sender(id, "update")
+
+        self.widget.append_column(gtk.TreeViewColumn("Language", gtk.CellRendererText(), text=self.COLUMN_LANG))
+        self.widget.append_column(gtk.TreeViewColumn("Overrides", gtk.CellRendererText(), text=self.COLUMN_OVERRIDES))
+        self.widget.append_column(gtk.TreeViewColumn("Rationale", gtk.CellRendererText(), text=self.COLUMN_TEXT))
+
+    def __do(self, widget=None):
+        """
+        """
+        item = None
+        (model, iter) = self.get_selection().get_selected()
+        buffer = self.rationale.get_buffer()
+        if iter and model != None: 
+            item = model[iter][self.COLUMN_OBJ]
+
+        retval = self.data_model.edit_rationale(self.operation, item, self.lang.get_text(),
+                self.override.get_active(), buffer.get_text(buffer.get_start_iter(), buffer.get_end_iter()))
+        # TODO if not retval
+        self.fill()
+        self.__dialog_destroy()
+        self.emit("update")
+
+    def __dialog_destroy(self, widget=None):
+        """
+        """
+        if self.wdialog: 
+            self.wdialog.destroy()
+
+    def dialog(self, widget, operation):
+        """
+        """
+        self.operation = operation
+        builder = gtk.Builder()
+        builder.add_from_file(os.path.join(paths.glade_prefix, "dialogs.glade"))
+        self.wdialog = builder.get_object("dialog:edit_rationale")
+        self.info_box = builder.get_object("dialog:edit_rationale:info_box")
+        self.lang = builder.get_object("dialog:edit_rationale:lang")
+        self.rationale = builder.get_object("dialog:edit_rationale:rationale")
+        self.override = builder.get_object("dialog:edit_rationale:override")
+        builder.get_object("dialog:edit_rationale:btn_cancel").connect("clicked", self.__dialog_destroy)
+        builder.get_object("dialog:edit_rationale:btn_ok").connect("clicked", self.__do)
+
+        self.core.notify_destroy("notify:not_selected")
+        (model, iter) = self.get_selection().get_selected()
+        if operation == self.data_model.CMD_OPER_ADD:
+            if self.core.selected_lang: self.lang.set_text(self.core.selected_lang)
+        elif operation == self.data_model.CMD_OPER_EDIT:
+            if not iter:
+                self.notifications.append(self.core.notify("Please select at least one item to edit",
+                    core.Notification.ERROR, msg_id="notify:not_selected"))
+                return
+            else:
+                self.lang.set_text(model[iter][self.COLUMN_LANG] or "")
+                self.override.set_active(model[iter][self.COLUMN_OVERRIDES])
+                self.rationale.get_buffer().set_text(model[iter][self.COLUMN_TEXT] or "")
+        elif operation == self.data_model.CMD_OPER_DEL:
+            if not iter:
+                self.notifications.append(self.core.notify("Please select at least one item to delete",
+                    core.Notification.ERROR, msg_id="notify:not_selected"))
+                return
+            else: 
+                iter = self.dialogDel(self.core.main_window, self.get_selection())
+                if iter != None:
+                    self.__do()
+                return
+        else: 
+            logger.error("Unknown operation for rationale dialog: \"%s\"" % (operation,))
+            return
+
+        self.wdialog.set_transient_for(self.core.main_window)
+        self.wdialog.show_all()
+
+    def fill(self):
+
+        self.clear()
+        for data in self.data_model.get_rationales() or []:
+            self.append([data.lang, re.sub("[\t ]+" , " ", data.text).strip(), data, data.overrides])
+
+
+class EditPlatform(abstract.ListEditor):
+
+    COLUMN_TEXT = 0
+
+    def __init__(self, core, id, widget, data_model):
+
+        self.data_model = data_model
+        super(EditPlatform, self).__init__(id, core, widget=widget, model=gtk.ListStore(str))
+        self.add_sender(id, "update")
+
+        self.widget.append_column(gtk.TreeViewColumn("CPE Name", gtk.CellRendererText(), text=self.COLUMN_LANG))
+
+    def __do(self, widget=None):
+        """
+        """
+        self.core.notify_destroy("notify:edit")
+        item = None
+        (model, iter) = self.get_selection().get_selected()
+        if iter and model != None: 
+            item = model[iter][self.COLUMN_TEXT]
+
+        if self.operation != self.data_model.CMD_OPER_DEL:
+            text = self.cpe.get_text()
+            if len(text) < 6 or text[5] not in ["a", "o", "h"]:
+                self.core.notify("The part section can be \"a\", \"o\" or \"h\"",
+                        core.Notification.ERROR, self.info_box, msg_id="notify:edit")
+                return
+            if len(text[7:].split(":")) != 6:
+                self.core.notify("Invalid number of sections: should be cpe:/part:vendor:product:version:update:edition:lang",
+                        core.Notification.ERROR, self.info_box, msg_id="notify:edit")
+                return
+
+        retval = self.data_model.edit_platform(self.operation, item, self.cpe.get_text())
+        # TODO if not retval
+        self.fill()
+        self.__dialog_destroy()
+        self.emit("update")
+
+    def __dialog_destroy(self, widget=None):
+        """
+        """
+        if self.wdialog: 
+            self.wdialog.destroy()
+
+    def __cb_build(self, widget):
+        self.cpe.handler_block_by_func(self.__cb_parse)
+        if self.part.get_active() == -1:
+            active = ""
+        else: active = ["a", "h", "o"][self.part.get_active()]
+        self.cpe.set_text("cpe:/%s:%s:%s:%s:%s:%s:%s" % (active, 
+            self.vendor.get_text().replace(" ", "_"),
+            self.product.get_text().replace(" ", "_"),
+            self.version.get_text().replace(" ", "_"),
+            self.update.get_text().replace(" ", "_"),
+            self.edition.get_text().replace(" ", "_"),
+            self.language.get_text().replace(" ", "_")))
+        self.cpe.handler_unblock_by_func(self.__cb_parse)
+
+    def __cb_parse(self, widget):
+        
+        text = widget.get_text()
+
+        # cpe:/
+        if text[:5] != "cpe:/": widget.set_text("cpe:/")
+
+        # cpe:/[a,o,h]
+        if len(text) > 5:
+            if text[5] not in ["a", "o", "h"]: 
+                self.core.notify("The part section can be \"a\", \"o\" or \"h\"",
+                        core.Notification.ERROR, self.info_box, msg_id="notify:edit")
+                widget.set_text("cpe:/")
+                return
+            else:
+                self.core.notify_destroy("notify:edit")
+                self.part.set_active(["a", "h", "o"].index(text[5]))
+
+        # cpe:/[a,o,h]:
+        if len(text) > 7 and text[6] != ":":
+            widget.set_text(text[:6]+":")
+
+        if len(text) > 8:
+            parts = text[7:].split(":")
+        else: parts = []
+
+        # cpe:/[a,o,h]:vendor:product:version:update:edition:language
+        if len(parts) > 0: self.vendor.set_text(parts[0])
+        else: self.vendor.set_text("")
+        if len(parts) > 1: self.product.set_text(parts[1])
+        else: self.product.set_text("")
+        if len(parts) > 2: self.version.set_text(parts[2])
+        else: self.version.set_text("")
+        if len(parts) > 3: self.update.set_text(parts[3])
+        else: self.update.set_text("")
+        if len(parts) > 4: self.edition.set_text(parts[4])
+        else: self.edition.set_text("")
+        if len(parts) > 5: self.language.set_text(parts[5])
+        else: self.language.set_text("")
+
+    def dialog(self, widget, operation):
+        """
+        """
+        self.operation = operation
+        builder = gtk.Builder()
+        builder.add_from_file(os.path.join(paths.glade_dialog_prefix, "edit_platform.glade"))
+        self.wdialog = builder.get_object("dialog:edit_platform")
+        self.info_box = builder.get_object("dialog:edit_platform:info_box")
+        self.cpe = builder.get_object("dialog:edit_platform:cpe")
+        self.part = builder.get_object("dialog:edit_platform:cpe_part")
+        self.vendor = builder.get_object("dialog:edit_platform:cpe_vendor")
+        self.product = builder.get_object("dialog:edit_platform:cpe_product")
+        self.version = builder.get_object("dialog:edit_platform:cpe_version")
+        self.update = builder.get_object("dialog:edit_platform:cpe_update")
+        self.edition = builder.get_object("dialog:edit_platform:cpe_edition")
+        self.language = builder.get_object("dialog:edit_platform:cpe_language")
+        builder.get_object("dialog:edit_platform:btn_cancel").connect("clicked", self.__dialog_destroy)
+        builder.get_object("dialog:edit_platform:btn_ok").connect("clicked", self.__do)
+
+        self.cpe.set_text("cpe:/")
+        self.cpe.connect("changed", self.__cb_parse)
+        self.part.connect("changed", self.__cb_build)
+        self.vendor.connect("changed", self.__cb_build)
+        self.product.connect("changed", self.__cb_build)
+        self.version.connect("changed", self.__cb_build)
+        self.update.connect("changed", self.__cb_build)
+        self.edition.connect("changed", self.__cb_build)
+        self.language.connect("changed", self.__cb_build)
+
+        self.core.notify_destroy("notify:not_selected")
+        (model, iter) = self.get_selection().get_selected()
+        if operation == self.data_model.CMD_OPER_ADD:
+            pass
+        elif operation == self.data_model.CMD_OPER_EDIT:
+            if not iter:
+                self.notifications.append(self.core.notify("Please select at least one item to edit",
+                    core.Notification.ERROR, msg_id="notify:not_selected"))
+                return
+            else:
+                self.cpe.set_text(model[iter][self.COLUMN_TEXT])
+        elif operation == self.data_model.CMD_OPER_DEL:
+            if not iter:
+                self.notifications.append(self.core.notify("Please select at least one item to delete",
+                    core.Notification.ERROR, msg_id="notify:not_selected"))
+                return
+            else: 
+                iter = self.dialogDel(self.core.main_window, self.get_selection())
+                if iter != None:
+                    self.__do()
+                return
+        else: 
+            logger.error("Unknown operation for rationale dialog: \"%s\"" % (operation,))
+            return
+
+        self.wdialog.set_transient_for(self.core.main_window)
+        self.wdialog.show_all()
+
+    def fill(self):
+        self.clear()
+        for item in self.data_model.get_platforms() or []:
+            self.get_model().append([item])
+
+class EditValues(abstract.MenuButton, abstract.Func):
+    
+    COLUMN_ID = 0
+    COLUMN_TITLE = 1
+    COLUMN_TYPE_ITER = 2
+    COLUMN_TYPE_TEXT = 3
+    COLUMN_OBJECT = 4
+    COLUMN_CHECK = 5
+    COLUMN_CHECK_EXPORT = 6
+    
+    def __init__(self, core, id, builder):
+        # FIXME: We are not calling constructor of abstract.MenuButton, this could backfire sometime in the future!
+        abstract.Func.__init__(self, core)
+
+        self.data_model = commands.DHValues(core) 
+        self.builder = builder
+        self.id = id
+
+        # FIXME: Calling constructors of classes that are not direct ancestors!
+        EventObject.__init__(self, core)
+        self.core.register(self.id, self)
+        self.add_sender(id, "update_item")
+        
+        #edit data of values
+        # -- VALUES --
+        self.values = builder.get_object("edit:values")
+
+        # -- TITLE --
+        self.titles = EditTitle(self.core, "gui:edit:xccdf:values:titles", builder.get_object("edit:values:titles"), self.data_model)
+        self.builder.get_object("edit:values:titles:btn_add").connect("clicked", self.titles.dialog, self.data_model.CMD_OPER_ADD)
+        self.builder.get_object("edit:values:titles:btn_edit").connect("clicked", self.titles.dialog, self.data_model.CMD_OPER_EDIT)
+        self.builder.get_object("edit:values:titles:btn_del").connect("clicked", self.titles.dialog, self.data_model.CMD_OPER_DEL)
+
+        # -- DESCRIPTION --
+        self.descriptions = EditDescription(self.core, "gui:edit:xccdf:values:descriptions", builder.get_object("edit:values:descriptions"), self.data_model)
+        self.builder.get_object("edit:values:descriptions:btn_add").connect("clicked", self.descriptions.dialog, self.data_model.CMD_OPER_ADD)
+        self.builder.get_object("edit:values:descriptions:btn_edit").connect("clicked", self.descriptions.dialog, self.data_model.CMD_OPER_EDIT)
+        self.builder.get_object("edit:values:descriptions:btn_del").connect("clicked", self.descriptions.dialog, self.data_model.CMD_OPER_DEL)
+        self.builder.get_object("edit:values:descriptions:btn_preview").connect("clicked", self.descriptions.preview)
+
+        # -- WARNING --
+        self.warnings = EditWarning(self.core, "gui:edit:xccdf:values:warnings", builder.get_object("edit:values:warnings"), self.data_model)
+        builder.get_object("edit:values:warnings:btn_add").connect("clicked", self.warnings.dialog, self.data_model.CMD_OPER_ADD)
+        builder.get_object("edit:values:warnings:btn_edit").connect("clicked", self.warnings.dialog, self.data_model.CMD_OPER_EDIT)
+        builder.get_object("edit:values:warnings:btn_del").connect("clicked", self.warnings.dialog, self.data_model.CMD_OPER_DEL)
+
+        # -- STATUS --
+        self.statuses = EditStatus(self.core, "gui:edit:xccdf:values:statuses", builder.get_object("edit:values:statuses"), self.data_model)
+        builder.get_object("edit:values:statuses:btn_add").connect("clicked", self.statuses.dialog, self.data_model.CMD_OPER_ADD)
+        builder.get_object("edit:values:statuses:btn_edit").connect("clicked", self.statuses.dialog, self.data_model.CMD_OPER_EDIT)
+        builder.get_object("edit:values:statuses:btn_del").connect("clicked", self.statuses.dialog, self.data_model.CMD_OPER_DEL)
+
+        # -- QUESTIONS --
+        self.questions = EditQuestion(self.core, "gui:edit:xccdf:values:questions", builder.get_object("edit:values:questions"), self.data_model)
+        builder.get_object("edit:values:questions:btn_add").connect("clicked", self.questions.dialog, self.data_model.CMD_OPER_ADD)
+        builder.get_object("edit:values:questions:btn_edit").connect("clicked", self.questions.dialog, self.data_model.CMD_OPER_EDIT)
+        builder.get_object("edit:values:questions:btn_del").connect("clicked", self.questions.dialog, self.data_model.CMD_OPER_DEL)
+
+        # -- VALUES --
+        self.values_values = EditValuesValues(self.core, "gui:edit:xccdf:values:values", builder.get_object("edit:values:values"), self.data_model)
+        builder.get_object("edit:values:values:btn_add").connect("clicked", self.values_values.dialog, self.data_model.CMD_OPER_ADD)
+        builder.get_object("edit:values:values:btn_edit").connect("clicked", self.values_values.dialog, self.data_model.CMD_OPER_EDIT)
+        builder.get_object("edit:values:values:btn_del").connect("clicked", self.values_values.dialog, self.data_model.CMD_OPER_DEL)
+        # -------------
+        
+        self.vid = self.builder.get_object("edit:values:id")
+        self.vid.connect("focus-out-event", self.__change)
+        self.vid.connect("key-press-event", self.__change)
+        self.version = self.builder.get_object("edit:values:version")
+        self.version.connect("focus-out-event", self.__change)
+        self.version.connect("key-press-event", self.__change)
+        self.version_time = self.builder.get_object("edit:values:version_time")
+        self.version_time.connect("focus-out-event", self.__change)
+        self.version_time.connect("key-press-event", self.__change)
+        self.cluster_id = self.builder.get_object("edit:values:cluster_id")
+        self.cluster_id.connect("focus-out-event", self.__change)
+        self.cluster_id.connect("key-press-event", self.__change)
+        self.vtype = self.builder.get_object("edit:values:type")
+        self.operator = self.builder.get_object("edit:values:operator")
+        self.operator.connect("changed", self.__change)
+        self.abstract = self.builder.get_object("edit:values:abstract")
+        self.abstract.connect("toggled", self.__change)
+        self.prohibit_changes = self.builder.get_object("edit:values:prohibit_changes")
+        self.prohibit_changes.connect("toggled", self.__change)
+        self.interactive = self.builder.get_object("edit:values:interactive")
+        self.interactive.connect("toggled", self.__change)
+
+        self.operator.set_model(ENUM.OPERATOR.get_model())
+        
+    def show(self, active):
+        self.values.set_sensitive(active)
+        self.values.set_property("visible", active)
+
+    def update(self):
+        self.__update()
+
+    def __change(self, widget, event=None):
+
+        item = self.data_model.get_item(self.core.selected_item)
+        if item.type != openscap.OSCAP.XCCDF_VALUE: return
+
+        if event and event.type == gtk.gdk.KEY_PRESS and event.keyval != gtk.keysyms.Return:
+            return
+
+        if widget == self.vid:
+            retval = self.data_model.edit_value(id=widget.get_text())
+            if not retval:
+                self.notifications.append(self.core.notify("Setting ID failed: ID \"%s\" already exists." % (widget.get_text(),),
+                    core.Notification.ERROR, msg_id="notify:not_selected"))
+                widget.set_text(self.core.selected_item)
+                return
+            self.emit("update_item")
+        elif widget == self.version:
+            self.data_model.edit_value(version=widget.get_text())
+        elif widget == self.version_time:
+            timestamp = self.controlDate(widget.get_text())
+            if timestamp > 0:
+                self.data_model.edit_value(version_time=timestamp)
+        elif widget == self.cluster_id:
+            self.data_model.edit_value(cluster_id=widget.get_text())
+        elif widget == self.operator:
+            self.data_model.edit_value(operator=ENUM.OPERATOR[widget.get_active()][0])
+        elif widget == self.abstract:
+            self.data_model.edit_value(abstract=widget.get_active())
+        elif widget == self.prohibit_changes:
+            self.data_model.edit_value(prohibit_changes=widget.get_active())
+        elif widget == self.interactive:
+            self.data_model.edit_value(interactive=widget.get_active())
+        else: 
+            logger.error("Change: not supported object in \"%s\"" % (widget,))
+            return
+
+    def __block_signals(self):
+
+        self.operator.handler_block_by_func(self.__change)
+        self.interactive.handler_block_by_func(self.__change)
+        self.version.handler_block_by_func(self.__change)
+        self.version_time.handler_block_by_func(self.__change)
+        self.vid.handler_block_by_func(self.__change)
+        self.cluster_id.handler_block_by_func(self.__change)
+
+    def __unblock_signals(self):
+        self.operator.handler_unblock_by_func(self.__change)
+        self.interactive.handler_unblock_by_func(self.__change)
+        self.version.handler_unblock_by_func(self.__change)
+        self.version_time.handler_unblock_by_func(self.__change)
+        self.cluster_id.handler_unblock_by_func(self.__change)
+
+    def __clear(self):
+        self.__block_signals()
+        self.titles.clear()
+        self.descriptions.clear()
+        self.warnings.clear()
+        self.statuses.clear()
+        self.questions.clear()
+        self.values_values.clear()
+        self.__unblock_signals()
+
+    def __update(self):
+
+        self.__block_signals()
+        details = self.data_model.get_item_details(self.core.selected_item)
+
+        self.values.set_sensitive(details != None)
+
+        if details:
+
+            """It depends on value type what details should
+            be filled and sensitive to user actions"""
+            # TODO
+
+            self.vid.set_text(details["id"] or "")
+            self.version.set_text(details["version"] or "")
+            self.version_time.set_text("" if details["version_time"] <= 0 else str(datetime.date.fromtimestamp(details["version_time"])))
+            self.cluster_id.set_text(details["cluster_id"] or "")
+            self.vtype.set_text(ENUM.TYPE.map(details["vtype"])[1])
+            self.abstract.set_active(details["abstract"])
+            self.prohibit_changes.set_active(details["prohibit_changes"])
+            self.interactive.set_active(details["interactive"])
+            self.operator.set_active(ENUM.OPERATOR.pos(details["oper"]))
+            self.titles.fill()
+            self.descriptions.fill()
+            self.warnings.fill()
+            self.statuses.fill()
+            self.questions.fill()
+            self.values_values.fill()
+        self.__unblock_signals()
+
+class EditValuesValues(abstract.ListEditor):
+
+    COLUMN_SELECTOR     = 0
+    COLUMN_VALUE        = 1
+    COLUMN_DEFAULT      = 2
+    COLUMN_LOWER_BOUND  = 3
+    COLUMN_UPPER_BOUND  = 4
+    COLUMN_MUST_MATCH   = 5
+    COLUMN_MATCH        = 6
+    COLUMN_OBJ          = 7
+    
+    def __init__(self, core, id, widget, data_model):
+
+        self.data_model = data_model 
+        super(EditValuesValues, self).__init__(id, core, widget=widget, model=gtk.ListStore(str, str, str, str, str, bool, str, gobject.TYPE_PYOBJECT))
+        self.add_sender(id, "update")
+
+        self.widget.append_column(gtk.TreeViewColumn("Selector", gtk.CellRendererText(), text=self.COLUMN_SELECTOR))
+        self.widget.append_column(gtk.TreeViewColumn("Value", gtk.CellRendererText(), text=self.COLUMN_VALUE))
+        self.widget.append_column(gtk.TreeViewColumn("Default", gtk.CellRendererText(), text=self.COLUMN_DEFAULT))
+        self.widget.append_column(gtk.TreeViewColumn("Lower bound", gtk.CellRendererText(), text=self.COLUMN_LOWER_BOUND))
+        self.widget.append_column(gtk.TreeViewColumn("Upper bound", gtk.CellRendererText(), text=self.COLUMN_UPPER_BOUND))
+        self.widget.append_column(gtk.TreeViewColumn("Must match", gtk.CellRendererText(), text=self.COLUMN_MUST_MATCH))
+        self.widget.append_column(gtk.TreeViewColumn("Match", gtk.CellRendererText(), text=self.COLUMN_MATCH))
+
+    def __do(self, widget=None):
+        """
+        """
+        # Check input data
+        (model, iter) = self.get_selection().get_selected()
+        item = None
+        if iter:
+            item = model[iter][self.COLUMN_OBJ]
+
+        for inst in model:
+            if self.selector.get_text() == inst[0] and model[iter][self.COLUMN_SELECTOR] != self.selector.get_text():
+                self.core.notify("Selector \"%s\" is already used !" % (inst[0],),
+                        core.Notification.ERROR, self.info_box, msg_id="dialog:add_value")
+                self.selector.grab_focus()
+                self.selector.modify_base(gtk.STATE_NORMAL, gtk.gdk.Color("#FFC1C2"))
+                return
+        self.selector.modify_base(gtk.STATE_NORMAL, self.__entry_style)
+        
+        if self.type == openscap.OSCAP.XCCDF_TYPE_BOOLEAN:
+            retval = self.data_model.edit_value_of_value(self.operation, item, self.selector.get_text(),
+                    self.value_bool.get_active(), self.default_bool.get_active(),
+                    self.match.get_text(), None, None, self.must_match.get_active())
+        
+        elif self.type == openscap.OSCAP.XCCDF_TYPE_NUMBER:
+            def safe_float(x, fallback = None):
+                try:
+                    return float(x)
+                
+                except ValueError:
+                    return fallback
+            
+            retval = self.data_model.edit_value_of_value(self.operation, item, self.selector.get_text(),
+                    safe_float(self.value.get_text(), 0), safe_float(self.default.get_text(), 0), self.match.get_text(),
+                    safe_float(self.upper_bound.get_text()), safe_float(self.lower_bound.get_text()),
+                    self.must_match.get_active())
+        
+        elif self.type == openscap.OSCAP.XCCDF_TYPE_STRING:
+            retval = self.data_model.edit_value_of_value(self.operation, item, self.selector.get_text(),
+                    self.value.get_text(), self.default.get_text(), self.match.get_text(), None,
+                    None, self.must_match.get_active())
+        
+        else:
+            raise NotImplementedError("Unknown value type '%i'" % (self.type))
+        
+        # TODO if not retval
+        self.fill()
+        self.__dialog_destroy()
+        self.emit("update")
+
+    def __dialog_destroy(self, widget=None):
+        """
+        """
+        if self.wdialog: 
+            self.wdialog.destroy()
+
+    def dialog(self, widget, operation):
+        """
+        """
+        self.operation = operation
+        builder = gtk.Builder()
+        builder.add_from_file(os.path.join(paths.glade_dialog_prefix, "edit_value.glade"))
+        self.wdialog = builder.get_object("dialog:edit_value")
+        self.info_box = builder.get_object("dialog:edit_value:info_box")
+        self.selector = builder.get_object("dialog:edit_value:selector")
+        self.value = builder.get_object("dialog:edit_value:value")
+        self.value_bool = builder.get_object("dialog:edit_value:value:bool")
+        self.default = builder.get_object("dialog:edit_value:default")
+        self.default_bool = builder.get_object("dialog:edit_value:default:bool")
+        self.match = builder.get_object("dialog:edit_value:match")
+        self.upper_bound = builder.get_object("dialog:edit_value:upper_bound")
+        self.lower_bound = builder.get_object("dialog:edit_value:lower_bound")
+        self.must_match = builder.get_object("dialog:edit_value:must_match")
+        self.choices = builder.get_object("dialog:edit_value:choices")
+        builder.get_object("dialog:edit_value:btn_cancel").connect("clicked", self.__dialog_destroy)
+        builder.get_object("dialog:edit_value:btn_ok").connect("clicked", self.__do)
+
+        self.__entry_style = self.selector.get_style().base[gtk.STATE_NORMAL]
+
+        # Upper and lower bound should be disabled if value is not a number
+        item = self.data_model.get_item_details(self.core.selected_item)
+        self.type = item["vtype"]
+        if self.type != openscap.OSCAP.XCCDF_TYPE_NUMBER:
+            self.upper_bound.set_sensitive(False)
+            self.lower_bound.set_sensitive(False)
+
+        # Different widgets for different type boolean or other
+        boolean = (self.type == openscap.OSCAP.XCCDF_TYPE_BOOLEAN)
+        self.value.set_property('visible', not boolean)
+        self.default.set_property('visible', not boolean)
+        self.value_bool.set_property('visible', boolean)
+        self.default_bool.set_property('visible', boolean)
+
+        self.core.notify_destroy("notify:not_selected")
+        (model, iter) = self.get_selection().get_selected()
+        if operation == self.data_model.CMD_OPER_ADD:
+            pass
+        elif operation == self.data_model.CMD_OPER_EDIT:
+            if not iter:
+                self.notifications.append(self.core.notify("Please select at least one item to edit",
+                    core.Notification.ERROR, msg_id="notify:not_selected"))
+                return
+            else:
+                self.selector.set_text(model[iter][self.COLUMN_SELECTOR] or "")
+                self.value.set_text(model[iter][self.COLUMN_VALUE] or "")
+                self.default.set_text(model[iter][self.COLUMN_DEFAULT] or "")
+                self.match.set_text(model[iter][self.COLUMN_MATCH] or "")
+                self.upper_bound.set_text(model[iter][self.COLUMN_UPPER_BOUND] or "")
+                self.lower_bound.set_text(model[iter][self.COLUMN_LOWER_BOUND] or "")
+                self.must_match.set_active(model[iter][self.COLUMN_MUST_MATCH])
+                for choice in model[iter][self.COLUMN_OBJ].choices:
+                    self.choices.get_model().append([choice])
+        elif operation == self.data_model.CMD_OPER_DEL:
+            if not iter:
+                self.notifications.append(self.core.notify("Please select at least one item to delete",
+                    core.Notification.ERROR, msg_id="notify:not_selected"))
+                return
+            else: 
+                iter = self.dialogDel(self.core.main_window, self.get_selection())
+                if iter != None:
+                    self.__do()
+                return
+        else: 
+            logger.error("Unknown operation for values dialog: \"%s\"" % (operation,))
+            return
+
+        self.wdialog.set_transient_for(self.core.main_window)
+        self.wdialog.show()
+
+    def fill(self):
+
+        self.clear()
+        for instance in self.data_model.get_value_instances() or []:
+            self.append([instance["selector"], 
+                         instance["value"], 
+                         instance["defval"], 
+                         instance["lower_bound"], 
+                         instance["upper_bound"], 
+                         instance["must_match"], 
+                         instance["match"], 
+                         instance["item"]])
+
 class ItemList(abstract.List):
 
     """ List of Rules, Groups and Values.
