@@ -23,13 +23,10 @@
 """ Importing standard python libraries
 """
 import gtk              # GTK library
-import glib
 import gobject          # gobject.TYPE_PYOBJECT
 import time             # Time functions in calendar data ::EditStatus
 import re               # Regular expressions 
-import sre_constants    # For re.compile exception
 import os               # os Path join/basename, ..
-import tempfile         # Temporary file for XCCDF preview
 import datetime
 import logging                  # Logger for debug/info/error messages
 
@@ -38,11 +35,9 @@ import logging                  # Logger for debug/info/error messages
 from scap_workbench import core
 from scap_workbench.core import abstract
 from scap_workbench.core import commands
-from scap_workbench.core import dialogs
 from scap_workbench.core.events import EventObject
 import scap_workbench.core.enum as ENUM
 from scap_workbench.core import paths
-from scap_workbench.core import error
 
 # Initializing Logger
 logger = logging.getLogger("scap-workbench")
@@ -68,213 +63,6 @@ except Exception as ex:
     logger.error("OpenScap library initialization failed: %s", ex)
     openscap=None
     raise ex
-            
-class EditConflicts(commands.DHEditItems, abstract.ControlEditWindow):
-    
-    COLUMN_ID = 0
-    
-    def __init__(self, core, builder, model_item):
-        self.model_item = model_item
-        lv = builder.get_object("edit:dependencies:lv_conflict")
-        model = gtk.ListStore(str)
-        lv.set_model(model)
-        
-        commands.DHEditItems.__init__(self, core)
-        abstract.ControlEditWindow.__init__(self, core, lv, None)
-        
-        btn_add = builder.get_object("edit:dependencies:btn_conflict_add")
-        btn_del = builder.get_object("edit:dependencies:btn_conflict_del")
-        
-        # set callBack to btn
-        btn_add.connect("clicked", self.__cb_add)
-        btn_del.connect("clicked", self.__cb_del_row)
-
-        self.addColumn("ID Item",self.COLUMN_ID)
-
-    def fill(self, details):
-        if details == None:
-            return
-        self.item = details["item"]
-        self.model.clear()
-        for data in details["conflicts"]:
-            self.model.append([data])
-    
-    def __cb_add(self, widget):
-        EditSelectIdDialogWindow(self.item, self.core, self.model, self.model_item, self.DHEditConflicts)
-    
-    
-    def __cb_del_row(self, widget):
-        pass
-
-class EditRequires(commands.DHEditItems, abstract.ControlEditWindow):
-    
-    COLUMN_ID = 0
-    
-    def __init__(self, core, builder, model_item):
-        self.model_item = model_item
-        lv = builder.get_object("edit:dependencies:lv_requires")
-        model = gtk.ListStore(str)
-        lv.set_model(model)
-
-        commands.DHEditItems.__init__(self, core)
-        abstract.ControlEditWindow.__init__(self, core, lv, None)
-        
-        btn_add = builder.get_object("edit:dependencies:btn_requires_add")
-        btn_del = builder.get_object("edit:dependencies:btn_requires_del")
-        
-        # set callBack to btn
-        btn_add.connect("clicked", self.__cb_add)
-        btn_del.connect("clicked", self.__cb_del_row)
-
-        self.addColumn("ID Item", self.COLUMN_ID)
-
-    def fill(self, item):
-        self.item = item
-        self.model.clear()
-        if item:
-            for data in item.requires:
-                self.model.append([data])
-    
-    def __cb_add(self, widget):
-        EditSelectIdDialogWindow(self.item, self.core, self.model, self.model_item, self.DHEditRequires)
-    
-    def __cb_del_row(self, widget):
-        pass
-
-class EditItemValues(abstract.ListEditor):
-
-    COLUMN_ID       = 0
-    COLUMN_VALUE    = 1
-    COLUMN_EXPORT   = 2
-    COLUMN_OBJ      = 3
-    COLUMN_COLOR    = 4
-
-    def __init__(self, core, id, widget, data_model):
-        super(EditItemValues, self).__init__(id, core, widget=widget, model=gtk.ListStore(str, str, str, gobject.TYPE_PYOBJECT, str, str))
-
-        self.data_model = data_model
-
-    def __do(self, widget=None):
-        """
-        """
-        self.core.notify_destroy("notify:dialog_notify")
-        item = None
-        (model, iter) = self.values.get_selection().get_selected()
-        if iter:
-            item = model[iter][self.COLUMN_ID]
-        elif self.operation != self.data_model.CMD_OPER_EDIT:
-            self.core.notify("Value has to be choosen.", core.Notification.ERROR, info_box=self.info_box, msg_id="notify:dialog_notify")
-            return
-
-        if self.operation == self.data_model.CMD_OPER_EDIT:
-            self.data_model.item_edit_value(self.operation, self.search.get_text(), self.export_name.get_text())
-        else:
-            self.data_model.item_edit_value(self.operation, item, self.export_name.get_text())
-        self.fill()
-        self.__dialog_destroy()
-        self.emit("update")
-
-    def __dialog_destroy(self, widget=None):
-        """
-        """
-        if self.wdialog: 
-            self.wdialog.destroy()
-
-    def dialog(self, widget, operation):
-        """
-        """
-        self.operation = operation
-        builder = gtk.Builder()
-        builder.add_from_file(os.path.join(paths.glade_prefix, "dialogs.glade"))
-        self.wdialog = builder.get_object("dialog:find_value")
-        self.info_box = builder.get_object("dialog:find_value:info_box")
-        self.values = builder.get_object("dialog:find_value:values")
-        self.export_name = builder.get_object("dialog:find_value:export_name")
-        self.search = builder.get_object("dialog:find_value:search")
-        self.search.connect("changed", self.search_treeview, self.values)
-        builder.get_object("dialog:find_value:btn_cancel").connect("clicked", self.__dialog_destroy)
-        builder.get_object("dialog:find_value:btn_ok").connect("clicked", self.__do)
-
-        self.core.notify_destroy("notify:not_selected")
-        (model, iter) = self.get_selection().get_selected()
-        if operation == self.data_model.CMD_OPER_ADD:
-            self.values.append_column(gtk.TreeViewColumn("ID of Value", gtk.CellRendererText(), text=self.COLUMN_ID))
-            self.values.append_column(gtk.TreeViewColumn("Title", gtk.CellRendererText(), text=self.COLUMN_VALUE))
-            values = self.data_model.get_all_values()
-            self.values.set_model(gtk.ListStore(str, str, gobject.TYPE_PYOBJECT))
-            modelfilter = self.values.get_model().filter_new()
-            modelfilter.set_visible_func(self.filter_listview, data=(self.search, (0,1)))
-            self.values.set_model(modelfilter)
-            for value in values: 
-                item = self.data_model.parse_value(value)
-                if len(item["titles"]) > 0:
-                    if self.core.selected_lang in item["titles"].keys(): title = item["titles"][self.core.selected_lang]
-                    else: title = item["titles"][item["titles"].keys()[0]]+" ["+item["titles"].keys()[0]+"]"
-                self.values.get_model().get_model().append([value.id, title, value])
-
-            self.wdialog.set_transient_for(self.core.main_window)
-            self.wdialog.show_all()
-        elif operation == self.data_model.CMD_OPER_EDIT:
-            if not iter:
-                self.notifications.append(self.core.notify("Please select at least one item to delete",
-                    core.Notification.ERROR, msg_id="notify:not_selected"))
-                return
-            self.values.append_column(gtk.TreeViewColumn("ID of Value", gtk.CellRendererText(), text=self.COLUMN_ID))
-            self.values.append_column(gtk.TreeViewColumn("Title", gtk.CellRendererText(), text=self.COLUMN_VALUE))
-            values = self.data_model.get_all_values()
-            self.values.set_model(gtk.ListStore(str, str, gobject.TYPE_PYOBJECT))
-            modelfilter = self.values.get_model().filter_new()
-            modelfilter.set_visible_func(self.filter_listview, data=(self.search, (0,1)))
-            self.values.set_model(modelfilter)
-            for value in values: 
-                item = self.data_model.parse_value(value)
-                if len(item["titles"]) > 0:
-                    if self.core.selected_lang in item["titles"].keys(): title = item["titles"][self.core.selected_lang]
-                    else: title = item["titles"][item["titles"].keys()[0]]+" ["+item["titles"].keys()[0]+"]"
-                self.values.get_model().get_model().append([value.id, title, value])
-
-            self.search.set_text(model[iter][self.COLUMN_ID])
-            self.values.get_model().refilter()
-            self.values.set_sensitive(False)
-            self.search.set_sensitive(False)
-            self.export_name.set_text(model[iter][self.COLUMN_EXPORT])
-            self.wdialog.set_transient_for(self.core.main_window)
-            self.wdialog.show_all()
-
-        elif operation == self.data_model.CMD_OPER_BIND:
-            self.values.append_column(gtk.TreeViewColumn("ID of Value", gtk.CellRendererText(), text=self.COLUMN_ID))
-            self.values.append_column(gtk.TreeViewColumn("Title", gtk.CellRendererText(), text=self.COLUMN_VALUE))
-            self.values.set_sensitive(False)
-
-            self.wdialog.set_transient_for(self.core.main_window)
-            self.wdialog.show_all()
-
-        elif operation == self.data_model.CMD_OPER_DEL:
-            if not iter:
-                self.notifications.append(self.core.notify("Please select at least one item to delete",
-                    core.Notification.ERROR, msg_id="notify:not_selected"))
-                return
-            else: 
-                iter = self.dialogDel(self.core.main_window, self.get_selection())
-                if iter != None:
-                    self.__do()
-                return
-        else: 
-            logger.error("Unknown operation for title dialog: \"%s\"" % (operation,))
-            return
-
-    def fill(self):
-        """
-        """
-        self.clear()
-        ref = ""
-        for check in self.data_model.get_item_check_exports() or []:
-            item = self.data_model.get_item(check[0])
-            if item:
-                title = self.data_model.get_title(item.title) or ""
-                self.append([check[0], (" ".join(title.split())), check[1], item, None, None])
-            else:
-                self.append([check[0], "(Missing item)", check[1], None, "red", "white"])
 
 class EditTitle(abstract.ListEditor):
 
