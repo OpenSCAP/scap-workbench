@@ -323,7 +323,7 @@ class EditItemValues(abstract.ListEditor):
             self.wdialog.show_all()
         elif operation == self.data_model.CMD_OPER_EDIT:
             if not iter:
-                self.notifications.append(self.core.notify("Please select at least one item to delete",
+                self.notifications.append(self.core.notify("Please select at least one item to edit",
                     core.Notification.ERROR, msg_id="notify:not_selected"))
                 return
             self.values.append_column(gtk.TreeViewColumn("ID of Value", gtk.CellRendererText(), text=self.COLUMN_ID))
