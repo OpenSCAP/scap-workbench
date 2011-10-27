@@ -1,4 +1,4 @@
 export PYTHONPATH="../:$PYTHONPATH"
 
-bash
+/usr/bin/env bash
 
