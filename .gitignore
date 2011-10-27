@@ -7,3 +7,8 @@
 # doc (auto generated)
 doc/
 
+# in case the developer is using eclipse
+.project
+.pydevproject
+.settings/
+
