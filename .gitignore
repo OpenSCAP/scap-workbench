@@ -3,3 +3,7 @@
 
 # Python bytecode
 *.py[co]
+
+# doc (auto generated)
+doc/
+
