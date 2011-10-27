@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
+
+# TODO: This is potentially nasty, what if user calls
+#       cd /some-folder-with-doc-in-it && /path/to/scap-workbench/generate-docs
+#       the doc in some-folder would be deleted!
+
 rm -rf ./doc
-mkdir doc
+mkdir ./doc
 epydoc -v --html -o doc --name "scap-workbench" --url "http://fedorahosted.org/scap-workbench" --graph all --inheritance listed \
     src/scap_workbench
 
