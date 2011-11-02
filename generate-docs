@@ -1,11 +1,12 @@
 #!/usr/bin/env bash
 
-# TODO: This is potentially nasty, what if user calls
-#       cd /some-folder-with-doc-in-it && /path/to/scap-workbench/generate-docs
-#       the doc in some-folder would be deleted!
+# If the script fails make sure you have *epydoc* installed
+# to get inheritance graphs, make sure you have *graphviz* installed
 
-rm -rf ./doc
-mkdir ./doc
-epydoc -v --html -o doc --name "scap-workbench" --url "http://fedorahosted.org/scap-workbench" --graph all --inheritance listed \
-    src/scap_workbench
+DIR="$( cd -P "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+rm -rf $DIR/doc
+mkdir $DIR/doc
+epydoc -v --html -o $DIR/doc --name "scap-workbench" --url "http://fedorahosted.org/scap-workbench" --graph all --inheritance listed \
+    $DIR/src/scap_workbench
 
