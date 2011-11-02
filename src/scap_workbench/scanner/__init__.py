@@ -43,7 +43,7 @@ from scap_workbench.scanner import scan
 logger = logging.getLogger("scap-workbench")
 
 class MenuButtonOVAL(abstract.MenuButton):
-
+    ## INTERNAL: This is not used anywhere in the application, probably work in progress code?
     def __init__(self, box, widget, core):
         logger = logging.getLogger(self.__class__.__name__)
         super(MenuButtonOVAL, self).__init__("gui:btn:main:oval", widget, core)
@@ -64,14 +64,13 @@ class MenuButtonOVAL(abstract.MenuButton):
         self.box.add(body)
         return body
 
-class MainWindow(abstract.Window, threading.Thread):
+class MainWindow(abstract.Window):
     """TODO:
     """
 
     def __init__(self):
         error.ErrorHandler.install_exception_hook()
 
-        threading.Thread.__init__(self)
         logger = logging.getLogger(self.__class__.__name__)
         self.builder = gtk.Builder()
         self.builder.add_from_file(os.path.join(paths.glade_prefix, "scanner.glade"))
