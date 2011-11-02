@@ -45,7 +45,11 @@ class MainWindow(abstract.Window):
         self.builder = gtk.Builder()
         self.builder.add_from_file(os.path.join(paths.glade_prefix, "editor.glade"))
         self.builder.connect_signals(self)
-        abstract.Window.__init__(self, "main:window", core.SWBCore(self.builder))
+        
+        super(MainWindow, self).__init__("main:window", core.SWBCore(self.builder))
+        
+        if self.core is None:
+            raise RuntimeError("Initialization failed, core is None")
 
         self.window = self.builder.get_object("main:window")
         self.core.main_window = self.window

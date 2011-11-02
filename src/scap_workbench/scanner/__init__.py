@@ -71,13 +71,14 @@ class MainWindow(abstract.Window):
     def __init__(self):
         error.ErrorHandler.install_exception_hook()
 
-        logger = logging.getLogger(self.__class__.__name__)
         self.builder = gtk.Builder()
         self.builder.add_from_file(os.path.join(paths.glade_prefix, "scanner.glade"))
         self.builder.connect_signals(self)
-        self.core = core.SWBCore(self.builder, True)
-        abstract.Window.__init__(self, "gui:main", self.core)
-        assert self.core != None, "Initialization failed, core is None"
+        
+        super(MainWindow, self).__init__("gui:main", core.SWBCore(self.builder, True))
+        
+        if self.core is None:
+            raise RuntimeError("Initialization failed, core is None")
 
         self.window = self.builder.get_object("main:window")
         self.core.main_window = self.window
