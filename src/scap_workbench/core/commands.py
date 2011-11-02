@@ -2580,7 +2580,7 @@ class DHEditItems(DataHandler):
             check_export.name = export_name
             check_add.add_export(check_export)
 
-        if operation == self.CMD_OPER_EDIT:
+        elif operation == self.CMD_OPER_EDIT:
             check_add = None
             #add to firts check which will found
             for check in item.checks:
@@ -2589,9 +2589,14 @@ class DHEditItems(DataHandler):
                         check_export.value = value
                         check_export.name = export_name
                         return
+                    
+            raise RuntimeError("Edit operation failed, cant find the specified value '%s' to edit." % (value))
                 
         elif operation == self.CMD_OPER_DEL:
-            logger.error("Delete of value refernces not supported.")
+            logger.error("Delete of value references not supported.")
+            
+        else:
+            raise NotImplementedError("Operation of type '%i' not implemented" % (operation))
 
     def add_oval_reference(self, f_OVAL):
         if not self.check_library(): return False

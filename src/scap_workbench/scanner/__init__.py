@@ -65,7 +65,7 @@ class MenuButtonOVAL(abstract.MenuButton):
         return body
 
 class MainWindow(abstract.Window):
-    """TODO:
+    """The central window of scap-workbench (scanner)
     """
 
     def __init__(self):
