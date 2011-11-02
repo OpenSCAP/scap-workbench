@@ -37,7 +37,13 @@ from scap_workbench.core.threads import ThreadManager
 from scap_workbench.core import paths
 
 # Initializing and configuring Logger
-logging.config.fileConfig(os.path.join(paths.etc_prefix, "logger.conf"))
+try:
+    logging.config.fileConfig(os.path.join(paths.etc_prefix, "logger.conf"))
+    
+except: # ConfigParser.NoSectionError = actually file I/O error most of the time
+    logging.basicConfig()
+    logging.getLogger("scap-workbench").error("Had to resort to basic config, logger config for openscap not found at '%s'" % (os.path.join(paths.etc_prefix, "logger.conf")))
+    
 logger = logging.getLogger("scap-workbench")
 
 """ Import OpenSCAP library as backend.
