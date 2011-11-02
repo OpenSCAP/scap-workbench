@@ -80,3 +80,6 @@ class MainWindow(abstract.Window):
 
     def run(self):
         gtk.main()
+
+# we only expose the MainWindow from the entire editor subpackage because that's all that's needed to start the app
+__all__ = ["MainWindow"]
