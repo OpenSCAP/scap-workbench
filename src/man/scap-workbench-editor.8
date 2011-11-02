@@ -1,10 +1,10 @@
-.TH scap-workbench-editor "8" "Apr 2011" "Red Hat" "System Administration Utilities"
+.TH scap-workbench-editor "8" "Nov 2011" "Red Hat" "System Administration Utilities"
 
 .SH NAME
 scap-workbench-editor \- graphical tool for maintaining the XCCDF benchmark files
 
 .SH SYNOPSIS
-\fBscap-workbench-editor\fR [\fI-D\fR]
+\fBscap-workbench-editor\fR [\fI-D\fR] [\fIFILE\fR]
 
 .SH DESCRIPTION
 scap-workbench-editor is GUI tool for maintaining the XCCDF benchmark files. This tool enables 
@@ -14,7 +14,9 @@ users to create or edit existing XCCDF and OVAL content files.
 .TP
 \fB\-D, -\-debug\fR
 print dubugging information
-
+.TP
+\fBFILE\fR
+If this parameter is provided the editor will immediately open given XCCDF file after starting.
 
 .SH SCAP CONTENT
 There is a content provided by OpenSCAP library available in \fBopenscap-content\fR package.
@@ -27,7 +29,12 @@ Other sources of SCAP content are:
 
 
 .SH AUTHOR
+
+.nf
 Maros Barabas <xbarry@gmail.com>
+Vladimir Oberreiter
+Martin Preisler <mpreisle@redhat.com>
+.fi
 
 .SH NOTES
 scap-workbench-editor is based on OpenSCAP library - \fIhttp://www.open-scap.org\fR
