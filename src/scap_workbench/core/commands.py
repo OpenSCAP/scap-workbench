@@ -2087,8 +2087,8 @@ class DHScan(DataHandler, EventObject):
     BG_WHITE    = "white"
     BG_GRAY     = "gray"
     
-    FG_GRAY   = "gray"
-    FG_BLACK  = "black"
+    FG_GRAY   = "#333333"
+    FG_BLACK  = "#000000"
     FG_GREEN  = "green"
     FG_RED    = "red"
 
@@ -2133,6 +2133,9 @@ class DHScan(DataHandler, EventObject):
         txtcell = gtk.CellRendererText()
         column = gtk.TreeViewColumn("Result", txtcell, text=DHScan.COLUMN_RESULT)
         column.add_attribute(txtcell, 'background', DHScan.COLUMN_COLOR_BACKG)
+        # since we control the background in this case, we have to enforce foreground as well so
+        # that the text is visible
+        txtcell.set_property('foreground', '#000000')
         column.set_resizable(True)
         treeView.append_column(column)
 
