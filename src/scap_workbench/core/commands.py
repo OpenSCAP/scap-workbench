@@ -2148,10 +2148,19 @@ class DHScan(DataHandler, EventObject):
         treeView.set_tooltip_column(id-1)
 
     def fill(self, item, iter=None):
-        FG_GRAY   = "#333333"
-        FG_BLACK  = "#000000"
-        FG_GREEN  = "green"
-        FG_RED    = "red"
+        FG_TITLE_NORMAL = "#000000"
+        FG_TITLE_PASS   = "#333333"
+        FG_TITLE_ERROR  = "#ff0000"
+        FG_TITLE_FAIL   = "#ff0000"
+        FG_TITLE_NOT_APPLICABLE = "#333333"
+        FG_TITLE_NOT_CHECKED = "#333333"
+        FG_TITLE_NOT_SELECTED = "#333333"
+        FG_TITLE_INFORMATIONAL = "#333333"
+        FG_TITLE_FIXED = "#333333"
+        
+        FG_ID_NORMAL    = "#000000"
+        FG_ID_PASS      = "#333333"
+        FG_ID_ERROR     = "#ff0000"
         
         BG_RED    = "#F29D9D"
         BG_ERR    = "red"
@@ -2162,71 +2171,71 @@ class DHScan(DataHandler, EventObject):
         BG_GRAY   = "gray"
 
         #initialization
-        colorText_title = FG_BLACK
+        colorText_title = FG_TITLE_NORMAL
         color_backG = BG_ERR
-        colorText_ID = FG_BLACK
+        colorText_ID = FG_ID_NORMAL
         text = ""
         
         # choose color for cell, and text of result
         if  item[DHScan.COLUMN_RESULT] == None:
             text = "Running .."
             color_backG = BG_WHITE
-            colorText_title = FG_BLACK
-            colorText_ID = FG_BLACK
+            colorText_title = FG_TITLE_NORMAL
+            colorText_ID = FG_ID_NORMAL
             
         elif  item[DHScan.COLUMN_RESULT] == openscap.OSCAP.XCCDF_RESULT_PASS:
             text = "PASS" # The test passed
             color_backG = BG_GREEN
-            colorText_title = FG_GRAY
-            colorText_ID = FG_BLACK
+            colorText_title = FG_TITLE_PASS
+            colorText_ID = FG_ID_PASS
         
         elif  item[DHScan.COLUMN_RESULT] == openscap.OSCAP.XCCDF_RESULT_FAIL:
             text = "FAIL" # The test failed
             color_backG = BG_RED
-            colorText_title = FG_BLACK
-            colorText_ID = FG_BLACK
+            colorText_title = FG_TITLE_FAIL
+            colorText_ID = FG_ID_NORMAL
         
         elif  item[DHScan.COLUMN_RESULT] == openscap.OSCAP.XCCDF_RESULT_ERROR:
             text = "ERROR" # An error occurred and test could not complete
             color_backG = BG_ERR
-            colorText_title = FG_RED
-            colorText_ID = FG_RED
+            colorText_title = FG_TITLE_ERROR
+            colorText_ID = FG_ID_ERROR
             
         elif  item[DHScan.COLUMN_RESULT] == openscap.OSCAP.XCCDF_RESULT_UNKNOWN:
             text = "UNKNOWN" #  Could not tell what happened
             color_backG = BG_GRAY
-            colorText_title = FG_BLACK
-            colorText_ID = FG_BLACK
+            colorText_title = FG_TITLE_NORMAL
+            colorText_ID = FG_ID_NORMAL
         
         elif  item[DHScan.COLUMN_RESULT] == openscap.OSCAP.XCCDF_RESULT_NOT_APPLICABLE:
             text = "NOT_APPLICABLE" # Rule did not apply to test target
             color_backG = BG_WHITE
-            colorText_title = FG_GRAY
-            colorText_ID = FG_BLACK
+            colorText_title = FG_TITLE_NOT_APPLICABLE
+            colorText_ID = FG_ID_NORMAL
             
         elif  item[DHScan.COLUMN_RESULT] == openscap.OSCAP.XCCDF_RESULT_NOT_CHECKED:
             text = "NOT_CHECKED" # Rule did not cause any evaluation by the checking engine
             color_backG = BG_WHITE
-            colorText_title = FG_GRAY                
-            colorText_ID = FG_BLACK
+            colorText_title = FG_TITLE_NOT_CHECKED                
+            colorText_ID = FG_ID_NORMAL
 
         elif  item[DHScan.COLUMN_RESULT] == openscap.OSCAP.XCCDF_RESULT_NOT_SELECTED:
             text = "NOT_SELECTED" #Rule was not selected in the @link xccdf_benchmark Benchmark@endlink
             color_backG = BG_WHITE
-            colorText_title = FG_GRAY                
-            colorText_ID = FG_BLACK
+            colorText_title = FG_TITLE_NOT_SELECTED                
+            colorText_ID = FG_ID_NORMAL
             
         elif  item[DHScan.COLUMN_RESULT] == openscap.OSCAP.XCCDF_RESULT_INFORMATIONAL:
             text = "INFORMATIONAL" # Rule was evaluated by the checking engine, but isn't to be scored
             color_backG = BG_LGREEN
-            colorText_title = FG_GRAY                
-            colorText_ID = FG_BLACK
+            colorText_title = FG_TITLE_INFORMATIONAL                
+            colorText_ID = FG_ID_NORMAL
 
         elif  item[DHScan.COLUMN_RESULT] == openscap.OSCAP.XCCDF_RESULT_FIXED:
             text = "FIXED" # Rule failed, but was later fixed
             color_backG = BG_FIXED
-            colorText_title = FG_GRAY 
-            colorText_ID = FG_BLACK
+            colorText_title = FG_TITLE_FIXED 
+            colorText_ID = FG_ID_NORMAL
 
         if not iter:
             iter = self.model.append(None)
