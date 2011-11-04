@@ -1,30 +1,8 @@
-<?xml version="1.0"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <interface>
   <requires lib="gtk+" version="2.16"/>
-  <!-- interface-naming-policy project-wide -->
-  <object class="GtkListStore" id="dialog:edit_platform:part:model">
-    <columns>
-      <!-- column-name String -->
-      <column type="gchararray"/>
-      <!-- column-name Name -->
-      <column type="gchararray"/>
-    </columns>
-    <data>
-      <row>
-        <col id="0" translatable="yes">a</col>
-        <col id="1" translatable="yes">APPLICATION</col>
-      </row>
-      <row>
-        <col id="0" translatable="yes">h</col>
-        <col id="1" translatable="yes">HARDWARE</col>
-      </row>
-      <row>
-        <col id="0" translatable="yes">o</col>
-        <col id="1" translatable="yes">OPERATING SYSTEM</col>
-      </row>
-    </data>
-  </object>
   <object class="GtkDialog" id="dialog:edit_platform">
+    <property name="can_focus">False</property>
     <property name="border_width">5</property>
     <property name="title" translatable="yes">Edit Platform</property>
     <property name="modal">True</property>
@@ -34,18 +12,65 @@
     <property name="destroy_with_parent">True</property>
     <property name="type_hint">dialog</property>
     <child internal-child="vbox">
-      <object class="GtkVBox" id="dialog-vbox28">
+      <object class="GtkBox" id="dialog-vbox28">
         <property name="visible">True</property>
+        <property name="can_focus">False</property>
         <property name="orientation">vertical</property>
         <property name="spacing">2</property>
+        <child internal-child="action_area">
+          <object class="GtkButtonBox" id="dialog-action_area28">
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <property name="layout_style">end</property>
+            <child>
+              <object class="GtkButton" id="dialog:edit_platform:btn_cancel">
+                <property name="label">gtk-cancel</property>
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="receives_default">True</property>
+                <property name="use_action_appearance">False</property>
+                <property name="use_stock">True</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">False</property>
+                <property name="position">0</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkButton" id="dialog:edit_platform:btn_ok">
+                <property name="label">gtk-ok</property>
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="can_default">True</property>
+                <property name="has_default">True</property>
+                <property name="receives_default">True</property>
+                <property name="use_action_appearance">False</property>
+                <property name="use_stock">True</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">False</property>
+                <property name="position">1</property>
+              </packing>
+            </child>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">True</property>
+            <property name="pack_type">end</property>
+            <property name="position">0</property>
+          </packing>
+        </child>
         <child>
           <object class="GtkAlignment" id="dialog:edit_platform:info_box:alig">
             <property name="visible">True</property>
+            <property name="can_focus">False</property>
             <property name="bottom_padding">5</property>
             <child>
               <object class="GtkVBox" id="dialog:edit_platform:info_box">
                 <property name="visible">True</property>
-                <property name="orientation">vertical</property>
+                <property name="can_focus">False</property>
                 <property name="spacing">1</property>
                 <child>
                   <placeholder/>
@@ -55,17 +80,20 @@
           </object>
           <packing>
             <property name="expand">False</property>
+            <property name="fill">True</property>
             <property name="position">1</property>
           </packing>
         </child>
         <child>
           <object class="GtkAlignment" id="alignment7">
             <property name="visible">True</property>
+            <property name="can_focus">False</property>
             <property name="left_padding">5</property>
             <property name="right_padding">5</property>
             <child>
               <object class="GtkTable" id="table12">
                 <property name="visible">True</property>
+                <property name="can_focus">False</property>
                 <property name="n_rows">9</property>
                 <property name="n_columns">2</property>
                 <property name="column_spacing">12</property>
@@ -75,7 +103,7 @@
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="tooltip_text" translatable="yes">this element specifies a target platform for the benchmark, Rule, Group, Profile, or TestResult. It indicates a platform a CPE 2.3 Name or a CPE 2.3 platform specification identifier.</property>
-                    <property name="invisible_char">&#x25CF;</property>
+                    <property name="invisible_char">●</property>
                     <property name="activates_default">True</property>
                   </object>
                   <packing>
@@ -88,6 +116,7 @@
                 <child>
                   <object class="GtkLabel" id="lbl_entryText12">
                     <property name="visible">True</property>
+                    <property name="can_focus">False</property>
                     <property name="xalign">1</property>
                     <property name="label" translatable="yes">CPE string:</property>
                   </object>
@@ -99,6 +128,7 @@
                 <child>
                   <object class="GtkLabel" id="lbl_entryText13">
                     <property name="visible">True</property>
+                    <property name="can_focus">False</property>
                     <property name="xalign">1</property>
                     <property name="label" translatable="yes">Part:</property>
                   </object>
@@ -112,6 +142,7 @@
                 <child>
                   <object class="GtkComboBox" id="dialog:edit_platform:cpe_part">
                     <property name="visible">True</property>
+                    <property name="can_focus">False</property>
                     <property name="tooltip_text" translatable="yes">Platform part: Distinct pats of a platform that need to be addressed.
 Hardware part-  This part identifies hardware aspects of the IT platform and denotes things like a chassis, module, card, or other physical aspect of a platform.  This can include virtualized or shared hardware.
 
@@ -137,6 +168,7 @@ Application Part - This part identifies relevant applications, services, and pac
                 <child>
                   <object class="GtkLabel" id="lbl_entryText14">
                     <property name="visible">True</property>
+                    <property name="can_focus">False</property>
                     <property name="xalign">1</property>
                     <property name="label" translatable="yes">Vendor:</property>
                   </object>
@@ -150,6 +182,7 @@ Application Part - This part identifies relevant applications, services, and pac
                 <child>
                   <object class="GtkLabel" id="lbl_entryText15">
                     <property name="visible">True</property>
+                    <property name="can_focus">False</property>
                     <property name="xalign">1</property>
                     <property name="label" translatable="yes">Product:</property>
                   </object>
@@ -163,6 +196,7 @@ Application Part - This part identifies relevant applications, services, and pac
                 <child>
                   <object class="GtkLabel" id="lbl_entryText16">
                     <property name="visible">True</property>
+                    <property name="can_focus">False</property>
                     <property name="xalign">1</property>
                     <property name="label" translatable="yes">Version:</property>
                   </object>
@@ -176,6 +210,7 @@ Application Part - This part identifies relevant applications, services, and pac
                 <child>
                   <object class="GtkLabel" id="lbl_entryText17">
                     <property name="visible">True</property>
+                    <property name="can_focus">False</property>
                     <property name="xalign">1</property>
                     <property name="label" translatable="yes">Update:</property>
                   </object>
@@ -189,6 +224,7 @@ Application Part - This part identifies relevant applications, services, and pac
                 <child>
                   <object class="GtkLabel" id="lbl_entryText18">
                     <property name="visible">True</property>
+                    <property name="can_focus">False</property>
                     <property name="xalign">1</property>
                     <property name="label" translatable="yes">Edition:</property>
                   </object>
@@ -202,6 +238,7 @@ Application Part - This part identifies relevant applications, services, and pac
                 <child>
                   <object class="GtkLabel" id="lbl_entryText19">
                     <property name="visible">True</property>
+                    <property name="can_focus">False</property>
                     <property name="xalign">1</property>
                     <property name="label" translatable="yes">Language:</property>
                   </object>
@@ -217,7 +254,7 @@ Application Part - This part identifies relevant applications, services, and pac
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="tooltip_text" translatable="yes">The vendor component of a name might be a source of ambiguity because there are many ways to express the names of companies and other organizations. For CPE, the name used for a supplier should be the highest organization-specific label of the organization's DNS name.  Even if the domain name is different than the company name, it is still recommended to use the domain name for the CPE Name.</property>
-                    <property name="invisible_char">&#x25CF;</property>
+                    <property name="invisible_char">●</property>
                     <property name="activates_default">True</property>
                   </object>
                   <packing>
@@ -234,7 +271,7 @@ Application Part - This part identifies relevant applications, services, and pac
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="tooltip_text" translatable="yes">To determine the string to use for the product component, one should try to find the most common and recognizable name for the product.  Possible things to consider are marketing materials, API return values, product documentation, etc.  Unfortunately there is no clear cut definitive way of doing this, so help from the vendor and/or community will often be needed.</property>
-                    <property name="invisible_char">&#x25CF;</property>
+                    <property name="invisible_char">●</property>
                     <property name="activates_default">True</property>
                   </object>
                   <packing>
@@ -251,7 +288,7 @@ Application Part - This part identifies relevant applications, services, and pac
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="tooltip_text" translatable="yes">The version should be represented in the same format as seen within the product.  For example, use periods, dashes, etc. as the delimiter in the same way as the product.</property>
-                    <property name="invisible_char">&#x25CF;</property>
+                    <property name="invisible_char">●</property>
                     <property name="activates_default">True</property>
                   </object>
                   <packing>
@@ -268,7 +305,7 @@ Application Part - This part identifies relevant applications, services, and pac
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="tooltip_text" translatable="yes">The Edition Component is also used to define specific target hardware and software architectures that need to be named.  In a way, we are treating these as different editions of the platform.  For a hardware example, an application may be developed for both the i386 and x64 architectures, and each edition needs a different name.  For a target software implementation an application may be developed to run on Windows, Linux, or Macintosh OS X.</property>
-                    <property name="invisible_char">&#x25CF;</property>
+                    <property name="invisible_char">●</property>
                     <property name="activates_default">True</property>
                   </object>
                   <packing>
@@ -285,7 +322,7 @@ Application Part - This part identifies relevant applications, services, and pac
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="tooltip_text" translatable="yes">Sometimes this is referred to as point releases or minor versions.  The technical difference between version and update will be different for certain vendors and products.  The use of existing CPE Names should be used to determine what is best for new names.</property>
-                    <property name="invisible_char">&#x25CF;</property>
+                    <property name="invisible_char">●</property>
                     <property name="activates_default">True</property>
                   </object>
                   <packing>
@@ -302,7 +339,7 @@ Application Part - This part identifies relevant applications, services, and pac
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="tooltip_text" translatable="yes">This component should be represented by a valid language tag as defined by IETF RFC 4646 entitled Tags for Identifying Languages. Note that while any valid language tag is acceptable, CPE Names should generally only use tags containing language and region codes.</property>
-                    <property name="invisible_char">&#x25CF;</property>
+                    <property name="invisible_char">●</property>
                     <property name="activates_default">True</property>
                   </object>
                   <packing>
@@ -317,11 +354,13 @@ Application Part - This part identifies relevant applications, services, and pac
                 <child>
                   <object class="GtkAlignment" id="alignment17">
                     <property name="visible">True</property>
+                    <property name="can_focus">False</property>
                     <property name="top_padding">5</property>
                     <property name="bottom_padding">5</property>
                     <child>
                       <object class="GtkHSeparator" id="hseparator4">
                         <property name="visible">True</property>
+                        <property name="can_focus">False</property>
                       </object>
                     </child>
                   </object>
@@ -336,48 +375,9 @@ Application Part - This part identifies relevant applications, services, and pac
             </child>
           </object>
           <packing>
-            <property name="position">2</property>
-          </packing>
-        </child>
-        <child internal-child="action_area">
-          <object class="GtkHButtonBox" id="dialog-action_area28">
-            <property name="visible">True</property>
-            <property name="layout_style">end</property>
-            <child>
-              <object class="GtkButton" id="dialog:edit_platform:btn_cancel">
-                <property name="label">gtk-cancel</property>
-                <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="receives_default">True</property>
-                <property name="use_stock">True</property>
-              </object>
-              <packing>
-                <property name="expand">False</property>
-                <property name="fill">False</property>
-                <property name="position">0</property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkButton" id="dialog:edit_platform:btn_ok">
-                <property name="label">gtk-ok</property>
-                <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="can_default">True</property>
-                <property name="has_default">True</property>
-                <property name="receives_default">True</property>
-                <property name="use_stock">True</property>
-              </object>
-              <packing>
-                <property name="expand">False</property>
-                <property name="fill">False</property>
-                <property name="position">1</property>
-              </packing>
-            </child>
-          </object>
-          <packing>
             <property name="expand">False</property>
-            <property name="pack_type">end</property>
-            <property name="position">0</property>
+            <property name="fill">True</property>
+            <property name="position">2</property>
           </packing>
         </child>
       </object>
@@ -387,5 +387,26 @@ Application Part - This part identifies relevant applications, services, and pac
       <action-widget response="0">dialog:edit_platform:btn_ok</action-widget>
     </action-widgets>
   </object>
+  <object class="GtkListStore" id="dialog:edit_platform:part:model">
+    <columns>
+      <!-- column-name String -->
+      <column type="gchararray"/>
+      <!-- column-name Name -->
+      <column type="gchararray"/>
+    </columns>
+    <data>
+      <row>
+        <col id="0" translatable="yes">a</col>
+        <col id="1" translatable="yes">APPLICATION</col>
+      </row>
+      <row>
+        <col id="0" translatable="yes">h</col>
+        <col id="1" translatable="yes">HARDWARE</col>
+      </row>
+      <row>
+        <col id="0" translatable="yes">o</col>
+        <col id="1" translatable="yes">OPERATING SYSTEM</col>
+      </row>
+    </data>
+  </object>
 </interface>
- 
