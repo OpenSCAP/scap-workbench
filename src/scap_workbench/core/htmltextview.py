@@ -498,7 +498,8 @@ class HtmlTextView(Gtk.TextView):
     }
     
     def __init__(self):
-        GObject.GObject.__init__(self)
+        super(HtmlTextView, self).__init__()
+        
         self.set_wrap_mode(Gtk.WrapMode.CHAR)
         self.set_editable(False)
         self._changed_cursor = False

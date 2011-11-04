@@ -50,7 +50,7 @@ checked by:
 try:
     # Import WebKit module for HTML editing 
     # of descriptions
-    import webkit as webkit
+    from gi.repository import WebKit
     HAS_WEBKIT = True
 except ImportError:
     HAS_WEBKIT = False
