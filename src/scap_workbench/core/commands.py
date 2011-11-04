@@ -2165,7 +2165,6 @@ class DHScan(DataHandler, EventObject):
 
         #initialization
         colorText_title = DHScan.FG_BLACK
-        colorText_res = DHScan.FG_BLACK
         color_backG = DHScan.BG_ERR
         colorText_ID = DHScan.FG_BLACK
         text = ""
@@ -2176,6 +2175,7 @@ class DHScan(DataHandler, EventObject):
             color_backG = DHScan.BG_WHITE
             colorText_title = DHScan.FG_BLACK
             colorText_ID = DHScan.FG_BLACK
+            
         elif  item[DHScan.COLUMN_RESULT] == openscap.OSCAP.XCCDF_RESULT_PASS:
             text = "PASS" # The test passed
             color_backG = DHScan.BG_GREEN
@@ -2189,7 +2189,6 @@ class DHScan(DataHandler, EventObject):
             colorText_ID = DHScan.FG_BLACK
         
         elif  item[DHScan.COLUMN_RESULT] == openscap.OSCAP.XCCDF_RESULT_ERROR:
-            color_text = DHScan.FG_BLACK
             text = "ERROR" # An error occurred and test could not complete
             color_backG = DHScan.BG_ERR
             colorText_title = DHScan.FG_RED
