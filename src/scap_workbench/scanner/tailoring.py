@@ -23,7 +23,7 @@
 """ Importing standard python libraries
 """
 from gi.repository import Gtk
-import glib
+from gi.repository import GLib
 from gi.repository import Pango
 import re               # Regular expressions 
 import sre_constants    # For re.compile exception
@@ -166,7 +166,7 @@ class ItemList(abstract.List):
         # TODO: This is more or less copied from edit.py, should be refactored for DRY
         if not self.item_changed_worker_pending:
             # we handle this in the idle function when no higher priority events are to be handled
-            glib.idle_add(worker)
+            GLib.idle_add(worker)
             self.item_changed_worker_pending = True
         
 class ValuesList(abstract.List):
@@ -328,27 +328,27 @@ class ItemDetails(EventObject):
         hbox.pack_start(Gtk.Label(label = "Type: "), False, True, 1)
         self.type = Gtk.Label(label="")
         self.type.set_alignment(0,0)
-        hbox.pack_start(self.type, expand=True, fill=True, padding=1)
-        vbox.pack_start(hbox, expand=False, fill=False, padding=1)
+        hbox.pack_start(self.type, True, True, 1)
+        vbox.pack_start(hbox, False, False, 1)
         
         #weight
         hbox = Gtk.HBox()
-        hbox.pack_start(Gtk.Label("Weight: ", True, True, 0), expand=False, fill=True, padding=1)
+        hbox.pack_start(Gtk.Label(label = "Weight: "), False, True, 1)
         self.weight = Gtk.Label(label="")
         self.weight.set_alignment(0,0)
-        hbox.pack_start(self.weight, expand=True, fill=True, padding=1)
-        vbox.pack_start(hbox, expand=False, fill=False, padding=1)
+        hbox.pack_start(self.weight, True, True, 1)
+        vbox.pack_start(hbox, False, False, 1)
 
         #CCE
         hbox = Gtk.HBox()
-        hbox.pack_start(Gtk.Label("Idents: ", True, True, 0), expand=False, fill=False, padding=1)
+        hbox.pack_start(Gtk.Label(label = "Idents: "), False, False, 1)
         self.idents = Gtk.Label(label="")
         self.idents.set_alignment(0,0)
-        hbox.pack_start(self.idents, expand=True, fill=True, padding=1)
-        vbox.pack_start(hbox, expand=False, fill=False, padding=1)
+        hbox.pack_start(self.idents, True, True, 1)
+        vbox.pack_start(hbox, False, False, 1)
         
         #References
-        expander = Gtk.Expander("<b>References</b>")
+        expander = Gtk.Expander(label = "<b>References</b>")
         expander.set_expanded(False)
         label = expander.get_label_widget()
         label.set_use_markup(True)
@@ -357,10 +357,10 @@ class ItemDetails(EventObject):
         expander.add(alig)
         vbox = Gtk.VBox()
         alig.add(vbox)
-        vbox.pack_start(Gtk.HSeparator(), expand=False, fill=True, padding=3)
+        vbox.pack_start(Gtk.HSeparator(), False, True, 3)
         self.refBox = Gtk.VBox()
-        vbox.pack_start(self.refBox, expand=False, fill=False, padding=0)
-        self.box_details.pack_start(expander, expand=False, fill=False, padding=1)
+        vbox.pack_start(self.refBox, False, False, 0)
+        self.box_details.pack_start(expander, False, False, 1)
         
         # Get the background color from window and destroy it
         window = Gtk.Window()
@@ -372,7 +372,7 @@ class ItemDetails(EventObject):
         window.destroy()
 
         #fixes
-        expander = Gtk.Expander("<b>Fixes</b>")
+        expander = Gtk.Expander(label = "<b>Fixes</b>")
         expander.set_expanded(False)
         label = expander.get_label_widget()
         label.set_use_markup(True)
@@ -380,7 +380,7 @@ class ItemDetails(EventObject):
         alig.set_padding(0, 10, 12, 4)
         vbox = Gtk.VBox()
         alig.add(vbox)
-        vbox.pack_start(Gtk.HSeparator(), expand=False, fill=False, padding=3)
+        vbox.pack_start(Gtk.HSeparator(), False, False, 3)
         self.fixes = HtmlTextView()
         self.fixes.set_wrap_mode(Gtk.WrapMode.WORD)
         self.fixes.modify_base(Gtk.StateType.NORMAL, bg_color)
@@ -391,11 +391,11 @@ class ItemDetails(EventObject):
         sw.add(self.fixes)
         sw.show()
         expander.add(alig)
-        vbox.pack_start(sw, expand=False, fill=False, padding=1)
-        self.box_details.pack_start(expander, expand=False, fill=False, padding=1)
+        vbox.pack_start(sw, False, False, 1)
+        self.box_details.pack_start(expander, False, False, 1)
 
         #description
-        expander = Gtk.Expander("<b>Description</b>")
+        expander = Gtk.Expander(label = "<b>Description</b>")
         expander.set_expanded(True)
         label = expander.get_label_widget()
         label.set_use_markup(True)
@@ -403,7 +403,7 @@ class ItemDetails(EventObject):
         alig.set_padding(0, 10, 12, 4)
         vbox = Gtk.VBox()
         alig.add(vbox)
-        vbox.pack_start(Gtk.HSeparator(), expand=False, fill=False, padding=3)
+        vbox.pack_start(Gtk.HSeparator(), False, False, 3)
         self.description = HtmlTextView()
         self.description.set_wrap_mode(Gtk.WrapMode.WORD)
         self.description.modify_base(Gtk.StateType.NORMAL, bg_color)
@@ -414,8 +414,8 @@ class ItemDetails(EventObject):
         sw.add(self.description)
         sw.show()
         expander.add(alig)
-        vbox.pack_start(sw, expand=True, fill=True, padding=1)
-        self.box_details.pack_start(expander, expand=True, fill=True, padding=1)
+        vbox.pack_start(sw, True, True, 1)
+        self.box_details.pack_start(expander, True, True, 1)
         self.box_details.show_all()
 
 class RefineDetails(EventObject):

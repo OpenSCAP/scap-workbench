@@ -28,7 +28,7 @@ from scap_workbench.core.events import EventObject
 from scap_workbench.editor.edit import *
 
 from gi.repository import Gtk
-import glib
+from gi.repository import GLib
 
 import logging
 
@@ -1697,7 +1697,7 @@ class ItemList(abstract.List):
         # work. This way the update happens only once even though the selection changes many times.
         if not self.item_changed_worker_pending:
             # we handle this in the idle function when no higher priority events are to be handled
-            glib.idle_add(worker)
+            GLib.idle_add(worker)
             self.item_changed_worker_pending = True
             
             

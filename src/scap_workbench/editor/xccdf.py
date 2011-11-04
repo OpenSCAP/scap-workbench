@@ -28,7 +28,6 @@ from scap_workbench.core import abstract
 from scap_workbench.editor.edit import *
 
 from gi.repository import Gtk
-import glib
 
 import logging
 
