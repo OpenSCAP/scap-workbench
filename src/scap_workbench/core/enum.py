@@ -21,7 +21,7 @@
 
 """ Importing standard python libraries
 """
-import gtk              # GTK library
+from gi.repository import Gtk
 
 """ Importing SCAP Workbench modules
 """

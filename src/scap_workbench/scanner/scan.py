@@ -23,7 +23,7 @@
 """ Importing standard python libraries
 """
 import os               # For path basedir
-import gtk              # GTK library
+from gi.repository import Gtk
 import gobject          # GObject.TYPE_PYOBJECT
 import tempfile         # Temporary file for XCCDF preview
 from scap_workbench.core.threads import thread as threadSave

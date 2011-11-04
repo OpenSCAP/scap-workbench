@@ -22,8 +22,8 @@
 
 """ Importing standard python libraries
 """
-import gtk              # GTK library
-import gobject          # GObject.TYPE_PYOBJECT
+from gi.repository import Gtk
+from gi.repository import GObject
 import re               # Regular expressions
 import datetime
 import time
@@ -178,7 +178,7 @@ class MenuButton(EventObject):
         label.set_justify(Gtk.Justification.LEFT)
         label.set_alignment(0, 0)
         body.pack_start(label, True, True, padding=4)
-        body.pack_start(Gtk.HSeparator(, True, True, 0), False, False, padding=2)
+        body.pack_start(Gtk.HSeparator(), False, False, padding=2)
         alig = Gtk.Alignment.new(0, 0, 1, 1)
         alig.set_padding(0, 0, 12, 0)
         body.pack_start(alig, False, False)

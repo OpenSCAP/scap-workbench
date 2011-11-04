@@ -27,6 +27,8 @@ A Gtk.TextView-based renderer for XHTML-IM, as described in:
 from gi.repository import GObject
 from gi.repository import Pango
 from gi.repository import Gtk
+from gi.repository import Gdk
+
 import xml.sax, xml.sax.handler
 import re
 import logging
@@ -81,32 +83,12 @@ class HtmlHandler(xml.sax.handler.ContentHandler):
             tag.set_property("paragraph-background-gdk", color)
 
 
-    if Gtk.gtk_version >= (2, 8, 5) or GObject.pygtk_version >= (2, 8, 1):
-
         def _get_current_attributes(self):
             attrs = self.textview.get_default_attributes()
             self.iter.backward_char()
             self.iter.get_attributes(attrs)
             self.iter.forward_char()
             return attrs
-        
-    else:
-        
-        ## Workaround http://bugzilla.gnome.org/show_bug.cgi?id=317455
-        def _get_current_style_attr(self, propname, comb_oper=None):
-            tags = [tag for tag in self.styles if tag is not None]
-            tags.reverse()
-            is_set_name = propname + "-set"
-            value = None
-            for tag in tags:
-                if tag.get_property(is_set_name):
-                    if value is None:
-                        value = tag.get_property(propname)
-                        if comb_oper is None:
-                            return value
-                    else:
-                        value = comb_oper(value, tag.get_property(propname))
-            return value
 
         class _FakeAttrs(object):
             __slots__ = ("font", "font_scale")

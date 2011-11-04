@@ -21,10 +21,10 @@
 
 """ Importing standard python libraries
 """
-import gtk      # GTK library
+from gi.repository import Gtk
 import os       # os Path join/basename, ..
 import sys      # system library for standard in/out and exit
-import pango    # For pango enumeration constants
+from gi.repository import Pango
 import getopt   # Parsing program parameters
 import os.path
 import logging                  # Logger for debug/info/error messages

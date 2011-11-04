@@ -23,10 +23,10 @@
 #      Martin Preisler      <mpreisle@redhat.com>
 
 def main():
-    import gtk
+    from gi.repository import Gtk
     from scap_workbench.editor import MainWindow
 	
-    gtk.gdk.threads_init()
+    Gdk.threads_init()
     
     wnd = MainWindow()
     wnd.run()

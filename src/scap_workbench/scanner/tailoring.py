@@ -22,9 +22,9 @@
 
 """ Importing standard python libraries
 """
-import gtk              # GTK library
+from gi.repository import Gtk
 import glib
-import pango            # pango library for WRAP* variables
+from gi.repository import Pango
 import re               # Regular expressions 
 import sre_constants    # For re.compile exception
 import logging          # Logger for debug/info/error messages
@@ -290,7 +290,7 @@ class ItemDetails(EventObject):
         # TODO: Move to Glade
 
         #info (id, title, type)
-        expander = Gtk.Expander("<b>Info</b>")
+        expander = Gtk.Expander(label = "<b>Info</b>")
         expander.set_expanded(True)
         label = expander.get_label_widget()
         label.set_use_markup(True)
@@ -299,33 +299,33 @@ class ItemDetails(EventObject):
         expander.add(alig)
         vbox = Gtk.VBox()
         alig.add(vbox)
-        vbox.pack_start(Gtk.HSeparator(, True, True, 0), expand=False, fill=True, padding=1)
-        self.box_details.pack_start(expander, expand=False, fill=True, padding=1)
+        vbox.pack_start(Gtk.HSeparator(), False, True, 1)
+        self.box_details.pack_start(expander, False, True, 1)
 
         #id
         hbox = Gtk.HBox()
-        hbox.pack_start(Gtk.Label("ID: ", True, True, 0), expand=False, fill=True, padding=1)
+        hbox.pack_start(Gtk.Label(label = "ID: "), False, True, 1)
         self.id = Gtk.Label(label="")
         self.id.set_alignment(0,0)
-        hbox.pack_start(self.id, expand=True, fill=True, padding=1)
-        vbox.pack_start(hbox, expand=False, fill=False, padding=1)
+        hbox.pack_start(self.id, True, True, 1)
+        vbox.pack_start(hbox, False, False, 1)
 
         #title
         hbox = Gtk.HBox()
-        label = Gtk.Label(label="Title: ")
+        label = Gtk.Label(label = "Title: ")
         label.set_alignment(0,0)
-        hbox.pack_start(label, expand=False, fill=True, padding=1)
+        hbox.pack_start(label, False, True, 1)
         self.title = Gtk.Label(label="")
         self.title.set_line_wrap(True)
         self.title.set_line_wrap_mode(Pango.WrapMode.WORD)
         core.label_set_autowrap(self.title)
         self.title.set_alignment(0,0)
-        hbox.pack_start(self.title, expand=True, fill=True, padding=1)
-        vbox.pack_start(hbox, expand=False, fill=False, padding=1)
+        hbox.pack_start(self.title, True, True, 1)
+        vbox.pack_start(hbox, False, False, 1)
 
         #type
         hbox = Gtk.HBox()
-        hbox.pack_start(Gtk.Label("Type: ", True, True, 0), expand=False, fill=True, padding=1)
+        hbox.pack_start(Gtk.Label(label = "Type: "), False, True, 1)
         self.type = Gtk.Label(label="")
         self.type.set_alignment(0,0)
         hbox.pack_start(self.type, expand=True, fill=True, padding=1)
@@ -357,7 +357,7 @@ class ItemDetails(EventObject):
         expander.add(alig)
         vbox = Gtk.VBox()
         alig.add(vbox)
-        vbox.pack_start(Gtk.HSeparator(, True, True, 0), expand=False, fill=True, padding=3)
+        vbox.pack_start(Gtk.HSeparator(), expand=False, fill=True, padding=3)
         self.refBox = Gtk.VBox()
         vbox.pack_start(self.refBox, expand=False, fill=False, padding=0)
         self.box_details.pack_start(expander, expand=False, fill=False, padding=1)
@@ -380,7 +380,7 @@ class ItemDetails(EventObject):
         alig.set_padding(0, 10, 12, 4)
         vbox = Gtk.VBox()
         alig.add(vbox)
-        vbox.pack_start(Gtk.HSeparator(, True, True, 0), expand=False, fill=False, padding=3)
+        vbox.pack_start(Gtk.HSeparator(), expand=False, fill=False, padding=3)
         self.fixes = HtmlTextView()
         self.fixes.set_wrap_mode(Gtk.WrapMode.WORD)
         self.fixes.modify_base(Gtk.StateType.NORMAL, bg_color)
@@ -403,7 +403,7 @@ class ItemDetails(EventObject):
         alig.set_padding(0, 10, 12, 4)
         vbox = Gtk.VBox()
         alig.add(vbox)
-        vbox.pack_start(Gtk.HSeparator(, True, True, 0), expand=False, fill=False, padding=3)
+        vbox.pack_start(Gtk.HSeparator(), expand=False, fill=False, padding=3)
         self.description = HtmlTextView()
         self.description.set_wrap_mode(Gtk.WrapMode.WORD)
         self.description.modify_base(Gtk.StateType.NORMAL, bg_color)

@@ -21,7 +21,7 @@
 
 """ Importing standard python libraries
 """
-import gtk              # GTK library
+from gi.repository import Gtk
 import os               # os Path join/basename, ..
 import tempfile         # Temporary file for XCCDF preview
 import logging          # Logger for debug/info/error messages

@@ -149,7 +149,7 @@ class Renderer(abstract.MenuButton,EventObject):
         alig_filters = self.add_frame(filter_box, "Search")
         self.search = Search(self)
         self.expander.focus_widget = self.search.entry
-        self.expander.get_widget().pack_start(self.search.get_widget(, True, True, 0), True, True)
+        self.expander.get_widget().pack_start(self.search.get_widget(), True, True, 0)
 
         #filter
         alig_filters = self.add_frame(filter_box, "Active filters")
@@ -195,7 +195,7 @@ class Renderer(abstract.MenuButton,EventObject):
         """ Add filter to list active filter and emit signal filter was added"""
         filter.active = True
         filter.render()
-        self.expander.get_widget().pack_start(filter.get_widget(, True, True, 0), True, True)
+        self.expander.get_widget().pack_start(filter.get_widget(), True, True, 0)
         self.filters.append(filter)
         self.emit("filter_add")
 
@@ -405,7 +405,7 @@ class AdvancedFilterModel(Gtk.TreeStore):
         if not args:
             raise ValueError("AdvancedFilterModel constructor requires at least one argument")
 
-        super(GObject.GObject.__init__()
+        super(AdvancedFilterModel, self).__init__()
         self.__args = args
         self.__reference = self.TreeStore(args)
 

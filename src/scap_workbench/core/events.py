@@ -20,7 +20,9 @@
 #      Maros Barabas        <xbarry@gmail.com>
 #      Vladimir Oberreiter  <xoberr01@stud.fit.vutbr.cz>
 
-import gobject, gtk
+from gi.repository import GObject
+from gi.repository import Gtk
+
 import logging
 
 logger = logging.getLogger("scap-workbench")

@@ -20,7 +20,8 @@
 #      Maros Barabas        <xbarry@gmail.com>
 #      Vladimir Oberreiter  <xoberr01@stud.fit.vutbr.cz>
 
-import gtk, logging, sys, re, time, os
+from gi.repository import Gtk
+import logging, sys, re, time, os
 from gi.repository import GObject
 import webbrowser
 import datetime
