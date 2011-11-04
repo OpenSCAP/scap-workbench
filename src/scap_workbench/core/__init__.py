@@ -22,9 +22,11 @@
 """ Importing standard python libraries
 """
 from gi.repository import Gtk
+from gi.repository import Gdk
+from gi.repository import Pango
+
 import os       # os Path join/basename, ..
 import sys      # system library for standard in/out and exit
-from gi.repository import Pango
 import getopt   # Parsing program parameters
 import os.path
 import logging                  # Logger for debug/info/error messages
@@ -122,7 +124,8 @@ class Notification(object):
             self.label = Gtk.Label(label=text)
             if link_cb: self.label.connect("activate-link", link_cb)
             self.label.set_alignment(0, 0.5)
-            self.label.modify_fg(Gtk.StateType.NORMAL, Gdk.Color(Notification.COLOR[lvl]))
+            # color_parse returns a (success?, the_color) tuple, that's the reason for [1]
+            self.label.modify_fg(Gtk.StateType.NORMAL, Gdk.color_parse(Notification.COLOR[lvl])[1])
             self.label.set_use_markup(True)
             #self.label.set_line_wrap(True)
             self.label.set_line_wrap_mode(Pango.WrapMode.WORD)
@@ -137,11 +140,13 @@ class Notification(object):
         self.close_btn.set_label("x")
         box.pack_start(self.close_btn, False, False, 0)
         self.eb = Gtk.EventBox()
-        self.eb.modify_bg(Gtk.StateType.NORMAL, Gdk.Color(Notification.BG_COLOR[lvl]))
+        # color_parse returns a (success?, the_color) tuple, that's the reason for [1]
+        self.eb.modify_bg(Gtk.StateType.NORMAL, Gdk.color_parse(Notification.BG_COLOR[lvl])[1])
         self.eb.set_border_width(1)
         self.eb.add(align)
         self.widget = Gtk.EventBox()
-        self.widget.modify_bg(Gtk.StateType.NORMAL, Gdk.Color(Notification.COLOR[lvl]))
+        # color_parse returns a (success?, the_color) tuple, that's the reason for [1]
+        self.widget.modify_bg(Gtk.StateType.NORMAL, Gdk.color_parse(Notification.COLOR[lvl])[1])
         self.widget.add(self.eb)
     
         self.widget.show_all()
@@ -385,8 +390,11 @@ class SWBCore(object):
             self.__global_notifications[None].append(notification)
 
         # Either add this to the info_box provided or to the global info_box
-        if info_box: info_box.pack_start(notification.widget, False, True)
-        else: self.info_box.pack_start(notification.widget, False, True)
+        if info_box:
+            info_box.pack_start(notification.widget, False, True, 0)
+        else:
+            self.info_box.pack_start(notification.widget, False, True, 0)
+        
         return notification
 
     def notify_destroy(self, msg_id):

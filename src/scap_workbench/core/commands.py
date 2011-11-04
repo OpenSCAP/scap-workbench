@@ -21,8 +21,9 @@
 #      Vladimir Oberreiter  <xoberr01@stud.fit.vutbr.cz>
 
 from gi.repository import Gtk
-import logging, sys, re, time, os
+from gi.repository import Gdk
 from gi.repository import GObject
+import logging, sys, re, time, os
 import webbrowser
 import datetime
 import time
@@ -733,7 +734,6 @@ class DataHandler(object):
         else: raise AttributeError("Edit warning: Unknown operation %s" % (operation,))
 
     def edit_status(self, operation, obj, date, status, item=None):
-
         if not self.check_library(): return None
 
         if item == None:
