@@ -21,6 +21,9 @@
 #      Vladimir Oberreiter  <xoberr01@stud.fit.vutbr.cz>
 #      Martin Preisler      <mpreisle@redhat.com>
 
+from gi.repository import Gtk
+from gi.repository import Gdk
+
 from scap_workbench import core
 from scap_workbench.core import paths
 from scap_workbench.core import abstract
@@ -30,8 +33,6 @@ from scap_workbench.editor.edit import *
 import os.path
 import re
 import sre_constants
-from gi.repository import Gtk
-
 import logging
 
 # Initializing Logger
@@ -317,7 +318,7 @@ class ProfileList(abstract.List):
     def __cb_key_press(self, widget, event):
         """ The key-press event has occured upon the list.
         If key == delete: Delete the selected item from the list and model"""
-        if event and event.type == Gdk.KEY_PRESS and event.keyval == Gdk.KEY_Delete:
+        if event and event.type == Gdk.EventType.KEY_PRESS and event.keyval == Gdk.KEY_Delete:
             selection = self.get_TreeView().get_selection()
             (model,iter) = selection.get_selected()
             if iter: self.__cb_item_remove()
