@@ -102,9 +102,10 @@ class ErrorHandler(object):
         
         Internal method, do not call directly!
         """
+
+        # we also call the original excepthook which will just output things to stderr
+        sys.__excepthook__(exc_type, exc_message, exc_traceback)
         
         dialog = ExceptionDialog(exc_type, exc_message, exc_traceback)
         dialog.run()
 
-        # we also call the original excepthook which will just output things to stderr
-        sys.__excepthook__(exc_type, exc_message, exc_traceback)

@@ -117,7 +117,7 @@ class Notification(object):
         align.add(box)
         self.img = Gtk.Image()
         self.img.set_from_icon_name(Notification.IMG[lvl], Notification.DEFAULT_SIZE)
-        box.pack_start(self.img, False, False)
+        box.pack_start(self.img, False, False, 0)
         if type(text) == str:
             self.label = Gtk.Label(label=text)
             if link_cb: self.label.connect("activate-link", link_cb)
@@ -127,13 +127,15 @@ class Notification(object):
             #self.label.set_line_wrap(True)
             self.label.set_line_wrap_mode(Pango.WrapMode.WORD)
             label_set_autowrap(self.label)
-            box.pack_start(self.label, True, True)
-        else: box.pack_start(text, True, True)
+            box.pack_start(self.label, True, True, 0)
+        else:
+            box.pack_start(text, True, True, 0)
+            
         self.close_btn = Gtk.Button()
         self.close_btn.set_relief(Gtk.ReliefStyle.NONE)
         self.close_btn.connect("clicked", self.__cb_destroy)
         self.close_btn.set_label("x")
-        box.pack_start(self.close_btn, False, False)
+        box.pack_start(self.close_btn, False, False, 0)
         self.eb = Gtk.EventBox()
         self.eb.modify_bg(Gtk.StateType.NORMAL, Gdk.Color(Notification.BG_COLOR[lvl]))
         self.eb.set_border_width(1)

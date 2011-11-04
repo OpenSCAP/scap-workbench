@@ -79,8 +79,7 @@ class HtmlHandler(xml.sax.handler.ContentHandler):
     def _parse_style_background_color(self, tag, value):
         color = _parse_css_color(value)
         tag.set_property("background-gdk", color)
-        if Gtk.gtk_version >= (2, 8):
-            tag.set_property("paragraph-background-gdk", color)
+        tag.set_property("paragraph-background-gdk", color)
 
 
         def _get_current_attributes(self):
@@ -548,6 +547,3 @@ class HtmlTextView(Gtk.TextView):
         
         if not eob.starts_line():
             buffer.insert(eob, "\n")
-
-if GObject.pygtk_version < (2, 8):
-    GObject.type_register(HtmlTextView)
