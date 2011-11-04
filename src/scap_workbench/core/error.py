@@ -19,7 +19,7 @@
 # Authors:
 #      Martin Preisler <mpreisle@redhat.com>
 
-import gtk
+from gi.repository import Gtk
 
 import sys
 import os.path
@@ -35,7 +35,7 @@ class ExceptionDialog(object):
     """
 
     def __init__(self, exc_type, exc_message, exc_traceback):
-        self.builder = gtk.Builder()
+        self.builder = Gtk.Builder()
         self.builder.add_from_file(os.path.join(paths.glade_prefix, "error.glade"))
         
         self.window = self.builder.get_object("exception_dialog")
@@ -49,7 +49,7 @@ class ExceptionDialog(object):
         formatted_traceback = traceback.format_tb(exc_traceback)
         self.traceback_str = "\n".join(formatted_traceback)
 
-        buffer = gtk.TextBuffer()
+        buffer = Gtk.TextBuffer()
         buffer.set_text("Version: %s\n"
                         "Python version: %s\n"
                         "GTK version: %s\n"
@@ -59,7 +59,7 @@ class ExceptionDialog(object):
                         "Exception message: %s\n"
                         "\n"
                         "Traceback:\n"
-                        "%s" % (version.as_string, sys.version, gtk.gtk_version, gtk.pygtk_version,
+                        "%s" % (version.as_string, sys.version, Gtk.gtk_version, Gtk.pygtk_version,
                                 exc_type, exc_message, self.traceback_str))
         
         self.details.set_buffer(buffer)

@@ -30,7 +30,7 @@ from scap_workbench.editor.edit import *
 import os.path
 import re
 import sre_constants
-import gtk
+from gi.repository import Gtk
 
 import logging
 
@@ -44,7 +44,7 @@ class AddProfileDialog(EventObject):
         
         self.data_model = data_model
         self.__update = cb
-        builder = gtk.Builder()
+        builder = Gtk.Builder()
         builder.add_from_file(os.path.join(paths.glade_dialog_prefix, "profile_add.glade"))
         
         self.window = builder.get_object("dialog:profile_add")
@@ -58,7 +58,7 @@ class AddProfileDialog(EventObject):
         self.lang = builder.get_object("profile_add:entry_lang")
         self.lang.set_text(self.core.selected_lang or "")
 
-        self.__entry_style = self.pid.get_style().base[gtk.STATE_NORMAL]
+        self.__entry_style = self.pid.get_style().base[Gtk.StateType.NORMAL]
         self.show()
 
     def __cb_do(self, widget):
@@ -73,16 +73,16 @@ class AddProfileDialog(EventObject):
                 self.core.notify("Profile \"%s\" already exists." % (self.pid.get_text(),),
                         core.Notification.ERROR, self.info_box, msg_id="notify:edit:profile:new")
                 self.pid.grab_focus()
-                self.pid.modify_base(gtk.STATE_NORMAL, gtk.gdk.Color("#FFC1C2"))
+                self.pid.modify_base(Gtk.StateType.NORMAL, Gdk.Color("#FFC1C2"))
                 return
-        self.pid.modify_base(gtk.STATE_NORMAL, self.__entry_style)
+        self.pid.modify_base(Gtk.StateType.NORMAL, self.__entry_style)
         if len(self.title.get_text()) == 0: 
             self.core.notify("Please add title for this profile.",
                     core.Notification.ERROR, self.info_box, msg_id="notify:edit:profile:new")
             self.title.grab_focus()
-            self.title.modify_base(gtk.STATE_NORMAL, gtk.gdk.Color("#FFC1C2"))
+            self.title.modify_base(Gtk.StateType.NORMAL, Gdk.Color("#FFC1C2"))
             return
-        self.title.modify_base(gtk.STATE_NORMAL, self.__entry_style)
+        self.title.modify_base(Gtk.StateType.NORMAL, self.__entry_style)
 
         self.data_model.add(id=self.pid.get_text(), lang=self.lang.get_text(), title=self.title.get_text())
         self.core.selected_profile = self.pid.get_text()
@@ -90,7 +90,7 @@ class AddProfileDialog(EventObject):
         self.__update(force=True)
 
     def show(self):
-        self.window.set_transient_for(self.core.main_window)
+        self.set_transient_for(self.core.main_window)
         self.window.show()
 
     def __delete_event(self, widget, event=None):
@@ -135,7 +135,7 @@ class ProfileList(abstract.List):
         widget.connect("button_press_event", self.__cb_button_pressed, self.builder.get_object("profile_list:popup"))
 
         selection = self.get_TreeView().get_selection()
-        selection.set_mode(gtk.SELECTION_SINGLE)
+        selection.set_mode(Gtk.SelectionMode.SINGLE)
         selection.connect("changed", self.__cb_changed, self.get_TreeView())
         self.section_list = self.builder.get_object("xccdf:section_list")
         self.profilesList = self.builder.get_object("xccdf:tw_profiles:sw")
@@ -317,7 +317,7 @@ class ProfileList(abstract.List):
     def __cb_key_press(self, widget, event):
         """ The key-press event has occured upon the list.
         If key == delete: Delete the selected item from the list and model"""
-        if event and event.type == gtk.gdk.KEY_PRESS and event.keyval == gtk.keysyms.Delete:
+        if event and event.type == Gdk.KEY_PRESS and event.keyval == Gdk.KEY_Delete:
             selection = self.get_TreeView().get_selection()
             (model,iter) = selection.get_selected()
             if iter: self.__cb_item_remove()
@@ -458,7 +458,7 @@ class MenuButtonEditProfiles(abstract.MenuButton, abstract.Func):
 
     def __change(self, widget, event=None):
 
-        if event and event.type == gtk.gdk.KEY_PRESS and event.keyval != gtk.keysyms.Return:
+        if event and event.type == Gdk.KEY_PRESS and event.keyval != Gdk.KEY_Return:
             return
 
         item = self.list_profile.selected

@@ -23,7 +23,7 @@
 """ Importing standard python libraries
 """
 import gtk              # GTK library
-import gobject          # gobject.TYPE_PYOBJECT
+import gobject          # GObject.TYPE_PYOBJECT
 import re               # Regular expressions
 import datetime
 import time
@@ -48,7 +48,7 @@ checked by:
 try:
     # Import WebKit module for HTML editing 
     # of descriptions
-    import webkit
+    from gi.repository import WebKit
     HAS_WEBKIT = True
 except ImportError:
     HAS_WEBKIT = False
@@ -160,39 +160,39 @@ class MenuButton(EventObject):
         self.widget.connect("toggled", self.cb_toggle)
 
     def add_frame_vp(self,body, text,pos = 1):
-        frame = gtk.Frame(text)
-        frame.set_shadow_type(gtk.SHADOW_NONE)
+        frame = Gtk.Frame(text)
+        frame.set_shadow_type(Gtk.ShadowType.NONE)
         #frame.set_border_width(5)        
         label = frame.get_label_widget()
         label.set_use_markup(True)        
         if pos == 1: body.pack1(frame,  resize=False, shrink=False)
         else: body.pack2(frame,  resize=False, shrink=False)
-        alig = gtk.Alignment(0.5, 0.5, 1, 1)
+        alig = Gtk.Alignment.new(0.5, 0.5, 1, 1)
         alig.set_padding(0, 0, 12, 0)
         frame.add(alig)
         return frame, alig
 
     def add_frame(self, body, text):
-        label = gtk.Label(text)
+        label = Gtk.Label(label=text)
         label.set_use_markup(True)
-        label.set_justify(gtk.JUSTIFY_LEFT)
+        label.set_justify(Gtk.Justification.LEFT)
         label.set_alignment(0, 0)
         body.pack_start(label, True, True, padding=4)
-        body.pack_start(gtk.HSeparator(), False, False, padding=2)
-        alig = gtk.Alignment(0, 0, 1, 1)
+        body.pack_start(Gtk.HSeparator(, True, True, 0), False, False, padding=2)
+        alig = Gtk.Alignment.new(0, 0, 1, 1)
         alig.set_padding(0, 0, 12, 0)
         body.pack_start(alig, False, False)
         return alig
 
     #draw functions
     def add_frame_cBox(self, body, text, expand):
-        frame = gtk.Frame(text)
+        frame = Gtk.Frame(text)
         label = frame.get_label_widget()
         label.set_use_markup(True)        
-        frame.set_shadow_type(gtk.SHADOW_NONE)
+        frame.set_shadow_type(Gtk.ShadowType.NONE)
         if expand: body.pack_start(frame, True, True)
         else: body.pack_start(frame, False, True)
-        alig = gtk.Alignment(0.5, 0.5, 1, 1)
+        alig = Gtk.Alignment.new(0.5, 0.5, 1, 1)
         alig.set_padding(0, 0, 12, 0)
         frame.add(alig)
         return alig
@@ -345,7 +345,7 @@ class List(EventObject):
 
     def __search_branch(self, model, iter, iter_start, data):
         """ Search data in model from iter next. Search terminates when a row is found. 
-            @param model is gtk.treeModel
+            @param model is Gtk.treeModel
             @param iter is start position
             @param data is a tuple containing column number and key
             @return iter or None
@@ -628,7 +628,7 @@ class Func(object):
 
     def prepare_preview(self):
 
-        builder = gtk.Builder()
+        builder = Gtk.Builder()
         builder.add_from_file(os.path.join(paths.glade_dialog_prefix, "preview.glade"))
         self.preview_dialog = builder.get_object("dialog:preview")
         self.preview_scw = builder.get_object("dialog:preview:scw")
@@ -638,9 +638,9 @@ class Func(object):
         builder.get_object("dialog:preview:btn_ok").connect("clicked", self.destroy_preview)
         self.preview_dialog.connect("destroy", self.destroy_preview)
         # Get the background color from window and destroy it
-        window = gtk.Window()
+        window = Gtk.Window()
         window.realize()
-        bg_color = window.get_style().bg[gtk.STATE_NORMAL]
+        bg_color = window.get_style().bg[Gtk.StateType.NORMAL]
         window.destroy()
 
         desc="""
@@ -660,12 +660,12 @@ class Func(object):
             self.description_widget = webkit.WebView()
             self.description_widget.load_html_string(desc, "file:///")
             self.description_widget.set_zoom_level(0.75)
-            #description.modify_bg(gtk.STATE_NORMAL, bg_color)
-            #description.parent.modify_bg(gtk.STATE_NORMAL, bg_color)
+            #description.modify_bg(Gtk.StateType.NORMAL, bg_color)
+            #description.parent.modify_bg(Gtk.StateType.NORMAL, bg_color)
         else:
             self.description_widget = HtmlTextView()
-            self.description_widget.set_wrap_mode(gtk.WRAP_WORD)
-            self.description_widget.modify_base(gtk.STATE_NORMAL, bg_color)
+            self.description_widget.set_wrap_mode(Gtk.WrapMode.WORD)
+            self.description_widget.modify_base(Gtk.StateType.NORMAL, bg_color)
             try:
                 self.description_widget.display_html(desc)
             except Exception:
@@ -673,7 +673,7 @@ class Func(object):
         
         self.preview_scw.add(self.description_widget)
         self.description_widget.show()
-        #self.preview_dialog.window.set_cursor(gtk.gdk.Cursor(gtk.gdk.WATCH))
+        #self.preview_dialog.window.set_cursor(Gdk.Cursor.new(Gdk.WATCH))
 
         self.preview_dialog.set_transient_for(self.core.main_window)
         self.preview_dialog.show()
@@ -707,7 +707,7 @@ class Func(object):
             except Exception as err:
                 logger.exception("Exception: %s" % (err))
                 
-        #self.preview_dialog.window.set_cursor(gtk.gdk.Cursor(gtk.gdk.ARROW))
+        #self.preview_dialog.window.set_cursor(Gdk.Cursor.new(Gdk.ARROW))
 
         self.save.set_property("visible", save != None)
         if save != None:
@@ -738,13 +738,13 @@ class Func(object):
         """
         (model,iter) = selection.get_selected()
         if iter:
-            md = gtk.MessageDialog(window, 
-                gtk.DIALOG_MODAL, gtk.MESSAGE_QUESTION,
-                gtk.BUTTONS_YES_NO, "Do you want delete selected row?")
+            md = Gtk.MessageDialog(window, 
+                Gtk.DialogFlags.MODAL, Gtk.MessageType.QUESTION,
+                Gtk.ButtonsType.YES_NO, "Do you want delete selected row?")
             md.set_title("Delete row")
             result = md.run()
             md.destroy()
-            if result == gtk.RESPONSE_NO: 
+            if result == Gtk.ResponseType.NO: 
                 return None
             else: 
                 return iter
@@ -758,17 +758,17 @@ class Func(object):
         
     def dialogInfo(self, text, window):
         #window = self.core.main_window
-        md = gtk.MessageDialog(window, 
-                    gtk.DIALOG_MODAL, gtk.MESSAGE_INFO,
-                    gtk.BUTTONS_OK, text)
+        md = Gtk.MessageDialog(window, 
+                    Gtk.DialogFlags.MODAL, Gtk.MessageType.INFO,
+                    Gtk.ButtonsType.OK, text)
         md.set_title("Info")
         md.run()
         md.destroy()
 
     def addColumn(self, name, column, expand=False):
         #txtcell = abstract.CellRendererTextWrap()
-        txtcell = gtk.CellRendererText()
-        column = gtk.TreeViewColumn(name, txtcell, text=column)
+        txtcell = Gtk.CellRendererText()
+        column = Gtk.TreeViewColumn(name, txtcell, text=column)
         column.set_expand(expand)
         column.set_resizable(True)
         self.lv.append_column(column)
@@ -795,7 +795,7 @@ class Func(object):
             comboBox.set_active(-1)
         
     def set_model_to_comboBox(self, combo, model, view_column):
-        cell = gtk.CellRendererText()
+        cell = Gtk.CellRendererText()
         combo.pack_start(cell, True)
         combo.add_attribute(cell, 'text', view_column)  
         combo.set_model(model)
@@ -979,17 +979,17 @@ class HTMLEditor(ListEditor):
         self.__toolbar = toolbar
 
         # Make ScrollWindows for both HTML and PLAIN views
-        self.__html_sw = gtk.ScrolledWindow()
+        self.__html_sw = Gtk.ScrolledWindow()
         box.pack_start(self.__html_sw, True, True)
-        self.__plain_sw = gtk.ScrolledWindow()
+        self.__plain_sw = Gtk.ScrolledWindow()
         box.pack_start(self.__plain_sw, True, True)
-        self.__plain = gtk.TextView()
+        self.__plain = Gtk.TextView()
         self.__plain_sw.add(self.__plain)
         self.__plain_sw.show_all()
 
         if not HAS_WEBKIT:
-            label = gtk.Label("Missing WebKit python module")
-            label.modify_fg(gtk.STATE_NORMAL, gtk.gdk.Color("red"))
+            label = Gtk.Label(label="Missing WebKit python module")
+            label.modify_fg(Gtk.StateType.NORMAL, Gdk.Color("red"))
             self.__html_sw.add_with_viewport(label)
             self.__toolbar.set_sensitive(False)
             self.__html_sw.show_all()
@@ -1065,30 +1065,30 @@ class HTMLEditor(ListEditor):
         self.__html = widget
 
     def on_color_set(self, widget):
-        dialog = gtk.ColorSelectionDialog("Select Color")
-        if dialog.run() == gtk.RESPONSE_OK:
+        dialog = Gtk.ColorSelectionDialog("Select Color")
+        if dialog.run() == Gtk.ResponseType.OK:
             gc = str(dialog.colorsel.get_current_color())
             color = "#" + "".join([gc[1:3], gc[5:7], gc[9:11]])
             self.__html.execute_script("document.execCommand('forecolor', null, '%s');" % color)
         dialog.destroy()
 
     def on_font_set(self, widget):
-        dialog = gtk.FontSelectionDialog("Select a font")
-        if dialog.run() == gtk.RESPONSE_OK:
+        dialog = Gtk.FontSelectionDialog("Select a font")
+        if dialog.run() == Gtk.ResponseType.OK:
             fname, fsize = dialog.fontsel.get_family().get_name(), dialog.fontsel.get_size()
             self.__html.execute_script("document.execCommand('fontname', null, '%s');" % fname)
             self.__html.execute_script("document.execCommand('fontsize', null, '%s');" % fsize)
         dialog.destroy()
 
     def on_link_set(self, widget):
-        dialog = gtk.Dialog("Enter a URL:", self.core.main_window, 0,
-        (gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL, gtk.STOCK_OK, gtk.RESPONSE_OK))
+        dialog = Gtk.Dialog("Enter a URL:", self.core.main_window, 0,
+        (Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL, Gtk.STOCK_OK, Gtk.ResponseType.OK))
 
-        entry = gtk.Entry()
-        dialog.vbox.pack_start(entry)
+        entry = Gtk.Entry()
+        dialog.vbox.pack_start(entry, True, True, 0)
         dialog.show_all()
 
-        if dialog.run() == gtk.RESPONSE_OK:
+        if dialog.run() == Gtk.ResponseType.OK:
             text = entry.get_text()
             text = "<sub xmlns=\"http://checklists.nist.gov/xccdf/1.1\" idref=\""+text+"\"/>"
             self.__html.execute_script("document.execCommand('InsertHTML', true, '%s');" % text)
@@ -1151,20 +1151,20 @@ class HTMLEditor(ListEditor):
         self.__switcher.parent.set_sensitive(True)
 
 
-class CellRendererTextWrap(gtk.CellRendererText):
+class CellRendererTextWrap(Gtk.CellRendererText):
     """ pokus asi nebude pouzito necham najindy pozeji smazu"""
     def __init__(self):
         self.__gobject_init__()
-        gtk.CellRendererText.__init__( self )
+        GObject.GObject.__init__( self )
         self.callable = None
         self.table = None
         self.set_property("wrap-mode", True)
         
     def do_render(self, window, wid, bg_area, cell_area, expose_area, flags):
         self.set_property("wrap-width", cell_area.width )
-        gtk.CellRendererText.do_render( self, window, wid, bg_area,cell_area, expose_area, flags)
+        Gtk.CellRendererText.do_render( self, window, wid, bg_area,cell_area, expose_area, flags)
        
-gobject.type_register(CellRendererTextWrap)
+GObject.type_register(CellRendererTextWrap)
 
 class EnterList(EventObject):
     """
@@ -1193,22 +1193,22 @@ class EnterList(EventObject):
         self.control_unique = []
         self.model = model
         self.treeView = treeView
-        self.treeView.set_grid_lines(gtk.TREE_VIEW_GRID_LINES_BOTH)
+        self.treeView.set_grid_lines(Gtk.TREE_VIEW_GRID_LINES_BOTH)
         self.treeView.set_model(self.model)
         self.treeView.connect("key-press-event", self.__cb_del_row)
         self.treeView.connect("focus-out-event", self.__cb_leave_row)
-        txtcell = gtk.CellRendererText()
-        column = gtk.TreeViewColumn("", txtcell, text=EnterList.COLUMN_MARK_ROW)
+        txtcell = Gtk.CellRendererText()
+        column = Gtk.TreeViewColumn("", txtcell, text=EnterList.COLUMN_MARK_ROW)
         self.treeView.append_column(column)
 
         self.selection = self.treeView.get_selection()
-        self.selection.set_mode(gtk.SELECTION_SINGLE)
+        self.selection.set_mode(Gtk.SelectionMode.SINGLE)
         self.hendler_item_changed = self.selection.connect("changed", self.__cb_item_changed_control)
     
     def set_insertColumnText(self, name, column_n, empty=True, unique=False ):
         
         txtcell = CellRendererTextWrap()
-        column = gtk.TreeViewColumn(name, txtcell, text=column_n)
+        column = Gtk.TreeViewColumn(name, txtcell, text=column_n)
         column.set_resizable(True)
         self.treeView.append_column(column)
         txtcell.set_property("editable",True)
@@ -1227,7 +1227,7 @@ class EnterList(EventObject):
     def set_insertColumnInfo(self, name, column_n, empty= True):
         
         txtcell = CellRendererTextWrap()
-        column = gtk.TreeViewColumn(name, txtcell, text=column_n)
+        column = Gtk.TreeViewColumn(name, txtcell, text=column_n)
         column.set_resizable(True)
         txtcell.set_property("foreground", "gray")
         self.treeView.append_column(column)
@@ -1250,9 +1250,9 @@ class EnterList(EventObject):
                         (column, name) = cell
                         data = self.model.get_value(iter, column)
                         if (data == "" or data == None):
-                            md = gtk.MessageDialog(self.window, 
-                                    gtk.DIALOG_MODAL, gtk.MESSAGE_INFO,
-                                    gtk.BUTTONS_OK, " Column \"%s\" can't be empty." % (name))
+                            md = Gtk.MessageDialog(self.window, 
+                                    Gtk.DialogFlags.MODAL, Gtk.MessageType.INFO,
+                                    Gtk.ButtonsType.OK, " Column \"%s\" can't be empty." % (name))
                             md.set_title("Info")
                             md.run()
                             md.destroy()
@@ -1269,13 +1269,13 @@ class EnterList(EventObject):
                         new_text = self.model.get_value(iter, column)
                         for row in self.model:
                             if row[column] == new_text and self.model.get_path(row.iter) != path:
-                                md = gtk.MessageDialog(self.window, 
-                                        gtk.DIALOG_MODAL, gtk.MESSAGE_QUESTION,
-                                        gtk.BUTTONS_YES_NO, "%s \"%s\" already specified.\n\nRewrite stored data ?" % (name, new_text,))
+                                md = Gtk.MessageDialog(self.window, 
+                                        Gtk.DialogFlags.MODAL, Gtk.MessageType.QUESTION,
+                                        Gtk.ButtonsType.YES_NO, "%s \"%s\" already specified.\n\nRewrite stored data ?" % (name, new_text,))
                                 md.set_title("Language found")
                                 result = md.run()
                                 md.destroy()
-                                if result == gtk.RESPONSE_NO:
+                                if result == Gtk.ResponseType.NO:
                                     iter = self.selected_old
                                     self.selection.handler_block(self.hendler_item_changed)
                                     self.selection.select_path(self.model.get_path(iter))
@@ -1313,19 +1313,19 @@ class EnterList(EventObject):
             
     def __cb_del_row(self, widget, event):
 
-        keyname = gtk.gdk.keyval_name(event.keyval)
+        keyname = Gdk.keyval_name(event.keyval)
         if keyname == "Delete":
             selection = self.treeView.get_selection( )
             if selection != None: 
                 (model, iter) = selection.get_selected( )
                 if  iter != None and self.model.get_value(iter, EnterList.COLUMN_MARK_ROW) != "*":
-                    md = gtk.MessageDialog(self.window, 
-                        gtk.DIALOG_MODAL, gtk.MESSAGE_QUESTION,
-                        gtk.BUTTONS_YES_NO, "Do you want delete selected row?")
+                    md = Gtk.MessageDialog(self.window, 
+                        Gtk.DialogFlags.MODAL, Gtk.MessageType.QUESTION,
+                        Gtk.ButtonsType.YES_NO, "Do you want delete selected row?")
                     md.set_title("Delete row")
                     result = md.run()
                     md.destroy()
-                    if result == gtk.RESPONSE_NO: 
+                    if result == Gtk.ResponseType.NO: 
                         return
                     else: 
                         self.selected_old = None
@@ -1349,7 +1349,7 @@ class ControlEditWindow(Func):
             self.lv = lv
             self.model = lv.get_model()
             self.selection = lv.get_selection()
-            self.selection.set_mode(gtk.SELECTION_SINGLE)
+            self.selection.set_mode(Gtk.SelectionMode.SINGLE)
 
     def cb_edit_row(self, widget=None):
         (model,iter) = self.selection.get_selected()
@@ -1394,7 +1394,7 @@ class EditDialogWindow(EventObject):
         self.values = values
         self.item = item
         self.init_data = None
-        builder = gtk.Builder()
+        builder = Gtk.Builder()
         builder.add_from_file(os.path.join(paths.glade_prefix, "dialogs.glade"))
         
         self.window = builder.get_object("dialog:edit_item")
@@ -1443,7 +1443,7 @@ class EditDialogWindow(EventObject):
 
         if "cBox" in values:
             self.cBox = builder.get_object("cBox")
-            cell = gtk.CellRendererText()
+            cell = Gtk.CellRendererText()
             self.cBox.pack_start(cell, True)
             self.cBox.add_attribute(cell, 'text',values["cBox"]["cBox_view"])  
             self.cBox.set_model(values["cBox"]["model"])
@@ -1573,7 +1573,7 @@ class EditDialogWindow(EventObject):
         self.window.destroy()
 
     def show(self):
-        self.window.set_transient_for(self.core.main_window)
+        self.set_transient_for(self.core.main_window)
         self.window.show()
         
     def control_unique(self, name, model, column, data, iter):
@@ -1589,13 +1589,13 @@ class EditDialogWindow(EventObject):
             
         for row in model:
             if row[column] == data and self.model.get_path(row.iter) != path:
-                md = gtk.MessageDialog(self.window, 
-                        gtk.DIALOG_MODAL, gtk.MESSAGE_QUESTION,
-                        gtk.BUTTONS_YES_NO, "%s \"%s\" already specified.\n\nRewrite stored data ?" % (name, data,))
+                md = Gtk.MessageDialog(self.window, 
+                        Gtk.DialogFlags.MODAL, Gtk.MessageType.QUESTION,
+                        Gtk.ButtonsType.YES_NO, "%s \"%s\" already specified.\n\nRewrite stored data ?" % (name, data,))
                 md.set_title("Information exist")
                 result = md.run()
                 md.destroy()
-                if result == gtk.RESPONSE_NO:
+                if result == Gtk.ResponseType.NO:
                     return False
                 else: 
                     return model.get_path(row.iter)
@@ -1607,9 +1607,9 @@ class EditDialogWindow(EventObject):
         @return True if not empty else return false
         """
         if (data == "" or data == None):
-            md = gtk.MessageDialog(self.window, 
-                    gtk.DIALOG_MODAL, gtk.MESSAGE_INFO,
-                    gtk.BUTTONS_OK, " \"%s\" can't be empty." % (name))
+            md = Gtk.MessageDialog(self.window, 
+                    Gtk.DialogFlags.MODAL, Gtk.MessageType.INFO,
+                    Gtk.ButtonsType.OK, " \"%s\" can't be empty." % (name))
             md.set_title("Info")
             md.run()
             md.destroy()

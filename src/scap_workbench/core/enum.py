@@ -70,7 +70,7 @@ class enum(tuple):
         else: return tuple(self)[id][0]
 
     def get_model(self):
-        model = gtk.ListStore(int, str, str)
+        model = Gtk.ListStore(int, str, str)
         for item in tuple(self):
             model.append(item)
         return model

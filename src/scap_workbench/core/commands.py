@@ -21,7 +21,7 @@
 #      Vladimir Oberreiter  <xoberr01@stud.fit.vutbr.cz>
 
 import gtk, logging, sys, re, time, os
-import gobject
+from gi.repository import GObject
 import webbrowser
 import datetime
 import time
@@ -524,27 +524,27 @@ class DataHandler(object):
 
         return fixtexts
 
-    def file_browse(self, title, file="", action=gtk.FILE_CHOOSER_ACTION_SAVE):
+    def file_browse(self, title, file="", action=Gtk.FileChooserAction.SAVE):
 
-        if action == gtk.FILE_CHOOSER_ACTION_SAVE:
-            dialog_buttons = (gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL, gtk.STOCK_SAVE, gtk.RESPONSE_OK)
-        else: dialog_buttons = (gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL, gtk.STOCK_OPEN, gtk.RESPONSE_OK)
+        if action == Gtk.FileChooserAction.SAVE:
+            dialog_buttons = (Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL, Gtk.STOCK_SAVE, Gtk.ResponseType.OK)
+        else: dialog_buttons = (Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL, Gtk.STOCK_OPEN, Gtk.ResponseType.OK)
  
-        file_dialog = gtk.FileChooserDialog(title,
+        file_dialog = Gtk.FileChooserDialog(title,
                 action=action,
                 buttons=dialog_buttons)
-        if action == gtk.FILE_CHOOSER_ACTION_SAVE:
+        if action == Gtk.FileChooserAction.SAVE:
             file_dialog.set_do_overwrite_confirmation(True)
 
         if file:
             path = os.path.dirname(file)
             file_dialog.set_current_folder(path)
-            if action == gtk.FILE_CHOOSER_ACTION_SAVE: 
+            if action == Gtk.FileChooserAction.SAVE: 
                 file_dialog.set_current_name(os.path.basename(file))
 
         """Init the return value"""
         result = ""
-        if file_dialog.run() == gtk.RESPONSE_OK:
+        if file_dialog.run() == Gtk.ResponseType.OK:
                 result = file_dialog.get_filename()
         file_dialog.destroy()
 
@@ -1129,7 +1129,7 @@ class DHValues(DataHandler):
     def render(self, treeView):
         """Make a model ListStore of Dependencies object"""
         self.treeView = treeView
-        self.model = gtk.ListStore(str, str, str, gtk.gdk.Color, gtk.TreeModel)
+        self.model = Gtk.ListStore(str, str, str, Gdk.Color, Gtk.TreeModel)
         self.treeView.set_model(self.model)
         return
 
@@ -1157,10 +1157,10 @@ class DHValues(DataHandler):
         values = self.get_item_values(self.core.selected_item)
         # TODO: The 0:gray value is not working cause of error in get_selected that values stay the same color
         # after selecting rule/group
-        color = [gtk.gdk.Color("black"), gtk.gdk.Color("black")][self.get_selected(item, self.items_model)]
+        color = [Gdk.Color("black"), Gdk.Color("black")][self.get_selected(item, self.items_model)]
         for value in values:
             lang = value["lang"]
-            model = gtk.ListStore(str, str)
+            model = Gtk.ListStore(str, str)
             selected = "Unknown value"
             for key in value["options"].keys():
                 if key != '': model.append([key, value["options"][key]])
@@ -1489,12 +1489,12 @@ class DHItemsTree(DataHandler, EventObject):
         recursion to get all items to the tree"""
         color = None
         if self.__progress != None:
-            #gtk.gdk.threads_enter()
+            #Gdk.threads_enter()
             value = self.__progress.get_fraction()+self.__step
             if value > 1.0: value = 1.0
             self.__progress.set_fraction(value)
             self.__progress.set_text("Adding items %s/%s" % (int(self.__progress.get_fraction()/self.__step), self.__total))
-            #gtk.gdk.threads_leave()
+            #Gdk.threads_leave()
 
         """Check the item if it's selected. If the parent or the item is not selected
         change the color of the font to the gray"""
@@ -1512,10 +1512,10 @@ class DHItemsTree(DataHandler, EventObject):
             # TYPE: XCCDF_GROUP
             if item.type == openscap.OSCAP.XCCDF_GROUP:
                 item = item.to_group()
-                #gtk.gdk.threads_enter()
+                #Gdk.threads_enter()
                 item_it = self.model.append(parent, ["group", item.id, title, IMG_GROUP, ""+title, color, selected, pselected])
                 self.treeView.queue_draw()
-                #gtk.gdk.threads_leave()
+                #Gdk.threads_leave()
 
                 """For all content of the group continue with recursive fill
                 """
@@ -1530,10 +1530,10 @@ class DHItemsTree(DataHandler, EventObject):
 
             # TYPE: XCCDF_RULE
             elif item.type == openscap.OSCAP.XCCDF_RULE:
-                #gtk.gdk.threads_enter()
+                #Gdk.threads_enter()
                 item_it = self.model.append(parent, ["rule", item.id, title, IMG_RULE, ""+title, color, selected, pselected])
                 self.treeView.queue_draw()
-                #gtk.gdk.threads_leave()
+                #Gdk.threads_leave()
 
             # TYPE: XCCDF_VALUE
             elif item.type == openscap.OSCAP.XCCDF_VALUE:
@@ -1542,10 +1542,10 @@ class DHItemsTree(DataHandler, EventObject):
                     titles = dict([(title.lang, " ".join(title.text.split())) for title in item.title])
                     if self.core.selected_lang in titles.keys(): title = titles[self.core.selected_lang]
                     else: title = titles[titles.keys()[0]]
-                #gtk.gdk.threads_enter()
+                #Gdk.threads_enter()
                 self.model.append(parent, ["value", item.id, title, IMG_VALUE, ""+title, color, selected, pselected])
                 self.treeView.queue_draw()
-                #gtk.gdk.threads_leave()
+                #Gdk.threads_leave()
 
             #TYPE: UNKNOWN
             else: logger.warning("Unknown type of %s, should be Rule or Group (got %s)", item.type, item.id)
@@ -1591,11 +1591,11 @@ class DHItemsTree(DataHandler, EventObject):
         self.__step = (100.0/(self.__total or 1.0))/100.0
 
         try:
-            #gtk.gdk.threads_enter()
+            #Gdk.threads_enter()
             self.model.clear()
             if self.combo_box: self.combo_box.set_sensitive(False)
             self.treeView.set_sensitive(False)
-            #gtk.gdk.threads_leave()
+            #Gdk.threads_leave()
 
             """Using generator for list cause we don't want to extend (add) values to content
             of benchmark again (list is benchmark content and adding cause adding to model)"""
@@ -1605,19 +1605,19 @@ class DHItemsTree(DataHandler, EventObject):
 
             for item in content:
                 if self.__progress != None:
-                    #gtk.gdk.threads_enter()
+                    #Gdk.threads_enter()
                     value = self.__progress.get_fraction()+self.__step
                     if value > 1.0: value = 1.0
                     self.__progress.set_fraction(value)
                     self.__progress.set_text("Adding items %s/%s" % (int(self.__progress.get_fraction()/self.__step), self.__total))
-                    #gtk.gdk.threads_leave()
+                    #Gdk.threads_leave()
                 self.__recursive_fill(item, with_values=with_values)
 
-            #gtk.gdk.threads_enter()
+            #Gdk.threads_enter()
             self.treeView.set_sensitive(True)
-            #gtk.gdk.threads_leave()
+            #Gdk.threads_leave()
         finally:
-            #gtk.gdk.threads_enter()
+            #Gdk.threads_enter()
             if self.__progress != None:
                 self.__progress.set_text("Applying filters ...")
                 self.__progress.set_fraction(1.0)
@@ -1625,7 +1625,7 @@ class DHItemsTree(DataHandler, EventObject):
             if self.core.selected_item:
                 self.treeView.get_model().foreach(self.set_selected, (self.core.selected_item, self.treeView, 1))
             if self.combo_box: self.combo_box.set_sensitive(True)
-            #gtk.gdk.threads_leave()
+            #Gdk.threads_leave()
             self.emit("filled")
 
         return True
@@ -1721,7 +1721,7 @@ class DHProfiles(DataHandler):
         """
         self.treeView = treeView
         #self.model = treeView.get_model() TODO
-        self.model = gtk.TreeStore(str, str, gobject.TYPE_PYOBJECT, str, str, str)
+        self.model = Gtk.TreeStore(str, str, GObject.TYPE_PYOBJECT, str, str, str)
         self.treeView.set_model(self.model)
 
     def update(self, id=None, version=None, extends=None, abstract=None, prohibit_changes=None):
@@ -1796,24 +1796,24 @@ class DHProfiles(DataHandler):
             item = self.core.lib.benchmark.get_item(rule_k)
             if item == None:
                 logger.error("%s points to nonexisting item %s" % (rules[rule_k][0].object, rule_k))
-                #gtk.gdk.threads_enter()
+                #Gdk.threads_enter()
                 self.model.append(iter, ["rule", rule_k, rules[rule_k], "dialog-error", "Broken reference: %s" % (rule_k,), "red"])
-                #gtk.gdk.threads_leave()
+                #Gdk.threads_leave()
                 continue
 
             type = {openscap.OSCAP.XCCDF_RULE: "rule", openscap.OSCAP.XCCDF_GROUP: "group"}[item.type]
-            #gtk.gdk.threads_enter()
+            #Gdk.threads_enter()
             self.model.append(iter, ["rule", rule_k, rules[rule_k], IMG_RULE, self.get_title(item.title) or item.id+" (ID)", color])
-            #gtk.gdk.threads_leave()
+            #Gdk.threads_leave()
 
         # -- VALUES --
         values = {}
         for value in profile.setvalues: values[value.item] = [value]
         for value in profile.refine_values:
             if value.item in values:
-                #gtk.gdk.threads_enter()
+                #Gdk.threads_enter()
                 values[value.item].append(value)
-                #gtk.gdk.threads_leave()
+                #Gdk.threads_leave()
             else: values[value.item] = [value]
 
         for value_k in values.keys():
@@ -1821,13 +1821,13 @@ class DHProfiles(DataHandler):
             item = self.core.lib.benchmark.get_item(value_k)
             if item == None: 
                 logger.error("%s points to nonexisting value %s" % (values[value_k][0].object, value_k))
-                #gtk.gdk.threads_enter()
+                #Gdk.threads_enter()
                 self.model.append(iter, ["value", value_k, values[value_k], "dialog-error", "Broken reference: %s" % (value_k,), "red"])
-                #gtk.gdk.threads_leave()
+                #Gdk.threads_leave()
                 continue
-            #gtk.gdk.threads_enter()
+            #Gdk.threads_enter()
             self.model.append(iter, ["value", value_k, values[value_k], IMG_VALUE, self.get_title(item.title) or item.id+" (ID)", None])
-            #gtk.gdk.threads_leave()
+            #Gdk.threads_leave()
 
     #@threadSave
     def fill(self, item=None, parent=None, no_default=False):
@@ -1837,18 +1837,18 @@ class DHProfiles(DataHandler):
         Internal: The commented threads_enter and leave calls are leftover from the past when
         the data model fill was done in a separate worker thread.
         """
-        #gtk.gdk.threads_enter()
+        #Gdk.threads_enter()
         if self.treeView: self.treeView.set_sensitive(False)
         self.model.clear()
-        #gtk.gdk.threads_leave()
+        #Gdk.threads_leave()
         if not self.check_library(): return None
 
         if not no_default:
             logger.debug("Adding profile (No profile)")
-            #gtk.gdk.threads_enter()
-            if self.model.__class__ == gtk.ListStore: self.model.append([None, "(No profile)"])
+            #Gdk.threads_enter()
+            if self.model.__class__ == Gtk.ListStore: self.model.append([None, "(No profile)"])
             else: self.model.append(None, ["profile", None, item, IMG_GROUP, "(No profile)", None])
-            #gtk.gdk.threads_leave()
+            #Gdk.threads_leave()
 
         # Go thru all profiles from benchmark and add them into the model
         for item in self.core.lib.benchmark.profiles:
@@ -1856,21 +1856,21 @@ class DHProfiles(DataHandler):
             pvalues = self.get_profile_details(item.id)
             title = self.get_title(item.title) or "%s (ID)" % (item.id,)
             color = None
-            if self.model.__class__ == gtk.ListStore:
-                #gtk.gdk.threads_enter()
+            if self.model.__class__ == Gtk.ListStore:
+                #Gdk.threads_enter()
                 iter = self.model.append([item.id, ""+title])
-                #gtk.gdk.threads_leave()
+                #Gdk.threads_leave()
             else:
-                #gtk.gdk.threads_enter()
+                #Gdk.threads_enter()
                 iter = self.model.append(None, ["profile", item.id, item, IMG_GROUP, ""+title, color])
-                #gtk.gdk.threads_leave()
+                #Gdk.threads_leave()
                 self.__fill_refines(item, iter)
 
-        #gtk.gdk.threads_enter()
+        #Gdk.threads_enter()
         if self.core.selected_profile and self.treeView:
             self.treeView.get_model().foreach(self.set_selected, (self.core.selected_profile, self.treeView, 0))
         if self.treeView: self.treeView.set_sensitive(True)
-        #gtk.gdk.threads_leave()
+        #Gdk.threads_leave()
         return True
 
     def get_profiles(self):
@@ -2095,7 +2095,7 @@ class DHScan(DataHandler, EventObject):
         self.add_sender(self.id, "filled")
     
     def new_model(self):
-        return gtk.TreeStore(str, str, str, str, str, str, str, str)
+        return Gtk.TreeStore(str, str, str, str, str, str, str, str)
 
     def render(self, treeView):
         """ define treeView"""
@@ -2105,19 +2105,19 @@ class DHScan(DataHandler, EventObject):
         #model: id rule, result, fix, description, color text desc, color background, color text res
         self.model = self.new_model()
         treeView.set_model(self.model)
-        #treeView.set_grid_lines(gtk.TREE_VIEW_GRID_LINES_BOTH)
+        #treeView.set_grid_lines(Gtk.TREE_VIEW_GRID_LINES_BOTH)
         #treeView.set_property("tree-line-width", 10)
 
         # ID Rule
-        txtcell = gtk.CellRendererText()
-        column = gtk.TreeViewColumn("Rule ID", txtcell, text=DHScan.COLUMN_ID)
+        txtcell = Gtk.CellRendererText()
+        column = Gtk.TreeViewColumn("Rule ID", txtcell, text=DHScan.COLUMN_ID)
         column.add_attribute(txtcell, 'foreground', DHScan.COLUMN_COLOR_TEXT_ID)
         column.set_resizable(True)
         treeView.append_column(column)
 
         #Result
-        txtcell = gtk.CellRendererText()
-        column = gtk.TreeViewColumn("Result", txtcell, text=DHScan.COLUMN_RESULT)
+        txtcell = Gtk.CellRendererText()
+        column = Gtk.TreeViewColumn("Result", txtcell, text=DHScan.COLUMN_RESULT)
         column.add_attribute(txtcell, 'background', DHScan.COLUMN_COLOR_BACKG)
         # since we control the background in this case, we have to enforce foreground as well so
         # that the text is visible
@@ -2126,22 +2126,22 @@ class DHScan(DataHandler, EventObject):
         treeView.append_column(column)
 
         # Fix
-        txtcell = gtk.CellRendererText()
-        column = gtk.TreeViewColumn("Fix", txtcell, text=DHScan.COLUMN_FIX)
+        txtcell = Gtk.CellRendererText()
+        column = Gtk.TreeViewColumn("Fix", txtcell, text=DHScan.COLUMN_FIX)
         column.set_resizable(True)
         column.set_visible(False)
         treeView.append_column(column)
 
         # Title
-        txtcell = gtk.CellRendererText()
-        column = gtk.TreeViewColumn("Title", txtcell, text=DHScan.COLUMN_TITLE)
+        txtcell = Gtk.CellRendererText()
+        column = Gtk.TreeViewColumn("Title", txtcell, text=DHScan.COLUMN_TITLE)
         column.add_attribute(txtcell, 'foreground', DHScan.COLUMN_COLOR_TEXT_TITLE)
         column.set_resizable(True)
         treeView.append_column(column)
 
         # Description
-        txtcell = gtk.CellRendererText()
-        column = gtk.TreeViewColumn("Description", txtcell, text=DHScan.COLUMN_DESC)
+        txtcell = Gtk.CellRendererText()
+        column = Gtk.TreeViewColumn("Description", txtcell, text=DHScan.COLUMN_DESC)
         column.set_resizable(True)
         column.set_visible(False)
         id = treeView.append_column(column)
@@ -2292,7 +2292,7 @@ class DHScan(DataHandler, EventObject):
         self.__current_iter = self.fill([msg.user1str, None, False, title, desc])
         
         if self.__progress != None:
-            with gtk.gdk.lock:
+            with Gdk.lock:
                 # don't let progress fraction exceed 1.0 = 100%
                 fract = min(self.__progress.get_fraction() + self.step, 1.0)
                 self.__progress.set_fraction(fract)
@@ -2316,7 +2316,7 @@ class DHScan(DataHandler, EventObject):
         if result == openscap.OSCAP.XCCDF_RESULT_NOT_SELECTED: 
             return self.__cancel
 
-        with gtk.gdk.lock:    
+        with Gdk.lock:    
             self.fill([id, result, False, title, desc], iter=self.__current_iter)
             self.emit("filled")
             self.treeView.queue_draw()

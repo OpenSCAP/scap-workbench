@@ -57,7 +57,7 @@ class ImportDialog(abstract.Window, abstract.ListEditor):
         
         self.__import = cb
         self.data_model = data_model
-        builder = gtk.Builder()
+        builder = Gtk.Builder()
         builder.add_from_file(os.path.join(paths.glade_dialog_prefix, "import.glade"))
         self.wdialog = builder.get_object("dialog:import")
         self.info_box = builder.get_object("dialog:import:info_box")
@@ -93,10 +93,10 @@ class ImportDialog(abstract.Window, abstract.ListEditor):
             self.core.notify_destroy("notify:xccdf:import:dialog")
             self.__do(overvalid=True)
         elif action == "#log":
-            builder = gtk.Builder()
+            builder = Gtk.Builder()
             builder.add_from_file(os.path.join(paths.glade_dialog_prefix, "preview.glade"))
             preview_dialog = builder.get_object("dialog:preview")
-            box = gtk.VBox()
+            box = Gtk.VBox()
             box.set_spacing(2)
             box.show()
             builder.get_object("dialog:preview:scw").add_with_viewport(box)
@@ -160,7 +160,7 @@ class ExportDialog(abstract.Window, abstract.ListEditor):
         self.core = core
         
         self.data_model = data_model
-        builder = gtk.Builder()
+        builder = Gtk.Builder()
         self.log = []
         builder.add_from_file(os.path.join(paths.glade_dialog_prefix, "export.glade"))
         self.wdialog = builder.get_object("dialog:export")
@@ -219,10 +219,10 @@ class ExportDialog(abstract.Window, abstract.ListEditor):
             f.close()
             self.preview(widget=None, desc=desc)
         elif action == "#log":
-            builder = gtk.Builder()
+            builder = Gtk.Builder()
             builder.add_from_file(os.path.join(paths.glade_dialog_prefix, "preview.glade"))
             preview_dialog = builder.get_object("dialog:preview")
-            box = gtk.VBox()
+            box = Gtk.VBox()
             box.set_spacing(2)
             box.show()
             builder.get_object("dialog:preview:scw").add_with_viewport(box)

@@ -27,7 +27,7 @@ from scap_workbench.core import commands
 from scap_workbench.core import abstract
 from scap_workbench.editor.edit import *
 
-import gtk
+from gi.repository import Gtk
 import glib
 
 import logging
@@ -43,11 +43,11 @@ class EditNotice(abstract.ListEditor):
     def __init__(self, core, id, widget, data_model):
 
         self.data_model = data_model 
-        super(EditNotice, self).__init__(id, core, widget=widget, model=gtk.ListStore(str, str, gobject.TYPE_PYOBJECT))
+        super(EditNotice, self).__init__(id, core, widget=widget, model=Gtk.ListStore(str, str, GObject.TYPE_PYOBJECT))
         self.add_sender(id, "update")
 
-        self.widget.append_column(gtk.TreeViewColumn("ID", gtk.CellRendererText(), text=self.COLUMN_ID))
-        self.widget.append_column(gtk.TreeViewColumn("Notice", gtk.CellRendererText(), text=self.COLUMN_TEXT))
+        self.widget.append_column(Gtk.TreeViewColumn("ID", Gtk.CellRendererText(), text=self.COLUMN_ID))
+        self.widget.append_column(Gtk.TreeViewColumn("Notice", Gtk.CellRendererText(), text=self.COLUMN_TEXT))
 
     def __do(self, widget=None):
         """
@@ -87,7 +87,7 @@ class EditNotice(abstract.ListEditor):
         """
         """
         self.operation = operation
-        builder = gtk.Builder()
+        builder = Gtk.Builder()
         builder.add_from_file(os.path.join(paths.glade_prefix, "dialogs.glade"))
         self.wdialog = builder.get_object("dialog:edit_notice")
         self.info_box = builder.get_object("dialog:edit_notice:info_box")
@@ -182,8 +182,8 @@ class MenuButtonEditXCCDF(abstract.MenuButton):
 
         # -- REFERENCE --
         # FIXME: Instantiating an abstract class?!
-        self.tv_references = abstract.ListEditor("gui:edit:xccdf:references", self.core, widget=self.builder.get_object("edit:xccdf:references"), model=gtk.ListStore(str, str))
-        self.tv_references.widget.append_column(gtk.TreeViewColumn("Reference", gtk.CellRendererText(), text=0))
+        self.tv_references = abstract.ListEditor("gui:edit:xccdf:references", self.core, widget=self.builder.get_object("edit:xccdf:references"), model=Gtk.ListStore(str, str))
+        self.tv_references.widget.append_column(Gtk.TreeViewColumn("Reference", Gtk.CellRendererText(), text=0))
         self.builder.get_object("edit:xccdf:btn_references_add").set_sensitive(False)
         self.builder.get_object("edit:xccdf:btn_references_edit").set_sensitive(False)
         self.builder.get_object("edit:xccdf:btn_references_del").set_sensitive(False)

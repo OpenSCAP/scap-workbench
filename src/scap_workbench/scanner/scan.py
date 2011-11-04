@@ -24,7 +24,7 @@
 """
 import os               # For path basedir
 import gtk              # GTK library
-import gobject          # gobject.TYPE_PYOBJECT
+import gobject          # GObject.TYPE_PYOBJECT
 import tempfile         # Temporary file for XCCDF preview
 from scap_workbench.core.threads import thread as threadSave
 import logging          # Logger for debug/info/error messages
@@ -50,7 +50,7 @@ class ScanList(abstract.List):
         self.filter = filter
 
         selection = self.get_TreeView().get_selection()
-        selection.set_mode(gtk.SELECTION_SINGLE)
+        selection.set_mode(Gtk.SelectionMode.SINGLE)
         self.get_TreeView().set_search_column(3)
 
         # actions
@@ -177,7 +177,7 @@ class MenuButtonScan(abstract.MenuButton, abstract.Func):
 
         if self.result:
             self.prepare_preview()
-            gtk.gdk.flush()
+            Gdk.flush()
             
             raw_temp = tempfile.NamedTemporaryFile()
             transformed_temp = tempfile.NamedTemporaryFile()
@@ -209,12 +209,12 @@ class MenuButtonScan(abstract.MenuButton, abstract.Func):
                                otherwise it will return a notification 2-tuple 
         """
         
-        chooser = gtk.FileChooserDialog(title="Save report", action=gtk.FILE_CHOOSER_ACTION_SAVE,
-                buttons=(gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL, gtk.STOCK_SAVE, gtk.RESPONSE_OK))
+        chooser = Gtk.FileChooserDialog(title="Save report", action=Gtk.FileChooserAction.SAVE,
+                buttons=(Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL, Gtk.STOCK_SAVE, Gtk.ResponseType.OK))
         chooser.set_current_name("report.xhtml")
         response = chooser.run()
         
-        if response == gtk.RESPONSE_OK:
+        if response == Gtk.ResponseType.OK:
             file_name = chooser.get_filename()
         
             chooser.destroy()
@@ -294,12 +294,12 @@ class MenuButtonScan(abstract.MenuButton, abstract.Func):
 
         self.set_scan_in_progress(True)
         
-        with gtk.gdk.lock:
+        with Gdk.lock:
             self.core.notify_destroy("notify:scan:complete")
         
         logger.debug("Scanning %s ..", self.data_model.policy.id)
         if self.progress != None:
-            with gtk.gdk.lock:
+            with Gdk.lock:
                 self.progress.set_fraction(0.0)
                 self.progress.set_text("Preparing ...")
 
@@ -309,7 +309,7 @@ class MenuButtonScan(abstract.MenuButton, abstract.Func):
         self.result = self.data_model.policy.evaluate()
         
         # the scan finished (successfully or maybe it was canceled)
-        with gtk.gdk.lock:
+        with Gdk.lock:
             if self.progress:
                 # set the progress to 100% regardless of how many tests were actually run
                 self.progress.set_fraction(1.0)
@@ -347,7 +347,7 @@ class ProfileChooser(object):
         self.core = core
         self.data_model = commands.DHProfiles(core)
 
-        builder = gtk.Builder()
+        builder = Gtk.Builder()
         builder.add_from_file(os.path.join(paths.glade_dialog_prefix, "profile_change.glade"))
         self.dialog = builder.get_object("dialog:profile_change")
         self.info_box = builder.get_object("dialog:profile_change:info_box")
@@ -371,7 +371,7 @@ class ProfileChooser(object):
 
     def __do(self, widget, event=None):
 
-        if event and event.type == gtk.gdk.KEY_PRESS and event.keyval != gtk.keysyms.Return:
+        if event and event.type == Gdk.KEY_PRESS and event.keyval != Gdk.KEY_Return:
             return
 
         selection = self.profiles.get_selection()
@@ -397,7 +397,7 @@ class HelpWindow(abstract.Window):
         # regularly (each time user clicks the help button)
         super(HelpWindow, self).__init__("scan:help:window", core, skip_registration = True)
         
-        self.builder = gtk.Builder()
+        self.builder = Gtk.Builder()
         self.builder.add_from_file(os.path.join(paths.glade_prefix, "scan_help.glade"))
         self.draw_window()
 
@@ -412,7 +412,7 @@ class HelpWindow(abstract.Window):
         self.builder.connect_signals(self)
 
         selection = self.treeView.get_selection()
-        selection.set_mode(gtk.SELECTION_NONE)
+        selection.set_mode(Gtk.SelectionMode.NONE)
 
         self.help_model[0][1] = commands.DHScan.BG_GREEN
         self.help_model[1][1] = commands.DHScan.BG_RED
@@ -424,7 +424,7 @@ class HelpWindow(abstract.Window):
         self.help_model[7][1] = commands.DHScan.BG_LGREEN
         self.help_model[8][1] = commands.DHScan.BG_FIXED
 
-        self.window.set_transient_for(self.core.main_window)
+        self.set_transient_for(self.core.main_window)
         self.window.show_all()
 
     def destroy_window(self, widget):

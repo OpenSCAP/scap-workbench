@@ -57,7 +57,7 @@ class MenuButtonOVAL(abstract.MenuButton):
         self.body = self.draw_body()
 
     def draw_body(self):
-        body = gtk.VBox()
+        body = Gtk.VBox()
 
         body.show_all()
         body.hide()
@@ -71,7 +71,7 @@ class MainWindow(abstract.Window):
     def __init__(self):
         error.ErrorHandler.install_exception_hook()
 
-        self.builder = gtk.Builder()
+        self.builder = Gtk.Builder()
         self.builder.add_from_file(os.path.join(paths.glade_prefix, "scanner.glade"))
         self.builder.connect_signals(self)
         
@@ -106,15 +106,15 @@ class MainWindow(abstract.Window):
         """ close the window and quit
         """
         self.emit("quit")
-        gtk.gdk.threads_leave()
+        Gdk.threads_leave()
         
         # since we are quitting gtk we can't be popping a dialog when exception happens anymore
         error.ErrorHandler.uninstall_exception_hook()
-        gtk.main_quit()
+        Gtk.main_quit()
         return False
 
     def run(self):
-        gtk.main()
+        Gtk.main()
 
 # we only expose the MainWindow from the entire scanner subpackage because that's all that's needed to start the app
 __all__ = ["MainWindow"]

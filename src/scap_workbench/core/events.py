@@ -25,7 +25,7 @@ import logging
 
 logger = logging.getLogger("scap-workbench")
 
-class EventObject(gobject.GObject):
+class EventObject(GObject.GObject):
 
     """ EventObject is abstract class handling all events between various object
     in application and general notifications.
@@ -39,7 +39,7 @@ class EventObject(gobject.GObject):
         """
         self.__gobject_init__()
         self.core = core
-        gobject.type_register(EventObject)
+        GObject.type_register(EventObject)
         self.object = self
 
         # Notifications are global for each event object
@@ -64,9 +64,9 @@ class EventObject(gobject.GObject):
         signal: string representing the signal
         *args: optional arguments (TODO: propagation not implemented)
         """
-        if not gobject.signal_lookup(signal, EventObject): 
+        if not GObject.signal_lookup(signal, EventObject): 
             logger.debug("Creating signal %s::%s", id, signal)
-            gobject.signal_new(signal, EventObject, gobject.SIGNAL_RUN_FIRST, gobject.TYPE_NONE, ())
+            GObject.signal_new(signal, EventObject, GObject.SignalFlags.RUN_FIRST, None, ())
 
         if self.core != None: self.core.set_sender(signal, self)
 

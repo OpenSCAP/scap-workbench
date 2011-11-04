@@ -62,7 +62,7 @@ class ItemList(abstract.List):
         self.search.connect("key-press-event", self.__cb_search, self.get_TreeView())
         
         selection = self.get_TreeView().get_selection()
-        selection.set_mode(gtk.SELECTION_SINGLE)
+        selection.set_mode(Gtk.SelectionMode.SINGLE)
 
         # actions
         self.add_receiver("gui:btn:menu:tailoring", "update", self.__update)
@@ -99,7 +99,7 @@ class ItemList(abstract.List):
             self.core.notify("Regexp entry error: %s" % (err,), core.Notification.ERROR, msg_id="notify:profiles:filter")
             return True
 
-        if event and event.type == gtk.gdk.KEY_PRESS and event.keyval == gtk.keysyms.Return:
+        if event and event.type == Gdk.KEY_PRESS and event.keyval == Gdk.KEY_Return:
             """ User pressed the Enter button to search more
             """
             retval = self.recursive_search(pattern, [1,2])
@@ -179,7 +179,7 @@ class ValuesList(abstract.List):
         self.get_TreeView().set_enable_tree_lines(True)
 
         selection = self.get_TreeView().get_selection()
-        selection.set_mode(gtk.SELECTION_SINGLE)
+        selection.set_mode(Gtk.SelectionMode.SINGLE)
 
         # actions
         self.add_receiver("gui:tailoring:item_list", "update", self.__update)
@@ -248,12 +248,12 @@ class ItemDetails(EventObject):
             logger.exception("Exception: %s" % (err))
         
         for i, ref in enumerate(details["references"]):
-            hbox = gtk.HBox()
-            counter = gtk.Label("%d) " % (i+1,))
+            hbox = Gtk.HBox()
+            counter = Gtk.Label(label="%d) " % (i+1,))
             counter.set_alignment(0,0)
             hbox.pack_start(counter, False, False)
             text = "<a href='%s'>%s</a>" % (ref["identifier"], " ".join((ref["title"] or "").split()))
-            label = gtk.Label(text)
+            label = Gtk.Label(label=text)
             hbox.pack_start(label, True, True)
             label.set_tooltip_text(ref["title"])
             label.set_use_markup(True)
@@ -264,7 +264,7 @@ class ItemDetails(EventObject):
                 pass
             
             label.set_line_wrap(True)
-            label.set_line_wrap_mode(pango.WRAP_WORD) 
+            label.set_line_wrap_mode(Pango.WrapMode.WORD) 
             label.set_alignment(0,0)
             label.connect("size-allocate", core.label_size_allocate)
             hbox.show_all()
@@ -275,7 +275,7 @@ class ItemDetails(EventObject):
         text = None
         for i, fixtext in enumerate(fixes):
             if text == None: text = ""
-            hbox = gtk.HBox()
+            hbox = Gtk.HBox()
             text += "    "+self.data_model.substitute(fixtext["text"]).replace("xhtml:", "").replace("xmlns:", "")+"<br>"
         if text == None: text = "No fixes specified"
         text = "<body>"+text+"</body>"
@@ -290,103 +290,103 @@ class ItemDetails(EventObject):
         # TODO: Move to Glade
 
         #info (id, title, type)
-        expander = gtk.Expander("<b>Info</b>")
+        expander = Gtk.Expander("<b>Info</b>")
         expander.set_expanded(True)
         label = expander.get_label_widget()
         label.set_use_markup(True)
-        alig = gtk.Alignment(0.5, 0.5, 1, 1)
+        alig = Gtk.Alignment.new(0.5, 0.5, 1, 1)
         alig.set_padding(0, 10, 12, 4)
         expander.add(alig)
-        vbox = gtk.VBox()
+        vbox = Gtk.VBox()
         alig.add(vbox)
-        vbox.pack_start(gtk.HSeparator(), expand=False, fill=True, padding=1)
+        vbox.pack_start(Gtk.HSeparator(, True, True, 0), expand=False, fill=True, padding=1)
         self.box_details.pack_start(expander, expand=False, fill=True, padding=1)
 
         #id
-        hbox = gtk.HBox()
-        hbox.pack_start(gtk.Label("ID: "), expand=False, fill=True, padding=1)
-        self.id = gtk.Label("")
+        hbox = Gtk.HBox()
+        hbox.pack_start(Gtk.Label("ID: ", True, True, 0), expand=False, fill=True, padding=1)
+        self.id = Gtk.Label(label="")
         self.id.set_alignment(0,0)
         hbox.pack_start(self.id, expand=True, fill=True, padding=1)
         vbox.pack_start(hbox, expand=False, fill=False, padding=1)
 
         #title
-        hbox = gtk.HBox()
-        label = gtk.Label("Title: ")
+        hbox = Gtk.HBox()
+        label = Gtk.Label(label="Title: ")
         label.set_alignment(0,0)
         hbox.pack_start(label, expand=False, fill=True, padding=1)
-        self.title = gtk.Label("")
+        self.title = Gtk.Label(label="")
         self.title.set_line_wrap(True)
-        self.title.set_line_wrap_mode(pango.WRAP_WORD)
+        self.title.set_line_wrap_mode(Pango.WrapMode.WORD)
         core.label_set_autowrap(self.title)
         self.title.set_alignment(0,0)
         hbox.pack_start(self.title, expand=True, fill=True, padding=1)
         vbox.pack_start(hbox, expand=False, fill=False, padding=1)
 
         #type
-        hbox = gtk.HBox()
-        hbox.pack_start(gtk.Label("Type: "), expand=False, fill=True, padding=1)
-        self.type = gtk.Label("")
+        hbox = Gtk.HBox()
+        hbox.pack_start(Gtk.Label("Type: ", True, True, 0), expand=False, fill=True, padding=1)
+        self.type = Gtk.Label(label="")
         self.type.set_alignment(0,0)
         hbox.pack_start(self.type, expand=True, fill=True, padding=1)
         vbox.pack_start(hbox, expand=False, fill=False, padding=1)
         
         #weight
-        hbox = gtk.HBox()
-        hbox.pack_start(gtk.Label("Weight: "), expand=False, fill=True, padding=1)
-        self.weight = gtk.Label("")
+        hbox = Gtk.HBox()
+        hbox.pack_start(Gtk.Label("Weight: ", True, True, 0), expand=False, fill=True, padding=1)
+        self.weight = Gtk.Label(label="")
         self.weight.set_alignment(0,0)
         hbox.pack_start(self.weight, expand=True, fill=True, padding=1)
         vbox.pack_start(hbox, expand=False, fill=False, padding=1)
 
         #CCE
-        hbox = gtk.HBox()
-        hbox.pack_start(gtk.Label("Idents: "), expand=False, fill=False, padding=1)
-        self.idents = gtk.Label("")
+        hbox = Gtk.HBox()
+        hbox.pack_start(Gtk.Label("Idents: ", True, True, 0), expand=False, fill=False, padding=1)
+        self.idents = Gtk.Label(label="")
         self.idents.set_alignment(0,0)
         hbox.pack_start(self.idents, expand=True, fill=True, padding=1)
         vbox.pack_start(hbox, expand=False, fill=False, padding=1)
         
         #References
-        expander = gtk.Expander("<b>References</b>")
+        expander = Gtk.Expander("<b>References</b>")
         expander.set_expanded(False)
         label = expander.get_label_widget()
         label.set_use_markup(True)
-        alig = gtk.Alignment(0.5, 0.5, 1, 1)
+        alig = Gtk.Alignment.new(0.5, 0.5, 1, 1)
         alig.set_padding(0, 10, 12, 4)
         expander.add(alig)
-        vbox = gtk.VBox()
+        vbox = Gtk.VBox()
         alig.add(vbox)
-        vbox.pack_start(gtk.HSeparator(), expand=False, fill=True, padding=3)
-        self.refBox = gtk.VBox()
+        vbox.pack_start(Gtk.HSeparator(, True, True, 0), expand=False, fill=True, padding=3)
+        self.refBox = Gtk.VBox()
         vbox.pack_start(self.refBox, expand=False, fill=False, padding=0)
         self.box_details.pack_start(expander, expand=False, fill=False, padding=1)
         
         # Get the background color from window and destroy it
-        window = gtk.Window()
-        nb = gtk.Notebook()
+        window = Gtk.Window()
+        nb = Gtk.Notebook()
         window.add(nb)
         window.realize()
         nb.realize()
-        bg_color = nb.get_style().bg[gtk.STATE_NORMAL]
+        bg_color = nb.get_style().bg[Gtk.StateType.NORMAL]
         window.destroy()
 
         #fixes
-        expander = gtk.Expander("<b>Fixes</b>")
+        expander = Gtk.Expander("<b>Fixes</b>")
         expander.set_expanded(False)
         label = expander.get_label_widget()
         label.set_use_markup(True)
-        alig = gtk.Alignment(0, 0, 1, 1)
+        alig = Gtk.Alignment.new(0, 0, 1, 1)
         alig.set_padding(0, 10, 12, 4)
-        vbox = gtk.VBox()
+        vbox = Gtk.VBox()
         alig.add(vbox)
-        vbox.pack_start(gtk.HSeparator(), expand=False, fill=False, padding=3)
+        vbox.pack_start(Gtk.HSeparator(, True, True, 0), expand=False, fill=False, padding=3)
         self.fixes = HtmlTextView()
-        self.fixes.set_wrap_mode(gtk.WRAP_WORD)
-        self.fixes.modify_base(gtk.STATE_NORMAL, bg_color)
-        sw = gtk.ScrolledWindow()
-        sw.set_property("hscrollbar-policy", gtk.POLICY_AUTOMATIC)
-        sw.set_property("vscrollbar-policy", gtk.POLICY_AUTOMATIC)
+        self.fixes.set_wrap_mode(Gtk.WrapMode.WORD)
+        self.fixes.modify_base(Gtk.StateType.NORMAL, bg_color)
+        sw = Gtk.ScrolledWindow()
+        sw.set_property("hscrollbar-policy", Gtk.PolicyType.AUTOMATIC)
+        sw.set_property("vscrollbar-policy", Gtk.PolicyType.AUTOMATIC)
         sw.set_property("border-width", 0)
         sw.add(self.fixes)
         sw.show()
@@ -395,21 +395,21 @@ class ItemDetails(EventObject):
         self.box_details.pack_start(expander, expand=False, fill=False, padding=1)
 
         #description
-        expander = gtk.Expander("<b>Description</b>")
+        expander = Gtk.Expander("<b>Description</b>")
         expander.set_expanded(True)
         label = expander.get_label_widget()
         label.set_use_markup(True)
-        alig = gtk.Alignment(0, 0, 1, 1)
+        alig = Gtk.Alignment.new(0, 0, 1, 1)
         alig.set_padding(0, 10, 12, 4)
-        vbox = gtk.VBox()
+        vbox = Gtk.VBox()
         alig.add(vbox)
-        vbox.pack_start(gtk.HSeparator(), expand=False, fill=False, padding=3)
+        vbox.pack_start(Gtk.HSeparator(, True, True, 0), expand=False, fill=False, padding=3)
         self.description = HtmlTextView()
-        self.description.set_wrap_mode(gtk.WRAP_WORD)
-        self.description.modify_base(gtk.STATE_NORMAL, bg_color)
-        sw = gtk.ScrolledWindow()
-        sw.set_property("hscrollbar-policy", gtk.POLICY_AUTOMATIC)
-        sw.set_property("vscrollbar-policy", gtk.POLICY_AUTOMATIC)
+        self.description.set_wrap_mode(Gtk.WrapMode.WORD)
+        self.description.modify_base(Gtk.StateType.NORMAL, bg_color)
+        sw = Gtk.ScrolledWindow()
+        sw.set_property("hscrollbar-policy", Gtk.PolicyType.AUTOMATIC)
+        sw.set_property("vscrollbar-policy", Gtk.PolicyType.AUTOMATIC)
         sw.set_property("border-width", 0)
         sw.add(self.description)
         sw.show()
@@ -491,13 +491,13 @@ class RefineDetails(EventObject):
             
     def add_widget(self, body, text, expand, widget):
                 
-        frame = gtk.Frame(text)
+        frame = Gtk.Frame(text)
         label = frame.get_label_widget()
         label.set_use_markup(True)        
-        frame.set_shadow_type(gtk.SHADOW_NONE)
+        frame.set_shadow_type(Gtk.ShadowType.NONE)
         if expand: body.pack_start(frame, True, True)
         else: body.pack_start(frame, False, True)
-        alig = gtk.Alignment(0.5, 0.5, 1, 1)
+        alig = Gtk.Alignment.new(0.5, 0.5, 1, 1)
         alig.set_padding(0, 0, 12, 0)
         frame.add(alig)
         alig.add(widget)

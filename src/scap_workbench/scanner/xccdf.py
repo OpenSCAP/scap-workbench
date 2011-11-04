@@ -100,56 +100,56 @@ class MenuButtonXCCDF(abstract.MenuButton):
     def __add_file_info(self, name, file_info):
 
         # Add table of information to the expander with label name
-        expander = gtk.Expander()
-        label = gtk.Label("OVAL: %s" % (name,))
-        pango_list = pango.AttrList()
-        pango_list.insert(pango.AttrWeight(pango.WEIGHT_BOLD, start_index=0, end_index=-1))
+        expander = Gtk.Expander()
+        label = Gtk.Label("OVAL: %s" % (name,))
+        pango_list = Pango.AttrList()
+        pango_list.insert(Pango.AttrWeight(Pango.Weight.BOLD, start_index=0, end_index=-1))
         if not file_info:
-            pango_list.insert(pango.AttrForeground(65535, 0, 0, start_index=0, end_index=-1))
+            pango_list.insert(Pango.AttrForeground(65535, 0, 0, start_index=0, end_index=-1))
         label.set_attributes(pango_list)
         expander.set_label_widget(label)
         expander.set_expanded(True)
-        align = gtk.Alignment()
+        align = Gtk.Alignment.new()
         align.set_padding(5, 10, 25, 0)
 
         if not file_info:
-            label = gtk.Label("File not found: %s" % (name))
+            label = Gtk.Label(label="File not found: %s" % (name))
             label.set_attributes(pango_list)
             align.add(label)
         else:
-            table = gtk.Table(rows=5, columns=2)
+            table = Gtk.Table(rows=5, columns=2)
             table.set_col_spacings(spacing=5)
             align.add(table)
 
             # use table to add information
-            label = gtk.Label("Product name:")
+            label = Gtk.Label(label="Product name:")
             label.set_alignment(0.0, 0.50)
-            table.attach(label, 0, 1, 0, 1, xoptions=gtk.FILL, yoptions=gtk.FILL, xpadding=0, ypadding=0)
-            label = gtk.Label("Product version:")
+            table.attach(label, 0, 1, 0, 1, xoptions=Gtk.AttachOptions.FILL, yoptions=Gtk.AttachOptions.FILL, xpadding=0, ypadding=0)
+            label = Gtk.Label(label="Product version:")
             label.set_alignment(0.0, 0.50)
-            table.attach(label, 0, 1, 1, 2, xoptions=gtk.FILL, yoptions=gtk.FILL, xpadding=0, ypadding=0)
-            label = gtk.Label("Schema version:")
+            table.attach(label, 0, 1, 1, 2, xoptions=Gtk.AttachOptions.FILL, yoptions=Gtk.AttachOptions.FILL, xpadding=0, ypadding=0)
+            label = Gtk.Label(label="Schema version:")
             label.set_alignment(0.0, 0.50)
-            table.attach(label, 0, 1, 2, 3, xoptions=gtk.FILL, yoptions=gtk.FILL, xpadding=0, ypadding=0)
-            label = gtk.Label("Timestamp:")
+            table.attach(label, 0, 1, 2, 3, xoptions=Gtk.AttachOptions.FILL, yoptions=Gtk.AttachOptions.FILL, xpadding=0, ypadding=0)
+            label = Gtk.Label(label="Timestamp:")
             label.set_alignment(0.0, 0.50)
-            table.attach(label, 0, 1, 3, 4, xoptions=gtk.FILL, yoptions=gtk.FILL, xpadding=0, ypadding=0)
-            label = gtk.Label("Valid:")
+            table.attach(label, 0, 1, 3, 4, xoptions=Gtk.AttachOptions.FILL, yoptions=Gtk.AttachOptions.FILL, xpadding=0, ypadding=0)
+            label = Gtk.Label(label="Valid:")
             label.set_alignment(0.0, 0.50)
-            table.attach(label, 0, 1, 4, 5, xoptions=gtk.FILL, yoptions=gtk.FILL, xpadding=0, ypadding=0)
+            table.attach(label, 0, 1, 4, 5, xoptions=Gtk.AttachOptions.FILL, yoptions=Gtk.AttachOptions.FILL, xpadding=0, ypadding=0)
 
-            label = gtk.Label(file_info["product_name"])
+            label = Gtk.Label(label=file_info["product_name"])
             label.set_alignment(0.0, 0.50)
-            table.attach(label, 1, 2, 0, 1, xoptions=gtk.EXPAND|gtk.FILL, yoptions=gtk.FILL, xpadding=0, ypadding=0)
-            label = gtk.Label(file_info["product_version"])
+            table.attach(label, 1, 2, 0, 1, xoptions=Gtk.AttachOptions.EXPAND|Gtk.AttachOptions.FILL, yoptions=Gtk.AttachOptions.FILL, xpadding=0, ypadding=0)
+            label = Gtk.Label(label=file_info["product_version"])
             label.set_alignment(0.0, 0.50)
-            table.attach(label, 1, 2, 1, 2, xoptions=gtk.EXPAND|gtk.FILL, yoptions=gtk.FILL, xpadding=0, ypadding=0)
-            label = gtk.Label(file_info["schema_version"])
+            table.attach(label, 1, 2, 1, 2, xoptions=Gtk.AttachOptions.EXPAND|Gtk.AttachOptions.FILL, yoptions=Gtk.AttachOptions.FILL, xpadding=0, ypadding=0)
+            label = Gtk.Label(label=file_info["schema_version"])
             label.set_alignment(0.0, 0.50)
-            table.attach(label, 1, 2, 2, 3, xoptions=gtk.EXPAND|gtk.FILL, yoptions=gtk.FILL, xpadding=0, ypadding=0)
-            label = gtk.Label(file_info["timestamp"])
+            table.attach(label, 1, 2, 2, 3, xoptions=Gtk.AttachOptions.EXPAND|Gtk.AttachOptions.FILL, yoptions=Gtk.AttachOptions.FILL, xpadding=0, ypadding=0)
+            label = Gtk.Label(label=file_info["timestamp"])
             label.set_alignment(0.0, 0.50)
-            table.attach(label, 1, 2, 3, 4, xoptions=gtk.EXPAND|gtk.FILL, yoptions=gtk.FILL, xpadding=0, ypadding=0)
+            table.attach(label, 1, 2, 3, 4, xoptions=Gtk.AttachOptions.EXPAND|Gtk.AttachOptions.FILL, yoptions=Gtk.AttachOptions.FILL, xpadding=0, ypadding=0)
 
         expander.add(align)
         self.files_box.pack_start(expander, False, False)
@@ -203,7 +203,7 @@ class MenuButtonXCCDF(abstract.MenuButton):
             child.destroy()
 
         for i, ref in enumerate(details["references"]):
-            label = gtk.Label()
+            label = Gtk.Label()
             if ref["isdc"] == True:
                 text = "<span color='#AAA'>DoublinCore reference: NOT SUPPORTED</span>"
                 label.set_use_markup(True)
@@ -219,7 +219,7 @@ class MenuButtonXCCDF(abstract.MenuButton):
                 pass
             
             label.set_line_wrap(True)
-            label.set_line_wrap_mode(pango.WRAP_WORD) 
+            label.set_line_wrap_mode(Pango.WrapMode.WORD) 
             label.set_alignment(0,0)
             label.connect("size-allocate", core.label_size_allocate)
             label.show()

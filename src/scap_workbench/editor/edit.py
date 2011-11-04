@@ -23,7 +23,7 @@
 """ Importing standard python libraries
 """
 import gtk              # GTK library
-import gobject          # gobject.TYPE_PYOBJECT
+import gobject          # GObject.TYPE_PYOBJECT
 import time             # Time functions in calendar data ::EditStatus
 import re               # Regular expressions 
 import os               # os Path join/basename, ..
@@ -74,12 +74,12 @@ class EditTitle(abstract.ListEditor):
     def __init__(self, core, id, widget, data_model):
 
         self.data_model = data_model
-        super(EditTitle, self).__init__(id, core, widget=widget, model=gtk.ListStore(str, bool, str, gobject.TYPE_PYOBJECT))
+        super(EditTitle, self).__init__(id, core, widget=widget, model=Gtk.ListStore(str, bool, str, GObject.TYPE_PYOBJECT))
         self.add_sender(id, "update")
 
-        self.widget.append_column(gtk.TreeViewColumn("Language", gtk.CellRendererText(), text=self.COLUMN_LANG))
-        self.widget.append_column(gtk.TreeViewColumn("Overrides", gtk.CellRendererText(), text=self.COLUMN_OVERRIDES))
-        self.widget.append_column(gtk.TreeViewColumn("Title", gtk.CellRendererText(), text=self.COLUMN_TEXT))
+        self.widget.append_column(Gtk.TreeViewColumn("Language", Gtk.CellRendererText(), text=self.COLUMN_LANG))
+        self.widget.append_column(Gtk.TreeViewColumn("Overrides", Gtk.CellRendererText(), text=self.COLUMN_OVERRIDES))
+        self.widget.append_column(Gtk.TreeViewColumn("Title", Gtk.CellRendererText(), text=self.COLUMN_TEXT))
 
     def __do(self, widget=None):
         """
@@ -105,7 +105,7 @@ class EditTitle(abstract.ListEditor):
         """
         """
         self.operation = operation
-        builder = gtk.Builder()
+        builder = Gtk.Builder()
         builder.add_from_file(os.path.join(paths.glade_dialog_prefix, "edit_title.glade"))
         
         self.wdialog = builder.get_object("dialog:edit_title")
@@ -163,12 +163,12 @@ class EditDescription(abstract.HTMLEditor):
     def __init__(self, core, id, widget, data_model):
 
         self.data_model = data_model 
-        super(EditDescription, self).__init__(id, core, widget=widget, model=gtk.ListStore(str, bool, str, gobject.TYPE_PYOBJECT))
+        super(EditDescription, self).__init__(id, core, widget=widget, model=Gtk.ListStore(str, bool, str, GObject.TYPE_PYOBJECT))
         self.add_sender(id, "update")
 
-        self.widget.append_column(gtk.TreeViewColumn("Language", gtk.CellRendererText(), text=self.COLUMN_LANG))
-        self.widget.append_column(gtk.TreeViewColumn("Overrides", gtk.CellRendererText(), text=self.COLUMN_OVERRIDES))
-        self.widget.append_column(gtk.TreeViewColumn("Description", gtk.CellRendererText(), text=self.COLUMN_TEXT))
+        self.widget.append_column(Gtk.TreeViewColumn("Language", Gtk.CellRendererText(), text=self.COLUMN_LANG))
+        self.widget.append_column(Gtk.TreeViewColumn("Overrides", Gtk.CellRendererText(), text=self.COLUMN_OVERRIDES))
+        self.widget.append_column(Gtk.TreeViewColumn("Description", Gtk.CellRendererText(), text=self.COLUMN_TEXT))
 
     def __do(self, widget=None):
         """
@@ -198,7 +198,7 @@ class EditDescription(abstract.HTMLEditor):
         """
         """
         self.operation = operation
-        builder = gtk.Builder()
+        builder = Gtk.Builder()
         builder.add_from_file(os.path.join(paths.glade_dialog_prefix, "edit_description.glade"))
         self.wdialog = builder.get_object("dialog:edit_description")
         self.info_box = builder.get_object("dialog:edit_description:info_box")
@@ -275,13 +275,13 @@ class EditWarning(abstract.ListEditor):
     def __init__(self, core, id, widget, data_model):
         
         self.data_model = data_model
-        super(EditWarning, self).__init__(id, core, widget=widget, model=gtk.ListStore(str, bool, str, str, gobject.TYPE_PYOBJECT))
+        super(EditWarning, self).__init__(id, core, widget=widget, model=Gtk.ListStore(str, bool, str, str, GObject.TYPE_PYOBJECT))
         self.add_sender(id, "update")
 
-        self.widget.append_column(gtk.TreeViewColumn("Language", gtk.CellRendererText(), text=self.COLUMN_LANG))
-        self.widget.append_column(gtk.TreeViewColumn("Overrides", gtk.CellRendererText(), text=self.COLUMN_OVERRIDES))
-        self.widget.append_column(gtk.TreeViewColumn("Category", gtk.CellRendererText(), text=self.COLUMN_CATEGORY))
-        self.widget.append_column(gtk.TreeViewColumn("Warning", gtk.CellRendererText(), text=self.COLUMN_TEXT))
+        self.widget.append_column(Gtk.TreeViewColumn("Language", Gtk.CellRendererText(), text=self.COLUMN_LANG))
+        self.widget.append_column(Gtk.TreeViewColumn("Overrides", Gtk.CellRendererText(), text=self.COLUMN_OVERRIDES))
+        self.widget.append_column(Gtk.TreeViewColumn("Category", Gtk.CellRendererText(), text=self.COLUMN_CATEGORY))
+        self.widget.append_column(Gtk.TreeViewColumn("Warning", Gtk.CellRendererText(), text=self.COLUMN_TEXT))
 
     def __do(self, widget=None):
         """
@@ -311,7 +311,7 @@ class EditWarning(abstract.ListEditor):
         """
         """
         self.operation = operation
-        builder = gtk.Builder()
+        builder = Gtk.Builder()
         builder.add_from_file(os.path.join(paths.glade_dialog_prefix, "edit_warning.glade"))
         self.wdialog = builder.get_object("dialog:edit_warning")
         self.info_box = builder.get_object("dialog:edit_warning:info_box")
@@ -369,11 +369,11 @@ class EditStatus(abstract.ListEditor):
     def __init__(self, core, id, widget, data_model):
 
         self.data_model = data_model 
-        super(EditStatus, self).__init__(id, core, widget=widget, model=gtk.ListStore(str, str, gobject.TYPE_PYOBJECT))
+        super(EditStatus, self).__init__(id, core, widget=widget, model=Gtk.ListStore(str, str, GObject.TYPE_PYOBJECT))
         self.add_sender(id, "update")
 
-        self.widget.append_column(gtk.TreeViewColumn("Date", gtk.CellRendererText(), text=self.COLUMN_DATE))
-        self.widget.append_column(gtk.TreeViewColumn("Status", gtk.CellRendererText(), text=self.COLUMN_TEXT))
+        self.widget.append_column(Gtk.TreeViewColumn("Date", Gtk.CellRendererText(), text=self.COLUMN_DATE))
+        self.widget.append_column(Gtk.TreeViewColumn("Status", Gtk.CellRendererText(), text=self.COLUMN_TEXT))
 
     def __do(self, widget=None):
         """
@@ -407,7 +407,7 @@ class EditStatus(abstract.ListEditor):
         """
         """
         self.operation = operation
-        builder = gtk.Builder()
+        builder = Gtk.Builder()
         builder.add_from_file(os.path.join(paths.glade_dialog_prefix, "edit_status.glade"))
         self.wdialog = builder.get_object("dialog:edit_status")
         self.info_box = builder.get_object("dialog:edit_status:info_box")
@@ -471,7 +471,7 @@ class EditSelectIdDialogWindow(object):
         self.model_conflict = model_conflict
         self.model_item = model_item
         
-        builder = gtk.Builder()
+        builder = Gtk.Builder()
         builder.add_from_file(os.path.join(paths.glade_prefix, "dialogs.glade"))
 
         self.window = builder.get_object("dialog:add_id")
@@ -497,16 +497,16 @@ class EditSelectIdDialogWindow(object):
         self.text_search_title = builder.get_object("add_id:text_search_title")
         
         #treeView for search item for select to add
-        self.model_search = gtk.TreeStore(str, str, bool)
+        self.model_search = Gtk.TreeStore(str, str, bool)
         self.tw_search = builder.get_object("add_id:tw_search")
         
-        cell = gtk.CellRendererText()
-        column = gtk.TreeViewColumn("ID Item", cell, text=self.COLUMN_ID)
+        cell = Gtk.CellRendererText()
+        column = Gtk.TreeViewColumn("ID Item", cell, text=self.COLUMN_ID)
         column.set_resizable(True)
         self.tw_search.append_column(column)
 
-        cell = gtk.CellRendererText()
-        column = gtk.TreeViewColumn("Title", cell, text=self.COLUMN_TITLE)
+        cell = Gtk.CellRendererText()
+        column = Gtk.TreeViewColumn("Title", cell, text=self.COLUMN_TITLE)
         column.set_expand(True)
         column.set_resizable(True)
         self.tw_search.append_column(column)
@@ -514,32 +514,32 @@ class EditSelectIdDialogWindow(object):
         self.tw_search.set_model(self.model_search)
         
         #treeView for item, which will be add
-        self.model_to_add = gtk.ListStore(str, str)
+        self.model_to_add = Gtk.ListStore(str, str)
         self.tw_add = builder.get_object("add_id:tw_add")
         
-        cell = gtk.CellRendererText()
-        column = gtk.TreeViewColumn("ID Item", cell, text=self.COLUMN_ID)
+        cell = Gtk.CellRendererText()
+        column = Gtk.TreeViewColumn("ID Item", cell, text=self.COLUMN_ID)
         column.set_resizable(True)
         self.tw_add.append_column(column)
 
-        cell = gtk.CellRendererText()
-        column = gtk.TreeViewColumn("Title", cell, text=self.COLUMN_TITLE)
+        cell = Gtk.CellRendererText()
+        column = Gtk.TreeViewColumn("Title", cell, text=self.COLUMN_TITLE)
         column.set_expand(True)
         column.set_resizable(True)
         self.tw_add.append_column(column)
 
         self.tw_add.set_model(self.model_to_add)
         
-        menu = gtk.Menu()
-        menu_item = gtk.MenuItem("Remove from add")
+        menu = Gtk.Menu()
+        menu_item = Gtk.MenuItem("Remove from add")
         menu_item.show()
         menu.append(menu_item)
         menu_item.connect("activate", self.__cb_del_row)
         self.tw_add.connect ("button_press_event",self.cb_popupMenu_to_add, menu)
         self.tw_add.connect("key-press-event", self.__cb_del_row1,)
 
-        menu_search = gtk.Menu()
-        menu_item = gtk.MenuItem("Copy to add")
+        menu_search = Gtk.Menu()
+        menu_item = Gtk.MenuItem("Copy to add")
         menu_item.show()
         menu_search.append(menu_item)
         menu_item.connect("activate", self.cb_btn_add)
@@ -569,7 +569,7 @@ class EditSelectIdDialogWindow(object):
         self.window.destroy()
             
     def __cb_del_row1(self, widget, event):
-        keyname = gtk.gdk.keyval_name(event.keyval)
+        keyname = Gdk.keyval_name(event.keyval)
         if keyname == "Delete":
             selection = self.tw_add.get_selection( )
             if selection != None: 
@@ -590,7 +590,7 @@ class EditSelectIdDialogWindow(object):
             menu.popup(None,None,None,event.button,event.time)
             
     def show(self):
-        self.window.set_transient_for(self.core.main_window)
+        self.set_transient_for(self.core.main_window)
         self.window.show()
 
     def __delete_event(self, widget, event=None):
@@ -720,7 +720,7 @@ class FindOvalDef(abstract.Window, abstract.ListEditor):
     def dialog(self, widget, href):
         """
         """
-        builder = gtk.Builder()
+        builder = Gtk.Builder()
         builder.add_from_file(os.path.join(paths.glade_prefix, "dialogs.glade"))
         self.wdialog = builder.get_object("dialog:find_definition")
         self.info_box = builder.get_object("dialog:find_definition:info_box")
@@ -731,9 +731,9 @@ class FindOvalDef(abstract.Window, abstract.ListEditor):
         builder.get_object("dialog:find_definition:btn_ok").connect("clicked", self.__do)
 
         self.core.notify_destroy("notify:not_selected")
-        self.definitions.append_column(gtk.TreeViewColumn("ID of Definition", gtk.CellRendererText(), text=self.COLUMN_ID))
-        self.definitions.append_column(gtk.TreeViewColumn("Title", gtk.CellRendererText(), text=self.COLUMN_VALUE))
-        self.definitions.set_model(gtk.ListStore(str, str))
+        self.definitions.append_column(Gtk.TreeViewColumn("ID of Definition", Gtk.CellRendererText(), text=self.COLUMN_ID))
+        self.definitions.append_column(Gtk.TreeViewColumn("Title", Gtk.CellRendererText(), text=self.COLUMN_VALUE))
+        self.definitions.set_model(Gtk.ListStore(str, str))
         modelfilter = self.definitions.get_model().filter_new()
         modelfilter.set_visible_func(self.filter_listview, data=(self.search, (0,1)))
         self.definitions.set_model(modelfilter)
@@ -787,7 +787,7 @@ class FindItem(abstract.Window, abstract.ListEditor):
     def dialog(self, type):
         """
         """
-        builder = gtk.Builder()
+        builder = Gtk.Builder()
         builder.add_from_file(os.path.join(paths.glade_prefix, "dialogs.glade"))
         self.wdialog = builder.get_object("dialog:find_value")
         self.info_box = builder.get_object("dialog:find_value:info_box")
@@ -800,8 +800,8 @@ class FindItem(abstract.Window, abstract.ListEditor):
         builder.get_object("dialog:find_value:export_name:separator").set_property('visible', False)
 
         self.core.notify_destroy("notify:not_selected")
-        self.items.append_column(gtk.TreeViewColumn("ID", gtk.CellRendererText(), text=self.COLUMN_ID))
-        self.items.append_column(gtk.TreeViewColumn("Title", gtk.CellRendererText(), text=self.COLUMN_VALUE))
+        self.items.append_column(Gtk.TreeViewColumn("ID", Gtk.CellRendererText(), text=self.COLUMN_ID))
+        self.items.append_column(Gtk.TreeViewColumn("Title", Gtk.CellRendererText(), text=self.COLUMN_VALUE))
 
         if type == "rule":
             items = self.data_model.get_all_item_ids()
@@ -810,7 +810,7 @@ class FindItem(abstract.Window, abstract.ListEditor):
         else:
             raise NotImplementedError("Type \"%s\" not supported!" % (type))
 
-        self.items.set_model(gtk.ListStore(str, str, gobject.TYPE_PYOBJECT))
+        self.items.set_model(Gtk.ListStore(str, str, GObject.TYPE_PYOBJECT))
         modelfilter = self.items.get_model().filter_new()
         modelfilter.set_visible_func(self.filter_listview, data=(self.search, (0,1)))
         self.items.set_model(modelfilter)

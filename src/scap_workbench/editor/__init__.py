@@ -29,7 +29,7 @@ from scap_workbench.editor import profiles
 from scap_workbench.editor import items
 
 import os
-import gtk
+from gi.repository import Gtk
 import logging
 
 # Initializing Logger
@@ -42,7 +42,7 @@ class MainWindow(abstract.Window):
     def __init__(self):
         error.ErrorHandler.install_exception_hook()
         
-        self.builder = gtk.Builder()
+        self.builder = Gtk.Builder()
         self.builder.add_from_file(os.path.join(paths.glade_prefix, "editor.glade"))
         self.builder.connect_signals(self)
         
@@ -79,11 +79,11 @@ class MainWindow(abstract.Window):
         # since we are quitting gtk we can't be popping a dialog when exception happens anymore
         error.ErrorHandler.uninstall_exception_hook()
  
-        gtk.main_quit()
+        Gtk.main_quit()
         return False
 
     def run(self):
-        gtk.main()
+        Gtk.main()
 
 # we only expose the MainWindow from the entire editor subpackage because that's all that's needed to start the app
 __all__ = ["MainWindow"]

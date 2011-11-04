@@ -58,11 +58,11 @@ except Exception as ex:
 def label_set_autowrap(widget): 
     "Make labels automatically re-wrap if their containers are resized.  Accepts label or container widgets."
     # For this to work the label in the glade file must be set to wrap on words.
-    if isinstance(widget, gtk.Container):
+    if isinstance(widget, Gtk.Container):
         children = widget.get_children()
         for i in xrange(len(children)):
             label_set_autowrap(children[i])
-    elif isinstance(widget, gtk.Label) and widget.get_line_wrap():
+    elif isinstance(widget, Gtk.Label) and widget.get_line_wrap():
         widget.connect_after("size-allocate", label_size_allocate)
 
 def label_size_allocate(widget, allocation):
@@ -70,13 +70,13 @@ def label_size_allocate(widget, allocation):
     layout = widget.get_layout()
     lw_old, lh_old = layout.get_size()
     # fixed width labels
-    if lw_old / pango.SCALE == allocation.width:
+    if lw_old / Pango.SCALE == allocation.width:
         return
-    # set wrap width to the pango.Layout of the labels
-    layout.set_width(allocation.width * pango.SCALE)
+    # set wrap width to the Pango.Layout of the labels
+    layout.set_width(allocation.width * Pango.SCALE)
     lw, lh = layout.get_size()  # lw is unused.
     if lh_old != lh:
-        widget.set_size_request(-1, lh / pango.SCALE)
+        widget.set_size_request(-1, lh / Pango.SCALE)
 
 
 class Notification(object):
@@ -98,7 +98,7 @@ class Notification(object):
     # Foreground color
     COLOR = ["#4F8A10", "#00529B", "#9F6000", "#D8000C", "#D8000C"]
     # Default size of the image
-    DEFAULT_SIZE = gtk.ICON_SIZE_LARGE_TOOLBAR
+    DEFAULT_SIZE = Gtk.IconSize.LARGE_TOOLBAR
     # This is not used, but can be implemented auto-hide of the notification
     DEFAULT_TIME = 10
     HIDE_LVLS = [0, 1] # TODO
@@ -110,36 +110,36 @@ class Notification(object):
         if lvl < 0: lvl = 0
 
         logger.debug("Notification: %s", text)
-        box = gtk.HBox()
+        box = Gtk.HBox()
         box.set_spacing(10)
-        align = gtk.Alignment(0.5, 0.5, 1.0, 1.0)
+        align = Gtk.Alignment.new(0.5, 0.5, 1.0, 1.0)
         align.set_padding(2, 2, 5, 2)
         align.add(box)
-        self.img = gtk.Image()
+        self.img = Gtk.Image()
         self.img.set_from_icon_name(Notification.IMG[lvl], Notification.DEFAULT_SIZE)
         box.pack_start(self.img, False, False)
         if type(text) == str:
-            self.label = gtk.Label(text)
+            self.label = Gtk.Label(label=text)
             if link_cb: self.label.connect("activate-link", link_cb)
             self.label.set_alignment(0, 0.5)
-            self.label.modify_fg(gtk.STATE_NORMAL, gtk.gdk.Color(Notification.COLOR[lvl]))
+            self.label.modify_fg(Gtk.StateType.NORMAL, Gdk.Color(Notification.COLOR[lvl]))
             self.label.set_use_markup(True)
             #self.label.set_line_wrap(True)
-            self.label.set_line_wrap_mode(pango.WRAP_WORD)
+            self.label.set_line_wrap_mode(Pango.WrapMode.WORD)
             label_set_autowrap(self.label)
             box.pack_start(self.label, True, True)
         else: box.pack_start(text, True, True)
-        self.close_btn = gtk.Button()
-        self.close_btn.set_relief(gtk.RELIEF_NONE)
+        self.close_btn = Gtk.Button()
+        self.close_btn.set_relief(Gtk.ReliefStyle.NONE)
         self.close_btn.connect("clicked", self.__cb_destroy)
         self.close_btn.set_label("x")
         box.pack_start(self.close_btn, False, False)
-        self.eb = gtk.EventBox()
-        self.eb.modify_bg(gtk.STATE_NORMAL, gtk.gdk.Color(Notification.BG_COLOR[lvl]))
+        self.eb = Gtk.EventBox()
+        self.eb.modify_bg(Gtk.StateType.NORMAL, Gdk.Color(Notification.BG_COLOR[lvl]))
         self.eb.set_border_width(1)
         self.eb.add(align)
-        self.widget = gtk.EventBox()
-        self.widget.modify_bg(gtk.STATE_NORMAL, gtk.gdk.Color(Notification.COLOR[lvl]))
+        self.widget = Gtk.EventBox()
+        self.widget.modify_bg(Gtk.StateType.NORMAL, Gdk.Color(Notification.COLOR[lvl]))
         self.widget.add(self.eb)
     
         self.widget.show_all()
@@ -368,7 +368,7 @@ class SWBCore(object):
 
     def notify(self, text, lvl=0, info_box=None, msg_id=None, link_cb=None):
         """ Create a notification with the text and level from Notification class.
-        info_box parameter is the gtk.Container that will be a parent for the notification
+        info_box parameter is the Gtk.Container that will be a parent for the notification
         window.
         msg_id is unique identificator of type of notification to prevent for showing
         same type of notification more times. None are used for global notifications
