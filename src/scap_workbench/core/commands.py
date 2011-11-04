@@ -735,6 +735,11 @@ class DataHandler(object):
 
         if not self.check_library(): return None
 
+        # we have to specifically check whether status is None, doing just "if status"
+        # would mean that 0 wouldn't be a valid status!
+        if status is None:
+            status = openscap.OSCAP.XCCDF_STATUS_INCOMPLETE
+
         if item == None:
             item = self.core.lib.benchmark.get_item(self.core.selected_item)
 
@@ -760,7 +765,8 @@ class DataHandler(object):
         elif operation == self.CMD_OPER_DEL:
             return item.statuses.remove(obj)
 
-        else: raise AttributeError("Edit warning: Unknown operation %s" % (operation,))
+        else:
+            raise NotImplementedError("edit_status: Unknown operation %s" % (operation))
 
     def edit_question(self, operation, obj, lang, overrides, text, item=None):
 
