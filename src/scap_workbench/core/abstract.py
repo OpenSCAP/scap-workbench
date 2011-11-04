@@ -1154,8 +1154,7 @@ class HTMLEditor(ListEditor):
 class CellRendererTextWrap(Gtk.CellRendererText):
     """ pokus asi nebude pouzito necham najindy pozeji smazu"""
     def __init__(self):
-        self.__gobject_init__()
-        GObject.GObject.__init__( self )
+        super(CellRendererTextWrap, self).__init__()
         self.callable = None
         self.table = None
         self.set_property("wrap-mode", True)

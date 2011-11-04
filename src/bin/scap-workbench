@@ -22,6 +22,9 @@
 #      Vladimir Oberreiter  <xoberr01@stud.fit.vutbr.cz>
 #      Martin Preisler      <mpreisle@redhat.com>
 
+import gi
+gi.require_version("Gtk", "3.0")
+
 def main():
     from gi.repository import Gtk
     from gi.repository import Gdk

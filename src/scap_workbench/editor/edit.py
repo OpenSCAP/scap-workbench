@@ -23,7 +23,7 @@
 """ Importing standard python libraries
 """
 from gi.repository import Gtk
-import gobject          # GObject.TYPE_PYOBJECT
+from gi.repository import GObject
 import time             # Time functions in calendar data ::EditStatus
 import re               # Regular expressions 
 import os               # os Path join/basename, ..

@@ -155,8 +155,8 @@ class ProfileList(abstract.List):
         """ Set the model of the list to support search
         """
         self.__stop_search = False
-        modelfilter = self.data_model.model.filter_new()
-        modelfilter.set_visible_func(self.__filter_func)
+        modelfilter = self.data_model.model.filter_new(None)
+        modelfilter.set_visible_func(self.__filter_func, None)
         self.get_TreeView().set_model(modelfilter)
 
         self.get_TreeView().connect("key-press-event", self.__cb_key_press)

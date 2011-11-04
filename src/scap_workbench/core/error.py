@@ -52,14 +52,15 @@ class ExceptionDialog(object):
         buffer = Gtk.TextBuffer()
         buffer.set_text("Version: %s\n"
                         "Python version: %s\n"
-                        "GTK version: %s\n"
-                        "PyGTK version: %s\n"
+                        # FIXME!
+                        #"GTK version: %s\n"
+                        #"PyGTK version: %s\n"
                         "\n"
                         "Exception type: %s\n"
                         "Exception message: %s\n"
                         "\n"
                         "Traceback:\n"
-                        "%s" % (version.as_string, sys.version, Gtk.gtk_version, Gtk.pygtk_version,
+                        "%s" % (version.as_string, sys.version,
                                 exc_type, exc_message, self.traceback_str))
         
         self.details.set_buffer(buffer)

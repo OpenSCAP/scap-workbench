@@ -39,7 +39,7 @@ class EventObject(GObject.GObject):
         """ Constructor of EventObject. Call Gobject constructor for 
         signals handling. Register objects.
         """
-        self.__gobject_init__()
+        super(EventObject, self).__init__()
         self.core = core
         GObject.type_register(EventObject)
         self.object = self
