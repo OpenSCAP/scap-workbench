@@ -124,8 +124,7 @@ class Notification(object):
             self.label = Gtk.Label(label=text)
             if link_cb: self.label.connect("activate-link", link_cb)
             self.label.set_alignment(0, 0.5)
-            # color_parse returns a (success?, the_color) tuple, that's the reason for [1]
-            self.label.modify_fg(Gtk.StateType.NORMAL, Gdk.color_parse(Notification.COLOR[lvl])[1])
+            self.label.modify_fg(Gtk.StateType.NORMAL, Gdk.color_parse(Notification.COLOR[lvl]))
             self.label.set_use_markup(True)
             #self.label.set_line_wrap(True)
             self.label.set_line_wrap_mode(Pango.WrapMode.WORD)
@@ -140,13 +139,11 @@ class Notification(object):
         self.close_btn.set_label("x")
         box.pack_start(self.close_btn, False, False, 0)
         self.eb = Gtk.EventBox()
-        # color_parse returns a (success?, the_color) tuple, that's the reason for [1]
-        self.eb.modify_bg(Gtk.StateType.NORMAL, Gdk.color_parse(Notification.BG_COLOR[lvl])[1])
+        self.eb.modify_bg(Gtk.StateType.NORMAL, Gdk.color_parse(Notification.BG_COLOR[lvl]))
         self.eb.set_border_width(1)
         self.eb.add(align)
         self.widget = Gtk.EventBox()
-        # color_parse returns a (success?, the_color) tuple, that's the reason for [1]
-        self.widget.modify_bg(Gtk.StateType.NORMAL, Gdk.color_parse(Notification.COLOR[lvl])[1])
+        self.widget.modify_bg(Gtk.StateType.NORMAL, Gdk.color_parse(Notification.COLOR[lvl]))
         self.widget.add(self.eb)
     
         self.widget.show_all()

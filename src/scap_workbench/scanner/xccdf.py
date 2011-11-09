@@ -103,13 +103,17 @@ class MenuButtonXCCDF(abstract.MenuButton):
         expander = Gtk.Expander()
         label = Gtk.Label("OVAL: %s" % (name,))
         pango_list = Pango.AttrList()
-        pango_list.insert(Pango.AttrWeight(Pango.Weight.BOLD, start_index=0, end_index=-1))
+        
+        bold_fd = Pango.FontDescription()
+        bold_fd.set_weight(Pango.Weight.BOLD)
+        #pango_list.insert(Pango.AttrFontDesc(desc = bold_fd, start_index=0, end_index=-1))
+        
         if not file_info:
             pango_list.insert(Pango.AttrForeground(65535, 0, 0, start_index=0, end_index=-1))
         label.set_attributes(pango_list)
         expander.set_label_widget(label)
         expander.set_expanded(True)
-        align = Gtk.Alignment.new()
+        align = Gtk.Alignment()
         align.set_padding(5, 10, 25, 0)
 
         if not file_info:
@@ -152,7 +156,7 @@ class MenuButtonXCCDF(abstract.MenuButton):
             table.attach(label, 1, 2, 3, 4, xoptions=Gtk.AttachOptions.EXPAND|Gtk.AttachOptions.FILL, yoptions=Gtk.AttachOptions.FILL, xpadding=0, ypadding=0)
 
         expander.add(align)
-        self.files_box.pack_start(expander, False, False)
+        self.files_box.pack_start(expander, False, False, 0)
         expander.show_all()
 
     def __clear(self):

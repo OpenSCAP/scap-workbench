@@ -22,9 +22,11 @@
 
 """ Importing standard python libraries
 """
-import os               # For path basedir
 from gi.repository import Gtk
+from gi.repository import Gdk
 from gi.repository import GObject
+
+import os               # For path basedir
 import tempfile         # Temporary file for XCCDF preview
 from scap_workbench.core.threads import thread as threadSave
 import logging          # Logger for debug/info/error messages

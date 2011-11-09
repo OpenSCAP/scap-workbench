@@ -1164,7 +1164,7 @@ class DHValues(DataHandler):
         values = self.get_item_values(self.core.selected_item)
         # TODO: The 0:gray value is not working cause of error in get_selected that values stay the same color
         # after selecting rule/group
-        color = [Gdk.Color("black"), Gdk.Color("black")][self.get_selected(item, self.items_model)]
+        color = [Gdk.color_parse("black"), Gdk.color_parse("black")][self.get_selected(item, self.items_model)]
         for value in values:
             lang = value["lang"]
             model = Gtk.ListStore(str, str)
@@ -1406,7 +1406,7 @@ class DHItemsTree(DataHandler, EventObject):
             try:
                 child = iter.next()
                 model[child.path][DHItemsTree.COLUMN_PARENT] = pselected
-                model[child.path][DHItemsTree.COLUMN_COLOR] = ["gray", None][model[child.path][DHItemsTree.COLUMN_SELECTED] and pselected]
+                model[child.path][DHItemsTree.COLUMN_COLOR] = ["gray", ""][model[child.path][DHItemsTree.COLUMN_SELECTED] and pselected]
 
                 """Alter the policy. All underneath rules/groups should 
                 be deselected when parent group is deselected.
@@ -1453,7 +1453,7 @@ class DHItemsTree(DataHandler, EventObject):
                 self.__cb_toggled(cell, alt_path, self.ref_model)
 
         model[path][DHItemsTree.COLUMN_SELECTED] = not model[path][DHItemsTree.COLUMN_SELECTED]
-        model[path][DHItemsTree.COLUMN_COLOR] = ["gray", None][model[path][DHItemsTree.COLUMN_SELECTED]]
+        model[path][DHItemsTree.COLUMN_COLOR] = ["gray", ""][model[path][DHItemsTree.COLUMN_SELECTED]]
 
         """OpenSCAP library block:
            1) Get selected policy and raise exception if there is no policy - how could this happened ?
