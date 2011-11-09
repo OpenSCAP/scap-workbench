@@ -181,7 +181,7 @@ class MenuButton(EventObject):
         body.pack_start(Gtk.HSeparator(), False, False, padding=2)
         alig = Gtk.Alignment.new(0, 0, 1, 1)
         alig.set_padding(0, 0, 12, 0)
-        body.pack_start(alig, False, False)
+        body.pack_start(alig, False, False, 0)
         return alig
 
     #draw functions
@@ -190,8 +190,8 @@ class MenuButton(EventObject):
         label = frame.get_label_widget()
         label.set_use_markup(True)        
         frame.set_shadow_type(Gtk.ShadowType.NONE)
-        if expand: body.pack_start(frame, True, True)
-        else: body.pack_start(frame, False, True)
+        if expand: body.pack_start(frame, True, True, 0)
+        else: body.pack_start(frame, False, True, 0)
         alig = Gtk.Alignment.new(0.5, 0.5, 1, 1)
         alig.set_padding(0, 0, 12, 0)
         frame.add(alig)

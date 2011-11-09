@@ -103,16 +103,16 @@ class Search(object):
         alig = Gtk.Alignment.new(0.0, 0.0, 1.0, 1.0)
         alig.set_padding(5, 5, 10, 5)
         alig.add(self.entry)
-        self.box.pack_start(alig, True, True)
+        self.box.pack_start(alig, True, True, 0)
 
         self.button = Gtk.Button()
         self.button.set_relief(Gtk.ReliefStyle.NONE)
         self.button.set_label("Search")
         self.button.connect("clicked", self.__cb_search)
-        alig = Gtk.Alignment.new(0.0, 0.0, 1.0, 1.0)
+        alig = Gtk.Alignment(xalign = 0.0, yalign = 0.0, xscale = 1.0, yscale = 1.0)
         alig.set_padding(5, 5, 10, 5)
         alig.add(self.button)
-        self.box.pack_start(alig, True, True)
+        self.box.pack_start(alig, True, True, 0)
 
         self.box.show_all()
 
@@ -160,7 +160,7 @@ class Renderer(abstract.MenuButton,EventObject):
         button.set_relief(Gtk.ReliefStyle.NONE)
         button.set_label("Add filter")
         button.connect_object("event", self.__cb_show_menu, self.menu)
-        filter_box.pack_end(button, False, True)
+        filter_box.pack_end(button, False, True, 0)
         box.show_all()
 
     def __cb_menu(self, widget, filter):
@@ -239,13 +239,13 @@ class ExpandBox(abstract.EventObject):
         
         # body for expandBox
         rollBox = Gtk.HBox()
-        box.pack_start(rollBox, True, True)
+        box.pack_start(rollBox, True, True, 0)
 
-        alig = Gtk.Alignment.new()
+        alig = Gtk.Alignment()
         alig.set_padding(5, 5, 5, 5) # top, bottom, left, right
         self.frameContent = Gtk.VBox()
         alig.add(self.frameContent)
-        rollBox.pack_start(alig, True, True)
+        rollBox.pack_start(alig, True, True, 0)
         
         # create icons
         self.arrowTop = Gtk.Image()
@@ -261,12 +261,12 @@ class ExpandBox(abstract.EventObject):
 
         #create button
         hbox = Gtk.VBox()
-        hbox.pack_start(self.arrowTop, False, True)
-        hbox.pack_start(self.label, True, True)
-        hbox.pack_start(self.arrowBottom, False, True)
+        hbox.pack_start(self.arrowTop, False, True, 0)
+        hbox.pack_start(self.label, True, True, 0)
+        hbox.pack_start(self.arrowBottom, False, True, 0)
         self.btn = Gtk.Button()
         self.btn.add(hbox)
-        rollBox.pack_start(self.btn, False, True)
+        rollBox.pack_start(self.btn, False, True, 0)
         self.btn.connect("clicked", self.cb_changed)
         self.frameContent.show_all()
 
