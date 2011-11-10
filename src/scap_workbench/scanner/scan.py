@@ -426,7 +426,7 @@ class HelpWindow(abstract.Window):
         self.help_model[7][1] = commands.DHScan.BG_INFORMATIONAL
         self.help_model[8][1] = commands.DHScan.BG_FIXED
 
-        self.set_transient_for(self.core.main_window)
+        self.window.set_transient_for(self.core.main_window)
         self.window.show_all()
 
     def destroy_window(self, widget):
