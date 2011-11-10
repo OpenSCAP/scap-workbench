@@ -1641,7 +1641,7 @@ class ItemList(abstract.List):
         popup menu"""
         if event.button == 3:
             time = event.time
-            menu.popup(None, None, None, event.button, event.time)
+            menu.popup(None, None, None, None, event.button, event.time)
 
     def __cb_key_press(self, widget, event):
         """ The key-press event has occured upon the list.
