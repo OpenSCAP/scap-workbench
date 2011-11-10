@@ -980,9 +980,9 @@ class HTMLEditor(ListEditor):
 
         # Make ScrollWindows for both HTML and PLAIN views
         self.__html_sw = Gtk.ScrolledWindow()
-        box.pack_start(self.__html_sw, True, True)
+        box.pack_start(self.__html_sw, True, True, 0)
         self.__plain_sw = Gtk.ScrolledWindow()
-        box.pack_start(self.__plain_sw, True, True)
+        box.pack_start(self.__plain_sw, True, True, 0)
         self.__plain = Gtk.TextView()
         self.__plain_sw.add(self.__plain)
         self.__plain_sw.show_all()
@@ -996,7 +996,7 @@ class HTMLEditor(ListEditor):
             self.core.notify("Missing WebKit python module, HTML editing disabled.",
                     Notification.INFORMATION, info_box=self.info_box, msg_id="")
         else:
-            self.__html = webkit.WebView()
+            self.__html = WebKit.WebView()
             self.__html.set_zoom_level(0.75)
             self.__html_sw.add(self.__html)
             self.__html_sw.show_all()
@@ -1006,7 +1006,7 @@ class HTMLEditor(ListEditor):
 
         for child in self.__toolbar.get_children():
             child.set_sensitive(False)
-        self.__switcher.parent.set_sensitive(True)
+        self.__switcher.get_parent().set_sensitive(True)
 
     def load_html(self, text, url):
         if self.__switcher.get_active() == 0 and self.__html:
@@ -1020,7 +1020,7 @@ class HTMLEditor(ListEditor):
     def get_text(self):
 
         if self.__switcher.get_active() == 1:
-            desc = self.__plain.get_buffer().get_text(self.__plain.get_buffer().get_start_iter(), self.__plain.get_buffer().get_end_iter())
+            desc = self.__plain.get_buffer().get_text(self.__plain.get_buffer().get_start_iter(), self.__plain.get_buffer().get_end_iter(), True)
         else:
             self.__html.execute_script("document.title=document.documentElement.innerHTML;")
             desc = self.__html.get_main_frame().get_title()
@@ -1114,7 +1114,7 @@ class HTMLEditor(ListEditor):
         if self.__switcher.get_active() == 0: # TEXT -> HTML
             self.__html_sw.set_property("visible", True)
             self.__plain_sw.set_property("visible", False)
-            desc = self.__plain.get_buffer().get_slice(self.__plain.get_buffer().get_start_iter(), self.__plain.get_buffer().get_end_iter())
+            desc = self.__plain.get_buffer().get_slice(self.__plain.get_buffer().get_start_iter(), self.__plain.get_buffer().get_end_iter(), True)
             self.load_html(desc or "", "file:///")
 
         elif self.__switcher.get_active() == 1: # HTML -> TEXT
@@ -1148,7 +1148,7 @@ class HTMLEditor(ListEditor):
 
         """ Switcher has to stay enabled in all cases
         """
-        self.__switcher.parent.set_sensitive(True)
+        self.__switcher.get_parent().set_sensitive(True)
 
 
 class CellRendererTextWrap(Gtk.CellRendererText):

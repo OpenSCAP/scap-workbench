@@ -450,7 +450,7 @@ class GdkLock(object):
     ... code not requiring exclusive gdk access
     
     with gdk_lock:
-        ... core requiring exclusive gdk access ...
+        ... code requiring exclusive gdk access ...
         
     ... code not requiring exclusive gdk access
     """

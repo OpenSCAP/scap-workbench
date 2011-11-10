@@ -28,6 +28,7 @@ from scap_workbench.core.events import EventObject
 from scap_workbench.editor.edit import *
 
 from gi.repository import Gtk
+from gi.repository import Gdk
 from gi.repository import GLib
 
 import logging
@@ -139,13 +140,13 @@ class AddItem(EventObject):
             self.core.notify("The ID of item is mandatory !",
                     core.Notification.ERROR, self.info_box, msg_id="dialog:add_item")
             self.iid.grab_focus()
-            self.iid.modify_base(Gtk.StateType.NORMAL, Gdk.Color("#FFC1C2"))
+            self.iid.modify_base(Gtk.StateType.NORMAL, Gdk.color_parse("#FFC1C2"))
             return
         elif self.data_model.get_item_details(self.iid.get_text()):
             self.core.notify("ID already exists",
                     core.Notification.ERROR, self.info_box, msg_id="dialog:add_item")
             self.iid.grab_focus()
-            self.iid.modify_base(Gtk.StateType.NORMAL, Gdk.Color("#FFC1C2"))
+            self.iid.modify_base(Gtk.StateType.NORMAL, Gdk.color_parse("#FFC1C2"))
             return
         else: 
             self.iid.modify_base(Gtk.StateType.NORMAL, self.__entry_style)
@@ -154,7 +155,7 @@ class AddItem(EventObject):
             self.core.notify("The title of item is mandatory !",
                     core.Notification.ERROR, self.info_box, msg_id="dialog:add_item")
             self.title.grab_focus()
-            self.title.modify_base(Gtk.StateType.NORMAL, Gdk.Color("#FFC1C2"))
+            self.title.modify_base(Gtk.StateType.NORMAL, Gdk.color_parse("#FFC1C2"))
             return
         else: 
             self.title.modify_base(Gtk.StateType.NORMAL, self.__entry_style)
@@ -425,7 +426,7 @@ class EditFixtext(abstract.HTMLEditor):
 
     def __change(self, widget, event=None):
 
-        if event and event.type == Gdk.KEY_PRESS and event.keyval != Gdk.KEY_Return:
+        if event and event.type == Gdk.EventType.KEY_PRESS and event.keyval != Gdk.KEY_Return:
             return
 
         (model, iter) = self.get_selection().get_selected()
@@ -631,7 +632,7 @@ class EditFix(abstract.ListEditor):
 
     def __change(self, widget, event=None):
 
-        if event and event.type == Gdk.KEY_PRESS and event.keyval != Gdk.KEY_Return:
+        if event and event.type == Gdk.EventType.KEY_PRESS and event.keyval != Gdk.KEY_Return:
             return
 
         (model, iter) = self.get_selection().get_selected()
@@ -1317,7 +1318,7 @@ class EditValues(abstract.MenuButton, abstract.Func):
         item = self.data_model.get_item(self.core.selected_item)
         if item.type != openscap.OSCAP.XCCDF_VALUE: return
 
-        if event and event.type == Gdk.KEY_PRESS and event.keyval != Gdk.KEY_Return:
+        if event and event.type == Gdk.EventType.KEY_PRESS and event.keyval != Gdk.KEY_Return:
             return
 
         if widget == self.vid:
@@ -1443,7 +1444,7 @@ class EditValuesValues(abstract.ListEditor):
                 self.core.notify("Selector \"%s\" is already used !" % (inst[0],),
                         core.Notification.ERROR, self.info_box, msg_id="dialog:add_value")
                 self.selector.grab_focus()
-                self.selector.modify_base(Gtk.StateType.NORMAL, Gdk.Color("#FFC1C2"))
+                self.selector.modify_base(Gtk.StateType.NORMAL, Gdk.color_parse("#FFC1C2"))
                 return
         self.selector.modify_base(Gtk.StateType.NORMAL, self.__entry_style)
         
@@ -1645,7 +1646,7 @@ class ItemList(abstract.List):
     def __cb_key_press(self, widget, event):
         """ The key-press event has occured upon the list.
         If key == delete: Delete the selected item from the list and model"""
-        if event and event.type == Gdk.KEY_PRESS and event.keyval == Gdk.KEY_Delete:
+        if event and event.type == Gdk.EventType.KEY_PRESS and event.keyval == Gdk.KEY_Delete:
             selection = self.get_TreeView().get_selection()
             (model,iter) = selection.get_selected()
             if iter: self.__cb_item_remove()
@@ -1874,7 +1875,7 @@ class MenuButtonEditItems(abstract.MenuButton, abstract.Func):
 
     def __change(self, widget, event=None):
 
-        if event and event.type == Gdk.KEY_PRESS and event.keyval != Gdk.KEY_Return:
+        if event and event.type == Gdk.EventType.KEY_PRESS and event.keyval != Gdk.KEY_Return:
             return
 
         if widget == self.item_id:
@@ -1940,7 +1941,7 @@ class MenuButtonEditItems(abstract.MenuButton, abstract.Func):
 
     def __cb_value_clicked(self, widget, event):
 
-        if event.type == Gdk._2BUTTON_PRESS and event.button == 1:
+        if event.type == Gdk.EventType._2BUTTON_PRESS and event.button == 1:
             selection = widget.get_selection()
             if selection:
                 (model, iter) = selection.get_selected()

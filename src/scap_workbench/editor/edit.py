@@ -19,6 +19,7 @@
 # Authors:
 #      Maros Barabas        <xbarry@gmail.com>
 #      Vladimir Oberreiter  <xoberr01@stud.fit.vutbr.cz>
+#      Martin Preisler      <mpreisle@redhat.com>
 
 """ Importing standard python libraries
 """
@@ -89,7 +90,7 @@ class EditTitle(abstract.ListEditor):
         if self.iter and self.get_model() != None: 
             item = self.get_model()[self.iter][self.COLUMN_OBJ]
 
-        retval = self.data_model.edit_title(self.operation, item, self.lang.get_text(), buffer.get_text(buffer.get_start_iter(), buffer.get_end_iter()), 
+        retval = self.data_model.edit_title(self.operation, item, self.lang.get_text(), buffer.get_text(buffer.get_start_iter(), buffer.get_end_iter(), True), 
                                             self.overrides.get_active())
         self.fill()
         self.__dialog_destroy()

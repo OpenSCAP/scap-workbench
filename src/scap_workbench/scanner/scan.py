@@ -286,7 +286,7 @@ class MenuButtonScan(abstract.MenuButton, abstract.Func):
         self.results.set_sensitive(not active and previously_scanned)
         self.profile.set_sensitive(not active)
 
-    #@threadSave
+    @threadSave
     def __th_scan(self):
         """Starts scanning in a separate thread (via the @threadSave decorator, see threads.py)
         """
