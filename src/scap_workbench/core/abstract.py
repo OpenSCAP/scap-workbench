@@ -824,6 +824,7 @@ class Func(object):
             except (OverflowError, ValueError):
                 self.notifications.append(self.core.notify("The date is out of range.",
                     Notification.ERROR, msg_id="notify:date_format"))
+                return None
 
             self.core.notify_destroy("notify:date_format")
             return timestamp
