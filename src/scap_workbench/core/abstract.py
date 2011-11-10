@@ -374,7 +374,8 @@ class List(EventObject):
         
         if iter == None:
             # nothing selected
-            iter = model.get_iter_root()
+            # iter_first is the the root node in this case
+            iter = model.get_iter_first()
             iter = self.__search_branch(model, iter, None, (column, key))
 
         else:

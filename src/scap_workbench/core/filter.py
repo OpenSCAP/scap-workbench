@@ -20,8 +20,10 @@
 #      Maros Barabas        <xbarry@gmail.com>
 #      Vladimir Oberreiter  <xoberr01@stud.fit.vutbr.cz>
 
-import re
 from gi.repository import Gtk
+from gi.repository import Gdk
+
+import re
 import logging
 import sys
 import os
