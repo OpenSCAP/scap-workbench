@@ -516,7 +516,9 @@ class HtmlTextView(Gtk.TextView):
             self._changed_cursor = False
     
     def __motion_notify_event(self, widget, event):
-        x, y, _ = widget.window.get_pointer()
+        window = widget.get_window(Gtk.TextWindowType.TEXT)
+        
+        _, x, y, _ = window.get_pointer()
         x, y = widget.window_to_buffer_coords(Gtk.TextWindowType.TEXT, x, y)
         tags = widget.get_iter_at_location(x, y).get_tags()
         for tag in tags:
