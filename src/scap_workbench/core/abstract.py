@@ -23,6 +23,7 @@
 """ Importing standard python libraries
 """
 from gi.repository import Gtk
+from gi.repository import Gdk
 from gi.repository import GObject
 import re               # Regular expressions
 import datetime
@@ -990,7 +991,7 @@ class HTMLEditor(ListEditor):
 
         if not HAS_WEBKIT:
             label = Gtk.Label(label="Missing WebKit python module")
-            label.modify_fg(Gtk.StateType.NORMAL, Gdk.Color("red"))
+            label.modify_fg(Gtk.StateType.NORMAL, Gdk.color_parse("red"))
             self.__html_sw.add_with_viewport(label)
             self.__toolbar.set_sensitive(False)
             self.__html_sw.show_all()

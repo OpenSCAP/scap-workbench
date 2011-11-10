@@ -380,7 +380,7 @@ class ProfileChooser(object):
 
     def __do(self, widget, event=None):
 
-        if event and event.type == Gdk.KEY_PRESS and event.keyval != Gdk.KEY_Return:
+        if event and event.type == Gdk.EventType.KEY_PRESS and event.keyval != Gdk.KEY_Return:
             return
 
         selection = self.profiles.get_selection()

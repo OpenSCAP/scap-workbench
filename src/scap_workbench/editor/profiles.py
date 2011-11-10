@@ -74,14 +74,14 @@ class AddProfileDialog(EventObject):
                 self.core.notify("Profile \"%s\" already exists." % (self.pid.get_text(),),
                         core.Notification.ERROR, self.info_box, msg_id="notify:edit:profile:new")
                 self.pid.grab_focus()
-                self.pid.modify_base(Gtk.StateType.NORMAL, Gdk.Color("#FFC1C2"))
+                self.pid.modify_base(Gtk.StateType.NORMAL, Gdk.color_parse("#FFC1C2"))
                 return
         self.pid.modify_base(Gtk.StateType.NORMAL, self.__entry_style)
         if len(self.title.get_text()) == 0: 
             self.core.notify("Please add title for this profile.",
                     core.Notification.ERROR, self.info_box, msg_id="notify:edit:profile:new")
             self.title.grab_focus()
-            self.title.modify_base(Gtk.StateType.NORMAL, Gdk.Color("#FFC1C2"))
+            self.title.modify_base(Gtk.StateType.NORMAL, Gdk.color_parse("#FFC1C2"))
             return
         self.title.modify_base(Gtk.StateType.NORMAL, self.__entry_style)
 
@@ -459,7 +459,7 @@ class MenuButtonEditProfiles(abstract.MenuButton, abstract.Func):
 
     def __change(self, widget, event=None):
 
-        if event and event.type == Gdk.KEY_PRESS and event.keyval != Gdk.KEY_Return:
+        if event and event.type == Gdk.EventType.KEY_PRESS and event.keyval != Gdk.KEY_Return:
             return
 
         item = self.list_profile.selected
