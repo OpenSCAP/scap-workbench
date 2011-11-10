@@ -213,7 +213,7 @@ class MenuButtonXCCDF(abstract.MenuButton):
                 label.set_use_markup(True)
             else: text = "%d) %s [<a href='%s'>link</a>]" % (i+1, " ".join((ref["title"] or "").split()), ref["identifier"])
             label.set_text(text)
-            self.box_references.pack_start(label, True, True)
+            self.box_references.pack_start(label, True, True, 0)
             #label.set_tooltip_text(ref[1])
             label.set_use_markup(True)
             
