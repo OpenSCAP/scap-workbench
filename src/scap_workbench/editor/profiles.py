@@ -327,7 +327,7 @@ class ProfileList(abstract.List):
         """ Mouse button has been pressed. If the button is 3rd: show
         popup menu"""
         if event.button == 3:
-            menu.popup(None, None, None, event.button, event.time)
+            menu.popup(None, None, None, None, event.button, event.time)
 
     def __cb_item_remove(self, widget=None):
         """ Remove selected item from the list and model.
