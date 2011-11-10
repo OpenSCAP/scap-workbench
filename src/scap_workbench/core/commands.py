@@ -2299,7 +2299,7 @@ class DHScan(DataHandler, EventObject):
         self.__current_iter = self.fill([msg.user1str, None, False, title, desc])
         
         if self.__progress != None:
-            with Gdk.lock:
+            with core.gdk_lock:
                 # don't let progress fraction exceed 1.0 = 100%
                 fract = min(self.__progress.get_fraction() + self.step, 1.0)
                 self.__progress.set_fraction(fract)
@@ -2323,7 +2323,7 @@ class DHScan(DataHandler, EventObject):
         if result == openscap.OSCAP.XCCDF_RESULT_NOT_SELECTED: 
             return self.__cancel
 
-        with Gdk.lock:    
+        with core.gdk_lock:    
             self.fill([id, result, False, title, desc], iter=self.__current_iter)
             self.emit("filled")
             self.treeView.queue_draw()

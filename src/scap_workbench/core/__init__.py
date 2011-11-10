@@ -441,3 +441,24 @@ class SWBCore(object):
         logger.debug("Registering object %s done.", id)
         self.__objects[id] = object
 
+class GdkLock(object):
+    """A helper class that allows more exception-safe Gdk locking. In case of exceptions the locks
+    are released. Without it it's quite hard to make exception-safe locking and it involves a lot
+    of boilerplate code.
+    
+    How to use:
+    ... code not requiring exclusive gdk access
+    
+    with gdk_lock:
+        ... core requiring exclusive gdk access ...
+        
+    ... code not requiring exclusive gdk access
+    """
+    
+    def __enter__(self):
+        Gdk.threads_enter()
+        
+    def __exit__(self, type, value, traceback):
+        Gdk.threads_leave()
+
+gdk_lock = GdkLock()

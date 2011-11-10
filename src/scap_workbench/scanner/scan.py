@@ -286,7 +286,7 @@ class MenuButtonScan(abstract.MenuButton, abstract.Func):
         self.results.set_sensitive(not active and previously_scanned)
         self.profile.set_sensitive(not active)
 
-    @threadSave
+    #@threadSave
     def __th_scan(self):
         """Starts scanning in a separate thread (via the @threadSave decorator, see threads.py)
         """
@@ -296,12 +296,12 @@ class MenuButtonScan(abstract.MenuButton, abstract.Func):
 
         self.set_scan_in_progress(True)
         
-        with Gdk.lock:
+        with core.gdk_lock:
             self.core.notify_destroy("notify:scan:complete")
         
         logger.debug("Scanning %s ..", self.data_model.policy.id)
         if self.progress != None:
-            with Gdk.lock:
+            with core.gdk_lock:
                 self.progress.set_fraction(0.0)
                 self.progress.set_text("Preparing ...")
 
@@ -311,7 +311,7 @@ class MenuButtonScan(abstract.MenuButton, abstract.Func):
         self.result = self.data_model.policy.evaluate()
         
         # the scan finished (successfully or maybe it was canceled)
-        with Gdk.lock:
+        with core.gdk_lock:
             if self.progress:
                 # set the progress to 100% regardless of how many tests were actually run
                 self.progress.set_fraction(1.0)
