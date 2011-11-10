@@ -416,14 +416,14 @@ class HelpWindow(abstract.Window):
         selection = self.treeView.get_selection()
         selection.set_mode(Gtk.SelectionMode.NONE)
 
-        self.help_model[0][1] = commands.DHScan.BG_GREEN
-        self.help_model[1][1] = commands.DHScan.BG_RED
-        self.help_model[2][1] = commands.DHScan.BG_ERR
-        self.help_model[3][1] = commands.DHScan.BG_GRAY
-        self.help_model[4][1] = commands.DHScan.BG_GRAY
-        self.help_model[5][1] = commands.DHScan.BG_GRAY
-        self.help_model[6][1] = commands.DHScan.BG_GRAY
-        self.help_model[7][1] = commands.DHScan.BG_LGREEN
+        self.help_model[0][1] = commands.DHScan.BG_PASS
+        self.help_model[1][1] = commands.DHScan.BG_FAIL
+        self.help_model[2][1] = commands.DHScan.BG_ERROR
+        self.help_model[3][1] = commands.DHScan.BG_UNKNOWN
+        self.help_model[4][1] = commands.DHScan.BG_NOT_APPLICABLE
+        self.help_model[5][1] = commands.DHScan.BG_NOT_CHECKED
+        self.help_model[6][1] = commands.DHScan.BG_NOT_SELECTED
+        self.help_model[7][1] = commands.DHScan.BG_INFORMATIONAL
         self.help_model[8][1] = commands.DHScan.BG_FIXED
 
         self.set_transient_for(self.core.main_window)
