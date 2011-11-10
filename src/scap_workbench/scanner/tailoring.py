@@ -23,6 +23,7 @@
 """ Importing standard python libraries
 """
 from gi.repository import Gtk
+from gi.repository import Gdk
 from gi.repository import GLib
 from gi.repository import Pango
 import re               # Regular expressions 
@@ -99,7 +100,7 @@ class ItemList(abstract.List):
             self.core.notify("Regexp entry error: %s" % (err,), core.Notification.ERROR, msg_id="notify:profiles:filter")
             return True
 
-        if event and event.type == Gdk.KEY_PRESS and event.keyval == Gdk.KEY_Return:
+        if event and event.type == Gdk.EventType.KEY_PRESS and event.keyval == Gdk.KEY_Return:
             """ User pressed the Enter button to search more
             """
             retval = self.recursive_search(pattern, [1,2])
