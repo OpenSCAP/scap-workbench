@@ -28,9 +28,11 @@ gi.require_version("Gtk", "3.0")
 def main():
     from gi.repository import Gtk
     from gi.repository import Gdk
+    from gi.repository import GObject
     
     from scap_workbench.scanner import MainWindow
 
+    GObject.threads_init()
     Gdk.threads_init()
     
     wnd = MainWindow()

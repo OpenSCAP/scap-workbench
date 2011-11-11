@@ -28,7 +28,7 @@ from gi.repository import GObject
 
 import os               # For path basedir
 import tempfile         # Temporary file for XCCDF preview
-from scap_workbench.core.threads import thread_free
+from scap_workbench.core.threads import thread as threadSave
 import logging          # Logger for debug/info/error messages
 
 """ Importing SCAP Workbench modules
@@ -286,25 +286,19 @@ class MenuButtonScan(abstract.MenuButton, abstract.Func):
         self.results.set_sensitive(not active and previously_scanned)
         self.profile.set_sensitive(not active)
 
-    @thread_free
+    @threadSave
     def __th_scan(self):
         """Starts scanning in a separate thread (via the @threadSave decorator, see threads.py)
         """
         
-        print "before"
-        
         if not self.data_model.check_library():
             return None
         
-        with core.gdk_lock:  
-            self.set_scan_in_progress(True)
+        #with core.gdk_lock:  
+        self.set_scan_in_progress(True)
         
-        print "after"
-        
-        #with core.gdk_lock:
-        self.core.notify_destroy("notify:scan:complete")
-        
-        print "ABC"
+        with core.gdk_lock:
+            self.core.notify_destroy("notify:scan:complete")
         
         logger.debug("Scanning %s ..", self.data_model.policy.id)
         if self.progress != None:
