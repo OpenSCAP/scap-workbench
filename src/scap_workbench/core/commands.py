@@ -2249,10 +2249,11 @@ class DHScan(DataHandler, EventObject):
 
         if not iter:
             iter = self.model.append(None)
+        
         self.model.set(iter,
                 DHScan.COLUMN_ID,   item[DHScan.COLUMN_ID],
                 DHScan.COLUMN_RESULT,   text,
-                DHScan.COLUMN_FIX,    item[DHScan.COLUMN_FIX], 
+                DHScan.COLUMN_FIX,    str(item[DHScan.COLUMN_FIX]), 
                 DHScan.COLUMN_TITLE,  item[DHScan.COLUMN_TITLE],
                 DHScan.COLUMN_DESC,  item[DHScan.COLUMN_DESC],
                 DHScan.COLUMN_COLOR_TEXT_TITLE,  colorText_title,
