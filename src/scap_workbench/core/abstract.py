@@ -659,7 +659,7 @@ class Func(object):
         </html>
         """
         if HAS_WEBKIT:
-            self.description_widget = webkit.WebView()
+            self.description_widget = WebKit.WebView()
             self.description_widget.load_html_string(desc, "file:///")
             self.description_widget.set_zoom_level(0.75)
             #description.modify_bg(Gtk.StateType.NORMAL, bg_color)
