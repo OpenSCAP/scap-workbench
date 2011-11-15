@@ -70,7 +70,7 @@ class EditNotice(abstract.ListEditor):
         if self.iter and self.get_model() != None: 
             item = self.get_model()[self.iter][self.COLUMN_OBJ]
 
-        retval = self.data_model.edit_notice(self.operation, item, self.wid.get_text(), buffer.get_text(buffer.get_start_iter(), buffer.get_end_iter()))
+        retval = self.data_model.edit_notice(self.operation, item, self.wid.get_text(), buffer.get_text(buffer.get_start_iter(), buffer.get_end_iter(), True))
         # TODO if not retval
         self.fill()
         self.__dialog_destroy()
