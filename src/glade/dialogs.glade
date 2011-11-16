@@ -530,7 +530,7 @@
             </child>
           </object>
           <packing>
-            <property name="expand">False</property>
+            <property name="expand">True</property>
             <property name="fill">True</property>
             <property name="position">2</property>
           </packing>
@@ -720,7 +720,7 @@
             </child>
           </object>
           <packing>
-            <property name="expand">False</property>
+            <property name="expand">True</property>
             <property name="fill">True</property>
             <property name="position">1</property>
           </packing>
@@ -891,7 +891,7 @@
             </child>
           </object>
           <packing>
-            <property name="expand">False</property>
+            <property name="expand">True</property>
             <property name="fill">True</property>
             <property name="position">2</property>
           </packing>
@@ -1097,7 +1097,7 @@
             </child>
           </object>
           <packing>
-            <property name="expand">False</property>
+            <property name="expand">True</property>
             <property name="fill">True</property>
             <property name="position">2</property>
           </packing>
@@ -1266,7 +1266,7 @@
             </child>
           </object>
           <packing>
-            <property name="expand">False</property>
+            <property name="expand">True</property>
             <property name="fill">True</property>
             <property name="position">2</property>
           </packing>
@@ -1277,26 +1277,6 @@
       <action-widget response="0">dialog:find_definition:btn_cancel</action-widget>
       <action-widget response="0">dialog:find_definition:btn_ok</action-widget>
     </action-widgets>
-  </object>
-  <object class="GtkListStore" id="dialog:model:boolean">
-    <columns>
-      <!-- column-name Text -->
-      <column type="gchararray"/>
-    </columns>
-    <data>
-      <row>
-        <col id="0" translatable="yes">FALSE</col>
-      </row>
-      <row>
-        <col id="0" translatable="yes">TRUE</col>
-      </row>
-    </data>
-  </object>
-  <object class="GtkListStore" id="dialog:model:string">
-    <columns>
-      <!-- column-name String -->
-      <column type="gchararray"/>
-    </columns>
   </object>
   <object class="GtkDialog" id="dialog:find_value">
     <property name="can_focus">False</property>
@@ -1502,7 +1482,7 @@
             </child>
           </object>
           <packing>
-            <property name="expand">False</property>
+            <property name="expand">True</property>
             <property name="fill">True</property>
             <property name="position">2</property>
           </packing>
@@ -1513,6 +1493,26 @@
       <action-widget response="0">dialog:find_value:btn_cancel</action-widget>
       <action-widget response="0">dialog:find_value:btn_ok</action-widget>
     </action-widgets>
+  </object>
+  <object class="GtkListStore" id="dialog:model:boolean">
+    <columns>
+      <!-- column-name Text -->
+      <column type="gchararray"/>
+    </columns>
+    <data>
+      <row>
+        <col id="0" translatable="yes">FALSE</col>
+      </row>
+      <row>
+        <col id="0" translatable="yes">TRUE</col>
+      </row>
+    </data>
+  </object>
+  <object class="GtkListStore" id="dialog:model:string">
+    <columns>
+      <!-- column-name String -->
+      <column type="gchararray"/>
+    </columns>
   </object>
   <object class="GtkDialog" id="dialog:progress">
     <property name="can_focus">False</property>
