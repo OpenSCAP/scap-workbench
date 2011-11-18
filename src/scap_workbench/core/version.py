@@ -28,3 +28,4 @@ minor = 6
 patch = 0
 
 as_string = "%i.%i.%i" % (major, minor, patch)
+
