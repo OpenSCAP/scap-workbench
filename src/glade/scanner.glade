@@ -616,7 +616,6 @@
                                                 <property name="xalign">0</property>
                                                 <property name="yalign">0</property>
                                                 <property name="label" translatable="yes">description</property>
-                                                <property name="wrap">True</property>
                                               </object>
                                               <packing>
                                                 <property name="left_attach">1</property>
@@ -1742,6 +1741,20 @@
     <property name="can_focus">False</property>
     <property name="stock">gtk-apply</property>
   </object>
+  <object class="GtkListStore" id="tailoring:tw_values:model">
+    <columns>
+      <!-- column-name ID -->
+      <column type="gchararray"/>
+      <!-- column-name Name -->
+      <column type="gchararray"/>
+      <!-- column-name Value -->
+      <column type="gchararray"/>
+      <!-- column-name Color -->
+      <column type="gchararray"/>
+      <!-- column-name Model -->
+      <column type="gchararray"/>
+    </columns>
+  </object>
   <object class="GtkTreeStore" id="tailoring:items:model">
     <columns>
       <!-- column-name Type -->
@@ -1760,20 +1773,6 @@
       <column type="gboolean"/>
       <!-- column-name Parent -->
       <column type="gboolean"/>
-    </columns>
-  </object>
-  <object class="GtkListStore" id="tailoring:tw_values:model">
-    <columns>
-      <!-- column-name ID -->
-      <column type="gchararray"/>
-      <!-- column-name Name -->
-      <column type="gchararray"/>
-      <!-- column-name Value -->
-      <column type="gchararray"/>
-      <!-- column-name Color -->
-      <column type="gchararray"/>
-      <!-- column-name Model -->
-      <column type="gchararray"/>
     </columns>
   </object>
   <object class="GtkImage" id="xccdf:btn_export:img">
