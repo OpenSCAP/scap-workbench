@@ -24,7 +24,7 @@ scanner and editor.
 """
 
 major = 0
-minor = 5
-patch = 1
+minor = 6
+patch = 0
 
 as_string = "%i.%i.%i" % (major, minor, patch)
