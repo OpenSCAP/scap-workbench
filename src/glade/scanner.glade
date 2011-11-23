@@ -422,6 +422,7 @@
                                               <object class="GtkLabel" id="xccdf:lbl_file">
                                                 <property name="visible">True</property>
                                                 <property name="can_focus">False</property>
+                                                <property name="hexpand">True</property>
                                                 <property name="xalign">0</property>
                                                 <property name="label" translatable="yes">file</property>
                                                 <property name="single_line_mode">True</property>
@@ -437,6 +438,7 @@
                                               <object class="GtkLabel" id="xccdf:lbl_title">
                                                 <property name="visible">True</property>
                                                 <property name="can_focus">False</property>
+                                                <property name="hexpand">True</property>
                                                 <property name="xalign">0</property>
                                                 <property name="label" translatable="yes">title</property>
                                                 <property name="single_line_mode">True</property>
@@ -452,6 +454,7 @@
                                               <object class="GtkLabel" id="xccdf:lbl_version">
                                                 <property name="visible">True</property>
                                                 <property name="can_focus">False</property>
+                                                <property name="hexpand">True</property>
                                                 <property name="xalign">0</property>
                                                 <property name="label" translatable="yes">version</property>
                                                 <property name="single_line_mode">True</property>
@@ -467,6 +470,7 @@
                                               <object class="GtkLabel" id="xccdf:lbl_resolved">
                                                 <property name="visible">True</property>
                                                 <property name="can_focus">False</property>
+                                                <property name="hexpand">True</property>
                                                 <property name="xalign">0</property>
                                                 <property name="label" translatable="yes">resolved</property>
                                                 <property name="single_line_mode">True</property>
@@ -482,6 +486,7 @@
                                               <object class="GtkLabel" id="xccdf:lbl_status_current">
                                                 <property name="visible">True</property>
                                                 <property name="can_focus">False</property>
+                                                <property name="hexpand">True</property>
                                                 <property name="xalign">0</property>
                                                 <property name="label" translatable="yes">status_current</property>
                                                 <property name="single_line_mode">True</property>
@@ -497,6 +502,7 @@
                                               <object class="GtkLabel" id="xccdf:lbl_language">
                                                 <property name="visible">True</property>
                                                 <property name="can_focus">False</property>
+                                                <property name="hexpand">True</property>
                                                 <property name="xalign">0</property>
                                                 <property name="label" translatable="yes">language</property>
                                                 <property name="single_line_mode">True</property>
@@ -512,6 +518,7 @@
                                               <object class="GtkLabel" id="xccdf:lbl_description">
                                                 <property name="visible">True</property>
                                                 <property name="can_focus">False</property>
+                                                <property name="hexpand">True</property>
                                                 <property name="xalign">0</property>
                                                 <property name="yalign">0</property>
                                                 <property name="label" translatable="yes">description</property>
@@ -528,6 +535,7 @@
                                               <object class="GtkLabel" id="xccdf:lbl_warnings">
                                                 <property name="visible">True</property>
                                                 <property name="can_focus">False</property>
+                                                <property name="hexpand">True</property>
                                                 <property name="xalign">0</property>
                                                 <property name="yalign">0</property>
                                                 <property name="label" translatable="yes">warnings</property>
@@ -547,6 +555,7 @@
                                               <object class="GtkLabel" id="xccdf:lbl_notices">
                                                 <property name="visible">True</property>
                                                 <property name="can_focus">False</property>
+                                                <property name="hexpand">True</property>
                                                 <property name="xalign">0</property>
                                                 <property name="yalign">0</property>
                                                 <property name="label" translatable="yes">notices. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla ut est lectus. In in vehicula nulla. Proin eleifend est eu dolor dapibus id posuere turpis ullamcorper. Nam vel purus eu massa pharetra bibendum feugiat eget nisl. Pellentesque feugiat dapibus orci, a congue odio gravida non. Nam viverra, risus sed molestie rhoncus, neque urna scelerisque elit, vel mollis risus eros commodo purus. Cras quis ante quam. Quisque eu ullamcorper leo. Phasellus et leo elit, at euismod neque. </property>
@@ -1252,6 +1261,7 @@
                                                   <object class="GtkComboBox" id="tailoring:refines:role">
                                                     <property name="visible">True</property>
                                                     <property name="can_focus">False</property>
+                                                    <property name="hexpand">True</property>
                                                     <child>
                                                       <object class="GtkCellRendererText" id="cellrenderertext2"/>
                                                       <attributes>
@@ -1270,6 +1280,7 @@
                                                   <object class="GtkComboBox" id="tailoring:refines:severity">
                                                     <property name="visible">True</property>
                                                     <property name="can_focus">False</property>
+                                                    <property name="hexpand">True</property>
                                                     <child>
                                                       <object class="GtkCellRendererText" id="cellrenderertext3"/>
                                                       <attributes>
@@ -1288,6 +1299,7 @@
                                                   <object class="GtkEntry" id="tailoring:refines:weight">
                                                     <property name="visible">True</property>
                                                     <property name="can_focus">True</property>
+                                                    <property name="hexpand">True</property>
                                                     <property name="invisible_char">●</property>
                                                   </object>
                                                   <packing>
