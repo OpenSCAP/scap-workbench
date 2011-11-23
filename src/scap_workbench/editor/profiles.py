@@ -91,7 +91,7 @@ class AddProfileDialog(EventObject):
         self.__update(force=True)
 
     def show(self):
-        self.set_transient_for(self.core.main_window)
+        self.window.set_transient_for(self.core.main_window)
         self.window.show()
 
     def __delete_event(self, widget, event=None):
