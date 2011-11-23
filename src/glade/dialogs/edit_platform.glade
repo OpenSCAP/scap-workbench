@@ -91,52 +91,27 @@
             <property name="left_padding">5</property>
             <property name="right_padding">5</property>
             <child>
-              <object class="GtkTable" id="table12">
+              <object class="GtkGrid" id="grid12">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
+                <property name="row_spacing">5</property>
+                <property name="column_spacing">12</property>
                 <property name="n_rows">9</property>
                 <property name="n_columns">2</property>
-                <property name="column_spacing">12</property>
-                <property name="row_spacing">5</property>
                 <child>
                   <object class="GtkEntry" id="dialog:edit_platform:cpe">
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="tooltip_text" translatable="yes">this element specifies a target platform for the benchmark, Rule, Group, Profile, or TestResult. It indicates a platform a CPE 2.3 Name or a CPE 2.3 platform specification identifier.</property>
+                    <property name="hexpand">True</property>
                     <property name="invisible_char">●</property>
                     <property name="activates_default">True</property>
                   </object>
                   <packing>
                     <property name="left_attach">1</property>
-                    <property name="right_attach">2</property>
-                    <property name="x_options">GTK_FILL</property>
-                    <property name="y_options">GTK_FILL</property>
-                  </packing>
-                </child>
-                <child>
-                  <object class="GtkLabel" id="lbl_entryText12">
-                    <property name="visible">True</property>
-                    <property name="can_focus">False</property>
-                    <property name="xalign">1</property>
-                    <property name="label" translatable="yes">CPE string:</property>
-                  </object>
-                  <packing>
-                    <property name="x_options">GTK_FILL</property>
-                    <property name="y_options">GTK_FILL</property>
-                  </packing>
-                </child>
-                <child>
-                  <object class="GtkLabel" id="lbl_entryText13">
-                    <property name="visible">True</property>
-                    <property name="can_focus">False</property>
-                    <property name="xalign">1</property>
-                    <property name="label" translatable="yes">Part:</property>
-                  </object>
-                  <packing>
-                    <property name="top_attach">2</property>
-                    <property name="bottom_attach">3</property>
-                    <property name="x_options">GTK_FILL</property>
-                    <property name="y_options">GTK_FILL</property>
+                    <property name="top_attach">0</property>
+                    <property name="width">1</property>
+                    <property name="height">1</property>
                   </packing>
                 </child>
                 <child>
@@ -149,6 +124,7 @@ Hardware part-  This part identifies hardware aspects of the IT platform and den
 Operating System Part - This part identifies operating system aspects of the IT platform by describing an operating system running on the platform.  Note that multi-processor devices and distributed systems may incorporate multiple operating systems.
 
 Application Part - This part identifies relevant applications, services, and packages installed on the IT platform.  If a system includes multiple applications, then multiple CPE Names may apply to it</property>
+                    <property name="hexpand">True</property>
                     <property name="model">dialog:edit_platform:part:model</property>
                     <child>
                       <object class="GtkCellRendererText" id="text4"/>
@@ -159,10 +135,146 @@ Application Part - This part identifies relevant applications, services, and pac
                   </object>
                   <packing>
                     <property name="left_attach">1</property>
-                    <property name="right_attach">2</property>
                     <property name="top_attach">2</property>
-                    <property name="bottom_attach">3</property>
-                    <property name="y_options">GTK_FILL</property>
+                    <property name="width">1</property>
+                    <property name="height">1</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkEntry" id="dialog:edit_platform:cpe_vendor">
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <property name="tooltip_text" translatable="yes">The vendor component of a name might be a source of ambiguity because there are many ways to express the names of companies and other organizations. For CPE, the name used for a supplier should be the highest organization-specific label of the organization's DNS name.  Even if the domain name is different than the company name, it is still recommended to use the domain name for the CPE Name.</property>
+                    <property name="hexpand">True</property>
+                    <property name="invisible_char">●</property>
+                    <property name="activates_default">True</property>
+                  </object>
+                  <packing>
+                    <property name="left_attach">1</property>
+                    <property name="top_attach">3</property>
+                    <property name="width">1</property>
+                    <property name="height">1</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkEntry" id="dialog:edit_platform:cpe_product">
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <property name="tooltip_text" translatable="yes">To determine the string to use for the product component, one should try to find the most common and recognizable name for the product.  Possible things to consider are marketing materials, API return values, product documentation, etc.  Unfortunately there is no clear cut definitive way of doing this, so help from the vendor and/or community will often be needed.</property>
+                    <property name="hexpand">True</property>
+                    <property name="invisible_char">●</property>
+                    <property name="activates_default">True</property>
+                  </object>
+                  <packing>
+                    <property name="left_attach">1</property>
+                    <property name="top_attach">4</property>
+                    <property name="width">1</property>
+                    <property name="height">1</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkEntry" id="dialog:edit_platform:cpe_version">
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <property name="tooltip_text" translatable="yes">The version should be represented in the same format as seen within the product.  For example, use periods, dashes, etc. as the delimiter in the same way as the product.</property>
+                    <property name="hexpand">True</property>
+                    <property name="invisible_char">●</property>
+                    <property name="activates_default">True</property>
+                  </object>
+                  <packing>
+                    <property name="left_attach">1</property>
+                    <property name="top_attach">5</property>
+                    <property name="width">1</property>
+                    <property name="height">1</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkEntry" id="dialog:edit_platform:cpe_edition">
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <property name="tooltip_text" translatable="yes">The Edition Component is also used to define specific target hardware and software architectures that need to be named.  In a way, we are treating these as different editions of the platform.  For a hardware example, an application may be developed for both the i386 and x64 architectures, and each edition needs a different name.  For a target software implementation an application may be developed to run on Windows, Linux, or Macintosh OS X.</property>
+                    <property name="hexpand">True</property>
+                    <property name="invisible_char">●</property>
+                    <property name="activates_default">True</property>
+                  </object>
+                  <packing>
+                    <property name="left_attach">1</property>
+                    <property name="top_attach">7</property>
+                    <property name="width">1</property>
+                    <property name="height">1</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkEntry" id="dialog:edit_platform:cpe_update">
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <property name="tooltip_text" translatable="yes">Sometimes this is referred to as point releases or minor versions.  The technical difference between version and update will be different for certain vendors and products.  The use of existing CPE Names should be used to determine what is best for new names.</property>
+                    <property name="hexpand">True</property>
+                    <property name="invisible_char">●</property>
+                    <property name="activates_default">True</property>
+                  </object>
+                  <packing>
+                    <property name="left_attach">1</property>
+                    <property name="top_attach">6</property>
+                    <property name="width">1</property>
+                    <property name="height">1</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkEntry" id="dialog:edit_platform:cpe_language">
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <property name="tooltip_text" translatable="yes">This component should be represented by a valid language tag as defined by IETF RFC 4646 entitled Tags for Identifying Languages. Note that while any valid language tag is acceptable, CPE Names should generally only use tags containing language and region codes.</property>
+                    <property name="hexpand">True</property>
+                    <property name="invisible_char">●</property>
+                    <property name="activates_default">True</property>
+                  </object>
+                  <packing>
+                    <property name="left_attach">1</property>
+                    <property name="top_attach">8</property>
+                    <property name="width">1</property>
+                    <property name="height">1</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkLabel" id="lbl_entryText12">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="xalign">1</property>
+                    <property name="label" translatable="yes">CPE string:</property>
+                  </object>
+                  <packing>
+                    <property name="left_attach">0</property>
+                    <property name="top_attach">0</property>
+                    <property name="width">1</property>
+                    <property name="height">1</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkHSeparator" id="hseparator4">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="hexpand">True</property>
+                  </object>
+                  <packing>
+                    <property name="left_attach">1</property>
+                    <property name="top_attach">1</property>
+                    <property name="width">1</property>
+                    <property name="height">1</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkLabel" id="lbl_entryText13">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="xalign">1</property>
+                    <property name="label" translatable="yes">Part:</property>
+                  </object>
+                  <packing>
+                    <property name="left_attach">0</property>
+                    <property name="top_attach">2</property>
+                    <property name="width">1</property>
+                    <property name="height">1</property>
                   </packing>
                 </child>
                 <child>
@@ -173,10 +285,10 @@ Application Part - This part identifies relevant applications, services, and pac
                     <property name="label" translatable="yes">Vendor:</property>
                   </object>
                   <packing>
+                    <property name="left_attach">0</property>
                     <property name="top_attach">3</property>
-                    <property name="bottom_attach">4</property>
-                    <property name="x_options">GTK_FILL</property>
-                    <property name="y_options">GTK_FILL</property>
+                    <property name="width">1</property>
+                    <property name="height">1</property>
                   </packing>
                 </child>
                 <child>
@@ -187,10 +299,10 @@ Application Part - This part identifies relevant applications, services, and pac
                     <property name="label" translatable="yes">Product:</property>
                   </object>
                   <packing>
+                    <property name="left_attach">0</property>
                     <property name="top_attach">4</property>
-                    <property name="bottom_attach">5</property>
-                    <property name="x_options">GTK_FILL</property>
-                    <property name="y_options">GTK_FILL</property>
+                    <property name="width">1</property>
+                    <property name="height">1</property>
                   </packing>
                 </child>
                 <child>
@@ -201,10 +313,10 @@ Application Part - This part identifies relevant applications, services, and pac
                     <property name="label" translatable="yes">Version:</property>
                   </object>
                   <packing>
+                    <property name="left_attach">0</property>
                     <property name="top_attach">5</property>
-                    <property name="bottom_attach">6</property>
-                    <property name="x_options">GTK_FILL</property>
-                    <property name="y_options">GTK_FILL</property>
+                    <property name="width">1</property>
+                    <property name="height">1</property>
                   </packing>
                 </child>
                 <child>
@@ -215,10 +327,10 @@ Application Part - This part identifies relevant applications, services, and pac
                     <property name="label" translatable="yes">Update:</property>
                   </object>
                   <packing>
+                    <property name="left_attach">0</property>
                     <property name="top_attach">6</property>
-                    <property name="bottom_attach">7</property>
-                    <property name="x_options">GTK_FILL</property>
-                    <property name="y_options">GTK_FILL</property>
+                    <property name="width">1</property>
+                    <property name="height">1</property>
                   </packing>
                 </child>
                 <child>
@@ -229,10 +341,10 @@ Application Part - This part identifies relevant applications, services, and pac
                     <property name="label" translatable="yes">Edition:</property>
                   </object>
                   <packing>
+                    <property name="left_attach">0</property>
                     <property name="top_attach">7</property>
-                    <property name="bottom_attach">8</property>
-                    <property name="x_options">GTK_FILL</property>
-                    <property name="y_options">GTK_FILL</property>
+                    <property name="width">1</property>
+                    <property name="height">1</property>
                   </packing>
                 </child>
                 <child>
@@ -243,133 +355,14 @@ Application Part - This part identifies relevant applications, services, and pac
                     <property name="label" translatable="yes">Language:</property>
                   </object>
                   <packing>
+                    <property name="left_attach">0</property>
                     <property name="top_attach">8</property>
-                    <property name="bottom_attach">9</property>
-                    <property name="x_options">GTK_FILL</property>
-                    <property name="y_options">GTK_FILL</property>
+                    <property name="width">1</property>
+                    <property name="height">1</property>
                   </packing>
                 </child>
                 <child>
-                  <object class="GtkEntry" id="dialog:edit_platform:cpe_vendor">
-                    <property name="visible">True</property>
-                    <property name="can_focus">True</property>
-                    <property name="tooltip_text" translatable="yes">The vendor component of a name might be a source of ambiguity because there are many ways to express the names of companies and other organizations. For CPE, the name used for a supplier should be the highest organization-specific label of the organization's DNS name.  Even if the domain name is different than the company name, it is still recommended to use the domain name for the CPE Name.</property>
-                    <property name="invisible_char">●</property>
-                    <property name="activates_default">True</property>
-                  </object>
-                  <packing>
-                    <property name="left_attach">1</property>
-                    <property name="right_attach">2</property>
-                    <property name="top_attach">3</property>
-                    <property name="bottom_attach">4</property>
-                    <property name="x_options">GTK_FILL</property>
-                    <property name="y_options">GTK_FILL</property>
-                  </packing>
-                </child>
-                <child>
-                  <object class="GtkEntry" id="dialog:edit_platform:cpe_product">
-                    <property name="visible">True</property>
-                    <property name="can_focus">True</property>
-                    <property name="tooltip_text" translatable="yes">To determine the string to use for the product component, one should try to find the most common and recognizable name for the product.  Possible things to consider are marketing materials, API return values, product documentation, etc.  Unfortunately there is no clear cut definitive way of doing this, so help from the vendor and/or community will often be needed.</property>
-                    <property name="invisible_char">●</property>
-                    <property name="activates_default">True</property>
-                  </object>
-                  <packing>
-                    <property name="left_attach">1</property>
-                    <property name="right_attach">2</property>
-                    <property name="top_attach">4</property>
-                    <property name="bottom_attach">5</property>
-                    <property name="x_options">GTK_FILL</property>
-                    <property name="y_options">GTK_FILL</property>
-                  </packing>
-                </child>
-                <child>
-                  <object class="GtkEntry" id="dialog:edit_platform:cpe_version">
-                    <property name="visible">True</property>
-                    <property name="can_focus">True</property>
-                    <property name="tooltip_text" translatable="yes">The version should be represented in the same format as seen within the product.  For example, use periods, dashes, etc. as the delimiter in the same way as the product.</property>
-                    <property name="invisible_char">●</property>
-                    <property name="activates_default">True</property>
-                  </object>
-                  <packing>
-                    <property name="left_attach">1</property>
-                    <property name="right_attach">2</property>
-                    <property name="top_attach">5</property>
-                    <property name="bottom_attach">6</property>
-                    <property name="x_options">GTK_FILL</property>
-                    <property name="y_options">GTK_FILL</property>
-                  </packing>
-                </child>
-                <child>
-                  <object class="GtkEntry" id="dialog:edit_platform:cpe_edition">
-                    <property name="visible">True</property>
-                    <property name="can_focus">True</property>
-                    <property name="tooltip_text" translatable="yes">The Edition Component is also used to define specific target hardware and software architectures that need to be named.  In a way, we are treating these as different editions of the platform.  For a hardware example, an application may be developed for both the i386 and x64 architectures, and each edition needs a different name.  For a target software implementation an application may be developed to run on Windows, Linux, or Macintosh OS X.</property>
-                    <property name="invisible_char">●</property>
-                    <property name="activates_default">True</property>
-                  </object>
-                  <packing>
-                    <property name="left_attach">1</property>
-                    <property name="right_attach">2</property>
-                    <property name="top_attach">7</property>
-                    <property name="bottom_attach">8</property>
-                    <property name="x_options">GTK_FILL</property>
-                    <property name="y_options">GTK_FILL</property>
-                  </packing>
-                </child>
-                <child>
-                  <object class="GtkEntry" id="dialog:edit_platform:cpe_update">
-                    <property name="visible">True</property>
-                    <property name="can_focus">True</property>
-                    <property name="tooltip_text" translatable="yes">Sometimes this is referred to as point releases or minor versions.  The technical difference between version and update will be different for certain vendors and products.  The use of existing CPE Names should be used to determine what is best for new names.</property>
-                    <property name="invisible_char">●</property>
-                    <property name="activates_default">True</property>
-                  </object>
-                  <packing>
-                    <property name="left_attach">1</property>
-                    <property name="right_attach">2</property>
-                    <property name="top_attach">6</property>
-                    <property name="bottom_attach">7</property>
-                    <property name="x_options">GTK_FILL</property>
-                    <property name="y_options">GTK_FILL</property>
-                  </packing>
-                </child>
-                <child>
-                  <object class="GtkEntry" id="dialog:edit_platform:cpe_language">
-                    <property name="visible">True</property>
-                    <property name="can_focus">True</property>
-                    <property name="tooltip_text" translatable="yes">This component should be represented by a valid language tag as defined by IETF RFC 4646 entitled Tags for Identifying Languages. Note that while any valid language tag is acceptable, CPE Names should generally only use tags containing language and region codes.</property>
-                    <property name="invisible_char">●</property>
-                    <property name="activates_default">True</property>
-                  </object>
-                  <packing>
-                    <property name="left_attach">1</property>
-                    <property name="right_attach">2</property>
-                    <property name="top_attach">8</property>
-                    <property name="bottom_attach">9</property>
-                    <property name="x_options">GTK_FILL</property>
-                    <property name="y_options">GTK_FILL</property>
-                  </packing>
-                </child>
-                <child>
-                  <object class="GtkAlignment" id="alignment17">
-                    <property name="visible">True</property>
-                    <property name="can_focus">False</property>
-                    <property name="top_padding">5</property>
-                    <property name="bottom_padding">5</property>
-                    <child>
-                      <object class="GtkHSeparator" id="hseparator4">
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                      </object>
-                    </child>
-                  </object>
-                  <packing>
-                    <property name="right_attach">2</property>
-                    <property name="top_attach">1</property>
-                    <property name="bottom_attach">2</property>
-                    <property name="y_options">GTK_FILL</property>
-                  </packing>
+                  <placeholder/>
                 </child>
               </object>
             </child>
