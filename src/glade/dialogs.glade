@@ -86,6 +86,7 @@
                           <object class="GtkEntry" id="add_id:text_search_id">
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
+                            <property name="hexpand">True</property>
                             <property name="invisible_char">●</property>
                             <property name="activates_default">True</property>
                           </object>
@@ -100,6 +101,7 @@
                           <object class="GtkEntry" id="add_id:text_search_title">
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
+                            <property name="hexpand">True</property>
                             <property name="invisible_char">●</property>
                             <property name="activates_default">True</property>
                           </object>
@@ -235,6 +237,7 @@
                                   <object class="GtkTreeView" id="add_id:tw_search">
                                     <property name="visible">True</property>
                                     <property name="can_focus">True</property>
+                                    <property name="hexpand">True</property>
                                     <property name="search_column">0</property>
                                     <child internal-child="selection">
                                       <object class="GtkTreeSelection" id="treeview-selection1"/>
@@ -334,6 +337,7 @@
                           <object class="GtkTreeView" id="add_id:tw_add">
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
+                            <property name="hexpand">True</property>
                             <child internal-child="selection">
                               <object class="GtkTreeSelection" id="treeview-selection2"/>
                             </child>
@@ -471,6 +475,7 @@
                   <object class="GtkEntry" id="dialog:edit_fix:id">
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
+                    <property name="hexpand">True</property>
                     <property name="invisible_char">●</property>
                     <property name="activates_default">True</property>
                   </object>
@@ -490,6 +495,7 @@
                       <object class="GtkTextView" id="dialog:edit_fix:content">
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
+                        <property name="hexpand">True</property>
                       </object>
                     </child>
                   </object>
@@ -630,6 +636,7 @@
                           <object class="GtkTextView" id="textView">
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
+                            <property name="hexpand">True</property>
                           </object>
                         </child>
                       </object>
@@ -644,6 +651,7 @@
                       <object class="GtkEntry" id="entryText">
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
+                        <property name="hexpand">True</property>
                         <property name="invisible_char">●</property>
                         <property name="activates_default">True</property>
                       </object>
@@ -658,6 +666,7 @@
                       <object class="GtkComboBox" id="cBox">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
+                        <property name="hexpand">True</property>
                       </object>
                       <packing>
                         <property name="left_attach">1</property>
@@ -834,6 +843,7 @@
                   <object class="GtkEntry" id="dialog:edit_notice:id">
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
+                    <property name="hexpand">True</property>
                     <property name="invisible_char">●</property>
                     <property name="activates_default">True</property>
                   </object>
@@ -853,6 +863,7 @@
                       <object class="GtkTextView" id="dialog:edit_notice:notice">
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
+                        <property name="hexpand">True</property>
                       </object>
                     </child>
                   </object>
@@ -1007,6 +1018,7 @@
                   <object class="GtkEntry" id="dialog:edit_rationale:lang">
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
+                    <property name="hexpand">True</property>
                     <property name="invisible_char">●</property>
                     <property name="activates_default">True</property>
                   </object>
@@ -1026,6 +1038,7 @@
                       <object class="GtkTextView" id="dialog:edit_rationale:rationale">
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
+                        <property name="hexpand">True</property>
                       </object>
                     </child>
                   </object>
@@ -1040,6 +1053,7 @@
                   <object class="GtkComboBox" id="dialog:edit_rationale:override">
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
+                    <property name="hexpand">True</property>
                     <property name="model">dialog:model:boolean</property>
                     <child>
                       <object class="GtkCellRendererText" id="text1"/>
