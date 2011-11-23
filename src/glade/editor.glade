@@ -933,6 +933,15 @@
                                                         <property name="height">1</property>
                                                       </packing>
                                                     </child>
+                                                    <child>
+                                                      <placeholder/>
+                                                    </child>
+                                                    <child>
+                                                      <placeholder/>
+                                                    </child>
+                                                    <child>
+                                                      <placeholder/>
+                                                    </child>
                                                   </object>
                                                   <packing>
                                                     <property name="expand">False</property>
@@ -1611,6 +1620,15 @@
                                                         <property name="height">1</property>
                                                       </packing>
                                                     </child>
+                                                    <child>
+                                                      <placeholder/>
+                                                    </child>
+                                                    <child>
+                                                      <placeholder/>
+                                                    </child>
+                                                    <child>
+                                                      <placeholder/>
+                                                    </child>
                                                   </object>
                                                   <packing>
                                                     <property name="expand">False</property>
@@ -1945,6 +1963,15 @@
                         <property name="width">1</property>
                         <property name="height">1</property>
                       </packing>
+                    </child>
+                    <child>
+                      <placeholder/>
+                    </child>
+                    <child>
+                      <placeholder/>
+                    </child>
+                    <child>
+                      <placeholder/>
                     </child>
                   </object>
                 </child>
@@ -2958,11 +2985,11 @@
                                                 <property name="can_focus">False</property>
                                                 <property name="row_spacing">5</property>
                                                 <property name="column_spacing">12</property>
-                                                <property name="column_homogeneous">True</property>
                                                 <child>
                                                   <object class="GtkEntry" id="edit:general:entry_version">
                                                     <property name="visible">True</property>
                                                     <property name="can_focus">True</property>
+                                                    <property name="hexpand">True</property>
                                                     <property name="invisible_char">●</property>
                                                   </object>
                                                   <packing>
@@ -2976,6 +3003,7 @@
                                                   <object class="GtkEntry" id="edit:general:entry_version_time">
                                                     <property name="visible">True</property>
                                                     <property name="can_focus">True</property>
+                                                    <property name="hexpand">True</property>
                                                     <property name="invisible_char">●</property>
                                                   </object>
                                                   <packing>
@@ -2989,6 +3017,7 @@
                                                   <object class="GtkEntry" id="edit:general:entry_cluster_id">
                                                     <property name="visible">True</property>
                                                     <property name="can_focus">True</property>
+                                                    <property name="hexpand">True</property>
                                                     <property name="invisible_char">●</property>
                                                   </object>
                                                   <packing>
@@ -3004,6 +3033,7 @@
                                                     <property name="visible">True</property>
                                                     <property name="can_focus">True</property>
                                                     <property name="receives_default">False</property>
+                                                    <property name="halign">start</property>
                                                     <property name="use_action_appearance">False</property>
                                                     <property name="draw_indicator">True</property>
                                                   </object>
@@ -3020,6 +3050,7 @@
                                                     <property name="visible">True</property>
                                                     <property name="can_focus">True</property>
                                                     <property name="receives_default">False</property>
+                                                    <property name="halign">start</property>
                                                     <property name="use_action_appearance">False</property>
                                                     <property name="draw_indicator">True</property>
                                                   </object>
@@ -3034,6 +3065,7 @@
                                                   <object class="GtkEntry" id="edit:general:entry_weight">
                                                     <property name="visible">True</property>
                                                     <property name="can_focus">True</property>
+                                                    <property name="hexpand">True</property>
                                                     <property name="invisible_char">●</property>
                                                   </object>
                                                   <packing>
@@ -3047,6 +3079,7 @@
                                                   <object class="GtkEntry" id="edit:general:entry_id">
                                                     <property name="visible">True</property>
                                                     <property name="can_focus">True</property>
+                                                    <property name="hexpand">True</property>
                                                     <property name="invisible_char">●</property>
                                                   </object>
                                                   <packing>
@@ -3060,6 +3093,7 @@
                                                   <object class="GtkComboBox" id="edit:operations:combo_severity">
                                                     <property name="visible">True</property>
                                                     <property name="can_focus">False</property>
+                                                    <property name="hexpand">True</property>
                                                     <child>
                                                       <object class="GtkCellRendererText" id="cellrenderertext15"/>
                                                       <attributes>
@@ -3193,6 +3227,15 @@
                                                     <property name="width">1</property>
                                                     <property name="height">1</property>
                                                   </packing>
+                                                </child>
+                                                <child>
+                                                  <placeholder/>
+                                                </child>
+                                                <child>
+                                                  <placeholder/>
+                                                </child>
+                                                <child>
+                                                  <placeholder/>
                                                 </child>
                                               </object>
                                               <packing>
@@ -4594,6 +4637,15 @@ This attribute is DEPRECATED and appears in the specification only for backward 
                                                             <property name="height">1</property>
                                                             </packing>
                                                             </child>
+                                                            <child>
+                                                            <placeholder/>
+                                                            </child>
+                                                            <child>
+                                                            <placeholder/>
+                                                            </child>
+                                                            <child>
+                                                            <placeholder/>
+                                                            </child>
                                                             </object>
                                                             </child>
                                                             </object>
@@ -4923,6 +4975,15 @@ This attribute is DEPRECATED and appears in the specification only for backward 
                                                             <property name="width">1</property>
                                                             <property name="height">1</property>
                                                             </packing>
+                                                            </child>
+                                                            <child>
+                                                            <placeholder/>
+                                                            </child>
+                                                            <child>
+                                                            <placeholder/>
+                                                            </child>
+                                                            <child>
+                                                            <placeholder/>
                                                             </child>
                                                             </object>
                                                             </child>
@@ -5582,6 +5643,21 @@ This attribute is DEPRECATED and appears in the specification only for backward 
                                                     <property name="height">1</property>
                                                   </packing>
                                                 </child>
+                                                <child>
+                                                  <placeholder/>
+                                                </child>
+                                                <child>
+                                                  <placeholder/>
+                                                </child>
+                                                <child>
+                                                  <placeholder/>
+                                                </child>
+                                                <child>
+                                                  <placeholder/>
+                                                </child>
+                                                <child>
+                                                  <placeholder/>
+                                                </child>
                                               </object>
                                               <packing>
                                                 <property name="expand">True</property>
@@ -5728,6 +5804,7 @@ This attribute is DEPRECATED and appears in the specification only for backward 
                                                     <property name="visible">True</property>
                                                     <property name="can_focus">True</property>
                                                     <property name="receives_default">False</property>
+                                                    <property name="halign">start</property>
                                                     <property name="use_action_appearance">False</property>
                                                     <property name="draw_indicator">True</property>
                                                   </object>
@@ -5859,9 +5936,6 @@ This attribute is DEPRECATED and appears in the specification only for backward 
                                                   </packing>
                                                 </child>
                                                 <child>
-                                                  <placeholder/>
-                                                </child>
-                                                <child>
                                                   <object class="GtkCheckButton" id="edit:values:prohibit_changes">
                                                     <property name="label" translatable="yes">Prohibit changes</property>
                                                     <property name="visible">True</property>
@@ -5877,6 +5951,15 @@ This attribute is DEPRECATED and appears in the specification only for backward 
                                                     <property name="width">1</property>
                                                     <property name="height">1</property>
                                                   </packing>
+                                                </child>
+                                                <child>
+                                                  <placeholder/>
+                                                </child>
+                                                <child>
+                                                  <placeholder/>
+                                                </child>
+                                                <child>
+                                                  <placeholder/>
                                                 </child>
                                               </object>
                                               <packing>
