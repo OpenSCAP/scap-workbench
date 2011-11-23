@@ -677,7 +677,7 @@ class EditFix(abstract.ListEditor):
         if self.operation == self.data_model.CMD_OPER_DEL:
             retval = self.data_model.edit_fix(self.operation, fix=item)
         else:
-            retval = self.data_model.edit_fix(self.operation, fix=item, id=text_id, content=buffer.get_text(buffer.get_start_iter(), buffer.get_end_iter()))
+            retval = self.data_model.edit_fix(self.operation, fix=item, id=text_id, content=buffer.get_text(buffer.get_start_iter(), buffer.get_end_iter(), True))
 
         self.fill()
         self.__dialog_destroy()
