@@ -846,7 +846,6 @@
                                                     <property name="can_focus">False</property>
                                                     <property name="row_spacing">5</property>
                                                     <property name="column_spacing">12</property>
-                                                    <property name="n_columns">2</property>
                                                     <child>
                                                       <object class="GtkEntry" id="xccdf:profile:id">
                                                         <property name="visible">True</property>
@@ -1404,8 +1403,6 @@
                                                     <property name="can_focus">False</property>
                                                     <property name="row_spacing">5</property>
                                                     <property name="column_spacing">12</property>
-                                                    <property name="n_rows">6</property>
-                                                    <property name="n_columns">2</property>
                                                     <child>
                                                       <object class="GtkComboBox" id="xccdf:refines:severity">
                                                         <property name="visible">True</property>
@@ -1831,8 +1828,6 @@
                     <property name="can_focus">False</property>
                     <property name="row_spacing">2</property>
                     <property name="column_spacing">15</property>
-                    <property name="n_rows">4</property>
-                    <property name="n_columns">2</property>
                     <child>
                       <object class="GtkEntry" id="edit:xccdf:version">
                         <property name="visible">True</property>
@@ -2964,8 +2959,6 @@
                                                 <property name="row_spacing">5</property>
                                                 <property name="column_spacing">12</property>
                                                 <property name="column_homogeneous">True</property>
-                                                <property name="n_rows">8</property>
-                                                <property name="n_columns">2</property>
                                                 <child>
                                                   <object class="GtkEntry" id="edit:general:entry_version">
                                                     <property name="visible">True</property>
@@ -4408,8 +4401,6 @@ This attribute is DEPRECATED and appears in the specification only for backward 
                                                             <property name="can_focus">False</property>
                                                             <property name="row_spacing">5</property>
                                                             <property name="column_spacing">12</property>
-                                                            <property name="n_rows">6</property>
-                                                            <property name="n_columns">2</property>
                                                             <child>
                                                             <object class="GtkEntry" id="items:fixtext:fixref">
                                                             <property name="visible">True</property>
@@ -4743,8 +4734,6 @@ This attribute is DEPRECATED and appears in the specification only for backward 
                                                             <property name="can_focus">False</property>
                                                             <property name="row_spacing">5</property>
                                                             <property name="column_spacing">12</property>
-                                                            <property name="n_rows">6</property>
-                                                            <property name="n_columns">2</property>
                                                             <child>
                                                             <object class="GtkCheckButton" id="items:fix:reboot">
                                                             <property name="visible">True</property>
@@ -5535,8 +5524,6 @@ This attribute is DEPRECATED and appears in the specification only for backward 
                                                 <property name="can_focus">False</property>
                                                 <property name="row_spacing">5</property>
                                                 <property name="column_spacing">12</property>
-                                                <property name="n_rows">2</property>
-                                                <property name="n_columns">2</property>
                                                 <child>
                                                   <object class="GtkCheckButton" id="edit:other:chbox_multiple">
                                                     <property name="visible">True</property>
@@ -5664,8 +5651,6 @@ This attribute is DEPRECATED and appears in the specification only for backward 
                                                 <property name="can_focus">False</property>
                                                 <property name="row_spacing">5</property>
                                                 <property name="column_spacing">12</property>
-                                                <property name="n_rows">8</property>
-                                                <property name="n_columns">2</property>
                                                 <child>
                                                   <object class="GtkEntry" id="edit:values:version">
                                                     <property name="visible">True</property>
