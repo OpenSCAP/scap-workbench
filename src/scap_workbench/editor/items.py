@@ -994,7 +994,7 @@ class EditRationale(abstract.ListEditor):
             item = model[iter][self.COLUMN_OBJ]
 
         retval = self.data_model.edit_rationale(self.operation, item, self.lang.get_text(),
-                self.override.get_active(), buffer.get_text(buffer.get_start_iter(), buffer.get_end_iter()))
+                self.override.get_active(), buffer.get_text(buffer.get_start_iter(), buffer.get_end_iter(), True))
         # TODO if not retval
         self.fill()
         self.__dialog_destroy()
