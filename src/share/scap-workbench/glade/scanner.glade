@@ -294,17 +294,20 @@
           </packing>
         </child>
         <child>
-          <object class="GtkToolbar" id="main:sub:main">
+          <object class="GtkToolbar" id="main:subtoolbar">
+            <property name="visible">True</property>
             <property name="can_focus">False</property>
-            <property name="toolbar_style">text</property>
+            <property name="toolbar_style">both-horiz</property>
+            <property name="icon_size">2</property>
             <child>
-              <object class="GtkToggleToolButton" id="main:sub:main:xccdf">
+              <object class="GtkToolButton" id="xccdf:btn_import">
                 <property name="visible">True</property>
-                <property name="can_focus">False</property>
-                <property name="has_tooltip">True</property>
-                <property name="tooltip_text" translatable="yes">Load, export, validate and show information about XCCDF document.</property>
+                <property name="can_focus">True</property>
+                <property name="receives_default">True</property>
                 <property name="use_action_appearance">False</property>
-                <property name="label" translatable="yes">XCCDF</property>
+                <property name="is_important">True</property>
+                <property name="label" translatable="yes">Load</property>
+                <property name="stock_id">gtk-open</property>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -312,14 +315,31 @@
               </packing>
             </child>
             <child>
-              <object class="GtkToggleToolButton" id="main:sub:main:oval">
+              <object class="GtkToolButton" id="xccdf:btn_export">
                 <property name="visible">True</property>
                 <property name="sensitive">False</property>
-                <property name="can_focus">False</property>
-                <property name="tooltip_text" translatable="yes">This feature is not available yet.</property>
+                <property name="can_focus">True</property>
+                <property name="receives_default">True</property>
                 <property name="use_action_appearance">False</property>
                 <property name="is_important">True</property>
-                <property name="label" translatable="yes">OVAL</property>
+                <property name="label" translatable="yes">Save</property>
+                <property name="stock_id">gtk-save-as</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="homogeneous">True</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkToolButton" id="xccdf:btn_close">
+                <property name="visible">True</property>
+                <property name="sensitive">False</property>
+                <property name="can_focus">True</property>
+                <property name="receives_default">True</property>
+                <property name="use_action_appearance">False</property>
+                <property name="is_important">True</property>
+                <property name="label">Close</property>
+                <property name="stock_id">gtk-close</property>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -330,7 +350,7 @@
           <packing>
             <property name="expand">False</property>
             <property name="fill">True</property>
-            <property name="position">1</property>
+            <property name="position">2</property>
           </packing>
         </child>
         <child>
@@ -354,7 +374,7 @@
           <packing>
             <property name="expand">False</property>
             <property name="fill">True</property>
-            <property name="position">2</property>
+            <property name="position">3</property>
           </packing>
         </child>
         <child>
@@ -844,67 +864,6 @@
                             <property name="expand">False</property>
                             <property name="fill">True</property>
                             <property name="position">1</property>
-                          </packing>
-                        </child>
-                        <child>
-                          <object class="GtkHButtonBox" id="hbuttonbox1">
-                            <property name="visible">True</property>
-                            <property name="can_focus">False</property>
-                            <property name="spacing">5</property>
-                            <property name="homogeneous">True</property>
-                            <property name="layout_style">start</property>
-                            <child>
-                              <object class="GtkButton" id="xccdf:btn_import">
-                                <property name="label" translatable="yes">Load</property>
-                                <property name="visible">True</property>
-                                <property name="can_focus">True</property>
-                                <property name="receives_default">True</property>
-                                <property name="use_action_appearance">False</property>
-                                <property name="image">xccdf:btn_import:img</property>
-                              </object>
-                              <packing>
-                                <property name="expand">False</property>
-                                <property name="fill">False</property>
-                                <property name="position">0</property>
-                              </packing>
-                            </child>
-                            <child>
-                              <object class="GtkButton" id="xccdf:btn_export">
-                                <property name="label" translatable="yes">Save</property>
-                                <property name="visible">True</property>
-                                <property name="sensitive">False</property>
-                                <property name="can_focus">True</property>
-                                <property name="receives_default">True</property>
-                                <property name="use_action_appearance">False</property>
-                                <property name="image">xccdf:btn_export:img</property>
-                              </object>
-                              <packing>
-                                <property name="expand">False</property>
-                                <property name="fill">False</property>
-                                <property name="position">1</property>
-                              </packing>
-                            </child>
-                            <child>
-                              <object class="GtkButton" id="xccdf:btn_close">
-                                <property name="label">gtk-close</property>
-                                <property name="visible">True</property>
-                                <property name="sensitive">False</property>
-                                <property name="can_focus">True</property>
-                                <property name="receives_default">True</property>
-                                <property name="use_action_appearance">False</property>
-                                <property name="use_stock">True</property>
-                              </object>
-                              <packing>
-                                <property name="expand">False</property>
-                                <property name="fill">False</property>
-                                <property name="position">2</property>
-                              </packing>
-                            </child>
-                          </object>
-                          <packing>
-                            <property name="expand">False</property>
-                            <property name="fill">True</property>
-                            <property name="position">2</property>
                           </packing>
                         </child>
                       </object>
@@ -1708,7 +1667,7 @@
           <packing>
             <property name="expand">True</property>
             <property name="fill">True</property>
-            <property name="position">3</property>
+            <property name="position">4</property>
           </packing>
         </child>
       </object>

@@ -57,7 +57,8 @@ class MenuButtonXCCDF(abstract.MenuButton):
         self.widget = widget
         
         self.body = self.builder.get_object("xccdf:box")
-
+        self.sub_menu = self.builder.get_object("main:subtoolbar")
+        
         # info
         self.label_info = self.builder.get_object("xccdf:lbl_info")
         self.label_title = self.builder.get_object("xccdf:lbl_title")
@@ -171,6 +172,10 @@ class MenuButtonXCCDF(abstract.MenuButton):
         self.label_notices.set_text("")
         self.label_language.set_text("")
         for child in self.files_box.get_children(): child.destroy()
+
+    def activate(self, active):
+        super(MenuButtonXCCDF, self).activate(active)
+        self.sub_menu.set_property("visible", active)
 
     def update(self):
         self.__update()
