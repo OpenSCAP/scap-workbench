@@ -1339,15 +1339,15 @@ class DHValues(DataHandler):
             instances.append({
                     "item":         instance,
                     "choices":      instance.choices,
-                    "defval":       op_defval,
-                    "lower_bound":  instance.lower_bound,
+                    "defval":       str(op_defval),
+                    "lower_bound":  str(instance.lower_bound),
                     "match":        instance.match,
                     "must_match":   instance.must_match,
                     "selector":     instance.selector,
                     "type":         instance.type,
-                    "upper_bound":  instance.upper_bound,
+                    "upper_bound":  str(instance.upper_bound),
                     "value":        instance.value,
-                    "tvalue":       op_value
+                    "tvalue":       str(op_value)
                     })
         return instances
 
