@@ -58,17 +58,32 @@ class EditNotice(abstract.ListEditor):
                     core.Notification.ERROR, info_box=self.info_box, msg_id="notify:dialog_notify")
             self.wid.grab_focus()
             return
-        for iter in self.get_model():
-            if iter[self.COLUMN_ID] == self.wid.get_text():
-                self.core.notify("ID of the notice has to be unique !",
-                        core.Notification.ERROR, info_box=self.info_box, msg_id="notify:dialog_notify")
-                self.wid.grab_focus()
-                return
-
+        
         item = None
         buffer = self.notice.get_buffer()
         if self.iter and self.get_model() != None: 
             item = self.get_model()[self.iter][self.COLUMN_OBJ]
+            
+            # check for duplicate IDs
+            for row in self.get_model():
+                # we don't check ourselves for conflicts
+                if row.path == self.get_model()[self.iter].path:
+                    continue
+                
+                if row[self.COLUMN_ID] == self.wid.get_text():
+                    self.core.notify("ID of the notice has to be unique!",
+                            core.Notification.ERROR, info_box=self.info_box, msg_id="notify:dialog_notify")
+                    self.wid.grab_focus()
+                    return
+            
+        else:
+            # we are adding, none of the existing notices can have our future ID
+            for row in self.get_model():
+                if row[self.COLUMN_ID] == self.wid.get_text():
+                    self.core.notify("ID of the notice has to be unique!",
+                            core.Notification.ERROR, info_box=self.info_box, msg_id="notify:dialog_notify")
+                    self.wid.grab_focus()
+                    return
 
         retval = self.data_model.edit_notice(self.operation, item, self.wid.get_text(), buffer.get_text(buffer.get_start_iter(), buffer.get_end_iter(), True))
         # TODO if not retval
