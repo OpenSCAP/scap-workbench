@@ -57,11 +57,12 @@ def set_prefix(prefix):
     
     share_prefix = os.path.join(prefix, "share")
     
-    etc_prefix = os.path.join(prefix, "etc")
-    if not os.path.exists(etc_prefix):
-        etc_prefix = os.path.join(os.path.dirname(prefix), "etc")
-    
+    etc_prefix = os.path.join(prefix, "etc")    
     etc_workbench_prefix = os.path.join(etc_prefix, "scap-workbench")
+    if not os.path.exists(etc_workbench_prefix):
+        etc_prefix = os.path.join(os.path.dirname(prefix), "etc")
+        etc_workbench_prefix = os.path.join(etc_prefix, "scap-workbench")
+        
     share_workbench_prefix = os.path.join(share_prefix, "scap-workbench")
     glade_prefix = os.path.join(share_workbench_prefix, "glade")
     glade_dialog_prefix = os.path.join(glade_prefix, "dialogs")
