@@ -83,6 +83,9 @@ class MainWindow(abstract.Window):
             raise RuntimeError("Initialization failed, core is None")
 
         self.window = self.builder.get_object("main:window")
+        # we have to set the icon here because it would have to be hardcoded in the glade file,
+        # this way the paths module guesses prefix and all paths for us
+        self.window.set_icon_from_file(os.path.join(paths.pixmaps_prefix, "scap-workbench.png"))
         self.core.main_window = self.window
         self.main_box = self.builder.get_object("main:box")
         self.add_sender(self.id, "quit") # Quit the application
