@@ -175,8 +175,13 @@ class Renderer(abstract.MenuButton,EventObject):
         
     def __cb_show_menu(self, menu, event):
         if event.type == Gdk.EventType.BUTTON_PRESS:
-            menu.popup(None, None, None, event.button, event.time)
+            # FIXME:
+            # In my opinion and according to gtk3 docs the 5th parameter (excluding self) should be guint
+            # of the mouse button that triggered the popup, however event.button is EventButton and the
+            # bindings won't accept that
+            menu.popup(None, None, None, None, 0, event.time)
             return True
+        
         return False
 
     def get_search_text(self):

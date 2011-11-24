@@ -1640,7 +1640,6 @@ class ItemList(abstract.List):
         """ Mouse button has been pressed. If the button is 3rd: show
         popup menu"""
         if event.button == 3:
-            time = event.time
             menu.popup(None, None, None, None, event.button, event.time)
 
     def __cb_key_press(self, widget, event):
