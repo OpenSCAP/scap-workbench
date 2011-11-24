@@ -22,7 +22,7 @@
 from scap_workbench import core
 from scap_workbench.core import abstract
 from scap_workbench.core import error
-from scap_workbench.core import paths
+from scap_workbench import paths
 
 from scap_workbench.editor import xccdf
 from scap_workbench.editor import profiles

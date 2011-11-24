@@ -34,7 +34,7 @@ import logging          # Logger for debug/info/error messages
 """
 from scap_workbench import core
 from scap_workbench.core import abstract
-from scap_workbench.core import paths
+from scap_workbench import paths
 from scap_workbench.core import error
 
 from scap_workbench.scanner import xccdf

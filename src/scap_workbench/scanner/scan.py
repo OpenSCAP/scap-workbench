@@ -38,7 +38,7 @@ from scap_workbench.core import abstract
 from scap_workbench.core import commands
 from scap_workbench.core import filter
 from scap_workbench.core.events import EventObject
-from scap_workbench.core import paths
+from scap_workbench import paths
 
 # Initializing Logger
 logger = logging.getLogger("scap-workbench")

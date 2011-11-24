@@ -31,7 +31,7 @@ import os
 from scap_workbench import core
 from scap_workbench.core import abstract
 from scap_workbench.core.events import EventObject
-from scap_workbench.core import paths
+from scap_workbench import paths
 
 logger = logging.getLogger("scap-workbench")
 

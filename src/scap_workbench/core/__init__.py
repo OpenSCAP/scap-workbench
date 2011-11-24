@@ -36,15 +36,15 @@ import logging.config           # For configuration of Logger
 """
 from scap_workbench.core.events import EventHandler # abstract module EventHandler
 from scap_workbench.core.threads import ThreadManager
-from scap_workbench.core import paths
+from scap_workbench import paths
 
 # Initializing and configuring Logger
 try:
-    logging.config.fileConfig(os.path.join(paths.etc_prefix, "logger.conf"))
+    logging.config.fileConfig(os.path.join(paths.etc_workbench_prefix, "logger.conf"))
     
 except: # ConfigParser.NoSectionError = actually file I/O error most of the time
     logging.basicConfig()
-    logging.getLogger("scap-workbench").error("Had to resort to basic config, logger config for openscap not found at '%s'" % (os.path.join(paths.etc_prefix, "logger.conf")))
+    logging.getLogger("scap-workbench").error("Had to resort to basic config, logger config for openscap not found at '%s'" % (os.path.join(paths.etc_workbench_prefix, "logger.conf")))
     
 logger = logging.getLogger("scap-workbench")
 

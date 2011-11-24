@@ -30,12 +30,14 @@ import os.path
 
 # reasonable defaults for GNU/Linux distributions
 
+# not used directly, only used to construct other paths
+share_prefix = "/usr/share"
 # where configuration files *just* for scap-workbench are stored
-etc_prefix = "/etc/scap-workbench"
+etc_prefix = "/etc"
+# path where logger.conf is stored (and possibly other config files in the future)
+etc_workbench_prefix = os.path.join(etc_prefix, "scap-workbench")
 # not used directly, only used to construct other paths
-share_prefix = "/usr/share/scap-workbench"
-# not used directly, only used to construct other paths
-share_workbench_prefix = "/usr/share/scap-workbench"
+share_workbench_prefix = os.path.join(share_prefix, "scap-workbench")
 # where .glade UI files except dialogs are stored
 glade_prefix = os.path.join(share_workbench_prefix, "glade")
 # where all dialog .glade files are stored
@@ -49,11 +51,17 @@ pixmaps_prefix = os.path.join(share_prefix, "pixmaps")
 stock_data_prefix = "/usr/share/openscap"
 
 def set_prefix(prefix):
-    global etc_prefix, share_prefix, share_workbench_prefix, glade_prefix, glade_dialog_prefix
+    global etc_prefix, share_prefix
+    global etc_workbench_prefix, share_workbench_prefix, glade_prefix, glade_dialog_prefix
     global filters_prefix, stock_data_prefix, pixmaps_prefix
     
-    etc_prefix = os.path.join(prefix, "etc")
     share_prefix = os.path.join(prefix, "share")
+    
+    etc_prefix = os.path.join(prefix, "etc")
+    if not os.path.exists(etc_prefix):
+        etc_prefix = os.path.join(os.path.dirname(prefix), "etc")
+    
+    etc_workbench_prefix = os.path.join(etc_prefix, "scap-workbench")
     share_workbench_prefix = os.path.join(share_prefix, "scap-workbench")
     glade_prefix = os.path.join(share_workbench_prefix, "glade")
     glade_dialog_prefix = os.path.join(glade_prefix, "dialogs")

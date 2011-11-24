@@ -24,7 +24,7 @@ from gi.repository import Gtk
 import sys
 import os.path
 
-from scap_workbench.core import paths
+from scap_workbench import paths
 from scap_workbench.core import version
 
 class ExceptionDialog(object):

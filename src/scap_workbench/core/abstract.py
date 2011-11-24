@@ -36,7 +36,7 @@ import logging          # Logger for debug/info/error messages
 from scap_workbench.core import Notification                # core.Notification levels for reference
 from scap_workbench.core.events import EventObject          # abstract module EventObject
 from scap_workbench.core.htmltextview import HtmlTextView   # Widget for viewing HTML when WebKit is not available
-from scap_workbench.core import paths
+from scap_workbench import paths
 
 # Initializing Logger
 logger = logging.getLogger("scap-workbench")

@@ -35,7 +35,7 @@ from scap_workbench import core
 from scap_workbench.core import abstract
 from scap_workbench.core import commands
 from scap_workbench.core import dialogs
-from scap_workbench.core import paths
+from scap_workbench import paths
 from scap_workbench.core import error
 import scap_workbench.core.enum as ENUM
 
