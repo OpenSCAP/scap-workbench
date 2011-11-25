@@ -56,7 +56,7 @@ rm -rf $RPM_BUILD_ROOT
 %{_datadir}/pixmaps/scap-workbench-editor.png
 
 %changelog
-* Fri Nov 24 2011 Martin Preisler <mpreisle@redhat.com> 0.6.1-1
+* Fri Nov 25 2011 Martin Preisler <mpreisle@redhat.com> 0.6.1-1
 - New upstream version 0.6.1
 
 * Fri Nov 18 2011 Martin Preisler <mpreisle@redhat.com> 0.6.0-1
