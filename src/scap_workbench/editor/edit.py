@@ -736,7 +736,7 @@ class FindOvalDef(abstract.Window, abstract.ListEditor):
         self.definitions.append_column(Gtk.TreeViewColumn("Title", Gtk.CellRendererText(), text=self.COLUMN_VALUE))
         self.definitions.set_model(Gtk.ListStore(str, str))
         modelfilter = self.definitions.get_model().filter_new()
-        modelfilter.set_visible_func(self.filter_listview, data=(self.search, (0,1)))
+        modelfilter.set_visible_func(self.filter_listview, (self.search, (0,1)))
         self.definitions.set_model(modelfilter)
 
         definitions = self.data_model.get_oval_definitions(href)
