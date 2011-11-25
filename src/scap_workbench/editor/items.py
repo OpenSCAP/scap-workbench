@@ -78,7 +78,7 @@ class AddItem(EventObject):
 
         self.__entry_style = self.iid.get_style().base[Gtk.StateType.NORMAL]
 
-        self.set_transient_for(self.core.main_window)
+        self.window.set_transient_for(self.core.main_window)
         self.window.show()
 
     def __cb_changed_relation(self, widget):
