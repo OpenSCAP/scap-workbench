@@ -813,7 +813,7 @@ class FindItem(abstract.Window, abstract.ListEditor):
 
         self.items.set_model(Gtk.ListStore(str, str, GObject.TYPE_PYOBJECT))
         modelfilter = self.items.get_model().filter_new()
-        modelfilter.set_visible_func(self.filter_listview, data=(self.search, (0,1)))
+        modelfilter.set_visible_func(self.filter_listview, (self.search, (0,1)))
         self.items.set_model(modelfilter)
 
         refines = self.data_model.get_refine_ids(self.data_model.get_profile(self.core.selected_profile))
