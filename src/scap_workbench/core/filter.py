@@ -55,12 +55,12 @@ class Filter(object):
         self.box = Gtk.HBox()
         label = Gtk.Label(label=self.name)
         label.set_justify(Gtk.Justification.LEFT)
-        label.modify_fg(Gtk.StateType.NORMAL, Gdk.Color(self.fg_color))
+        label.modify_fg(Gtk.StateType.NORMAL, Gdk.color_parse(self.fg_color))
 
         alig = Gtk.Alignment.new(0.0, 0.0, 1.0, 1.0)
         alig.set_padding(5, 5, 10, 5)
         alig.add(label)
-        self.box.pack_start(alig, True, True)
+        self.box.pack_start(alig, True, True, 0)
 
         self.button = Gtk.Button("x")
         self.button.set_relief(Gtk.ReliefStyle.NONE)
@@ -71,13 +71,13 @@ class Filter(object):
         alig.add(self.button)
         eb = Gtk.EventBox()
         eb.add(alig)
-        eb.modify_bg(Gtk.StateType.NORMAL, Gdk.Color(self.bg_color))
-        self.box.pack_end(eb, False, False)
+        eb.modify_bg(Gtk.StateType.NORMAL, Gdk.color_parse(self.bg_color))
+        self.box.pack_end(eb, False, False, 0)
 
         self.eb = Gtk.EventBox()
         self.eb.add(self.box)
         self.eb.set_border_width(2)
-        self.eb.modify_bg(Gtk.StateType.NORMAL, Gdk.Color(self.bg_color))
+        self.eb.modify_bg(Gtk.StateType.NORMAL, Gdk.color_parse(self.bg_color))
         self.eb.set_tooltip_text(self.description)
         self.eb.show_all()
 
@@ -152,7 +152,7 @@ class Renderer(abstract.MenuButton,EventObject):
         alig_filters = self.add_frame(filter_box, "Search")
         self.search = Search(self)
         self.expander.focus_widget = self.search.entry
-        self.expander.get_widget().pack_start(self.search.get_widget(), True, True, 0)
+        self.expander.get_widget().pack_start(self.search.get_widget(), False, True, 0)
 
         #filter
         alig_filters = self.add_frame(filter_box, "Active filters")

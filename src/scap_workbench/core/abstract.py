@@ -574,7 +574,7 @@ class List(EventObject):
         # clean maping from filter model to ref
         self.map_filter = {}
 
-        iter = self.ref_model.get_iter_root()
+        iter = self.ref_model.get_iter_first()
         n_column = self.ref_model.get_n_columns()
         self.filter_model.clear()
         
