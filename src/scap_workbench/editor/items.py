@@ -311,7 +311,7 @@ class EditItemValues(abstract.ListEditor):
             values = self.data_model.get_all_values()
             self.values.set_model(Gtk.ListStore(str, str, GObject.TYPE_PYOBJECT))
             modelfilter = self.values.get_model().filter_new()
-            modelfilter.set_visible_func(self.filter_listview, data=(self.search, (0,1)))
+            modelfilter.set_visible_func(self.filter_listview, (self.search, (0,1)))
             self.values.set_model(modelfilter)
             for value in values: 
                 item = self.data_model.parse_value(value)
@@ -332,7 +332,7 @@ class EditItemValues(abstract.ListEditor):
             values = self.data_model.get_all_values()
             self.values.set_model(Gtk.ListStore(str, str, GObject.TYPE_PYOBJECT))
             modelfilter = self.values.get_model().filter_new()
-            modelfilter.set_visible_func(self.filter_listview, data=(self.search, (0,1)))
+            modelfilter.set_visible_func(self.filter_listview, (self.search, (0,1)))
             self.values.set_model(modelfilter)
             for value in values: 
                 item = self.data_model.parse_value(value)
