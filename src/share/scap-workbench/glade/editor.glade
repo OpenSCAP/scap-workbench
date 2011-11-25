@@ -5584,6 +5584,8 @@ This attribute is DEPRECATED and appears in the specification only for backward 
                                                 <property name="can_focus">False</property>
                                                 <property name="row_spacing">5</property>
                                                 <property name="column_spacing">12</property>
+                                                <property name="n_rows">2</property>
+                                                <property name="n_columns">2</property>
                                                 <child>
                                                   <object class="GtkCheckButton" id="edit:other:chbox_multiple">
                                                     <property name="visible">True</property>
@@ -5641,21 +5643,6 @@ This attribute is DEPRECATED and appears in the specification only for backward 
                                                     <property name="width">1</property>
                                                     <property name="height">1</property>
                                                   </packing>
-                                                </child>
-                                                <child>
-                                                  <placeholder/>
-                                                </child>
-                                                <child>
-                                                  <placeholder/>
-                                                </child>
-                                                <child>
-                                                  <placeholder/>
-                                                </child>
-                                                <child>
-                                                  <placeholder/>
-                                                </child>
-                                                <child>
-                                                  <placeholder/>
                                                 </child>
                                               </object>
                                               <packing>
