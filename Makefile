@@ -30,6 +30,7 @@ install:
 	test -d $(SYSCONFDIR)/$(PKG) || $(INSTALL) $(MODE_DIR) -d $(SYSCONFDIR)/$(PKG)
 	test -d $(DATADIR)/$(PKG) || $(INSTALL) $(MODE_DIR) -d $(DATADIR)/$(PKG)
 	test -d $(DATADIR)/$(PKG)/glade || $(INSTALL) $(MODE_DIR) -d $(DATADIR)/$(PKG)/glade
+	test -d $(DATADIR)/$(PKG)/glade/dialogs || $(INSTALL) $(MODE_DIR) -d $(DATADIR)/$(PKG)/glade/dialogs
 	test -d $(DATADIR)/$(PKG)/filters || $(INSTALL) $(MODE_DIR) -d $(DATADIR)/$(PKG)/filters
 	test -d $(MANDIR)/man8 || $(INSTALL) $(MODE_DIR) -d $(MANDIR)/man8
 	test -d $(DATADIR)/pixmaps || $(INSTALL) $(MODE_DIR) -d $(DATADIR)/pixmaps
@@ -47,6 +48,7 @@ install:
 	$(INSTALL) $(MODE_REG) src/$(WRK_PKG)/scanner/*.py $(PYTHON_LIB_PKG)/scanner
 	$(INSTALL) $(MODE_REG) src/etc/$(PKG)/logger.conf $(SYSCONFDIR)/$(PKG)/logger.conf
 	$(INSTALL) $(MODE_REG) src/share/$(PKG)/glade/*.glade $(DATADIR)/$(PKG)/glade
+	$(INSTALL) $(MODE_REG) src/share/$(PKG)/glade/dialogs/*.glade $(DATADIR)/$(PKG)/glade/dialogs
 	$(INSTALL) $(MODE_REG) src/share/$(PKG)/filters/*.py $(DATADIR)/$(PKG)/filters
 	$(INSTALL) $(MODE_REG) src/man/scap-workbench.8 $(MANDIR)/man8
 	$(INSTALL) $(MODE_REG) src/man/scap-workbench-editor.8 $(MANDIR)/man8
