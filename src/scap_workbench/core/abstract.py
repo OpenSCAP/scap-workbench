@@ -393,7 +393,7 @@ class List(EventObject):
                             break
                         iter_parent = model.iter_parent(iter_parent)
                     else:
-                        iter = model.get_iter_root()
+                        iter = model.get_iter_first()
 
             # for search in parent node and search from end to start
             if iter != None:
@@ -411,7 +411,7 @@ class List(EventObject):
                             iter_parent = model.iter_parent(iter_parent)
                     if iter_parent == None:
                         # searched to end (not found) and will go to search from start 
-                        iter = self.__search_branch(model, model.get_iter_root(), iter_start, (column, key))
+                        iter = self.__search_branch(model, model.get_iter_first(), iter_start, (column, key))
                         break
 
         # if find search text
@@ -439,7 +439,7 @@ class List(EventObject):
         if not parent:
             if i_start == None:
                 # Nothing selected, search from the first iter
-                i_start = model.get_iter_root()
+                i_start = model.get_iter_first()
                 # TODO: Add check here to cover the root iter
                 if not i_start: return True # Tree is empty
 
