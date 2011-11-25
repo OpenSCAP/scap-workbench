@@ -823,7 +823,7 @@ class EditIdent(abstract.ListEditor):
                         self.wid.grab_focus()
                         return
 
-            retval = self.data_model.edit_ident(self.operation, item, self.wid.get_text(), buffer.get_text(buffer.get_start_iter(), buffer.get_end_iter()))
+            retval = self.data_model.edit_ident(self.operation, item, self.wid.get_text(), buffer.get_text(buffer.get_start_iter(), buffer.get_end_iter(), True))
 
         # TODO if not retval
         self.fill()
@@ -908,7 +908,7 @@ class EditQuestion(abstract.ListEditor):
             item = self.get_model()[self.iter][self.COLUMN_OBJ]
 
         retval = self.data_model.edit_question(self.operation, item, self.lang.get_text(),
-                self.override.get_active(), buffer.get_text(buffer.get_start_iter(), buffer.get_end_iter()))
+                self.override.get_active(), buffer.get_text(buffer.get_start_iter(), buffer.get_end_iter(), True))
         # TODO if not retval
         self.fill()
         self.__dialog_destroy()

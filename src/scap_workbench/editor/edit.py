@@ -295,7 +295,7 @@ class EditWarning(abstract.ListEditor):
         if self.category.get_active() != -1:
             category = self.category.get_model()[self.category.get_active()][0]
 
-        retval = self.data_model.edit_warning(self.operation, item, category, self.lang.get_text(), buffer.get_text(buffer.get_start_iter(), buffer.get_end_iter()),
+        retval = self.data_model.edit_warning(self.operation, item, category, self.lang.get_text(), buffer.get_text(buffer.get_start_iter(), buffer.get_end_iter(), True),
                                               self.overrides.get_active())
         # TODO if not retval
         self.fill()
