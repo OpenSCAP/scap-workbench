@@ -48,8 +48,6 @@ rm -rf $RPM_BUILD_ROOT
 %{python_sitelib}/scap_workbench/*
 %dir %{_datadir}/scap-workbench/
 %{_datadir}/scap-workbench/*
-%dir %{_datadir}/scap-workbench/glade/
-%{_datadir}/scap-workbench/glade/*.glade
 %{_mandir}/man8/scap-workbench.8.gz
 %{_mandir}/man8/scap-workbench-editor.8.gz
 %{_datadir}/applications/scap-workbench.desktop
