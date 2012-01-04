@@ -832,6 +832,10 @@ class DataHandler(object):
     def edit_platform(self, operation, obj, cpe, item=None):
 
         if not self.check_library(): return None
+        
+        # FIXME: Workaround for issues regarding openscap python bindings and unicode
+        if type(obj) == unicode:
+            obj = str(obj)
 
         if item == None:
             item = self.core.lib.benchmark.get_item(self.core.selected_item)
