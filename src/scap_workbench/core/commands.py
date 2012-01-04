@@ -913,7 +913,8 @@ class DataHandler(object):
     def substitute(self, description, with_policy=False):
         policy = None
         if with_policy: policy = self.core.lib.policy_model.get_policy_by_id(self.core.selected_profile)
-        sub = openscap.common.text_xccdf_substitute(description, self.__substitute, policy)
+        # FIXME: str(..) is a workaround for openscap bindings unicode issues
+        sub = openscap.common.text_xccdf_substitute(str(description), self.__substitute, policy)
         if sub != None:
             return sub
         else: return description
