@@ -1417,10 +1417,10 @@ class DHItemsTree(DataHandler, EventObject):
 
                 # FIXME: str(..) are workarounds for openscap bindings unicode issues
                 if benchmark.item(str(model[child.path][DHItemsTree.COLUMN_ID])).type == openscap.OSCAP.XCCDF_RULE:
-                    select = policy.get_select_by_id(model[child.path][DHItemsTree.COLUMN_ID])
+                    select = policy.get_select_by_id(str(model[child.path][DHItemsTree.COLUMN_ID]))
                     if select == None:
                         newselect = openscap.xccdf.select()
-                        newselect.item = model[child.path][DHItemsTree.COLUMN_ID]
+                        newselect.item = str(model[child.path][DHItemsTree.COLUMN_ID])
                         newselect.selected = (model[child.path][DHItemsTree.COLUMN_SELECTED] and pselected)
                         policy.select = newselect
                     else:
