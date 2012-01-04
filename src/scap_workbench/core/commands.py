@@ -1346,7 +1346,7 @@ class DHValues(DataHandler):
                     "choices":      instance.choices,
                     "defval":       str(op_defval),
                     "lower_bound":  str(instance.lower_bound),
-                    "match":        instance.match,
+                    "match":        instance.match if instance.match is not None else "",
                     "must_match":   instance.must_match,
                     "selector":     instance.selector,
                     "type":         instance.type,
