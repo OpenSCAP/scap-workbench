@@ -453,6 +453,10 @@ class DataHandler(object):
         """Get the item from benchmark
         """
         if not self.check_library(): return None
+        
+        # FIXME: workaround for openscap bindings unicode issues
+        id = str(id) if id is not None else None
+        
         return self.core.lib.benchmark.item(id or self.core.selected_item)
         
     def get_profiles(self):
@@ -1709,8 +1713,10 @@ class DHItemsTree(DataHandler, EventObject):
         # op is a bound callable selected above, depending on which type of item is being added
         op(parent, item)
         
+        # NOTE: parent.selected is an OSCAP_Object, we have to convert it to bool for Gtk3 to accept it
         item_it = self.model.append(iter, [["group", "rule", "value"][itype], item_dict["id"], item_dict["title"], #TODO: type
-            ["emblem-documents", "document-new", "emblem-downloads"][itype], ""+item_dict["title"], None, True, parent.selected])
+            ["emblem-documents", "document-new", "emblem-downloads"][itype], ""+item_dict["title"], None, True, True if parent.selected else False])
+        
         self.treeView.expand_to_path(model.get_path(item_it))
         selection.select_iter(item_it)
         return True
@@ -1733,6 +1739,11 @@ class DHProfiles(DataHandler):
         
     def update(self, id=None, version=None, extends=None, abstract=None, prohibit_changes=None):
         if not self.check_library(): return None
+
+        # FIXME: workaround for openscap unicode issues
+        id = str(id) if id is not None else None
+        version = str(version) if version is not None else None
+        extends = str(extends) if extends is not None else None
 
         profile = self.get_profile(self.core.selected_profile)
 
