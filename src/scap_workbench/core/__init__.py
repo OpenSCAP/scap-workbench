@@ -274,7 +274,14 @@ class Library(object):
         self.loaded = False
 
 class SWBCore(object):
+    # FIXME: These two properties are essentially are a workaround to ensure we pass strings to openscap bindings
+    #        when openscap python bindings can accept python's unicode strings, this should be removed
+    selected_profile = property(lambda self: str(self._selected_profile) if (self._selected_profile is not None and self._selected_profile != "") else None,
+                                lambda self, value: setattr(self, "_selected_profile", value))
 
+    selected_item = property(lambda self: str(self._selected_item)  if (self._selected_item is not None and self._selected_item != "") else None,
+                             lambda self, value: setattr(self, "_selected_item", value))
+    
     def __init__(self, builder, with_policy=False):
 
         self.thread_handler = ThreadManager(self)
@@ -286,8 +293,8 @@ class SWBCore(object):
         self.force_reload_profiles = False
         self.eventHandler = EventHandler(self)
         self.registered_callbacks = False
-        self.selected_profile   = None
-        self.selected_item      = None
+        self._selected_profile  = None
+        self._selected_item     = None
         self.selected_lang      = ""
         self.langs              = []
         self.filter_directory   = paths.filters_prefix

@@ -94,7 +94,7 @@ class DataHandler(object):
     def get_title(self, titles):
         
         if titles == None or len(titles) == 0:
-            return None
+            return ""
 
         parsed = {}
         for title in titles: parsed[title.lang] = title.text
@@ -243,7 +243,7 @@ class DataHandler(object):
             else: return select.selected
 
     def get_profile(self, id):
-        profile = self.core.lib.benchmark.get_item(id)
+        profile = self.core.lib.benchmark.get_item(str(id))
 
         if profile: return profile.to_profile()
         else: return None
@@ -1730,7 +1730,7 @@ class DHProfiles(DataHandler):
         #self.model = treeView.get_model() TODO
         self.model = Gtk.TreeStore(str, str, GObject.TYPE_PYOBJECT, str, str, str)
         self.treeView.set_model(self.model)
-
+        
     def update(self, id=None, version=None, extends=None, abstract=None, prohibit_changes=None):
         if not self.check_library(): return None
 
@@ -1787,7 +1787,7 @@ class DHProfiles(DataHandler):
         
         # -- RULES --
         rules = {}
-        color = None
+        color = ""
         for rule in profile.selects: rules[rule.item] = [rule]
         for rule in profile.refine_rules:
             if rule.item in rules: rules[rule.item].append(rule)
@@ -1798,7 +1798,7 @@ class DHProfiles(DataHandler):
             for rule in rules[rule_k]:
                 if rule.object == "xccdf_select":
                     if not rule.selected: color = "gray"
-                    else: color = None
+                    else: color = ""
                     break
             item = self.core.lib.benchmark.get_item(rule_k)
             if item == None:
@@ -1810,7 +1810,7 @@ class DHProfiles(DataHandler):
 
             type = {openscap.OSCAP.XCCDF_RULE: "rule", openscap.OSCAP.XCCDF_GROUP: "group"}[item.type]
             #Gdk.threads_enter()
-            self.model.append(iter, ["rule", rule_k, rules[rule_k], IMG_RULE, self.get_title(item.title) or item.id+" (ID)", color])
+            self.model.append(iter, [type, rule_k, rules[rule_k], IMG_RULE, self.get_title(item.title) or item.id+" (ID)", color])
             #Gdk.threads_leave()
 
         # -- VALUES --
@@ -1833,7 +1833,7 @@ class DHProfiles(DataHandler):
                 #Gdk.threads_leave()
                 continue
             #Gdk.threads_enter()
-            self.model.append(iter, ["value", value_k, values[value_k], IMG_VALUE, self.get_title(item.title) or item.id+" (ID)", None])
+            self.model.append(iter, ["value", value_k, values[value_k], IMG_VALUE, self.get_title(item.title) or item.id+" (ID)", ""])
             #Gdk.threads_leave()
 
     #@threadSave
@@ -1853,8 +1853,8 @@ class DHProfiles(DataHandler):
         if not no_default:
             logger.debug("Adding profile (No profile)")
             #Gdk.threads_enter()
-            if self.model.__class__ == Gtk.ListStore: self.model.append([None, "(No profile)"])
-            else: self.model.append(None, ["profile", None, item, IMG_GROUP, "(No profile)", None])
+            if self.model.__class__ == Gtk.ListStore: self.model.append(["", "(No profile)"])
+            else: self.model.append(None, ["profile", "", item, IMG_GROUP, "(No profile)", ""])
             #Gdk.threads_leave()
 
         # Go thru all profiles from benchmark and add them into the model
@@ -2355,7 +2355,7 @@ class DHScan(DataHandler, EventObject):
 
         if self.core.selected_profile == None:
             self.policy = self.core.lib.policy_model.policies[0]
-        else: self.policy = self.core.lib.policy_model.get_policy_by_id(self.core.selected_profile)
+        else: self.policy = self.core.lib.policy_model.get_policy_by_id(str(self.core.selected_profile))
 
         self.count_current = 0
         self.count_all = len(self.policy.selected_rules)
