@@ -294,10 +294,8 @@ class MenuButtonScan(abstract.MenuButton, abstract.Func):
         if not self.data_model.check_library():
             return None
         
-        #with core.gdk_lock:  
-        self.set_scan_in_progress(True)
-        
-        with core.gdk_lock:
+        with core.gdk_lock:  
+            self.set_scan_in_progress(True)
             self.core.notify_destroy("notify:scan:complete")
         
         logger.debug("Scanning %s ..", self.data_model.policy.id)
@@ -327,7 +325,7 @@ class MenuButtonScan(abstract.MenuButton, abstract.Func):
             
             self.core.notify_destroy("notify:scan:cancel")
 
-        self.set_scan_in_progress(False)
+            self.set_scan_in_progress(False)
 
     def __cb_cancel(self, widget=None):
         """ Called by user event when stop button pressed
