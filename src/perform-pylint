@@ -1,0 +1,4 @@
+#!/usr/bin/env sh
+
+pylint --rcfile=pylint.cfg scap_workbench > pylint-output
+

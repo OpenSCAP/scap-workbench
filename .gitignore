@@ -12,3 +12,6 @@ doc/
 .pydevproject
 .settings/
 
+# pylint static analysis output
+src/pylint-output
+
