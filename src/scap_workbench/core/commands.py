@@ -1412,10 +1412,11 @@ class DHItemsTree(DataHandler, EventObject):
                 model[child.path][DHItemsTree.COLUMN_PARENT] = pselected
                 model[child.path][DHItemsTree.COLUMN_COLOR] = ["gray", ""][model[child.path][DHItemsTree.COLUMN_SELECTED] and pselected]
 
-                """Alter the policy. All underneath rules/groups should 
-                be deselected when parent group is deselected.
-                """
-                if benchmark.item(model[child.path][DHItemsTree.COLUMN_ID]).type == openscap.OSCAP.XCCDF_RULE:
+                # Alter the policy. All underneath rules/groups should 
+                # be deselected when parent group is deselected.
+
+                # FIXME: str(..) are workarounds for openscap bindings unicode issues
+                if benchmark.item(str(model[child.path][DHItemsTree.COLUMN_ID])).type == openscap.OSCAP.XCCDF_RULE:
                     select = policy.get_select_by_id(model[child.path][DHItemsTree.COLUMN_ID])
                     if select == None:
                         newselect = openscap.xccdf.select()
@@ -1467,17 +1468,18 @@ class DHItemsTree(DataHandler, EventObject):
         if policy == None: 
             raise LookupError("Policy for profile '%s' does not exist" % (self.core.selected_profile))
 
-        select = policy.get_select_by_id(model[path][DHItemsTree.COLUMN_ID])
+        # FIXME: str(..) are workarounds for openscap bindings unicode issues
+        select = policy.get_select_by_id(str(model[path][DHItemsTree.COLUMN_ID]))
         if select == None:
             newselect = openscap.xccdf.select()
-            newselect.item = model[path][DHItemsTree.COLUMN_ID]
+            newselect.item = str(model[path][DHItemsTree.COLUMN_ID])
             newselect.selected = model[path][DHItemsTree.COLUMN_SELECTED]
             policy.add_select(newselect.clone())
             policy.profile.add_select(newselect)
         else:
             select.selected = model[path][DHItemsTree.COLUMN_SELECTED]
             for select in policy.profile.selects:
-                if select.item == model[path][DHItemsTree.COLUMN_ID]:
+                if select.item == str(model[path][DHItemsTree.COLUMN_ID]):
                     select.selected = model[path][DHItemsTree.COLUMN_SELECTED]
 
         """This could be a group and we need set the sensitivity
