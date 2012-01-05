@@ -1197,7 +1197,8 @@ class DHValues(DataHandler):
 
         new_text_value = None
         iter = self.model.get_iter(path)
-        id = self.model.get_value(iter, 0)
+        # FIXME: Workaround for openscap bindings unicode issues
+        id = str(self.model.get_value(iter, 0))
         value_model = self.model.get_value(iter, 4)
         for value_iter in value_model:
             if value_iter[0] == new_text: new_text_value = value_iter[1]
