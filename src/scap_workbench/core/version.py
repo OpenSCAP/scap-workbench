@@ -29,3 +29,6 @@ patch = 1
 
 as_string = "%i.%i.%i" % (major, minor, patch)
 
+# if somebody just executes this module, print the version string
+if __name__ == '__main__':
+    print as_string
