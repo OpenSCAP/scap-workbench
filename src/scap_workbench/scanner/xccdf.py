@@ -102,7 +102,7 @@ class MenuButtonXCCDF(abstract.MenuButton):
 
         # Add table of information to the expander with label name
         expander = Gtk.Expander()
-        label = Gtk.Label("OVAL: %s" % (name,))
+        label = Gtk.Label("Referenced file: %s" % (name,))
         pango_list = Pango.AttrList()
         
         bold_fd = Pango.FontDescription()

@@ -257,6 +257,15 @@ class Library(object):
                 raise XCCDFImportError("Cannot create agent session for \"%s\": %s" % (f_OVAL, desc))
             self.files[file].session = sess
             self.policy_model.register_engine_oval(sess)
+            
+        try:
+            self.sce_parameters = openscap.sce.parameters_new()
+            openscap.sce.parameters_set_xccdf_directory(self.sce_parameters, os.path.dirname(self.xccdf) if self.xccdf else None)
+            #openscap.sce.parameters_set_results_target_directory(self.sce_parameters, "/home/mpreisle/Devel/")
+            self.policy_model.register_engine_sce(self.sce_parameters)
+        
+        except Exception as e:
+            logging.warn("Tried to enable SCE support but failed, was openscap compiled without SCE support? (exception details: %s)" % (e))
 
     def destroy(self):
         """ Destroy the library objects
