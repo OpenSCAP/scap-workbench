@@ -64,6 +64,7 @@ archive: clean
 	@mkdir /tmp/$(PKG)-$(VERSION)
 	@cp -a COPYING README Makefile scap-workbench.desktop scap-workbench-editor.desktop src /tmp/$(PKG)-$(VERSION)
 	@rm -f /tmp/$(PKG)-$(VERSION)/src/bin/runwrapper.sh
+	@rm -f /tmp/$(PKG)-$(VERSION)/src/{pylint.cfg,perform-pylint,pylint-output}
 	@find /tmp/$(PKG)-$(VERSION) -type f -name "*.pyc" | xargs rm -f
 	@find /tmp/$(PKG)-$(VERSION) -type f -name "*~" | xargs rm -f
 	@dir=$$PWD; cd /tmp; tar --bzip2 -cSpf $$dir/$(PKG)-$(VERSION).tar.bz2 $(PKG)-$(VERSION)
