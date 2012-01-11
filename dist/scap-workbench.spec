@@ -8,7 +8,7 @@ Summary: Scanning, tailoring, editing and validation tool for SCAP content
 Name: scap-workbench
 URL: https://fedorahosted.org/scap-workbench/
 Version: 0.6.2
-Release: 1%{?dist}
+Release: 2%{?dist}
 License: GPLv3+
 Group: System Environment/Base
 Source0: https://fedorahosted.org/released/scap-workbench/%{name}-%{version}.tar.bz2
@@ -16,7 +16,11 @@ BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}
 BuildArch: noarch
 BuildRequires: python2-devel desktop-file-utils
 Requires: openscap-python >= 0.7.2
-Requires: pywebkitgtk python-BeautifulSoup
+Requires: gtk3
+Requires: pygobject3
+# FIXME: scap-workbench can run without webkitgtk but the detection is currently broken (0.6.2 upstream)
+Requires: webkitgtk3
+Requires: python-BeautifulSoup
 
 %description
 scap-workbench is GUI tool that provides scanning, tailoring, 
@@ -56,6 +60,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_datadir}/pixmaps/scap-workbench-editor.png
 
 %changelog
+* Wed Jan 11 2012 Martin Preisler <mpreisle@redhat.com> 0.6.2-2
+- Fixed Requires
+
 * Thu Jan 05 2012 Martin Preisler <mpreisle@redhat.com> 0.6.2-1
 - New upstream version 0.6.2
 
