@@ -1971,16 +1971,6 @@ class MenuButtonEditItems(abstract.MenuButton, abstract.Func):
         self.items.set_sensitive(sensitive)
         self.items.set_property("visible", sensitive)
 
-    def __set_profile_description(self, description):
-        """
-        Set description to the textView.
-        @param text Text with description
-        """
-        self.profile_description.get_buffer().set_text("")
-        if description == "": description = "No description"
-        description = "<body>"+description+"</body>"
-        self.profile_description.display_html(description)
-
     def __update_item(self):
         selection = self.tw_items.get_selection()
         (model, iter) = selection.get_selected()

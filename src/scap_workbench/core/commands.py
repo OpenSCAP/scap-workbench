@@ -32,7 +32,6 @@ import tempfile         # Temporary file for XCCDF preview
 
 from scap_workbench import core
 from scap_workbench.core.events import EventObject
-from scap_workbench.core.htmltextview import HtmlTextView
 
 logger = logging.getLogger("scap-workbench")
 

@@ -25,6 +25,7 @@
 from gi.repository import Gtk
 from gi.repository import Gdk
 from gi.repository import GObject
+from gi.repository import WebKit
 import re               # Regular expressions
 import datetime
 import time
@@ -35,7 +36,6 @@ import logging          # Logger for debug/info/error messages
 """
 from scap_workbench.core import Notification                # core.Notification levels for reference
 from scap_workbench.core.events import EventObject          # abstract module EventObject
-from scap_workbench.core.htmltextview import HtmlTextView   # Widget for viewing HTML when WebKit is not available
 from scap_workbench import paths
 
 # Initializing Logger
@@ -46,14 +46,6 @@ These libraries are not required and should be always
 checked by:
   if HAS_MODULE: do
   else: notify(..)"""
-try:
-    # Import WebKit module for HTML editing 
-    # of descriptions
-    from gi.repository import WebKit
-    HAS_WEBKIT = True
-except:
-    HAS_WEBKIT = False
-
 try:
     # For prettifing the source code of HTML Editors
     from BeautifulSoup import BeautifulSoup
@@ -658,20 +650,11 @@ class Func(object):
           </body>
         </html>
         """
-        if HAS_WEBKIT:
-            self.description_widget = WebKit.WebView()
-            self.description_widget.load_html_string(desc, "file:///")
-            self.description_widget.set_zoom_level(0.75)
-            #description.modify_bg(Gtk.StateType.NORMAL, bg_color)
-            #description.parent.modify_bg(Gtk.StateType.NORMAL, bg_color)
-        else:
-            self.description_widget = HtmlTextView()
-            self.description_widget.set_wrap_mode(Gtk.WrapMode.WORD)
-            self.description_widget.modify_base(Gtk.StateType.NORMAL, bg_color)
-            try:
-                self.description_widget.display_html(desc)
-            except Exception:
-                logger.exception("Can't display description HTML.")
+        self.description_widget = WebKit.WebView()
+        self.description_widget.load_html_string(desc, "file:///")
+        self.description_widget.set_zoom_level(0.75)
+        #description.modify_bg(Gtk.StateType.NORMAL, bg_color)
+        #description.parent.modify_bg(Gtk.StateType.NORMAL, bg_color)
         
         self.preview_scw.add(self.description_widget)
         self.description_widget.show()
@@ -701,14 +684,7 @@ class Func(object):
             if desc == "": desc = "No description"
             desc = "<body><div>"+desc+"</div></body>"
 
-        if HAS_WEBKIT:
-            self.description_widget.load_html_string(desc, "file:///")
-        else:
-            try:
-                self.description_widget.display_html(desc)
-            except Exception as err:
-                logger.exception("Exception: %s" % (err))
-                
+        self.description_widget.load_html_string(desc, "file:///")                
         #self.preview_dialog.window.set_cursor(Gdk.Cursor.new(Gdk.ARROW))
 
         self.save.set_property("visible", save != None)
@@ -990,19 +966,10 @@ class HTMLEditor(ListEditor):
         self.__plain_sw.add(self.__plain)
         self.__plain_sw.show_all()
 
-        if not HAS_WEBKIT:
-            label = Gtk.Label(label="Missing WebKit python module")
-            label.modify_fg(Gtk.StateType.NORMAL, Gdk.color_parse("red"))
-            self.__html_sw.add_with_viewport(label)
-            self.__toolbar.set_sensitive(False)
-            self.__html_sw.show_all()
-            self.core.notify("Missing WebKit python module, HTML editing disabled.",
-                    Notification.INFORMATION, info_box=self.info_box, msg_id="")
-        else:
-            self.__html = WebKit.WebView()
-            self.__html.set_zoom_level(0.75)
-            self.__html_sw.add(self.__html)
-            self.__html_sw.show_all()
+        self.__html = WebKit.WebView()
+        self.__html.set_zoom_level(0.75)
+        self.__html_sw.add(self.__html)
+        self.__html_sw.show_all()
 
         self.__html_sw.set_property("visible", self.__switcher.get_active() == 0)
         self.__plain_sw.set_property("visible", self.__switcher.get_active() == 1)
