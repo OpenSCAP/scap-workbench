@@ -51,7 +51,7 @@ try:
     # of descriptions
     from gi.repository import WebKit
     HAS_WEBKIT = True
-except ImportError:
+except (ImportError, gi.RepositoryError):
     HAS_WEBKIT = False
 
 try:
