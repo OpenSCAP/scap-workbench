@@ -1764,6 +1764,7 @@ class MenuButtonEditItems(abstract.MenuButton, abstract.Func):
         self.content_ref.connect("focus-out-event", self.__change)
         self.content_ref.connect("key-press-event", self.__change)
         self.content_ref_find = self.builder.get_object("edit:xccdf:items:evaluation:content_ref:find")
+        self.system = self.builder.get_object("edit:xccdf:items:evaluation:system")
         self.href = self.builder.get_object("edit:xccdf:items:evaluation:href")
         self.href.connect("changed", self.__change)
         self.href_dialog = self.builder.get_object("edit:xccdf:items:evaluation:href:dialog")
@@ -2023,6 +2024,7 @@ class MenuButtonEditItems(abstract.MenuButton, abstract.Func):
         self.cluster_id.set_text("")
         #self.extends.set_text("None")
         self.content_ref.set_text("")
+        self.system.set_text("")
         self.href.get_model().clear()
         self.severity.set_active(-1)
 
@@ -2101,6 +2103,10 @@ class MenuButtonEditItems(abstract.MenuButton, abstract.Func):
             self.fix.fill()
             self.ident.fill()
             content = self.data_model.get_item_content()
+ 
+            item = self.core.lib.benchmark.get_item(self.core.selected_item)
+            rule = item.to_rule()
+            self.system.set_text(rule.checks[0].system if len(rule.checks) >= 0 else "")
  
             if len(self.core.lib.files) > 0:
                 self.href.get_model().clear()

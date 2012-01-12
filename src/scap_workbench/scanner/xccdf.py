@@ -24,8 +24,8 @@
 """ Importing standard python libraries
 """
 from gi.repository import Gtk
-import threading        # Main window is running in thread
 from gi.repository import Pango
+
 import os.path
 import logging          # Logger for debug/info/error messages
 
