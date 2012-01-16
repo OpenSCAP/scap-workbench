@@ -26,7 +26,6 @@ from gi.repository import Gtk
 from gi.repository import Gdk
 from gi.repository import GLib
 from gi.repository import Pango
-from gi.repository import WebKit
 import re               # Regular expressions 
 import sre_constants    # For re.compile exception
 import logging          # Logger for debug/info/error messages
@@ -39,8 +38,10 @@ from scap_workbench.core import commands
 from scap_workbench.core import filter
 import scap_workbench.core.enum as ENUM
 from scap_workbench.core.events import EventObject
+from scap_workbench.core import htmltextview
 
 from scap_workbench.core.threads import thread_free as threadFree
+from scap_workbench.core.htmltextview import HtmlTextView
 
 # Initializing Logger
 logger = logging.getLogger("scap-workbench")
@@ -217,8 +218,8 @@ class ItemDetails(EventObject):
             self.idents.set_text(str("\n".join([ident[0] for ident in details["idents"]])))
 
         # clear
-        self.description.load_html_string("", "file:///")
-        self.fixes.load_html_string("", "file:///")
+        self.description.get_buffer().set_text("")
+        self.fixes.get_buffer().set_text("")
         self.title.set_text("")
         for child in self.refBox.get_children():
             child.destroy()
@@ -243,7 +244,7 @@ class ItemDetails(EventObject):
         if description == "": description = "No description"
         description = "<body>"+description+"</body>"
         try:
-            self.description.load_html_string(description, "file:///")
+            self.description.display_html(description)
         except Exception as err:
             logger.exception("Exception: %s" % (err))
         
@@ -280,7 +281,7 @@ class ItemDetails(EventObject):
         if text == None: text = "No fixes specified"
         text = "<body>"+text+"</body>"
         try:
-            self.fixes.load_html_string(text, "file:///")
+            self.fixes.display_html(text)
         except Exception as err:
             logger.exception("HTML display Exception: %s: (%s)", err, text)
 
@@ -381,8 +382,9 @@ class ItemDetails(EventObject):
         vbox = Gtk.VBox()
         alig.add(vbox)
         vbox.pack_start(Gtk.HSeparator(), False, False, 3)
-        self.fixes = WebKit.WebView()
-        self.fixes.set_zoom_level(0.75)
+        self.fixes = HtmlTextView()
+        self.fixes.set_wrap_mode(Gtk.WrapMode.WORD)
+        self.fixes.modify_base(Gtk.StateType.NORMAL, bg_color)
         sw = Gtk.ScrolledWindow()
         sw.set_property("hscrollbar-policy", Gtk.PolicyType.AUTOMATIC)
         sw.set_property("vscrollbar-policy", Gtk.PolicyType.AUTOMATIC)
@@ -403,8 +405,9 @@ class ItemDetails(EventObject):
         vbox = Gtk.VBox()
         alig.add(vbox)
         vbox.pack_start(Gtk.HSeparator(), False, False, 3)
-        self.description = WebKit.WebView()
-        self.description.set_zoom_level(0.75)
+        self.description = HtmlTextView()
+        self.description.set_wrap_mode(Gtk.WrapMode.WORD)
+        self.description.modify_base(Gtk.StateType.NORMAL, bg_color)
         sw = Gtk.ScrolledWindow()
         sw.set_property("hscrollbar-policy", Gtk.PolicyType.AUTOMATIC)
         sw.set_property("vscrollbar-policy", Gtk.PolicyType.AUTOMATIC)
