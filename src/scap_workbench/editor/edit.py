@@ -25,6 +25,8 @@
 """
 from gi.repository import Gtk
 from gi.repository import GObject
+from gi.repository import WebKit
+
 import time             # Time functions in calendar data ::EditStatus
 import re               # Regular expressions 
 import os               # os Path join/basename, ..
@@ -42,19 +44,6 @@ from scap_workbench import paths
 
 # Initializing Logger
 logger = logging.getLogger("scap-workbench")
-
-""" Importing non-standard python libraries
-These libraries are not required and should be always
-checked by:
-  if HAS_MODULE: do
-  else: notify(..)"""
-try:
-    # Import WebKit module for HTML editing 
-    # of descriptions
-    from gi.repository import WebKit
-    HAS_WEBKIT = True
-except ImportError:
-    HAS_WEBKIT = False
 
 """ Import OpenSCAP library as backend.
 If anything goes wrong just end with exception"""
