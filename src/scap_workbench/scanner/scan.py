@@ -91,7 +91,7 @@ class MenuButtonScan(abstract.MenuButton, abstract.Func):
         abstract.Func.__init__(self, core)
         
         self.exported_file = None
-        self.__lock = False
+        self.scanRunning = False
         self.selected_profile = None
 
         self.progress = self.builder.get_object("scan:progress")
@@ -263,7 +263,7 @@ class MenuButtonScan(abstract.MenuButton, abstract.Func):
         self.exported_file = None
         for notify in self.notifications:
             notify.destroy()
-        if self.__lock: 
+        if self.scanRunning: 
             logger.error("Scan already running")
         else:
             self.emit("scan")
@@ -272,13 +272,13 @@ class MenuButtonScan(abstract.MenuButton, abstract.Func):
 
     def set_scan_in_progress(self, active, previously_scanned = True):
         """This method manages sensitivity of various buttons according to whether scanning
-        is in progress or not. Also manages self.__lock
+        is in progress or not. Also manages self.scanRunning
         
         active - whether scanning is currently underway
         previously_scanned - have we scanned before? only applies if active if False
         """
         
-        self.__lock = active
+        self.scanRunning = active
       
         self.stop.set_sensitive(active)
         self.scan.set_sensitive(not active)
@@ -330,7 +330,7 @@ class MenuButtonScan(abstract.MenuButton, abstract.Func):
     def __cb_cancel(self, widget=None):
         """ Called by user event when stop button pressed
         """
-        if self.__lock:
+        if self.scanRunning:
             self.core.notify("Scanning canceled. Please wait for openscap to finish current task.", core.Notification.INFORMATION, msg_id="notify:scan:cancel")
             self.data_model.cancel()
 
