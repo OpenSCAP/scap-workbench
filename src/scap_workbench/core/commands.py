@@ -1416,7 +1416,7 @@ class DHItemsTree(DataHandler, EventObject):
             try:
                 child = iter.next()
                 model[child.path][DHItemsTree.COLUMN_PARENT] = pselected
-                model[child.path][DHItemsTree.COLUMN_COLOR] = ["gray", ""][model[child.path][DHItemsTree.COLUMN_SELECTED] and pselected]
+                model[child.path][DHItemsTree.COLUMN_COLOR] = ["gray", "black"][model[child.path][DHItemsTree.COLUMN_SELECTED] and pselected]
 
                 # Alter the policy. All underneath rules/groups should 
                 # be deselected when parent group is deselected.
@@ -1464,7 +1464,7 @@ class DHItemsTree(DataHandler, EventObject):
                 self.__cb_toggled(cell, alt_path, self.ref_model)
 
         model[path][DHItemsTree.COLUMN_SELECTED] = not model[path][DHItemsTree.COLUMN_SELECTED]
-        model[path][DHItemsTree.COLUMN_COLOR] = ["gray", ""][model[path][DHItemsTree.COLUMN_SELECTED]]
+        model[path][DHItemsTree.COLUMN_COLOR] = ["gray", "black"][model[path][DHItemsTree.COLUMN_SELECTED]]
 
         """OpenSCAP library block:
            1) Get selected policy and raise exception if there is no policy - how could this happened ?
