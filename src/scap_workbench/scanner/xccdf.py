@@ -171,7 +171,11 @@ class MenuButtonXCCDF(abstract.MenuButton):
         self.label_warnings.set_text("")
         self.label_notices.set_text("")
         self.label_language.set_text("")
-        for child in self.files_box.get_children(): child.destroy()
+        
+        for child in self.box_references.get_children():
+            child.destroy()
+        for child in self.files_box.get_children():
+            child.destroy()
 
     def activate(self, active):
         super(MenuButtonXCCDF, self).activate(active)
