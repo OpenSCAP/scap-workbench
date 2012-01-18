@@ -1,11 +1,10 @@
 [Desktop Entry]
-Version=1.0
 Type=Application
 Name=SCAP Workbench
-Comment=The security auditting tool
+Comment=GUI tool that allows scanning the computer it's running on using XCCDF content of your choice
 TryExec=scap-workbench
 Exec=scap-workbench
 Icon=scap-workbench
 Categories=System;
 X-Desktop-File-Install-Version=0.3
-Encoding=UTF-8
+
