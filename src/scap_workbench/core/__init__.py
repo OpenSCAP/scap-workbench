@@ -186,6 +186,8 @@ class Library(object):
         self.policy_model = None
         self.files = {}
         self.loaded = False
+        
+        self.sce_parameters = None
 
     def init_policy_model(self):
         """ This function should init policy model for scanning
@@ -220,8 +222,9 @@ class Library(object):
         in openscap default content directory
         """
         dirnames = [".", os.path.dirname(xccdf)]
-        def_model = None
+        self.files = {}
         for file in self.benchmark.to_item().get_files().strings:
+            def_model = None
             for directory in dirnames:
                 if os.path.exists(os.path.join(directory, file)):
                     def_model = openscap.oval.definition_model_import(os.path.join(directory, file))
@@ -261,7 +264,7 @@ class Library(object):
         try:
             self.sce_parameters = openscap.sce.parameters_new()
             openscap.sce.parameters_set_xccdf_directory(self.sce_parameters, os.path.dirname(self.xccdf) if self.xccdf else None)
-            #openscap.sce.parameters_set_results_target_directory(self.sce_parameters, "/home/mpreisle/Devel/")
+            #openscap.sce.parameters_set_results_target_directory(self.sce_parameters, "/tmp")
             self.policy_model.register_engine_sce(self.sce_parameters)
         
         except Exception as e:
