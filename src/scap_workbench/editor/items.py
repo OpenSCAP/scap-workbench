@@ -2118,10 +2118,12 @@ class MenuButtonEditItems(abstract.MenuButton, abstract.Func):
             rule = item.to_rule()
             self.system.set_text(rule.checks[0].system if len(rule.checks) >= 0 else "")
  
-            if len(self.core.lib.files) > 0:
-                self.href.get_model().clear()
-                for name in self.core.lib.files.keys():
-                    self.href.get_model().append([name, name])
+            self.href.get_model().clear()
+            for name in self.core.lib.oval_files.keys():
+                self.href.get_model().append([name, name])
+            for name in self.core.lib.sce_files:
+                self.href.get_model().append([name, name])
+                
             if content != None and len(content) > 0:
                 self.content_ref.set_text(content[0][0] or "")
                 for i, item in enumerate(self.href.get_model()):

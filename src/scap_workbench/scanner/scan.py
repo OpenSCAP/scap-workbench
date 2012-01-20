@@ -191,7 +191,8 @@ class MenuButtonScan(abstract.MenuButton, abstract.Func):
             self.data_model.perform_xslt_transformation(file = raw_temp.name,
                                                         expfile = transformed_temp.name,
                                                         result_id = self.result.id,
-                                                        oval_path = os.path.dirname(raw_temp.name))
+                                                        oval_path = os.path.dirname(raw_temp.name),
+                                                        sce_path = "/tmp")
             
             desc = transformed_temp.read()
             
@@ -213,7 +214,7 @@ class MenuButtonScan(abstract.MenuButton, abstract.Func):
         
         chooser = Gtk.FileChooserDialog(title="Save report", action=Gtk.FileChooserAction.SAVE,
                 buttons=(Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL, Gtk.STOCK_SAVE, Gtk.ResponseType.OK))
-        chooser.set_current_name("report.xhtml")
+        chooser.set_current_name("result.xml")
         response = chooser.run()
         
         if response == Gtk.ResponseType.OK:

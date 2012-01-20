@@ -926,10 +926,10 @@ class DataHandler(object):
     def get_oval_definitions(self, href):
         if not self.check_library(): return None
 
-        if href not in self.core.lib.files.keys():
+        if href not in self.core.lib.oval_files.keys():
             return None
 
-        def_model = self.core.lib.files[href].model
+        def_model = self.core.lib.oval_files[href].model
         if def_model: return def_model.definitions
         else: return []
 
@@ -980,13 +980,12 @@ class DHXccdf(DataHandler):
         return details
 
     def get_oval_files_info(self):
-
         if not self.check_library(): return None
 
         info = {}
-        for name in self.core.lib.files.keys():
+        for name in self.core.lib.oval_files.keys():
 
-            def_model = self.core.lib.files[name].model
+            def_model = self.core.lib.oval_files[name].model
             info[name] = {}
             info[name]["product_name"] = def_model.generator.product_name
             info[name]["product_version"] = def_model.generator.product_version
@@ -994,6 +993,11 @@ class DHXccdf(DataHandler):
             info[name]["timestamp"] = def_model.generator.timestamp
         
         return info
+    
+    def get_sce_files(self):
+        if not self.check_library(): return None
+        
+        return self.core.lib.sce_files
 
     def update(self, id=None, version=None, resolved=None, lang=None):
 
@@ -2351,6 +2355,13 @@ class DHScan(DataHandler, EventObject):
 
         return self.__cancel
 
+    def clear(self):
+        self.model.clear()
+
+        self.count_current = 0
+        self.count_all = len(self.policy.selected_rules or 0)
+        self.step = (100.0/(self.count_all or 1.0))/100.0
+
     def prepare(self):
         """Prepare system for evaluation
         return False if something goes wrong, True otherwise
@@ -2362,7 +2373,7 @@ class DHScan(DataHandler, EventObject):
             self.core.registered_callbacks = True
             
         else:
-            for oval in self.core.lib.files.values():
+            for oval in self.core.lib.oval_files.values():
                 retval = openscap.oval.agent_reset_session(oval.session)
                 logger.debug("OVAL Agent session reset: %s" % (retval,))
                 if retval != 0: 
@@ -2370,16 +2381,12 @@ class DHScan(DataHandler, EventObject):
                     raise RuntimeError("OVAL agent reset session failed, openscap return value: %i" % (retval))
             self.__cancel = False
 
-        self.model.clear()
-
         if self.core.selected_profile == None:
             self.policy = self.core.lib.policy_model.policies[0]
         else: self.policy = self.core.lib.policy_model.get_policy_by_id(str(self.core.selected_profile))
-
-        self.count_current = 0
-        self.count_all = len(self.policy.selected_rules)
-        self.step = (100.0/(self.count_all or 1.0))/100.0
         
+        self.clear()
+
         return True
         
     def cancel(self):
@@ -2387,7 +2394,7 @@ class DHScan(DataHandler, EventObject):
         """
         self.__cancel = True
         if not self.check_library(): return None
-        for oval in self.core.lib.files.values():
+        for oval in self.core.lib.oval_files.values():
             retval = openscap.oval.agent_abort_session(oval.session)
             logger.debug("OVAL Agent session abort: %s" % (retval,))
 
@@ -2402,10 +2409,11 @@ class DHScan(DataHandler, EventObject):
             
         if file_name != "":
             sessions = {}
-            for oval in self.core.lib.files.values():
+            for oval in self.core.lib.oval_files.values():
                 sessions[oval.path] = oval.session
+                
             files = self.policy.export(result, DHScan.RESULT_NAME, file_name, file_name, self.core.lib.xccdf, sessions)
-            
+        
             for file in files:
                 logger.debug("Exported: %s", file)
             
@@ -2414,7 +2422,7 @@ class DHScan(DataHandler, EventObject):
         else:
             return None
 
-    def perform_xslt_transformation(self, file, xslfile=None, expfile=None, hide_profile=None, result_id=None, oval_path=None):
+    def perform_xslt_transformation(self, file, xslfile=None, expfile=None, hide_profile=None, result_id=None, oval_path=None, sce_path="/tmp"):
         """Performs XSLT transformation on given file (raw XML results data, from DHScan.export for example).
         
         The resulting file (expfile) is the given raw XML results file transformed. Depending on the XSLT transformation
@@ -2432,14 +2440,15 @@ class DHScan(DataHandler, EventObject):
             "oscap-version",     openscap.common.oscap_get_version(),
             "pwd",               os.getenv("PWD"),
             # TODO: oval_path actually can't be None or this fails! We need to find a more sensible default value
-            "oval-template",     os.path.join(oval_path,"%.result.xml")
+            "oval-template",     os.path.join(oval_path,"%.result.xml"),
+            "sce-template",      os.path.join(sce_path,"%.result.xml")
         ]
 
         if not xslfile:
             xslfile = "xccdf-report.xsl"
             
         if not expfile:
-            expfile = "report.xhtml"
+            expfile = "%s-report.xhtml" % (file)
 
         retval = openscap.common.oscap_apply_xslt(file, xslfile, expfile, params)
         # TODO If this call (below) is not executed, there will come some strange behaviour
@@ -2651,7 +2660,7 @@ class DHEditItems(DataHandler):
                 if openscap.OSCAP.oscap_err(): desc = openscap.OSCAP.oscap_err_desc()
                 else: desc = "Unknown error, please report this bug (http://bugzilla.redhat.com/)"
                 raise core.XCCDFImportError("Cannot create agent session for \"%s\": %s" % (f_OVAL, desc))
-            self.core.lib.add_file(os.path.basename(f_OVAL), sess, def_model)
+            self.core.lib.add_oval_file(os.path.basename(f_OVAL), sess, def_model)
             if self.core.lib.policy_model: self.core.lib.policy_model.register_engine_oval(sess)
         else: logger.warning("Skipping %s file which is referenced from XCCDF content" % (f_OVAL,))
 

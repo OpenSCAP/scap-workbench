@@ -184,7 +184,8 @@ class Library(object):
         self.xccdf = None
         self.benchmark = None
         self.policy_model = None
-        self.files = {}
+        self.oval_files = {}
+        self.sce_files = set()
         self.loaded = False
         
         self.sce_parameters = None
@@ -202,10 +203,10 @@ class Library(object):
         self.benchmark = openscap.xccdf.benchmark()
         self.loaded = True
 
-    def add_file(self, path, sess, model):
-        if path in self.files:
+    def add_oval_file(self, path, sess, model):
+        if path in self.oval_files:
             logger.warning("%s is already in the list.")
-        else: self.files[path] = Library.OVAL(path, sess, model)
+        else: self.oval_files[path] = Library.OVAL(path, sess, model)
 
     def import_xccdf(self, xccdf):
         """Import XCCDF Benchmark from file
@@ -222,27 +223,35 @@ class Library(object):
         in openscap default content directory
         """
         dirnames = [".", os.path.dirname(xccdf)]
-        self.files = {}
-        for file in self.benchmark.to_item().get_files().strings:
-            def_model = None
-            for directory in dirnames:
-                if os.path.exists(os.path.join(directory, file)):
-                    def_model = openscap.oval.definition_model_import(os.path.join(directory, file))
-                    if def_model.instance == None:
-                        if openscap.commonerr(): desc = openscap.common.err_desc()
-                        else: desc = "Unknown error, please report this bug (http://bugzilla.redhat.com/)"
-                        raise XCCDFImportError("Cannot import definition model for \"%s\": %s" % (file, desc))
-                    break
+        self.oval_files = {}
+        self.sce_files = set()
 
-            if def_model:
-                self.files[file] = Library.OVAL(file, None, def_model)
-            else:
-                logger.warning("WARNING: Skipping %s file which is referenced from XCCDF content" % (file))
+        for file_entry in self.benchmark.to_item().get_systems_and_files().get_files():
+            file = openscap.OSCAP.oscap_file_entry_get_file(file_entry.instance)
+            system = openscap.OSCAP.oscap_file_entry_get_system(file_entry.instance)
+            
+            if system == "http://oval.mitre.org/XMLSchema/oval-definitions-5":
+                def_model = None
+                for directory in dirnames:
+                    if os.path.exists(os.path.join(directory, file)):
+                        def_model = openscap.oval.definition_model_import(os.path.join(directory, file))
+                        if def_model.instance == None:
+                            if openscap.commonerr(): desc = openscap.common.err_desc()
+                            else: desc = "Unknown error, please report this bug (http://bugzilla.redhat.com/)"
+                            raise XCCDFImportError("Cannot import definition model for \"%s\": %s" % (file, desc))
+                        break
+    
+                if def_model:
+                    self.add_oval_file(file, None, def_model)
+                else:
+                    logger.warning("WARNING: Skipping '%s' OVAL file which is referenced from XCCDF content." % (file))
+            
+            elif system == "http://open-scap.org/XMLSchema/SCE-definitions-1":
+                self.sce_files.add(file)
 
         if self.benchmark:
             logger.debug("Initialization done.")
         else:
-            
             logger.debug("Initialization failed. Benchmark can't be imported")
             raise RuntimeError("Can't initialize openscap library, Benchmark import failed.")
         
@@ -252,23 +261,24 @@ class Library(object):
         """ Scanner needs a policy_model initialized. This is not wanted in editor
         """
         self.policy_model = openscap.xccdf.policy_model_new(self.benchmark)
-        for file in self.files:
-            sess = openscap.oval.agent_new_session(self.files[file].model, file)
+        for file in self.oval_files:
+            sess = openscap.oval.agent_new_session(self.oval_files[file].model, file)
             if sess == None or sess.instance == None:
                 if OSCAP.oscap_err(): desc = OSCAP.oscap_err_desc()
                 else: desc = "Unknown error, please report this bug (http://bugzilla.redhat.com/)"
                 raise XCCDFImportError("Cannot create agent session for \"%s\": %s" % (f_OVAL, desc))
-            self.files[file].session = sess
+            self.oval_files[file].session = sess
             self.policy_model.register_engine_oval(sess)
             
-        try:
-            self.sce_parameters = openscap.sce.parameters_new()
-            openscap.sce.parameters_set_xccdf_directory(self.sce_parameters, os.path.dirname(self.xccdf) if self.xccdf else None)
-            #openscap.sce.parameters_set_results_target_directory(self.sce_parameters, "/tmp")
-            self.policy_model.register_engine_sce(self.sce_parameters)
-        
-        except Exception as e:
-            logging.warn("Tried to enable SCE support but failed, was openscap compiled without SCE support? (exception details: %s)" % (e))
+        if len(self.sce_files) > 0:
+            try:
+                self.sce_parameters = openscap.sce.parameters_new()
+                openscap.sce.parameters_set_xccdf_directory(self.sce_parameters, os.path.dirname(self.xccdf) if self.xccdf else None)
+                openscap.sce.parameters_set_results_target_directory(self.sce_parameters, "/tmp")
+                self.policy_model.register_engine_sce(self.sce_parameters)
+            
+            except Exception as e:
+                logging.warn("Tried to enable SCE support but failed, was openscap compiled without SCE support? (exception details: %s)" % (e))
 
     def destroy(self):
         """ Destroy the library objects
@@ -277,8 +287,9 @@ class Library(object):
             self.benchmark.free()
         elif self.policy_model != None:
             self.policy_model.free()
-        for oval in self.files.values(): oval.destroy()
-        self.files = {}
+        for oval in self.oval_files.values(): oval.destroy()
+        self.oval_files = {}
+        self.sce_files = set()
         openscap.OSCAP.oscap_cleanup()
         self.xccdf = None
         self.benchmark = None

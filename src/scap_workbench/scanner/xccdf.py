@@ -46,9 +46,9 @@ from scap_workbench.scanner import scan
 logger = logging.getLogger("scap-workbench")
 
 class MenuButtonXCCDF(abstract.MenuButton):
+    """GUI for operations with xccdf file.
     """
-    GUI for operations with xccdf file.
-    """
+    
     def __init__(self, builder, widget, _core):
         self.builder = builder
         self.data_model = commands.DHXccdf(_core)
@@ -98,64 +98,97 @@ class MenuButtonXCCDF(abstract.MenuButton):
         core.label_set_autowrap(self.label_warnings)
         core.label_set_autowrap(self.label_notices)
 
-    def __add_file_info(self, name, file_info):
+    def __clear_file_infos(self):
+        for child in self.files_box.get_children():
+            child.destroy()
 
+    def __add_oval_file_info(self, name, file_info):
+        """Adds file info for OVAL references files, comprises of filename,
+        product name, product version, schema version, timestamp and validation status
+        """
+        
         # Add table of information to the expander with label name
         expander = Gtk.Expander()
-        label = Gtk.Label("Referenced file: %s" % (name,))
+        label = Gtk.Label("OVAL: %s" % (name,))
         pango_list = Pango.AttrList()
-        
-        bold_fd = Pango.FontDescription()
-        bold_fd.set_weight(Pango.Weight.BOLD)
-        #pango_list.insert(Pango.AttrFontDesc(desc = bold_fd, start_index=0, end_index=-1))
-        
-        if not file_info:
-            pango_list.insert(Pango.AttrForeground(65535, 0, 0, start_index=0, end_index=-1))
+            
         label.set_attributes(pango_list)
         expander.set_label_widget(label)
         expander.set_expanded(True)
         align = Gtk.Alignment()
         align.set_padding(5, 10, 25, 0)
 
-        if not file_info:
-            label = Gtk.Label(label="File not found: %s" % (name))
-            label.set_attributes(pango_list)
-            align.add(label)
-        else:
-            table = Gtk.Table(rows=5, columns=2)
-            table.set_col_spacings(spacing=5)
-            align.add(table)
+        table = Gtk.Table(rows=5, columns=2)
+        table.set_col_spacings(spacing=5)
+        align.add(table)
 
-            # use table to add information
-            label = Gtk.Label(label="Product name:")
-            label.set_alignment(0.0, 0.50)
-            table.attach(label, 0, 1, 0, 1, xoptions=Gtk.AttachOptions.FILL, yoptions=Gtk.AttachOptions.FILL, xpadding=0, ypadding=0)
-            label = Gtk.Label(label="Product version:")
-            label.set_alignment(0.0, 0.50)
-            table.attach(label, 0, 1, 1, 2, xoptions=Gtk.AttachOptions.FILL, yoptions=Gtk.AttachOptions.FILL, xpadding=0, ypadding=0)
-            label = Gtk.Label(label="Schema version:")
-            label.set_alignment(0.0, 0.50)
-            table.attach(label, 0, 1, 2, 3, xoptions=Gtk.AttachOptions.FILL, yoptions=Gtk.AttachOptions.FILL, xpadding=0, ypadding=0)
-            label = Gtk.Label(label="Timestamp:")
-            label.set_alignment(0.0, 0.50)
-            table.attach(label, 0, 1, 3, 4, xoptions=Gtk.AttachOptions.FILL, yoptions=Gtk.AttachOptions.FILL, xpadding=0, ypadding=0)
-            label = Gtk.Label(label="Valid:")
-            label.set_alignment(0.0, 0.50)
-            table.attach(label, 0, 1, 4, 5, xoptions=Gtk.AttachOptions.FILL, yoptions=Gtk.AttachOptions.FILL, xpadding=0, ypadding=0)
+        # use table to add information
+        label = Gtk.Label(label="Product name:")
+        label.set_alignment(0.0, 0.50)
+        table.attach(label, 0, 1, 0, 1, xoptions=Gtk.AttachOptions.FILL, yoptions=Gtk.AttachOptions.FILL, xpadding=0, ypadding=0)
+        label = Gtk.Label(label="Product version:")
+        label.set_alignment(0.0, 0.50)
+        table.attach(label, 0, 1, 1, 2, xoptions=Gtk.AttachOptions.FILL, yoptions=Gtk.AttachOptions.FILL, xpadding=0, ypadding=0)
+        label = Gtk.Label(label="Schema version:")
+        label.set_alignment(0.0, 0.50)
+        table.attach(label, 0, 1, 2, 3, xoptions=Gtk.AttachOptions.FILL, yoptions=Gtk.AttachOptions.FILL, xpadding=0, ypadding=0)
+        label = Gtk.Label(label="Timestamp:")
+        label.set_alignment(0.0, 0.50)
+        table.attach(label, 0, 1, 3, 4, xoptions=Gtk.AttachOptions.FILL, yoptions=Gtk.AttachOptions.FILL, xpadding=0, ypadding=0)
+        label = Gtk.Label(label="Valid:")
+        label.set_alignment(0.0, 0.50)
+        table.attach(label, 0, 1, 4, 5, xoptions=Gtk.AttachOptions.FILL, yoptions=Gtk.AttachOptions.FILL, xpadding=0, ypadding=0)
 
-            label = Gtk.Label(label=file_info["product_name"])
-            label.set_alignment(0.0, 0.50)
-            table.attach(label, 1, 2, 0, 1, xoptions=Gtk.AttachOptions.EXPAND|Gtk.AttachOptions.FILL, yoptions=Gtk.AttachOptions.FILL, xpadding=0, ypadding=0)
-            label = Gtk.Label(label=file_info["product_version"])
-            label.set_alignment(0.0, 0.50)
-            table.attach(label, 1, 2, 1, 2, xoptions=Gtk.AttachOptions.EXPAND|Gtk.AttachOptions.FILL, yoptions=Gtk.AttachOptions.FILL, xpadding=0, ypadding=0)
-            label = Gtk.Label(label=file_info["schema_version"])
-            label.set_alignment(0.0, 0.50)
-            table.attach(label, 1, 2, 2, 3, xoptions=Gtk.AttachOptions.EXPAND|Gtk.AttachOptions.FILL, yoptions=Gtk.AttachOptions.FILL, xpadding=0, ypadding=0)
-            label = Gtk.Label(label=file_info["timestamp"])
-            label.set_alignment(0.0, 0.50)
-            table.attach(label, 1, 2, 3, 4, xoptions=Gtk.AttachOptions.EXPAND|Gtk.AttachOptions.FILL, yoptions=Gtk.AttachOptions.FILL, xpadding=0, ypadding=0)
+        label = Gtk.Label(label=file_info["product_name"])
+        label.set_alignment(0.0, 0.50)
+        table.attach(label, 1, 2, 0, 1, xoptions=Gtk.AttachOptions.EXPAND|Gtk.AttachOptions.FILL, yoptions=Gtk.AttachOptions.FILL, xpadding=0, ypadding=0)
+        label = Gtk.Label(label=file_info["product_version"])
+        label.set_alignment(0.0, 0.50)
+        table.attach(label, 1, 2, 1, 2, xoptions=Gtk.AttachOptions.EXPAND|Gtk.AttachOptions.FILL, yoptions=Gtk.AttachOptions.FILL, xpadding=0, ypadding=0)
+        label = Gtk.Label(label=file_info["schema_version"])
+        label.set_alignment(0.0, 0.50)
+        table.attach(label, 1, 2, 2, 3, xoptions=Gtk.AttachOptions.EXPAND|Gtk.AttachOptions.FILL, yoptions=Gtk.AttachOptions.FILL, xpadding=0, ypadding=0)
+        label = Gtk.Label(label=file_info["timestamp"])
+        label.set_alignment(0.0, 0.50)
+        table.attach(label, 1, 2, 3, 4, xoptions=Gtk.AttachOptions.EXPAND|Gtk.AttachOptions.FILL, yoptions=Gtk.AttachOptions.FILL, xpadding=0, ypadding=0)
 
+        expander.add(align)
+        self.files_box.pack_start(expander, False, False, 0)
+        expander.show_all()
+        
+    def __add_sce_file_info(self, name):
+        """Adds file info for ScriptCheckEngine referenced file, this currently
+        only contains filename of the referenced file
+        """
+        
+        # Add table of information to the expander with label name
+        expander = Gtk.Expander()
+        label = Gtk.Label("SCE: %s" % (name,))
+        pango_list = Pango.AttrList()
+            
+        label.set_attributes(pango_list)
+        expander.set_label_widget(label)
+        expander.set_expanded(True)
+        align = Gtk.Alignment()
+        align.set_padding(5, 10, 25, 0)
+
+        expander.add(align)
+        self.files_box.pack_start(expander, False, False, 0)
+        expander.show_all()
+        
+    def __add_error_file_info(self, name):
+        """Adds file info for a referenced file that wasn't found (or other error happened)
+        """
+        
+        # Add table of information to the expander with label name
+        expander = Gtk.Expander()
+        label = Gtk.Label("OVAL: %s" % (name,))
+        pango_list = Pango.AttrList()
+        
+        label = Gtk.Label(label="File not found: %s" % (name))
+        label.set_attributes(pango_list)
+        align.add(label)
+        
         expander.add(align)
         self.files_box.pack_start(expander, False, False, 0)
         expander.show_all()
@@ -174,8 +207,7 @@ class MenuButtonXCCDF(abstract.MenuButton):
         
         for child in self.box_references.get_children():
             child.destroy()
-        for child in self.files_box.get_children():
-            child.destroy()
+        self.__clear_file_infos()
 
     def activate(self, active):
         super(MenuButtonXCCDF, self).activate(active)
@@ -237,19 +269,18 @@ class MenuButtonXCCDF(abstract.MenuButton):
             label.connect("size-allocate", core.label_size_allocate)
             label.show()
 
-        # OVAL Files
-        for child in self.files_box.get_children():
-            child.destroy()
+        self.__clear_file_infos()
 
-        files = self.data_model.get_oval_files_info()
-        if len(details["files"]) ==  0:
-            return
-    
+        oval_files = self.data_model.get_oval_files_info()
+        sce_files = self.data_model.get_sce_files()
+        
         for f in details["files"]:
-            if f in files:
-                self.__add_file_info(f, files[f])
-            else: self.__add_file_info(f, None)
-
+            if f in oval_files:
+                self.__add_oval_file_info(f, oval_files[f])
+            elif f in sce_files:
+                self.__add_sce_file_info(f)
+            else:
+                self.__add_error_file_info(f)
 
     # callBack functions
     def __cb_new(self, widget):
