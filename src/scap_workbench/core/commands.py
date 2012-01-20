@@ -2148,6 +2148,8 @@ class DHScan(DataHandler, EventObject):
 
         core.register(id, self)
         self.add_sender(self.id, "filled")
+        
+        self.policy = None
     
     def new_model(self):
         return Gtk.TreeStore(str, str, str, str, str, str, str, str)
@@ -2355,11 +2357,11 @@ class DHScan(DataHandler, EventObject):
 
         return self.__cancel
 
-    def clear(self):
+    def clear(self, count_all = 0):
         self.model.clear()
 
         self.count_current = 0
-        self.count_all = len(self.policy.selected_rules or 0)
+        self.count_all = 0
         self.step = (100.0/(self.count_all or 1.0))/100.0
 
     def prepare(self):
@@ -2385,8 +2387,8 @@ class DHScan(DataHandler, EventObject):
             self.policy = self.core.lib.policy_model.policies[0]
         else: self.policy = self.core.lib.policy_model.get_policy_by_id(str(self.core.selected_profile))
         
-        self.clear()
-
+        self.clear(count_all = len(self.policy.selected_rules))
+        
         return True
         
     def cancel(self):

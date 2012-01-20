@@ -119,6 +119,7 @@ class MenuButtonScan(abstract.MenuButton, abstract.Func):
         # set signals
         self.add_sender(self.id, "scan")
         self.add_receiver("gui:main", "quit", self.__cb_cancel)
+        self.add_receiver("gui:btn:main:xccdf", "load", self.__cb_clear)
         
         self.set_scan_in_progress(False, previously_scanned = False)
 
@@ -338,6 +339,8 @@ class MenuButtonScan(abstract.MenuButton, abstract.Func):
     def __cb_help(self, widget):
         window = HelpWindow(self.core)
 
+    def __cb_clear(self):
+        self.data_model.clear()
 
 class ProfileChooser(object):
     """
