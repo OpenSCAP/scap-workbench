@@ -40,7 +40,7 @@ class MainWindow(abstract.Window):
     """
     
     def __init__(self):
-        error.ErrorHandler.install_exception_hook()
+        error.install_exception_hook()
         
         self.builder = Gtk.Builder()
         self.builder.add_from_file(os.path.join(paths.glade_prefix, "editor.glade"))
@@ -80,7 +80,7 @@ class MainWindow(abstract.Window):
         """ close the window and quit
         """
         # since we are quitting gtk we can't be popping a dialog when exception happens anymore
-        error.ErrorHandler.uninstall_exception_hook()
+        error.uninstall_exception_hook()
  
         Gtk.main_quit()
         return False

@@ -19,6 +19,11 @@
 # Authors:
 #      Martin Preisler <mpreisle@redhat.com>
 
+"""Provides means to override Python's default exception handler and display
+a GTK dialog when exception is uncaught. This allows users to submit useful
+bug reports to us
+"""
+
 from gi.repository import Gtk
 
 import sys
@@ -29,12 +34,14 @@ from scap_workbench.core import version
 
 class ExceptionDialog(object):
     """This is a dialog that gets shown whenever an exception is thrown and
-    isn't caught.
-    
-    See ErrorHandler
+    isn't caught. You don't need to use this class directly, see methods of
+    this module instead!
     """
 
     def __init__(self, exc_type, exc_message, exc_traceback):
+        """Takes given exception information and constructs a dialog from them
+        """
+        
         self.builder = Gtk.Builder()
         self.builder.add_from_file(os.path.join(paths.glade_prefix, "error.glade"))
         
@@ -49,63 +56,77 @@ class ExceptionDialog(object):
         formatted_traceback = traceback.format_tb(exc_traceback)
         self.traceback_str = "\n".join(formatted_traceback)
 
-        buffer = Gtk.TextBuffer()
-        buffer.set_text("Version: %s\n"
-                        "Python version: %s\n"
-                        # FIXME!
-                        #"GTK version: %s\n"
-                        #"PyGTK version: %s\n"
-                        "\n"
-                        "Exception type: %s\n"
-                        "Exception message: %s\n"
-                        "\n"
-                        "Traceback:\n"
-                        "%s" % (version.as_string, sys.version,
-                                exc_type, exc_message, self.traceback_str))
+        text_buffer = Gtk.TextBuffer()
+        text_buffer.set_text("Version: %s\n"
+                             "Python version: %s\n"
+                             # FIXME!
+                             #"GTK version: %s\n"
+                             #"PyGTK version: %s\n"
+                             "\n"
+                             "Exception type: %s\n"
+                             "Exception message: %s\n"
+                             "\n"
+                             "Traceback:\n"
+                             "%s" % (version.as_string, sys.version,
+                                     exc_type, exc_message, self.traceback_str))
         
-        self.details.set_buffer(buffer)
+        self.details.set_buffer(text_buffer)
         
     def run(self):
+        """Displays the dialog and waits for user to react
+        """
+        
         return self.window.run()
 
     def cb_continue_clicked(self, widget, user_data = None):
+        """Internal callback for when user clicks Continue
+        """
+        
         # destroy the whole dialog
         self.window.destroy()
 
     def cb_close_clicked(self, widget, user_data = None):
+        """Internal callback for when user clicks Close
+        """
+        
         # stop annoying the user
-        ErrorHandler.uninstall_exception_hook()
+        uninstall_exception_hook()
+        
+        # try to destroy the whole dialog
+        try:
+            self.window.destroy()    
+        except:
+            pass
+
         # and try to quit as soon as possible
         # we don't care about exception safety/cleaning up at this point
         sys.exit(1)
         
-class ErrorHandler(object):
-    @classmethod
-    def install_exception_hook(cls):
-        """After this method is called all uncaught exceptions will spawn the ExceptionDialog.
-        
-        See uninstall_exception_hook
-        """
-        
-        sys.excepthook = ErrorHandler.excepthook
+def excepthook(exc_type, exc_message, exc_traceback):
+    """We are overriding sys.excepthook and setting it to this method.
+    
+    Internal method, do not call directly!
+    """
 
-    @classmethod
-    def uninstall_exception_hook(cls):
-        """After this method is called the standard __excepthook__ is used (outputs exceptions to stderr)
-        """
-        
-        sys.excepthook = sys.__excepthook__
+    # we also call the original excepthook which will just output things to stderr
+    sys.__excepthook__(exc_type, exc_message, exc_traceback)
+    
+    dialog = ExceptionDialog(exc_type, exc_message, exc_traceback)
+    dialog.run()
 
-    @classmethod
-    def excepthook(cls, exc_type, exc_message, exc_traceback):
-        """We are overriding sys.excepthook and setting it to this method.
-        
-        Internal method, do not call directly!
-        """
+def install_exception_hook():
+    """After this method is called all uncaught exceptions will spawn the ExceptionDialog.
+    
+    See uninstall_exception_hook
+    """
+    
+    sys.excepthook = excepthook
 
-        # we also call the original excepthook which will just output things to stderr
-        sys.__excepthook__(exc_type, exc_message, exc_traceback)
-        
-        dialog = ExceptionDialog(exc_type, exc_message, exc_traceback)
-        dialog.run()
+def uninstall_exception_hook():
+    """After this method is called the standard __excepthook__ is used (outputs exceptions to stderr)
+    """
+    
+    sys.excepthook = sys.__excepthook__
 
+# Only expose the install and uninstall methods, all else is implementation internal details    
+__all__ = ["install_exception_hook", "uninstall_exception_hook"]
