@@ -18,71 +18,84 @@
 #
 # Authors:
 #      Maros Barabas        <xbarry@gmail.com>
+#      Martin Preisler      <mpreisle@redhat.com>
 
-""" Importing standard python libraries
+"""Wrappers for openscap enumerations
 """
+
 from gi.repository import Gtk
 
-""" Importing SCAP Workbench modules
-"""
-import logging                  # Logger for debug/info/error messages
-
+import openscap_api as openscap
+import logging
+    
 # Initializing Logger
 logger = logging.getLogger("scap-workbench")
 
-""" Import OpenSCAP library as backend.
-If anything goes wrong just end with exception"""
-try:
-    import openscap_api as openscap
-except ImportError as ex:
-    logger.exception("OpenScap library initialization failed: %s", ex)
-    openscap=None
-
-class enum(tuple):
-
-    """ Enumeration inherited from tuple used for openscap
+class Enum(tuple):
+    """Enumeration inherited from tuple used for openscap
     enumerations filled to GTK Widgets.
 
-    Use ENUM.map(id) when looking for an item from the model (known value of item from library)
-    Use ENUM.pos(id) when looking for a position of item in the model (known value of item from library)
-    Use ENUM.value(pos) when looking for a first value of enumeration when known position in the model
-    Use ENUM.get_model() when creating model for this enumeration
+    Use Enum.map(id) when looking for an item from the model (known value of item from library)
+    Use Enum.pos(id) when looking for a position of item in the model (known value of item from library)
+    Use Enum.value(pos) when looking for a first value of enumeration when known position in the model
+    Use Enum.get_model() when creating model for this enumeration
     Use list funtions when looking for trouble :)
 
     if you are updating openscap model after selecting some item from model in GUI,
     use returning ENUM.XXX[widget.get_active()] for all item (list)
-    or use ENUM.value()
+    or use Enum.value()
     """
 
     def map(self, id):
+        """Maps given id to item, returns None on failure
+        """
+        
         for item in tuple(self):
-            if item[0] == id: return item
+            if item[0] == id:
+                return item
+            
         return None
 
     def pos(self, id):
+        """Returns position of given id (in a model), returns -1 on failure
+        """
+        
         for item in tuple(self):
-            if item[0] == id: return tuple.index(self, item)
+            if item[0] == id:
+                return tuple.index(self, item)
+            
         return -1
 
-    def value(self, id):
-        if id > len(tuple(self)) or len(tuple(self)[id]) < 1:
+    def value(self, pos):
+        """Returns value on given position, returns None on failure
+        """
+        
+        if pos > len(tuple(self)) or len(tuple(self)[pos]) < 1:
             return None
-        else: return tuple(self)[id][0]
+        
+        else:
+            return tuple(self)[pos][0]
 
     def get_model(self):
+        """Creates a ListStore model, puts enumeration values to it as list items
+        and returns the result.
+        
+        This method can never fail, it always returns a model but the model can be empty!
+        """
+        
         model = Gtk.ListStore(int, str, str)
         for item in tuple(self):
             model.append(item)
+            
         return model
 
-BOOLEAN=enum((
+BOOLEAN = Enum((
     [False, "FALSE", ""],
     [True, "TRUE", ""]))
 
-""" Below is the list of enumerations from OpenSCAP library
-"""
+# Below is the list of enumerations from OpenSCAP library
 
-STATUS_CURRENT=enum((
+STATUS_CURRENT = Enum((
     [openscap.OSCAP.XCCDF_STATUS_NOT_SPECIFIED, "NOT SPECIFIED", "Status was not specified by benchmark."],
     [openscap.OSCAP.XCCDF_STATUS_ACCEPTED, "ACCEPTED", "Accepted."],
     [openscap.OSCAP.XCCDF_STATUS_DEPRECATED, "DEPRECATED", "Deprecated."],
@@ -90,7 +103,7 @@ STATUS_CURRENT=enum((
     [openscap.OSCAP.XCCDF_STATUS_INCOMPLETE, "INCOMPLETE", "The item is not complete. "],
     [openscap.OSCAP.XCCDF_STATUS_INTERIM, "INTERIM", "Interim."]))
 
-WARNING=enum((
+WARNING = Enum((
     [0, "UNKNOWN", "Unknown."],
     [openscap.OSCAP.XCCDF_WARNING_GENERAL, "GENERAL", "General-purpose warning."],
     [openscap.OSCAP.XCCDF_WARNING_FUNCTIONALITY, "FUNCTIONALITY", "Warning about possible impacts to functionality."],
@@ -102,7 +115,7 @@ WARNING=enum((
     [openscap.OSCAP.XCCDF_WARNING_AUDIT, "AUDIT", "Warning about impacts to audit or logging."],
     [openscap.OSCAP.XCCDF_WARNING_DEPENDENCY, "DEPENDENCY", "Warning about dependencies between this Rule and other parts of the target system."]))
 
-OPERATOR=enum((
+OPERATOR = Enum((
     [openscap.OSCAP.XCCDF_OPERATOR_EQUALS, "EQUALS", "Equality"],
     [openscap.OSCAP.XCCDF_OPERATOR_NOT_EQUAL, "NOT EQUAL", "Inequality"],
     [openscap.OSCAP.XCCDF_OPERATOR_GREATER, "GREATER", "Greater than"],
@@ -110,37 +123,37 @@ OPERATOR=enum((
     [openscap.OSCAP.XCCDF_OPERATOR_LESS , "LESS", "Less than."],
     [openscap.OSCAP.XCCDF_OPERATOR_LESS_EQUAL, "LESS OR EQUAL", "Less than or equal."]))
 
-TYPE=enum((
+TYPE = Enum((
     [0, "UNKNOWN", "Unknown."],
     [openscap.OSCAP.XCCDF_TYPE_NUMBER, "NUMBER", ""],
     [openscap.OSCAP.XCCDF_TYPE_STRING, "STRING", ""],
     [openscap.OSCAP.XCCDF_TYPE_BOOLEAN, "BOOLEAN", ""]))
 
-COMPLEXITY=enum((
+COMPLEXITY = Enum((
     [openscap.OSCAP.XCCDF_UNKNOWN, "UNKNOWN", "Default, complexity not defined"],
     [openscap.OSCAP.XCCDF_LOW, "LOW", "The fix is very simple to apply"],
     [openscap.OSCAP.XCCDF_MEDIUM, "MEDIUM", "The fix is moderately difficult or complex"],
     [openscap.OSCAP.XCCDF_HIGH, "HIGH", "The fix is very complex to apply"]))
 
-DISRUPTION=enum((
+DISRUPTION = Enum((
     [openscap.OSCAP.XCCDF_UNKNOWN, "UNKNOWN", "Default, disruption not defined"],
     [openscap.OSCAP.XCCDF_LOW, "LOW", "Little or no disruption expected"],
     [openscap.OSCAP.XCCDF_MEDIUM, "MEDIUM", "Potential for minor or short-lived disruption"],
     [openscap.OSCAP.XCCDF_HIGH, "HIGH", "Potential for serious disruption"]))
 
-LEVEL=enum((
+LEVEL = Enum((
     [openscap.OSCAP.XCCDF_UNKNOWN, "UNKNOWN", "Unknown."],
     [openscap.OSCAP.XCCDF_INFO, "INFO", "Info."],
     [openscap.OSCAP.XCCDF_LOW, "LOW", "Low."],
     [openscap.OSCAP.XCCDF_MEDIUM, "MEDIUM", "Medium"],
     [openscap.OSCAP.XCCDF_HIGH, "HIGH", "High."]))
 
-ROLE=enum((
+ROLE = Enum((
     [openscap.OSCAP.XCCDF_ROLE_FULL, "FULL", "Check the rule and let the result contriburte to the score and appear in reports.."],
     [openscap.OSCAP.XCCDF_ROLE_UNSCORED, "UNSCORED", "Check the rule and include the result in reports, but do not include it into score computations"],
     [openscap.OSCAP.XCCDF_ROLE_UNCHECKED, "UNCHECKED", "Don't check the rule, result will be XCCDF_RESULT_UNKNOWN."]))
 
-STRATEGY=enum((
+STRATEGY = Enum((
     [openscap.OSCAP.XCCDF_STRATEGY_UNKNOWN, "UNKNOWN", "Default, strategy not defined"],
     [openscap.OSCAP.XCCDF_STRATEGY_CONFIGURE, "CONFIGURE", "Adjust target configuration/settings"],
     [openscap.OSCAP.XCCDF_STRATEGY_DISABLE, "DISABLE", "Turn off or uninstall a target component"],
@@ -151,13 +164,14 @@ STRATEGY=enum((
     [openscap.OSCAP.XCCDF_STRATEGY_UPDATE, "UPDATE", "Install upgrade or update the system"],
     [openscap.OSCAP.XCCDF_STRATEGY_COMBINATION, "COMBINATION", "Combo of two or more of the above."]))
 
-OPERATOR_BOOL=enum((
+OPERATOR_BOOL = Enum((
     [openscap.OSCAP.XCCDF_OPERATOR_EQUALS, "EQUALS", "Equality"],
     [openscap.OSCAP.XCCDF_OPERATOR_NOT_EQUAL, "NOT EQUAL", "Inequality"]))
 
-OPERATOR_STRING=enum((
+OPERATOR_STRING = Enum((
     [openscap.OSCAP.XCCDF_OPERATOR_EQUALS, "EQUALS", "Equality"],
     [openscap.OSCAP.XCCDF_OPERATOR_NOT_EQUAL, "NOT EQUAL", "Inequality"],
     [openscap.OSCAP.XCCDF_OPERATOR_PATTERN_MATCH, "PATTERN_MATCH", "Match a regular expression."]))
 
-
+__all__ = ["BOOLEAN", "STATUS_CURRENT", "WARNING", "OPERATOR", "TYPE", "COMPLEXITY",
+           "DISRUPTION", "LEVEL", "ROLE", "STRATEGY", "OPERATOR_BOOL", "OPERATOR_STRING"]
