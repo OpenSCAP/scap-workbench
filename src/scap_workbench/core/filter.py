@@ -20,6 +20,9 @@
 #      Maros Barabas        <xbarry@gmail.com>
 #      Vladimir Oberreiter  <xoberr01@stud.fit.vutbr.cz>
 
+"""Provides means to filter through XCCDF scan results
+"""
+
 from gi.repository import Gtk
 from gi.repository import Gdk
 
@@ -38,10 +41,9 @@ logger = logging.getLogger("scap-workbench")
 class Filter(object):
     """Abstract class for defining filters"""
 
-    def __init__(self, name="", description="", params={}, istree=True, renderer=None, func=None):
-
+    def __init__(self, name="", description="", params = dict(), istree=True, renderer=None, func=None):
         self.name = name
-        self.description = ""
+        self.description = description
         self.func = func
         self.params = params
         self.istree = istree
@@ -50,6 +52,10 @@ class Filter(object):
         self.active = False
         self.fg_color = "#000000"
         self.bg_color = "#FFFFFF"
+        
+        self.box = None
+        self.button = None
+        self.eb = None
 
     def render(self):
         self.box = Gtk.HBox()

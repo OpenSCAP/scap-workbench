@@ -51,9 +51,12 @@ pixmaps_prefix = os.path.join(share_prefix, "pixmaps")
 stock_data_prefix = "/usr/share/openscap"
 
 def set_prefix(prefix):
+    """Changes all paths to use given global prefix (for example: /usr)
+    """
+    
     global etc_prefix, share_prefix
     global etc_workbench_prefix, share_workbench_prefix, glade_prefix, glade_dialog_prefix
-    global filters_prefix, stock_data_prefix, pixmaps_prefix
+    global filters_prefix, pixmaps_prefix
     
     share_prefix = os.path.join(prefix, "share")
     
@@ -70,6 +73,12 @@ def set_prefix(prefix):
     pixmaps_prefix = os.path.join(share_prefix, "pixmaps")
 
 def notify_executable_file_path(path):
+    """Called with executable path (preferably absolute) as argument, this changes
+    various path prefixes accordingly.
+    
+    We assume that prefix is ${directory of executable}/../ 
+    """
+    
     # the first dirname gets the directory of the executable, the second dirname gets the parent directory of that
     # so if the executable is in (something)/bin the prefix would be (something)
     set_prefix(os.path.dirname(os.path.dirname(os.path.abspath(path))))
