@@ -20,29 +20,33 @@
 #      Maros Barabas        <xbarry@gmail.com>
 #      Vladimir Oberreiter  <xoberr01@stud.fit.vutbr.cz>
 
-""" Importing standard python libraries
+"""Implements abstract reusable classes
+
+TODO: Some of these classes are instantiated, some of them have weird names
+      considering what they do, some of them are used as diamond mixins
 """
+
+
 from gi.repository import Gtk
 from gi.repository import Gdk
 from gi.repository import GObject
 from gi.repository import WebKit
 
-import re               # Regular expressions
+import re
 import datetime
 import time
 import os.path
-import logging          # Logger for debug/info/error messages
+import logging
 
-""" Importing SCAP Workbench modules
-"""
-from scap_workbench.core import Notification                # core.Notification levels for reference
-from scap_workbench.core.events import EventObject          # abstract module EventObject
-from scap_workbench.core.htmltextview import HtmlTextView   # Widget for viewing HTML when WebKit is not available
+from scap_workbench.core import Notification
+from scap_workbench.core.events import EventObject
+from scap_workbench.core.htmltextview import HtmlTextView
 from scap_workbench import paths
+
+import openscap_api as openscap
 
 # Initializing Logger
 logger = logging.getLogger("scap-workbench")
-
 
 try:
     # For prettifing the source code of HTML Editors
@@ -50,14 +54,6 @@ try:
     HAS_BEUTIFUL_SOUP = True
 except ImportError:
     HAS_BEUTIFUL_SOUP = False
-
-""" Import OpenSCAP library as backend.
-If anything goes wrong just end with exception"""
-try:
-    import openscap_api as openscap
-except Exception as ex:
-    logger.error("OpenScap library initialization failed: %s", ex)
-    openscap=None
 
 class Menu(EventObject):
     """Create Main item for TreeToolBar_toggleButtonGroup and draw all tree Menu
@@ -451,20 +447,22 @@ class List(EventObject):
             
             # Not found, let's continue
             iter = model.iter_next(iter)
-        """ If the the iter is None there is no more items as
-        children of the start item. We have to continue to next
-        iter in parent level of the tree """
+            
+        # If the the iter is None there is no more items as
+        # children of the start item. We have to continue to next
+        # iter in parent level of the tree """
 
-        """ We have parent specified but no child is found
-        This is the point we are returning up from recursive call
-        """
+        # We have parent specified but no child is found
+        # This is the point we are returning up from recursive call
+        
         if parent != None: return False
 
-        """ This is the start of the second recursive search because
-        we haven't found anything within the selected item. 
+        # This is the start of the second recursive search because
+        # we haven't found anything within the selected item. 
 
-        We have to go thru parents now, but not the parent of selected
-        item. """
+        # We have to go thru parents now, but not the parent of selected
+        # item.
+
         i_parent = i_start
         while i_parent:
             iter = model.iter_next(i_parent)
@@ -486,10 +484,8 @@ class List(EventObject):
             # Not found, let's continue
             i_parent = model.iter_parent(i_parent)
 
-        """ We didn't find anything
-        """
+        # We didn't find anything
         return False
-
 
     def copy_row(self, model, iter , new_model, iter_parent, n_columns):
         row = []
@@ -509,9 +505,9 @@ class List(EventObject):
         return res
 
     def filtering_list(self, model, iter, new_model, filters, n_column):
-        """ 
-        Filter data to list
+        """Filter data to list
         """
+        
         while iter:
             if self.match_fiter(filters, model, iter):
                 iter_to = self.copy_row(model, iter, new_model, None, n_column)
@@ -521,9 +517,9 @@ class List(EventObject):
 
 
     def filtering_tree(self, model, iter, new_model, iter_parent, filters, n_column):
+        """Filter data to tree
         """
-        Filter data to tree
-        """
+        
         res_branch = False
 
         while iter:
@@ -543,13 +539,16 @@ class List(EventObject):
         return res_branch
 
     def init_filters(self, filter, ref_model, filter_model):
-        """ init filter for first use or model changed"""
+        """Init filter for first use or model changed
+        """
+        
         self.filter_model = filter_model
         filter.init_filter()
         self.ref_model = ref_model
 
     def filter_add(self, filters):
-        """ function add filter on model"""
+        """function add filter on model
+        """
 
         # if filtering is set
         if self.filter_model == None:
@@ -584,15 +583,16 @@ class List(EventObject):
         """find a deleted filter
         @propagate_change is list of column wich should be control and propagate
         """
+        
         if propagate_changes != None:
             for key in self.map_filter.keys():
                 path = self.map_filter[key]
                 iter = self.ref_model.get_iter(path)
                 for column in propagate_changes:
-                    if self.ref_model[path][column] <> self.filter_model [key][column]:
+                    if self.ref_model[path][column] != self.filter_model [key][column]:
                         self.ref_model.set(iter, column, self.filter_model [key][column])
 
-        #refilter filters after deleted filter
+        # refilter filters after deleted filter
         return self.filter_add(filters)
 
 class Func(object):
@@ -614,12 +614,11 @@ class Func(object):
         self.notifications = []
 
     def destroy_preview(self, widget=None):
-        if 'preview_dialog' in self.__dict__ and self.preview_dialog != None:
+        if hasattr(self, "preview_dialog") and self.preview_dialog is not None:
             self.preview_dialog.destroy()
             self.preview_dialog = None
 
     def prepare_preview(self):
-
         builder = Gtk.Builder()
         builder.add_from_file(os.path.join(paths.glade_dialog_prefix, "preview.glade"))
         self.preview_dialog = builder.get_object("dialog:preview")
@@ -635,7 +634,7 @@ class Func(object):
         bg_color = window.get_style().bg[Gtk.StateType.NORMAL]
         window.destroy()
 
-        desc="""
+        desc = """
         <style type="text/css">
             #center { position:relative; top:50%; height:10em; margin-top:-5em }
             body { text-align: center; }
@@ -663,15 +662,16 @@ class Func(object):
         self.preview_dialog.show()
 
     def preview(self, widget=None, desc=None, save=None):
-
         if widget:
             selection = self.widget.get_selection()
             if selection != None: 
                 (model, iter) = selection.get_selected()
-                if not iter: return False
-            else: return False
+                if not iter:
+                    return False
+            else:
+                return False
         
-        if 'preview_dialog' not in self.__dict__ or self.preview_dialog == None:
+        if not hasattr(self, "preview_dialog") or self.preview_dialog is None:
             self.prepare_preview()
 
         if not desc:
@@ -687,33 +687,33 @@ class Func(object):
             
         #self.preview_dialog.window.set_cursor(Gdk.Cursor.new(Gdk.ARROW))
 
-        self.save.set_property("visible", save != None)
-        if save != None:
-            """ We want to have option to save what we see in the preview dialog.
-            In this case pass the callback function as "save" parameter it should
-            have format as widget callback method
-            """
+        self.save.set_property("visible", save is not None)
+        if save is not None:
+            # We want to have option to save what we see in the preview dialog.
+            # In this case pass the callback function as "save" parameter it should
+            # have format as widget callback method
+            
             if not callable(save):
                 raise ValueError("Passed invalid callback to the preview function")
 
             def __callback_wrapper(widget, self):
-                """ Nested function to call callback function from parent
+                """Nested function to call callback function from parent
                 and show the notification in the info_box of the preview dialog
                 """
+                
                 retval, text = save()
                 if retval != None:
                     self.notifications.append(self.core.notify(text, retval, info_box=self.info_box))
 
             self.save.connect("clicked", __callback_wrapper, self)
 
-
     def dialogDel(self, window, selection):
-        """
-        Function Show dialogue if you wont to delete row if yes return iter of row.
+        """Function Show dialogue if you wont to delete row if yes return iter of row.
         @param window Widget of window for parent in dialogue.
         @param selection Selection of TreeView.
         @return Iter of treViw fi yes else return None
         """
+        
         (model,iter) = selection.get_selected()
         if iter:
             md = Gtk.MessageDialog(window, 
@@ -732,7 +732,6 @@ class Func(object):
     def dialogNotSelected(self, window):
         logger.warning("Deprecation warning: This function should not be used.") # TODO
         return
-        self.dialogInfo("Choose row which you want edit.", window)
         
     def dialogInfo(self, text, window):
         #window = self.core.main_window
@@ -751,11 +750,10 @@ class Func(object):
         column.set_resizable(True)
         self.lv.append_column(column)
 
-
     def set_active_comboBox(self, comboBox, data, column, text = ""):
+        """Function set active row which is same as data in column.
         """
-        Function set active row which is same as data in column.
-        """
+        
         set_c = False
         model =  comboBox.get_model()
         iter = model.get_iter_first()
@@ -779,10 +777,10 @@ class Func(object):
         combo.set_model(model)
 
     def controlDate(self, text):
-        """
-        Function concert sting to timestamp (gregorina). 
+        """Function concert sting to timestamp (gregorina). 
         If set text is incorrect format return False and show message.
         """
+        
         self.core.notify_destroy("notify:date_format")
         if text != "":
             date = text.split("-")
@@ -811,9 +809,9 @@ class Func(object):
             return None
             
     def controlImpactMetric(self, text, core):
+        """Function control impact metric
         """
-        Function control impact metric
-        """
+        
         #pattern = re.compile ("^AV:[L,A,N]/AC:[H,M,L]/Au:[M,S,N]/C:[N,P,C]/I:[N,P,C]/A:[N,P,C]$|^E:[U,POC,F,H,ND]/RL:[OF,TF,W,U,ND]/RC:[UC,UR,C,ND]$|^CDP:[N,L,LM,MH,H,ND]/TD:[N,L,M,H,ND]/CR:[L,M,H,ND]/ IR:[L,M,H,ND]/AR:[L,M,H,ND]$",re.IGNORECASE)
         patternBase = re.compile("^AV:[L,A,N]/AC:[H,M,L]/Au:[M,S,N]/C:[N,P,C]/I:[N,P,C]/A:[N,P,C]$",re.IGNORECASE)
         patternTempo = re.compile("^E:(U|(POC)|F|H|(ND))/RL:((OF)|(TF)|W|U|(ND))/RC:((UC)|(UR)|C|(ND))$",re.IGNORECASE)
@@ -848,8 +846,9 @@ class Func(object):
             return float('nan')
 
 class ListEditor(EventObject, Func):
-    """ Abstract class for implementing all edit formulars that appear as list/tree view and 
-    has add, edit and del buttons """
+    """Abstract class for implementing all edit formulars that appear as list/tree view and 
+    has add, edit and del buttons
+    """
 
     COLUMN_LANG = 0
     COLUMN_TEXT = 1
@@ -864,30 +863,35 @@ class ListEditor(EventObject, Func):
 
         self.widget         = widget
         self.__treeView     = widget
-        self.model        = model or widget.get_model()
+        self.model          = model or widget.get_model()
 
-        if model: self.__treeView.set_model(model)
+        if model:
+            self.__treeView.set_model(model)
 
     def append_column(self, column):
         """For ControlEditWindow, remove after
         """
+        
         retval = self.widget.append_column(column)
-        if retval: return column
-        else: return None
+ 
+        return column if retval else None
 
     def get_model(self):
         """For ControlEditWindow, remove after
         """
+        
         return self.model
 
     def get_selection(self):
         """For ControlEditWindow, remove after
         """
+        
         return self.widget.get_selection()
 
     def cb_edit_row(self, widget=None, values=None):
         """From ControlEditWindow
         """
+        
         (model,iter) = self.get_selection().get_selected()
         if iter:
             window = EditDialogWindow(None, self.core, values, new=False)
@@ -897,13 +901,15 @@ class ListEditor(EventObject, Func):
     def cb_add_row(self, widget=None, values=None):
         """From ControlEditWindow
         """
+        
         window = EditDialogWindow(None, self.core, values, new=True)
 
     def cb_del_row(self, widget=None, values=None):
         """From ControlEditWindow
         """
+        
         iter = self.dialogDel(self.core.main_window, self.get_selection())
-        if iter != None:
+        if iter is not None:
             values["cb"](self.item, self.get_model(), iter, None, None, True)
 
     def set_model(self, model):
@@ -915,6 +921,7 @@ class ListEditor(EventObject, Func):
     def append(self, item):
         try:
             self.model.append(item)
+            
         except ValueError as err:
             raise ValueError("Value Error in model appending \"%s\": %s" % (item, err))
 
@@ -933,11 +940,10 @@ class ListEditor(EventObject, Func):
         treeview.get_model().refilter()
         return
 
-
 class HTMLEditor(ListEditor):
-
-    """ Abstract class for implementing all edit formulars that appear as list/tree view and 
-    has add, edit and del buttons """
+    """Abstract class for implementing all edit formulars that appear as list/tree view and 
+    has add, edit and del buttons
+    """
 
     COLUMN_LANG = 0
     COLUMN_TEXT = 1
@@ -1004,13 +1010,13 @@ class HTMLEditor(ListEditor):
     def __regexp(self, regexp):
         match = regexp.groups()
 
-        """ If there is no xhtml: prefix of HTML tag, we need to add it
-        due validity of document """
+        # If there is no xhtml: prefix of HTML tag, we need to add it
+        # due validity of document
         if match[1][:6] == "xhtml:": TAG = ""
         else: TAG = "xhtml:"
 
-        """ If there is no long namespace defined and this is not ending
-        tag of paired tags we need to define long namespace """
+        # If there is no long namespace defined and this is not ending
+        # tag of paired tags we need to define long namespace
         if match[2].find("xmlns:xhtml") != -1 or match[0] == "</": NS_TAG = ""
         #else: NS_TAG = ' xmlns:xhtml="http://www.w3.org/1999/xhtml"'
         else: NS_TAG = ""
@@ -1019,10 +1025,10 @@ class HTMLEditor(ListEditor):
         if len(match[2]) > 0 and match[2][-1] == "/": END_TAG = ">"
         else: END_TAG = "/>"
 
-        """ Head and Body should be removed
-        Unpaired tags should have format <xhtml:TAG xmlns:xhtml="..." />
-        if tag is sub and contains idref attribute it should have format <sub ... />
-        Paired tags should have format <xhtml:TAG xmlns:xhtml="..."> ... </TAG> """
+        # Head and Body should be removed
+        # Unpaired tags should have format <xhtml:TAG xmlns:xhtml="..." />
+        # if tag is sub and contains idref attribute it should have format <sub ... />
+        # Paired tags should have format <xhtml:TAG xmlns:xhtml="..."> ... </TAG>
         if match[1] in ["head", "body"]:
             return ""
         elif match[1] in ["br", "hr"]: return match[0]+TAG+" ".join(match[1:3])+NS_TAG+END_TAG # unpaired tags
@@ -1068,19 +1074,14 @@ class HTMLEditor(ListEditor):
         self.__html.execute_script("document.execCommand('SetMark', null, 'code');")
 
     def on_action(self, action, command):
-        """
-        """
         self.__html.execute_script("document.execCommand('%s', false, false);" % command)
 
     def on_zoom(self, action):
-        """
-        """
         if action.get_name().split(":")[-1] == "zoomin":
             self.__html.zoom_in()
         else: self.__html.zoom_out()
 
     def __propagate(self, widget=None):
-        
         if self.__switcher.get_active() == 0: # TEXT -> HTML
             self.__html_sw.set_property("visible", True)
             self.__plain_sw.set_property("visible", False)
@@ -1099,9 +1100,9 @@ class HTMLEditor(ListEditor):
             desc = desc.replace("<head></head>", "")
             desc = desc.replace("<body contenteditable=\"true\">", "").replace("</body>", "")
 
-            """ We use Beautiful soup to pretify formatting of plain text
-            when we switched from HTML to PLAIN view, cause we get only one-line
-            text from WebView (WebKit module)"""
+            # We use Beautiful soup to pretify formatting of plain text
+            # when we switched from HTML to PLAIN view, cause we get only one-line
+            # text from WebView (WebKit module)
             if HAS_BEUTIFUL_SOUP:
                 # Use Beutiful soup to prettify the HTML
                 soup = BeautifulSoup(desc)
@@ -1111,34 +1112,18 @@ class HTMLEditor(ListEditor):
                     Notification.INFORMATION, info_box=self.info_box, msg_id="")
             self.__plain.get_buffer().set_text(desc)
 
-        """ Set sensitivity of HTML toolbar. If swither is 0 (we have switched to HTML)
-        we need to enable toolbar to set properties of HTML text """
+        # Set sensitivity of HTML toolbar. If swither is 0 (we have switched to HTML)
+        # we need to enable toolbar to set properties of HTML text
         for child in self.__toolbar.get_children():
             child.set_sensitive(self.__switcher.get_active() == 0)
 
-        """ Switcher has to stay enabled in all cases
-        """
+        # Switcher has to stay enabled in all cases
         self.__switcher.get_parent().set_sensitive(True)
 
-
-class CellRendererTextWrap(Gtk.CellRendererText):
-    """ pokus asi nebude pouzito necham najindy pozeji smazu"""
-    def __init__(self):
-        super(CellRendererTextWrap, self).__init__()
-        self.callable = None
-        self.table = None
-        self.set_property("wrap-mode", True)
-        
-    def do_render(self, window, wid, bg_area, cell_area, expose_area, flags):
-        self.set_property("wrap-width", cell_area.width )
-        Gtk.CellRendererText.do_render( self, window, wid, bg_area,cell_area, expose_area, flags)
-       
-GObject.type_register(CellRendererTextWrap)
-
 class EnterList(EventObject):
+    """Abstract class for enter listView
     """
-    Abstract class for enter listView
-    """
+    
     COLUMN_MARK_ROW = 0
 
     def __init__(self, core, id, model, treeView, cb_action=None, window=None):
@@ -1175,7 +1160,6 @@ class EnterList(EventObject):
         self.hendler_item_changed = self.selection.connect("changed", self.__cb_item_changed_control)
     
     def set_insertColumnText(self, name, column_n, empty=True, unique=False ):
-        
         txtcell = CellRendererTextWrap()
         column = Gtk.TreeViewColumn(name, txtcell, text=column_n)
         column.set_resizable(True)
@@ -1194,7 +1178,6 @@ class EnterList(EventObject):
         return txtcell
 
     def set_insertColumnInfo(self, name, column_n, empty= True):
-        
         txtcell = CellRendererTextWrap()
         column = Gtk.TreeViewColumn(name, txtcell, text=column_n)
         column.set_resizable(True)
@@ -1207,7 +1190,6 @@ class EnterList(EventObject):
         return txtcell
     
     def __cb_item_changed_control(self, widget):
-        
         if self.selected_old != None:
             iter = self.selected_old
             if iter != None:
@@ -1261,7 +1243,6 @@ class EnterList(EventObject):
         model, self.selected_old = self.selection.get_selected()
 
     def __cb_edit(self, cellrenderertext, path, new_text, column):
-
         self.edit_path = path
         self.edit_column = column
         self.edit_text = new_text
@@ -1281,7 +1262,6 @@ class EnterList(EventObject):
                 self.emit("edit")
             
     def __cb_del_row(self, widget, event):
-
         keyname = Gdk.keyval_name(event.keyval)
         if keyname == "Delete":
             selection = self.treeView.get_selection( )
@@ -1306,7 +1286,6 @@ class EnterList(EventObject):
 
     def __cb_leave_row(self,widget, event):
         pass
-
 
 class ControlEditWindow(Func):
     def __init__(self, core, lv, values):
@@ -1335,11 +1314,8 @@ class ControlEditWindow(Func):
         if iter != None:
             self.values["cb"](self.item, self.model, iter, None, None, True)
 
-
-
 class EditDialogWindow(EventObject):
-    """ 
-    Class create window for add/edit data acording the information in structure.
+    """ Class create window for add/edit data acording the information in structure.
     Class control set data acording to data in the structure
     Example of struct
         values = {
@@ -1426,8 +1402,7 @@ class EditDialogWindow(EventObject):
         self.show()
         
     def __cb_do(self, widget):
-        
-        if self.new == True:
+        if self.new:
             dest_path = None
             self.iter = None
         else:
@@ -1546,11 +1521,12 @@ class EditDialogWindow(EventObject):
         self.window.show()
         
     def control_unique(self, name, model, column, data, iter):
-        """
-        Control if data is unique.
+        """Control if data is unique.
+        
         @return None if data are dulplicat and user do not want changed exist data. Return Iter for store date
                 if data are not duplicate or data are duplicate and user can change them.
         """
+        
         if iter:
             path = model.get_path(iter)
         else:
@@ -1571,10 +1547,11 @@ class EditDialogWindow(EventObject):
         return path
     
     def control_empty(self, data, name):
-        """
-        Control data if are not empty.
+        """Control data if are not empty.
+        
         @return True if not empty else return false
         """
+        
         if (data == "" or data == None):
             md = Gtk.MessageDialog(self.window, 
                     Gtk.DialogFlags.MODAL, Gtk.MessageType.INFO,
