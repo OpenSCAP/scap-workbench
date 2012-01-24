@@ -23,12 +23,14 @@
 scanner and editor.
 """
 
-major = 0
-minor = 6
-patch = 2
+MAJOR = 0
+MINOR = 6
+PATCH = 2
 
-as_string = "%i.%i.%i" % (major, minor, patch)
+AS_STRING = "%i.%i.%i" % (major, minor, patch)
+
+__all__ = ["MAJOR", "MINOR", "PATCH", "AS_STRING"]
 
 # if somebody just executes this module, print the version string
 if __name__ == '__main__':
-    print as_string
+    print(AS_STRING)

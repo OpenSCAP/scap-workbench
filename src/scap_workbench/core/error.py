@@ -67,7 +67,7 @@ class ExceptionDialog(object):
                              "Exception message: %s\n"
                              "\n"
                              "Traceback:\n"
-                             "%s" % (version.as_string, sys.version,
+                             "%s" % (version.AS_STRING, sys.version,
                                      exc_type, exc_message, self.traceback_str))
         
         self.details.set_buffer(text_buffer)
