@@ -307,7 +307,7 @@ class SWBCore(object):
     
     def __init__(self, builder, with_policy=False):
 
-        self.thread_handler = ThreadManager(self)
+        self.thread_manager = ThreadManager(self)
         self.builder = builder
         self.lib = Library()
         self.__objects = {}
