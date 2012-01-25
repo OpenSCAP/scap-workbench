@@ -371,20 +371,21 @@ class ProfileChooser(object):
         if self.dialog: 
             self.dialog.destroy()
 
-    def __do(self, widget, event=None):
-
+    def __do(self, widget, event = None):
         if event and event.type == Gdk.EventType.KEY_PRESS and event.keyval != Gdk.KEY_Return:
             return
-
+        
         selection = self.profiles.get_selection()
         model, it = selection.get_selected()
-        if it == None: 
+        if it is None: 
             LOGGER.debug("Nothing selected, skipping")
-            self.window.destroy()
+            self.__dialog_destroy()
             return
+        
         self.core.selected_profile = model.get_value(it, 0)
         if self.callback:
             self.callback()
+        
         self.__dialog_destroy()
         return self.core.selected_profile
 
