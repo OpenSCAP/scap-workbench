@@ -21,53 +21,29 @@
 #      Vladimir Oberreiter  <xoberr01@stud.fit.vutbr.cz>
 #      Martin Preisler      <mpreisle@redhat.com>
 
-""" Importing standard python libraries
+"""This package encapsulates all scanner specific functionality
 """
+
 from gi.repository import Gtk
 from gi.repository import Gdk
 
-import threading        # Main window is running in thread
+import threading
 import os.path
-import logging          # Logger for debug/info/error messages
 
-""" Importing SCAP Workbench modules
-"""
+from scap_workbench import paths
 from scap_workbench import core
 from scap_workbench.core import abstract
-from scap_workbench import paths
 from scap_workbench.core import error
 
 from scap_workbench.scanner import xccdf
 from scap_workbench.scanner import tailoring
 from scap_workbench.scanner import scan
 
-# Initializing Logger
+import logging
 logger = logging.getLogger("scap-workbench")
 
-class MenuButtonOVAL(abstract.MenuButton):
-    ## INTERNAL: This is not used anywhere in the application, probably work in progress code?
-    def __init__(self, box, widget, core):
-        logger = logging.getLogger(self.__class__.__name__)
-        super(MenuButtonOVAL, self).__init__("gui:btn:main:oval", widget, core)
-        
-        self.box = box
-        self.title = None
-        self.description = None
-        self.version = None
-        self.url = None
-        self.language = None
-        self.body = self.draw_body()
-
-    def draw_body(self):
-        body = Gtk.VBox()
-
-        body.show_all()
-        body.hide()
-        self.box.add(body)
-        return body
-
 class MainWindow(abstract.Window):
-    """The central window of scap-workbench (scanner)
+    """The central window of scap-workbench scanner
     """
 
     def __init__(self):
@@ -104,21 +80,22 @@ class MainWindow(abstract.Window):
 
         self.core.get_item("gui:btn:main:xccdf").update()
 
-    def __cb_info_close(self, widget):
-        self.core.info_box.hide()
-
     def delete_event(self, widget, event, data=None):
-        """ close the window and quit
+        """Closes the window and quits
         """
+        
         self.emit("quit")
-        Gdk.threads_leave()
         
         # since we are quitting gtk we can't be popping a dialog when exception happens anymore
         error.uninstall_exception_hook()
         Gtk.main_quit()
+        
         return False
 
     def run(self):
+        """Starts the event loop
+        """
+        
         Gtk.main()
 
 # we only expose the MainWindow from the entire scanner subpackage because that's all that's needed to start the app
