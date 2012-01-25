@@ -20,26 +20,23 @@
 #      Maros Barabas        <xbarry@gmail.com>
 #      Vladimir Oberreiter  <xoberr01@stud.fit.vutbr.cz>
 
-""" Importing standard python libraries
+"""Allows user to tailor profiles before a scan is started
 """
+
 from gi.repository import Gtk
 from gi.repository import Gdk
 from gi.repository import GLib
 from gi.repository import Pango
 
-import re               # Regular expressions 
-import sre_constants    # For re.compile exception
+import re
+import sre_constants
 
-""" Importing SCAP Workbench modules
-"""
 from scap_workbench import core
 from scap_workbench.core import abstract
 from scap_workbench.core import commands
-from scap_workbench.core import filter
 import scap_workbench.core.enum as ENUM
 from scap_workbench.core.events import EventObject
 
-from scap_workbench.core.threads import thread_free as threadFree
 from scap_workbench.core.htmltextview import HtmlTextView
 from scap_workbench.core.logger import LOGGER
 
