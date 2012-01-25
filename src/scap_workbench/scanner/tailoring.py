@@ -113,9 +113,10 @@ class ItemList(abstract.List):
             self.search.grab_focus()
 
     def __update(self):
-
-        if not self.core.lib.loaded: self.data_model.model.clear()
-        if "profile" not in self.__dict__ or self.profile != self.core.selected_profile or self.core.force_reload_items:
+        if not self.core.lib.loaded:
+            self.data_model.model.clear()
+            
+        if not hasattr(self, "profile") or self.profile != self.core.selected_profile or self.core.force_reload_items:
             self.profile = self.core.selected_profile
             self.profiles.set_sensitive(False)
             self.treeView.set_sensitive(False)
@@ -212,8 +213,8 @@ class ItemDetails(EventObject):
             self.idents.set_text(str("\n".join([ident[0] for ident in details["idents"]])))
 
         # clear
-        self.description.get_buffer().set_text("")
-        self.fixes.get_buffer().set_text("")
+        self.description.display_html("<body></body>")
+        self.fixes.display_html("<body></body>")
         self.title.set_text("")
         for child in self.refBox.get_children():
             child.destroy()
