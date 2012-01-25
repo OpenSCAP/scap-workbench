@@ -30,7 +30,7 @@ import sys
 import os.path
 
 from scap_workbench import paths
-from scap_workbench.core import version
+from scap_workbench import version
 
 class ExceptionDialog(object):
     """This is a dialog that gets shown whenever an exception is thrown and
