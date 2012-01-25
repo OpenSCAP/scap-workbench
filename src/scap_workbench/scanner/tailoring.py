@@ -210,8 +210,9 @@ class ItemDetails(EventObject):
             self.idents.set_text(str("\n".join([ident[0] for ident in details["idents"]])))
 
         # clear
-        self.description.display_html("<body></body>")
-        self.fixes.display_html("<body></body>")
+        self.description.get_buffer().set_text("")
+        self.fixes.get_buffer().set_text("")
+        
         self.title.set_text("")
         for child in self.refBox.get_children():
             child.destroy()
