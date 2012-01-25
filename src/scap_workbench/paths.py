@@ -82,3 +82,5 @@ def notify_executable_file_path(path):
     # the first dirname gets the directory of the executable, the second dirname gets the parent directory of that
     # so if the executable is in (something)/bin the prefix would be (something)
     set_prefix(os.path.dirname(os.path.dirname(os.path.abspath(path))))
+
+BUGTRACKER_URL = "http://fedorahosted.org/scap-workbench"
