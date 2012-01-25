@@ -27,7 +27,7 @@ MAJOR = 0
 MINOR = 6
 PATCH = 2
 
-AS_STRING = "%i.%i.%i" % (major, minor, patch)
+AS_STRING = "%i.%i.%i" % (MAJOR, MINOR, PATCH)
 
 __all__ = ["MAJOR", "MINOR", "PATCH", "AS_STRING"]
 
