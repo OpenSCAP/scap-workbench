@@ -21,35 +21,23 @@
 #      Vladimir Oberreiter  <xoberr01@stud.fit.vutbr.cz>
 #      Martin Preisler      <mpreisle@redhat.com>
 
-""" Importing standard python libraries
+"""The main editing functionality, GUI around editing of values
 """
+
 from gi.repository import Gtk
+from gi.repository import Gdk
 from gi.repository import GObject
 from gi.repository import WebKit
 
-import time             # Time functions in calendar data ::EditStatus
-import re               # Regular expressions 
-import os               # os Path join/basename, ..
-import datetime
+import time
+import re
+import os
 
-""" Importing SCAP Workbench modules
-"""
 from scap_workbench import paths
 from scap_workbench import core
 from scap_workbench.core import abstract
-from scap_workbench.core import commands
-from scap_workbench.core.events import EventObject
 import scap_workbench.core.enum as ENUM
 from scap_workbench.core.logger import LOGGER
-
-""" Import OpenSCAP library as backend.
-If anything goes wrong just end with exception"""
-try:
-    import openscap_api as openscap
-except Exception as ex:
-    LOGGER.error("OpenScap library initialization failed: %s", ex)
-    openscap=None
-    raise ex
 
 class EditTitle(abstract.ListEditor):
 

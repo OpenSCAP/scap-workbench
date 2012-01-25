@@ -25,12 +25,17 @@ from gi.repository import Gtk
 from gi.repository import Gdk
 from gi.repository import GLib
 
+from datetime import datetime
+
 from scap_workbench import core
 from scap_workbench import paths
 from scap_workbench.core import abstract
+from scap_workbench.core import commands
 from scap_workbench.core.events import EventObject
 from scap_workbench.editor.edit import *
 from scap_workbench.core.logger import LOGGER
+
+import openscap_api as openscap
 
 class AddItem(EventObject):
     
