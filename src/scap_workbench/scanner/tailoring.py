@@ -520,9 +520,9 @@ class RefineDetails(EventObject):
             else: return None
         
 class MenuButtonTailoring(abstract.MenuButton):
+    """GUI for refines.
     """
-    GUI for refines.
-    """
+    
     def __init__(self, builder, widget, core):
         super(MenuButtonTailoring, self).__init__("gui:btn:menu:tailoring", widget, core)
         

@@ -21,26 +21,18 @@
 #      Vladimir Oberreiter  <xoberr01@stud.fit.vutbr.cz>
 #      Martin Preisler      <mpreisle@redhat.com>
 
-""" Importing standard python libraries
+"""Implements GUI on the "front page" of the scanner, loading, saving and closing of XCCDFs
 """
+
 from gi.repository import Gtk
 from gi.repository import Pango
 
-import os.path
-
-""" Importing SCAP Workbench modules
-"""
-from scap_workbench import paths
 from scap_workbench import core
 from scap_workbench.core import abstract
 from scap_workbench.core import commands
 from scap_workbench.core import dialogs
-from scap_workbench.core import error
 import scap_workbench.core.enum as ENUM
 from scap_workbench.core.logger import LOGGER
-
-from scap_workbench.scanner import tailoring
-from scap_workbench.scanner import scan
 
 class MenuButtonXCCDF(abstract.MenuButton):
     """GUI for operations with xccdf file.
@@ -166,10 +158,7 @@ class MenuButtonXCCDF(abstract.MenuButton):
         label.set_attributes(pango_list)
         expander.set_label_widget(label)
         expander.set_expanded(True)
-        align = Gtk.Alignment()
-        align.set_padding(5, 10, 25, 0)
 
-        expander.add(align)
         self.files_box.pack_start(expander, False, False, 0)
         expander.show_all()
         
@@ -179,14 +168,13 @@ class MenuButtonXCCDF(abstract.MenuButton):
         
         # Add table of information to the expander with label name
         expander = Gtk.Expander()
-        label = Gtk.Label("OVAL: %s" % (name,))
+        label = Gtk.Label(label="File not found: %s" % (name))
         pango_list = Pango.AttrList()
         
-        label = Gtk.Label(label="File not found: %s" % (name))
         label.set_attributes(pango_list)
-        align.add(label)
+        expander.set_label_widget(label)
+        expander.set_expanded(True)
         
-        expander.add(align)
         self.files_box.pack_start(expander, False, False, 0)
         expander.show_all()
 
@@ -281,7 +269,9 @@ class MenuButtonXCCDF(abstract.MenuButton):
 
     # callBack functions
     def __cb_new(self, widget):
-        if not self.core.init(None): return
+        if not self.core.init(None):
+            return
+        
         self.data_model.update(id="New_SCAP_Benchmark", version="0", lang="en")
         self.core.selected_lang = "en"
         self.data_model.edit_status(self.data_model.CMD_OPER_ADD)

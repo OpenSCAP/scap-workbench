@@ -20,8 +20,9 @@
 #      Maros Barabas        <xbarry@gmail.com>
 #      Vladimir Oberreiter  <xoberr01@stud.fit.vutbr.cz>
 
-""" Importing standard python libraries
+"""Implements the actual scanning process and GUI around it
 """
+
 from gi.repository import Gtk
 from gi.repository import Gdk
 from gi.repository import GObject
@@ -29,14 +30,11 @@ from gi.repository import GObject
 import os               # For path basedir
 import tempfile         # Temporary file for XCCDF preview
 
-""" Importing SCAP Workbench modules
-"""
 from scap_workbench import core
 from scap_workbench import paths
 from scap_workbench.core import abstract
 from scap_workbench.core import commands
 from scap_workbench.core import filter
-from scap_workbench.core.events import EventObject
 from scap_workbench.core.threads import thread as threadSave
 from scap_workbench.core.logger import LOGGER
 
@@ -402,6 +400,11 @@ class HelpWindow(abstract.Window):
         
         self.builder = Gtk.Builder()
         self.builder.add_from_file(os.path.join(paths.glade_prefix, "scan_help.glade"))
+        
+        self.window = None
+        self.treeView = None
+        self.help_model = None
+        
         self.draw_window()
 
     def delete_event(self, widget, event):
