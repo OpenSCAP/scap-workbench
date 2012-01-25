@@ -19,20 +19,24 @@
 # Authors:
 #      Martin Preisler <mpreisle@redhat.com>
 
+"""This package encapsulates all editor specific functionality
+"""
+
+from gi.repository import Gtk
+
 from scap_workbench import core
+from scap_workbench import paths
+
 from scap_workbench.core import abstract
 from scap_workbench.core import error
-from scap_workbench import paths
 
 from scap_workbench.editor import xccdf
 from scap_workbench.editor import profiles
 from scap_workbench.editor import items
 
-import os
-from gi.repository import Gtk
-import logging
+import os.path
 
-# Initializing Logger
+import logging
 logger = logging.getLogger("scap-workbench")
 
 class MainWindow(abstract.Window):
@@ -73,12 +77,10 @@ class MainWindow(abstract.Window):
             self.core.get_item("gui:btn:menu:edit:profiles").set_sensitive(True)
             self.core.get_item("gui:btn:menu:edit:items").set_sensitive(True)
 
-    def __cb_info_close(self, widget):
-        self.core.info_box.hide()
-
     def delete_event(self, widget, event, data=None):
-        """ close the window and quit
+        """Closes the window and quits
         """
+        
         # since we are quitting gtk we can't be popping a dialog when exception happens anymore
         error.uninstall_exception_hook()
  
