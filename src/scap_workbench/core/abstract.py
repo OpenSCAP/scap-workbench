@@ -36,17 +36,14 @@ import re
 import datetime
 import time
 import os.path
-import logging
 
+from scap_workbench import paths
 from scap_workbench.core import Notification
 from scap_workbench.core.events import EventObject
 from scap_workbench.core.htmltextview import HtmlTextView
-from scap_workbench import paths
+from scap_workbench.core.logger import LOGGER
 
 import openscap_api as openscap
-
-# Initializing Logger
-logger = logging.getLogger("scap-workbench")
 
 try:
     # For prettifing the source code of HTML Editors
@@ -196,7 +193,7 @@ class MenuButton(EventObject):
         @param active True/False - Show/Hide 
         """
         self.activate(active)
-        if active: logger.debug("Switching active button to %s" % (self.id))
+        if active: LOGGER.debug("Switching active button to %s" % (self.id))
         self.widget.handler_block_by_func(self.cb_toggle)
         self.widget.set_active(active)
         self.set_body(active)
@@ -322,7 +319,7 @@ class List(EventObject):
 
     def render(self):
         if self.data_model: self.data_model.render(self.get_TreeView())
-        else: logger.error("Data model does not exist")
+        else: LOGGER.error("Data model does not exist")
 
     def __match_func(self, model, iter, data):
         """ search pattern in column of model"""
@@ -354,7 +351,7 @@ class List(EventObject):
 
     def search(self, key, column):
         """ search in treeview"""
-        logger.warning("Deprecation warning: This function should not be used.") # TODO
+        LOGGER.warning("Deprecation warning: This function should not be used.") # TODO
         selection = self.treeView.get_selection()
         model, iter =  selection.get_selected()
         iter_old = iter
@@ -500,7 +497,7 @@ class List(EventObject):
                 res = res and item.func(model, iter, item.params)
             except Exception as e:
                 #self.core.notify("Can't filter items: %s" % (e,), 3)
-                logger.exception("Can't filter items: %s" % (e))
+                LOGGER.exception("Can't filter items: %s" % (e))
 
         return res
 
@@ -552,7 +549,7 @@ class List(EventObject):
 
         # if filtering is set
         if self.filter_model == None:
-            logger.error("filter is not init use function init.filters(new_model)")
+            LOGGER.error("filter is not init use function init.filters(new_model)")
 
         # if filters are empty
         if filters == []:
@@ -730,7 +727,7 @@ class Func(object):
             self.dialogInfo("Choose row which you want delete.", window)
 
     def dialogNotSelected(self, window):
-        logger.warning("Deprecation warning: This function should not be used.") # TODO
+        LOGGER.warning("Deprecation warning: This function should not be used.") # TODO
         return
         
     def dialogInfo(self, text, window):
@@ -767,7 +764,7 @@ class Func(object):
         if not set_c:
             if text != "":
                 text = "(" + text + ") "
-            logger.error("Invalid data passed to combobox: \"%s\"" % (text))
+            LOGGER.error("Invalid data passed to combobox: \"%s\"" % (text))
             comboBox.set_active(-1)
         
     def set_model_to_comboBox(self, combo, model, view_column):

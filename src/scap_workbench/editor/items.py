@@ -21,21 +21,16 @@
 #      Vladimir Oberreiter  <xoberr01@stud.fit.vutbr.cz>
 #      Martin Preisler      <mpreisle@redhat.com>
 
+from gi.repository import Gtk
+from gi.repository import Gdk
+from gi.repository import GLib
+
 from scap_workbench import core
 from scap_workbench import paths
 from scap_workbench.core import abstract
 from scap_workbench.core.events import EventObject
 from scap_workbench.editor.edit import *
-
-from gi.repository import Gtk
-from gi.repository import Gdk
-from gi.repository import GLib
-
-import logging
-
-# Initializing Logger
-logger = logging.getLogger("scap-workbench")
-
+from scap_workbench.core.logger import LOGGER
 
 class AddItem(EventObject):
     
@@ -368,7 +363,7 @@ class EditItemValues(abstract.ListEditor):
                     self.__do()
                 return
         else: 
-            logger.error("Unknown operation for title dialog: \"%s\"" % (operation,))
+            LOGGER.error("Unknown operation for title dialog: \"%s\"" % (operation,))
             return
 
     def fill(self):
@@ -431,7 +426,7 @@ class EditFixtext(abstract.HTMLEditor):
 
         (model, iter) = self.get_selection().get_selected()
         if not iter:
-            logger.debug("Changing attribute of fixtext failed. HINT: Use enter to save your changes")
+            LOGGER.debug("Changing attribute of fixtext failed. HINT: Use enter to save your changes")
             return
         data = model[iter][self.COLUMN_OBJ]
 
@@ -448,7 +443,7 @@ class EditFixtext(abstract.HTMLEditor):
         elif widget == self.__attr_overrides:
             retval = self.data_model.edit_fixtext(self.data_model.CMD_OPER_EDIT, fixtext=data, overrides=widget.get_active())
         else: 
-            logger.error("Change of \"%s\" is not supported " % (widget,))
+            LOGGER.error("Change of \"%s\" is not supported " % (widget,))
             return
 
 
@@ -532,7 +527,7 @@ class EditFixtext(abstract.HTMLEditor):
                     self.__do()
                 return
         else: 
-            logger.error("Unknown operation for description dialog: \"%s\"" % (operation,))
+            LOGGER.error("Unknown operation for description dialog: \"%s\"" % (operation,))
             return
 
         self.wdialog.set_transient_for(self.core.main_window)
@@ -637,7 +632,7 @@ class EditFix(abstract.ListEditor):
 
         (model, iter) = self.get_selection().get_selected()
         if not iter:
-            logger.debug("Changing attribute of fix failed. HINT: Use enter to save your changes")
+            LOGGER.debug("Changing attribute of fix failed. HINT: Use enter to save your changes")
             return
         data = model[iter][self.COLUMN_OBJ]
 
@@ -654,7 +649,7 @@ class EditFix(abstract.ListEditor):
         elif widget == self.__attr_reboot:
             retval = self.data_model.edit_fix(self.data_model.CMD_OPER_EDIT, fix=data, reboot=widget.get_active())
         else: 
-            logger.error("Change of \"%s\" is not supported " % (widget,))
+            LOGGER.error("Change of \"%s\" is not supported " % (widget,))
             return
 
 
@@ -725,7 +720,7 @@ class EditFix(abstract.ListEditor):
                     self.__do()
                 return
         else: 
-            logger.error("Unknown operation for fix content dialog: \"%s\"" % (operation,))
+            LOGGER.error("Unknown operation for fix content dialog: \"%s\"" % (operation,))
             return
 
         self.wdialog.set_transient_for(self.core.main_window)
@@ -872,7 +867,7 @@ class EditIdent(abstract.ListEditor):
                     self.__do()
                 return
         else: 
-            logger.error("Unknown operation for description dialog: \"%s\"" % (operation,))
+            LOGGER.error("Unknown operation for description dialog: \"%s\"" % (operation,))
             return
 
         self.wdialog.set_transient_for(self.core.main_window)
@@ -958,7 +953,7 @@ class EditQuestion(abstract.ListEditor):
                     self.__do()
                 return
         else: 
-            logger.error("Unknown operation for question dialog: \"%s\"" % (operation,))
+            LOGGER.error("Unknown operation for question dialog: \"%s\"" % (operation,))
             return
 
         self.wdialog.set_transient_for(self.core.main_window)
@@ -1044,7 +1039,7 @@ class EditRationale(abstract.ListEditor):
                     self.__do()
                 return
         else: 
-            logger.error("Unknown operation for rationale dialog: \"%s\"" % (operation,))
+            LOGGER.error("Unknown operation for rationale dialog: \"%s\"" % (operation,))
             return
 
         self.wdialog.set_transient_for(self.core.main_window)
@@ -1206,7 +1201,7 @@ class EditPlatform(abstract.ListEditor):
                     self.__do()
                 return
         else: 
-            logger.error("Unknown operation for rationale dialog: \"%s\"" % (operation,))
+            LOGGER.error("Unknown operation for rationale dialog: \"%s\"" % (operation,))
             return
 
         self.wdialog.set_transient_for(self.core.main_window)
@@ -1346,7 +1341,7 @@ class EditValues(abstract.MenuButton, abstract.Func):
         elif widget == self.interactive:
             self.data_model.edit_value(interactive=widget.get_active())
         else: 
-            logger.error("Change: not supported object in \"%s\"" % (widget,))
+            LOGGER.error("Change: not supported object in \"%s\"" % (widget,))
             return
 
     def __block_signals(self):
@@ -1552,7 +1547,7 @@ class EditValuesValues(abstract.ListEditor):
                     self.__do()
                 return
         else: 
-            logger.error("Unknown operation for values dialog: \"%s\"" % (operation,))
+            LOGGER.error("Unknown operation for values dialog: \"%s\"" % (operation,))
             return
 
         self.wdialog.set_transient_for(self.core.main_window)
@@ -1927,7 +1922,7 @@ class MenuButtonEditItems(abstract.MenuButton, abstract.Func):
         elif widget == self.severity:
             self.data_model.update(severity=ENUM.LEVEL.value(widget.get_active()))
         else: 
-            logger.error("Change of \"%s\" is not supported " % (widget,))
+            LOGGER.error("Change of \"%s\" is not supported " % (widget,))
             return
 
     def __cb_href_file_set(self, widget):
@@ -1990,7 +1985,7 @@ class MenuButtonEditItems(abstract.MenuButton, abstract.Func):
             if item == None:
                 item = self.data_model.get_item(self.core.selected_item)
             if item == None:
-                logger.error("Can't find item with ID: \"%s\"" % (model[iter][1],))
+                LOGGER.error("Can't find item with ID: \"%s\"" % (model[iter][1],))
                 return
             model[iter][1] = item.id
 

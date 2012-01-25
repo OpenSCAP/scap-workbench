@@ -31,24 +31,13 @@ import os
 import sys
 import getopt
 import os.path
-import logging
-import logging.config
 
 from scap_workbench.core.events import EventHandler
 from scap_workbench.core.threads import ThreadManager
 from scap_workbench import paths
+from scap_workbench.core.logger import LOGGER
 
 import openscap_api as openscap
-
-# Initializing and configuring Logger
-try:
-    logging.config.fileConfig(os.path.join(paths.etc_workbench_prefix, "logger.conf"))
-    
-except: # ConfigParser.NoSectionError = actually file I/O error most of the time
-    logging.basicConfig()
-    logging.getLogger("scap-workbench").error("Had to resort to basic config, logger config for openscap not found at '%s'" % (os.path.join(paths.etc_workbench_prefix, "logger.conf")))
-    
-logger = logging.getLogger("scap-workbench")
 
 def label_set_autowrap(widget): 
     """Make labels automatically re-wrap if their containers are resized.  Accepts label or container widgets.
@@ -111,7 +100,7 @@ class Notification(object):
         if lvl > 4: lvl = 4
         if lvl < 0: lvl = 0
 
-        logger.debug("Notification: %s", text)
+        LOGGER.debug("Notification: %s", text)
         box = Gtk.HBox()
         box.set_spacing(10)
         align = Gtk.Alignment.new(0.5, 0.5, 1.0, 1.0)
@@ -208,7 +197,7 @@ class Library(object):
 
     def add_oval_file(self, path, sess, model):
         if path in self.oval_files:
-            logger.warning("%s is already in the list.")
+            LOGGER.warning("%s is already in the list.")
         else:
             self.oval_files[path] = Library.OVAL(path, sess, model)
 
@@ -247,15 +236,15 @@ class Library(object):
                 if def_model:
                     self.add_oval_file(file, None, def_model)
                 else:
-                    logger.warning("WARNING: Skipping '%s' OVAL file which is referenced from XCCDF content." % (file))
+                    LOGGER.warning("WARNING: Skipping '%s' OVAL file which is referenced from XCCDF content." % (file))
             
             elif system == "http://open-scap.org/XMLSchema/SCE-definitions-1":
                 self.sce_files.add(file)
 
         if self.benchmark:
-            logger.debug("Initialization done.")
+            LOGGER.debug("Initialization done.")
         else:
-            logger.debug("Initialization failed. Benchmark can't be imported")
+            LOGGER.debug("Initialization failed. Benchmark can't be imported")
             raise RuntimeError("Can't initialize openscap library, Benchmark import failed.")
         
         self.loaded = True
@@ -352,15 +341,15 @@ class SWBCore(object):
 
         for o, a in opts:
             if o in ("-D", "--version"):
-                logger.setLevel(logging.DEBUG)
-                logger.root.setLevel(logging.DEBUG)
+                LOGGER.setLevel(logging.DEBUG)
+                LOGGER.root.setLevel(logging.DEBUG)
             else:
                 print >>sys.stderr, "(ERROR) Unknown option or missing mandatory argument '%s'" % (o,)
                 print >>sys.stderr, "Try 'scap-workbench --help' for more information."
                 sys.exit(2)
 
         if len(args) > 0:
-            logger.debug("Loading XCCDF file %s", sys.argv[1])
+            LOGGER.debug("Loading XCCDF file %s", sys.argv[1])
             self.init(args[0])
 
         self.set_receiver("gui:btn:main:xccdf", "load", self.__set_force)
@@ -378,7 +367,7 @@ class SWBCore(object):
                 child.destroy()
 
         if openscap is None:
-            logger.error("Can't initialize openscap library.")
+            LOGGER.error("Can't initialize openscap library.")
             raise RuntimeError("Can't initialize openscap library")
 
         if not XCCDF:
@@ -394,12 +383,12 @@ class SWBCore(object):
                 self.lib.init_policy()
                 
             except XCCDFImportError as err:
-                logger.exception(err)
+                LOGGER.exception(err)
                 return False
 
             # Language of benchmark should be in languages
         if self.lib.benchmark is None:
-            logger.error("FATAL: Benchmark does not exist")
+            LOGGER.error("FATAL: Benchmark does not exist")
             raise RuntimeError("Can't initialize openscap library")
         
         if not self.lib.benchmark.lang in self.langs: 
@@ -482,7 +471,7 @@ class SWBCore(object):
         if id in self.__objects:
             raise LookupError("FATAL: Object %s already registered" % (id))
         
-        logger.debug("Registering object %s done.", id)
+        LOGGER.debug("Registering object %s done.", id)
         self.__objects[id] = object
 
 class GdkLock(object):

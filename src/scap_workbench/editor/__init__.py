@@ -36,9 +36,6 @@ from scap_workbench.editor import items
 
 import os.path
 
-import logging
-logger = logging.getLogger("scap-workbench")
-
 class MainWindow(abstract.Window):
     """The central window of scap-workbench-editor
     """

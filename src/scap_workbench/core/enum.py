@@ -24,12 +24,7 @@
 """
 
 from gi.repository import Gtk
-
 import openscap_api as openscap
-import logging
-    
-# Initializing Logger
-logger = logging.getLogger("scap-workbench")
 
 class Enum(tuple):
     """Enumeration inherited from tuple used for openscap

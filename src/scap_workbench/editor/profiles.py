@@ -29,14 +29,11 @@ from scap_workbench import paths
 from scap_workbench.core import abstract
 from scap_workbench.core.events import EventObject
 from scap_workbench.editor.edit import *
+from scap_workbench.core.logger import LOGGER
 
 import os.path
 import re
 import sre_constants
-import logging
-
-# Initializing Logger
-logger = logging.getLogger("scap-workbench")
 
 class AddProfileDialog(EventObject):
 
@@ -236,7 +233,7 @@ class ProfileList(abstract.List):
         except sre_constants.error as err:
             self.core.notify("Regexp entry error: %s" % (err,), core.Notification.ERROR, msg_id="notify:profiles:filter")
             self.__stop_search = True
-            logger.exception("Regexp entry error")
+            LOGGER.exception("Regexp entry error")
             
             return True
 
@@ -508,7 +505,7 @@ class MenuButtonEditProfiles(abstract.MenuButton, abstract.Func):
         elif widget == self.refines_severity:
             self.data_model.update_refines(item[0], item[1], item[2], severity=ENUM.LEVEL[widget.get_active()][0])
         else: 
-            logger.error("Change not supported object in \"%s\"" % (widget,))
+            LOGGER.error("Change not supported object in \"%s\"" % (widget,))
             return
         self.__update_item()
         self.__update()
@@ -685,7 +682,7 @@ class MenuButtonEditProfiles(abstract.MenuButton, abstract.Func):
             else: # refine
                 if len(model[iter][2]) == 0:
                     #TODO: remove ?
-                    logger.error("No objects in refines for %s" % (model[iter][1],))
+                    LOGGER.error("No objects in refines for %s" % (model[iter][1],))
                     return
                 else:
                     for obj in model[iter][2]:

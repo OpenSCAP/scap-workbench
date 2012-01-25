@@ -27,23 +27,20 @@ from gi.repository import Gtk
 from gi.repository import Pango
 
 import os.path
-import logging          # Logger for debug/info/error messages
 
 """ Importing SCAP Workbench modules
 """
+from scap_workbench import paths
 from scap_workbench import core
 from scap_workbench.core import abstract
 from scap_workbench.core import commands
 from scap_workbench.core import dialogs
-from scap_workbench import paths
 from scap_workbench.core import error
 import scap_workbench.core.enum as ENUM
+from scap_workbench.core.logger import LOGGER
 
 from scap_workbench.scanner import tailoring
 from scap_workbench.scanner import scan
-
-# Initializing Logger
-logger = logging.getLogger("scap-workbench")
 
 class MenuButtonXCCDF(abstract.MenuButton):
     """GUI for operations with xccdf file.
@@ -298,7 +295,7 @@ class MenuButtonXCCDF(abstract.MenuButton):
     def __import(self, file):
         if file != "":
             self.__cb_close(None)
-            logger.debug("Loading XCCDF file %s", file)
+            LOGGER.debug("Loading XCCDF file %s", file)
             if not self.core.init(file):
                 return
             self.emit("load")

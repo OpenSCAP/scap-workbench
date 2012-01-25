@@ -39,9 +39,6 @@ from scap_workbench.scanner import xccdf
 from scap_workbench.scanner import tailoring
 from scap_workbench.scanner import scan
 
-import logging
-logger = logging.getLogger("scap-workbench")
-
 class MainWindow(abstract.Window):
     """The central window of scap-workbench scanner
     """

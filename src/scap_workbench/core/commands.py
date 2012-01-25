@@ -23,7 +23,8 @@
 from gi.repository import Gtk
 from gi.repository import Gdk
 from gi.repository import GObject
-import logging, sys, re, time, os
+
+import sys, re, time, os
 import webbrowser
 import datetime
 import time
@@ -33,13 +34,12 @@ import tempfile         # Temporary file for XCCDF preview
 from scap_workbench import core
 from scap_workbench.core.events import EventObject
 from scap_workbench.core.htmltextview import HtmlTextView
-
-logger = logging.getLogger("scap-workbench")
+from scap_workbench.core.logger import LOGGER
 
 try:
     import openscap_api as openscap
 except ImportError as ex:
-    logger.exception("OpenScap library initialization failed: %s" % (ex))
+    LOGGER.exception("OpenScap library initialization failed: %s" % (ex))
     openscap=None
 
 from scap_workbench.core.threads import thread as threadSave
@@ -77,7 +77,7 @@ class DataHandler(object):
         if not self.core.lib or not self.core.lib.loaded:
             #self.core.notify("Library not initialized or XCCDF file not specified",
             #core.Notification.INFORMATION, msg_id="notify:xccdf:not_loaded")
-            logger.debug("Library not initialized or XCCDF file not specified")
+            LOGGER.debug("Library not initialized or XCCDF file not specified")
             return False
         else: return True
 
@@ -186,7 +186,7 @@ class DataHandler(object):
                     try:
                         item["selected"] = (r_value.selector, item["options"][r_value.selector])
                     except KeyError:
-                        logger.exception("No selector \"%s\" available in rule %s" % (r_value.selector, item["id"]))
+                        LOGGER.exception("No selector \"%s\" available in rule %s" % (r_value.selector, item["id"]))
             for s_value in profile.setvalues:
                 if s_value.item == value.id:
                     item["selected"] = ('', s_value.value)
@@ -431,11 +431,11 @@ class DataHandler(object):
                     "vtype":            item.type
                     })
             else: 
-                logger.error("Item type not supported %d", item.type)
+                LOGGER.error("Item type not supported %d", item.type)
                 return None
 
         else:
-            logger.error("No item '%s' in benchmark", id)
+            LOGGER.error("No item '%s' in benchmark", id)
             return None
 
         return values
@@ -495,7 +495,7 @@ class DataHandler(object):
                     "version_update":   item.version_update
                     }
         else:
-            logger.error("No item '%s' in benchmark", id)
+            LOGGER.error("No item '%s' in benchmark", id)
             return None
 
         return values
@@ -637,7 +637,7 @@ class DataHandler(object):
 
     def remove_item(self, id):
         item = self.get_item(id)
-        logger.info("Removing item %s" %(id,))
+        LOGGER.info("Removing item %s" %(id,))
         parent = item.parent
         if item.type == openscap.OSCAP.XCCDF_VALUE: item = item.to_value()
         if parent.type == openscap.OSCAP.XCCDF_GROUP: parent = parent.to_group()
@@ -1031,13 +1031,13 @@ class DHXccdf(DataHandler):
             if self.core.lib.benchmark.export(file_name) == -1:
                 return None
             
-            logger.debug("Exported benchmark: %s", file_name)
+            LOGGER.debug("Exported benchmark: %s", file_name)
             return file_name
         return None
 
     def validate_file(self, file, reporter=None):
         if reporter and not callable(reporter):
-            logger.error("Given callback \"%s\" is not callable" % (reporter,))
+            LOGGER.error("Given callback \"%s\" is not callable" % (reporter,))
 
         if os.access(file or "", os.R_OK):
             retval = openscap.common.validate_document(file, openscap.OSCAP.OSCAP_DOCUMENT_XCCDF, None,
@@ -1047,7 +1047,7 @@ class DHXccdf(DataHandler):
 
     def validate(self, reporter=None):
         if reporter and not callable(reporter):
-            logger.error("Given callback \"%s\" is not callable" % (reporter,))
+            LOGGER.error("Given callback \"%s\" is not callable" % (reporter,))
 
         temp = tempfile.NamedTemporaryFile()
         retval = self.export(temp.name)
@@ -1116,7 +1116,7 @@ class DHXccdf(DataHandler):
         else: raise AttributeError("Edit notice: Unknown operation %s" % (operation,))
 
     def __cb_report(self, msg, plugin):
-        logger.warning("Validation: %s", msg.string)
+        LOGGER.warning("Validation: %s", msg.string)
         return True
 
     def export_guide(self, xccdf, file, profile=None, hide=False):
@@ -1137,7 +1137,7 @@ class DHXccdf(DataHandler):
 
         retval = openscap.common.oscap_apply_xslt(xccdf, "security-guide.xsl", file, params)
         # TODO If this call (below) is not executed, there will come some strange behaviour
-        logger.info("Export guide %s" % (["failed: %s" % (openscap.common.err_desc(),), "done"][retval],))
+        LOGGER.info("Export guide %s" % (["failed: %s" % (openscap.common.err_desc(),), "done"][retval],))
 
 
 class DHValues(DataHandler):
@@ -1166,7 +1166,7 @@ class DHValues(DataHandler):
             if self.core.selected_item is not None:
                 item = self.core.lib.benchmark.get_item(self.core.selected_item)
                 if item is None: 
-                    logger.error("XCCDF Item \"%s\" does not exists. Can't fill data", self.core.selected_item)
+                    LOGGER.error("XCCDF Item \"%s\" does not exists. Can't fill data", self.core.selected_item)
                     raise LookupError("XCCDF Item \"%s\" does not exists. Can't fill data" % (self.core.selected_item))
                 
             else:
@@ -1210,7 +1210,7 @@ class DHValues(DataHandler):
 
         val = self.core.lib.benchmark.item(id).to_value()
         value = self.parse_value(val)
-        logger.debug("Matching %s against %s or %s", new_text_value, value["choices"], value["match"])
+        LOGGER.debug("Matching %s against %s or %s", new_text_value, value["choices"], value["match"])
         # Match against pattern as "choices or match"
         pattern_list = []
         if value["selected"][0] in value["choices"]: pattern_list.append("|".join(value["choices"][value["selected"][0]]))
@@ -1223,10 +1223,10 @@ class DHValues(DataHandler):
                 # Dirty hack when matched string has the same length as found one (if no, it's bad)
                 if (s.end() - s.start()) != len(new_text_value): continue
                 self.model.set_value(iter, 2, new_text)
-                logger.debug("Regexp matched: text \"%s\" matched \"%s\"", new_text_value, pattern_list[i])
+                LOGGER.debug("Regexp matched: text \"%s\" matched \"%s\"", new_text_value, pattern_list[i])
                 policy.set_tailor_items([{"id":id, "value":new_text_value}])
                 return
-        logger.error("Failed regexp match: text %s does not match %s", new_text_value, "|".join(pattern_list))
+        LOGGER.error("Failed regexp match: text %s does not match %s", new_text_value, "|".join(pattern_list))
 
     def get_rationales(self):
         raise NotImplementedError("According to XCCDF Version 1.2: No rationale for value item")
@@ -1317,7 +1317,7 @@ class DHValues(DataHandler):
 
         elif operation == self.CMD_OPER_EDIT:
             if obj is None: 
-                logger.error("Can't edit None object")
+                LOGGER.error("Can't edit None object")
                 return False
             
             DHValues.set_values_of_item_instance(item, obj, default, value)
@@ -1333,7 +1333,7 @@ class DHValues(DataHandler):
 
         elif operation == self.CMD_OPER_DEL:
             if obj is None: 
-                logger.error("Can't remove None object")
+                LOGGER.error("Can't remove None object")
                 return False
             
             return item.instances.remove(obj)
@@ -1571,7 +1571,7 @@ class DHItemsTree(DataHandler, EventObject):
                 #Gdk.threads_leave()
 
             #TYPE: UNKNOWN
-            else: logger.warning("Unknown type of %s, should be Rule or Group (got %s)", item.type, item.id)
+            else: LOGGER.warning("Unknown type of %s, should be Rule or Group (got %s)", item.type, item.id)
 
         else: 
             raise ValueError("Can't fill because of invalid passed data. Expected XCCDF Item (got %s)" % (item))
@@ -1698,7 +1698,7 @@ class DHItemsTree(DataHandler, EventObject):
         elif parent.type == openscap.OSCAP.XCCDF_BENCHMARK:
             parent = parent.to_benchmark()
         else: 
-            logger.error("Unsupported itme format: %s" % (parent.type,))
+            LOGGER.error("Unsupported itme format: %s" % (parent.type,))
             return False
 
         """Fill new created item with the values from the formular. Make an 'op'
@@ -1781,7 +1781,7 @@ class DHProfiles(DataHandler):
         This method is using @ref edit method to fill the data from
         item to the XCCDF Profile structure"""
 
-        logger.debug("Adding new profile: \"%s\"", id)
+        LOGGER.debug("Adding new profile: \"%s\"", id)
         if not self.check_library(): return None
 
         profile = openscap.xccdf.profile()
@@ -1825,7 +1825,7 @@ class DHProfiles(DataHandler):
                     break
             item = self.core.lib.benchmark.get_item(rule_k)
             if item == None:
-                logger.error("%s points to nonexisting item %s" % (rules[rule_k][0].object, rule_k))
+                LOGGER.error("%s points to nonexisting item %s" % (rules[rule_k][0].object, rule_k))
                 #Gdk.threads_enter()
                 self.model.append(iter, ["rule", rule_k, rules[rule_k], "dialog-error", "Broken reference: %s" % (rule_k,), "red"])
                 #Gdk.threads_leave()
@@ -1850,7 +1850,7 @@ class DHProfiles(DataHandler):
             # add list of values into the profile parent iter
             item = self.core.lib.benchmark.get_item(value_k)
             if item == None: 
-                logger.error("%s points to nonexisting value %s" % (values[value_k][0].object, value_k))
+                LOGGER.error("%s points to nonexisting value %s" % (values[value_k][0].object, value_k))
                 #Gdk.threads_enter()
                 self.model.append(iter, ["value", value_k, values[value_k], "dialog-error", "Broken reference: %s" % (value_k,), "red"])
                 #Gdk.threads_leave()
@@ -1874,7 +1874,7 @@ class DHProfiles(DataHandler):
         if not self.check_library(): return None
 
         if not no_default:
-            logger.debug("Adding profile (No profile)")
+            LOGGER.debug("Adding profile (No profile)")
             #Gdk.threads_enter()
             if self.model.__class__ == Gtk.ListStore: self.model.append(["", "(No profile)"])
             else: self.model.append(None, ["profile", "", item, IMG_GROUP, "(No profile)", ""])
@@ -1882,7 +1882,7 @@ class DHProfiles(DataHandler):
 
         # Go thru all profiles from benchmark and add them into the model
         for item in self.core.lib.benchmark.profiles:
-            logger.debug("Adding profile \"%s\"", item.id)
+            LOGGER.debug("Adding profile \"%s\"", item.id)
             pvalues = self.get_profile_details(item.id)
             title = self.get_title(item.title) or "%s (ID)" % (item.id,)
             color = None
@@ -1919,7 +1919,7 @@ class DHProfiles(DataHandler):
 
         policy = self.core.lib.policy_model.get_policy_by_id(self.core.selected_profile)
         if policy == None:
-            logger.debug("No policy associated to profile %s" % (self.core.selected_profile,))
+            LOGGER.debug("No policy associated to profile %s" % (self.core.selected_profile,))
             return
         rules = dict([(select.item, select.selected) for select in policy.selects])
 
@@ -1953,7 +1953,7 @@ class DHProfiles(DataHandler):
 
         policy = self.core.lib.policy_model.get_policy_by_id(self.core.selected_profile)
         if policy:
-            logger.debug("Changing refine_rules: item(%s): severity(%s), role(%s), weight(%s)" % (self.core.selected_item, severity, role, weight))
+            LOGGER.debug("Changing refine_rules: item(%s): severity(%s), role(%s), weight(%s)" % (self.core.selected_item, severity, role, weight))
             refine = policy.set_refine_rule(self.core.selected_item, weight, severity, role)
 
     def __get_current_profile(self):
@@ -2006,7 +2006,7 @@ class DHProfiles(DataHandler):
             profile_iter = model.iter_parent(iter)
             
         if profile_iter == None: 
-            logger.error("Can't add data. No profile specified !")
+            LOGGER.error("Can't add data. No profile specified !")
             return
 
         num = model.iter_n_children(profile_iter)
@@ -2332,7 +2332,7 @@ class DHScan(DataHandler, EventObject):
                 self.count_current = int(round(fract / self.step))
                 
                 self.__progress.set_text("Scanning rule '%s' ... (%s/%s)" % (id, self.count_current, self.count_all))
-                logger.debug("[%s/%s] Scanning rule '%s'" % (self.count_current, self.count_all, id))
+                LOGGER.debug("[%s/%s] Scanning rule '%s'" % (self.count_current, self.count_all, id))
                 
                 self.__progress.set_tooltip_text("Scanning rule '%s'" % (title))
 
@@ -2377,7 +2377,7 @@ class DHScan(DataHandler, EventObject):
         else:
             for oval in self.core.lib.oval_files.values():
                 retval = openscap.oval.agent_reset_session(oval.session)
-                logger.debug("OVAL Agent session reset: %s" % (retval,))
+                LOGGER.debug("OVAL Agent session reset: %s" % (retval,))
                 if retval != 0: 
                     self.core.notify("Oval agent reset session failed.", core.Notification.ERROR, msg_id="notify:scan:oval_reset")
                     raise RuntimeError("OVAL agent reset session failed, openscap return value: %i" % (retval))
@@ -2398,7 +2398,7 @@ class DHScan(DataHandler, EventObject):
         if not self.check_library(): return None
         for oval in self.core.lib.oval_files.values():
             retval = openscap.oval.agent_abort_session(oval.session)
-            logger.debug("OVAL Agent session abort: %s" % (retval,))
+            LOGGER.debug("OVAL Agent session abort: %s" % (retval,))
 
     def export(self, file_name, result):
         """Exports a raw XML results file"""
@@ -2417,7 +2417,7 @@ class DHScan(DataHandler, EventObject):
             files = self.policy.export(result, DHScan.RESULT_NAME, file_name, file_name, self.core.lib.xccdf, sessions)
         
             for file in files:
-                logger.debug("Exported: %s", file)
+                LOGGER.debug("Exported: %s", file)
             
             return file_name
         
@@ -2454,7 +2454,7 @@ class DHScan(DataHandler, EventObject):
 
         retval = openscap.common.oscap_apply_xslt(file, xslfile, expfile, params)
         # TODO If this call (below) is not executed, there will come some strange behaviour
-        logger.debug("Export report file %s" % (["failed: %s" % (openscap.common.err_desc(),), "done"][retval],))
+        LOGGER.debug("Export report file %s" % (["failed: %s" % (openscap.common.err_desc(),), "done"][retval],))
         return expfile
 
 class DHEditItems(DataHandler):
@@ -2643,7 +2643,7 @@ class DHEditItems(DataHandler):
             raise RuntimeError("Edit operation failed, cant find the specified value '%s' to edit." % (value))
                 
         elif operation == self.CMD_OPER_DEL:
-            logger.error("Delete of value references not supported.")
+            LOGGER.error("Delete of value references not supported.")
             
         else:
             raise NotImplementedError("Operation of type '%i' not implemented" % (operation))
@@ -2664,7 +2664,7 @@ class DHEditItems(DataHandler):
                 raise core.XCCDFImportError("Cannot create agent session for \"%s\": %s" % (f_OVAL, desc))
             self.core.lib.add_oval_file(os.path.basename(f_OVAL), sess, def_model)
             if self.core.lib.policy_model: self.core.lib.policy_model.register_engine_oval(sess)
-        else: logger.warning("Skipping %s file which is referenced from XCCDF content" % (f_OVAL,))
+        else: LOGGER.warning("Skipping %s file which is referenced from XCCDF content" % (f_OVAL,))
 
         return True
 
@@ -2683,19 +2683,19 @@ class DHEditItems(DataHandler):
                 model.set_value(iter, COLUMN_OBJECT, object)
             elif not delete:
                 if column == COLUMN_ID:
-                    logger.info ("TODO set id Ident.")
+                    LOGGER.info ("TODO set id Ident.")
                     #object.set_id(value)
                 elif column == COLUMN_SYSTEM:
-                    logger.info ("TODO set system Ident.")
+                    LOGGER.info ("TODO set system Ident.")
                     #object.set_system(value)
                 else:
-                    logger.error("Bad number of column.")
+                    LOGGER.error("Bad number of column.")
             else:
-                logger.debug("Removing %s" %(object,))
+                LOGGER.debug("Removing %s" %(object,))
                 item.idents.remove(object)
                 model.remove(iter)  
         else:
-            logger.error("Error: Not read item.")
+            LOGGER.error("Error: Not read item.")
 
     def DHEditPlatform(self, item, model, iter, column, value, delete=False):
 
@@ -2716,44 +2716,44 @@ class DHEditItems(DataHandler):
                             model.set_value(iter, COLUMN_TEXT, value)
                             item.add_platform(value)
                     else:
-                        logger.error("Bad number of column.")
+                        LOGGER.error("Bad number of column.")
             else:
-                logger.debug("Removing %s" %(value,))
+                LOGGER.debug("Removing %s" %(value,))
                 item.platforms.remove(value)
                 model.remove(iter)  
         else:
-            logger.error("Error: Not read item.")
+            LOGGER.error("Error: Not read item.")
             
     def DHEditImpactMetric(self, rule, text):
         if rule:
             if rule != openscap.OSCAP.XCCDF_RULE:
                 rule = rule.to_rule()
             if not rule.set_impact_metric(text):
-                logger.error("Error: Impact metric not set.")
+                LOGGER.error("Error: Impact metric not set.")
         else:
-            logger.error("Error: Not read rule.")
+            LOGGER.error("Error: Not read rule.")
 
     def DHEditValueOper(self, value, oper):
 
         if value:
             value.set_oper(oper)
         else:
-            logger.error("Error: Not value.")
+            LOGGER.error("Error: Not value.")
     
     def DHChBoxValueInteractive(self, value, state):
         if value:
             value.set_interactive(state)
         else:
-            logger.error("Error: Not value.")
+            LOGGER.error("Error: Not value.")
     
     def DHEditValueInstance(self, value, item, selector, match, upper, lower, default, mustMuch, model_combo_choices):
         
-        logger.debug("Editing value: %s", value)
+        LOGGER.debug("Editing value: %s", value)
         instance = item.get_instance_by_selector(selector)
         if not instance:
             instance = item.new_instance()
             item.add_instance(instance)
-        else: logger.debug("Found instance for %s", selector)
+        else: LOGGER.debug("Found instance for %s", selector)
             
         if item.get_type() == openscap.OSCAP.XCCDF_TYPE_NUMBER:
             if value != None and value != '':
@@ -2773,9 +2773,9 @@ class DHEditItems(DataHandler):
         else:
             data = value
 
-        logger.debug("Set selector to %s", selector)
+        LOGGER.debug("Set selector to %s", selector)
         instance.set_selector(selector)
-        [lambda x: logger.error("Unknown type of value: %s", item.get_type()), 
+        [lambda x: LOGGER.error("Unknown type of value: %s", item.get_type()), 
                 instance.set_value_number,
                 instance.set_value_string,
                 instance.set_value_boolean
@@ -2790,7 +2790,7 @@ class DHEditItems(DataHandler):
         COLUMN_OBJECT = 3
     
         object = model.get_value(iter, COLUMN_OBJECT)
-        logger.debug("Removing %s" %(object,))
+        LOGGER.debug("Removing %s" %(object,))
         item.instances.remove(object)
         model.remove(iter)
     
@@ -2823,6 +2823,6 @@ class DHEditItems(DataHandler):
             try:
                 item.requires.append(id)
             except Exception as e:
-                logger.exception("Add requires: %s" % (e))
+                LOGGER.exception("Add requires: %s" % (e))
         else:
-            logger.debug("Add requires: Unsupported not-add function")
+            LOGGER.debug("Add requires: Unsupported not-add function")

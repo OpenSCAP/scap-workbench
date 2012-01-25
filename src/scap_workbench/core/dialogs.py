@@ -24,17 +24,14 @@
 from gi.repository import Gtk
 import os               # os Path join/basename, ..
 import tempfile         # Temporary file for XCCDF preview
-import logging          # Logger for debug/info/error messages
 
 """ Importing SCAP Workbench modules
 """
+from scap_workbench import paths
 from scap_workbench.core import abstract                 # All abstract classes
 from scap_workbench.core import commands                 # Module for handling openscap
 from scap_workbench.core import Notification   # core.Notification levels for reference
-from scap_workbench import paths
-
-# Initializing Logger
-logger = logging.getLogger("scap-workbench")
+from scap_workbench.core.logger import LOGGER
 
 class ImportDialog(abstract.Window, abstract.ListEditor):
 
@@ -70,7 +67,7 @@ class ImportDialog(abstract.Window, abstract.ListEditor):
         # TODO: Shouldn't this rather just raise an exception? Is there a use case
         #       where user can choose a callback?
         if not callable(self.__import):
-            logger.critical("FATAL: Function for import is not callable")
+            LOGGER.critical("FATAL: Function for import is not callable")
             self.core.notify("<b>FATAL !</b> Function for import is not callable ! <a href='#bug'>Report</a>", 
                     Notification.FATAL, msg_id="notify:xccdf:import:dialog", link_cb=self.__action_link)
             return

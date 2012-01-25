@@ -26,8 +26,7 @@
 from gi.repository import GObject
 from gi.repository import Gtk
 
-import logging
-logger = logging.getLogger("scap-workbench")
+from scap_workbench.core.logger import LOGGER
 
 class EventObject(GObject.GObject):
     """EventObject is abstract class handling all events between various object
@@ -56,7 +55,7 @@ class EventObject(GObject.GObject):
         signal: string representing the signal
         """
         
-        logger.debug("Emiting signal %s from %s", signal, self.id)
+        LOGGER.debug("Emiting signal %s from %s", signal, self.id)
         super(EventObject, self).emit(signal)
 
     def add_sender(self, id, signal, *args):
@@ -70,7 +69,7 @@ class EventObject(GObject.GObject):
         """
         
         if not GObject.signal_lookup(signal, EventObject): 
-            logger.debug("Creating signal %s::%s", id, signal)
+            LOGGER.debug("Creating signal %s::%s", id, signal)
             GObject.signal_new(signal, EventObject, GObject.SignalFlags.RUN_FIRST, None, ())
 
         if self.core != None:
@@ -130,10 +129,10 @@ class EventHandler(EventObject):
         """
         
         if not callable(callback):
-            logger.error("Given callback is not callable: %s", callback)
+            LOGGER.error("Given callback is not callable: %s", callback)
             return False
 
-        logger.debug("Adding receiver %s::%s::%s", sender_id, signal, callback)
+        LOGGER.debug("Adding receiver %s::%s::%s", sender_id, signal, callback)
         if sender_id in self.receivers:
             if signal in self.receivers[sender_id]:
                 self.receivers[sender_id][signal].append(callback)
@@ -153,12 +152,12 @@ class EventHandler(EventObject):
         if sender.id in self.receivers:
             if signal in self.receivers[sender.id]:
                 for cb in self.receivers[sender.id][signal]:
-                    logger.debug("Received signal \"%s\" from \"%s\" into \"%s\"" % (signal, sender.id, cb))
+                    LOGGER.debug("Received signal \"%s\" from \"%s\" into \"%s\"" % (signal, sender.id, cb))
                     
                     if callable(cb): 
                         cb()
                     else: 
-                        logger.error("Callback %s is not callable", cb)
+                        LOGGER.error("Callback %s is not callable", cb)
                         raise ValueError("Registered callback is not callable! signal: %s, sender id: %s, callback: %s" % (signal, sender.id, cb))
 
 __all__ = ["EventObject", "EventHandler"]

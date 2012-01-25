@@ -28,20 +28,17 @@ from gi.repository import GObject
 
 import os               # For path basedir
 import tempfile         # Temporary file for XCCDF preview
-from scap_workbench.core.threads import thread as threadSave
-import logging          # Logger for debug/info/error messages
 
 """ Importing SCAP Workbench modules
 """
 from scap_workbench import core
+from scap_workbench import paths
 from scap_workbench.core import abstract
 from scap_workbench.core import commands
 from scap_workbench.core import filter
 from scap_workbench.core.events import EventObject
-from scap_workbench import paths
-
-# Initializing Logger
-logger = logging.getLogger("scap-workbench")
+from scap_workbench.core.threads import thread as threadSave
+from scap_workbench.core.logger import LOGGER
 
 class ScanList(abstract.List):
     
@@ -266,7 +263,7 @@ class MenuButtonScan(abstract.MenuButton, abstract.Func):
         for notify in self.notifications:
             notify.destroy()
         if self.scanRunning: 
-            logger.error("Scan already running")
+            LOGGER.error("Scan already running")
         else:
             self.emit("scan")
             self.data_model.prepare()
@@ -300,7 +297,7 @@ class MenuButtonScan(abstract.MenuButton, abstract.Func):
             self.set_scan_in_progress(True)
             self.core.notify_destroy("notify:scan:complete")
         
-        logger.debug("Scanning %s ..", self.data_model.policy.id)
+        LOGGER.debug("Scanning %s ..", self.data_model.policy.id)
         if self.progress != None:
             with core.gdk_lock:
                 self.progress.set_fraction(0.0)
@@ -319,7 +316,7 @@ class MenuButtonScan(abstract.MenuButton, abstract.Func):
                 self.progress.set_text("Finished %i of %i rules" % (self.data_model.count_current, self.data_model.count_all))
                 self.progress.set_has_tooltip(False)
                 
-            logger.debug("Finished scanning")
+            LOGGER.debug("Finished scanning")
             if self.data_model.count_current == self.data_model.count_all:
                 self.core.notify("Scanning finished successfully", core.Notification.SUCCESS, msg_id="notify:scan:complete")
             else:
@@ -382,7 +379,7 @@ class ProfileChooser(object):
         selection = self.profiles.get_selection()
         model, it = selection.get_selected()
         if it == None: 
-            logger.debug("Nothing selected, skipping")
+            LOGGER.debug("Nothing selected, skipping")
             self.window.destroy()
             return
         self.core.selected_profile = model.get_value(it, 0)

@@ -21,18 +21,14 @@
 #      Vladimir Oberreiter  <xoberr01@stud.fit.vutbr.cz>
 #      Martin Preisler      <mpreisle@redhat.com>
 
+from gi.repository import Gtk
+
 from scap_workbench import core
 from scap_workbench.core import dialogs
 from scap_workbench.core import commands
 from scap_workbench.core import abstract
 from scap_workbench.editor.edit import *
-
-from gi.repository import Gtk
-
-import logging
-
-# Initializing Logger
-logger = logging.getLogger("scap-workbench")
+from scap_workbench.core.logger import LOGGER
 
 class EditNotice(abstract.ListEditor):
 
@@ -133,7 +129,7 @@ class EditNotice(abstract.ListEditor):
                     self.__do()
                 return
         else: 
-            logger.error("Unknown operation for description dialog: \"%s\"" % (operation,))
+            LOGGER.error("Unknown operation for description dialog: \"%s\"" % (operation,))
             return
 
         self.wdialog.set_transient_for(self.core.main_window)
@@ -239,7 +235,7 @@ class MenuButtonEditXCCDF(abstract.MenuButton):
     def __import(self, file):
         if file != "":
             self.__cb_close(None)
-            logger.debug("Loading XCCDF file %s", file)
+            LOGGER.debug("Loading XCCDF file %s", file)
             if not self.core.init(file): return
             self.emit("load")
 
@@ -304,7 +300,7 @@ class MenuButtonEditXCCDF(abstract.MenuButton):
         elif object == "lang":
             self.data_model.update(lang=widget.get_text())
         else: 
-            logger.error("Change \"%s\" not supported object in \"%s\"" % (object, widget))
+            LOGGER.error("Change \"%s\" not supported object in \"%s\"" % (object, widget))
             return
         self.emit("update")
 

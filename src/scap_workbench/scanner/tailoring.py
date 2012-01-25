@@ -26,9 +26,9 @@ from gi.repository import Gtk
 from gi.repository import Gdk
 from gi.repository import GLib
 from gi.repository import Pango
+
 import re               # Regular expressions 
 import sre_constants    # For re.compile exception
-import logging          # Logger for debug/info/error messages
 
 """ Importing SCAP Workbench modules
 """
@@ -38,13 +38,10 @@ from scap_workbench.core import commands
 from scap_workbench.core import filter
 import scap_workbench.core.enum as ENUM
 from scap_workbench.core.events import EventObject
-from scap_workbench.core import htmltextview
 
 from scap_workbench.core.threads import thread_free as threadFree
 from scap_workbench.core.htmltextview import HtmlTextView
-
-# Initializing Logger
-logger = logging.getLogger("scap-workbench")
+from scap_workbench.core.logger import LOGGER
 
 class ItemList(abstract.List):
     
@@ -246,7 +243,7 @@ class ItemDetails(EventObject):
         try:
             self.description.display_html(description)
         except Exception as err:
-            logger.exception("Exception: %s" % (err))
+            LOGGER.exception("Exception: %s" % (err))
         
         for i, ref in enumerate(details["references"]):
             hbox = Gtk.HBox()
@@ -283,7 +280,7 @@ class ItemDetails(EventObject):
         try:
             self.fixes.display_html(text)
         except Exception as err:
-            logger.exception("HTML display Exception: %s: (%s)", err, text)
+            LOGGER.exception("HTML display Exception: %s: (%s)", err, text)
 
     def draw(self):
         self.box_details = self.builder.get_object("tailoring:details:box")

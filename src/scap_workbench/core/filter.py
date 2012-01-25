@@ -27,16 +27,14 @@ from gi.repository import Gtk
 from gi.repository import Gdk
 
 import re
-import logging
 import sys
 import os
 
+from scap_workbench import paths
 from scap_workbench import core
 from scap_workbench.core import abstract
 from scap_workbench.core.events import EventObject
-from scap_workbench import paths
-
-logger = logging.getLogger("scap-workbench")
+from scap_workbench.core.logger import LOGGER
 
 class Filter(object):
     """Abstract class for defining filters"""
@@ -99,7 +97,7 @@ class Search(object):
     """
     
     def __init__(self, renderer):
-        logger.warning("Class Search is deprecated: Use search function of list instead")
+        LOGGER.warning("Class Search is deprecated: Use search function of list instead")
         self.renderer = renderer
         self.renderer.add_sender(id, "search")
         self.__render()
@@ -285,7 +283,7 @@ class ExpandBox(abstract.EventObject):
         self.frameContent.show_all()
 
     def cb_changed(self, widget=None, active=None):
-        logger.debug("Expander switched to %s", not self.frameContent.get_property("visible"))
+        LOGGER.debug("Expander switched to %s", not self.frameContent.get_property("visible"))
         if active == True or self.frameContent.get_property("visible"):
             self.frameContent.hide()
             self.arrowTop.set_from_pixbuf(self.pixbufShow)
@@ -297,7 +295,7 @@ class ExpandBox(abstract.EventObject):
             try:
                 if self.focus_widget: self.focus_widget.grab_focus()
             except Exception as e:
-                logger.exception("Couldn't grab focus: %s" %(e))
+                LOGGER.exception("Couldn't grab focus: %s" %(e))
 
     def get_widget(self):
         return self.frameContent
@@ -562,7 +560,7 @@ class Loader(object):
         if os.path.isdir(dpath):
             sys.path.append(dpath)
         else:
-            logger.error("%s is not a directory. Can't import filter modules !" % (dpath,))
+            LOGGER.error("%s is not a directory. Can't import filter modules !" % (dpath,))
             return []
 
         list = []
@@ -570,7 +568,7 @@ class Loader(object):
         for f in os.listdir(os.path.abspath(dpath)):
             name, ext = os.path.splitext(f)
             if ext == '.py':
-                logger.debug("Importing filter module: %s" % (name,))
+                LOGGER.debug("Importing filter module: %s" % (name,))
                 module = __import__(name)
                 for obj in dir(module):
                     try:

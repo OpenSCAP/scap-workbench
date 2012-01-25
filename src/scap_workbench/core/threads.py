@@ -20,10 +20,10 @@
 #      Maros Barabas        <xbarry@gmail.com>
 #      Vladimir Oberreiter  <xoberr01@stud.fit.vutbr.cz>
 
-import logging
 import threading
 import time
-logger = logging.getLogger("scap-workbench")
+
+from scap_workbench.core.logger import LOGGER
 
 def thread(func):
     """Usually used as a decorator to make a method start a thread
@@ -84,11 +84,11 @@ class ThreadManager(object):
         """
         
         while func in self.handlers:
-            logger.debug("Handler for function %s already running, waiting..." % (func,))
+            LOGGER.debug("Handler for function %s already running, waiting..." % (func,))
             time.sleep(1.0)
 
         self.handlers.append(func)
-        logger.debug("Running thread handler \"%s:%s\"", func, args)
+        LOGGER.debug("Running thread handler \"%s:%s\"", func, args)
         func(obj, *args, **kwargs)
 
     def stop_thread(self, func):
@@ -96,10 +96,10 @@ class ThreadManager(object):
         """
         
         if func not in self.handlers:
-            logger.warning("Function called stop, but no function %s running" % (func,))
+            LOGGER.warning("Function called stop, but no function %s running" % (func,))
         
         else:
-            logger.debug("Thread function %s stopped." % (func,))
+            LOGGER.debug("Thread function %s stopped." % (func,))
             self.handlers.remove(func)
 
 class ThreadHandler(threading.Thread):
@@ -127,9 +127,9 @@ class ThreadHandler(threading.Thread):
             self.__master.stop_thread(self.__func)
             
         else:
-            logger.debug("Running thread handler (free) \"%s:%s\"", self.__func, self.__args)
+            LOGGER.debug("Running thread handler (free) \"%s:%s\"", self.__func, self.__args)
             self.__func(self.__obj, *self.__args, **self.__kwargs)
-            logger.debug("Thread handler stopped (free) \"%s:%s\"", self.__func, self.__args)
+            LOGGER.debug("Thread handler stopped (free) \"%s:%s\"", self.__func, self.__args)
 
 # ThreadHandler is internal implementation detail
 __all__ = ["thread", "thread_free", "ThreadManager"]

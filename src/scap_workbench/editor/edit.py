@@ -31,26 +31,23 @@ import time             # Time functions in calendar data ::EditStatus
 import re               # Regular expressions 
 import os               # os Path join/basename, ..
 import datetime
-import logging                  # Logger for debug/info/error messages
 
 """ Importing SCAP Workbench modules
 """
+from scap_workbench import paths
 from scap_workbench import core
 from scap_workbench.core import abstract
 from scap_workbench.core import commands
 from scap_workbench.core.events import EventObject
 import scap_workbench.core.enum as ENUM
-from scap_workbench import paths
-
-# Initializing Logger
-logger = logging.getLogger("scap-workbench")
+from scap_workbench.core.logger import LOGGER
 
 """ Import OpenSCAP library as backend.
 If anything goes wrong just end with exception"""
 try:
     import openscap_api as openscap
 except Exception as ex:
-    logger.error("OpenScap library initialization failed: %s", ex)
+    LOGGER.error("OpenScap library initialization failed: %s", ex)
     openscap=None
     raise ex
 
@@ -130,7 +127,7 @@ class EditTitle(abstract.ListEditor):
                     self.__do()
                 return
         else: 
-            logger.error("Unknown operation for title dialog: \"%s\"" % (operation,))
+            LOGGER.error("Unknown operation for title dialog: \"%s\"" % (operation,))
             return
 
         self.wdialog.set_transient_for(self.core.main_window)
@@ -242,7 +239,7 @@ class EditDescription(abstract.HTMLEditor):
                     self.__do()
                 return
         else: 
-            logger.error("Unknown operation for description dialog: \"%s\"" % (operation,))
+            LOGGER.error("Unknown operation for description dialog: \"%s\"" % (operation,))
             return
 
         self.wdialog.set_transient_for(self.core.main_window)
@@ -338,7 +335,7 @@ class EditWarning(abstract.ListEditor):
                     self.__do()
                 return
         else: 
-            logger.error("Unknown operation for description dialog: \"%s\"" % (operation,))
+            LOGGER.error("Unknown operation for description dialog: \"%s\"" % (operation,))
             return
 
         self.wdialog.set_transient_for(self.core.main_window)
@@ -434,7 +431,7 @@ class EditStatus(abstract.ListEditor):
                     self.__do()
                 return
         else: 
-            logger.error("Unknown operation for description dialog: \"%s\"" % (operation,))
+            LOGGER.error("Unknown operation for description dialog: \"%s\"" % (operation,))
             return
 
         self.wdialog.set_transient_for(self.core.main_window)
@@ -671,7 +668,7 @@ class EditSelectIdDialogWindow(object):
             return True
         except Exception as e:
             #self.core.notify("Can't filter items: %s" % (e,), 3)
-            logger.exception("Can't filter items: %s" % (e))
+            LOGGER.exception("Can't filter items: %s" % (e))
             return False
 
 class FindOvalDef(abstract.Window, abstract.ListEditor):
