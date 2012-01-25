@@ -31,6 +31,7 @@ import os
 import sys
 import getopt
 import os.path
+import logging
 
 from scap_workbench.core.events import EventHandler
 from scap_workbench.core.threads import ThreadManager
@@ -257,9 +258,12 @@ class Library(object):
         for file in self.oval_files:
             sess = openscap.oval.agent_new_session(self.oval_files[file].model, file)
             if sess == None or sess.instance == None:
-                if OSCAP.oscap_err(): desc = OSCAP.oscap_err_desc()
-                else: desc = "Unknown error, please report this bug (http://bugzilla.redhat.com/)"
-                raise XCCDFImportError("Cannot create agent session for \"%s\": %s" % (f_OVAL, desc))
+                if openscap.OSCAP.oscap_err():
+                    desc = openscap.OSCAP.oscap_err_desc()
+                else:
+                    desc = "Unknown error, please report this bug (%s)" % (paths.BUGTRACKER_URL)
+                    
+                raise XCCDFImportError("Cannot create agent session for \"%s\": %s" % (file, desc))
             self.oval_files[file].session = sess
             self.policy_model.register_engine_oval(sess)
             
@@ -271,7 +275,7 @@ class Library(object):
                 self.policy_model.register_engine_sce(self.sce_parameters)
             
             except Exception as e:
-                logging.warn("Tried to enable SCE support but failed, was openscap compiled without SCE support? (exception details: %s)" % (e))
+                LOGGER.warn("Tried to enable SCE support but failed, was openscap compiled without SCE support? (exception details: %s)" % (e))
 
     def destroy(self):
         """Destroy the library objects

@@ -28,12 +28,12 @@ from gi.repository import GObject
 from gi.repository import Pango
 from gi.repository import Gtk
 from gi.repository import Gdk
+from gi.repository import GdkPixbuf
 
 import xml.sax, xml.sax.handler
 import re
 from cStringIO import StringIO
 import urllib2
-import operator
 
 from scap_workbench.core.logger import LOGGER
 
@@ -81,28 +81,12 @@ class HtmlHandler(xml.sax.handler.ContentHandler):
         tag.set_property("background-gdk", color)
         tag.set_property("paragraph-background-gdk", color)
 
-
-        def _get_current_attributes(self):
-            attrs = self.textview.get_default_attributes()
-            self.iter.backward_char()
-            self.iter.get_attributes(attrs)
-            self.iter.forward_char()
-            return attrs
-
-        class _FakeAttrs(object):
-            __slots__ = ("font", "font_scale")
-
-        def _get_current_attributes(self):
-            attrs = self._FakeAttrs()
-            attrs.font_scale = self._get_current_style_attr("scale",
-                                                            operator.mul)
-            if attrs.font_scale is None:
-                attrs.font_scale = 1.0
-            attrs.font = self._get_current_style_attr("font-desc")
-            if attrs.font is None:
-                attrs.font = self.textview.style.font_desc
-            return attrs
-
+    def _get_current_attributes(self):
+        attrs = self.textview.get_default_attributes()
+        self.iter.backward_char()
+        self.iter.get_attributes(attrs)
+        self.iter.forward_char()
+        return attrs
 
     def __parse_length_frac_size_allocate(self, textview, allocation,
                                           frac, callback, args):

@@ -40,10 +40,7 @@ import os.path
 from scap_workbench import paths
 from scap_workbench.core import Notification
 from scap_workbench.core.events import EventObject
-from scap_workbench.core.htmltextview import HtmlTextView
 from scap_workbench.core.logger import LOGGER
-
-import openscap_api as openscap
 
 try:
     # For prettifing the source code of HTML Editors
@@ -1155,37 +1152,7 @@ class EnterList(EventObject):
         self.selection = self.treeView.get_selection()
         self.selection.set_mode(Gtk.SelectionMode.SINGLE)
         self.hendler_item_changed = self.selection.connect("changed", self.__cb_item_changed_control)
-    
-    def set_insertColumnText(self, name, column_n, empty=True, unique=False ):
-        txtcell = CellRendererTextWrap()
-        column = Gtk.TreeViewColumn(name, txtcell, text=column_n)
-        column.set_resizable(True)
-        self.treeView.append_column(column)
-        txtcell.set_property("editable",True)
-        txtcell.connect("edited", self.__cb_edit, column_n)
 
-        #for control if dat in columns should be unique
-        if unique:
-            self.control_unique.append([column_n, name])
-            return txtcell
-        
-        #for control if can not be empty
-        if empty == False:
-            self.control_empty.append([column_n, name])
-        return txtcell
-
-    def set_insertColumnInfo(self, name, column_n, empty= True):
-        txtcell = CellRendererTextWrap()
-        column = Gtk.TreeViewColumn(name, txtcell, text=column_n)
-        column.set_resizable(True)
-        txtcell.set_property("foreground", "gray")
-        self.treeView.append_column(column)
-        
-        #for control if can not be empty
-        if empty == False:
-            self.control_empty.append([column_n, name])
-        return txtcell
-    
     def __cb_item_changed_control(self, widget):
         if self.selected_old != None:
             iter = self.selected_old

@@ -24,26 +24,18 @@ from gi.repository import Gtk
 from gi.repository import Gdk
 from gi.repository import GObject
 
-import sys, re, time, os
+import re, os
 import webbrowser
-import datetime
 import time
 from datetime import datetime
 import tempfile         # Temporary file for XCCDF preview
 
 from scap_workbench import core
 from scap_workbench.core.events import EventObject
-from scap_workbench.core.htmltextview import HtmlTextView
 from scap_workbench.core.logger import LOGGER
 
-try:
-    import openscap_api as openscap
-except ImportError as ex:
-    LOGGER.exception("OpenScap library initialization failed: %s" % (ex))
-    openscap=None
+import openscap_api as openscap
 
-from scap_workbench.core.threads import thread as threadSave
-       
 IMG_GROUP   = "emblem-documents"
 IMG_RULE    = "document-new"
 IMG_VALUE   = "emblem-downloads"
@@ -81,14 +73,14 @@ class DataHandler(object):
             return False
         else: return True
 
-    def open_webbrowser(self, file):
+    def open_webbrowser(self, url):
         """Opens client's web browser using the webbrowser module. Assumes given file is a report.
         
-        file - file to open with the web browser
+        url - file to open with the web browser
         """
 
-        browser_val = webbrowser.open(file)
-        if not browser_val: self.core.notify("Failed to open browser \"%s\". Report file is saved in \"%s\"" % (webbrowser.get().name, "report.xhtml"),
+        browser_val = webbrowser.open(url)
+        if not browser_val: self.core.notify("Failed to open browser \"%s\". Report file is saved in \"%s\"" % (webbrowser.get().name, url),
             core.Notification.INFORMATION, msg_id="notify:scan:export_report")
 
     def get_title(self, titles):
@@ -127,7 +119,7 @@ class DataHandler(object):
         rule = item.to_rule()
         for check in rule.checks:
             if check.complex:
-                # This check is complext so there is more checks within
+                # This check is complex so there is more checks within
                 for child in check.children: 
                     values.extend(self.get_values_by_rule_id(id, check=child))
             else:

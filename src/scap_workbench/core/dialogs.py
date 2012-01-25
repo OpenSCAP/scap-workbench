@@ -89,6 +89,7 @@ class ImportDialog(abstract.Window, abstract.ListEditor):
         if action == "#overvalid":
             self.core.notify_destroy("notify:xccdf:import:dialog")
             self.__do(overvalid=True)
+        
         elif action == "#log":
             builder = Gtk.Builder()
             builder.add_from_file(os.path.join(paths.glade_dialog_prefix, "preview.glade"))
@@ -105,8 +106,10 @@ class ImportDialog(abstract.Window, abstract.ListEditor):
             preview_dialog.show()
 
         elif action == "#bug":
-            browser_val = self.data_model.open_webbrowser("http://bugzilla.redhat.com")
-        else: return False
+            self.data_model.open_webbrowser(paths.BUGTRACKER_URL)
+        
+        else:
+            return False
 
         # return True to stop handling this event by builtin mechanism
         return True
@@ -203,18 +206,22 @@ class ExportDialog(abstract.Window, abstract.ListEditor):
         if action == "#overwrite":
             self.core.notify_destroy("notify:xccdf:export:dialog")
             self.__do(overwrite=True)
+            
         if action == "#overvalid":
             self.core.notify_destroy("notify:xccdf:export:dialog")
             self.__do(overvalid=True)
+            
         elif action == "#browser":
             self.core.notify_destroy("notify:xccdf:export")
-            browser_val = self.data_model.open_webbrowser(self.export_file)
+            self.data_model.open_webbrowser(self.export_file)
+            
         elif action == "#webkit":
             self.core.notify_destroy("notify:xccdf:export")
             f = open(self.export_file)
             desc = f.read()
             f.close()
             self.preview(widget=None, desc=desc)
+            
         elif action == "#log":
             builder = Gtk.Builder()
             builder.add_from_file(os.path.join(paths.glade_dialog_prefix, "preview.glade"))
