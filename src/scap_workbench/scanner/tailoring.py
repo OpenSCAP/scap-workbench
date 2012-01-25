@@ -129,9 +129,6 @@ class ItemList(abstract.List):
                 self.get_TreeView().get_model().foreach(self.set_selected, (self.core.selected_item, self.get_TreeView(), 1))
                 self.selected = self.core.selected_item
 
-    def __search(self):
-        self.search(self.filter.get_search_text(),1)
-        
     def __filter_add(self):
         self.data_model.map_filter = self.filter_add(self.filter.filters)
         self.get_TreeView().get_model().foreach(self.set_selected, (self.core.selected_item, self.get_TreeView(), 1))
