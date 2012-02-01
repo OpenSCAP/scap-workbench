@@ -339,8 +339,8 @@ class DHScan(commands.DataHandler, commands.EventObject):
         self.model.clear()
 
         self.count_current = 0
-        self.count_all = 0
-        self.step = (100.0/(self.count_all or 1.0))/100.0
+        self.count_all = count_all
+        self.step = (100.0/(max(self.count_all, 1)))/100.0
 
     def prepare(self):
         """Prepare system for evaluation
