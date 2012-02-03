@@ -239,7 +239,7 @@ class Library(object):
                 else:
                     LOGGER.warning("WARNING: Skipping '%s' OVAL file which is referenced from XCCDF content." % (file))
             
-            elif system == "http://open-scap.org/XMLSchema/SCE-definitions-1":
+            elif system == "http://open-scap.org/page/SCE":
                 self.sce_files.add(file)
 
         if self.benchmark:
