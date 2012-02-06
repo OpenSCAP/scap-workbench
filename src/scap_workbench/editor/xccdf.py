@@ -22,12 +22,18 @@
 #      Martin Preisler      <mpreisle@redhat.com>
 
 from gi.repository import Gtk
+from gi.repository import GObject
+
+import os.path
+import re
 
 from scap_workbench import core
+from scap_workbench import paths
 from scap_workbench.core import dialogs
 from scap_workbench.core import commands
 from scap_workbench.core import abstract
-from scap_workbench.editor.edit import *
+from scap_workbench.core import enum as ENUM
+from scap_workbench.editor import edit
 from scap_workbench.core.logger import LOGGER
 
 class EditNotice(abstract.ListEditor):
@@ -166,20 +172,20 @@ class MenuButtonEditXCCDF(abstract.MenuButton):
         self.entry_lang.connect( "changed", self.__change, "lang")
 
         # -- TITLE --
-        self.titles = EditTitle(self.core, "gui:edit:xccdf:title", builder.get_object("edit:xccdf:titles"), self.data_model)
+        self.titles = edit.EditTitle(self.core, "gui:edit:xccdf:title", builder.get_object("edit:xccdf:titles"), self.data_model)
         builder.get_object("edit:xccdf:btn_titles_add").connect("clicked", self.titles.dialog, self.data_model.CMD_OPER_ADD)
         builder.get_object("edit:xccdf:btn_titles_edit").connect("clicked", self.titles.dialog, self.data_model.CMD_OPER_EDIT)
         builder.get_object("edit:xccdf:btn_titles_del").connect("clicked", self.titles.dialog, self.data_model.CMD_OPER_DEL)
 
         # -- DESCRIPTION --
-        self.descriptions = EditDescription(self.core, "gui:edit:xccdf:description", builder.get_object("edit:xccdf:descriptions"), self.data_model)
+        self.descriptions = edit.EditDescription(self.core, "gui:edit:xccdf:description", builder.get_object("edit:xccdf:descriptions"), self.data_model)
         self.builder.get_object("edit:xccdf:btn_descriptions_add").connect("clicked", self.descriptions.dialog, self.data_model.CMD_OPER_ADD)
         self.builder.get_object("edit:xccdf:btn_descriptions_edit").connect("clicked", self.descriptions.dialog, self.data_model.CMD_OPER_EDIT)
         self.builder.get_object("edit:xccdf:btn_descriptions_del").connect("clicked", self.descriptions.dialog, self.data_model.CMD_OPER_DEL)
         self.builder.get_object("edit:xccdf:btn_descriptions_preview").connect("clicked", self.descriptions.preview)
 
         # -- WARNING --
-        self.warnings = EditWarning(self.core, "gui:edit:xccdf:warning", builder.get_object("edit:xccdf:warnings"), self.data_model)
+        self.warnings = edit.EditWarning(self.core, "gui:edit:xccdf:warning", builder.get_object("edit:xccdf:warnings"), self.data_model)
         self.builder.get_object("edit:xccdf:btn_warnings_add").connect("clicked", self.warnings.dialog, self.data_model.CMD_OPER_ADD)
         self.builder.get_object("edit:xccdf:btn_warnings_edit").connect("clicked", self.warnings.dialog, self.data_model.CMD_OPER_EDIT)
         self.builder.get_object("edit:xccdf:btn_warnings_del").connect("clicked", self.warnings.dialog, self.data_model.CMD_OPER_DEL)
@@ -200,7 +206,7 @@ class MenuButtonEditXCCDF(abstract.MenuButton):
         self.builder.get_object("edit:xccdf:references").set_sensitive(False)
 
         # -- STATUS --
-        self.statuses = EditStatus(self.core, "gui:edit:xccdf:status", builder.get_object("edit:xccdf:statuses"), self.data_model)
+        self.statuses = edit.EditStatus(self.core, "gui:edit:xccdf:status", builder.get_object("edit:xccdf:statuses"), self.data_model)
         self.builder.get_object("edit:xccdf:btn_statuses_add").connect("clicked", self.statuses.dialog, self.data_model.CMD_OPER_ADD)
         self.builder.get_object("edit:xccdf:btn_statuses_edit").connect("clicked", self.statuses.dialog, self.data_model.CMD_OPER_EDIT)
         self.builder.get_object("edit:xccdf:btn_statuses_del").connect("clicked", self.statuses.dialog, self.data_model.CMD_OPER_DEL)

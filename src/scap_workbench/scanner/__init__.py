@@ -25,9 +25,7 @@
 """
 
 from gi.repository import Gtk
-from gi.repository import Gdk
 
-import threading
 import os.path
 
 from scap_workbench import paths

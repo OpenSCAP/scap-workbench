@@ -26,10 +26,11 @@ from gi.repository import Gdk
 
 from scap_workbench import core
 from scap_workbench import paths
+from scap_workbench.core import enum as ENUM
 from scap_workbench.core import abstract
 from scap_workbench.core import commands
 from scap_workbench.core.events import EventObject
-from scap_workbench.editor.edit import *
+from scap_workbench.editor import edit
 from scap_workbench.core.logger import LOGGER
 
 import os.path
@@ -378,7 +379,7 @@ class MenuButtonEditProfiles(abstract.MenuButton, abstract.Func):
         
         self.builder = builder
         self.data_model = commands.DHProfiles(self.core)
-        self.__item_finder = FindItem(self.core, "gui:edit:xccdf:profiles:finditem", self.data_model)
+        self.__item_finder = edit.FindItem(self.core, "gui:edit:xccdf:profiles:finditem", self.data_model)
 
         #draw body
         self.body = self.builder.get_object("profiles:box")
@@ -409,20 +410,20 @@ class MenuButtonEditProfiles(abstract.MenuButton, abstract.Func):
         self.prohibit_changes.connect("toggled", self.__change)
 
         # -- TITLE --
-        self.titles = EditTitle(self.core, "gui:edit:xccdf:profile:titles", builder.get_object("xccdf:profile:titles"), self.data_model)
+        self.titles = edit.EditTitle(self.core, "gui:edit:xccdf:profile:titles", builder.get_object("xccdf:profile:titles"), self.data_model)
         builder.get_object("xccdf:profile:titles:btn_add").connect("clicked", self.titles.dialog, self.data_model.CMD_OPER_ADD)
         builder.get_object("xccdf:profile:titles:btn_edit").connect("clicked", self.titles.dialog, self.data_model.CMD_OPER_EDIT)
         builder.get_object("xccdf:profile:titles:btn_del").connect("clicked", self.titles.dialog, self.data_model.CMD_OPER_DEL)
 
         # -- DESCRIPTION --
-        self.descriptions = EditDescription(self.core, "gui:edit:xccdf:profile:descriptions", builder.get_object("xccdf:profile:descriptions"), self.data_model)
+        self.descriptions = edit.EditDescription(self.core, "gui:edit:xccdf:profile:descriptions", builder.get_object("xccdf:profile:descriptions"), self.data_model)
         self.builder.get_object("xccdf:profile:descriptions:btn_add").connect("clicked", self.descriptions.dialog, self.data_model.CMD_OPER_ADD)
         self.builder.get_object("xccdf:profile:descriptions:btn_edit").connect("clicked", self.descriptions.dialog, self.data_model.CMD_OPER_EDIT)
         self.builder.get_object("xccdf:profile:descriptions:btn_del").connect("clicked", self.descriptions.dialog, self.data_model.CMD_OPER_DEL)
         self.builder.get_object("xccdf:profile:descriptions:btn_preview").connect("clicked", self.descriptions.preview)
 
         # -- STATUS --
-        self.statuses = EditStatus(self.core, "gui:edit:xccdf:profile:statuses", builder.get_object("xccdf:profile:statuses"), self.data_model)
+        self.statuses = edit.EditStatus(self.core, "gui:edit:xccdf:profile:statuses", builder.get_object("xccdf:profile:statuses"), self.data_model)
         self.builder.get_object("xccdf:profile:statuses:btn_add").connect("clicked", self.statuses.dialog, self.data_model.CMD_OPER_ADD)
         self.builder.get_object("xccdf:profile:statuses:btn_edit").connect("clicked", self.statuses.dialog, self.data_model.CMD_OPER_EDIT)
         self.builder.get_object("xccdf:profile:statuses:btn_del").connect("clicked", self.statuses.dialog, self.data_model.CMD_OPER_DEL)

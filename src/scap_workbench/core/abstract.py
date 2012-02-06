@@ -29,7 +29,6 @@ TODO: Some of these classes are instantiated, some of them have weird names
 
 from gi.repository import Gtk
 from gi.repository import Gdk
-from gi.repository import GObject
 from gi.repository import WebKit
 
 import re

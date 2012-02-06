@@ -24,16 +24,21 @@
 from gi.repository import Gtk
 from gi.repository import Gdk
 from gi.repository import GLib
+from gi.repository import GObject
 
 from datetime import datetime
 
 from scap_workbench import core
 from scap_workbench import paths
+from scap_workbench.core import enum as ENUM
 from scap_workbench.core import abstract
 from scap_workbench.core import commands
 from scap_workbench.core.events import EventObject
-from scap_workbench.editor.edit import *
+from scap_workbench.editor import edit
 from scap_workbench.core.logger import LOGGER
+
+import os.path
+import re
 
 import openscap_api as openscap
 
@@ -208,8 +213,7 @@ class EditConflicts(commands.DHEditItems, abstract.ControlEditWindow):
             self.model.append([data])
     
     def __cb_add(self, widget):
-        EditSelectIdDialogWindow(self.item, self.core, self.model, self.model_item, self.DHEditConflicts)
-    
+        edit.EditSelectIdDialogWindow(self.item, self.core, self.model, self.model_item, self.DHEditConflicts)
     
     def __cb_del_row(self, widget):
         pass
@@ -244,7 +248,7 @@ class EditRequires(commands.DHEditItems, abstract.ControlEditWindow):
                 self.model.append([data])
     
     def __cb_add(self, widget):
-        EditSelectIdDialogWindow(self.item, self.core, self.model, self.model_item, self.DHEditRequires)
+        edit.EditSelectIdDialogWindow(self.item, self.core, self.model, self.model_item, self.DHEditRequires)
     
     def __cb_del_row(self, widget):
         pass
@@ -1245,26 +1249,26 @@ class EditValues(abstract.MenuButton, abstract.Func):
         self.values = builder.get_object("edit:values")
 
         # -- TITLE --
-        self.titles = EditTitle(self.core, "gui:edit:xccdf:values:titles", builder.get_object("edit:values:titles"), self.data_model)
+        self.titles = edit.EditTitle(self.core, "gui:edit:xccdf:values:titles", builder.get_object("edit:values:titles"), self.data_model)
         self.builder.get_object("edit:values:titles:btn_add").connect("clicked", self.titles.dialog, self.data_model.CMD_OPER_ADD)
         self.builder.get_object("edit:values:titles:btn_edit").connect("clicked", self.titles.dialog, self.data_model.CMD_OPER_EDIT)
         self.builder.get_object("edit:values:titles:btn_del").connect("clicked", self.titles.dialog, self.data_model.CMD_OPER_DEL)
 
         # -- DESCRIPTION --
-        self.descriptions = EditDescription(self.core, "gui:edit:xccdf:values:descriptions", builder.get_object("edit:values:descriptions"), self.data_model)
+        self.descriptions = edit.EditDescription(self.core, "gui:edit:xccdf:values:descriptions", builder.get_object("edit:values:descriptions"), self.data_model)
         self.builder.get_object("edit:values:descriptions:btn_add").connect("clicked", self.descriptions.dialog, self.data_model.CMD_OPER_ADD)
         self.builder.get_object("edit:values:descriptions:btn_edit").connect("clicked", self.descriptions.dialog, self.data_model.CMD_OPER_EDIT)
         self.builder.get_object("edit:values:descriptions:btn_del").connect("clicked", self.descriptions.dialog, self.data_model.CMD_OPER_DEL)
         self.builder.get_object("edit:values:descriptions:btn_preview").connect("clicked", self.descriptions.preview)
 
         # -- WARNING --
-        self.warnings = EditWarning(self.core, "gui:edit:xccdf:values:warnings", builder.get_object("edit:values:warnings"), self.data_model)
+        self.warnings = edit.EditWarning(self.core, "gui:edit:xccdf:values:warnings", builder.get_object("edit:values:warnings"), self.data_model)
         builder.get_object("edit:values:warnings:btn_add").connect("clicked", self.warnings.dialog, self.data_model.CMD_OPER_ADD)
         builder.get_object("edit:values:warnings:btn_edit").connect("clicked", self.warnings.dialog, self.data_model.CMD_OPER_EDIT)
         builder.get_object("edit:values:warnings:btn_del").connect("clicked", self.warnings.dialog, self.data_model.CMD_OPER_DEL)
 
         # -- STATUS --
-        self.statuses = EditStatus(self.core, "gui:edit:xccdf:values:statuses", builder.get_object("edit:values:statuses"), self.data_model)
+        self.statuses = edit.EditStatus(self.core, "gui:edit:xccdf:values:statuses", builder.get_object("edit:values:statuses"), self.data_model)
         builder.get_object("edit:values:statuses:btn_add").connect("clicked", self.statuses.dialog, self.data_model.CMD_OPER_ADD)
         builder.get_object("edit:values:statuses:btn_edit").connect("clicked", self.statuses.dialog, self.data_model.CMD_OPER_EDIT)
         builder.get_object("edit:values:statuses:btn_del").connect("clicked", self.statuses.dialog, self.data_model.CMD_OPER_DEL)
@@ -1773,26 +1777,26 @@ class MenuButtonEditItems(abstract.MenuButton, abstract.Func):
         self.ident_box = self.builder.get_object("xccdf:items:ident:box")
         
         # -- TITLES --
-        self.titles = EditTitle(self.core, "gui:edit:xccdf:items:titles", builder.get_object("edit:general:lv_title"), self.data_model)
+        self.titles = edit.EditTitle(self.core, "gui:edit:xccdf:items:titles", builder.get_object("edit:general:lv_title"), self.data_model)
         builder.get_object("edit:general:btn_title_add").connect("clicked", self.titles.dialog, self.data_model.CMD_OPER_ADD)
         builder.get_object("edit:general:btn_title_edit").connect("clicked", self.titles.dialog, self.data_model.CMD_OPER_EDIT)
         builder.get_object("edit:general:btn_title_del").connect("clicked", self.titles.dialog, self.data_model.CMD_OPER_DEL)
 
         # -- DESCRIPTIONS --
-        self.descriptions = EditDescription(self.core, "gui:edit:xccdf:items:descriptions", builder.get_object("edit:general:lv_description"), self.data_model)
+        self.descriptions = edit.EditDescription(self.core, "gui:edit:xccdf:items:descriptions", builder.get_object("edit:general:lv_description"), self.data_model)
         builder.get_object("edit:general:btn_description_add").connect("clicked", self.descriptions.dialog, self.data_model.CMD_OPER_ADD)
         builder.get_object("edit:general:btn_description_edit").connect("clicked", self.descriptions.dialog, self.data_model.CMD_OPER_EDIT)
         builder.get_object("edit:general:btn_description_del").connect("clicked", self.descriptions.dialog, self.data_model.CMD_OPER_DEL)
         builder.get_object("edit:general:btn_description_preview").connect("clicked", self.descriptions.preview)
 
         # -- WARNINGS --
-        self.warnings = EditWarning(self.core, "gui:edit:items:general:warning", builder.get_object("edit:general:lv_warning"), self.data_model)
+        self.warnings = edit.EditWarning(self.core, "gui:edit:items:general:warning", builder.get_object("edit:general:lv_warning"), self.data_model)
         builder.get_object("edit:general:btn_warning_add").connect("clicked", self.warnings.dialog, self.data_model.CMD_OPER_ADD)
         builder.get_object("edit:general:btn_warning_edit").connect("clicked", self.warnings.dialog, self.data_model.CMD_OPER_EDIT)
         builder.get_object("edit:general:btn_warning_del").connect("clicked", self.warnings.dialog, self.data_model.CMD_OPER_DEL)
 
         # -- STATUSES --
-        self.statuses = EditStatus(self.core, "gui:edit:items:general:status", builder.get_object("edit:general:lv_status"), self.data_model)
+        self.statuses = edit.EditStatus(self.core, "gui:edit:items:general:status", builder.get_object("edit:general:lv_status"), self.data_model)
         builder.get_object("edit:general:btn_status_add").connect("clicked", self.statuses.dialog, self.data_model.CMD_OPER_ADD)
         builder.get_object("edit:general:btn_status_edit").connect("clicked", self.statuses.dialog, self.data_model.CMD_OPER_EDIT)
         builder.get_object("edit:general:btn_status_del").connect("clicked", self.statuses.dialog, self.data_model.CMD_OPER_DEL)
@@ -1823,7 +1827,7 @@ class MenuButtonEditItems(abstract.MenuButton, abstract.Func):
         builder.get_object("edit:xccdf:dependencies:platforms:btn_del").connect("clicked", self.platforms.dialog, self.data_model.CMD_OPER_DEL)
 
         # -- CONTENT REF --
-        self.content_ref_dialog = FindOvalDef(self.core, "gui:edit:evaluation:content_ref:dialog", self.data_model)
+        self.content_ref_dialog = edit.FindOvalDef(self.core, "gui:edit:evaluation:content_ref:dialog", self.data_model)
         self.content_ref_find.connect("clicked", self.__cb_find_oval_definition)
 
         # -- FIXTEXTS --

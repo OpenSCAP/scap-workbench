@@ -25,7 +25,6 @@
 
 from gi.repository import Gtk
 from gi.repository import Gdk
-from gi.repository import GObject
 
 import os               # For path basedir
 import tempfile         # Temporary file for XCCDF preview
