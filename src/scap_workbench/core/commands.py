@@ -1457,7 +1457,7 @@ class DHItemsTree(DataHandler, EventObject):
                 iter = model.get_iter(path)
                 alt_path = model.get_path(iter)
                 if map_filter: alt_path = map_filter[alt_path]
-                self.__cb_toggled(cell, alt_path, self.ref_model)
+                self.cb_toggled(cell, alt_path, self.ref_model)
 
         model[path][DHItemsTree.COLUMN_SELECTED] = not model[path][DHItemsTree.COLUMN_SELECTED]
         model[path][DHItemsTree.COLUMN_COLOR] = ["gray", "black"][model[path][DHItemsTree.COLUMN_SELECTED]]
