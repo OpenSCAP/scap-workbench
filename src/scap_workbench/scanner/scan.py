@@ -303,16 +303,10 @@ class DHScan(commands.DataHandler, commands.EventObject):
         self.__current_iter = self.fill([msg.user1str, None, False, title, desc])
         
         if self.__progress != None:
-            with core.gdk_lock:
-                # don't let progress fraction exceed 1.0 = 100%
-                fract = min(self.__progress.get_fraction() + self.step, 1.0)
-                self.__progress.set_fraction(fract)
-                self.count_current = int(round(fract / self.step))
+            self.__progress.set_text("Scanning rule '%s' ... (%s/%s)" % (id, self.count_current + 1, self.count_all))
+            LOGGER.debug("[%s/%s] Scanning rule '%s'" % (self.count_current + 1, self.count_all, id))
                 
-                self.__progress.set_text("Scanning rule '%s' ... (%s/%s)" % (id, self.count_current, self.count_all))
-                LOGGER.debug("[%s/%s] Scanning rule '%s'" % (self.count_current, self.count_all, id))
-                
-                self.__progress.set_tooltip_text("Scanning rule '%s'" % (title))
+            self.__progress.set_tooltip_text("Scanning rule '%s'" % (title))
 
         return self.__cancel
 
@@ -327,11 +321,14 @@ class DHScan(commands.DataHandler, commands.EventObject):
         if result == openscap.OSCAP.XCCDF_RESULT_NOT_SELECTED: 
             return self.__cancel
 
+        self.count_current += 1
+
         with core.gdk_lock:    
             self.fill([id, result, False, title, desc], iter=self.__current_iter)
             self.emit("filled")
             self.treeView.queue_draw()
-            self.count_current = int(round(self.__progress.get_fraction()/self.step))
+            
+            self.__progress.set_fraction(float(self.count_current + 1) / float(self.count_all + 1))
 
         return self.__cancel
 
@@ -340,7 +337,6 @@ class DHScan(commands.DataHandler, commands.EventObject):
 
         self.count_current = 0
         self.count_all = count_all
-        self.step = (100.0/(max(self.count_all, 1)))/100.0
 
     def prepare(self):
         """Prepare system for evaluation
