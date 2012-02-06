@@ -296,19 +296,20 @@ class DHScan(commands.DataHandler, commands.EventObject):
         See __callback_output
         """
         
-        id, result, title, desc = DHScan.__decode_callback_message(msg)
-        if result == openscap.OSCAP.XCCDF_RESULT_NOT_SELECTED: 
+        with core.gdk_lock:
+            id, result, title, desc = DHScan.__decode_callback_message(msg)
+            if result == openscap.OSCAP.XCCDF_RESULT_NOT_SELECTED: 
+                return self.__cancel
+    
+            self.__current_iter = self.fill([msg.user1str, None, False, title, desc])
+            
+            if self.__progress != None:
+                self.__progress.set_text("Scanning rule '%s' ... (%s/%s)" % (id, self.count_current + 1, self.count_all))
+                LOGGER.debug("[%s/%s] Scanning rule '%s'" % (self.count_current + 1, self.count_all, id))
+                    
+                self.__progress.set_tooltip_text("Scanning rule '%s'" % (title))
+    
             return self.__cancel
-
-        self.__current_iter = self.fill([msg.user1str, None, False, title, desc])
-        
-        if self.__progress != None:
-            self.__progress.set_text("Scanning rule '%s' ... (%s/%s)" % (id, self.count_current + 1, self.count_all))
-            LOGGER.debug("[%s/%s] Scanning rule '%s'" % (self.count_current + 1, self.count_all, id))
-                
-            self.__progress.set_tooltip_text("Scanning rule '%s'" % (title))
-
-        return self.__cancel
 
     def __callback_output(self, msg, plugin):
         """The output callback is registered in "prepare" method and is called
@@ -317,20 +318,20 @@ class DHScan(commands.DataHandler, commands.EventObject):
         See __callback_start
         """
         
-        id, result, title, desc = DHScan.__decode_callback_message(msg)
-        if result == openscap.OSCAP.XCCDF_RESULT_NOT_SELECTED: 
-            return self.__cancel
-
-        self.count_current += 1
-
-        with core.gdk_lock:    
+        with core.gdk_lock:
+            id, result, title, desc = DHScan.__decode_callback_message(msg)
+            if result == openscap.OSCAP.XCCDF_RESULT_NOT_SELECTED: 
+                return self.__cancel
+    
+            self.count_current += 1
+    
             self.fill([id, result, False, title, desc], iter=self.__current_iter)
             self.emit("filled")
             self.treeView.queue_draw()
             
             self.__progress.set_fraction(float(self.count_current + 1) / float(self.count_all + 1))
-
-        return self.__cancel
+    
+            return self.__cancel
 
     def clear(self, count_all = 0):
         self.model.clear()
