@@ -122,6 +122,7 @@ class DHScan(commands.DataHandler, commands.EventObject):
         self.__progress=progress
         self.__cancel = False
         self.count_current = 0
+        self.count_all = 0
         self.result = None
 
         core.register(id, self)
@@ -344,23 +345,27 @@ class DHScan(commands.DataHandler, commands.EventObject):
         return False if something goes wrong, True otherwise
         """
 
-        if self.core.registered_callbacks == False:
+        if not self.core.registered_callbacks:
             self.core.lib.policy_model.register_start_callback(self.__callback_start, self)
             self.core.lib.policy_model.register_output_callback(self.__callback_output, self)
             self.core.registered_callbacks = True
             
         else:
+            # callbacks were already registered, there is a chance an OVAL session
+            # is still running and needs to be cancelled
             for oval in self.core.lib.oval_files.values():
                 retval = openscap.oval.agent_reset_session(oval.session)
                 LOGGER.debug("OVAL Agent session reset: %s" % (retval,))
                 if retval != 0: 
                     self.core.notify("Oval agent reset session failed.", core.Notification.ERROR, msg_id="notify:scan:oval_reset")
                     raise RuntimeError("OVAL agent reset session failed, openscap return value: %i" % (retval))
-            self.__cancel = False
+        
+        self.__cancel = False
 
         if self.core.selected_profile == None:
             self.policy = self.core.lib.policy_model.policies[0]
-        else: self.policy = self.core.lib.policy_model.get_policy_by_id(str(self.core.selected_profile))
+        else:
+            self.policy = self.core.lib.policy_model.get_policy_by_id(str(self.core.selected_profile))
         
         self.clear(count_all = len(self.policy.selected_rules))
         
@@ -690,8 +695,8 @@ class MenuButtonScan(abstract.MenuButton, abstract.Func):
         """
         if self.scan_running:
             self.core.notify("Scanning canceled. Please wait for openscap to finish current task.", core.Notification.INFORMATION, msg_id="notify:scan:cancel")
-            self.data_model.cancel()
             self.scan_cancelled = True
+            self.data_model.cancel()
 
     def __cb_help(self, widget):
         window = HelpWindow(self.core)
