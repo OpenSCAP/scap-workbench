@@ -620,15 +620,17 @@ class MenuButtonScan(abstract.MenuButton, abstract.Func):
         ProfileChooser(self.core, self.__update_profile)
 
     def __cb_scan(self, widget=None):
+        if self.scan_running: 
+            LOGGER.error("Scan already running")
+            return
+        
         self.exported_file = None
         for notify in self.notifications:
             notify.destroy()
-        if self.scan_running: 
-            LOGGER.error("Scan already running")
-        else:
-            self.emit("scan")
-            self.data_model.prepare()
-            self.__th_scan()
+
+        self.emit("scan")
+        self.data_model.prepare()
+        self.__th_scan()
 
     def set_scan_in_progress(self, active, previously_scanned = True):
         """This method manages sensitivity of various buttons according to whether scanning
