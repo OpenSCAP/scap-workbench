@@ -443,7 +443,8 @@ class MenuButtonScan(abstract.MenuButton, abstract.Func):
         abstract.Func.__init__(self, core)
         
         self.exported_file = None
-        self.scanRunning = False
+        self.scan_running = False
+        self.scan_cancelled = False
         self.selected_profile = None
 
         self.progress = self.builder.get_object("scan:progress")
@@ -617,7 +618,7 @@ class MenuButtonScan(abstract.MenuButton, abstract.Func):
         self.exported_file = None
         for notify in self.notifications:
             notify.destroy()
-        if self.scanRunning: 
+        if self.scan_running: 
             LOGGER.error("Scan already running")
         else:
             self.emit("scan")
@@ -626,13 +627,15 @@ class MenuButtonScan(abstract.MenuButton, abstract.Func):
 
     def set_scan_in_progress(self, active, previously_scanned = True):
         """This method manages sensitivity of various buttons according to whether scanning
-        is in progress or not. Also manages self.scanRunning
+        is in progress or not. Also manages self.scan_running
         
         active - whether scanning is currently underway
         previously_scanned - have we scanned before? only applies if active if False
         """
         
-        self.scanRunning = active
+        self.scan_running = active
+        if active:
+            self.scan_cancelled = False
       
         self.stop.set_sensitive(active)
         self.scan.set_sensitive(not active)
@@ -672,10 +675,10 @@ class MenuButtonScan(abstract.MenuButton, abstract.Func):
                 self.progress.set_has_tooltip(False)
                 
             LOGGER.debug("Finished scanning")
-            if self.data_model.count_current == self.data_model.count_all:
-                self.core.notify("Scanning finished successfully", core.Notification.SUCCESS, msg_id="notify:scan:complete")
-            else:
+            if self.scan_cancelled:
                 self.core.notify("Scanning prematurely interrupted by user", core.Notification.INFORMATION, msg_id="notify:scan:complete")
+            else:
+                self.core.notify("Scanning finished successfully", core.Notification.SUCCESS, msg_id="notify:scan:complete")
             
             self.core.notify_destroy("notify:scan:cancel")
 
@@ -684,9 +687,10 @@ class MenuButtonScan(abstract.MenuButton, abstract.Func):
     def __cb_cancel(self, widget=None):
         """ Called by user event when stop button pressed
         """
-        if self.scanRunning:
+        if self.scan_running:
             self.core.notify("Scanning canceled. Please wait for openscap to finish current task.", core.Notification.INFORMATION, msg_id="notify:scan:cancel")
             self.data_model.cancel()
+            self.scan_cancelled = True
 
     def __cb_help(self, widget):
         window = HelpWindow(self.core)
@@ -792,4 +796,3 @@ class HelpWindow(abstract.Window):
 
     def destroy_window(self, widget):
         self.window.destroy()
-
