@@ -303,10 +303,18 @@ class DHScan(commands.DataHandler, commands.EventObject):
     
             self.__current_iter = self.fill([msg.user1str, None, False, title, desc])
             
-            if self.__progress != None:
+            if self.__progress is not None:
+                # a check is starting, that means that all the preparations
+                # have just been done or have been already done long before
+                # this point
+                # we count the preparation as one step
+                min_fraction = float(1) / float(self.count_all + 1)
+                if self.__progress.get_fraction() < min_fraction:
+                    self.__progress.set_fraction(min_fraction)
+                
                 self.__progress.set_text("Scanning rule '%s' ... (%s/%s)" % (id, self.count_current + 1, self.count_all))
                 LOGGER.debug("[%s/%s] Scanning rule '%s'" % (self.count_current + 1, self.count_all, id))
-                    
+                
                 self.__progress.set_tooltip_text("Scanning rule '%s'" % (title))
     
             return self.__cancel
@@ -643,7 +651,7 @@ class MenuButtonScan(abstract.MenuButton, abstract.Func):
         self.scan_running = active
         if active:
             self.scan_cancelled = False
-      
+        
         self.stop.set_sensitive(active)
         self.scan.set_sensitive(not active)
         self.export.set_sensitive(not active and previously_scanned)
@@ -658,15 +666,16 @@ class MenuButtonScan(abstract.MenuButton, abstract.Func):
         if not self.data_model.check_library():
             return None
         
-        with core.gdk_lock:  
+        with core.gdk_lock:
             self.set_scan_in_progress(True)
+            
+            if self.progress is not None:
+                self.progress.set_fraction(0.0)
+                self.progress.set_text("Preparing ...")
+                
             self.core.notify_destroy("notify:scan:complete")
         
         LOGGER.debug("Scanning %s ..", self.data_model.policy.id)
-        if self.progress != None:
-            with core.gdk_lock:
-                self.progress.set_fraction(0.0)
-                self.progress.set_text("Preparing ...")
 
         # at this point evaluation will keep working in this thread,
         # DHScan.__callback_start and DHScan.__callback_end will get called when each
