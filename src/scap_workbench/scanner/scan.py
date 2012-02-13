@@ -621,7 +621,7 @@ class MenuButtonScan(abstract.MenuButton, abstract.Func):
             else:
                 retval = self.data_model.export(file_name, self.result)
                 # TODO: More info about the error
-                ret = (core.Notification.ERROR, "Export failed") if not retval else (core.Notification.SUCCESS, "Report file saved successfully")
+                ret = (core.Notification.ERROR, "Export failed") if not retval else (core.Notification.SUCCESS, "Report file and results exported successfully")
                 
                 # TODO: We should be more robust and do more error checking here
                 self.data_model.perform_xslt_transformation(file = retval,
