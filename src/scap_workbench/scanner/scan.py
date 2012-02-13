@@ -26,8 +26,9 @@
 from gi.repository import Gtk
 from gi.repository import Gdk
 
-import os               # For path basedir
-import tempfile         # Temporary file for XCCDF preview
+import os
+import tempfile
+import shutil
 
 from scap_workbench import core
 from scap_workbench import paths
@@ -346,6 +347,10 @@ class DHScan(commands.DataHandler, commands.EventObject):
 
         self.count_current = 0
         self.count_all = count_all
+        
+        if self.core.lib.sce_parameters is not None:
+            # clear the SCE session of all previous results
+            self.core.lib.sce_parameters.get_session().reset()
 
     def prepare(self):
         """Prepare system for evaluation
@@ -406,12 +411,16 @@ class DHScan(commands.DataHandler, commands.EventObject):
             for file in files:
                 LOGGER.debug("Exported: %s", file)
             
+            if self.core.lib.sce_parameters is not None:
+                # export SCE results to directory where file file_name is located
+                self.core.lib.sce_parameters.get_session().export_to_directory(os.path.dirname(file_name))
+            
             return file_name
         
         else:
             return None
 
-    def perform_xslt_transformation(self, file, xslfile=None, expfile=None, hide_profile=None, result_id=None, oval_path=None, sce_path="/tmp"):
+    def perform_xslt_transformation(self, file, xslfile=None, expfile=None, hide_profile=None, result_id=None, oval_path="/tmp", sce_path="/tmp"):
         """Performs XSLT transformation on given file (raw XML results data, from DHScan.export for example).
         
         The resulting file (expfile) is the given raw XML results file transformed. Depending on the XSLT transformation
@@ -548,26 +557,30 @@ class MenuButtonScan(abstract.MenuButton, abstract.Func):
             self.prepare_preview()
             Gdk.flush()
             
-            raw_temp = tempfile.NamedTemporaryFile()
-            transformed_temp = tempfile.NamedTemporaryFile()
-            
-            if not self.data_model.export(raw_temp.name, self.result):
-                self.notifications.append(self.core.notify("Export failed.", core.Notification.ERROR, msg_id="notify:scan:export"))
-                return
-            
-            self.data_model.perform_xslt_transformation(file = raw_temp.name,
-                                                        expfile = transformed_temp.name,
-                                                        result_id = self.result.id,
-                                                        oval_path = os.path.dirname(raw_temp.name),
-                                                        sce_path = "/tmp")
-            
-            desc = transformed_temp.read()
-            
-            self.preview(widget = None, desc = desc, save = self.__cb_save_report)
-            
-            raw_temp.close()
-            transformed_temp.close()
-            
+            dirname = tempfile.mkdtemp()
+            try:
+                raw_file = os.path.join(dirname, "result.xml")
+                transformed_file = os.path.join(dirname, "report.xhtml")
+                
+                if not self.data_model.export(file_name = raw_file,
+                                              result = self.result):
+                    self.notifications.append(self.core.notify("Export failed.", core.Notification.ERROR, msg_id="notify:scan:export"))
+                    return
+                
+                self.data_model.perform_xslt_transformation(file = raw_file,
+                                                            expfile = transformed_file,
+                                                            result_id = self.result.id,
+                                                            oval_path = dirname,
+                                                            sce_path = dirname)
+                
+                desc = open(transformed_file).read()
+                
+                self.preview(widget = None, desc = desc, save = self.__cb_save_report)
+                
+            finally:
+                # no matter what happens, make sure we clean up after ourselves
+                shutil.rmtree(dirname)
+                
         else:
             self.notifications.append(self.core.notify("Nothing to export.", core.Notification.ERROR, msg_id="notify:scan:export"))
 
@@ -606,8 +619,12 @@ class MenuButtonScan(abstract.MenuButton, abstract.Func):
                 # TODO: More info about the error
                 ret = (core.Notification.ERROR, "Export failed") if not retval else (core.Notification.SUCCESS, "Report file saved successfully")
                 
+                dirname = os.path.dirname(retval)
                 # TODO: We should be more robust and do more error checking here
-                self.data_model.perform_xslt_transformation(retval, result_id = self.result.id, oval_path = os.path.dirname(retval))
+                self.data_model.perform_xslt_transformation(file = retval,
+                                                            result_id = self.result.id,
+                                                            oval_path = dirname,
+                                                            sce_path = dirname)
                 
                 if append_notifications:
                     self.notifications.append(self.core.notify(ret[1], ret[0], msg_id="notify:scan:export"))

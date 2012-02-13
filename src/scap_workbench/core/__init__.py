@@ -270,8 +270,8 @@ class Library(object):
         if len(self.sce_files) > 0:
             try:
                 self.sce_parameters = openscap.sce.parameters_new()
-                openscap.sce.parameters_set_xccdf_directory(self.sce_parameters, os.path.dirname(self.xccdf) if self.xccdf else None)
-                openscap.sce.parameters_set_results_target_directory(self.sce_parameters, "/tmp")
+                self.sce_parameters.set_xccdf_directory(os.path.dirname(self.xccdf) if self.xccdf else None)
+                self.sce_parameters.allocate_session()
                 self.policy_model.register_engine_sce(self.sce_parameters)
             
             except Exception as e:
