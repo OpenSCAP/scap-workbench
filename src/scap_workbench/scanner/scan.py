@@ -560,7 +560,7 @@ class MenuButtonScan(abstract.MenuButton, abstract.Func):
             dirname = tempfile.mkdtemp()
             try:
                 raw_file = os.path.join(dirname, "result.xml")
-                transformed_file = os.path.join(dirname, "report.xhtml")
+                transformed_file = os.path.join(dirname, "report.html")
                 
                 if not self.data_model.export(file_name = raw_file,
                                               result = self.result):
@@ -592,13 +592,17 @@ class MenuButtonScan(abstract.MenuButton, abstract.Func):
                                otherwise it will return a notification 2-tuple 
         """
         
-        chooser = Gtk.FileChooserDialog(title="Save report", action=Gtk.FileChooserAction.SAVE,
-                buttons=(Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL, Gtk.STOCK_SAVE, Gtk.ResponseType.OK))
-        chooser.set_current_name("result.xml")
+        chooser = Gtk.FileChooserDialog(title = "Save results to directory",
+                                        action = Gtk.FileChooserAction.SELECT_FOLDER,
+                                        buttons = (Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL, Gtk.STOCK_SAVE, Gtk.ResponseType.OK))
         response = chooser.run()
         
         if response == Gtk.ResponseType.OK:
-            file_name = chooser.get_filename()
+            dirname = chooser.get_uri()
+            assert(dirname.startswith("file://"))
+            dirname = dirname[7:] # strips the "file://" prefix
+            
+            file_name = os.path.join(dirname, "result.xml")
         
             chooser.destroy()
     
@@ -619,10 +623,10 @@ class MenuButtonScan(abstract.MenuButton, abstract.Func):
                 # TODO: More info about the error
                 ret = (core.Notification.ERROR, "Export failed") if not retval else (core.Notification.SUCCESS, "Report file saved successfully")
                 
-                dirname = os.path.dirname(retval)
                 # TODO: We should be more robust and do more error checking here
                 self.data_model.perform_xslt_transformation(file = retval,
                                                             result_id = self.result.id,
+                                                            expfile = os.path.join(dirname, "report.html"),
                                                             oval_path = dirname,
                                                             sce_path = dirname)
                 
