@@ -437,9 +437,8 @@ class DHScan(commands.DataHandler, commands.EventObject):
             "verbosity",         "",
             "oscap-version",     openscap.common.oscap_get_version(),
             "pwd",               os.getenv("PWD"),
-            # TODO: oval_path actually can't be None or this fails! We need to find a more sensible default value
-            "oval-template",     os.path.join(oval_path,"%.result.xml"),
-            "sce-template",      os.path.join(sce_path,"%.result.xml")
+            "oval-template",     os.path.join(oval_path, "%.result.xml"),
+            "sce-template",      os.path.join(sce_path,  "%.result.xml")
         ]
 
         if not xslfile:
@@ -684,10 +683,10 @@ class MenuButtonScan(abstract.MenuButton, abstract.Func):
         """Starts scanning in a separate thread (via the @threadSave decorator, see threads.py)
         """
         
-        if not self.data_model.check_library():
-            return None
-        
         with core.gdk_lock:
+            if not self.data_model.check_library():
+                return None
+            
             self.set_scan_in_progress(True)
             
             if self.progress is not None:
@@ -696,7 +695,7 @@ class MenuButtonScan(abstract.MenuButton, abstract.Func):
                 
             self.core.notify_destroy("notify:scan:complete")
         
-        LOGGER.debug("Scanning %s ..", self.data_model.policy.id)
+            LOGGER.debug("Scanning %s ..", self.data_model.policy.id)
 
         # at this point evaluation will keep working in this thread,
         # DHScan.__callback_start and DHScan.__callback_end will get called when each
