@@ -1520,9 +1520,12 @@ class DHItemsTree(DataHandler, EventObject):
         """
         if item is not None:
             # Get striped titles without white characters
+            title = ""
             titles = dict([(title.lang, " ".join(title.text.split())) for title in item.title])
-            if self.core.selected_lang in titles.keys(): title = titles[self.core.selected_lang]
-            else: title = titles[titles.keys()[0]]
+            if self.core.selected_lang in titles.keys():
+                title = titles[self.core.selected_lang]
+            elif len(titles) > 0:
+                title = titles[titles.keys()[0]]
 
             # TYPE: XCCDF_GROUP
             if item.type == openscap.OSCAP.XCCDF_GROUP:
