@@ -2120,7 +2120,7 @@ class MenuButtonEditItems(abstract.MenuButton, abstract.Func):
  
             item = self.core.lib.benchmark.get_item(self.core.selected_item)
             rule = item.to_rule()
-            self.system.set_text(rule.checks[0].system if len(rule.checks) >= 0 else "")
+            self.system.set_text(rule.checks[0].system if len(rule.checks) > 0 else "")
  
             self.href.get_model().clear()
             for name in self.core.lib.oval_files.keys():
@@ -2131,7 +2131,9 @@ class MenuButtonEditItems(abstract.MenuButton, abstract.Func):
             if content != None and len(content) > 0:
                 self.content_ref.set_text(content[0][0] or "")
                 for i, item in enumerate(self.href.get_model()):
-                    if item[0] == content[0][1]: self.href.set_active(i)
+                    if item[0] == content[0][1]:
+                        self.href.set_active(i)
+                
             self.item_values.fill()
             
         else: # Item is GROUP
