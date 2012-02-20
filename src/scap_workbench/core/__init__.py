@@ -29,7 +29,6 @@ from gi.repository import Pango
 
 import os
 import sys
-import getopt
 import os.path
 import logging
 
@@ -331,30 +330,6 @@ class SWBCore(object):
 
         # Info Box
         self.info_box = self.builder.get_object("info_box")
-
-        # parse input arguments
-        arguments = sys.argv[1:]
-
-        try:
-            opts, args = getopt.getopt(arguments, "+D", ["debug"])
-        except getopt.GetoptError, err:
-            # print help information and exit
-            print >>sys.stderr, "(ERROR)", str(err)
-            print >>sys.stderr, "Try 'scap-workbench --help' for more information."
-            sys.exit(2)
-
-        for o, a in opts:
-            if o in ("-D", "--version"):
-                LOGGER.setLevel(logging.DEBUG)
-                LOGGER.root.setLevel(logging.DEBUG)
-            else:
-                print >>sys.stderr, "(ERROR) Unknown option or missing mandatory argument '%s'" % (o,)
-                print >>sys.stderr, "Try 'scap-workbench --help' for more information."
-                sys.exit(2)
-
-        if len(args) > 0:
-            LOGGER.debug("Loading XCCDF file %s", sys.argv[1])
-            self.init(args[0])
 
         self.set_receiver("gui:btn:main:xccdf", "load", self.__set_force)
 

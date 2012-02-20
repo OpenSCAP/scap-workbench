@@ -32,16 +32,32 @@ from scap_workbench import paths
 from scap_workbench import core
 from scap_workbench.core import abstract
 from scap_workbench.core import error
+from scap_workbench.core.logger import LOGGER
 
 from scap_workbench.scanner import xccdf
 from scap_workbench.scanner import tailoring
 from scap_workbench.scanner import scan
+
+import logging
+import argparse
 
 class MainWindow(abstract.Window):
     """The central window of scap-workbench scanner
     """
 
     def __init__(self):
+        parser = argparse.ArgumentParser(description = "Starts the scanner application of scap-workbench")
+        parser.add_argument("--debug", const = True, action = "store_const",
+                            help = "Enable verbose debug level logging")
+        parser.add_argument("XCCDF_FILE", type = str, nargs = "?",
+                            help = "Load given XCCDF file immediately after the application starts")
+        
+        args = parser.parse_args()
+        
+        if args.debug:
+            LOGGER.setLevel(logging.DEBUG)
+            LOGGER.root.setLevel(logging.DEBUG)        
+        
         error.install_exception_hook()
 
         self.builder = Gtk.Builder()
@@ -64,7 +80,8 @@ class MainWindow(abstract.Window):
         # abstract the main menu
         # FIXME: Instantiating an abstract class?!
         self.menu = abstract.Menu("gui:menu", self.builder.get_object("main:toolbar"), self.core)
-        self.menu.add_item(xccdf.MenuButtonXCCDF(self.builder, self.builder.get_object("main:toolbar:main"), self.core))
+        xccdf_menu_button = xccdf.MenuButtonXCCDF(self.builder, self.builder.get_object("main:toolbar:main"), self.core)
+        self.menu.add_item(xccdf_menu_button)
         # FIXME: Instantiating an abstract class?!
         self.menu.add_item(abstract.MenuButton("gui:btn:menu:reports", self.builder.get_object("main:toolbar:reports"), self.core))
         self.menu.add_item(tailoring.MenuButtonTailoring(self.builder, self.builder.get_object("main:toolbar:tailoring"), self.core))
@@ -74,7 +91,10 @@ class MainWindow(abstract.Window):
         self.builder.get_object("main:toolbar:main").set_active(True)
 
         self.core.get_item("gui:btn:main:xccdf").update()
-
+        
+        if args.XCCDF_FILE is not None:
+            xccdf_menu_button.import_xccdf(args.XCCDF_FILE)
+        
     def delete_event(self, widget, event, data=None):
         """Closes the window and quits
         """

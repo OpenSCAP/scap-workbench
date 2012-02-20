@@ -29,18 +29,33 @@ from scap_workbench import paths
 
 from scap_workbench.core import abstract
 from scap_workbench.core import error
+from scap_workbench.core.logger import LOGGER
 
 from scap_workbench.editor import xccdf
 from scap_workbench.editor import profiles
 from scap_workbench.editor import items
 
 import os.path
+import logging
+import argparse
 
 class MainWindow(abstract.Window):
     """The central window of scap-workbench-editor
     """
     
     def __init__(self):
+        parser = argparse.ArgumentParser(description = "Starts the editor application of scap-workbench")
+        parser.add_argument("--debug", const = True, action = "store_const",
+                            help = "Enable verbose debug level logging")
+        parser.add_argument("XCCDF_FILE", type = str, nargs = "?",
+                            help = "Load given XCCDF file immediately after the application starts")
+        
+        args = parser.parse_args()
+        
+        if args.debug:
+            LOGGER.setLevel(logging.DEBUG)
+            LOGGER.root.setLevel(logging.DEBUG)    
+        
         error.install_exception_hook()
         
         self.builder = Gtk.Builder()
@@ -62,7 +77,8 @@ class MainWindow(abstract.Window):
         # abstract the main menu
         # FIXME: Instantiating abstract class
         self.menu = abstract.Menu("gui:menu", self.builder.get_object("main:toolbar"), self.core)
-        self.menu.add_item(xccdf.MenuButtonEditXCCDF(self.builder, self.builder.get_object("main:toolbar:main"), self.core))
+        xccdf_menu_button = xccdf.MenuButtonEditXCCDF(self.builder, self.builder.get_object("main:toolbar:main"), self.core)
+        self.menu.add_item(xccdf_menu_button)
         self.menu.add_item(profiles.MenuButtonEditProfiles(self.builder, self.builder.get_object("main:toolbar:profiles"), self.core))
         self.menu.add_item(items.MenuButtonEditItems(self.builder, self.builder.get_object("main:toolbar:items"), self.core))
 
@@ -73,6 +89,9 @@ class MainWindow(abstract.Window):
         if self.core.lib.loaded:
             self.core.get_item("gui:btn:menu:edit:profiles").set_sensitive(True)
             self.core.get_item("gui:btn:menu:edit:items").set_sensitive(True)
+            
+        if args.XCCDF_FILE is not None:
+            xccdf_menu_button.import_xccdf(args.XCCDF_FILE)
 
     def delete_event(self, widget, event, data=None):
         """Closes the window and quits

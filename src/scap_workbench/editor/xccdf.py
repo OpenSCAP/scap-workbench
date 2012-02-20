@@ -238,7 +238,7 @@ class MenuButtonEditXCCDF(abstract.MenuButton):
 
         self.emit("load")
 
-    def __import(self, file):
+    def import_xccdf(self, file):
         if file != "":
             self.__cb_close(None)
             LOGGER.debug("Loading XCCDF file %s", file)
@@ -264,7 +264,7 @@ class MenuButtonEditXCCDF(abstract.MenuButton):
         self.notifications.append(self.core.notify(message, lvl, msg_id="notify:xccdf:validate"))
 
     def __cb_import(self, widget):
-        dialogs.ImportDialog(self.core, self.data_model, self.__import)
+        dialogs.ImportDialog(self.core, self.data_model, self.import_xccdf)
 
     def __cb_export(self, widget):
         dialogs.ExportDialog(self.core, self.data_model)
