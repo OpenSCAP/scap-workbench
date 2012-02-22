@@ -269,7 +269,7 @@ class Library(object):
         if len(self.sce_files) > 0:
             try:
                 self.sce_parameters = openscap.sce.parameters_new()
-                self.sce_parameters.set_xccdf_directory(os.path.dirname(self.xccdf) if self.xccdf else None)
+                self.sce_parameters.set_xccdf_directory(os.path.dirname(os.path.abspath(self.xccdf)) if self.xccdf else None)
                 self.sce_parameters.allocate_session()
                 self.policy_model.register_engine_sce(self.sce_parameters)
             
