@@ -27,7 +27,7 @@ How to run it out of the box
     $ scap-workbench
   
     With debug:
-    $ scap-workbench -D
+    $ scap-workbench --debug
 
     With an XCCDF file to load:
     $ scap-workbench /path/to/xccdf-file
@@ -37,7 +37,7 @@ How to run it out of the box
     $ scap-workbench-editor
 
     With debug:
-    $ scap-workbench-editor
+    $ scap-workbench-editor --debug
 
     With an XCCDF file to load:
     $ scap-workbench-editor /path/to/xccdf-file
