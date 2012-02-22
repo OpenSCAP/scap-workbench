@@ -25,7 +25,7 @@ scanner and editor.
 
 MAJOR = 0
 MINOR = 6
-PATCH = 2
+PATCH = 3
 
 AS_STRING = "%i.%i.%i" % (MAJOR, MINOR, PATCH)
 

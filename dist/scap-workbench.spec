@@ -7,8 +7,8 @@
 Summary: Scanning, tailoring, editing and validation tool for SCAP content
 Name: scap-workbench
 URL: https://fedorahosted.org/scap-workbench/
-Version: 0.6.2
-Release: 2%{?dist}
+Version: 0.6.3
+Release: 1%{?dist}
 License: GPLv3+
 Group: System Environment/Base
 Source0: https://fedorahosted.org/released/scap-workbench/%{name}-%{version}.tar.bz2
@@ -60,6 +60,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_datadir}/pixmaps/scap-workbench-editor.png
 
 %changelog
+* Wed Feb 22 2012 Martin Preisler <mpreisle@redhat.com> 0.6.3-1
+- New upstream version 0.6.3
+
 * Wed Jan 11 2012 Martin Preisler <mpreisle@redhat.com> 0.6.2-2
 - Fixed Requires
 
