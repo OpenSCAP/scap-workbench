@@ -1124,7 +1124,7 @@ class DHXccdf(DataHandler):
                 "oval-template",     None,
                 "verbosity",         "1",
                 "oscap-version",     openscap.common.oscap_get_version(),
-                "pwd",               os.getenv("PWD")
+                "pwd",               os.getcwd()
         ]
 
         retval = openscap.common.oscap_apply_xslt(xccdf, "security-guide.xsl", file, params)
