@@ -115,7 +115,9 @@ class DataHandler(object):
 
         # Case 2: check is None -- this is regular call of function
         item = self.core.lib.benchmark.get_item(id)
-        if item.type != openscap.OSCAP.XCCDF_RULE: raise TypeError("Wrong type of item with id \"%s\". Expected XCCDF_RULE, got " % (id, item.type))
+        if item.type != openscap.OSCAP.XCCDF_RULE:
+            raise TypeError("Wrong type of item with id \"%s\". Expected XCCDF_RULE, got \"%i\"." % (id, item.type))
+        
         rule = item.to_rule()
         for check in rule.checks:
             if check.complex:
