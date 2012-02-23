@@ -564,7 +564,7 @@ class EditSelectIdDialogWindow(object):
             menu.popup(None,None,None,event.button,event.time)
             
     def show(self):
-        self.set_transient_for(self.core.main_window)
+        self.window.set_transient_for(self.core.main_window)
         self.window.show()
 
     def __delete_event(self, widget, event=None):

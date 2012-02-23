@@ -213,7 +213,15 @@ class EditConflicts(commands.DHEditItems, abstract.ControlEditWindow):
             self.model.append([data])
     
     def __cb_add(self, widget):
-        edit.EditSelectIdDialogWindow(self.item, self.core, self.model, self.model_item, self.DHEditConflicts)
+        # unimplemented
+        dialog = Gtk.MessageDialog(None, 0, Gtk.MessageType.INFO,
+            Gtk.ButtonsType.OK, "Not implemented!")
+        dialog.format_secondary_text(
+            "Sorry, manipulating conflicts is not implemented yet!")
+        dialog.run()
+        dialog.destroy()
+        
+        #edit.EditSelectIdDialogWindow(self.item, self.core, self.model, self.model_item, self.DHEditConflicts)
     
     def __cb_del_row(self, widget):
         pass
@@ -248,8 +256,16 @@ class EditRequires(commands.DHEditItems, abstract.ControlEditWindow):
                 self.model.append([data])
     
     def __cb_add(self, widget):
-        edit.EditSelectIdDialogWindow(self.item, self.core, self.model, self.model_item, self.DHEditRequires)
+        # unimplemented
+        dialog = Gtk.MessageDialog(None, 0, Gtk.MessageType.INFO,
+            Gtk.ButtonsType.OK, "Not implemented!")
+        dialog.format_secondary_text(
+            "Sorry, manipulating requires is not implemented yet!")
+        dialog.run()
+        dialog.destroy()
     
+        #edit.EditSelectIdDialogWindow(self.item, self.core, self.model, self.model_item, self.DHEditRequires)
+        
     def __cb_del_row(self, widget):
         pass
 

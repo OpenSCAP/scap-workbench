@@ -54,7 +54,7 @@ class EventObject(GObject.GObject):
         signal: string representing the signal
         """
         
-        LOGGER.debug("Emiting signal %s from %s", signal, self.id)
+        LOGGER.debug("Emiting signal %s from %s" % (signal, getattr(self, "id", "<unknown>")))
         super(EventObject, self).emit(signal)
 
     def add_sender(self, id, signal, *args):
@@ -68,7 +68,7 @@ class EventObject(GObject.GObject):
         """
         
         if not GObject.signal_lookup(signal, EventObject): 
-            LOGGER.debug("Creating signal %s::%s", id, signal)
+            LOGGER.debug("Creating signal %s::%s" % (id, signal))
             GObject.signal_new(signal, EventObject, GObject.SignalFlags.RUN_FIRST, None, ())
 
         if self.core != None:
