@@ -903,7 +903,7 @@ class ListEditor(EventObject, Func):
         
         iter = self.dialogDel(self.core.main_window, self.get_selection())
         if iter is not None:
-            values["cb"](self.item, self.get_model(), iter, None, None, True)
+            values["cb"](getattr(self, "item", None), self.get_model(), iter, None, None, True)
 
     def set_model(self, model):
         self.__treeView.set_model(model)
