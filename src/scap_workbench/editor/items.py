@@ -1971,18 +1971,6 @@ class MenuButtonEditItems(abstract.MenuButton, abstract.Func):
             else: return
             self.list_item.search(id, 1)
 
-    def __section_list_load(self):
-        self.section_list.get_model().clear()
-        titles = self.data_model.get_benchmark_titles()
-        if len(titles.keys()) != 0:
-            if self.core.selected_lang in titles: 
-                title = self.data_model.get_benchmark_titles()[self.core.selected_lang]
-            else: 
-                self.data_model.get_benchmark_titles()[0]
-            self.section_list.get_model().append(["XCCDF", "XCCDF: "+title])
-            self.section_list.get_model().append(["PROFILES", "XCCDF: "+title+" (Profiles)"])
-            self.section_list.set_active(0)
-
     def cb_control_impact_metric(self, widget, event):
         text = widget.get_text()
         if text != "" and self.controlImpactMetric(text, self.core):
