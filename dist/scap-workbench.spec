@@ -15,7 +15,7 @@ Source0: https://fedorahosted.org/released/scap-workbench/%{name}-%{version}.tar
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}
 BuildArch: noarch
 BuildRequires: python2-devel desktop-file-utils
-Requires: openscap-python >= 0.7.2
+Requires: openscap-python >= 0.8.1
 Requires: gtk3
 Requires: pygobject3
 # FIXME: scap-workbench can run without webkitgtk but the detection is currently broken (0.6.2 upstream)
