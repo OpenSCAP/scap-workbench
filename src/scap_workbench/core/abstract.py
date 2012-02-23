@@ -264,7 +264,8 @@ class List(EventObject):
         else:
             self.treeView = widget
         self.add_sender(id, "update")
-        # FIXME: self.data_model has to be set at this point, otherwise render() will fail!
+        
+        self.data_model = None
         self.render()
 
     def filter_listview(self, model, iter, data):
@@ -309,13 +310,12 @@ class List(EventObject):
         """Returns treeView"""
         return self.treeView
 
-    def get_widget(self):
-        """Returns top widget"""
-        return self.scrolledWindow
-
     def render(self):
-        if self.data_model: self.data_model.render(self.get_TreeView())
-        else: LOGGER.error("Data model does not exist")
+        if self.data_model is not None:
+            self.data_model.render(self.get_TreeView())
+            
+        else:
+            LOGGER.error("Data model does not exist")
 
     def __match_func(self, model, iter, data):
         """ search pattern in column of model"""
