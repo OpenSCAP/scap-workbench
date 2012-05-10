@@ -37,6 +37,7 @@ import time
 import os.path
 
 from scap_workbench import paths
+from scap_workbench import version
 from scap_workbench.core import Notification
 from scap_workbench.core.events import EventObject
 from scap_workbench.core.logger import LOGGER
@@ -613,6 +614,7 @@ class Func(object):
 
     def prepare_preview(self):
         builder = Gtk.Builder()
+        builder.set_translation_domain(version.TRANSLATION_DOMAIN)
         builder.add_from_file(os.path.join(paths.glade_dialog_prefix, "preview.glade"))
         self.preview_dialog = builder.get_object("dialog:preview")
         self.preview_scw = builder.get_object("dialog:preview:scw")
@@ -1303,6 +1305,7 @@ class EditDialogWindow(EventObject):
         self.item = item
         self.init_data = None
         builder = Gtk.Builder()
+        builder.set_translation_domain(version.TRANSLATION_DOMAIN)
         builder.add_from_file(os.path.join(paths.glade_prefix, "dialogs.glade"))
         
         self.window = builder.get_object("dialog:edit_item")

@@ -32,6 +32,7 @@ import shutil
 
 from scap_workbench import core
 from scap_workbench import paths
+from scap_workbench import version
 from scap_workbench.core import abstract
 from scap_workbench.core import commands
 from scap_workbench.core import filter
@@ -745,11 +746,14 @@ class ProfileChooser(object):
         self.data_model = commands.DHProfiles(core)
 
         builder = Gtk.Builder()
+        builder.set_translation_domain(version.TRANSLATION_DOMAIN)
         builder.add_from_file(os.path.join(paths.glade_dialog_prefix, "profile_change.glade"))
+        
         self.dialog = builder.get_object("dialog:profile_change")
         self.info_box = builder.get_object("dialog:profile_change:info_box")
         self.profiles = builder.get_object("dialog:profile_change:profiles")
         self.profiles.connect("key-press-event", self.__do)
+        
         builder.get_object("dialog:profile_change:btn_ok").connect("clicked", self.__do)
         builder.get_object("dialog:profile_change:btn_cancel").connect("clicked", self.__dialog_destroy)
 
@@ -796,6 +800,7 @@ class HelpWindow(abstract.Window):
         super(HelpWindow, self).__init__("scan:help:window", core, skip_registration = True)
         
         self.builder = Gtk.Builder()
+        self.builder.set_translation_domain(version.TRANSLATION_DOMAIN)
         self.builder.add_from_file(os.path.join(paths.glade_prefix, "scan_help.glade"))
         
         self.window = None

@@ -43,6 +43,7 @@ class ExceptionDialog(object):
         """
         
         self.builder = Gtk.Builder()
+        self.builder.set_translation_domain(version.TRANSLATION_DOMAIN)
         self.builder.add_from_file(os.path.join(paths.glade_prefix, "error.glade"))
         
         self.window = self.builder.get_object("exception_dialog")

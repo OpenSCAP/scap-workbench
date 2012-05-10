@@ -23,6 +23,8 @@
 scanner and editor.
 """
 
+TRANSLATION_DOMAIN = "scap-workbench"
+
 MAJOR = 0
 MINOR = 6
 PATCH = 3

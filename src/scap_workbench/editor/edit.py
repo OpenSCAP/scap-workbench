@@ -33,6 +33,7 @@ import re
 import os
 
 from scap_workbench import paths
+from scap_workbench import version
 from scap_workbench import core
 from scap_workbench.core import abstract
 import scap_workbench.core.enum as ENUM
@@ -79,7 +80,9 @@ class EditTitle(abstract.ListEditor):
         """
         """
         self.operation = operation
+        
         builder = Gtk.Builder()
+        builder.set_translation_domain(version.TRANSLATION_DOMAIN)
         builder.add_from_file(os.path.join(paths.glade_dialog_prefix, "edit_title.glade"))
         
         self.wdialog = builder.get_object("dialog:edit_title")
@@ -172,14 +175,18 @@ class EditDescription(abstract.HTMLEditor):
         """
         """
         self.operation = operation
+        
         builder = Gtk.Builder()
+        builder.set_translation_domain(version.TRANSLATION_DOMAIN)
         builder.add_from_file(os.path.join(paths.glade_dialog_prefix, "edit_description.glade"))
+        
         self.wdialog = builder.get_object("dialog:edit_description")
         self.info_box = builder.get_object("dialog:edit_description:info_box")
         self.lang = builder.get_object("dialog:edit_description:lang")
         self.overrides = builder.get_object("dialog:edit_description:overrides")
         self.toolbar = builder.get_object("dialog:edit_description:toolbar")
         self.html_box = builder.get_object("dialog:edit_description:html:box")
+        
         builder.get_object("dialog:edit_description:action:bold").connect("activate", self.on_action, "bold")
         builder.get_object("dialog:edit_description:action:italic").connect("activate", self.on_action, "italic")
         builder.get_object("dialog:edit_description:action:underline").connect("activate", self.on_action, "underline")
@@ -285,8 +292,11 @@ class EditWarning(abstract.ListEditor):
         """
         """
         self.operation = operation
+        
         builder = Gtk.Builder()
+        builder.set_translation_domain(version.TRANSLATION_DOMAIN)
         builder.add_from_file(os.path.join(paths.glade_dialog_prefix, "edit_warning.glade"))
+        
         self.wdialog = builder.get_object("dialog:edit_warning")
         self.info_box = builder.get_object("dialog:edit_warning:info_box")
         self.lang = builder.get_object("dialog:edit_warning:lang")
@@ -381,8 +391,11 @@ class EditStatus(abstract.ListEditor):
         """
         """
         self.operation = operation
+        
         builder = Gtk.Builder()
+        builder.set_translation_domain(version.TRANSLATION_DOMAIN)
         builder.add_from_file(os.path.join(paths.glade_dialog_prefix, "edit_status.glade"))
+        
         self.wdialog = builder.get_object("dialog:edit_status")
         self.info_box = builder.get_object("dialog:edit_status:info_box")
         self.calendar = builder.get_object("dialog:edit_status:calendar")
@@ -446,6 +459,7 @@ class EditSelectIdDialogWindow(object):
         self.model_item = model_item
         
         builder = Gtk.Builder()
+        builder.set_translation_domain(version.TRANSLATION_DOMAIN)
         builder.add_from_file(os.path.join(paths.glade_prefix, "dialogs.glade"))
 
         self.window = builder.get_object("dialog:add_id")
@@ -692,10 +706,10 @@ class FindOvalDef(abstract.Window, abstract.ListEditor):
             self.wdialog.destroy()
 
     def dialog(self, widget, href):
-        """
-        """
         builder = Gtk.Builder()
+        builder.set_translation_domain(version.TRANSLATION_DOMAIN)
         builder.add_from_file(os.path.join(paths.glade_prefix, "dialogs.glade"))
+        
         self.wdialog = builder.get_object("dialog:find_definition")
         self.info_box = builder.get_object("dialog:find_definition:info_box")
         self.definitions = builder.get_object("dialog:find_definition:definitions")
@@ -759,15 +773,16 @@ class FindItem(abstract.Window, abstract.ListEditor):
             self.wdialog.destroy()
 
     def dialog(self, type):
-        """
-        """
         builder = Gtk.Builder()
+        builder.set_translation_domain(version.TRANSLATION_DOMAIN)
         builder.add_from_file(os.path.join(paths.glade_prefix, "dialogs.glade"))
+        
         self.wdialog = builder.get_object("dialog:find_value")
         self.info_box = builder.get_object("dialog:find_value:info_box")
         self.items = builder.get_object("dialog:find_value:values")
         self.search = builder.get_object("dialog:find_value:search")
         self.search.connect("changed", self.search_treeview, self.items)
+        
         builder.get_object("dialog:find_value:btn_cancel").connect("clicked", self.__dialog_destroy)
         builder.get_object("dialog:find_value:btn_ok").connect("clicked", self.__do)
         builder.get_object("dialog:find_value:export_name:box").set_property('visible', False)

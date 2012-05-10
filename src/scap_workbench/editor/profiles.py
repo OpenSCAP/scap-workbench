@@ -26,6 +26,7 @@ from gi.repository import Gdk
 
 from scap_workbench import core
 from scap_workbench import paths
+from scap_workbench import version
 from scap_workbench.core import enum as ENUM
 from scap_workbench.core import abstract
 from scap_workbench.core import commands
@@ -44,7 +45,9 @@ class AddProfileDialog(EventObject):
         
         self.data_model = data_model
         self.__update = cb
+        
         builder = Gtk.Builder()
+        builder.set_translation_domain(version.TRANSLATION_DOMAIN)
         builder.add_from_file(os.path.join(paths.glade_dialog_prefix, "profile_add.glade"))
         
         self.window = builder.get_object("dialog:profile_add")
