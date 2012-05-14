@@ -26,16 +26,17 @@ from scap_workbench import paths
 
 TRANSLATION_DOMAIN = "scap-workbench"
 
-# gettext module doesn't call the C gettext functions, we have to use both
-# python gettext module and locale to make sure everything is in sync
+def init():
+    # gettext module doesn't call the C gettext functions, we have to use both
+    # python gettext module and locale to make sure everything is in sync
+    
+    locale.setlocale(locale.LC_ALL, "")
+    
+    locale.bindtextdomain(TRANSLATION_DOMAIN, paths.translation_prefix)
+    gettext.bindtextdomain(TRANSLATION_DOMAIN, paths.translation_prefix)
+    
+    gettext.textdomain(TRANSLATION_DOMAIN)
+    
+    gettext.install(TRANSLATION_DOMAIN, paths.translation_prefix, unicode = 1)
 
-locale.setlocale(locale.LC_ALL, "")
-
-locale.bindtextdomain(TRANSLATION_DOMAIN, paths.translation_prefix)
-gettext.bindtextdomain(TRANSLATION_DOMAIN, paths.translation_prefix)
-
-gettext.textdomain(TRANSLATION_DOMAIN)
-
-_ = gettext.gettext
-
-__all__ = ["TRANSLATION_DOMAIN", "_"]
+__all__ = ["TRANSLATION_DOMAIN", "init"]
