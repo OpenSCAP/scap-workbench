@@ -29,7 +29,7 @@ from gi.repository import Gtk
 import os.path
 
 from scap_workbench import paths
-from scap_workbench import version
+from scap_workbench import l10n
 from scap_workbench import core
 from scap_workbench.core import abstract
 from scap_workbench.core import error
@@ -62,7 +62,7 @@ class MainWindow(abstract.Window):
         error.install_exception_hook()
 
         self.builder = Gtk.Builder()
-        self.builder.set_translation_domain(version.TRANSLATION_DOMAIN)
+        self.builder.set_translation_domain(l10n.TRANSLATION_DOMAIN)
         self.builder.add_from_file(os.path.join(paths.glade_prefix, "scanner.glade"))
         self.builder.connect_signals(self)
         

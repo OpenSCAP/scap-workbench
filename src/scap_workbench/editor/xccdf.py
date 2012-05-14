@@ -29,7 +29,7 @@ import re
 
 from scap_workbench import core
 from scap_workbench import paths
-from scap_workbench import version
+from scap_workbench import l10n
 from scap_workbench.core import dialogs
 from scap_workbench.core import commands
 from scap_workbench.core import abstract
@@ -106,7 +106,7 @@ class EditNotice(abstract.ListEditor):
         self.operation = operation
         
         builder = Gtk.Builder()
-        builder.set_translation_domain(version.TRANSLATION_DOMAIN)
+        builder.set_translation_domain(l10n.TRANSLATION_DOMAIN)
         builder.add_from_file(os.path.join(paths.glade_prefix, "dialogs.glade"))
         
         self.wdialog = builder.get_object("dialog:edit_notice")

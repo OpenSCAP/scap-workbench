@@ -28,7 +28,7 @@ import tempfile         # Temporary file for XCCDF preview
 """ Importing SCAP Workbench modules
 """
 from scap_workbench import paths
-from scap_workbench import version
+from scap_workbench import l10n
 from scap_workbench.core import abstract                 # All abstract classes
 from scap_workbench.core import commands                 # Module for handling openscap
 from scap_workbench.core import Notification   # core.Notification levels for reference
@@ -56,7 +56,7 @@ class ImportDialog(abstract.Window, abstract.ListEditor):
         self.__import = cb
         self.data_model = data_model
         builder = Gtk.Builder()
-        builder.set_translation_domain(version.TRANSLATION_DOMAIN)
+        builder.set_translation_domain(l10n.TRANSLATION_DOMAIN)
         builder.add_from_file(os.path.join(paths.glade_dialog_prefix, "import.glade"))
         self.wdialog = builder.get_object("dialog:import")
         self.info_box = builder.get_object("dialog:import:info_box")
@@ -94,7 +94,7 @@ class ImportDialog(abstract.Window, abstract.ListEditor):
         
         elif action == "#log":
             builder = Gtk.Builder()
-            builder.set_translation_domain(version.TRANSLATION_DOMAIN)
+            builder.set_translation_domain(l10n.TRANSLATION_DOMAIN)
             builder.add_from_file(os.path.join(paths.glade_dialog_prefix, "preview.glade"))
             preview_dialog = builder.get_object("dialog:preview")
             box = Gtk.VBox()
@@ -166,7 +166,7 @@ class ExportDialog(abstract.Window, abstract.ListEditor):
         self.log = []
 
         builder = Gtk.Builder()
-        builder.set_translation_domain(version.TRANSLATION_DOMAIN)
+        builder.set_translation_domain(l10n.TRANSLATION_DOMAIN)
         builder.add_from_file(os.path.join(paths.glade_dialog_prefix, "export.glade"))
         
         self.wdialog = builder.get_object("dialog:export")
@@ -230,7 +230,7 @@ class ExportDialog(abstract.Window, abstract.ListEditor):
             
         elif action == "#log":
             builder = Gtk.Builder()
-            builder.set_translation_domain(version.TRANSLATION_DOMAIN)
+            builder.set_translation_domain(l10n.TRANSLATION_DOMAIN)
             builder.add_from_file(os.path.join(paths.glade_dialog_prefix, "preview.glade"))
             
             preview_dialog = builder.get_object("dialog:preview")

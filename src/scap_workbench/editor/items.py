@@ -30,7 +30,7 @@ from datetime import datetime
 
 from scap_workbench import core
 from scap_workbench import paths
-from scap_workbench import version
+from scap_workbench import l10n
 from scap_workbench.core import enum as ENUM
 from scap_workbench.core import abstract
 from scap_workbench.core import commands
@@ -58,7 +58,7 @@ class AddItem(EventObject):
         
     def dialog(self):
         builder = Gtk.Builder()
-        builder.set_translation_domain(version.TRANSLATION_DOMAIN)
+        builder.set_translation_domain(l10n.TRANSLATION_DOMAIN)
         builder.add_from_file(os.path.join(paths.glade_dialog_prefix, "add_item.glade"))
         
         self.window = builder.get_object("dialog:add_item")
@@ -315,7 +315,7 @@ class EditItemValues(abstract.ListEditor):
         self.operation = operation
         
         builder = Gtk.Builder()
-        builder.set_translation_domain(version.TRANSLATION_DOMAIN)
+        builder.set_translation_domain(l10n.TRANSLATION_DOMAIN)
         builder.add_from_file(os.path.join(paths.glade_prefix, "dialogs.glade"))
         
         self.wdialog = builder.get_object("dialog:find_value")
@@ -506,7 +506,7 @@ class EditFixtext(abstract.HTMLEditor):
         self.operation = operation
         
         builder = Gtk.Builder()
-        builder.set_translation_domain(version.TRANSLATION_DOMAIN)
+        builder.set_translation_domain(l10n.TRANSLATION_DOMAIN)
         builder.add_from_file(os.path.join(paths.glade_dialog_prefix, "edit_description.glade"))
         
         self.wdialog = builder.get_object("dialog:edit_description")
@@ -723,7 +723,7 @@ class EditFix(abstract.ListEditor):
         self.operation = operation
         
         builder = Gtk.Builder()
-        builder.set_translation_domain(version.TRANSLATION_DOMAIN)
+        builder.set_translation_domain(l10n.TRANSLATION_DOMAIN)
         builder.add_from_file(os.path.join(paths.glade_prefix, "dialogs.glade"))
         
         self.wdialog = builder.get_object("dialog:edit_fix")
@@ -873,7 +873,7 @@ class EditIdent(abstract.ListEditor):
         self.operation = operation
         
         builder = Gtk.Builder()
-        builder.set_translation_domain(version.TRANSLATION_DOMAIN)
+        builder.set_translation_domain(l10n.TRANSLATION_DOMAIN)
         builder.add_from_file(os.path.join(paths.glade_dialog_prefix, "edit_ident.glade"))
         
         self.wdialog = builder.get_object("dialog:edit_ident")
@@ -960,7 +960,7 @@ class EditQuestion(abstract.ListEditor):
         self.operation = operation
         
         builder = Gtk.Builder()
-        builder.set_translation_domain(version.TRANSLATION_DOMAIN)
+        builder.set_translation_domain(l10n.TRANSLATION_DOMAIN)
         builder.add_from_file(os.path.join(paths.glade_dialog_prefix, "edit_question.glade"))
         
         self.wdialog = builder.get_object("dialog:edit_question")
@@ -1049,7 +1049,7 @@ class EditRationale(abstract.ListEditor):
         self.operation = operation
         
         builder = Gtk.Builder()
-        builder.set_translation_domain(version.TRANSLATION_DOMAIN)
+        builder.set_translation_domain(l10n.TRANSLATION_DOMAIN)
         builder.add_from_file(os.path.join(paths.glade_prefix, "dialogs.glade"))
         
         self.wdialog = builder.get_object("dialog:edit_rationale")
@@ -1201,7 +1201,7 @@ class EditPlatform(abstract.ListEditor):
         self.operation = operation
         
         builder = Gtk.Builder()
-        builder.set_translation_domain(version.TRANSLATION_DOMAIN)
+        builder.set_translation_domain(l10n.TRANSLATION_DOMAIN)
         builder.add_from_file(os.path.join(paths.glade_dialog_prefix, "edit_platform.glade"))
         
         self.wdialog = builder.get_object("dialog:edit_platform")
@@ -1534,7 +1534,7 @@ class EditValuesValues(abstract.ListEditor):
         self.operation = operation
         
         builder = Gtk.Builder()
-        builder.set_translation_domain(version.TRANSLATION_DOMAIN)
+        builder.set_translation_domain(l10n.TRANSLATION_DOMAIN)
         builder.add_from_file(os.path.join(paths.glade_dialog_prefix, "edit_value.glade"))
         
         self.wdialog = builder.get_object("dialog:edit_value")

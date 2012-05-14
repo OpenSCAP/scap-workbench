@@ -31,7 +31,7 @@ import sys
 import os
 
 from scap_workbench import paths
-from scap_workbench import version
+from scap_workbench import l10n
 from scap_workbench import core
 from scap_workbench.core import abstract
 from scap_workbench.core.events import EventObject
@@ -315,7 +315,7 @@ class ItemFilter(Renderer):
 
         self.id_filter = 0
         self.user_filter_builder = Gtk.Builder()
-        self.user_filter_builder.set_translation_domain(version.TRANSLATION_DOMAIN)
+        self.user_filter_builder.set_translation_domain(l10n.TRANSLATION_DOMAIN)
         self.user_filter_builder.add_from_file(os.path.join(paths.glade_prefix, "filter_tailoring.glade"))
         
         self.user_filter_window = self.user_filter_builder.get_object("user_filter:dialog")
@@ -458,7 +458,7 @@ class ScanFilter(Renderer):
 
         self.id_filter = 0
         self.user_filter_builder = Gtk.Builder()
-        self.user_filter_builder.set_translation_domain(version.TRANSLATION_DOMAIN)
+        self.user_filter_builder.set_translation_domain(l10n.TRANSLATION_DOMAIN)
         self.user_filter_builder.add_from_file(os.path.join(paths.glade_prefix, "filter_scan.glade"))
         self.user_filter_window = self.user_filter_builder.get_object("user_filter:dialog")
         self.user_filter_window.connect("delete-event", self.__cb_cancel)

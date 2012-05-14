@@ -38,6 +38,8 @@ etc_prefix = "/etc"
 etc_workbench_prefix = os.path.join(etc_prefix, "scap-workbench")
 # not used directly, only used to construct other paths
 share_workbench_prefix = os.path.join(share_prefix, "scap-workbench")
+# where localization files are kept
+translation_prefix = os.path.join(share_workbench_prefix, "mo")
 # where .glade UI files except dialogs are stored
 glade_prefix = os.path.join(share_workbench_prefix, "glade")
 # where all dialog .glade files are stored
@@ -55,7 +57,8 @@ def set_prefix(prefix):
     """
     
     global etc_prefix, share_prefix
-    global etc_workbench_prefix, share_workbench_prefix, glade_prefix, glade_dialog_prefix
+    global etc_workbench_prefix, share_workbench_prefix, translation_prefix
+    global glade_prefix, glade_dialog_prefix
     global filters_prefix, pixmaps_prefix
     
     share_prefix = os.path.join(prefix, "share")
@@ -67,6 +70,7 @@ def set_prefix(prefix):
         etc_workbench_prefix = os.path.join(etc_prefix, "scap-workbench")
         
     share_workbench_prefix = os.path.join(share_prefix, "scap-workbench")
+    translation_prefix = os.path.join(share_workbench_prefix, "mo")
     glade_prefix = os.path.join(share_workbench_prefix, "glade")
     glade_dialog_prefix = os.path.join(glade_prefix, "dialogs")
     filters_prefix = os.path.join(share_workbench_prefix, "filters")

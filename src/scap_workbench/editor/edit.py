@@ -33,7 +33,7 @@ import re
 import os
 
 from scap_workbench import paths
-from scap_workbench import version
+from scap_workbench import l10n
 from scap_workbench import core
 from scap_workbench.core import abstract
 import scap_workbench.core.enum as ENUM
@@ -82,7 +82,7 @@ class EditTitle(abstract.ListEditor):
         self.operation = operation
         
         builder = Gtk.Builder()
-        builder.set_translation_domain(version.TRANSLATION_DOMAIN)
+        builder.set_translation_domain(l10n.TRANSLATION_DOMAIN)
         builder.add_from_file(os.path.join(paths.glade_dialog_prefix, "edit_title.glade"))
         
         self.wdialog = builder.get_object("dialog:edit_title")
@@ -177,7 +177,7 @@ class EditDescription(abstract.HTMLEditor):
         self.operation = operation
         
         builder = Gtk.Builder()
-        builder.set_translation_domain(version.TRANSLATION_DOMAIN)
+        builder.set_translation_domain(l10n.TRANSLATION_DOMAIN)
         builder.add_from_file(os.path.join(paths.glade_dialog_prefix, "edit_description.glade"))
         
         self.wdialog = builder.get_object("dialog:edit_description")
@@ -294,7 +294,7 @@ class EditWarning(abstract.ListEditor):
         self.operation = operation
         
         builder = Gtk.Builder()
-        builder.set_translation_domain(version.TRANSLATION_DOMAIN)
+        builder.set_translation_domain(l10n.TRANSLATION_DOMAIN)
         builder.add_from_file(os.path.join(paths.glade_dialog_prefix, "edit_warning.glade"))
         
         self.wdialog = builder.get_object("dialog:edit_warning")
@@ -393,7 +393,7 @@ class EditStatus(abstract.ListEditor):
         self.operation = operation
         
         builder = Gtk.Builder()
-        builder.set_translation_domain(version.TRANSLATION_DOMAIN)
+        builder.set_translation_domain(l10n.TRANSLATION_DOMAIN)
         builder.add_from_file(os.path.join(paths.glade_dialog_prefix, "edit_status.glade"))
         
         self.wdialog = builder.get_object("dialog:edit_status")
@@ -459,7 +459,7 @@ class EditSelectIdDialogWindow(object):
         self.model_item = model_item
         
         builder = Gtk.Builder()
-        builder.set_translation_domain(version.TRANSLATION_DOMAIN)
+        builder.set_translation_domain(l10n.TRANSLATION_DOMAIN)
         builder.add_from_file(os.path.join(paths.glade_prefix, "dialogs.glade"))
 
         self.window = builder.get_object("dialog:add_id")
@@ -707,7 +707,7 @@ class FindOvalDef(abstract.Window, abstract.ListEditor):
 
     def dialog(self, widget, href):
         builder = Gtk.Builder()
-        builder.set_translation_domain(version.TRANSLATION_DOMAIN)
+        builder.set_translation_domain(l10n.TRANSLATION_DOMAIN)
         builder.add_from_file(os.path.join(paths.glade_prefix, "dialogs.glade"))
         
         self.wdialog = builder.get_object("dialog:find_definition")
@@ -774,7 +774,7 @@ class FindItem(abstract.Window, abstract.ListEditor):
 
     def dialog(self, type):
         builder = Gtk.Builder()
-        builder.set_translation_domain(version.TRANSLATION_DOMAIN)
+        builder.set_translation_domain(l10n.TRANSLATION_DOMAIN)
         builder.add_from_file(os.path.join(paths.glade_prefix, "dialogs.glade"))
         
         self.wdialog = builder.get_object("dialog:find_value")

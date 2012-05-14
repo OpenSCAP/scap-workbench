@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright 2011 Red Hat Inc., Durham, North Carolina.
+# Copyright 2012 Red Hat Inc., Durham, North Carolina.
 # All Rights Reserved.
 #
 # This program is free software: you can redistribute it and/or modify
@@ -19,18 +19,23 @@
 # Authors:
 #      Martin Preisler <mpreisle@redhat.com>
 
-"""This module holds version info for reuse in both scap workbench
-scanner and editor.
-"""
+import locale
+import gettext
 
-MAJOR = 0
-MINOR = 6
-PATCH = 3
+from scap_workbench import paths
 
-AS_STRING = "%i.%i.%i" % (MAJOR, MINOR, PATCH)
+TRANSLATION_DOMAIN = "scap-workbench"
 
-__all__ = ["MAJOR", "MINOR", "PATCH", "AS_STRING"]
+# gettext module doesn't call the C gettext functions, we have to use both
+# python gettext module and locale to make sure everything is in sync
 
-# if somebody just executes this module, print the version string
-if __name__ == '__main__':
-    print(AS_STRING)
+locale.setlocale(locale.LC_ALL, "")
+
+locale.bindtextdomain(TRANSLATION_DOMAIN, paths.translation_prefix)
+gettext.bindtextdomain(TRANSLATION_DOMAIN, paths.translation_prefix)
+
+gettext.textdomain(TRANSLATION_DOMAIN)
+
+_ = gettext.gettext
+
+__all__ = ["TRANSLATION_DOMAIN", "_"]
