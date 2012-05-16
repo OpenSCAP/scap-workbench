@@ -74,13 +74,13 @@ class DataHandler(object):
         else: return True
 
     def open_webbrowser(self, url):
-        """Opens client's web browser using the webbrowser module. Assumes given file is a report.
+        """Opens client's web browser using the webbrowser module.
         
         url - file to open with the web browser
         """
 
         browser_val = webbrowser.open(url)
-        if not browser_val: self.core.notify(_("Failed to open browser \"%s\". Report file is saved in \"%s\"") % (webbrowser.get().name, url),
+        if not browser_val: self.core.notify(_("Failed to open browser \"%(browser)s\". Please open \"%(url)s\" manually.") % {"browser": webbrowser.get().name, "url": url},
             core.Notification.INFORMATION, msg_id="notify:scan:export_report")
 
     def get_title(self, titles):
@@ -1510,7 +1510,7 @@ class DHItemsTree(DataHandler, EventObject):
             value = self.__progress.get_fraction()+self.__step
             if value > 1.0: value = 1.0
             self.__progress.set_fraction(value)
-            self.__progress.set_text(_("Adding items %i/%i") % (int(self.__progress.get_fraction()/self.__step), self.__total))
+            self.__progress.set_text(_("Adding items %(step)i/%(total)i") % {"step": int(self.__progress.get_fraction()/self.__step), "total": self.__total})
             #Gdk.threads_leave()
 
         """Check the item if it's selected. If the parent or the item is not selected
@@ -1629,7 +1629,7 @@ class DHItemsTree(DataHandler, EventObject):
                     value = self.__progress.get_fraction()+self.__step
                     if value > 1.0: value = 1.0
                     self.__progress.set_fraction(value)
-                    self.__progress.set_text(_("Adding items %i/%i") % (int(self.__progress.get_fraction()/self.__step), self.__total))
+                    self.__progress.set_text(_("Adding items %(step)i/%(total)i") % {"step": int(self.__progress.get_fraction()/self.__step), "total": self.__total})
                     #Gdk.threads_leave()
                 self.__recursive_fill(item, with_values=with_values)
 

@@ -314,7 +314,7 @@ class DHScan(commands.DataHandler, commands.EventObject):
                 if self.__progress.get_fraction() < min_fraction:
                     self.__progress.set_fraction(min_fraction)
                 
-                self.__progress.set_text(_("Scanning rule '%s' ... (%i/%i)") % (id, self.count_current + 1, self.count_all))
+                self.__progress.set_text(_("Scanning rule '%(rule_id)s' ... (%(step)i/%(total)i)") % {"rule_id": id, "step": self.count_current + 1, "total": self.count_all})
                 LOGGER.debug("[%s/%s] Scanning rule '%s'" % (self.count_current + 1, self.count_all, id))
                 
                 self.__progress.set_tooltip_text("Scanning rule '%s'" % (title))
@@ -708,7 +708,7 @@ class MenuButtonScan(abstract.MenuButton, abstract.Func):
             if self.progress:
                 # set the progress to 100% regardless of how many tests were actually run
                 self.progress.set_fraction(1.0)
-                self.progress.set_text(_("Finished %i of %i rules") % (self.data_model.count_current, self.data_model.count_all))
+                self.progress.set_text(_("Finished %(finished_rules)i of %(total)i rules") % {"finished_rules": self.data_model.count_current, "total": self.data_model.count_all})
                 self.progress.set_has_tooltip(False)
                 
             LOGGER.debug("Finished scanning")

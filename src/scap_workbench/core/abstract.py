@@ -1189,7 +1189,7 @@ class EnterList(EventObject):
                             if row[column] == new_text and self.model.get_path(row.iter) != path:
                                 md = Gtk.MessageDialog(self.window, 
                                         Gtk.DialogFlags.MODAL, Gtk.MessageType.QUESTION,
-                                        Gtk.ButtonsType.YES_NO, _("%s \"%s\" already specified.\n\nRewrite stored data?") % (name, new_text,))
+                                        Gtk.ButtonsType.YES_NO, _("%(name)s \"%(new_text)s\" already specified.\n\nRewrite stored data?") % {"name": name, "new_text" : new_text})
                                 md.set_title(_("Language found"))
                                 result = md.run()
                                 md.destroy()
@@ -1504,7 +1504,7 @@ class EditDialogWindow(EventObject):
             if row[column] == data and self.model.get_path(row.iter) != path:
                 md = Gtk.MessageDialog(self.window, 
                         Gtk.DialogFlags.MODAL, Gtk.MessageType.QUESTION,
-                        Gtk.ButtonsType.YES_NO, _("%s \"%s\" already specified.\n\nRewrite stored data?") % (name, data,))
+                        Gtk.ButtonsType.YES_NO, _("%(name)s \"%(data)s\" already specified.\n\nRewrite stored data?") % {"name": name, "data": data})
                 md.set_title(_("Information exist"))
                 result = md.run()
                 md.destroy()
