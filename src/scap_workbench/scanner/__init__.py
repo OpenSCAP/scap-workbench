@@ -47,11 +47,11 @@ class MainWindow(abstract.Window):
     """
 
     def __init__(self):
-        parser = argparse.ArgumentParser(description = "Starts the scanner application of scap-workbench")
+        parser = argparse.ArgumentParser(description = _("Starts the scanner application of scap-workbench"))
         parser.add_argument("--debug", const = True, action = "store_const",
-                            help = "Enable verbose debug level logging")
+                            help = _("Enable verbose debug level logging"))
         parser.add_argument("XCCDF_FILE", type = str, nargs = "?",
-                            help = "Load given XCCDF file immediately after the application starts")
+                            help = _("Load given XCCDF file immediately after the application starts"))
         
         args = parser.parse_args()
         

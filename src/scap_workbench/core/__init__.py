@@ -109,7 +109,7 @@ class Notification(object):
         self.img = Gtk.Image()
         self.img.set_from_icon_name(Notification.IMG[lvl], Notification.DEFAULT_SIZE)
         box.pack_start(self.img, False, False, 0)
-        if type(text) == str:
+        if isinstance(text, basestring):
             self.label = Gtk.Label(label=text)
             if link_cb: self.label.connect("activate-link", link_cb)
             self.label.set_alignment(0, 0.5)
@@ -374,7 +374,7 @@ class SWBCore(object):
             self.langs.append(self.lib.benchmark.lang)
         self.selected_lang = self.lib.benchmark.lang
         if self.lib.benchmark.lang == None:
-            self.notify("XCCDF Benchmark: No language specified.", Notification.WARNING, msg_id="notify:xccdf:missing_lang")
+            self.notify(_("XCCDF Benchmark: No language specified."), Notification.WARNING, msg_id="notify:xccdf:missing_lang")
         return True
 
     def notify(self, text, lvl=0, info_box=None, msg_id=None, link_cb=None):

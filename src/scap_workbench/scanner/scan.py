@@ -88,7 +88,7 @@ class DHScan(commands.DataHandler, commands.EventObject):
     COLUMN_COLOR_BACKG = 6      # Color of cell
     COLUMN_COLOR_TEXT_ID = 7    # Color of text ID
 
-    RESULT_NAME = "SCAP WORKBENCH Test Result"
+    RESULT_NAME = _("SCAP WORKBENCH Test Result")
     
     FG_TITLE_NORMAL = "#000000"
     FG_TITLE_PASS   = "#333333"
@@ -147,14 +147,14 @@ class DHScan(commands.DataHandler, commands.EventObject):
 
         # ID Rule
         txtcell = Gtk.CellRendererText()
-        column = Gtk.TreeViewColumn("Rule ID", txtcell, text=DHScan.COLUMN_ID)
+        column = Gtk.TreeViewColumn(_("Rule ID"), txtcell, text=DHScan.COLUMN_ID)
         column.add_attribute(txtcell, 'foreground', DHScan.COLUMN_COLOR_TEXT_ID)
         column.set_resizable(True)
         treeView.append_column(column)
 
         #Result
         txtcell = Gtk.CellRendererText()
-        column = Gtk.TreeViewColumn("Result", txtcell, text=DHScan.COLUMN_RESULT)
+        column = Gtk.TreeViewColumn(_("Result"), txtcell, text=DHScan.COLUMN_RESULT)
         column.add_attribute(txtcell, 'background', DHScan.COLUMN_COLOR_BACKG)
         # since we control the background in this case, we have to enforce foreground as well so
         # that the text is visible
@@ -164,21 +164,21 @@ class DHScan(commands.DataHandler, commands.EventObject):
 
         # Fix
         txtcell = Gtk.CellRendererText()
-        column = Gtk.TreeViewColumn("Fix", txtcell, text=DHScan.COLUMN_FIX)
+        column = Gtk.TreeViewColumn(_("Fix"), txtcell, text=DHScan.COLUMN_FIX)
         column.set_resizable(True)
         column.set_visible(False)
         treeView.append_column(column)
 
         # Title
         txtcell = Gtk.CellRendererText()
-        column = Gtk.TreeViewColumn("Title", txtcell, text=DHScan.COLUMN_TITLE)
+        column = Gtk.TreeViewColumn(_("Title"), txtcell, text=DHScan.COLUMN_TITLE)
         column.add_attribute(txtcell, 'foreground', DHScan.COLUMN_COLOR_TEXT_TITLE)
         column.set_resizable(True)
         treeView.append_column(column)
 
         # Description
         txtcell = Gtk.CellRendererText()
-        column = Gtk.TreeViewColumn("Description", txtcell, text=DHScan.COLUMN_DESC)
+        column = Gtk.TreeViewColumn(_("Description"), txtcell, text=DHScan.COLUMN_DESC)
         column.set_resizable(True)
         column.set_visible(False)
         id = treeView.append_column(column)
@@ -314,7 +314,7 @@ class DHScan(commands.DataHandler, commands.EventObject):
                 if self.__progress.get_fraction() < min_fraction:
                     self.__progress.set_fraction(min_fraction)
                 
-                self.__progress.set_text("Scanning rule '%s' ... (%s/%s)" % (id, self.count_current + 1, self.count_all))
+                self.__progress.set_text(_("Scanning rule '%s' ... (%i/%i)") % (id, self.count_current + 1, self.count_all))
                 LOGGER.debug("[%s/%s] Scanning rule '%s'" % (self.count_current + 1, self.count_all, id))
                 
                 self.__progress.set_tooltip_text("Scanning rule '%s'" % (title))
@@ -370,7 +370,7 @@ class DHScan(commands.DataHandler, commands.EventObject):
                 retval = openscap.oval.agent_reset_session(oval.session)
                 LOGGER.debug("OVAL Agent session reset: %s" % (retval,))
                 if retval != 0: 
-                    self.core.notify("Oval agent reset session failed.", core.Notification.ERROR, msg_id="notify:scan:oval_reset")
+                    self.core.notify(_("OVAL agent reset session failed."), core.Notification.ERROR, msg_id="notify:scan:oval_reset")
                     raise RuntimeError("OVAL agent reset session failed, openscap return value: %i" % (retval))
         
         self.__cancel = False
@@ -400,7 +400,7 @@ class DHScan(commands.DataHandler, commands.EventObject):
             return False
         
         if file_name is None:
-            file_name = self.file_browse("Save results", file="results.xml")
+            file_name = self.file_browse(_("Save results"), file="results.xml")
             
         if file_name != "":
             sessions = {}
@@ -519,24 +519,24 @@ class MenuButtonScan(abstract.MenuButton, abstract.Func):
                 title = "%s (ID)" % (profile["id"],)
                 
             if self.selected_profile != self.core.selected_profile:
-                self.notifications.append(self.core.notify("Selected profile: \"%s\"." % (title,), core.Notification.SUCCESS, msg_id="notify:scan:selected_profile"))
+                self.notifications.append(self.core.notify(_("Selected profile: \"%s\".") % (title,), core.Notification.SUCCESS, msg_id="notify:scan:selected_profile"))
                 # profile changed so we make export and view results buttons insensitive
                 self.set_scan_in_progress(False, previously_scanned = False)
         
             self.selected_profile = self.core.selected_profile
             
-            self.profile.set_tooltip_text("Current profile: %s" % (title))
+            self.profile.set_tooltip_text(_("Current profile: %s") % (title))
             
         else:
             # if self.core.selected_profile is None the current profile is "No profile"
             if self.selected_profile != self.core.selected_profile:
-                self.notifications.append(self.core.notify("Selected default document profile.", core.Notification.SUCCESS, msg_id="notify:scan:selected_profile"))
+                self.notifications.append(self.core.notify(_("Selected default document profile."), core.Notification.SUCCESS, msg_id="notify:scan:selected_profile"))
                 # profile changed so we make export and view results buttons insensitive
                 self.set_scan_in_progress(False, previously_scanned = False)
                 
             self.selected_profile = None
             
-            self.profile.set_tooltip_text("Current profile: (No profile)")
+            self.profile.set_tooltip_text(_("Current profile: (No profile)"))
 
     def activate(self, active):
         if active:
@@ -564,7 +564,7 @@ class MenuButtonScan(abstract.MenuButton, abstract.Func):
                 
                 if not self.data_model.export(file_name = raw_file,
                                               result = self.result):
-                    self.notifications.append(self.core.notify("Export failed.", core.Notification.ERROR, msg_id="notify:scan:export"))
+                    self.notifications.append(self.core.notify(_("Export failed."), core.Notification.ERROR, msg_id="notify:scan:export"))
                     return
                 
                 self.data_model.perform_xslt_transformation(file = raw_file,
@@ -582,7 +582,7 @@ class MenuButtonScan(abstract.MenuButton, abstract.Func):
                 shutil.rmtree(dirname)
                 
         else:
-            self.notifications.append(self.core.notify("Nothing to export.", core.Notification.ERROR, msg_id="notify:scan:export"))
+            self.notifications.append(self.core.notify(_("Nothing to export."), core.Notification.ERROR, msg_id="notify:scan:export"))
 
     def __cb_save_report(self, append_notifications = False):
         """ This method is used as callback to preview dialog window. When user press "save" button
@@ -592,7 +592,7 @@ class MenuButtonScan(abstract.MenuButton, abstract.Func):
                                otherwise it will return a notification 2-tuple 
         """
         
-        chooser = Gtk.FileChooserDialog(title = "Save results to directory",
+        chooser = Gtk.FileChooserDialog(title = _("Save results to directory"),
                                         action = Gtk.FileChooserAction.SELECT_FOLDER,
                                         buttons = (Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL, Gtk.STOCK_SAVE, Gtk.ResponseType.OK))
         response = chooser.run()
@@ -612,7 +612,7 @@ class MenuButtonScan(abstract.MenuButton, abstract.Func):
             # the reason for the double check is that os.access("nonexistant file but user can create it", os.W_OK) returns False,
             # so we check the parent directory for writing instead in that case
             if (os.path.isfile(file_name) and not os.access(file_name, os.W_OK)) or (not os.access(os.path.dirname(file_name), os.W_OK)):
-                ret = (core.Notification.ERROR, "Export failed - chosen file path isn't accessible for writing")
+                ret = (core.Notification.ERROR, _("Export failed - chosen file path isn't accessible for writing"))
                 if append_notifications:
                     self.notifications.append(self.core.notify(ret[1], ret[0], msg_id="notify:scan:export"))
                 else:
@@ -621,7 +621,7 @@ class MenuButtonScan(abstract.MenuButton, abstract.Func):
             else:
                 retval = self.data_model.export(file_name, self.result)
                 # TODO: More info about the error
-                ret = (core.Notification.ERROR, "Export failed") if not retval else (core.Notification.SUCCESS, "Report file and results exported successfully")
+                ret = (core.Notification.ERROR, _("Export failed")) if not retval else (core.Notification.SUCCESS, _("Report file and results exported successfully"))
                 
                 # TODO: We should be more robust and do more error checking here
                 self.data_model.perform_xslt_transformation(file = retval,
@@ -643,7 +643,7 @@ class MenuButtonScan(abstract.MenuButton, abstract.Func):
         for notify in self.notifications:
             notify.destroy()
         if self.core.lib.loaded == None:
-            self.core.notify("Library not initialized or XCCDF file not specified",
+            self.core.notify(_("Library not initialized or XCCDF file not specified"),
                     core.Notification.INFORMATION, msg_id="notify:xccdf:not_loaded")
             return
         ProfileChooser(self.core, self.__update_profile)
@@ -692,7 +692,7 @@ class MenuButtonScan(abstract.MenuButton, abstract.Func):
             
             if self.progress is not None:
                 self.progress.set_fraction(0.0)
-                self.progress.set_text("Preparing ...")
+                self.progress.set_text(_("Preparing..."))
                 
             self.core.notify_destroy("notify:scan:complete")
         
@@ -708,14 +708,14 @@ class MenuButtonScan(abstract.MenuButton, abstract.Func):
             if self.progress:
                 # set the progress to 100% regardless of how many tests were actually run
                 self.progress.set_fraction(1.0)
-                self.progress.set_text("Finished %i of %i rules" % (self.data_model.count_current, self.data_model.count_all))
+                self.progress.set_text(_("Finished %i of %i rules") % (self.data_model.count_current, self.data_model.count_all))
                 self.progress.set_has_tooltip(False)
                 
             LOGGER.debug("Finished scanning")
             if self.scan_cancelled:
-                self.core.notify("Scanning prematurely interrupted by user", core.Notification.INFORMATION, msg_id="notify:scan:complete")
+                self.core.notify(_("Scanning prematurely interrupted by user"), core.Notification.INFORMATION, msg_id="notify:scan:complete")
             else:
-                self.core.notify("Scanning finished successfully", core.Notification.SUCCESS, msg_id="notify:scan:complete")
+                self.core.notify(_("Scanning finished successfully"), core.Notification.SUCCESS, msg_id="notify:scan:complete")
             
             self.core.notify_destroy("notify:scan:cancel")
 
@@ -725,7 +725,7 @@ class MenuButtonScan(abstract.MenuButton, abstract.Func):
         """ Called by user event when stop button pressed
         """
         if self.scan_running:
-            self.core.notify("Scanning canceled. Please wait for openscap to finish current task.", core.Notification.INFORMATION, msg_id="notify:scan:cancel")
+            self.core.notify(_("Scanning canceled. Please wait for openscap to finish current task."), core.Notification.INFORMATION, msg_id="notify:scan:cancel")
             self.scan_cancelled = True
             self.data_model.cancel()
 

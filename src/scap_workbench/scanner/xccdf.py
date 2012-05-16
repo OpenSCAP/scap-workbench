@@ -98,7 +98,7 @@ class MenuButtonXCCDF(abstract.MenuButton):
         
         # Add table of information to the expander with label name
         expander = Gtk.Expander()
-        label = Gtk.Label("OVAL: %s" % (name,))
+        label = Gtk.Label(_("OVAL: %s") % (name,))
         pango_list = Pango.AttrList()
             
         label.set_attributes(pango_list)
@@ -112,19 +112,19 @@ class MenuButtonXCCDF(abstract.MenuButton):
         align.add(table)
 
         # use table to add information
-        label = Gtk.Label(label="Product name:")
+        label = Gtk.Label(label=_("Product name:"))
         label.set_alignment(0.0, 0.50)
         table.attach(label, 0, 1, 0, 1, xoptions=Gtk.AttachOptions.FILL, yoptions=Gtk.AttachOptions.FILL, xpadding=0, ypadding=0)
-        label = Gtk.Label(label="Product version:")
+        label = Gtk.Label(label=_("Product version:"))
         label.set_alignment(0.0, 0.50)
         table.attach(label, 0, 1, 1, 2, xoptions=Gtk.AttachOptions.FILL, yoptions=Gtk.AttachOptions.FILL, xpadding=0, ypadding=0)
-        label = Gtk.Label(label="Schema version:")
+        label = Gtk.Label(label=_("Schema version:"))
         label.set_alignment(0.0, 0.50)
         table.attach(label, 0, 1, 2, 3, xoptions=Gtk.AttachOptions.FILL, yoptions=Gtk.AttachOptions.FILL, xpadding=0, ypadding=0)
-        label = Gtk.Label(label="Timestamp:")
+        label = Gtk.Label(label=_("Timestamp:"))
         label.set_alignment(0.0, 0.50)
         table.attach(label, 0, 1, 3, 4, xoptions=Gtk.AttachOptions.FILL, yoptions=Gtk.AttachOptions.FILL, xpadding=0, ypadding=0)
-        label = Gtk.Label(label="Valid:")
+        label = Gtk.Label(label=_("Valid:"))
         label.set_alignment(0.0, 0.50)
         table.attach(label, 0, 1, 4, 5, xoptions=Gtk.AttachOptions.FILL, yoptions=Gtk.AttachOptions.FILL, xpadding=0, ypadding=0)
 
@@ -152,7 +152,7 @@ class MenuButtonXCCDF(abstract.MenuButton):
         
         # Add table of information to the expander with label name
         expander = Gtk.Expander()
-        label = Gtk.Label("SCE: %s" % (name,))
+        label = Gtk.Label(_("SCE: %s") % (name,))
         pango_list = Pango.AttrList()
             
         label.set_attributes(pango_list)
@@ -168,7 +168,7 @@ class MenuButtonXCCDF(abstract.MenuButton):
         
         # Add table of information to the expander with label name
         expander = Gtk.Expander()
-        label = Gtk.Label(label="File not found: %s" % (name))
+        label = Gtk.Label(label=_("File not found: %s") % (name))
         pango_list = Pango.AttrList()
         
         label.set_attributes(pango_list)
@@ -211,10 +211,10 @@ class MenuButtonXCCDF(abstract.MenuButton):
         # SET
         if not details: return
         lang = details["lang"]
-        self.label_info.set_text("XCCDF: %s" % (details["id"] or "",))
-        if lang not in details["titles"]: self.label_title.set_text("No title in \"%s\" language" % (lang,))
+        self.label_info.set_text(_("XCCDF: %s") % (details["id"] or "",))
+        if lang not in details["titles"]: self.label_title.set_text(_("No title in \"%s\" language") % (lang,))
         else: self.label_title.set_text(details["titles"][lang] or "")
-        if lang not in details["descs"]: self.label_description.set_text("No description in \"%s\" language" % (lang,))
+        if lang not in details["descs"]: self.label_description.set_text(_("No description in \"%s\" language") % (lang,))
         else: self.label_description.set_text(details["descs"][lang] or "")
         self.label_version.set_text(details["version"] or "")
         self.label_url.set_text(details["id"] or "")
@@ -235,7 +235,7 @@ class MenuButtonXCCDF(abstract.MenuButton):
         for i, ref in enumerate(details["references"]):
             label = Gtk.Label()
             if ref["isdc"] == True:
-                text = "<span color='#AAA'>DoublinCore reference: NOT SUPPORTED</span>"
+                text = _("<span color='#AAA'>DublinCore reference: NOT SUPPORTED</span>")
                 label.set_use_markup(True)
             else: text = "%d) %s [<a href='%s'>link</a>]" % (i+1, " ".join((ref["title"] or "").split()), ref["identifier"])
             label.set_text(text)
@@ -272,7 +272,7 @@ class MenuButtonXCCDF(abstract.MenuButton):
         if not self.core.init(None):
             return
         
-        self.data_model.update(id="New_SCAP_Benchmark", version="0", lang="en")
+        self.data_model.update(id=_("New_SCAP_Benchmark"), version="0", lang="en")
         self.core.selected_lang = "en"
         self.data_model.edit_status(self.data_model.CMD_OPER_ADD)
         try:
@@ -303,12 +303,12 @@ class MenuButtonXCCDF(abstract.MenuButton):
     def __cb_export(self, widget):
         file_name = self.data_model.export()
         if file_name:
-            self.notifications.append(self.core.notify("Benchmark has been exported to \"%s\"" % (file_name,),
+            self.notifications.append(self.core.notify(_("Benchmark has been exported to \"%s\"") % (file_name,),
                 core.Notification.SUCCESS, msg_id="notify:xccdf:export"))
             self.core.xccdf_file = file_name
             
         else:
-            self.notifications.append(self.core.notify("Export canceled or unsuccessful.",
+            self.notifications.append(self.core.notify(_("Export canceled or unsuccessful."),
                 core.Notification.INFORMATION, msg_id="notify:xccdf:export"))
 
     def __menu_sensitive(self, active):

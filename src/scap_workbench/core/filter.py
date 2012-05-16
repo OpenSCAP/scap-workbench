@@ -69,7 +69,7 @@ class Filter(object):
 
         self.button = Gtk.Button("x")
         self.button.set_relief(Gtk.ReliefStyle.NONE)
-        self.button.set_tooltip_text("Remove this filter")
+        self.button.set_tooltip_text(_("Remove this filter"))
         self.button.connect("clicked", self.__cb_button)
         alig = Gtk.Alignment.new(0.0, 0.0, 1.0, 1.0)
         alig.set_padding(0, 0, 10, 0)
@@ -152,21 +152,21 @@ class Renderer(abstract.MenuButton,EventObject):
         """Render Box for filters"""
 
         #search
-        self.expander = ExpandBox(box, "Search / Filters", self.core)
+        self.expander = ExpandBox(box, _("Search / Filters"), self.core)
         filter_box = self.expander.get_widget()
-        alig_filters = self.add_frame(filter_box, "Search")
+        alig_filters = self.add_frame(filter_box, _("Search"))
         self.search = Search(self)
         self.expander.focus_widget = self.search.entry
         self.expander.get_widget().pack_start(self.search.get_widget(), False, True, 0)
 
         #filter
-        alig_filters = self.add_frame(filter_box, "Active filters")
+        alig_filters = self.add_frame(filter_box, _("Active filters"))
         self.menu = Gtk.Menu()
 
         #btn choose filter
         button = Gtk.Button()
         button.set_relief(Gtk.ReliefStyle.NONE)
-        button.set_label("Add filter")
+        button.set_label(_("Add filter"))
         button.connect_object("event", self.__cb_show_menu, self.menu)
         filter_box.pack_end(button, False, True, 0)
         box.show_all()
@@ -177,7 +177,7 @@ class Renderer(abstract.MenuButton,EventObject):
         if filter.active == False:
             self.add_filter(filter)
         else:
-            self.core.notify("Filter is already active.", core.Notification.INFORMATION)
+            self.core.notify(_("Filter is already active."), core.Notification.INFORMATION)
         
     def __cb_show_menu(self, menu, event):
         if event.type == Gdk.EventType.BUTTON_PRESS:
@@ -218,10 +218,10 @@ class Renderer(abstract.MenuButton,EventObject):
             self.filters.remove(filter)
             filter.get_widget().destroy()
             self.emit("filter_del")
-        else: self.core.notify("Removing not existed filter !", core.Notification.ERROR)
+        else: self.core.notify(_("Removing not existed filter!"), core.Notification.ERROR)
         
     def init_filter(self):
-        """ clean all acive filters"""
+        """ clean all active filters"""
         return
         for filter in self.filters:
             filter.active = False
@@ -236,7 +236,7 @@ class Renderer(abstract.MenuButton,EventObject):
 
 class ExpandBox(abstract.EventObject):
     """
-    Create expand box. Set only to conteiner.
+    Create expand box. Set only to container.
     """
     
     def __init__(self, box, text, core=None):
@@ -340,8 +340,8 @@ class ItemFilter(Renderer):
         for filter in filters:
             if filter.TYPE == self.id: self.add_filter_to_menu(filter(self))
 
-        menu_item = Gtk.MenuItem("User filter ...")
-        menu_item.set_tooltip_text("Specify new filter by list parameters")
+        menu_item = Gtk.MenuItem(_("User filter..."))
+        menu_item.set_tooltip_text(_("Specify new filter by list parameters"))
         menu_item.show()
         self.menu.append(menu_item)
         menu_item.connect("activate", self.__user_filter_new)
@@ -488,7 +488,7 @@ class ScanFilter(Renderer):
         for filter in filters:
             if filter.TYPE == self.id: self.add_filter_to_menu(filter(self))
 
-        menu_item = Gtk.MenuItem("User filter ...")
+        menu_item = Gtk.MenuItem(_("User filter..."))
         menu_item.show()
         self.menu.append(menu_item)
         menu_item.connect("activate", self.__user_filter_new)

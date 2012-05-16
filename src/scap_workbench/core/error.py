@@ -59,6 +59,8 @@ class ExceptionDialog(object):
         self.traceback_str = "\n".join(formatted_traceback)
 
         text_buffer = Gtk.TextBuffer()
+        # this is intended to be copy pasted to the bug report dialog,
+        # therefore we are intentionally not translating any of it
         text_buffer.set_text("Version: %s\n"
                              "Python version: %s\n"
                              # FIXME!

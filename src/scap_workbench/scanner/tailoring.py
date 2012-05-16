@@ -91,7 +91,7 @@ class ItemList(abstract.List):
             text = self.search.get_text() or ""
             pattern = re.compile(text, re.I)
         except sre_constants.error, err:
-            self.core.notify("Regexp entry error: %s" % (err,), core.Notification.ERROR, msg_id="notify:profiles:filter")
+            self.core.notify(_("Regexp entry error: %s") % (err,), core.Notification.ERROR, msg_id="notify:profiles:filter")
             return True
 
         if event and event.type == Gdk.EventType.KEY_PRESS and event.keyval == Gdk.KEY_Return:
@@ -234,7 +234,7 @@ class ItemDetails(EventObject):
                 description = details["descriptions"][lang].replace("xhtml:","")
                 break
         description = self.data_model.substitute(description, with_policy=True)
-        if description == "": description = "No description"
+        if description == "": description = _("No description")
         description = "<body>"+description+"</body>"
         try:
             self.description.display_html(description)
@@ -271,7 +271,7 @@ class ItemDetails(EventObject):
             if text == None: text = ""
             hbox = Gtk.HBox()
             text += "    "+self.data_model.substitute(fixtext["text"]).replace("xhtml:", "").replace("xmlns:", "")+"<br>"
-        if text == None: text = "No fixes specified"
+        if text == None: text = _("No fixes specified")
         text = "<body>"+text+"</body>"
         try:
             self.fixes.display_html(text)
@@ -284,7 +284,7 @@ class ItemDetails(EventObject):
         # TODO: Move to Glade
 
         #info (id, title, type)
-        expander = Gtk.Expander(label = "<b>Info</b>")
+        expander = Gtk.Expander(label = _("<b>Info</b>"))
         expander.set_expanded(True)
         label = expander.get_label_widget()
         label.set_use_markup(True)
@@ -306,7 +306,7 @@ class ItemDetails(EventObject):
 
         #title
         hbox = Gtk.HBox()
-        label = Gtk.Label(label = "Title: ")
+        label = Gtk.Label(label = _("Title: "))
         label.set_alignment(0,0)
         hbox.pack_start(label, False, True, 1)
         self.title = Gtk.Label(label="")
@@ -319,7 +319,7 @@ class ItemDetails(EventObject):
 
         #type
         hbox = Gtk.HBox()
-        hbox.pack_start(Gtk.Label(label = "Type: "), False, True, 1)
+        hbox.pack_start(Gtk.Label(label = _("Type: ")), False, True, 1)
         self.type = Gtk.Label(label="")
         self.type.set_alignment(0,0)
         hbox.pack_start(self.type, True, True, 1)
@@ -327,7 +327,7 @@ class ItemDetails(EventObject):
         
         #weight
         hbox = Gtk.HBox()
-        hbox.pack_start(Gtk.Label(label = "Weight: "), False, True, 1)
+        hbox.pack_start(Gtk.Label(label = _("Weight: ")), False, True, 1)
         self.weight = Gtk.Label(label="")
         self.weight.set_alignment(0,0)
         hbox.pack_start(self.weight, True, True, 1)
@@ -335,14 +335,14 @@ class ItemDetails(EventObject):
 
         #CCE
         hbox = Gtk.HBox()
-        hbox.pack_start(Gtk.Label(label = "Idents: "), False, False, 1)
+        hbox.pack_start(Gtk.Label(label = _("Idents: ")), False, False, 1)
         self.idents = Gtk.Label(label="")
         self.idents.set_alignment(0,0)
         hbox.pack_start(self.idents, True, True, 1)
         vbox.pack_start(hbox, False, False, 1)
         
         #References
-        expander = Gtk.Expander(label = "<b>References</b>")
+        expander = Gtk.Expander(label = _("<b>References</b>"))
         expander.set_expanded(False)
         label = expander.get_label_widget()
         label.set_use_markup(True)
@@ -366,7 +366,7 @@ class ItemDetails(EventObject):
         window.destroy()
 
         #fixes
-        expander = Gtk.Expander(label = "<b>Fixes</b>")
+        expander = Gtk.Expander(label = _("<b>Fixes</b>"))
         expander.set_expanded(False)
         label = expander.get_label_widget()
         label.set_use_markup(True)
@@ -389,7 +389,7 @@ class ItemDetails(EventObject):
         self.box_details.pack_start(expander, False, False, 1)
 
         #description
-        expander = Gtk.Expander(label = "<b>Description</b>")
+        expander = Gtk.Expander(label = _("<b>Description</b>"))
         expander.set_expanded(True)
         label = expander.get_label_widget()
         label.set_use_markup(True)
@@ -508,7 +508,7 @@ class RefineDetails(EventObject):
         self.data_model.change_refines( severity=severity, role=role, weight=self.__cb_get_weight())
     
     def __cb_get_weight(self):
-        weight = self.func.controlFloat(self.weight.get_text(), "Weight", self.core.main_window)
+        weight = self.func.controlFloat(self.weight.get_text(), _("Weight"), self.core.main_window)
         if weight:
             return weight
         else: 

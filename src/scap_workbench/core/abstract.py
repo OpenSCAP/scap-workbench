@@ -637,7 +637,7 @@ class Func(object):
         <html>
           <body>
             <div id="center">
-                    <center><h1>Loading ...</h1></center>
+                    <center><h1>""" + _("Loading...") + """</h1></center>
             </div>
           </body>
         </html>
@@ -675,7 +675,8 @@ class Func(object):
             desc = desc.replace("xhtml:","")
             desc = desc.replace("xmlns:", "")
             desc = self.data_model.substitute(desc)
-            if desc == "": desc = "No description"
+            if desc == "":
+                desc = _("No description")
             desc = "<body><div>"+desc+"</div></body>"
 
         self.description_widget.load_html_string(desc, "file:///")
@@ -713,8 +714,8 @@ class Func(object):
         if iter:
             md = Gtk.MessageDialog(window, 
                 Gtk.DialogFlags.MODAL, Gtk.MessageType.QUESTION,
-                Gtk.ButtonsType.YES_NO, "Do you want delete selected row?")
-            md.set_title("Delete row")
+                Gtk.ButtonsType.YES_NO, _("Do you want delete selected row?"))
+            md.set_title(_("Delete row"))
             result = md.run()
             md.destroy()
             if result == Gtk.ResponseType.NO: 
@@ -722,7 +723,7 @@ class Func(object):
             else: 
                 return iter
         else:
-            self.dialogInfo("Choose row which you want delete.", window)
+            self.dialogInfo(_("Choose row which you want delete."), window)
 
     def dialogNotSelected(self, window):
         LOGGER.warning("Deprecation warning: This function should not be used.") # TODO
@@ -733,7 +734,7 @@ class Func(object):
         md = Gtk.MessageDialog(window, 
                     Gtk.DialogFlags.MODAL, Gtk.MessageType.INFO,
                     Gtk.ButtonsType.OK, text)
-        md.set_title("Info")
+        md.set_title(_("Info"))
         md.run()
         md.destroy()
 
@@ -780,20 +781,20 @@ class Func(object):
         if text != "":
             date = text.split("-")
             if len(date) != 3:
-                self.notifications.append(self.core.notify("The date is in incorrect format. Correct format is YYYY-MM-DD.",
+                self.notifications.append(self.core.notify(_("The date is in incorrect format. Correct format is YYYY-MM-DD."),
                     Notification.ERROR, msg_id="notify:date_format"))
                 return None
             try:
                 d = datetime.date(int(date[0]), int(date[1]), int(date[2]))
             except ValueError as ex:
-                self.notifications.append(self.core.notify("The date is in incorrect format. Correct format is YYYY-MM-DD.",
+                self.notifications.append(self.core.notify(_("The date is in incorrect format. Correct format is YYYY-MM-DD."),
                     Notification.ERROR, msg_id="notify:date_format"))
                 return None
             
             try:
                 timestamp = int(time.mktime(d.timetuple())) 
             except (OverflowError, ValueError):
-                self.notifications.append(self.core.notify("The date is out of range.",
+                self.notifications.append(self.core.notify(_("The date is out of range."),
                     Notification.ERROR, msg_id="notify:date_format"))
                 return None
 
@@ -815,10 +816,11 @@ class Func(object):
         if patternBase.search(text) != None or patternTempo.search(text) != None or patternEnvi.search(text) != None:
             return True
         else:
-            error = "Incorrect value of Impact Metric, correct is: Metric Value Description \n"
-            error = error + "Base =    AV:[L,A,N]/AC:[H,M,L]/Au:[M,S,N]/C:[N,P,C]/I:[N,P,C]/A:[N,P,C]\n"
-            error = error + "Temporal =     E:[U,POC,F,H,ND]/RL:[OF,TF,W,U,ND]/RC:[UC,UR,C,ND]\n"
-            error = error + "Environmental =    CDP:[N,L,LM,MH,H,ND]/TD:[N,L,M,H,ND]/CR:[L,M,H,ND]/IR:[L,M,H,ND]/AR:[L,M,H,ND]"
+            error = _("""
+Incorrect value of Impact Metric, correct is: Metric Value Description
+Base =    AV:[L,A,N]/AC:[H,M,L]/Au:[M,S,N]/C:[N,P,C]/I:[N,P,C]/A:[N,P,C]\n")
+Temporal =     E:[U,POC,F,H,ND]/RL:[OF,TF,W,U,ND]/RC:[UC,UR,C,ND]\n"
+Environmental =    CDP:[N,L,LM,MH,H,ND]/TD:[N,L,M,H,ND]/CR:[L,M,H,ND]/IR:[L,M,H,ND]/AR:[L,M,H,ND]""")
             
             self.notifications.append(core.notify(error, Notification.ERROR, msg_id="notify:control:metric"))
             return False
@@ -1036,7 +1038,7 @@ class HTMLEditor(ListEditor):
         self.__html = widget
 
     def on_color_set(self, widget):
-        dialog = Gtk.ColorSelectionDialog("Select Color")
+        dialog = Gtk.ColorSelectionDialog(_("Select Color"))
         if dialog.run() == Gtk.ResponseType.OK:
             gc = str(dialog.colorsel.get_current_color())
             color = "#" + "".join([gc[1:3], gc[5:7], gc[9:11]])
@@ -1103,7 +1105,7 @@ class HTMLEditor(ListEditor):
                 soup = BeautifulSoup(desc)
                 desc = soup.prettify()
             else: 
-                self.core.notify("Missing BeautifulSoup python module, HTML processing disabled.",
+                self.core.notify(_("Missing BeautifulSoup python module, HTML processing disabled."),
                     Notification.INFORMATION, info_box=self.info_box, msg_id="")
             self.__plain.get_buffer().set_text(desc)
 
@@ -1168,7 +1170,7 @@ class EnterList(EventObject):
                         if (data == "" or data == None):
                             md = Gtk.MessageDialog(self.window, 
                                     Gtk.DialogFlags.MODAL, Gtk.MessageType.INFO,
-                                    Gtk.ButtonsType.OK, " Column \"%s\" can't be empty." % (name))
+                                    Gtk.ButtonsType.OK, _("Column \"%s\" can't be empty.") % (name))
                             md.set_title("Info")
                             md.run()
                             md.destroy()
@@ -1187,8 +1189,8 @@ class EnterList(EventObject):
                             if row[column] == new_text and self.model.get_path(row.iter) != path:
                                 md = Gtk.MessageDialog(self.window, 
                                         Gtk.DialogFlags.MODAL, Gtk.MessageType.QUESTION,
-                                        Gtk.ButtonsType.YES_NO, "%s \"%s\" already specified.\n\nRewrite stored data ?" % (name, new_text,))
-                                md.set_title("Language found")
+                                        Gtk.ButtonsType.YES_NO, _("%s \"%s\" already specified.\n\nRewrite stored data?") % (name, new_text,))
+                                md.set_title(_("Language found"))
                                 result = md.run()
                                 md.destroy()
                                 if result == Gtk.ResponseType.NO:
@@ -1235,8 +1237,8 @@ class EnterList(EventObject):
                 if  iter != None and self.model.get_value(iter, EnterList.COLUMN_MARK_ROW) != "*":
                     md = Gtk.MessageDialog(self.window, 
                         Gtk.DialogFlags.MODAL, Gtk.MessageType.QUESTION,
-                        Gtk.ButtonsType.YES_NO, "Do you want delete selected row?")
-                    md.set_title("Delete row")
+                        Gtk.ButtonsType.YES_NO, _("Do you want delete selected row?"))
+                    md.set_title(_("Delete row"))
                     result = md.run()
                     md.destroy()
                     if result == Gtk.ResponseType.NO: 
@@ -1502,8 +1504,8 @@ class EditDialogWindow(EventObject):
             if row[column] == data and self.model.get_path(row.iter) != path:
                 md = Gtk.MessageDialog(self.window, 
                         Gtk.DialogFlags.MODAL, Gtk.MessageType.QUESTION,
-                        Gtk.ButtonsType.YES_NO, "%s \"%s\" already specified.\n\nRewrite stored data ?" % (name, data,))
-                md.set_title("Information exist")
+                        Gtk.ButtonsType.YES_NO, _("%s \"%s\" already specified.\n\nRewrite stored data?") % (name, data,))
+                md.set_title(_("Information exist"))
                 result = md.run()
                 md.destroy()
                 if result == Gtk.ResponseType.NO:
@@ -1521,9 +1523,10 @@ class EditDialogWindow(EventObject):
         if (data == "" or data == None):
             md = Gtk.MessageDialog(self.window, 
                     Gtk.DialogFlags.MODAL, Gtk.MessageType.INFO,
-                    Gtk.ButtonsType.OK, " \"%s\" can't be empty." % (name))
-            md.set_title("Info")
+                    Gtk.ButtonsType.OK, _("\"%s\" can't be empty.") % (name))
+            md.set_title(_("Info"))
             md.run()
             md.destroy()
             return False
+        
         return True

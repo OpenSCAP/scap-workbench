@@ -91,82 +91,82 @@ BOOLEAN = Enum((
 # Below is the list of enumerations from OpenSCAP library
 
 STATUS_CURRENT = Enum((
-    [openscap.OSCAP.XCCDF_STATUS_NOT_SPECIFIED, "NOT SPECIFIED", "Status was not specified by benchmark."],
-    [openscap.OSCAP.XCCDF_STATUS_ACCEPTED, "ACCEPTED", "Accepted."],
-    [openscap.OSCAP.XCCDF_STATUS_DEPRECATED, "DEPRECATED", "Deprecated."],
-    [openscap.OSCAP.XCCDF_STATUS_DRAFT, "DRAFT ", "Draft item."],
-    [openscap.OSCAP.XCCDF_STATUS_INCOMPLETE, "INCOMPLETE", "The item is not complete. "],
-    [openscap.OSCAP.XCCDF_STATUS_INTERIM, "INTERIM", "Interim."]))
+    [openscap.OSCAP.XCCDF_STATUS_NOT_SPECIFIED, "NOT SPECIFIED", _("Status was not specified by benchmark.")],
+    [openscap.OSCAP.XCCDF_STATUS_ACCEPTED, "ACCEPTED", _("Accepted.")],
+    [openscap.OSCAP.XCCDF_STATUS_DEPRECATED, "DEPRECATED", _("Deprecated.")],
+    [openscap.OSCAP.XCCDF_STATUS_DRAFT, "DRAFT ", _("Draft item.")],
+    [openscap.OSCAP.XCCDF_STATUS_INCOMPLETE, "INCOMPLETE", _("The item is not complete. ")],
+    [openscap.OSCAP.XCCDF_STATUS_INTERIM, "INTERIM", _("Interim.")]))
 
 WARNING = Enum((
-    [0, "UNKNOWN", "Unknown."],
-    [openscap.OSCAP.XCCDF_WARNING_GENERAL, "GENERAL", "General-purpose warning."],
-    [openscap.OSCAP.XCCDF_WARNING_FUNCTIONALITY, "FUNCTIONALITY", "Warning about possible impacts to functionality."],
-    [openscap.OSCAP.XCCDF_WARNING_PERFORMANCE, "PERFORMANCE", "  Warning about changes to target system performance."],
-    [openscap.OSCAP.XCCDF_WARNING_HARDWARE, "HARDWARE", "Warning about hardware restrictions or possible impacts to hardware."],
-    [openscap.OSCAP.XCCDF_WARNING_LEGAL, "LEGAL", "Warning about legal implications."],
-    [openscap.OSCAP.XCCDF_WARNING_REGULATORY, "REGULATORY", "Warning about regulatory obligations."],
-    [openscap.OSCAP.XCCDF_WARNING_MANAGEMENT, "MANAGEMENT", "Warning about impacts to the mgmt or administration of the target system."],
-    [openscap.OSCAP.XCCDF_WARNING_AUDIT, "AUDIT", "Warning about impacts to audit or logging."],
-    [openscap.OSCAP.XCCDF_WARNING_DEPENDENCY, "DEPENDENCY", "Warning about dependencies between this Rule and other parts of the target system."]))
+    [0, "UNKNOWN", _("Unknown.")],
+    [openscap.OSCAP.XCCDF_WARNING_GENERAL, "GENERAL", _("General-purpose warning.")],
+    [openscap.OSCAP.XCCDF_WARNING_FUNCTIONALITY, "FUNCTIONALITY", _("Warning about possible impacts to functionality.")],
+    [openscap.OSCAP.XCCDF_WARNING_PERFORMANCE, "PERFORMANCE", _("  Warning about changes to target system performance.")],
+    [openscap.OSCAP.XCCDF_WARNING_HARDWARE, "HARDWARE", _("Warning about hardware restrictions or possible impacts to hardware.")],
+    [openscap.OSCAP.XCCDF_WARNING_LEGAL, "LEGAL", _("Warning about legal implications.")],
+    [openscap.OSCAP.XCCDF_WARNING_REGULATORY, "REGULATORY", _("Warning about regulatory obligations.")],
+    [openscap.OSCAP.XCCDF_WARNING_MANAGEMENT, "MANAGEMENT", _("Warning about impacts to the mgmt or administration of the target system.")],
+    [openscap.OSCAP.XCCDF_WARNING_AUDIT, "AUDIT", _("Warning about impacts to audit or logging.")],
+    [openscap.OSCAP.XCCDF_WARNING_DEPENDENCY, "DEPENDENCY", _("Warning about dependencies between this Rule and other parts of the target system.")]))
 
 OPERATOR = Enum((
-    [openscap.OSCAP.XCCDF_OPERATOR_EQUALS, "EQUALS", "Equality"],
-    [openscap.OSCAP.XCCDF_OPERATOR_NOT_EQUAL, "NOT EQUAL", "Inequality"],
-    [openscap.OSCAP.XCCDF_OPERATOR_GREATER, "GREATER", "Greater than"],
-    [openscap.OSCAP.XCCDF_OPERATOR_GREATER_EQUAL, "GREATER OR EQUAL", "Greater than or equal."],
-    [openscap.OSCAP.XCCDF_OPERATOR_LESS , "LESS", "Less than."],
-    [openscap.OSCAP.XCCDF_OPERATOR_LESS_EQUAL, "LESS OR EQUAL", "Less than or equal."]))
+    [openscap.OSCAP.XCCDF_OPERATOR_EQUALS, "EQUALS", _("Equality")],
+    [openscap.OSCAP.XCCDF_OPERATOR_NOT_EQUAL, "NOT EQUAL", _("Inequality")],
+    [openscap.OSCAP.XCCDF_OPERATOR_GREATER, "GREATER", _("Greater than")],
+    [openscap.OSCAP.XCCDF_OPERATOR_GREATER_EQUAL, "GREATER OR EQUAL", _("Greater than or equal.")],
+    [openscap.OSCAP.XCCDF_OPERATOR_LESS , "LESS", _("Less than.")],
+    [openscap.OSCAP.XCCDF_OPERATOR_LESS_EQUAL, "LESS OR EQUAL", _("Less than or equal.")]))
 
 TYPE = Enum((
-    [0, "UNKNOWN", "Unknown."],
+    [0, "UNKNOWN", _("Unknown.")],
     [openscap.OSCAP.XCCDF_TYPE_NUMBER, "NUMBER", ""],
     [openscap.OSCAP.XCCDF_TYPE_STRING, "STRING", ""],
     [openscap.OSCAP.XCCDF_TYPE_BOOLEAN, "BOOLEAN", ""]))
 
 COMPLEXITY = Enum((
-    [openscap.OSCAP.XCCDF_UNKNOWN, "UNKNOWN", "Default, complexity not defined"],
-    [openscap.OSCAP.XCCDF_LOW, "LOW", "The fix is very simple to apply"],
-    [openscap.OSCAP.XCCDF_MEDIUM, "MEDIUM", "The fix is moderately difficult or complex"],
-    [openscap.OSCAP.XCCDF_HIGH, "HIGH", "The fix is very complex to apply"]))
+    [openscap.OSCAP.XCCDF_UNKNOWN, "UNKNOWN", _("Default, complexity not defined")],
+    [openscap.OSCAP.XCCDF_LOW, "LOW", _("The fix is very simple to apply")],
+    [openscap.OSCAP.XCCDF_MEDIUM, "MEDIUM", _("The fix is moderately difficult or complex")],
+    [openscap.OSCAP.XCCDF_HIGH, "HIGH", _("The fix is very complex to apply")]))
 
 DISRUPTION = Enum((
-    [openscap.OSCAP.XCCDF_UNKNOWN, "UNKNOWN", "Default, disruption not defined"],
-    [openscap.OSCAP.XCCDF_LOW, "LOW", "Little or no disruption expected"],
-    [openscap.OSCAP.XCCDF_MEDIUM, "MEDIUM", "Potential for minor or short-lived disruption"],
-    [openscap.OSCAP.XCCDF_HIGH, "HIGH", "Potential for serious disruption"]))
+    [openscap.OSCAP.XCCDF_UNKNOWN, "UNKNOWN", _("Default, disruption not defined")],
+    [openscap.OSCAP.XCCDF_LOW, "LOW", _("Little or no disruption expected")],
+    [openscap.OSCAP.XCCDF_MEDIUM, "MEDIUM", _("Potential for minor or short-lived disruption")],
+    [openscap.OSCAP.XCCDF_HIGH, "HIGH", _("Potential for serious disruption")]))
 
 LEVEL = Enum((
-    [openscap.OSCAP.XCCDF_UNKNOWN, "UNKNOWN", "Unknown."],
-    [openscap.OSCAP.XCCDF_INFO, "INFO", "Info."],
-    [openscap.OSCAP.XCCDF_LOW, "LOW", "Low."],
-    [openscap.OSCAP.XCCDF_MEDIUM, "MEDIUM", "Medium"],
-    [openscap.OSCAP.XCCDF_HIGH, "HIGH", "High."]))
+    [openscap.OSCAP.XCCDF_UNKNOWN, "UNKNOWN", _("Unknown.")],
+    [openscap.OSCAP.XCCDF_INFO, "INFO", _("Info.")],
+    [openscap.OSCAP.XCCDF_LOW, "LOW", _("Low.")],
+    [openscap.OSCAP.XCCDF_MEDIUM, "MEDIUM", _("Medium")],
+    [openscap.OSCAP.XCCDF_HIGH, "HIGH", _("High.")]))
 
 ROLE = Enum((
-    [openscap.OSCAP.XCCDF_ROLE_FULL, "FULL", "Check the rule and let the result contriburte to the score and appear in reports.."],
-    [openscap.OSCAP.XCCDF_ROLE_UNSCORED, "UNSCORED", "Check the rule and include the result in reports, but do not include it into score computations"],
-    [openscap.OSCAP.XCCDF_ROLE_UNCHECKED, "UNCHECKED", "Don't check the rule, result will be XCCDF_RESULT_UNKNOWN."]))
+    [openscap.OSCAP.XCCDF_ROLE_FULL, "FULL", _("Check the rule and let the result contriburte to the score and appear in reports..")],
+    [openscap.OSCAP.XCCDF_ROLE_UNSCORED, "UNSCORED", _("Check the rule and include the result in reports, but do not include it into score computations")],
+    [openscap.OSCAP.XCCDF_ROLE_UNCHECKED, "UNCHECKED", _("Don't check the rule, result will be XCCDF_RESULT_UNKNOWN.")]))
 
 STRATEGY = Enum((
-    [openscap.OSCAP.XCCDF_STRATEGY_UNKNOWN, "UNKNOWN", "Default, strategy not defined"],
-    [openscap.OSCAP.XCCDF_STRATEGY_CONFIGURE, "CONFIGURE", "Adjust target configuration/settings"],
-    [openscap.OSCAP.XCCDF_STRATEGY_DISABLE, "DISABLE", "Turn off or uninstall a target component"],
-    [openscap.OSCAP.XCCDF_STRATEGY_ENABLE, "ENABLE", "Turn on or install target component"],
-    [openscap.OSCAP.XCCDF_STRATEGY_PATCH, "PATCH", "Apply a patch, hotfix, update, etc."],
-    [openscap.OSCAP.XCCDF_STRATEGY_POLICY, "POLICY", "Remediation requires out-of-band adjustements to policies or procedures"],
-    [openscap.OSCAP.XCCDF_STRATEGY_RESTRICT, "RESTRICT", "Adjust permissions, access rights, filters, or other access restrictions"],
-    [openscap.OSCAP.XCCDF_STRATEGY_UPDATE, "UPDATE", "Install upgrade or update the system"],
-    [openscap.OSCAP.XCCDF_STRATEGY_COMBINATION, "COMBINATION", "Combo of two or more of the above."]))
+    [openscap.OSCAP.XCCDF_STRATEGY_UNKNOWN, "UNKNOWN", _("Default, strategy not defined")],
+    [openscap.OSCAP.XCCDF_STRATEGY_CONFIGURE, "CONFIGURE", _("Adjust target configuration/settings")],
+    [openscap.OSCAP.XCCDF_STRATEGY_DISABLE, "DISABLE", _("Turn off or uninstall a target component")],
+    [openscap.OSCAP.XCCDF_STRATEGY_ENABLE, "ENABLE", _("Turn on or install target component")],
+    [openscap.OSCAP.XCCDF_STRATEGY_PATCH, "PATCH", _("Apply a patch, hotfix, update, etc.")],
+    [openscap.OSCAP.XCCDF_STRATEGY_POLICY, "POLICY", _("Remediation requires out-of-band adjustements to policies or procedures")],
+    [openscap.OSCAP.XCCDF_STRATEGY_RESTRICT, "RESTRICT", _("Adjust permissions, access rights, filters, or other access restrictions")],
+    [openscap.OSCAP.XCCDF_STRATEGY_UPDATE, "UPDATE", _("Install upgrade or update the system")],
+    [openscap.OSCAP.XCCDF_STRATEGY_COMBINATION, "COMBINATION", _("Combo of two or more of the above.")]))
 
 OPERATOR_BOOL = Enum((
-    [openscap.OSCAP.XCCDF_OPERATOR_EQUALS, "EQUALS", "Equality"],
-    [openscap.OSCAP.XCCDF_OPERATOR_NOT_EQUAL, "NOT EQUAL", "Inequality"]))
+    [openscap.OSCAP.XCCDF_OPERATOR_EQUALS, "EQUALS", _("Equality")],
+    [openscap.OSCAP.XCCDF_OPERATOR_NOT_EQUAL, "NOT EQUAL", _("Inequality")]))
 
 OPERATOR_STRING = Enum((
-    [openscap.OSCAP.XCCDF_OPERATOR_EQUALS, "EQUALS", "Equality"],
-    [openscap.OSCAP.XCCDF_OPERATOR_NOT_EQUAL, "NOT EQUAL", "Inequality"],
-    [openscap.OSCAP.XCCDF_OPERATOR_PATTERN_MATCH, "PATTERN_MATCH", "Match a regular expression."]))
+    [openscap.OSCAP.XCCDF_OPERATOR_EQUALS, "EQUALS", _("Equality")],
+    [openscap.OSCAP.XCCDF_OPERATOR_NOT_EQUAL, "NOT EQUAL", _("Inequality")],
+    [openscap.OSCAP.XCCDF_OPERATOR_PATTERN_MATCH, "PATTERN_MATCH", _("Match a regular expression.")]))
 
 __all__ = ["BOOLEAN", "STATUS_CURRENT", "WARNING", "OPERATOR", "TYPE", "COMPLEXITY",
            "DISRUPTION", "LEVEL", "ROLE", "STRATEGY", "OPERATOR_BOOL", "OPERATOR_STRING"]

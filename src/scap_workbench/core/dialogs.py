@@ -70,7 +70,7 @@ class ImportDialog(abstract.Window, abstract.ListEditor):
         #       where user can choose a callback?
         if not callable(self.__import):
             LOGGER.critical("FATAL: Function for import is not callable")
-            self.core.notify("<b>FATAL !</b> Function for import is not callable ! <a href='#bug'>Report</a>", 
+            self.core.notify(_("<b>FATAL !</b> Function for import is not callable ! <a href='#bug'>Report</a>"), 
                     Notification.FATAL, msg_id="notify:xccdf:import:dialog", link_cb=self.__action_link)
             return
         
@@ -126,7 +126,7 @@ class ImportDialog(abstract.Window, abstract.ListEditor):
         
         import_file = self.filechooser.get_filename()
         if import_file == None:
-            self.core.notify("Choose a file to first.",
+            self.core.notify(_("Choose a file first."),
                 Notification.INFORMATION, info_box=self.info_box, msg_id="notify:xccdf:import:dialog")
             return
         
@@ -135,7 +135,7 @@ class ImportDialog(abstract.Window, abstract.ListEditor):
             self.log = []
             retval = self.data_model.validate_file(import_file, reporter=self.__cb_report)
             if retval != True:
-                self.core.notify("You are trying to import non-valid XCCDF Benchmark ! <a href='#overvalid'>Proceed</a> <a href='#log'>More</a>", 
+                self.core.notify(_("You are trying to import non-valid XCCDF Benchmark ! <a href='#overvalid'>Proceed</a> <a href='#log'>More</a>"), 
                         Notification.WARNING, info_box=self.info_box, msg_id="notify:xccdf:import:dialog", link_cb=self.__action_link)
                 #self.progress.destroy()
                 return
@@ -253,7 +253,7 @@ class ExportDialog(abstract.Window, abstract.ListEditor):
         #self.progress.show()
         export_file = self.filechooser.get_filename()
         if export_file == None:
-            self.core.notify("Choose a file to save to first.",
+            self.core.notify(_("Choose a file to save to first."),
                 Notification.INFORMATION, info_box=self.info_box, msg_id="dialog:export:notify")
             #self.progress.destroy()
             return
@@ -262,7 +262,7 @@ class ExportDialog(abstract.Window, abstract.ListEditor):
 
         if not overwrite and export_file == self.core.lib.xccdf and self.guide_rb.get_active():
             # We are trying to export guide to the XCCDF file (common mistake)
-            self.core.notify("You are trying to overwrite loaded XCCDF Benchmark by XCCDF Guide ! <a href='#overwrite'>Proceed</a>", 
+            self.core.notify(_("You are trying to overwrite loaded XCCDF Benchmark by XCCDF Guide ! <a href='#overwrite'>Proceed</a>"), 
                     Notification.WARNING, info_box=self.info_box, msg_id="notify:xccdf:export:dialog", link_cb=self.__action_link)
             #self.progress.destroy()
             return
@@ -272,7 +272,7 @@ class ExportDialog(abstract.Window, abstract.ListEditor):
             self.log = []
             retval = self.data_model.validate(reporter=self.__cb_report)
             if not retval:
-                self.core.notify("You are trying to export non-valid XCCDF Benchmark ! <a href='#overvalid'>Proceed</a> <a href='#log'>More</a>", 
+                self.core.notify(_("You are trying to export non-valid XCCDF Benchmark ! <a href='#overvalid'>Proceed</a> <a href='#log'>More</a>"), 
                         Notification.WARNING, info_box=self.info_box, msg_id="notify:xccdf:export:dialog", link_cb=self.__action_link)
                 #self.progress.destroy()
                 return
@@ -280,18 +280,18 @@ class ExportDialog(abstract.Window, abstract.ListEditor):
         if self.file_rb.get_active():
             # we are exporting to file
             file_name = self.data_model.export(export_file)
-            self.core.notify("Benchmark has been exported to \"%s\"" % (file_name,),
+            self.core.notify(_("Benchmark has been exported to \"%s\"") % (file_name,),
                     Notification.SUCCESS, msg_id="notify:xccdf:export")
             self.core.lib.xccdf = file_name
         else:
             # we are exporting as guide
             if not self.data_model.resolve():
-                self.core.notify("Benchmark resolving failed",
+                self.core.notify(_("Benchmark resolving failed"),
                         Notification.ERROR, info_box=self.info_box, msg_id="notify:xccdf:export")
                 #self.progress.destroy()
                 return
             elif not self.core.lib.xccdf:
-                self.core.notify("Benchmark is not exported. Export benchmark first !",
+                self.core.notify(_("Benchmark is not exported. Export benchmark first!"),
                         Notification.INFORMATION, info_box=self.info_box, msg_id="notify:xccdf:export")
                 #self.progress.destroy()
                 return
@@ -302,7 +302,7 @@ class ExportDialog(abstract.Window, abstract.ListEditor):
             if self.profiles_cb.get_active() != -1:
                 profile = self.profiles_cb.get_model()[self.profiles_cb.get_active()][0]
             self.data_model.export_guide(temp.name, export_file, profile, not self.profile.get_active())
-            self.core.notify("The guide has been exported to \"%s\". <a href='#browser'>View in browser</a> <a href='#webkit'>View in WebKit</a>" % (export_file,),
+            self.core.notify(_("The guide has been exported to \"%s\". <a href='#browser'>View in browser</a> <a href='#webkit'>View in WebKit</a>") % (export_file,),
                     Notification.SUCCESS, msg_id="notify:xccdf:export", link_cb=self.__action_link)
             temp.close()
             #self.progress.destroy()
@@ -314,5 +314,3 @@ class ExportDialog(abstract.Window, abstract.ListEditor):
         """
         if self.wdialog: 
             self.wdialog.destroy()
-
-        

@@ -93,14 +93,14 @@ class AddItem(EventObject):
         (model, iter) = self.view.get_selection().get_selected()
         if not iter:
             if widget.get_active() in [self.data_model.RELATION_PARENT, self.data_model.RELATION_SIBLING]:
-                self.core.notify("Item can't be a parent or sibling of benchmark !",
+                self.core.notify(_("Item can't be a parent or sibling of benchmark!"),
                         core.Notification.ERROR, self.info_box, msg_id="notify:relation")
                 widget.grab_focus()
                 return False
         else:
             self.core.notify_destroy("dialog:add_item")
             if model[iter][self.data_model.COLUMN_TYPE] in ["value", "rule"] and widget.get_active() == self.data_model.RELATION_CHILD:
-                self.core.notify("Item types VALUE and RULE can't be a parent !",
+                self.core.notify(_("Item types VALUE and RULE can't be a parent!"),
                         core.Notification.ERROR, self.info_box, msg_id="notify:relation")
                 widget.grab_focus()
                 return False
@@ -124,32 +124,32 @@ class AddItem(EventObject):
             return
 
         if itype == -1:
-            self.core.notify("Relation has to be chosen",
+            self.core.notify(_("Relation has to be chosen"),
                     core.Notification.ERROR, self.info_box, msg_id="dialog:add_item")
             self.itype.grab_focus()
             return
 
         if itype == self.data_model.TYPE_VALUE:
             if vtype == -1:
-                self.core.notify("Type of value has to be choosen",
+                self.core.notify(_("Type of value has to be chosen"),
                         core.Notification.ERROR, self.info_box, msg_id="dialog:add_item")
                 self.vtype.grab_focus()
                 return
 
         if relation == -1:
-            self.core.notify("Relation has to be chosen",
+            self.core.notify(_("Relation has to be chosen"),
                     core.Notification.ERROR, self.info_box, msg_id="dialog:add_item")
             self.relation.grab_focus()
             return
 
         if self.iid.get_text() == "":
-            self.core.notify("The ID of item is mandatory !",
+            self.core.notify(_("The ID of item is mandatory!"),
                     core.Notification.ERROR, self.info_box, msg_id="dialog:add_item")
             self.iid.grab_focus()
             self.iid.modify_base(Gtk.StateType.NORMAL, Gdk.color_parse("#FFC1C2"))
             return
         elif self.data_model.get_item_details(self.iid.get_text()):
-            self.core.notify("ID already exists",
+            self.core.notify(_("ID already exists"),
                     core.Notification.ERROR, self.info_box, msg_id="dialog:add_item")
             self.iid.grab_focus()
             self.iid.modify_base(Gtk.StateType.NORMAL, Gdk.color_parse("#FFC1C2"))
@@ -158,7 +158,7 @@ class AddItem(EventObject):
             self.iid.modify_base(Gtk.StateType.NORMAL, self.__entry_style)
 
         if self.title.get_text() == "":
-            self.core.notify("The title of item is mandatory !",
+            self.core.notify(_("The title of item is mandatory!"),
                     core.Notification.ERROR, self.info_box, msg_id="dialog:add_item")
             self.title.grab_focus()
             self.title.modify_base(Gtk.StateType.NORMAL, Gdk.color_parse("#FFC1C2"))
@@ -167,7 +167,7 @@ class AddItem(EventObject):
             self.title.modify_base(Gtk.StateType.NORMAL, self.__entry_style)
 
         if relation == self.data_model.RELATION_PARENT:
-            self.core.notify("Relation PARENT is not implemented yet",
+            self.core.notify(_("Relation PARENT is not implemented yet"),
                     core.Notification.ERROR, self.info_box, msg_id="dialog:add_item")
             self.relation.grab_focus()
             return
@@ -216,9 +216,9 @@ class EditConflicts(commands.DHEditItems, abstract.ControlEditWindow):
     def __cb_add(self, widget):
         # unimplemented
         dialog = Gtk.MessageDialog(None, 0, Gtk.MessageType.INFO,
-            Gtk.ButtonsType.OK, "Not implemented!")
+            Gtk.ButtonsType.OK, _("Not implemented!"))
         dialog.format_secondary_text(
-            "Sorry, manipulating conflicts is not implemented yet!")
+            _("Sorry, manipulating conflicts is not implemented yet!"))
         dialog.run()
         dialog.destroy()
         
@@ -259,9 +259,9 @@ class EditRequires(commands.DHEditItems, abstract.ControlEditWindow):
     def __cb_add(self, widget):
         # unimplemented
         dialog = Gtk.MessageDialog(None, 0, Gtk.MessageType.INFO,
-            Gtk.ButtonsType.OK, "Not implemented!")
+            Gtk.ButtonsType.OK, _("Not implemented!"))
         dialog.format_secondary_text(
-            "Sorry, manipulating requires is not implemented yet!")
+            _("Sorry, manipulating requires is not implemented yet!"))
         dialog.run()
         dialog.destroy()
     
@@ -292,7 +292,7 @@ class EditItemValues(abstract.ListEditor):
         if iter:
             item = model[iter][self.COLUMN_ID]
         elif self.operation != self.data_model.CMD_OPER_EDIT:
-            self.core.notify("Value has to be choosen.", core.Notification.ERROR, info_box=self.info_box, msg_id="notify:dialog_notify")
+            self.core.notify(_("Value has to be chosen."), core.Notification.ERROR, info_box=self.info_box, msg_id="notify:dialog_notify")
             return
 
         if self.operation == self.data_model.CMD_OPER_EDIT:
@@ -330,8 +330,8 @@ class EditItemValues(abstract.ListEditor):
         self.core.notify_destroy("notify:not_selected")
         (model, iter) = self.get_selection().get_selected()
         if operation == self.data_model.CMD_OPER_ADD:
-            self.values.append_column(Gtk.TreeViewColumn("ID of Value", Gtk.CellRendererText(), text=self.COLUMN_ID))
-            self.values.append_column(Gtk.TreeViewColumn("Title", Gtk.CellRendererText(), text=self.COLUMN_VALUE))
+            self.values.append_column(Gtk.TreeViewColumn(_("ID of Value"), Gtk.CellRendererText(), text=self.COLUMN_ID))
+            self.values.append_column(Gtk.TreeViewColumn(_("Title"), Gtk.CellRendererText(), text=self.COLUMN_VALUE))
             values = self.data_model.get_all_values()
             self.values.set_model(Gtk.ListStore(str, str, GObject.TYPE_PYOBJECT))
             modelfilter = self.values.get_model().filter_new()
@@ -348,11 +348,11 @@ class EditItemValues(abstract.ListEditor):
             self.wdialog.show_all()
         elif operation == self.data_model.CMD_OPER_EDIT:
             if not iter:
-                self.notifications.append(self.core.notify("Please select at least one item to edit",
+                self.notifications.append(self.core.notify(_("Please select at least one item to edit"),
                     core.Notification.ERROR, msg_id="notify:not_selected"))
                 return
-            self.values.append_column(Gtk.TreeViewColumn("ID of Value", Gtk.CellRendererText(), text=self.COLUMN_ID))
-            self.values.append_column(Gtk.TreeViewColumn("Title", Gtk.CellRendererText(), text=self.COLUMN_VALUE))
+            self.values.append_column(Gtk.TreeViewColumn(_("ID of Value"), Gtk.CellRendererText(), text=self.COLUMN_ID))
+            self.values.append_column(Gtk.TreeViewColumn(_("Title"), Gtk.CellRendererText(), text=self.COLUMN_VALUE))
             values = self.data_model.get_all_values()
             self.values.set_model(Gtk.ListStore(str, str, GObject.TYPE_PYOBJECT))
             modelfilter = self.values.get_model().filter_new()
@@ -374,8 +374,8 @@ class EditItemValues(abstract.ListEditor):
             self.wdialog.show_all()
 
         elif operation == self.data_model.CMD_OPER_BIND:
-            self.values.append_column(Gtk.TreeViewColumn("ID of Value", Gtk.CellRendererText(), text=self.COLUMN_ID))
-            self.values.append_column(Gtk.TreeViewColumn("Title", Gtk.CellRendererText(), text=self.COLUMN_VALUE))
+            self.values.append_column(Gtk.TreeViewColumn(_("ID of Value"), Gtk.CellRendererText(), text=self.COLUMN_ID))
+            self.values.append_column(Gtk.TreeViewColumn(_("Title"), Gtk.CellRendererText(), text=self.COLUMN_VALUE))
             self.values.set_sensitive(False)
 
             self.wdialog.set_transient_for(self.core.main_window)
@@ -383,7 +383,7 @@ class EditItemValues(abstract.ListEditor):
 
         elif operation == self.data_model.CMD_OPER_DEL:
             if not iter:
-                self.notifications.append(self.core.notify("Please select at least one item to delete",
+                self.notifications.append(self.core.notify(_("Please select at least one item to delete"),
                     core.Notification.ERROR, msg_id="notify:not_selected"))
                 return
             else: 
@@ -406,7 +406,7 @@ class EditItemValues(abstract.ListEditor):
                 title = self.data_model.get_title(item.title) or ""
                 self.append([check[0], (" ".join(title.split())), check[1], item, None, None])
             else:
-                self.append([check[0], "(Missing item)", check[1], None, "red", "white"])
+                self.append([check[0], _("(Missing item)"), check[1], None, "red", "white"])
 
 
 class EditFixtext(abstract.HTMLEditor):
@@ -422,11 +422,10 @@ class EditFixtext(abstract.HTMLEditor):
         super(EditFixtext, self).__init__(id, core, widget=widget, model=Gtk.ListStore(str, str, GObject.TYPE_PYOBJECT))
         self.add_sender(id, "update")
 
-        self.widget.append_column(Gtk.TreeViewColumn("Language", Gtk.CellRendererText(), text=self.COLUMN_LANG))
-        self.widget.append_column(Gtk.TreeViewColumn("Description", Gtk.CellRendererText(), text=self.COLUMN_TEXT))
+        self.widget.append_column(Gtk.TreeViewColumn(_("Language"), Gtk.CellRendererText(), text=self.COLUMN_LANG))
+        self.widget.append_column(Gtk.TreeViewColumn(_("Description"), Gtk.CellRendererText(), text=self.COLUMN_TEXT))
 
-        """ Here are all attributes of fixtext
-        """
+        # Here are all attributes of fixtext
         self.__attr_frame = self.builder.get_object("items:fixtext")
         self.__attr_frame.set_sensitive(False)
         self.__attr_fixref = self.builder.get_object("items:fixtext:fixref")
@@ -541,7 +540,7 @@ class EditFixtext(abstract.HTMLEditor):
             self.load_html("", "file:///")
         elif operation == self.data_model.CMD_OPER_EDIT:
             if not iter:
-                self.notifications.append(self.core.notify("Please select at least one item to edit",
+                self.notifications.append(self.core.notify(_("Please select at least one item to edit"),
                     core.Notification.ERROR, msg_id="notify:not_selected"))
                 return
             else:
@@ -551,7 +550,7 @@ class EditFixtext(abstract.HTMLEditor):
                 self.load_html(desc or "", "file:///")
         elif operation == self.data_model.CMD_OPER_DEL:
             if not iter:
-                self.notifications.append(self.core.notify("Please select at least one item to delete",
+                self.notifications.append(self.core.notify(_("Please select at least one item to delete"),
                     core.Notification.ERROR, msg_id="notify:not_selected"))
                 return
             else: 
@@ -631,8 +630,8 @@ class EditFix(abstract.ListEditor):
         super(EditFix, self).__init__(id, core, widget=widget, model=Gtk.ListStore(str, str, GObject.TYPE_PYOBJECT))
         self.add_sender(id, "update")
 
-        self.widget.append_column(Gtk.TreeViewColumn("ID", Gtk.CellRendererText(), text=self.COLUMN_LANG))
-        self.widget.append_column(Gtk.TreeViewColumn("Content", Gtk.CellRendererText(), text=self.COLUMN_TEXT))
+        self.widget.append_column(Gtk.TreeViewColumn(_("ID"), Gtk.CellRendererText(), text=self.COLUMN_LANG))
+        self.widget.append_column(Gtk.TreeViewColumn(_("Content"), Gtk.CellRendererText(), text=self.COLUMN_TEXT))
 
         """ Here are all attributes of fix
         """
@@ -697,7 +696,7 @@ class EditFix(abstract.ListEditor):
 
         text_id = self.fid.get_text()
         if len(text_id) != 0 and re.search("[A-Za-z_]", text_id[0]) == None:
-            self.core.notify("First character of ID has to be from A-Z (case insensitive) or \"_\"",
+            self.core.notify(_("First character of ID has to be from A-Z (case insensitive) or \"_\""),
                 core.Notification.ERROR, msg_id="notify:xccdf:id")
             return
 
@@ -739,7 +738,7 @@ class EditFix(abstract.ListEditor):
             pass
         elif operation == self.data_model.CMD_OPER_EDIT:
             if not iter:
-                self.notifications.append(self.core.notify("Please select at least one item to edit",
+                self.notifications.append(self.core.notify(_("Please select at least one item to edit"),
                     core.Notification.ERROR, msg_id="notify:not_selected"))
                 return
             else:
@@ -747,7 +746,7 @@ class EditFix(abstract.ListEditor):
                 self.content.get_buffer().set_text(model[iter][self.COLUMN_TEXT] or "")
         elif operation == self.data_model.CMD_OPER_DEL:
             if not iter:
-                self.notifications.append(self.core.notify("Please select at least one item to delete",
+                self.notifications.append(self.core.notify(_("Please select at least one item to delete"),
                     core.Notification.ERROR, msg_id="notify:not_selected"))
                 return
             else: 
@@ -825,8 +824,8 @@ class EditIdent(abstract.ListEditor):
         super(EditIdent, self).__init__(id, core, widget=widget, model=Gtk.ListStore(str, str, GObject.TYPE_PYOBJECT))
         self.add_sender(id, "update")
 
-        self.widget.append_column(Gtk.TreeViewColumn("ID", Gtk.CellRendererText(), text=self.COLUMN_ID))
-        self.widget.append_column(Gtk.TreeViewColumn("System", Gtk.CellRendererText(), text=self.COLUMN_TEXT))
+        self.widget.append_column(Gtk.TreeViewColumn(_("ID"), Gtk.CellRendererText(), text=self.COLUMN_ID))
+        self.widget.append_column(Gtk.TreeViewColumn(_("System"), Gtk.CellRendererText(), text=self.COLUMN_TEXT))
 
     def __do(self, widget=None):
         """
@@ -842,14 +841,14 @@ class EditIdent(abstract.ListEditor):
         else:
             # Check input data
             if self.wid.get_text() == "":
-                self.core.notify("ID of the ident is mandatory.",
+                self.core.notify(_("ID of the ident is mandatory."),
                         core.Notification.ERROR, info_box=self.info_box, msg_id="notify:dialog_notify")
                 self.wid.grab_focus()
                 return
             if self.operation == self.data_model.CMD_OPER_ADD:
                 for iter in self.get_model():
                     if iter[self.COLUMN_ID] == self.wid.get_text():
-                        self.core.notify("ID of the ident has to be unique !",
+                        self.core.notify(_("ID of the ident has to be unique!"),
                                 core.Notification.ERROR, info_box=self.info_box, msg_id="notify:dialog_notify")
                         self.wid.grab_focus()
                         return
@@ -889,7 +888,7 @@ class EditIdent(abstract.ListEditor):
             pass
         elif operation == self.data_model.CMD_OPER_EDIT:
             if not self.iter:
-                self.notifications.append(self.core.notify("Please select at least one item to edit",
+                self.notifications.append(self.core.notify(_("Please select at least one item to edit"),
                     core.Notification.ERROR, msg_id="notify:not_selected"))
                 return
             else:
@@ -897,7 +896,7 @@ class EditIdent(abstract.ListEditor):
                 self.system.get_buffer().set_text(model[self.iter][self.COLUMN_TEXT] or "")
         elif operation == self.data_model.CMD_OPER_DEL:
             if not self.iter:
-                self.notifications.append(self.core.notify("Please select at least one item to delete",
+                self.notifications.append(self.core.notify(_("Please select at least one item to delete"),
                     core.Notification.ERROR, msg_id="notify:not_selected"))
                 return
             else: 
@@ -929,9 +928,9 @@ class EditQuestion(abstract.ListEditor):
         super(EditQuestion, self).__init__(id, core, widget=widget, model=Gtk.ListStore(str, str, GObject.TYPE_PYOBJECT, bool))
         self.add_sender(id, "update")
 
-        self.widget.append_column(Gtk.TreeViewColumn("Language", Gtk.CellRendererText(), text=self.COLUMN_LANG))
-        self.widget.append_column(Gtk.TreeViewColumn("Overrides", Gtk.CellRendererText(), text=self.COLUMN_OVERRIDES))
-        self.widget.append_column(Gtk.TreeViewColumn("Question", Gtk.CellRendererText(), text=self.COLUMN_TEXT))
+        self.widget.append_column(Gtk.TreeViewColumn(_("Language"), Gtk.CellRendererText(), text=self.COLUMN_LANG))
+        self.widget.append_column(Gtk.TreeViewColumn(_("Overrides"), Gtk.CellRendererText(), text=self.COLUMN_OVERRIDES))
+        self.widget.append_column(Gtk.TreeViewColumn(_("Question"), Gtk.CellRendererText(), text=self.COLUMN_TEXT))
 
     def __do(self, widget=None):
         """
@@ -977,7 +976,7 @@ class EditQuestion(abstract.ListEditor):
             if self.core.selected_lang: self.lang.set_text(self.core.selected_lang)
         elif operation == self.data_model.CMD_OPER_EDIT:
             if not self.iter:
-                self.notifications.append(self.core.notify("Please select at least one item to edit",
+                self.notifications.append(self.core.notify(_("Please select at least one item to edit"),
                     core.Notification.ERROR, msg_id="notify:not_selected"))
                 return
             else:
@@ -986,7 +985,7 @@ class EditQuestion(abstract.ListEditor):
                 self.question.get_buffer().set_text(model[self.iter][self.COLUMN_TEXT] or "")
         elif operation == self.data_model.CMD_OPER_DEL:
             if not self.iter:
-                self.notifications.append(self.core.notify("Please select at least one item to delete",
+                self.notifications.append(self.core.notify(_("Please select at least one item to delete"),
                     core.Notification.ERROR, msg_id="notify:not_selected"))
                 return
             else: 
@@ -1017,9 +1016,9 @@ class EditRationale(abstract.ListEditor):
         super(EditRationale, self).__init__(id, core, widget=widget, model=Gtk.ListStore(str, str, GObject.TYPE_PYOBJECT, bool))
         self.add_sender(id, "update")
 
-        self.widget.append_column(Gtk.TreeViewColumn("Language", Gtk.CellRendererText(), text=self.COLUMN_LANG))
-        self.widget.append_column(Gtk.TreeViewColumn("Overrides", Gtk.CellRendererText(), text=self.COLUMN_OVERRIDES))
-        self.widget.append_column(Gtk.TreeViewColumn("Rationale", Gtk.CellRendererText(), text=self.COLUMN_TEXT))
+        self.widget.append_column(Gtk.TreeViewColumn(_("Language"), Gtk.CellRendererText(), text=self.COLUMN_LANG))
+        self.widget.append_column(Gtk.TreeViewColumn(_("Overrides"), Gtk.CellRendererText(), text=self.COLUMN_OVERRIDES))
+        self.widget.append_column(Gtk.TreeViewColumn(_("Rationale"), Gtk.CellRendererText(), text=self.COLUMN_TEXT))
 
     def __do(self, widget=None):
         """
@@ -1066,7 +1065,7 @@ class EditRationale(abstract.ListEditor):
             if self.core.selected_lang: self.lang.set_text(self.core.selected_lang)
         elif operation == self.data_model.CMD_OPER_EDIT:
             if not iter:
-                self.notifications.append(self.core.notify("Please select at least one item to edit",
+                self.notifications.append(self.core.notify(_("Please select at least one item to edit"),
                     core.Notification.ERROR, msg_id="notify:not_selected"))
                 return
             else:
@@ -1075,7 +1074,7 @@ class EditRationale(abstract.ListEditor):
                 self.rationale.get_buffer().set_text(model[iter][self.COLUMN_TEXT] or "")
         elif operation == self.data_model.CMD_OPER_DEL:
             if not iter:
-                self.notifications.append(self.core.notify("Please select at least one item to delete",
+                self.notifications.append(self.core.notify(_("Please select at least one item to delete"),
                     core.Notification.ERROR, msg_id="notify:not_selected"))
                 return
             else: 
@@ -1107,7 +1106,7 @@ class EditPlatform(abstract.ListEditor):
         super(EditPlatform, self).__init__(id, core, widget=widget, model=Gtk.ListStore(str))
         self.add_sender(id, "update")
 
-        self.widget.append_column(Gtk.TreeViewColumn("CPE Name", Gtk.CellRendererText(), text=self.COLUMN_LANG))
+        self.widget.append_column(Gtk.TreeViewColumn(_("CPE Name"), Gtk.CellRendererText(), text=self.COLUMN_LANG))
 
     def __do(self, widget=None):
         """
@@ -1121,11 +1120,11 @@ class EditPlatform(abstract.ListEditor):
         if self.operation != self.data_model.CMD_OPER_DEL:
             text = self.cpe.get_text()
             if len(text) < 6 or text[5] not in ["a", "o", "h"]:
-                self.core.notify("The part section can be \"a\", \"o\" or \"h\"",
+                self.core.notify(_("The part section can be \"a\", \"o\" or \"h\""),
                         core.Notification.ERROR, self.info_box, msg_id="notify:edit")
                 return
             if len(text[7:].split(":")) != 6:
-                self.core.notify("Invalid number of sections: should be cpe:/part:vendor:product:version:update:edition:lang",
+                self.core.notify(_("Invalid number of sections: should be cpe:/part:vendor:product:version:update:edition:lang"),
                         core.Notification.ERROR, self.info_box, msg_id="notify:edit")
                 return
 
@@ -1165,7 +1164,7 @@ class EditPlatform(abstract.ListEditor):
         # cpe:/[a,o,h]
         if len(text) > 5:
             if text[5] not in ["a", "o", "h"]: 
-                self.core.notify("The part section can be \"a\", \"o\" or \"h\"",
+                self.core.notify(_("The part section can be \"a\", \"o\" or \"h\""),
                         core.Notification.ERROR, self.info_box, msg_id="notify:edit")
                 widget.set_text("cpe:/")
                 return
@@ -1233,14 +1232,14 @@ class EditPlatform(abstract.ListEditor):
             pass
         elif operation == self.data_model.CMD_OPER_EDIT:
             if not iter:
-                self.notifications.append(self.core.notify("Please select at least one item to edit",
+                self.notifications.append(self.core.notify(_("Please select at least one item to edit"),
                     core.Notification.ERROR, msg_id="notify:not_selected"))
                 return
             else:
                 self.cpe.set_text(model[iter][self.COLUMN_TEXT])
         elif operation == self.data_model.CMD_OPER_DEL:
             if not iter:
-                self.notifications.append(self.core.notify("Please select at least one item to delete",
+                self.notifications.append(self.core.notify(_("Please select at least one item to delete"),
                     core.Notification.ERROR, msg_id="notify:not_selected"))
                 return
             else: 
@@ -1367,7 +1366,7 @@ class EditValues(abstract.MenuButton, abstract.Func):
         if widget == self.vid:
             retval = self.data_model.edit_value(id=widget.get_text())
             if not retval:
-                self.notifications.append(self.core.notify("Setting ID failed: ID \"%s\" already exists." % (widget.get_text(),),
+                self.notifications.append(self.core.notify(_("Setting ID failed: ID \"%s\" already exists.") % (widget.get_text(),),
                     core.Notification.ERROR, msg_id="notify:not_selected"))
                 widget.set_text(self.core.selected_item)
                 return
@@ -1465,13 +1464,13 @@ class EditValuesValues(abstract.ListEditor):
         super(EditValuesValues, self).__init__(id, core, widget=widget, model=Gtk.ListStore(str, str, str, str, str, bool, str, GObject.TYPE_PYOBJECT))
         self.add_sender(id, "update")
 
-        self.widget.append_column(Gtk.TreeViewColumn("Selector", Gtk.CellRendererText(), text=self.COLUMN_SELECTOR))
-        self.widget.append_column(Gtk.TreeViewColumn("Value", Gtk.CellRendererText(), text=self.COLUMN_VALUE))
-        self.widget.append_column(Gtk.TreeViewColumn("Default", Gtk.CellRendererText(), text=self.COLUMN_DEFAULT))
-        self.widget.append_column(Gtk.TreeViewColumn("Lower bound", Gtk.CellRendererText(), text=self.COLUMN_LOWER_BOUND))
-        self.widget.append_column(Gtk.TreeViewColumn("Upper bound", Gtk.CellRendererText(), text=self.COLUMN_UPPER_BOUND))
-        self.widget.append_column(Gtk.TreeViewColumn("Must match", Gtk.CellRendererText(), text=self.COLUMN_MUST_MATCH))
-        self.widget.append_column(Gtk.TreeViewColumn("Match", Gtk.CellRendererText(), text=self.COLUMN_MATCH))
+        self.widget.append_column(Gtk.TreeViewColumn(_("Selector"), Gtk.CellRendererText(), text=self.COLUMN_SELECTOR))
+        self.widget.append_column(Gtk.TreeViewColumn(_("Value"), Gtk.CellRendererText(), text=self.COLUMN_VALUE))
+        self.widget.append_column(Gtk.TreeViewColumn(_("Default"), Gtk.CellRendererText(), text=self.COLUMN_DEFAULT))
+        self.widget.append_column(Gtk.TreeViewColumn(_("Lower bound"), Gtk.CellRendererText(), text=self.COLUMN_LOWER_BOUND))
+        self.widget.append_column(Gtk.TreeViewColumn(_("Upper bound"), Gtk.CellRendererText(), text=self.COLUMN_UPPER_BOUND))
+        self.widget.append_column(Gtk.TreeViewColumn(_("Must match"), Gtk.CellRendererText(), text=self.COLUMN_MUST_MATCH))
+        self.widget.append_column(Gtk.TreeViewColumn(_("Match"), Gtk.CellRendererText(), text=self.COLUMN_MATCH))
 
     def __do(self, widget=None):
         """
@@ -1484,7 +1483,7 @@ class EditValuesValues(abstract.ListEditor):
 
         for inst in model:
             if self.selector.get_text() == inst[0] and model[iter][self.COLUMN_SELECTOR] != self.selector.get_text():
-                self.core.notify("Selector \"%s\" is already used !" % (inst[0],),
+                self.core.notify(_("Selector \"%s\" is already used!") % (inst[0],),
                         core.Notification.ERROR, self.info_box, msg_id="dialog:add_value")
                 self.selector.grab_focus()
                 self.selector.modify_base(Gtk.StateType.NORMAL, Gdk.color_parse("#FFC1C2"))
@@ -1568,13 +1567,13 @@ class EditValuesValues(abstract.ListEditor):
         self.value_bool.set_property('visible', boolean)
         self.default_bool.set_property('visible', boolean)
 
-        self.core.notify_destroy("notify:not_selected")
+        self.core.notify_destroy(_("notify:not_selected"))
         (model, iter) = self.get_selection().get_selected()
         if operation == self.data_model.CMD_OPER_ADD:
             pass
         elif operation == self.data_model.CMD_OPER_EDIT:
             if not iter:
-                self.notifications.append(self.core.notify("Please select at least one item to edit",
+                self.notifications.append(self.core.notify(_("Please select at least one item to edit"),
                     core.Notification.ERROR, msg_id="notify:not_selected"))
                 return
             else:
@@ -1589,7 +1588,7 @@ class EditValuesValues(abstract.ListEditor):
                     self.choices.get_model().append([choice])
         elif operation == self.data_model.CMD_OPER_DEL:
             if not iter:
-                self.notifications.append(self.core.notify("Please select at least one item to delete",
+                self.notifications.append(self.core.notify(_("Please select at least one item to delete"),
                     core.Notification.ERROR, msg_id="notify:not_selected"))
                 return
             else: 
@@ -1928,12 +1927,12 @@ class MenuButtonEditItems(abstract.MenuButton, abstract.Func):
             self.core.notify_destroy("notify:xccdf:id")
             text = widget.get_text()
             if len(text) != 0 and re.search("[A-Za-z_]", text[0]) == None:
-                self.notifications.append(self.core.notify("First character of ID has to be from A-Z (case insensitive) or \"_\"",
+                self.notifications.append(self.core.notify(_("First character of ID has to be from A-Z (case insensitive) or \"_\""),
                     core.Notification.ERROR, msg_id="notify:xccdf:id"))
                 return
             else: retval = self.data_model.update(id=text)
             if not retval:
-                self.notifications.append(self.core.notify("Setting ID failed: ID \"%s\" already exists." % (widget.get_text(),),
+                self.notifications.append(self.core.notify(_("Setting ID failed: ID \"%s\" already exists.") % (widget.get_text(),),
                     core.Notification.ERROR, msg_id="notify:not_selected"))
                 widget.set_text(self.core.selected_item)
                 return
@@ -1955,7 +1954,7 @@ class MenuButtonEditItems(abstract.MenuButton, abstract.Func):
         elif widget == self.cluster_id:
             self.data_model.update(cluster_id=widget.get_text())
         elif widget == self.weight:
-            weight = self.controlFloat(widget.get_text(), "Weight")
+            weight = self.controlFloat(widget.get_text(), _("Weight"))
             if weight:
                 self.data_model.update(weight=weight)
         elif widget == self.content_ref:
@@ -2012,7 +2011,7 @@ class MenuButtonEditItems(abstract.MenuButton, abstract.Func):
         @param text Text with description
         """
         self.profile_description.get_buffer().set_text("")
-        if description == "": description = "No description"
+        if description == "": description = _("No description")
         description = "<body>"+description+"</body>"
         self.profile_description.display_html(description)
 

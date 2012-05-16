@@ -67,20 +67,20 @@ class AddProfileDialog(EventObject):
     def __cb_do(self, widget):
 
         if len(self.pid.get_text()) == 0: 
-            self.core.notify("Can't add profile with no ID !",
+            self.core.notify(_("Can't add profile with no ID!"),
                     core.Notification.ERROR, self.info_box, msg_id="notify:edit:profile:new")
             return
         profiles = self.data_model.get_profiles()
         for profile in profiles:
             if profile.id == self.pid.get_text():
-                self.core.notify("Profile \"%s\" already exists." % (self.pid.get_text(),),
+                self.core.notify(_("Profile \"%s\" already exists.") % (self.pid.get_text(),),
                         core.Notification.ERROR, self.info_box, msg_id="notify:edit:profile:new")
                 self.pid.grab_focus()
                 self.pid.modify_base(Gtk.StateType.NORMAL, Gdk.color_parse("#FFC1C2"))
                 return
         self.pid.modify_base(Gtk.StateType.NORMAL, self.__entry_style)
         if len(self.title.get_text()) == 0: 
-            self.core.notify("Please add title for this profile.",
+            self.core.notify(_("Please add title for this profile."),
                     core.Notification.ERROR, self.info_box, msg_id="notify:edit:profile:new")
             self.title.grab_focus()
             self.title.modify_base(Gtk.StateType.NORMAL, Gdk.color_parse("#FFC1C2"))
@@ -213,7 +213,7 @@ class ProfileList(abstract.List):
         within the tree but the profiles, when each profile does not
         match this search, it will be hidden - BUT it will also hide
         everything inside the node of every profile in the TreeView.
-        Therefor we need to return True (it will be visible) for all
+        Therefore we need to return True (it will be visible) for all
         profiles unless we explicitly say that we are looking just
         within profiles (by profile:text)
         """
@@ -365,7 +365,7 @@ class ProfileList(abstract.List):
 
         # Nothing selected
         else:
-            self.notifications.append(self.core.notify("Please select at least one item to delete",
+            self.notifications.append(self.core.notify(_("Please select at least one item to delete"),
                 core.Notification.ERROR, msg_id="notify:edit:delete_item"))
 
     def __cb_item_add(self, widget=None):
@@ -471,12 +471,12 @@ class MenuButtonEditProfiles(abstract.MenuButton, abstract.Func):
             self.core.notify_destroy("notify:xccdf:id")
             text = widget.get_text()
             if len(text) != 0 and re.search("[A-Za-z_]", text[0]) == None:
-                self.notifications.append(self.core.notify("First character of ID has to be from A-Z (case insensitive) or \"_\"",
+                self.notifications.append(self.core.notify(_("First character of ID has to be from A-Z (case insensitive) or \"_\""),
                     core.Notification.ERROR, msg_id="notify:xccdf:id"))
                 return
             else: retval = self.data_model.update(id=text)
             if not retval:
-                self.notifications.append(self.core.notify("Setting ID failed: ID \"%s\" already exists." % (widget.get_text(),),
+                self.notifications.append(self.core.notify(_("Setting ID failed: ID \"%s\" already exists.") % (widget.get_text(),),
                     core.Notification.ERROR, msg_id="notify:not_selected"))
                 widget.set_text(self.core.selected_profile)
         elif widget == self.version:
@@ -494,7 +494,7 @@ class MenuButtonEditProfiles(abstract.MenuButton, abstract.Func):
         elif widget == self.refines_selected:
             self.data_model.update_refines(item[0], item[1], item[2], selected=widget.get_active())
         elif widget == self.refines_weight:
-            weight = self.controlFloat(widget.get_text(), "Weight")
+            weight = self.controlFloat(widget.get_text(), _("Weight"))
             if weight:
                 self.data_model.update_refines(item[0], item[1], item[2], weight=weight)
         elif widget == self.refines_value:
@@ -517,7 +517,7 @@ class MenuButtonEditProfiles(abstract.MenuButton, abstract.Func):
 
     def __find_item(self, widget, type):
         if not self.core.selected_profile:
-            self.notifications.append(self.core.notify("Please select profile first.",
+            self.notifications.append(self.core.notify(_("Please select profile first."),
                 core.Notification.INFORMATION, msg_id="notify:edit:find_item"))
             return
 

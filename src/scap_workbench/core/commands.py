@@ -80,7 +80,7 @@ class DataHandler(object):
         """
 
         browser_val = webbrowser.open(url)
-        if not browser_val: self.core.notify("Failed to open browser \"%s\". Report file is saved in \"%s\"" % (webbrowser.get().name, url),
+        if not browser_val: self.core.notify(_("Failed to open browser \"%s\". Report file is saved in \"%s\"") % (webbrowser.get().name, url),
             core.Notification.INFORMATION, msg_id="notify:scan:export_report")
 
     def get_title(self, titles):
@@ -314,7 +314,7 @@ class DataHandler(object):
         if not self.check_library(): return (None, "Library not initialized.")
 
         if item == None: item = self.core.lib.benchmark.get_item(self.core.selected_item)
-        if item == None: return (False, "Item \"%s\" not found" % (item or self.core.selected_item,))
+        if item == None: return (False, _("Item \"%s\" not found") % (item or self.core.selected_item,))
 
         if item.type == openscap.OSCAP.XCCDF_RULE:
             rule = item.to_rule()
@@ -327,9 +327,9 @@ class DataHandler(object):
                 rule.add_check(check)
 
             if rule.checks[0].complex:
-                return (False, "Can't set up the content ref when complex check present")
+                return (False, _("Can't set up the content ref when complex check present"))
             if len(rule.checks[0].content_refs) > 1:
-                return (False, "Can't set up the content: More content refs present")
+                return (False, _("Can't set up the content: More content refs present"))
             elif len(rule.checks[0].content_refs) == 0:
                 rule.checks[0].add_content_ref(openscap.xccdf.check_content_ref())
 
@@ -338,7 +338,7 @@ class DataHandler(object):
             if href != None and rule.checks[0].content_refs[0].href != href:
                 rule.checks[0].content_refs[0].href = href
                         
-        else: return False, "Set content ref fatal: Item is not a rule !"
+        else: return False, _("Set content ref fatal: Item is not a rule!")
 
         return True, ""
 
@@ -463,7 +463,7 @@ class DataHandler(object):
             if self.core.selected_lang in pvalues["titles"]: 
                 profiles.append((item.id, pvalues["titles"][self.core.selected_lang])) 
             else: 
-                profiles.append((item.id, "Unknown profile"))
+                profiles.append((item.id, _("Unknown profile")))
 
         return profiles
 
@@ -1018,7 +1018,7 @@ class DHXccdf(DataHandler):
         if not self.check_library(): return None
 
         if not file_name:
-            file_name = self.file_browse("Save XCCDF file", file=self.core.lib.xccdf)
+            file_name = self.file_browse(_("Save XCCDF file"), file=self.core.lib.xccdf)
 
         if file_name != "":
             # according to openscap API docs, -1 means that an error happened
@@ -1510,7 +1510,7 @@ class DHItemsTree(DataHandler, EventObject):
             value = self.__progress.get_fraction()+self.__step
             if value > 1.0: value = 1.0
             self.__progress.set_fraction(value)
-            self.__progress.set_text("Adding items %s/%s" % (int(self.__progress.get_fraction()/self.__step), self.__total))
+            self.__progress.set_text(_("Adding items %i/%i") % (int(self.__progress.get_fraction()/self.__step), self.__total))
             #Gdk.threads_leave()
 
         """Check the item if it's selected. If the parent or the item is not selected
@@ -1629,7 +1629,7 @@ class DHItemsTree(DataHandler, EventObject):
                     value = self.__progress.get_fraction()+self.__step
                     if value > 1.0: value = 1.0
                     self.__progress.set_fraction(value)
-                    self.__progress.set_text("Adding items %s/%s" % (int(self.__progress.get_fraction()/self.__step), self.__total))
+                    self.__progress.set_text(_("Adding items %i/%i") % (int(self.__progress.get_fraction()/self.__step), self.__total))
                     #Gdk.threads_leave()
                 self.__recursive_fill(item, with_values=with_values)
 
@@ -1639,7 +1639,7 @@ class DHItemsTree(DataHandler, EventObject):
         finally:
             #Gdk.threads_enter()
             if self.__progress != None:
-                self.__progress.set_text("Applying filters ...")
+                self.__progress.set_text(_("Applying filters..."))
                 self.__progress.set_fraction(1.0)
                 self.__progress.hide()
             if self.core.selected_item:
@@ -1873,8 +1873,8 @@ class DHProfiles(DataHandler):
         if not no_default:
             LOGGER.debug("Adding profile (No profile)")
             #Gdk.threads_enter()
-            if self.model.__class__ == Gtk.ListStore: self.model.append(["", "(No profile)"])
-            else: self.model.append(None, ["profile", "", item, IMG_GROUP, "(No profile)", ""])
+            if self.model.__class__ == Gtk.ListStore: self.model.append(["", _("(No profile)")])
+            else: self.model.append(None, ["profile", "", item, IMG_GROUP, _("(No profile)"), ""])
             #Gdk.threads_leave()
 
         # Go thru all profiles from benchmark and add them into the model

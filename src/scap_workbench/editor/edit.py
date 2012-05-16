@@ -52,9 +52,9 @@ class EditTitle(abstract.ListEditor):
         super(EditTitle, self).__init__(id, core, widget=widget, model=Gtk.ListStore(str, bool, str, GObject.TYPE_PYOBJECT))
         self.add_sender(id, "update")
 
-        self.widget.append_column(Gtk.TreeViewColumn("Language", Gtk.CellRendererText(), text=self.COLUMN_LANG))
-        self.widget.append_column(Gtk.TreeViewColumn("Overrides", Gtk.CellRendererText(), text=self.COLUMN_OVERRIDES))
-        self.widget.append_column(Gtk.TreeViewColumn("Title", Gtk.CellRendererText(), text=self.COLUMN_TEXT))
+        self.widget.append_column(Gtk.TreeViewColumn(_("Language"), Gtk.CellRendererText(), text=self.COLUMN_LANG))
+        self.widget.append_column(Gtk.TreeViewColumn(_("Overrides"), Gtk.CellRendererText(), text=self.COLUMN_OVERRIDES))
+        self.widget.append_column(Gtk.TreeViewColumn(_("Title"), Gtk.CellRendererText(), text=self.COLUMN_TEXT))
 
     def __do(self, widget=None):
         """
@@ -99,7 +99,7 @@ class EditTitle(abstract.ListEditor):
             if self.core.selected_lang: self.lang.set_text(self.core.selected_lang)
         elif operation == self.data_model.CMD_OPER_EDIT:
             if not self.iter:
-                self.notifications.append(self.core.notify("Please select at least one item to edit",
+                self.notifications.append(self.core.notify(_("Please select at least one item to edit"),
                     core.Notification.ERROR, msg_id="notify:not_selected"))
                 return
             else:
@@ -108,7 +108,7 @@ class EditTitle(abstract.ListEditor):
                 self.title.get_buffer().set_text(model[self.iter][self.COLUMN_TEXT] or "")
         elif operation == self.data_model.CMD_OPER_DEL:
             if not self.iter:
-                self.notifications.append(self.core.notify("Please select at least one item to delete",
+                self.notifications.append(self.core.notify(_("Please select at least one item to delete"),
                     core.Notification.ERROR, msg_id="notify:not_selected"))
                 return
             else: 
@@ -143,9 +143,9 @@ class EditDescription(abstract.HTMLEditor):
         super(EditDescription, self).__init__(id, core, widget=widget, model=Gtk.ListStore(str, bool, str, GObject.TYPE_PYOBJECT))
         self.add_sender(id, "update")
 
-        self.widget.append_column(Gtk.TreeViewColumn("Language", Gtk.CellRendererText(), text=self.COLUMN_LANG))
-        self.widget.append_column(Gtk.TreeViewColumn("Overrides", Gtk.CellRendererText(), text=self.COLUMN_OVERRIDES))
-        self.widget.append_column(Gtk.TreeViewColumn("Description", Gtk.CellRendererText(), text=self.COLUMN_TEXT))
+        self.widget.append_column(Gtk.TreeViewColumn(_("Language"), Gtk.CellRendererText(), text=self.COLUMN_LANG))
+        self.widget.append_column(Gtk.TreeViewColumn(_("Overrides"), Gtk.CellRendererText(), text=self.COLUMN_OVERRIDES))
+        self.widget.append_column(Gtk.TreeViewColumn(_("Description"), Gtk.CellRendererText(), text=self.COLUMN_TEXT))
 
     def __do(self, widget=None):
         """
@@ -213,7 +213,7 @@ class EditDescription(abstract.HTMLEditor):
             self.load_html("", "file:///")
         elif operation == self.data_model.CMD_OPER_EDIT:
             if not iter:
-                self.notifications.append(self.core.notify("Please select at least one item to edit",
+                self.notifications.append(self.core.notify(_("Please select at least one item to edit"),
                     core.Notification.ERROR, msg_id="notify:not_selected"))
                 return
             else:
@@ -224,7 +224,7 @@ class EditDescription(abstract.HTMLEditor):
                 self.load_html(desc or "", "file:///")
         elif operation == self.data_model.CMD_OPER_DEL:
             if not iter:
-                self.notifications.append(self.core.notify("Please select at least one item to delete",
+                self.notifications.append(self.core.notify(_("Please select at least one item to delete"),
                     core.Notification.ERROR, msg_id="notify:not_selected"))
                 return
             else: 
@@ -259,10 +259,10 @@ class EditWarning(abstract.ListEditor):
         super(EditWarning, self).__init__(id, core, widget=widget, model=Gtk.ListStore(str, bool, str, str, GObject.TYPE_PYOBJECT))
         self.add_sender(id, "update")
 
-        self.widget.append_column(Gtk.TreeViewColumn("Language", Gtk.CellRendererText(), text=self.COLUMN_LANG))
-        self.widget.append_column(Gtk.TreeViewColumn("Overrides", Gtk.CellRendererText(), text=self.COLUMN_OVERRIDES))
-        self.widget.append_column(Gtk.TreeViewColumn("Category", Gtk.CellRendererText(), text=self.COLUMN_CATEGORY))
-        self.widget.append_column(Gtk.TreeViewColumn("Warning", Gtk.CellRendererText(), text=self.COLUMN_TEXT))
+        self.widget.append_column(Gtk.TreeViewColumn(_("Language"), Gtk.CellRendererText(), text=self.COLUMN_LANG))
+        self.widget.append_column(Gtk.TreeViewColumn(_("Overrides"), Gtk.CellRendererText(), text=self.COLUMN_OVERRIDES))
+        self.widget.append_column(Gtk.TreeViewColumn(_("Category"), Gtk.CellRendererText(), text=self.COLUMN_CATEGORY))
+        self.widget.append_column(Gtk.TreeViewColumn(_("Warning"), Gtk.CellRendererText(), text=self.COLUMN_TEXT))
 
     def __do(self, widget=None):
         """
@@ -313,7 +313,7 @@ class EditWarning(abstract.ListEditor):
             if self.core.selected_lang: self.lang.set_text(self.core.selected_lang)
         elif operation == self.data_model.CMD_OPER_EDIT:
             if not self.iter:
-                self.notifications.append(self.core.notify("Please select at least one item to edit",
+                self.notifications.append(self.core.notify(_("Please select at least one item to edit"),
                     core.Notification.ERROR, msg_id="notify:not_selected"))
                 return
             else:
@@ -323,7 +323,7 @@ class EditWarning(abstract.ListEditor):
                 self.warning.get_buffer().set_text(model[self.iter][self.COLUMN_TEXT] or "")
         elif operation == self.data_model.CMD_OPER_DEL:
             if not self.iter:
-                self.notifications.append(self.core.notify("Please select at least one item to delete",
+                self.notifications.append(self.core.notify(_("Please select at least one item to delete"),
                     core.Notification.ERROR, msg_id="notify:not_selected"))
                 return
             else: 
@@ -356,8 +356,8 @@ class EditStatus(abstract.ListEditor):
         super(EditStatus, self).__init__(id, core, widget=widget, model=Gtk.ListStore(str, str, GObject.TYPE_PYOBJECT))
         self.add_sender(id, "update")
 
-        self.widget.append_column(Gtk.TreeViewColumn("Date", Gtk.CellRendererText(), text=self.COLUMN_DATE))
-        self.widget.append_column(Gtk.TreeViewColumn("Status", Gtk.CellRendererText(), text=self.COLUMN_TEXT))
+        self.widget.append_column(Gtk.TreeViewColumn(_("Date"), Gtk.CellRendererText(), text=self.COLUMN_DATE))
+        self.widget.append_column(Gtk.TreeViewColumn(_("Status"), Gtk.CellRendererText(), text=self.COLUMN_TEXT))
 
     def __do(self, widget=None):
         """
@@ -365,7 +365,7 @@ class EditStatus(abstract.ListEditor):
         self.core.notify_destroy("notify:dialog_notify")
         # Check input data
         if self.operation != self.data_model.CMD_OPER_DEL and self.status.get_active() == -1:
-            self.core.notify("Status has to be choosen.",
+            self.core.notify(_("Status has to be choosen."),
                     core.Notification.ERROR, info_box=self.info_box, msg_id="notify:dialog_notify")
             self.status.grab_focus()
             return
@@ -412,7 +412,7 @@ class EditStatus(abstract.ListEditor):
             self.calendar.select_day(int(day))
         elif operation == self.data_model.CMD_OPER_EDIT:
             if not self.iter:
-                self.notifications.append(self.core.notify("Please select at least one item to edit",
+                self.notifications.append(self.core.notify(_("Please select at least one item to edit"),
                     core.Notification.ERROR, msg_id="notify:not_selected"))
                 return
             else:
@@ -422,7 +422,7 @@ class EditStatus(abstract.ListEditor):
                 self.status.set_active(ENUM.STATUS_CURRENT.pos(model[self.iter][self.COLUMN_OBJ].status) or -1)
         elif operation == self.data_model.CMD_OPER_DEL:
             if not self.iter:
-                self.notifications.append(self.core.notify("Please select at least one item to delete",
+                self.notifications.append(self.core.notify(_("Please select at least one item to delete"),
                     core.Notification.ERROR, msg_id="notify:not_selected"))
                 return
             else: 
@@ -489,12 +489,12 @@ class EditSelectIdDialogWindow(object):
         self.tw_search = builder.get_object("add_id:tw_search")
         
         cell = Gtk.CellRendererText()
-        column = Gtk.TreeViewColumn("ID Item", cell, text=self.COLUMN_ID)
+        column = Gtk.TreeViewColumn(_("ID Item"), cell, text=self.COLUMN_ID)
         column.set_resizable(True)
         self.tw_search.append_column(column)
 
         cell = Gtk.CellRendererText()
-        column = Gtk.TreeViewColumn("Title", cell, text=self.COLUMN_TITLE)
+        column = Gtk.TreeViewColumn(_("Title"), cell, text=self.COLUMN_TITLE)
         column.set_expand(True)
         column.set_resizable(True)
         self.tw_search.append_column(column)
@@ -506,12 +506,12 @@ class EditSelectIdDialogWindow(object):
         self.tw_add = builder.get_object("add_id:tw_add")
         
         cell = Gtk.CellRendererText()
-        column = Gtk.TreeViewColumn("ID Item", cell, text=self.COLUMN_ID)
+        column = Gtk.TreeViewColumn(_("ID Item"), cell, text=self.COLUMN_ID)
         column.set_resizable(True)
         self.tw_add.append_column(column)
 
         cell = Gtk.CellRendererText()
-        column = Gtk.TreeViewColumn("Title", cell, text=self.COLUMN_TITLE)
+        column = Gtk.TreeViewColumn(_("Title"), cell, text=self.COLUMN_TITLE)
         column.set_expand(True)
         column.set_resizable(True)
         self.tw_add.append_column(column)
@@ -519,7 +519,7 @@ class EditSelectIdDialogWindow(object):
         self.tw_add.set_model(self.model_to_add)
         
         menu = Gtk.Menu()
-        menu_item = Gtk.MenuItem("Remove from add")
+        menu_item = Gtk.MenuItem(_("Remove from add"))
         menu_item.show()
         menu.append(menu_item)
         menu_item.connect("activate", self.__cb_del_row)
@@ -527,7 +527,7 @@ class EditSelectIdDialogWindow(object):
         self.tw_add.connect("key-press-event", self.__cb_del_row1,)
 
         menu_search = Gtk.Menu()
-        menu_item = Gtk.MenuItem("Copy to add")
+        menu_item = Gtk.MenuItem(_("Copy to add"))
         menu_item.show()
         menu_search.append(menu_item)
         menu_item.connect("activate", self.cb_btn_add)
@@ -719,8 +719,8 @@ class FindOvalDef(abstract.Window, abstract.ListEditor):
         builder.get_object("dialog:find_definition:btn_ok").connect("clicked", self.__do)
 
         self.core.notify_destroy("notify:not_selected")
-        self.definitions.append_column(Gtk.TreeViewColumn("ID of Definition", Gtk.CellRendererText(), text=self.COLUMN_ID))
-        self.definitions.append_column(Gtk.TreeViewColumn("Title", Gtk.CellRendererText(), text=self.COLUMN_VALUE))
+        self.definitions.append_column(Gtk.TreeViewColumn(_("ID of Definition"), Gtk.CellRendererText(), text=self.COLUMN_ID))
+        self.definitions.append_column(Gtk.TreeViewColumn(_("Title"), Gtk.CellRendererText(), text=self.COLUMN_VALUE))
         self.definitions.set_model(Gtk.ListStore(str, str))
         modelfilter = self.definitions.get_model().filter_new()
         modelfilter.set_visible_func(self.filter_listview, (self.search, (0,1)))
@@ -755,12 +755,12 @@ class FindItem(abstract.Window, abstract.ListEditor):
         self.core.notify_destroy("notify:dialog_notify")
         (model, iter) = self.items.get_selection().get_selected()
         if not iter:
-            self.core.notify("You have to chose the item !",
+            self.core.notify(_("You have to chose the item!"),
                     core.Notification.ERROR, self.info_box, msg_id="notify:dialog_notify")
             return
         retval = self.data_model.add_refine(model[iter][self.COLUMN_ID], model[iter][self.COLUMN_VALUE], model[iter][self.COLUMN_OBJ])
         if not retval:
-            self.core.notify("Item already exists in selected profile.", core.Notification.ERROR, info_box=self.info_box, msg_id="notify:dialog_notify")
+            self.core.notify(_("Item already exists in selected profile."), core.Notification.ERROR, info_box=self.info_box, msg_id="notify:dialog_notify")
             return
         self.core.selected_item = model[iter][self.COLUMN_ID]
         self.emit("update")
@@ -789,8 +789,8 @@ class FindItem(abstract.Window, abstract.ListEditor):
         builder.get_object("dialog:find_value:export_name:separator").set_property('visible', False)
 
         self.core.notify_destroy("notify:not_selected")
-        self.items.append_column(Gtk.TreeViewColumn("ID", Gtk.CellRendererText(), text=self.COLUMN_ID))
-        self.items.append_column(Gtk.TreeViewColumn("Title", Gtk.CellRendererText(), text=self.COLUMN_VALUE))
+        self.items.append_column(Gtk.TreeViewColumn(_("ID"), Gtk.CellRendererText(), text=self.COLUMN_ID))
+        self.items.append_column(Gtk.TreeViewColumn(_("Title"), Gtk.CellRendererText(), text=self.COLUMN_VALUE))
 
         if type == "rule":
             items = self.data_model.get_all_item_ids()

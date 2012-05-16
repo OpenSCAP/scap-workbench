@@ -396,7 +396,7 @@ class HtmlHandler(xml.sax.handler.ContentHandler):
                 try:
                     alt = attrs['alt']
                 except KeyError:
-                    alt = "Broken image"
+                    alt = _("Broken image")
             if pixbuf is not None:
                 tags = self._get_style_tags()
                 if tags:

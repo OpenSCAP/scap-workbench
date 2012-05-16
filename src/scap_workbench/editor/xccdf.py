@@ -48,8 +48,8 @@ class EditNotice(abstract.ListEditor):
         super(EditNotice, self).__init__(id, core, widget=widget, model=Gtk.ListStore(str, str, GObject.TYPE_PYOBJECT))
         self.add_sender(id, "update")
 
-        self.widget.append_column(Gtk.TreeViewColumn("ID", Gtk.CellRendererText(), text=self.COLUMN_ID))
-        self.widget.append_column(Gtk.TreeViewColumn("Notice", Gtk.CellRendererText(), text=self.COLUMN_TEXT))
+        self.widget.append_column(Gtk.TreeViewColumn(_("ID"), Gtk.CellRendererText(), text=self.COLUMN_ID))
+        self.widget.append_column(Gtk.TreeViewColumn(_("Notice"), Gtk.CellRendererText(), text=self.COLUMN_TEXT))
 
     def __do(self, widget=None):
         """
@@ -57,7 +57,7 @@ class EditNotice(abstract.ListEditor):
         self.core.notify_destroy("notify:dialog_notify")
         # Check input data
         if self.wid.get_text() == "":
-            self.core.notify("ID of the notice is mandatory.",
+            self.core.notify(_("ID of the notice is mandatory."),
                     core.Notification.ERROR, info_box=self.info_box, msg_id="notify:dialog_notify")
             self.wid.grab_focus()
             return
@@ -74,7 +74,7 @@ class EditNotice(abstract.ListEditor):
                     continue
                 
                 if row[self.COLUMN_ID] == self.wid.get_text():
-                    self.core.notify("ID of the notice has to be unique!",
+                    self.core.notify(_("ID of the notice has to be unique!"),
                             core.Notification.ERROR, info_box=self.info_box, msg_id="notify:dialog_notify")
                     self.wid.grab_focus()
                     return
@@ -83,7 +83,7 @@ class EditNotice(abstract.ListEditor):
             # we are adding, none of the existing notices can have our future ID
             for row in self.get_model():
                 if row[self.COLUMN_ID] == self.wid.get_text():
-                    self.core.notify("ID of the notice has to be unique!",
+                    self.core.notify(_("ID of the notice has to be unique!"),
                             core.Notification.ERROR, info_box=self.info_box, msg_id="notify:dialog_notify")
                     self.wid.grab_focus()
                     return
@@ -122,7 +122,7 @@ class EditNotice(abstract.ListEditor):
             pass
         elif operation == self.data_model.CMD_OPER_EDIT:
             if not self.iter:
-                self.notifications.append(self.core.notify("Please select at least one item to edit",
+                self.notifications.append(self.core.notify(_("Please select at least one item to edit"),
                     core.Notification.ERROR, msg_id="notify:not_selected"))
                 return
             else:
@@ -130,7 +130,7 @@ class EditNotice(abstract.ListEditor):
                 self.notice.get_buffer().set_text(model[self.iter][self.COLUMN_TEXT] or "")
         elif operation == self.data_model.CMD_OPER_DEL:
             if not self.iter:
-                self.notifications.append(self.core.notify("Please select at least one item to delete",
+                self.notifications.append(self.core.notify(_("Please select at least one item to delete"),
                     core.Notification.ERROR, msg_id="notify:not_selected"))
                 return
             else: 
@@ -231,7 +231,7 @@ class MenuButtonEditXCCDF(abstract.MenuButton):
         if not self.core.init(None): return
 
         # Update neccessary attributes of Benchmark
-        self.data_model.update(id="New_SCAP_Benchmark", version="0", lang="en")
+        self.data_model.update(id = _("New_SCAP_Benchmark"), version="0", lang="en")
         self.core.selected_lang = "en"
         self.core.notify_destroy("notify:xccdf:missing_lang")
         self.data_model.edit_status(self.data_model.CMD_OPER_ADD)
@@ -259,9 +259,9 @@ class MenuButtonEditXCCDF(abstract.MenuButton):
         anymore. This function is not reachable. Leting here for
         further reference """
         validate = self.data_model.validate()
-        message = [ "Document is not valid !",
-                    "Document is valid.",
-                    "Validation process failed, check for error in log file."][validate]
+        message = [ _("Document is not valid!"),
+                    _("Document is valid."),
+                    _("Validation process failed, check for error in log file.")][validate]
         lvl = [ core.Notification.WARNING,
                 core.Notification.SUCCESS,
                 core.Notification.ERROR][validate]
@@ -298,7 +298,7 @@ class MenuButtonEditXCCDF(abstract.MenuButton):
             text = re.sub("[\t ]+" , "_", widget.get_text())
             # Check if ID doesn't start with number
             if len(text) != 0 and re.search("[A-Za-z_]", text[0]) == None:
-                self.notifications.append(self.core.notify("First character of ID has to be from A-Z (case insensitive) or \"_\"",
+                self.notifications.append(self.core.notify(_("First character of ID has to be from A-Z (case insensitive) or \"_\""),
                     core.Notification.ERROR, msg_id="notify:xccdf:id"))
             else: self.data_model.update(id=text)
         elif object == "version":
