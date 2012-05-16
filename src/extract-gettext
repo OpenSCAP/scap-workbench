@@ -1,4 +1,4 @@
 #!/usr/bin/env sh
 
-xgettext --keyword=translatable --sort-output -o en.po `find . -name "*.py"` `find "share/scap-workbench/glade" -name "*.glade"`
+xgettext --keyword=translatable --sort-output -o scap-workbench.pot `find . -name "*.py"` `find "share/scap-workbench/glade" -name "*.glade"`
 

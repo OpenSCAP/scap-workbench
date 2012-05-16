@@ -1567,7 +1567,7 @@ class EditValuesValues(abstract.ListEditor):
         self.value_bool.set_property('visible', boolean)
         self.default_bool.set_property('visible', boolean)
 
-        self.core.notify_destroy(_("notify:not_selected"))
+        self.core.notify_destroy("notify:not_selected")
         (model, iter) = self.get_selection().get_selected()
         if operation == self.data_model.CMD_OPER_ADD:
             pass
