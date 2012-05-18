@@ -88,7 +88,7 @@ class DHScan(commands.DataHandler, commands.EventObject):
     COLUMN_COLOR_BACKG = 6      # Color of cell
     COLUMN_COLOR_TEXT_ID = 7    # Color of text ID
 
-    RESULT_NAME = _("SCAP WORKBENCH Test Result")
+    RESULT_NAME = "SCAP WORKBENCH Test Result"
     
     FG_TITLE_NORMAL = "#000000"
     FG_TITLE_PASS   = "#333333"
