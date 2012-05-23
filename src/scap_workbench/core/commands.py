@@ -1233,7 +1233,7 @@ class DHValues(DataHandler):
             item = item.to_value()
             
         if item is None:
-            raise RuntimeError("Edit items update: No item selected !")
+            raise RuntimeError("Edit items update: No item selected!")
 
         if id != None and len(id) > 0 and item.id != id:
             retval = item.set_id(id)
@@ -2003,7 +2003,7 @@ class DHProfiles(DataHandler):
             profile_iter = model.iter_parent(iter)
             
         if profile_iter == None: 
-            LOGGER.error("Can't add data. No profile specified !")
+            LOGGER.error("Can't add data. No profile specified!")
             return
 
         num = model.iter_n_children(profile_iter)
@@ -2119,7 +2119,7 @@ class DHEditItems(DataHandler):
 
         item = self.core.lib.benchmark.get_item(self.core.selected_item)
         if item is None:
-            raise RuntimeError("Edit items update fix: No item selected !")
+            raise RuntimeError("Edit items update fix: No item selected!")
         
         item = item.to_rule()
 

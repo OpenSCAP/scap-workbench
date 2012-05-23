@@ -564,7 +564,7 @@ class Loader(object):
         if os.path.isdir(dpath):
             sys.path.append(dpath)
         else:
-            LOGGER.error("%s is not a directory. Can't import filter modules !" % (dpath,))
+            LOGGER.error("%s is not a directory. Can't import filter modules!" % (dpath,))
             return []
 
         list = []

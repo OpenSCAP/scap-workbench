@@ -692,7 +692,7 @@ class FindOvalDef(abstract.Window, abstract.ListEditor):
         self.core.notify_destroy("notify:dialog_notify")
         (model, iter) = self.definitions.get_selection().get_selected()
         if not iter:
-            self.core.notify("You have to choose the definition !",
+            self.core.notify(_("You have to choose the definition!"),
                     core.Notification.ERROR, self.info_box, msg_id="notify:dialog_notify")
             return
         ret, err = self.data_model.set_item_content(name=model[iter][self.COLUMN_ID])
