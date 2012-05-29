@@ -90,8 +90,8 @@ class AddItem(EventObject):
     def __cb_changed_relation(self, widget):
 
         self.core.notify_destroy("notify:relation")
-        (model, iter) = self.view.get_selection().get_selected()
-        if not iter:
+        (model, iterator) = self.view.get_selection().get_selected()
+        if not iterator:
             if widget.get_active() in [self.data_model.RELATION_PARENT, self.data_model.RELATION_SIBLING]:
                 self.core.notify(_("Item can't be a parent or sibling of benchmark!"),
                         core.Notification.ERROR, self.info_box, msg_id="notify:relation")
@@ -99,7 +99,7 @@ class AddItem(EventObject):
                 return False
         else:
             self.core.notify_destroy("dialog:add_item")
-            if model[iter][self.data_model.COLUMN_TYPE] in ["value", "rule"] and widget.get_active() == self.data_model.RELATION_CHILD:
+            if model[iterator][self.data_model.COLUMN_TYPE] in ["value", "rule"] and widget.get_active() == self.data_model.RELATION_CHILD:
                 self.core.notify(_("Item types VALUE and RULE can't be a parent!"),
                         core.Notification.ERROR, self.info_box, msg_id="notify:relation")
                 widget.grab_focus()
@@ -288,9 +288,9 @@ class EditItemValues(abstract.ListEditor):
         """
         self.core.notify_destroy("notify:dialog_notify")
         item = None
-        (model, iter) = self.values.get_selection().get_selected()
-        if iter:
-            item = model[iter][self.COLUMN_ID]
+        (model, iterator) = self.values.get_selection().get_selected()
+        if iterator:
+            item = model[iterator][self.COLUMN_ID]
         elif self.operation != self.data_model.CMD_OPER_EDIT:
             self.core.notify(_("Value has to be chosen."), core.Notification.ERROR, info_box=self.info_box, msg_id="notify:dialog_notify")
             return
@@ -328,7 +328,7 @@ class EditItemValues(abstract.ListEditor):
         builder.get_object("dialog:find_value:btn_ok").connect("clicked", self.__do)
 
         self.core.notify_destroy("notify:not_selected")
-        (model, iter) = self.get_selection().get_selected()
+        (model, iterator) = self.get_selection().get_selected()
         if operation == self.data_model.CMD_OPER_ADD:
             self.values.append_column(Gtk.TreeViewColumn(_("ID of Value"), Gtk.CellRendererText(), text=self.COLUMN_ID))
             self.values.append_column(Gtk.TreeViewColumn(_("Title"), Gtk.CellRendererText(), text=self.COLUMN_VALUE))
@@ -347,7 +347,7 @@ class EditItemValues(abstract.ListEditor):
             self.wdialog.set_transient_for(self.core.main_window)
             self.wdialog.show_all()
         elif operation == self.data_model.CMD_OPER_EDIT:
-            if not iter:
+            if not iterator:
                 self.notifications.append(self.core.notify(_("Please select at least one item to edit"),
                     core.Notification.ERROR, msg_id="notify:not_selected"))
                 return
@@ -365,11 +365,11 @@ class EditItemValues(abstract.ListEditor):
                     else: title = item["titles"][item["titles"].keys()[0]]+" ["+item["titles"].keys()[0]+"]"
                 self.values.get_model().get_model().append([value.id, title, value])
 
-            self.search.set_text(model[iter][self.COLUMN_ID])
+            self.search.set_text(model[iterator][self.COLUMN_ID])
             self.values.get_model().refilter()
             self.values.set_sensitive(False)
             self.search.set_sensitive(False)
-            self.export_name.set_text(model[iter][self.COLUMN_EXPORT])
+            self.export_name.set_text(model[iterator][self.COLUMN_EXPORT])
             self.wdialog.set_transient_for(self.core.main_window)
             self.wdialog.show_all()
 
@@ -382,13 +382,13 @@ class EditItemValues(abstract.ListEditor):
             self.wdialog.show_all()
 
         elif operation == self.data_model.CMD_OPER_DEL:
-            if not iter:
+            if not iterator:
                 self.notifications.append(self.core.notify(_("Please select at least one item to delete"),
                     core.Notification.ERROR, msg_id="notify:not_selected"))
                 return
             else: 
-                iter = self.dialogDel(self.core.main_window, self.get_selection())
-                if iter != None:
+                iterator = self.dialogDel(self.core.main_window, self.get_selection())
+                if iterator is not None:
                     self.__do()
                 return
         else: 
@@ -452,11 +452,11 @@ class EditFixtext(abstract.HTMLEditor):
         if event and event.type == Gdk.EventType.KEY_PRESS and event.keyval != Gdk.KEY_Return:
             return
 
-        (model, iter) = self.get_selection().get_selected()
-        if not iter:
+        (model, iterator) = self.get_selection().get_selected()
+        if not iterator:
             LOGGER.debug("Changing attribute of fixtext failed. HINT: Use enter to save your changes")
             return
-        data = model[iter][self.COLUMN_OBJ]
+        data = model[iterator][self.COLUMN_OBJ]
 
         if widget == self.__attr_fixref:
             retval = self.data_model.edit_fixtext(self.data_model.CMD_OPER_EDIT, fixtext=data, fixref=widget.get_text())
@@ -479,9 +479,9 @@ class EditFixtext(abstract.HTMLEditor):
         """
         """
         item = None
-        (model, iter) = self.get_selection().get_selected()
-        if iter and model != None: 
-            item = model[iter][self.COLUMN_OBJ]
+        (model, iterator) = self.get_selection().get_selected()
+        if iterator and model is not None: 
+            item = model[iterator][self.COLUMN_OBJ]
 
         if self.operation == self.data_model.CMD_OPER_DEL:
             retval = self.data_model.edit_fixtext(self.operation, item, None, None)
@@ -534,22 +534,22 @@ class EditFixtext(abstract.HTMLEditor):
         self.render(self.html_box, self.toolbar, self.switcher)
 
         self.core.notify_destroy("notify:not_selected")
-        (model, iter) = self.get_selection().get_selected()
+        (model, iterator) = self.get_selection().get_selected()
         if operation == self.data_model.CMD_OPER_ADD:
             if self.core.selected_lang: self.lang.set_text(self.core.selected_lang)
             self.load_html("", "file:///")
         elif operation == self.data_model.CMD_OPER_EDIT:
-            if not iter:
+            if not iterator:
                 self.notifications.append(self.core.notify(_("Please select at least one item to edit"),
                     core.Notification.ERROR, msg_id="notify:not_selected"))
                 return
             else:
-                self.lang.set_text(model[iter][self.COLUMN_LANG] or "")
-                desc = model[iter][self.COLUMN_TEXT]
+                self.lang.set_text(model[iterator][self.COLUMN_LANG] or "")
+                desc = model[iterator][self.COLUMN_TEXT]
                 desc = desc.replace("xhtml:","")
                 self.load_html(desc or "", "file:///")
         elif operation == self.data_model.CMD_OPER_DEL:
-            if not iter:
+            if not iterator:
                 self.notifications.append(self.core.notify(_("Please select at least one item to delete"),
                     core.Notification.ERROR, msg_id="notify:not_selected"))
                 return
@@ -594,12 +594,13 @@ class EditFixtext(abstract.HTMLEditor):
 
     def __attr_fill(self, widget=None):
         
-        (model, iter) = self.get_selection().get_selected()
+        (model, iterator) = self.get_selection().get_selected()
 
-        self.__attr_frame.set_sensitive(iter is not None)
-        if not iter: return
+        self.__attr_frame.set_sensitive(iterator is not None)
+        if not iterator:
+            return
 
-        data = model[iter][self.COLUMN_OBJ]
+        data = model[iterator][self.COLUMN_OBJ]
         
         self.__block_signals()
         self.__attr_fixref.set_text(data.fixref or "")
@@ -662,11 +663,11 @@ class EditFix(abstract.ListEditor):
         if event and event.type == Gdk.EventType.KEY_PRESS and event.keyval != Gdk.KEY_Return:
             return
 
-        (model, iter) = self.get_selection().get_selected()
-        if not iter:
+        (model, iterator) = self.get_selection().get_selected()
+        if not iterator:
             LOGGER.debug("Changing attribute of fix failed. HINT: Use enter to save your changes")
             return
-        data = model[iter][self.COLUMN_OBJ]
+        data = model[iterator][self.COLUMN_OBJ]
 
         if widget == self.__attr_system:
             retval = self.data_model.edit_fix(self.data_model.CMD_OPER_EDIT, fix=data, system=widget.get_text())
@@ -690,9 +691,9 @@ class EditFix(abstract.ListEditor):
         """
         self.core.notify_destroy("notify:xccdf:id")
         item = None
-        (model, iter) = self.get_selection().get_selected()
-        if iter and model != None: 
-            item = model[iter][self.COLUMN_OBJ]
+        (model, iterator) = self.get_selection().get_selected()
+        if iterator and model is not None: 
+            item = model[iterator][self.COLUMN_OBJ]
 
         text_id = self.fid.get_text()
         if len(text_id) != 0 and re.search("[A-Za-z_]", text_id[0]) == None:
@@ -733,19 +734,19 @@ class EditFix(abstract.ListEditor):
         builder.get_object("dialog:edit_fix:btn_ok").connect("clicked", self.__do)
 
         self.core.notify_destroy("notify:not_selected")
-        (model, iter) = self.get_selection().get_selected()
+        (model, iterator) = self.get_selection().get_selected()
         if operation == self.data_model.CMD_OPER_ADD:
             pass
         elif operation == self.data_model.CMD_OPER_EDIT:
-            if not iter:
+            if not iterator:
                 self.notifications.append(self.core.notify(_("Please select at least one item to edit"),
                     core.Notification.ERROR, msg_id="notify:not_selected"))
                 return
             else:
-                self.fid.set_text(model[iter][self.COLUMN_ID] or "")
-                self.content.get_buffer().set_text(model[iter][self.COLUMN_TEXT] or "")
+                self.fid.set_text(model[iterator][self.COLUMN_ID] or "")
+                self.content.get_buffer().set_text(model[iterator][self.COLUMN_TEXT] or "")
         elif operation == self.data_model.CMD_OPER_DEL:
-            if not iter:
+            if not iterator:
                 self.notifications.append(self.core.notify(_("Please select at least one item to delete"),
                     core.Notification.ERROR, msg_id="notify:not_selected"))
                 return
@@ -790,12 +791,13 @@ class EditFix(abstract.ListEditor):
 
     def __attr_fill(self, widget=None):
         
-        (model, iter) = self.get_selection().get_selected()
+        (model, iterator) = self.get_selection().get_selected()
 
-        self.__attr_frame.set_sensitive(iter is not None)
-        if not iter: return
+        self.__attr_frame.set_sensitive(iterator is not None)
+        if not iterator:
+            return
 
-        data = model[iter][self.COLUMN_OBJ]
+        data = model[iterator][self.COLUMN_OBJ]
         
         self.__block_signals()
         self.__attr_system.set_text(data.system or "")
@@ -819,8 +821,9 @@ class EditIdent(abstract.ListEditor):
     COLUMN_LANG = -1
 
     def __init__(self, core, id, widget, data_model):
-
-        self.data_model = data_model 
+        self.data_model = data_model
+        self.iter = None
+        
         super(EditIdent, self).__init__(id, core, widget=widget, model=Gtk.ListStore(str, str, GObject.TYPE_PYOBJECT))
         self.add_sender(id, "update")
 
@@ -846,8 +849,8 @@ class EditIdent(abstract.ListEditor):
                 self.wid.grab_focus()
                 return
             if self.operation == self.data_model.CMD_OPER_ADD:
-                for iter in self.get_model():
-                    if iter[self.COLUMN_ID] == self.wid.get_text():
+                for iterator in self.get_model():
+                    if iterator[self.COLUMN_ID] == self.wid.get_text():
                         self.core.notify(_("ID of the ident has to be unique!"),
                                 core.Notification.ERROR, info_box=self.info_box, msg_id="notify:dialog_notify")
                         self.wid.grab_focus()
@@ -900,8 +903,8 @@ class EditIdent(abstract.ListEditor):
                     core.Notification.ERROR, msg_id="notify:not_selected"))
                 return
             else: 
-                iter = self.dialogDel(self.core.main_window, self.get_selection())
-                if iter != None:
+                iterator = self.dialogDel(self.core.main_window, self.get_selection())
+                if iterator is not None:
                     self.__do()
                 return
         else: 
@@ -923,8 +926,9 @@ class EditQuestion(abstract.ListEditor):
     COLUMN_OVERRIDES = 3
     
     def __init__(self, core, id, widget, data_model):
-
-        self.data_model = data_model 
+        self.data_model = data_model
+        self.iter = None
+        
         super(EditQuestion, self).__init__(id, core, widget=widget, model=Gtk.ListStore(str, str, GObject.TYPE_PYOBJECT, bool))
         self.add_sender(id, "update")
 
@@ -988,9 +992,9 @@ class EditQuestion(abstract.ListEditor):
                 self.notifications.append(self.core.notify(_("Please select at least one item to delete"),
                     core.Notification.ERROR, msg_id="notify:not_selected"))
                 return
-            else: 
-                iter = self.dialogDel(self.core.main_window, self.get_selection())
-                if iter != None:
+            else:
+                iterator = self.dialogDel(self.core.main_window, self.get_selection())
+                if iter is not None:
                     self.__do()
                 return
         else: 
@@ -1021,13 +1025,11 @@ class EditRationale(abstract.ListEditor):
         self.widget.append_column(Gtk.TreeViewColumn(_("Rationale"), Gtk.CellRendererText(), text=self.COLUMN_TEXT))
 
     def __do(self, widget=None):
-        """
-        """
         item = None
-        (model, iter) = self.get_selection().get_selected()
+        (model, iterator) = self.get_selection().get_selected()
         buffer = self.rationale.get_buffer()
-        if iter and model != None: 
-            item = model[iter][self.COLUMN_OBJ]
+        if iterator and model is not None: 
+            item = model[iterator][self.COLUMN_OBJ]
 
         retval = self.data_model.edit_rationale(self.operation, item, self.lang.get_text(),
                 self.override.get_active(), buffer.get_text(buffer.get_start_iter(), buffer.get_end_iter(), True))
@@ -1037,14 +1039,10 @@ class EditRationale(abstract.ListEditor):
         self.emit("update")
 
     def __dialog_destroy(self, widget=None):
-        """
-        """
         if self.wdialog: 
             self.wdialog.destroy()
 
     def dialog(self, widget, operation):
-        """
-        """
         self.operation = operation
         
         builder = Gtk.Builder()
@@ -1060,26 +1058,26 @@ class EditRationale(abstract.ListEditor):
         builder.get_object("dialog:edit_rationale:btn_ok").connect("clicked", self.__do)
 
         self.core.notify_destroy("notify:not_selected")
-        (model, iter) = self.get_selection().get_selected()
+        (model, iterator) = self.get_selection().get_selected()
         if operation == self.data_model.CMD_OPER_ADD:
             if self.core.selected_lang: self.lang.set_text(self.core.selected_lang)
         elif operation == self.data_model.CMD_OPER_EDIT:
-            if not iter:
+            if not iterator:
                 self.notifications.append(self.core.notify(_("Please select at least one item to edit"),
                     core.Notification.ERROR, msg_id="notify:not_selected"))
                 return
             else:
-                self.lang.set_text(model[iter][self.COLUMN_LANG] or "")
-                self.override.set_active(model[iter][self.COLUMN_OVERRIDES])
-                self.rationale.get_buffer().set_text(model[iter][self.COLUMN_TEXT] or "")
+                self.lang.set_text(model[iterator][self.COLUMN_LANG] or "")
+                self.override.set_active(model[iterator][self.COLUMN_OVERRIDES])
+                self.rationale.get_buffer().set_text(model[iterator][self.COLUMN_TEXT] or "")
         elif operation == self.data_model.CMD_OPER_DEL:
-            if not iter:
+            if not iterator:
                 self.notifications.append(self.core.notify(_("Please select at least one item to delete"),
                     core.Notification.ERROR, msg_id="notify:not_selected"))
                 return
             else: 
-                iter = self.dialogDel(self.core.main_window, self.get_selection())
-                if iter != None:
+                iterator = self.dialogDel(self.core.main_window, self.get_selection())
+                if iterator is not None:
                     self.__do()
                 return
         else: 
@@ -1090,14 +1088,11 @@ class EditRationale(abstract.ListEditor):
         self.wdialog.show_all()
 
     def fill(self):
-
         self.clear()
         for data in self.data_model.get_rationales() or []:
             self.append([data.lang, re.sub("[\t ]+" , " ", data.text).strip(), data, data.overrides])
 
-
 class EditPlatform(abstract.ListEditor):
-
     COLUMN_TEXT = 0
 
     def __init__(self, core, id, widget, data_model):
@@ -1113,9 +1108,9 @@ class EditPlatform(abstract.ListEditor):
         """
         self.core.notify_destroy("notify:edit")
         item = None
-        (model, iter) = self.get_selection().get_selected()
-        if iter and model != None: 
-            item = model[iter][self.COLUMN_TEXT]
+        (model, iterator) = self.get_selection().get_selected()
+        if iterator and model != None: 
+            item = model[iterator][self.COLUMN_TEXT]
 
         if self.operation != self.data_model.CMD_OPER_DEL:
             text = self.cpe.get_text()
@@ -1227,24 +1222,24 @@ class EditPlatform(abstract.ListEditor):
         self.language.connect("changed", self.__cb_build)
 
         self.core.notify_destroy("notify:not_selected")
-        (model, iter) = self.get_selection().get_selected()
+        (model, iterator) = self.get_selection().get_selected()
         if operation == self.data_model.CMD_OPER_ADD:
             pass
         elif operation == self.data_model.CMD_OPER_EDIT:
-            if not iter:
+            if not iterator:
                 self.notifications.append(self.core.notify(_("Please select at least one item to edit"),
                     core.Notification.ERROR, msg_id="notify:not_selected"))
                 return
             else:
-                self.cpe.set_text(model[iter][self.COLUMN_TEXT])
+                self.cpe.set_text(model[iterator][self.COLUMN_TEXT])
         elif operation == self.data_model.CMD_OPER_DEL:
-            if not iter:
+            if not iterator:
                 self.notifications.append(self.core.notify(_("Please select at least one item to delete"),
                     core.Notification.ERROR, msg_id="notify:not_selected"))
                 return
             else: 
-                iter = self.dialogDel(self.core.main_window, self.get_selection())
-                if iter != None:
+                iterator = self.dialogDel(self.core.main_window, self.get_selection())
+                if iterator is not None:
                     self.__do()
                 return
         else: 
@@ -1476,13 +1471,13 @@ class EditValuesValues(abstract.ListEditor):
         """
         """
         # Check input data
-        (model, iter) = self.get_selection().get_selected()
+        (model, iterator) = self.get_selection().get_selected()
         item = None
-        if iter:
-            item = model[iter][self.COLUMN_OBJ]
+        if iterator:
+            item = model[iterator][self.COLUMN_OBJ]
 
         for inst in model:
-            if self.selector.get_text() == inst[0] and model[iter][self.COLUMN_SELECTOR] != self.selector.get_text():
+            if self.selector.get_text() == inst[0] and model[iterator][self.COLUMN_SELECTOR] != self.selector.get_text():
                 self.core.notify(_("Selector \"%s\" is already used!") % (inst[0],),
                         core.Notification.ERROR, self.info_box, msg_id="dialog:add_value")
                 self.selector.grab_focus()
@@ -1568,32 +1563,32 @@ class EditValuesValues(abstract.ListEditor):
         self.default_bool.set_property('visible', boolean)
 
         self.core.notify_destroy("notify:not_selected")
-        (model, iter) = self.get_selection().get_selected()
+        (model, iterator) = self.get_selection().get_selected()
         if operation == self.data_model.CMD_OPER_ADD:
             pass
         elif operation == self.data_model.CMD_OPER_EDIT:
-            if not iter:
+            if not iterator:
                 self.notifications.append(self.core.notify(_("Please select at least one item to edit"),
                     core.Notification.ERROR, msg_id="notify:not_selected"))
                 return
             else:
-                self.selector.set_text(model[iter][self.COLUMN_SELECTOR] or "")
-                self.value.set_text(model[iter][self.COLUMN_VALUE] or "")
-                self.default.set_text(model[iter][self.COLUMN_DEFAULT] or "")
-                self.match.set_text(model[iter][self.COLUMN_MATCH] or "")
-                self.upper_bound.set_text(model[iter][self.COLUMN_UPPER_BOUND] or "")
-                self.lower_bound.set_text(model[iter][self.COLUMN_LOWER_BOUND] or "")
-                self.must_match.set_active(model[iter][self.COLUMN_MUST_MATCH])
-                for choice in model[iter][self.COLUMN_OBJ].choices:
+                self.selector.set_text(model[iterator][self.COLUMN_SELECTOR] or "")
+                self.value.set_text(model[iterator][self.COLUMN_VALUE] or "")
+                self.default.set_text(model[iterator][self.COLUMN_DEFAULT] or "")
+                self.match.set_text(model[iterator][self.COLUMN_MATCH] or "")
+                self.upper_bound.set_text(model[iterator][self.COLUMN_UPPER_BOUND] or "")
+                self.lower_bound.set_text(model[iterator][self.COLUMN_LOWER_BOUND] or "")
+                self.must_match.set_active(model[iterator][self.COLUMN_MUST_MATCH])
+                for choice in model[iterator][self.COLUMN_OBJ].choices:
                     self.choices.get_model().append([choice])
         elif operation == self.data_model.CMD_OPER_DEL:
-            if not iter:
+            if not iterator:
                 self.notifications.append(self.core.notify(_("Please select at least one item to delete"),
                     core.Notification.ERROR, msg_id="notify:not_selected"))
                 return
             else: 
-                iter = self.dialogDel(self.core.main_window, self.get_selection())
-                if iter != None:
+                iterator = self.dialogDel(self.core.main_window, self.get_selection())
+                if iterator is not None:
                     self.__do()
                 return
         else: 
@@ -1692,18 +1687,19 @@ class ItemList(abstract.List):
         If key == delete: Delete the selected item from the list and model"""
         if event and event.type == Gdk.EventType.KEY_PRESS and event.keyval == Gdk.KEY_Delete:
             selection = self.get_TreeView().get_selection()
-            (model,iter) = selection.get_selected()
-            if iter: self.__cb_item_remove()
+            (model, iterator) = selection.get_selected()
+            if iterator:
+                self.__cb_item_remove()
 
     def __cb_item_remove(self, widget=None):
         """ Remove selected item from the list and model.
         """
         selection = self.get_TreeView().get_selection()
-        (model, iter) = selection.get_selected()
-        if iter:
-            iter_next = model.iter_next(iter)
-            self.data_model.remove_item(model[iter][1])
-            model.remove(iter)
+        (model, iterator) = selection.get_selected()
+        if iterator:
+            iter_next = model.iter_next(iterator)
+            self.data_model.remove_item(model[iterator][1])
+            model.remove(iterator)
 
             """ If the removed item has successor, let's select it so we can
             continue in deleting or other actions without need to click the
@@ -1727,9 +1723,11 @@ class ItemList(abstract.List):
             details = self.data_model.get_item_details(self.core.selected_item)
             selection = treeView.get_selection( )
             if selection != None: 
-                (model, iter) = selection.get_selected( )
-                if iter: self.core.selected_item = model.get_value(iter, commands.DHItemsTree.COLUMN_ID)
-                else: self.core.selected_item = None
+                (model, iterator) = selection.get_selected( )
+                if iter:
+                    self.core.selected_item = model.get_value(iterator, commands.DHItemsTree.COLUMN_ID)
+                else:
+                    self.core.selected_item = None
     
             # Selection has changed, trigger all events connected to this signal
             self.emit("update")
@@ -1964,9 +1962,9 @@ class MenuButtonEditItems(abstract.MenuButton, abstract.Func):
         elif widget == self.href:
             if self.href.get_active() == -1 or len(self.href.get_model()) == 0:
                 return
-            iter = self.href.get_model()[self.href.get_active()]
-            if iter:
-                href = iter[1]
+            iterator = self.href.get_model()[self.href.get_active()]
+            if iterator:
+                href = iterator[1]
                 self.data_model.set_item_content(href=href)
                 self.core.notify_destroy("notify:definition_available")
         elif widget == self.severity:
@@ -1989,10 +1987,12 @@ class MenuButtonEditItems(abstract.MenuButton, abstract.Func):
         if event.type == Gdk.EventType._2BUTTON_PRESS and event.button == 1:
             selection = widget.get_selection()
             if selection:
-                (model, iter) = selection.get_selected()
-                if not iter: return
-                id = model[iter][0]# Should be ID of value
-                if not id: return
+                (model, iterator) = selection.get_selected()
+                if not iterator:
+                    return
+                id = model[iterator][0] # Should be ID of value
+                if not id:
+                    return
             else: return
             self.list_item.search(id, 1)
 
@@ -2017,21 +2017,23 @@ class MenuButtonEditItems(abstract.MenuButton, abstract.Func):
 
     def __update_item(self):
         selection = self.tw_items.get_selection()
-        (model, iter) = selection.get_selected()
-        if iter:
-            item = self.data_model.get_item(model[iter][1])
+        (model, iterator) = selection.get_selected()
+        if iterator:
+            item = self.data_model.get_item(model[iterator][1])
             if item == None:
                 item = self.data_model.get_item(self.core.selected_item)
+            
             if item == None:
-                LOGGER.error("Can't find item with ID: \"%s\"" % (model[iter][1],))
+                LOGGER.error("Can't find item with ID: \"%s\"" % (model[iterator][1],))
                 return
-            model[iter][1] = item.id
+            
+            model[iterator][1] = item.id
 
             # Get the title of item
             title = self.data_model.get_title(item.title) or "%s (ID)" % (item.id,)
 
-            model[iter][2] = title
-            model[iter][4] = ""+title
+            model[iterator][2] = title
+            model[iterator][4] = ""+title
 
     def __block_signals(self):
         self.hidden.handler_block_by_func(self.__change)

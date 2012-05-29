@@ -27,6 +27,12 @@ from scap_workbench import paths
 TRANSLATION_DOMAIN = "scap-workbench"
 
 def init():
+    """Initializes localization support within scap-workbench
+    
+    The main reason for this method is to synchronize python's gettext with
+    the real gettext Gtk uses when loading layouts
+    """
+    
     # gettext module doesn't call the C gettext functions, we have to use both
     # python gettext module and locale to make sure everything is in sync
     
