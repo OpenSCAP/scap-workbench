@@ -14,7 +14,7 @@
 # License along with this library; if not, write to the
 # Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 # Boston, MA 02111-1307, USA.
-# 
+#
 # Authors:
 #      Gustavo J. A. M. Carneiro
 #      Modifications: Maros Barabas <xbarry@gmail.com>
@@ -61,7 +61,7 @@ def _parse_css_color(color):
 #        pass
 
 class HtmlHandler(xml.sax.handler.ContentHandler):
-    
+
     def __init__(self, textview, startiter):
         xml.sax.handler.ContentHandler.__init__(self)
         self.textbuf = textview.get_buffer()
@@ -133,7 +133,7 @@ class HtmlHandler(xml.sax.handler.ContentHandler):
 
         else:
             LOGGER.warning("Unable to parse length value '%s'" % value)
-        
+
     def __parse_font_size_cb(length, tag):
         tag.set_property("size-points", length/display_resolution)
     __parse_font_size_cb = staticmethod(__parse_font_size_cb)
@@ -178,7 +178,7 @@ class HtmlHandler(xml.sax.handler.ContentHandler):
     def __frac_length_tag_cb(length, tag, propname):
         tag.set_property(propname, length)
     __frac_length_tag_cb = staticmethod(__frac_length_tag_cb)
-        
+
     def _parse_style_margin_left(self, tag, value):
         self._parse_length(value, False, self.__frac_length_tag_cb,
                            tag, "left-margin")
@@ -223,7 +223,7 @@ class HtmlHandler(xml.sax.handler.ContentHandler):
             LOGGER.warning("Invalid text-align:%s requested" % value)
         else:
             tag.set_property("justification", align)
-    
+
     def _parse_style_text_decoration(self, tag, value):
         if value == "none":
             tag.set_property("underline", Pango.Underline.NONE)
@@ -242,7 +242,7 @@ class HtmlHandler(xml.sax.handler.ContentHandler):
             LOGGER.warning("text-decoration:blink not implemented")
         else:
             LOGGER.warning("text-decoration:%s not implemented" % value)
-        
+
 
     ## build a dictionary mapping styles to methods, for greater speed
     __style_methods = dict()
@@ -286,7 +286,7 @@ class HtmlHandler(xml.sax.handler.ContentHandler):
             self.textbuf.insert_with_tags(self.iter, text, *tags)
         else:
             self.textbuf.insert(self.iter, text)
-    
+
     def _flush_text(self):
         if not self.text:
             return
@@ -298,7 +298,7 @@ class HtmlHandler(xml.sax.handler.ContentHandler):
             self.textview.emit("url-clicked", href, type_)
             return True
         return False
-        
+
     def characters(self, content):
         if allwhitespace_rx.match(content) is not None:
             return
@@ -344,7 +344,7 @@ class HtmlHandler(xml.sax.handler.ContentHandler):
         elif name == 'em':
             tag = self.textbuf.create_tag()
             tag.set_property("underline", Pango.Underline.SINGLE)
-        
+
         self._begin_span(style, tag)
 
         if name == 'br':
@@ -480,10 +480,10 @@ class HtmlTextView(Gtk.TextView):
     __gsignals__ = {
         'url-clicked': (GObject.SignalFlags.RUN_LAST, None, (str, str)), # href, type
     }
-    
+
     def __init__(self):
         super(HtmlTextView, self).__init__()
-        
+
         self.set_wrap_mode(Gtk.WrapMode.CHAR)
         self.set_editable(False)
         self._changed_cursor = False
@@ -498,10 +498,10 @@ class HtmlTextView(Gtk.TextView):
             window = widget.get_window(Gtk.TextWindowType.TEXT)
             window.set_cursor(Gdk.Cursor.new(Gdk.XTERM))
             self._changed_cursor = False
-    
+
     def __motion_notify_event(self, widget, event):
         window = widget.get_window(Gtk.TextWindowType.TEXT)
-        
+
         _, x, y, _ = window.get_pointer()
         x, y = widget.window_to_buffer_coords(Gtk.TextWindowType.TEXT, x, y)
         tags = widget.get_iter_at_location(x, y).get_tags()
@@ -531,6 +531,6 @@ class HtmlTextView(Gtk.TextView):
         parser.setContentHandler(HtmlHandler(self, eob))
         #parser.setEntityResolver(HtmlEntityResolver())
         parser.parse(StringIO(html))
-        
+
         if not eob.starts_line():
             buffer.insert(eob, "\n")

@@ -42,14 +42,14 @@ class AddProfileDialog(EventObject):
 
     def __init__(self, core, data_model, cb):
         super(AddProfileDialog, self).__init__(core)
-        
+
         self.data_model = data_model
         self.__update = cb
-        
+
         builder = Gtk.Builder()
         builder.set_translation_domain(l10n.TRANSLATION_DOMAIN)
         builder.add_from_file(os.path.join(paths.glade_dialog_prefix, "profile_add.glade"))
-        
+
         self.window = builder.get_object("dialog:profile_add")
 
         builder.get_object("profile_add:btn_ok").connect("clicked", self.__cb_do)
@@ -66,7 +66,7 @@ class AddProfileDialog(EventObject):
 
     def __cb_do(self, widget):
 
-        if len(self.pid.get_text()) == 0: 
+        if len(self.pid.get_text()) == 0:
             self.core.notify(_("Can't add profile with no ID!"),
                     core.Notification.ERROR, self.info_box, msg_id="notify:edit:profile:new")
             return
@@ -79,7 +79,7 @@ class AddProfileDialog(EventObject):
                 self.pid.modify_base(Gtk.StateType.NORMAL, Gdk.color_parse("#FFC1C2"))
                 return
         self.pid.modify_base(Gtk.StateType.NORMAL, self.__entry_style)
-        if len(self.title.get_text()) == 0: 
+        if len(self.title.get_text()) == 0:
             self.core.notify(_("Please add title for this profile."),
                     core.Notification.ERROR, self.info_box, msg_id="notify:edit:profile:new")
             self.title.grab_focus()
@@ -106,20 +106,20 @@ class ProfileList(abstract.List):
     This class represents TreeView in editor window which contains
     list of profiles. Each profile contains list of selectors,
     refine-rules, refine-values and setvalues.
-    
+
     Selectors and refine-rules are grouped into one item as well as
     refine-values and setvalues to contract the length of the list.
     """
-    
+
     def __init__(self, widget, core, data_model, builder=None, progress=None, filter=None):
         """ Constructor of ProfileList.
         """
-        
+
         self.data_model = data_model
         super(ProfileList, self).__init__("gui:edit:profile_list", core, widget)
-        
+
         self.builder = builder
-        
+
         """ Register signals that can be emited by this class.
         All signals are registered in EventObject (abstract class) and
         are emited by other objects to trigger the async event.
@@ -172,7 +172,7 @@ class ProfileList(abstract.List):
            unique string which correspond to the filter in the beginning
            of filter text entry.
         2) When user wrote to the filter text entry unique string which
-           corresponds to some filter (see below) it will select this 
+           corresponds to some filter (see below) it will select this
            filter explicitly.
         """
         filters = { "" : self.filter_none,
@@ -234,12 +234,12 @@ class ProfileList(abstract.List):
         """
         try:
             pattern = re.compile(text, re.I)
-        
+
         except sre_constants.error as err:
             self.core.notify("Regexp entry error: %s" % (err,), core.Notification.ERROR, msg_id="notify:profiles:filter")
             self.__stop_search = True
             LOGGER.exception("Regexp entry error")
-            
+
             return True
 
         """ Compilation of regexp is done. For each column specified
@@ -272,42 +272,42 @@ class ProfileList(abstract.List):
             """ We have an item selected, let's find it and select """
             self.get_TreeView().get_model().foreach(self.set_selected_profile_item, (self.core.selected_profile, self.core.selected_item, self.get_TreeView(), 1))
 
-        """List is updated, trigger all events 
+        """List is updated, trigger all events
         connected to this signal"""
         self.emit("update")
 
     def __cb_changed(self, widget, treeView):
         """Callback called when selection of the tree view (item and profile list) changes.
         """
-        
+
         selection = treeView.get_selection( )
-        if selection != None: 
+        if selection != None:
             (filter_model, filter_iter) = selection.get_selected()
-            
+
             if not filter_iter:
                 # nothing selected
                 self.core.selected_profile = None
                 self.core.selected_item = None
                 self.selected = None
-                
+
             else:
                 model = filter_model.get_model()
                 iter = filter_model.convert_iter_to_child_iter(filter_iter)
-    
+
                 if model.get_value(iter, 0) == "profile":
                     # If a profile is selected, change the global value of selected profile
                     # and clear the local value of item (to evade possible conflicts in selections)
                     self.core.selected_profile = model.get_value(iter, 2).id
                     self.core.selected_item = None
                     self.selected = model[iter]
-                
+
                 else:
                     # If a refine item is selected, change the global value of selected item
                     # and fill the local value of selected item so details can be filled from it.
                     self.core.selected_profile = None
                     self.core.selected_item = model.get_value(iter, 1)
                     self.selected = model[iter]
-        
+
         else:
             self.core.selected_profile = None
             self.core.selected_item = None
@@ -349,7 +349,7 @@ class ProfileList(abstract.List):
                 # Profile selected
                 self.data_model.remove_item(model[iter][2].id)
                 model.remove(iter)
-                
+
             else:
                 # Refine item selected
                 profile = model.get_value(model.iter_parent(iter), 1)
@@ -369,17 +369,17 @@ class ProfileList(abstract.List):
                 core.Notification.ERROR, msg_id="notify:edit:delete_item"))
 
     def __cb_item_add(self, widget=None):
-        """ Add profile to the profile list (Item can 
+        """ Add profile to the profile list (Item can
         """
         AddProfileDialog(self.core, self.data_model, self.__update)
-        
+
 
 class MenuButtonEditProfiles(abstract.MenuButton, abstract.Func):
 
     def __init__(self, builder, widget, core):
         abstract.MenuButton.__init__(self, "gui:btn:menu:edit:profiles", widget, core)
         abstract.Func.__init__(self, core)
-        
+
         self.builder = builder
         self.data_model = commands.DHProfiles(self.core)
         self.__item_finder = edit.FindItem(self.core, "gui:edit:xccdf:profiles:finditem", self.data_model)
@@ -393,7 +393,7 @@ class MenuButtonEditProfiles(abstract.MenuButton, abstract.Func):
         self.add_receiver("gui:edit:profile_list", "update", self.__update)
         self.add_receiver("gui:edit:xccdf:profile:titles", "update", self.__update_item)
         self.add_sender(self.id, "update")
-        
+
         self.__refines_box = self.builder.get_object("xccdf:refines:box")
         self.__profile_box = self.builder.get_object("xccdf:profiles:details")
 
@@ -509,7 +509,7 @@ class MenuButtonEditProfiles(abstract.MenuButton, abstract.Func):
             self.data_model.update_refines(item[0], item[1], item[2], operator=ENUM.OPERATOR[widget.get_active()][0])
         elif widget == self.refines_severity:
             self.data_model.update_refines(item[0], item[1], item[2], severity=ENUM.LEVEL[widget.get_active()][0])
-        else: 
+        else:
             LOGGER.error("Change not supported object in \"%s\"" % (widget,))
             return
         self.__update_item()
@@ -573,25 +573,25 @@ class MenuButtonEditProfiles(abstract.MenuButton, abstract.Func):
     def __update(self):
         if not self.core.selected_profile or not self.list_profile.selected:
             # this will make sure that the box that was previously visible gets disabled
-            
+
             # NOTE: we could also just hide it but that makes the interface jump around.
             #       in my opinion disabling it surprises the user much less
             self.__profile_box.set_sensitive(False)
             self.__refines_box.set_sensitive(False)
-            
+
             return
-        
+
         self.__block_signals()
         self.__clear()
-        
+
         if self.list_profile.selected[0] == "profile":
             # a profile is selected, make sure the profile box is visible and enabled
             self.__profile_box.set_visible(True)
             self.__profile_box.set_sensitive(True)
-            
+
             # and hide the refine box
             self.__refines_box.set_visible(False)
-            
+
             details = self.data_model.get_profile_details(self.core.selected_profile)
             if not details:
                 self.__unblock_signals()
@@ -613,13 +613,13 @@ class MenuButtonEditProfiles(abstract.MenuButton, abstract.Func):
             self.titles.fill()
             self.descriptions.fill()
             self.statuses.fill()
-            
+
         else:
             # at this point we assume a refine of a profile is selected, so lets show
             # the refine box
             self.__refines_box.set_visible(True)
             self.__refines_box.set_sensitive(True)
-            
+
             # and hide the profile box
             self.__profile_box.set_visible(False)
 
@@ -669,9 +669,9 @@ class MenuButtonEditProfiles(abstract.MenuButton, abstract.Func):
                             if not has_value and row[0] == value.selector: self.refines_selector_value.set_active_iter(row.iter)
                         self.refines_operator.set_active(ENUM.OPERATOR.pos(value.oper))
                     else: raise AttributeError("Unknown type of value refine: %s" % (value.object,))
-                
+
             else: raise AttributeError("Unknown type of refines in profile: %s" % (itype,))
-            
+
         self.__unblock_signals()
 
     def __update_item(self):

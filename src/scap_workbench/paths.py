@@ -55,20 +55,20 @@ stock_data_prefix = "/usr/share/openscap"
 def set_prefix(prefix):
     """Changes all paths to use given global prefix (for example: /usr)
     """
-    
+
     global etc_prefix, share_prefix
     global etc_workbench_prefix, share_workbench_prefix, translation_prefix
     global glade_prefix, glade_dialog_prefix
     global filters_prefix, pixmaps_prefix
-    
+
     share_prefix = os.path.join(prefix, "share")
-    
-    etc_prefix = os.path.join(prefix, "etc")    
+
+    etc_prefix = os.path.join(prefix, "etc")
     etc_workbench_prefix = os.path.join(etc_prefix, "scap-workbench")
     if not os.path.exists(etc_workbench_prefix):
         etc_prefix = os.path.join(os.path.dirname(prefix), "etc")
         etc_workbench_prefix = os.path.join(etc_prefix, "scap-workbench")
-        
+
     share_workbench_prefix = os.path.join(share_prefix, "scap-workbench")
     translation_prefix = os.path.join(share_workbench_prefix, "mo")
     glade_prefix = os.path.join(share_workbench_prefix, "glade")
@@ -79,10 +79,10 @@ def set_prefix(prefix):
 def notify_executable_file_path(path):
     """Called with executable path (preferably absolute) as argument, this changes
     various path prefixes accordingly.
-    
-    We assume that prefix is ${directory of executable}/../ 
+
+    We assume that prefix is ${directory of executable}/../
     """
-    
+
     # the first dirname gets the directory of the executable, the second dirname gets the parent directory of that
     # so if the executable is in (something)/bin the prefix would be (something)
     set_prefix(os.path.dirname(os.path.dirname(os.path.abspath(path))))

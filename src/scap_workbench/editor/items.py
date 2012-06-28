@@ -44,26 +44,26 @@ import re
 import openscap_api as openscap
 
 class AddItem(EventObject):
-    
+
     COMBO_COLUMN_DATA = 0
     COMBO_COLUMN_VIEW = 1
     COMBO_COLUMN_INFO = 2
-    
+
     def __init__(self, core, data_model, list_item):
         super(AddItem, self).__init__(core)
-        
+
         self.data_model = data_model
         self.list_item = list_item
         self.view = list_item.get_TreeView()
-        
+
     def dialog(self):
         builder = Gtk.Builder()
         builder.set_translation_domain(l10n.TRANSLATION_DOMAIN)
         builder.add_from_file(os.path.join(paths.glade_dialog_prefix, "add_item.glade"))
-        
+
         self.window = builder.get_object("dialog:add_item")
         self.window.connect("delete-event", self.__delete_event)
-        
+
         btn_ok = builder.get_object("dialog:add_item:btn_ok")
         btn_ok.connect("clicked", self.__cb_do)
         btn_cancel = builder.get_object("dialog:add_item:btn_cancel")
@@ -154,7 +154,7 @@ class AddItem(EventObject):
             self.iid.grab_focus()
             self.iid.modify_base(Gtk.StateType.NORMAL, Gdk.color_parse("#FFC1C2"))
             return
-        else: 
+        else:
             self.iid.modify_base(Gtk.StateType.NORMAL, self.__entry_style)
 
         if self.title.get_text() == "":
@@ -163,7 +163,7 @@ class AddItem(EventObject):
             self.title.grab_focus()
             self.title.modify_base(Gtk.StateType.NORMAL, Gdk.color_parse("#FFC1C2"))
             return
-        else: 
+        else:
             self.title.modify_base(Gtk.StateType.NORMAL, self.__entry_style)
 
         if relation == self.data_model.RELATION_PARENT:
@@ -184,21 +184,21 @@ class AddItem(EventObject):
         self.window.destroy()
 
 class EditConflicts(commands.DHEditItems, abstract.ControlEditWindow):
-    
+
     COLUMN_ID = 0
-    
+
     def __init__(self, core, builder, model_item):
         self.model_item = model_item
         lv = builder.get_object("edit:dependencies:lv_conflict")
         model = Gtk.ListStore(str)
         lv.set_model(model)
-        
+
         commands.DHEditItems.__init__(self, core)
         abstract.ControlEditWindow.__init__(self, core, lv, None)
-        
+
         btn_add = builder.get_object("edit:dependencies:btn_conflict_add")
         btn_del = builder.get_object("edit:dependencies:btn_conflict_del")
-        
+
         # set callBack to btn
         btn_add.connect("clicked", self.__cb_add)
         btn_del.connect("clicked", self.__cb_del_row)
@@ -212,7 +212,7 @@ class EditConflicts(commands.DHEditItems, abstract.ControlEditWindow):
         self.model.clear()
         for data in details["conflicts"]:
             self.model.append([data])
-    
+
     def __cb_add(self, widget):
         # unimplemented
         dialog = Gtk.MessageDialog(None, 0, Gtk.MessageType.INFO,
@@ -221,16 +221,16 @@ class EditConflicts(commands.DHEditItems, abstract.ControlEditWindow):
             _("Sorry, manipulating conflicts is not implemented yet!"))
         dialog.run()
         dialog.destroy()
-        
+
         #edit.EditSelectIdDialogWindow(self.item, self.core, self.model, self.model_item, self.DHEditConflicts)
-    
+
     def __cb_del_row(self, widget):
         pass
 
 class EditRequires(commands.DHEditItems, abstract.ControlEditWindow):
-    
+
     COLUMN_ID = 0
-    
+
     def __init__(self, core, builder, model_item):
         self.model_item = model_item
         lv = builder.get_object("edit:dependencies:lv_requires")
@@ -239,10 +239,10 @@ class EditRequires(commands.DHEditItems, abstract.ControlEditWindow):
 
         commands.DHEditItems.__init__(self, core)
         abstract.ControlEditWindow.__init__(self, core, lv, None)
-        
+
         btn_add = builder.get_object("edit:dependencies:btn_requires_add")
         btn_del = builder.get_object("edit:dependencies:btn_requires_del")
-        
+
         # set callBack to btn
         btn_add.connect("clicked", self.__cb_add)
         btn_del.connect("clicked", self.__cb_del_row)
@@ -255,7 +255,7 @@ class EditRequires(commands.DHEditItems, abstract.ControlEditWindow):
         if item:
             for data in item.requires:
                 self.model.append([data])
-    
+
     def __cb_add(self, widget):
         # unimplemented
         dialog = Gtk.MessageDialog(None, 0, Gtk.MessageType.INFO,
@@ -264,9 +264,9 @@ class EditRequires(commands.DHEditItems, abstract.ControlEditWindow):
             _("Sorry, manipulating requires is not implemented yet!"))
         dialog.run()
         dialog.destroy()
-    
+
         #edit.EditSelectIdDialogWindow(self.item, self.core, self.model, self.model_item, self.DHEditRequires)
-        
+
     def __cb_del_row(self, widget):
         pass
 
@@ -306,18 +306,18 @@ class EditItemValues(abstract.ListEditor):
     def __dialog_destroy(self, widget=None):
         """
         """
-        if self.wdialog: 
+        if self.wdialog:
             self.wdialog.destroy()
 
     def dialog(self, widget, operation):
         """
         """
         self.operation = operation
-        
+
         builder = Gtk.Builder()
         builder.set_translation_domain(l10n.TRANSLATION_DOMAIN)
         builder.add_from_file(os.path.join(paths.glade_prefix, "dialogs.glade"))
-        
+
         self.wdialog = builder.get_object("dialog:find_value")
         self.info_box = builder.get_object("dialog:find_value:info_box")
         self.values = builder.get_object("dialog:find_value:values")
@@ -337,7 +337,7 @@ class EditItemValues(abstract.ListEditor):
             modelfilter = self.values.get_model().filter_new()
             modelfilter.set_visible_func(self.filter_listview, (self.search, (0,1)))
             self.values.set_model(modelfilter)
-            for value in values: 
+            for value in values:
                 item = self.data_model.parse_value(value)
                 if len(item["titles"]) > 0:
                     if self.core.selected_lang in item["titles"].keys(): title = item["titles"][self.core.selected_lang]
@@ -358,7 +358,7 @@ class EditItemValues(abstract.ListEditor):
             modelfilter = self.values.get_model().filter_new()
             modelfilter.set_visible_func(self.filter_listview, (self.search, (0,1)))
             self.values.set_model(modelfilter)
-            for value in values: 
+            for value in values:
                 item = self.data_model.parse_value(value)
                 if len(item["titles"]) > 0:
                     if self.core.selected_lang in item["titles"].keys(): title = item["titles"][self.core.selected_lang]
@@ -386,12 +386,12 @@ class EditItemValues(abstract.ListEditor):
                 self.notifications.append(self.core.notify(_("Please select at least one item to delete"),
                     core.Notification.ERROR, msg_id="notify:not_selected"))
                 return
-            else: 
+            else:
                 iterator = self.dialogDel(self.core.main_window, self.get_selection())
                 if iterator is not None:
                     self.__do()
                 return
-        else: 
+        else:
             LOGGER.error("Unknown operation for title dialog: \"%s\"" % (operation,))
             return
 
@@ -410,7 +410,7 @@ class EditItemValues(abstract.ListEditor):
 
 
 class EditFixtext(abstract.HTMLEditor):
-    
+
     COLUMN_LANG = 0
     COLUMN_TEXT = 1
     COLUMN_OBJ  = 2
@@ -444,7 +444,7 @@ class EditFixtext(abstract.HTMLEditor):
         self.__attr_reboot.connect("toggled", self.__change)
         self.__attr_overrides = self.builder.get_object("items:fixtext:overrides")
         self.__attr_overrides.connect("toggled", self.__change)
- 
+
         self.widget.get_selection().connect("changed", self.__attr_fill)
 
     def __change(self, widget, event=None):
@@ -470,7 +470,7 @@ class EditFixtext(abstract.HTMLEditor):
             retval = self.data_model.edit_fixtext(self.data_model.CMD_OPER_EDIT, fixtext=data, reboot=widget.get_active())
         elif widget == self.__attr_overrides:
             retval = self.data_model.edit_fixtext(self.data_model.CMD_OPER_EDIT, fixtext=data, overrides=widget.get_active())
-        else: 
+        else:
             LOGGER.error("Change of \"%s\" is not supported " % (widget,))
             return
 
@@ -480,7 +480,7 @@ class EditFixtext(abstract.HTMLEditor):
         """
         item = None
         (model, iterator) = self.get_selection().get_selected()
-        if iterator and model is not None: 
+        if iterator and model is not None:
             item = model[iterator][self.COLUMN_OBJ]
 
         if self.operation == self.data_model.CMD_OPER_DEL:
@@ -496,24 +496,24 @@ class EditFixtext(abstract.HTMLEditor):
     def __dialog_destroy(self, widget=None):
         """
         """
-        if self.wdialog: 
+        if self.wdialog:
             self.wdialog.destroy()
 
     def dialog(self, widget, operation):
         """
         """
         self.operation = operation
-        
+
         builder = Gtk.Builder()
         builder.set_translation_domain(l10n.TRANSLATION_DOMAIN)
         builder.add_from_file(os.path.join(paths.glade_dialog_prefix, "edit_description.glade"))
-        
+
         self.wdialog = builder.get_object("dialog:edit_description")
         self.info_box = builder.get_object("dialog:edit_description:info_box")
         self.lang = builder.get_object("dialog:edit_description:lang")
         self.toolbar = builder.get_object("dialog:edit_description:toolbar")
         self.html_box = builder.get_object("dialog:edit_description:html:box")
-        
+
         builder.get_object("dialog:edit_description:action:bold").connect("activate", self.on_action, "bold")
         builder.get_object("dialog:edit_description:action:italic").connect("activate", self.on_action, "italic")
         builder.get_object("dialog:edit_description:action:underline").connect("activate", self.on_action, "underline")
@@ -553,12 +553,12 @@ class EditFixtext(abstract.HTMLEditor):
                 self.notifications.append(self.core.notify(_("Please select at least one item to delete"),
                     core.Notification.ERROR, msg_id="notify:not_selected"))
                 return
-            else: 
+            else:
                 retval = self.dialogDel(self.core.main_window, self.get_selection())
                 if retval != None:
                     self.__do()
                 return
-        else: 
+        else:
             LOGGER.error("Unknown operation for description dialog: \"%s\"" % (operation,))
             return
 
@@ -593,7 +593,7 @@ class EditFixtext(abstract.HTMLEditor):
         self.__unblock_signals()
 
     def __attr_fill(self, widget=None):
-        
+
         (model, iterator) = self.get_selection().get_selected()
 
         self.__attr_frame.set_sensitive(iterator is not None)
@@ -601,7 +601,7 @@ class EditFixtext(abstract.HTMLEditor):
             return
 
         data = model[iterator][self.COLUMN_OBJ]
-        
+
         self.__block_signals()
         self.__attr_fixref.set_text(data.fixref or "")
         self.__attr_strategy.set_active(ENUM.STRATEGY.pos(data.strategy))
@@ -619,7 +619,7 @@ class EditFixtext(abstract.HTMLEditor):
             self.append([data.text.lang, re.sub("[\t ]+" , " ", data.text.text or "").strip(), data])
 
 class EditFix(abstract.ListEditor):
-    
+
     COLUMN_ID   = 0
     COLUMN_TEXT = 1
     COLUMN_OBJ  = 2
@@ -655,7 +655,7 @@ class EditFix(abstract.ListEditor):
         self.__attr_disruption.connect( "changed", self.__change)
         self.__attr_reboot = self.builder.get_object("items:fix:reboot")
         self.__attr_reboot.connect("toggled", self.__change)
- 
+
         self.widget.get_selection().connect("changed", self.__attr_fill)
 
     def __change(self, widget, event=None):
@@ -681,7 +681,7 @@ class EditFix(abstract.ListEditor):
             retval = self.data_model.edit_fix(self.data_model.CMD_OPER_EDIT, fix=data, disruption=ENUM.LEVEL.value(widget.get_active()))
         elif widget == self.__attr_reboot:
             retval = self.data_model.edit_fix(self.data_model.CMD_OPER_EDIT, fix=data, reboot=widget.get_active())
-        else: 
+        else:
             LOGGER.error("Change of \"%s\" is not supported " % (widget,))
             return
 
@@ -692,7 +692,7 @@ class EditFix(abstract.ListEditor):
         self.core.notify_destroy("notify:xccdf:id")
         item = None
         (model, iterator) = self.get_selection().get_selected()
-        if iterator and model is not None: 
+        if iterator and model is not None:
             item = model[iterator][self.COLUMN_OBJ]
 
         text_id = self.fid.get_text()
@@ -714,18 +714,18 @@ class EditFix(abstract.ListEditor):
     def __dialog_destroy(self, widget=None):
         """
         """
-        if self.wdialog: 
+        if self.wdialog:
             self.wdialog.destroy()
 
     def dialog(self, widget, operation):
         """
         """
         self.operation = operation
-        
+
         builder = Gtk.Builder()
         builder.set_translation_domain(l10n.TRANSLATION_DOMAIN)
         builder.add_from_file(os.path.join(paths.glade_prefix, "dialogs.glade"))
-        
+
         self.wdialog = builder.get_object("dialog:edit_fix")
         self.info_box = builder.get_object("dialog:edit_fix:info_box")
         self.fid = builder.get_object("dialog:edit_fix:id")
@@ -750,12 +750,12 @@ class EditFix(abstract.ListEditor):
                 self.notifications.append(self.core.notify(_("Please select at least one item to delete"),
                     core.Notification.ERROR, msg_id="notify:not_selected"))
                 return
-            else: 
+            else:
                 retval = self.dialogDel(self.core.main_window, self.get_selection())
                 if retval != None:
                     self.__do()
                 return
-        else: 
+        else:
             LOGGER.error("Unknown operation for fix content dialog: \"%s\"" % (operation,))
             return
 
@@ -790,7 +790,7 @@ class EditFix(abstract.ListEditor):
         self.__unblock_signals()
 
     def __attr_fill(self, widget=None):
-        
+
         (model, iterator) = self.get_selection().get_selected()
 
         self.__attr_frame.set_sensitive(iterator is not None)
@@ -798,7 +798,7 @@ class EditFix(abstract.ListEditor):
             return
 
         data = model[iterator][self.COLUMN_OBJ]
-        
+
         self.__block_signals()
         self.__attr_system.set_text(data.system or "")
         self.__attr_platform.set_text(data.platform or "")
@@ -823,7 +823,7 @@ class EditIdent(abstract.ListEditor):
     def __init__(self, core, id, widget, data_model):
         self.data_model = data_model
         self.iter = None
-        
+
         super(EditIdent, self).__init__(id, core, widget=widget, model=Gtk.ListStore(str, str, GObject.TYPE_PYOBJECT))
         self.add_sender(id, "update")
 
@@ -836,7 +836,7 @@ class EditIdent(abstract.ListEditor):
         self.core.notify_destroy("notify:dialog_notify")
         item = None
         buffer = self.system.get_buffer()
-        if self.iter and self.get_model() != None: 
+        if self.iter and self.get_model() != None:
             item = self.get_model()[self.iter][self.COLUMN_OBJ]
 
         if self.operation == self.data_model.CMD_OPER_DEL:
@@ -866,18 +866,18 @@ class EditIdent(abstract.ListEditor):
     def __dialog_destroy(self, widget=None):
         """
         """
-        if self.wdialog: 
+        if self.wdialog:
             self.wdialog.destroy()
 
     def dialog(self, widget, operation):
         """
         """
         self.operation = operation
-        
+
         builder = Gtk.Builder()
         builder.set_translation_domain(l10n.TRANSLATION_DOMAIN)
         builder.add_from_file(os.path.join(paths.glade_dialog_prefix, "edit_ident.glade"))
-        
+
         self.wdialog = builder.get_object("dialog:edit_ident")
         self.info_box = builder.get_object("dialog:edit_ident:info_box")
         self.wid = builder.get_object("dialog:edit_ident:id")
@@ -902,12 +902,12 @@ class EditIdent(abstract.ListEditor):
                 self.notifications.append(self.core.notify(_("Please select at least one item to delete"),
                     core.Notification.ERROR, msg_id="notify:not_selected"))
                 return
-            else: 
+            else:
                 iterator = self.dialogDel(self.core.main_window, self.get_selection())
                 if iterator is not None:
                     self.__do()
                 return
-        else: 
+        else:
             LOGGER.error("Unknown operation for description dialog: \"%s\"" % (operation,))
             return
 
@@ -924,11 +924,11 @@ class EditIdent(abstract.ListEditor):
 class EditQuestion(abstract.ListEditor):
 
     COLUMN_OVERRIDES = 3
-    
+
     def __init__(self, core, id, widget, data_model):
         self.data_model = data_model
         self.iter = None
-        
+
         super(EditQuestion, self).__init__(id, core, widget=widget, model=Gtk.ListStore(str, str, GObject.TYPE_PYOBJECT, bool))
         self.add_sender(id, "update")
 
@@ -941,7 +941,7 @@ class EditQuestion(abstract.ListEditor):
         """
         item = None
         buffer = self.question.get_buffer()
-        if self.iter and self.get_model() != None: 
+        if self.iter and self.get_model() != None:
             item = self.get_model()[self.iter][self.COLUMN_OBJ]
 
         retval = self.data_model.edit_question(self.operation, item, self.lang.get_text(),
@@ -954,18 +954,18 @@ class EditQuestion(abstract.ListEditor):
     def __dialog_destroy(self, widget=None):
         """
         """
-        if self.wdialog: 
+        if self.wdialog:
             self.wdialog.destroy()
 
     def dialog(self, widget, operation):
         """
         """
         self.operation = operation
-        
+
         builder = Gtk.Builder()
         builder.set_translation_domain(l10n.TRANSLATION_DOMAIN)
         builder.add_from_file(os.path.join(paths.glade_dialog_prefix, "edit_question.glade"))
-        
+
         self.wdialog = builder.get_object("dialog:edit_question")
         self.info_box = builder.get_object("dialog:edit_question:info_box")
         self.lang = builder.get_object("dialog:edit_question:lang")
@@ -997,7 +997,7 @@ class EditQuestion(abstract.ListEditor):
                 if iter is not None:
                     self.__do()
                 return
-        else: 
+        else:
             LOGGER.error("Unknown operation for question dialog: \"%s\"" % (operation,))
             return
 
@@ -1013,10 +1013,10 @@ class EditQuestion(abstract.ListEditor):
 class EditRationale(abstract.ListEditor):
 
     COLUMN_OVERRIDES = 3
-    
+
     def __init__(self, core, id, widget, data_model):
 
-        self.data_model = data_model 
+        self.data_model = data_model
         super(EditRationale, self).__init__(id, core, widget=widget, model=Gtk.ListStore(str, str, GObject.TYPE_PYOBJECT, bool))
         self.add_sender(id, "update")
 
@@ -1028,7 +1028,7 @@ class EditRationale(abstract.ListEditor):
         item = None
         (model, iterator) = self.get_selection().get_selected()
         buffer = self.rationale.get_buffer()
-        if iterator and model is not None: 
+        if iterator and model is not None:
             item = model[iterator][self.COLUMN_OBJ]
 
         retval = self.data_model.edit_rationale(self.operation, item, self.lang.get_text(),
@@ -1039,16 +1039,16 @@ class EditRationale(abstract.ListEditor):
         self.emit("update")
 
     def __dialog_destroy(self, widget=None):
-        if self.wdialog: 
+        if self.wdialog:
             self.wdialog.destroy()
 
     def dialog(self, widget, operation):
         self.operation = operation
-        
+
         builder = Gtk.Builder()
         builder.set_translation_domain(l10n.TRANSLATION_DOMAIN)
         builder.add_from_file(os.path.join(paths.glade_prefix, "dialogs.glade"))
-        
+
         self.wdialog = builder.get_object("dialog:edit_rationale")
         self.info_box = builder.get_object("dialog:edit_rationale:info_box")
         self.lang = builder.get_object("dialog:edit_rationale:lang")
@@ -1075,12 +1075,12 @@ class EditRationale(abstract.ListEditor):
                 self.notifications.append(self.core.notify(_("Please select at least one item to delete"),
                     core.Notification.ERROR, msg_id="notify:not_selected"))
                 return
-            else: 
+            else:
                 iterator = self.dialogDel(self.core.main_window, self.get_selection())
                 if iterator is not None:
                     self.__do()
                 return
-        else: 
+        else:
             LOGGER.error("Unknown operation for rationale dialog: \"%s\"" % (operation,))
             return
 
@@ -1109,7 +1109,7 @@ class EditPlatform(abstract.ListEditor):
         self.core.notify_destroy("notify:edit")
         item = None
         (model, iterator) = self.get_selection().get_selected()
-        if iterator and model != None: 
+        if iterator and model != None:
             item = model[iterator][self.COLUMN_TEXT]
 
         if self.operation != self.data_model.CMD_OPER_DEL:
@@ -1132,7 +1132,7 @@ class EditPlatform(abstract.ListEditor):
     def __dialog_destroy(self, widget=None):
         """
         """
-        if self.wdialog: 
+        if self.wdialog:
             self.wdialog.destroy()
 
     def __cb_build(self, widget):
@@ -1140,7 +1140,7 @@ class EditPlatform(abstract.ListEditor):
         if self.part.get_active() == -1:
             active = ""
         else: active = ["a", "h", "o"][self.part.get_active()]
-        self.cpe.set_text("cpe:/%s:%s:%s:%s:%s:%s:%s" % (active, 
+        self.cpe.set_text("cpe:/%s:%s:%s:%s:%s:%s:%s" % (active,
             self.vendor.get_text().replace(" ", "_"),
             self.product.get_text().replace(" ", "_"),
             self.version.get_text().replace(" ", "_"),
@@ -1150,7 +1150,7 @@ class EditPlatform(abstract.ListEditor):
         self.cpe.handler_unblock_by_func(self.__cb_parse)
 
     def __cb_parse(self, widget):
-        
+
         text = widget.get_text()
 
         # cpe:/
@@ -1158,7 +1158,7 @@ class EditPlatform(abstract.ListEditor):
 
         # cpe:/[a,o,h]
         if len(text) > 5:
-            if text[5] not in ["a", "o", "h"]: 
+            if text[5] not in ["a", "o", "h"]:
                 self.core.notify(_("The part section can be \"a\", \"o\" or \"h\""),
                         core.Notification.ERROR, self.info_box, msg_id="notify:edit")
                 widget.set_text("cpe:/")
@@ -1193,11 +1193,11 @@ class EditPlatform(abstract.ListEditor):
         """
         """
         self.operation = operation
-        
+
         builder = Gtk.Builder()
         builder.set_translation_domain(l10n.TRANSLATION_DOMAIN)
         builder.add_from_file(os.path.join(paths.glade_dialog_prefix, "edit_platform.glade"))
-        
+
         self.wdialog = builder.get_object("dialog:edit_platform")
         self.info_box = builder.get_object("dialog:edit_platform:info_box")
         self.cpe = builder.get_object("dialog:edit_platform:cpe")
@@ -1237,12 +1237,12 @@ class EditPlatform(abstract.ListEditor):
                 self.notifications.append(self.core.notify(_("Please select at least one item to delete"),
                     core.Notification.ERROR, msg_id="notify:not_selected"))
                 return
-            else: 
+            else:
                 iterator = self.dialogDel(self.core.main_window, self.get_selection())
                 if iterator is not None:
                     self.__do()
                 return
-        else: 
+        else:
             LOGGER.error("Unknown operation for rationale dialog: \"%s\"" % (operation,))
             return
 
@@ -1255,7 +1255,7 @@ class EditPlatform(abstract.ListEditor):
             self.get_model().append([item])
 
 class EditValues(abstract.MenuButton, abstract.Func):
-    
+
     COLUMN_ID = 0
     COLUMN_TITLE = 1
     COLUMN_TYPE_ITER = 2
@@ -1263,12 +1263,12 @@ class EditValues(abstract.MenuButton, abstract.Func):
     COLUMN_OBJECT = 4
     COLUMN_CHECK = 5
     COLUMN_CHECK_EXPORT = 6
-    
+
     def __init__(self, core, id, builder):
         # FIXME: We are not calling constructor of abstract.MenuButton, this could backfire sometime in the future!
         abstract.Func.__init__(self, core)
 
-        self.data_model = commands.DHValues(core) 
+        self.data_model = commands.DHValues(core)
         self.builder = builder
         self.id = id
 
@@ -1276,7 +1276,7 @@ class EditValues(abstract.MenuButton, abstract.Func):
         EventObject.__init__(self, core)
         self.core.register(self.id, self)
         self.add_sender(id, "update_item")
-        
+
         #edit data of values
         # -- VALUES --
         self.values = builder.get_object("edit:values")
@@ -1318,7 +1318,7 @@ class EditValues(abstract.MenuButton, abstract.Func):
         builder.get_object("edit:values:values:btn_edit").connect("clicked", self.values_values.dialog, self.data_model.CMD_OPER_EDIT)
         builder.get_object("edit:values:values:btn_del").connect("clicked", self.values_values.dialog, self.data_model.CMD_OPER_DEL)
         # -------------
-        
+
         self.vid = self.builder.get_object("edit:values:id")
         self.vid.connect("focus-out-event", self.__change)
         self.vid.connect("key-press-event", self.__change)
@@ -1342,7 +1342,7 @@ class EditValues(abstract.MenuButton, abstract.Func):
         self.interactive.connect("toggled", self.__change)
 
         self.operator.set_model(ENUM.OPERATOR.get_model())
-        
+
     def show(self, active):
         self.values.set_sensitive(active)
         self.values.set_property("visible", active)
@@ -1382,7 +1382,7 @@ class EditValues(abstract.MenuButton, abstract.Func):
             self.data_model.edit_value(prohibit_changes=widget.get_active())
         elif widget == self.interactive:
             self.data_model.edit_value(interactive=widget.get_active())
-        else: 
+        else:
             LOGGER.error("Change: not supported object in \"%s\"" % (widget,))
             return
 
@@ -1452,10 +1452,10 @@ class EditValuesValues(abstract.ListEditor):
     COLUMN_MUST_MATCH   = 5
     COLUMN_MATCH        = 6
     COLUMN_OBJ          = 7
-    
+
     def __init__(self, core, id, widget, data_model):
 
-        self.data_model = data_model 
+        self.data_model = data_model
         super(EditValuesValues, self).__init__(id, core, widget=widget, model=Gtk.ListStore(str, str, str, str, str, bool, str, GObject.TYPE_PYOBJECT))
         self.add_sender(id, "update")
 
@@ -1484,33 +1484,33 @@ class EditValuesValues(abstract.ListEditor):
                 self.selector.modify_base(Gtk.StateType.NORMAL, Gdk.color_parse("#FFC1C2"))
                 return
         self.selector.modify_base(Gtk.StateType.NORMAL, self.__entry_style)
-        
+
         if self.type == openscap.OSCAP.XCCDF_TYPE_BOOLEAN:
             retval = self.data_model.edit_value_of_value(self.operation, item, self.selector.get_text(),
                     self.value_bool.get_active(), self.default_bool.get_active(),
                     self.match.get_text(), None, None, self.must_match.get_active())
-        
+
         elif self.type == openscap.OSCAP.XCCDF_TYPE_NUMBER:
             def safe_float(x, fallback = None):
                 try:
                     return float(x)
-                
+
                 except ValueError:
                     return fallback
-            
+
             retval = self.data_model.edit_value_of_value(self.operation, item, self.selector.get_text(),
                     safe_float(self.value.get_text(), 0), safe_float(self.default.get_text(), 0), self.match.get_text(),
                     safe_float(self.upper_bound.get_text()), safe_float(self.lower_bound.get_text()),
                     self.must_match.get_active())
-        
+
         elif self.type == openscap.OSCAP.XCCDF_TYPE_STRING:
             retval = self.data_model.edit_value_of_value(self.operation, item, self.selector.get_text(),
                     self.value.get_text(), self.default.get_text(), self.match.get_text(), None,
                     None, self.must_match.get_active())
-        
+
         else:
             raise NotImplementedError("Unknown value type '%i'" % (self.type))
-        
+
         # TODO if not retval
         self.fill()
         self.__dialog_destroy()
@@ -1519,18 +1519,18 @@ class EditValuesValues(abstract.ListEditor):
     def __dialog_destroy(self, widget=None):
         """
         """
-        if self.wdialog: 
+        if self.wdialog:
             self.wdialog.destroy()
 
     def dialog(self, widget, operation):
         """
         """
         self.operation = operation
-        
+
         builder = Gtk.Builder()
         builder.set_translation_domain(l10n.TRANSLATION_DOMAIN)
         builder.add_from_file(os.path.join(paths.glade_dialog_prefix, "edit_value.glade"))
-        
+
         self.wdialog = builder.get_object("dialog:edit_value")
         self.info_box = builder.get_object("dialog:edit_value:info_box")
         self.selector = builder.get_object("dialog:edit_value:selector")
@@ -1586,12 +1586,12 @@ class EditValuesValues(abstract.ListEditor):
                 self.notifications.append(self.core.notify(_("Please select at least one item to delete"),
                     core.Notification.ERROR, msg_id="notify:not_selected"))
                 return
-            else: 
+            else:
                 iterator = self.dialogDel(self.core.main_window, self.get_selection())
                 if iterator is not None:
                     self.__do()
                 return
-        else: 
+        else:
             LOGGER.error("Unknown operation for values dialog: \"%s\"" % (operation,))
             return
 
@@ -1602,13 +1602,13 @@ class EditValuesValues(abstract.ListEditor):
 
         self.clear()
         for instance in self.data_model.get_value_instances() or []:
-            self.append([instance["selector"], 
-                         instance["value"], 
-                         instance["defval"], 
-                         instance["lower_bound"], 
-                         instance["upper_bound"], 
-                         instance["must_match"], 
-                         instance["match"], 
+            self.append([instance["selector"],
+                         instance["value"],
+                         instance["defval"],
+                         instance["lower_bound"],
+                         instance["upper_bound"],
+                         instance["must_match"],
+                         instance["match"],
                          instance["item"]])
 
 class ItemList(abstract.List):
@@ -1625,7 +1625,7 @@ class ItemList(abstract.List):
         """
         self.data_model = commands.DHItemsTree("gui:edit:DHItemsTree", core, progress, None, True, no_checks=True)
         super(ItemList, self).__init__("gui:edit:item_list", core, widget)
-        
+
         self.loaded = False
         self.filter = filter
         self.builder = builder
@@ -1656,7 +1656,7 @@ class ItemList(abstract.List):
 
         self.add_dialog = AddItem(self.core, self.data_model, self) # TODO
         self.get_TreeView().connect("key-press-event", self.__cb_key_press)
-        
+
         # if True an idle worker that will perform the update (after selection changes) is already pending
         self.item_changed_worker_pending = False
 
@@ -1707,7 +1707,7 @@ class ItemList(abstract.List):
             if iter_next:
                 self.core.selected_item = model[iter_next][1]
                 self.__update(False)
-            self.emit("delete") 
+            self.emit("delete")
         else: raise AttributeError, "Removing non-selected item or nothing selected."
 
     def __cb_item_add(self, widget=None):
@@ -1718,23 +1718,23 @@ class ItemList(abstract.List):
     def __cb_item_changed(self, widget, treeView):
         """Callback called whenever item selection changes. Performs updates of the property box.
         """
-        
+
         def worker():
             details = self.data_model.get_item_details(self.core.selected_item)
             selection = treeView.get_selection( )
-            if selection != None: 
+            if selection != None:
                 (model, iterator) = selection.get_selected( )
                 if iter:
                     self.core.selected_item = model.get_value(iterator, commands.DHItemsTree.COLUMN_ID)
                 else:
                     self.core.selected_item = None
-    
+
             # Selection has changed, trigger all events connected to this signal
             self.emit("update")
             treeView.columns_autosize()
-            
+
             self.item_changed_worker_pending = False
-        
+
         # The reason for the item_changed_worker_pending attribute is to avoid stacking up
         # many update requests that would all query the selection state again and do repeated
         # work. This way the update happens only once even though the selection changes many times.
@@ -1742,14 +1742,14 @@ class ItemList(abstract.List):
             # we handle this in the idle function when no higher priority events are to be handled
             GLib.idle_add(worker)
             self.item_changed_worker_pending = True
-            
-            
+
+
 class MenuButtonEditItems(abstract.MenuButton, abstract.Func):
 
     def __init__(self, builder, widget, core):
         abstract.MenuButton.__init__(self, "gui:btn:menu:edit:items", widget, core)
         abstract.Func.__init__(self, core)
-        
+
         self.builder = builder
         self.data_model = commands.DHEditItems(self.core)
         self.item = None
@@ -1769,10 +1769,10 @@ class MenuButtonEditItems(abstract.MenuButton, abstract.Func):
         titles = self.data_model.get_benchmark_titles()
         self.list_item = ItemList(self.tw_items, self.core, builder, self.progress)
         self.ref_model = self.list_item.get_TreeView().get_model() # original model (not filtered)
-        
+
         # set signals
         self.add_sender(self.id, "update")
-        
+
         # remove just for now (missing implementations and so..)
         self.items = self.builder.get_object("edit:xccdf:items")
         self.items.remove_page(4)
@@ -1814,7 +1814,7 @@ class MenuButtonEditItems(abstract.MenuButton, abstract.Func):
         self.href_dialog.connect("file-set", self.__cb_href_file_set)
         self.item_values_main = self.builder.get_object("edit:values:sw_main")
         self.ident_box = self.builder.get_object("xccdf:items:ident:box")
-        
+
         # -- TITLES --
         self.titles = edit.EditTitle(self.core, "gui:edit:xccdf:items:titles", builder.get_object("edit:general:lv_title"), self.data_model)
         builder.get_object("edit:general:btn_title_add").connect("clicked", self.titles.dialog, self.data_model.CMD_OPER_ADD)
@@ -1894,7 +1894,7 @@ class MenuButtonEditItems(abstract.MenuButton, abstract.Func):
         self.conflicts = EditConflicts(self.core, self.builder,self.list_item.get_TreeView().get_model())
         self.requires = EditRequires(self.core, self.builder,self.list_item.get_TreeView().get_model())
         self.values = EditValues(self.core, "gui:edit:xccdf:values", self.builder)
-        
+
         self.severity = self.builder.get_object("edit:operations:combo_severity")
         self.severity.set_model(ENUM.LEVEL.get_model())
         self.severity.connect( "changed", self.__change)
@@ -1969,7 +1969,7 @@ class MenuButtonEditItems(abstract.MenuButton, abstract.Func):
                 self.core.notify_destroy("notify:definition_available")
         elif widget == self.severity:
             self.data_model.update(severity=ENUM.LEVEL.value(widget.get_active()))
-        else: 
+        else:
             LOGGER.error("Change of \"%s\" is not supported " % (widget,))
             return
 
@@ -2022,11 +2022,11 @@ class MenuButtonEditItems(abstract.MenuButton, abstract.Func):
             item = self.data_model.get_item(model[iterator][1])
             if item == None:
                 item = self.data_model.get_item(self.core.selected_item)
-            
+
             if item == None:
                 LOGGER.error("Can't find item with ID: \"%s\"" % (model[iterator][1],))
                 return
-            
+
             model[iterator][1] = item.id
 
             # Get the title of item
@@ -2088,13 +2088,13 @@ class MenuButtonEditItems(abstract.MenuButton, abstract.Func):
         self.__unblock_signals()
 
     def __update(self):
- 
+
         if self.core.selected_item != None:
             details = self.data_model.get_item_details(self.core.selected_item)
         else:
             details = None
             #self.item = None
-        
+
         self.__clear()
         if details == None:
             self.items.set_sensitive(False)
@@ -2106,7 +2106,7 @@ class MenuButtonEditItems(abstract.MenuButton, abstract.Func):
             self.values.show(True)
             self.values.update()
             return
-        else: 
+        else:
             self.show(True)
             self.values.show(False)
 
@@ -2148,25 +2148,25 @@ class MenuButtonEditItems(abstract.MenuButton, abstract.Func):
             self.fix.fill()
             self.ident.fill()
             content = self.data_model.get_item_content()
- 
+
             item = self.core.lib.benchmark.get_item(self.core.selected_item)
             rule = item.to_rule()
             self.system.set_text(rule.checks[0].system if len(rule.checks) > 0 else "")
- 
+
             self.href.get_model().clear()
             for name in self.core.lib.oval_files.keys():
                 self.href.get_model().append([name, name])
             for name in self.core.lib.sce_files:
                 self.href.get_model().append([name, name])
-                
+
             if content != None and len(content) > 0:
                 self.content_ref.set_text(content[0][0] or "")
                 for i, item in enumerate(self.href.get_model()):
                     if item[0] == content[0][1]:
                         self.href.set_active(i)
-                
+
             self.item_values.fill()
-            
+
         else: # Item is GROUP
             self.severity.set_active(-1)
             self.impact_metric.set_text("")
@@ -2175,4 +2175,3 @@ class MenuButtonEditItems(abstract.MenuButton, abstract.Func):
             self.ident.fill()
 
         self.__unblock_signals()
-        

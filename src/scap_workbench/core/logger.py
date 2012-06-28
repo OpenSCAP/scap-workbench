@@ -38,12 +38,12 @@ LOGGER_CONFIG_PATH = os.path.join(paths.etc_workbench_prefix, "logger.conf")
 try:
     # if we can, we load logger config from the path where it's supposed to be
     logging.config.fileConfig(LOGGER_CONFIG_PATH)
-    
+
 except: # ConfigParser.NoSectionError = actually file I/O error most of the time
     # when that fails, we will just set basic logger configuration and continue onwards, logging isn't mandatory
     logging.basicConfig()
     logging.getLogger("scap-workbench").error("Had to resort to basic logging config, logger config for openscap not found at '%s'" % (LOGGER_CONFIG_PATH))
-    
+
 LOGGER = logging.getLogger("scap-workbench")
 
 __all__ = ["LOGGER"]

@@ -43,29 +43,29 @@ import argparse
 class MainWindow(abstract.Window):
     """The central window of scap-workbench-editor
     """
-    
+
     def __init__(self):
         parser = argparse.ArgumentParser(description = _("Starts the editor application of scap-workbench"))
         parser.add_argument("--debug", const = True, action = "store_const",
                             help = _("Enable verbose debug level logging"))
         parser.add_argument("XCCDF_FILE", type = str, nargs = "?",
                             help = _("Load given XCCDF file immediately after the application starts"))
-        
+
         args = parser.parse_args()
-        
+
         if args.debug:
             LOGGER.setLevel(logging.DEBUG)
-            LOGGER.root.setLevel(logging.DEBUG)    
-        
+            LOGGER.root.setLevel(logging.DEBUG)
+
         error.install_exception_hook()
-        
+
         self.builder = Gtk.Builder()
         self.builder.set_translation_domain(l10n.TRANSLATION_DOMAIN)
         self.builder.add_from_file(os.path.join(paths.glade_prefix, "editor.glade"))
         self.builder.connect_signals(self)
-        
+
         super(MainWindow, self).__init__("main:window", core.SWBCore(self.builder))
-        
+
         if self.core is None:
             raise RuntimeError("Initialization failed, core is None")
 
@@ -91,17 +91,17 @@ class MainWindow(abstract.Window):
         if self.core.lib.loaded:
             self.core.get_item("gui:btn:menu:edit:profiles").set_sensitive(True)
             self.core.get_item("gui:btn:menu:edit:items").set_sensitive(True)
-            
+
         if args.XCCDF_FILE is not None:
             xccdf_menu_button.import_xccdf(args.XCCDF_FILE)
 
     def delete_event(self, widget, event, data=None):
         """Closes the window and quits
         """
-        
+
         # since we are quitting gtk we can't be popping a dialog when exception happens anymore
         error.uninstall_exception_hook()
- 
+
         Gtk.main_quit()
         return False
 

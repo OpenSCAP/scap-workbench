@@ -7,7 +7,7 @@ class TailoringFilter1(filter.Filter):
 
     def __init__(self, renderer):
         super(TailoringFilter1, self).__init__()
-        
+
         self.name = "Hide groups"
         self.description = "Show all rules in list, hide groups."
         self.func = self.__search_func
@@ -25,7 +25,7 @@ class TailoringFilter2(filter.Filter):
 
     def __init__(self, renderer):
         super(TailoringFilter2, self).__init__()
-        
+
         self.name = "Show only groups with rules"
         self.description = "Hide all groups that has no rules."
         self.func = self.__search_func
@@ -44,7 +44,7 @@ class TailoringFilter3(filter.Filter):
 
     def __init__(self, renderer):
         super(TailoringFilter3, self).__init__()
-        
+
         self.name = "Show only selected rules/groups"
         self.description = "Hide all groups and rules that are not selected."
         self.func = self.__search_func
@@ -63,7 +63,7 @@ class ScanFilter1(filter.Filter):
 
     def __init__(self, renderer):
         super(ScanFilter1, self).__init__()
-        
+
         self.name = "Only tests with result PASS"
         self.description = "Show tests that has result PASS"
         self.func = self.__search_func
@@ -81,7 +81,7 @@ class ScanFilter2(filter.Filter):
 
     def __init__(self, renderer):
         super(ScanFilter2, self).__init__()
-        
+
         self.name = "Only tests with result ERROR"
         self.description = "Show tests that has result ERROR"
         self.func = self.__search_func
@@ -99,7 +99,7 @@ class ScanFilter3(filter.Filter):
 
     def __init__(self, renderer):
         super(ScanFilter3, self).__init__()
-        
+
         self.name = "Only tests with result FAIL"
         self.description = "Show tests that has result FAIL"
         self.func = self.__search_func

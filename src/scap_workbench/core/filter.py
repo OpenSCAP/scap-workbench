@@ -51,7 +51,7 @@ class Filter(object):
         self.active = False
         self.fg_color = "#000000"
         self.bg_color = "#FFFFFF"
-        
+
         self.box = None
         self.button = None
         self.eb = None
@@ -96,7 +96,7 @@ class Filter(object):
 class Search(object):
     """Deprecated search helper class. Creates it's own widget hierarchy.
     """
-    
+
     def __init__(self, renderer):
         LOGGER.warning("Class Search is deprecated: Use search function of list instead")
         self.renderer = renderer
@@ -172,13 +172,13 @@ class Renderer(abstract.MenuButton,EventObject):
         box.show_all()
 
     def __cb_menu(self, widget, filter):
-        
+
         # if filter is activated yet
         if filter.active == False:
             self.add_filter(filter)
         else:
             self.core.notify(_("Filter is already active."), core.Notification.INFORMATION)
-        
+
     def __cb_show_menu(self, menu, event):
         if event.type == Gdk.EventType.BUTTON_PRESS:
             # FIXME:
@@ -187,7 +187,7 @@ class Renderer(abstract.MenuButton,EventObject):
             # bindings won't accept that
             menu.popup(None, None, None, None, 0, event.time)
             return True
-        
+
         return False
 
     def get_search_text(self):
@@ -199,11 +199,11 @@ class Renderer(abstract.MenuButton,EventObject):
         assert filter != None, "Can't add None filter"
         menu_item = Gtk.MenuItem(filter.name)
         menu_item.set_tooltip_text(filter.description or "")
-            
+
         menu_item.show()
         self.menu.append(menu_item)
         menu_item.connect("activate", self.__cb_menu, filter)
-    
+
     def add_filter(self, filter):
         """ Add filter to list active filter and emit signal filter was added"""
         filter.active = True
@@ -214,12 +214,12 @@ class Renderer(abstract.MenuButton,EventObject):
 
     def del_filter(self, filter):
         """ remove filter from active filters and emit signal deleted"""
-        if filter in self.filters: 
+        if filter in self.filters:
             self.filters.remove(filter)
             filter.get_widget().destroy()
             self.emit("filter_del")
         else: self.core.notify(_("Removing not existed filter!"), core.Notification.ERROR)
-        
+
     def init_filter(self):
         """ clean all active filters"""
         return
@@ -227,7 +227,7 @@ class Renderer(abstract.MenuButton,EventObject):
             filter.active = False
             filter.eb.destroy()
         self.filters = []
- 
+
 
     def set_active(self, active):
         self.expander.get_widget().set_sensitive(active)
@@ -238,18 +238,18 @@ class ExpandBox(abstract.EventObject):
     """
     Create expand box. Set only to container.
     """
-    
+
     def __init__(self, box, text, core=None):
         """
         @param box Container for this expandBox.
         @param text Button name for show or hide expandBox
         @param core SWBCore singleton
         """
-        
+
         super(ExpandBox, self).__init__(core)
-        
+
         self.focus_widget = None
-        
+
         # body for expandBox
         rollBox = Gtk.HBox()
         box.pack_start(rollBox, True, True, 0)
@@ -259,7 +259,7 @@ class ExpandBox(abstract.EventObject):
         self.frameContent = Gtk.VBox()
         alig.add(self.frameContent)
         rollBox.pack_start(alig, True, True, 0)
-        
+
         # create icons
         self.arrowTop = Gtk.Image()
         self.arrowBottom = Gtk.Image()
@@ -267,7 +267,7 @@ class ExpandBox(abstract.EventObject):
         self.pixbufHide = self.arrowBottom.render_icon(Gtk.STOCK_GO_BACK, size=Gtk.IconSize.MENU, detail=None)
         self.arrowTop.set_from_pixbuf(self.pixbufShow)
         self.arrowBottom.set_from_pixbuf(self.pixbufShow)
-        
+
         # create label
         self.label = Gtk.Label(label=text)
         self.label.set_angle(90)
@@ -307,7 +307,7 @@ class ExpandBox(abstract.EventObject):
 class ItemFilter(Renderer):
     """User filter used in scap-workbench-editor to filter through tailorings
     """
-    
+
     def __init__(self, core, builder, widget, signal):
         self.builder = builder
         self.box_filter = self.builder.get_object(widget)
@@ -317,10 +317,10 @@ class ItemFilter(Renderer):
         self.user_filter_builder = Gtk.Builder()
         self.user_filter_builder.set_translation_domain(l10n.TRANSLATION_DOMAIN)
         self.user_filter_builder.add_from_file(os.path.join(paths.glade_prefix, "filter_tailoring.glade"))
-        
+
         self.user_filter_window = self.user_filter_builder.get_object("user_filter:dialog")
         self.user_filter_window.connect("delete-event", self.__cb_cancel)
-        
+
         # get objects from glade
         self.user_filter_id = self.user_filter_builder.get_object("entry_id")
         self.user_filter_description = self.user_filter_builder.get_object("entry_description")
@@ -354,7 +354,7 @@ class ItemFilter(Renderer):
         self.user_filter_window.hide()
 
     def __cb_add(self, widget):
-        
+
         params = {"searchIn": self.user_filter_rule_group.get_active(),
                   "searchData": self.user_filter_column.get_active(),
                   "selected": self.user_filter_selected.get_active(),
@@ -386,7 +386,7 @@ class ItemFilter(Renderer):
         COLUMN_SELECTED = 5
         COLUMN_PARENT   = 6
         column = [COLUMN_NAME, COLUMN_ID]
-        
+
         res = True
         # if is rule or group
         if params["searchIn"] != RULE_GROUP:
@@ -395,13 +395,13 @@ class ItemFilter(Renderer):
 
             if params["searchIn"] != type:
                 return False
-        
+
         # search text if is set
         if params["text"] != "":
             pattern = re.compile(params["text"],re.IGNORECASE)
-            if pattern.search(model.get_value(iter, column[params["searchData"]])) == None: 
+            if pattern.search(model.get_value(iter, column[params["searchData"]])) == None:
                 return False
-        
+
         # if is selected, not selected or both
         if params["selected"] == TRUE_FALSE:
             return True
@@ -410,9 +410,9 @@ class ItemFilter(Renderer):
 class AdvancedFilterModel(Gtk.TreeStore):
     """Work in progress model class that will one day be able to hide parents in a tree without
     hiding their children at the same time.
-    
+
     The main use for this is filtering through items (in the scanner).
-    
+
     Currently unused code!
     """
 
@@ -450,7 +450,7 @@ class ScanFilter(Renderer):
     COLUMN_COLOR_TEXT_TITLE = 5 # Color of text description
     COLUMN_COLOR_BACKG = 6      # Color of cell
     COLUMN_COLOR_TEXT_ID = 7    # Color of text ID
-        
+
     def __init__(self, core, builder):
         self.builder = builder
         self.box_filter = self. builder.get_object("scan:box_filter")
@@ -495,7 +495,7 @@ class ScanFilter(Renderer):
 
     #filter
     def __cb_add(self, widget):
-        
+
         res = []
         for item in self.user_filter_results:
             if item[1].get_active(): res.append(item[0])
@@ -532,22 +532,22 @@ class ScanFilter(Renderer):
         COLUMN_COLOR_TEXT_TITLE = 5 # Color of text description
         COLUMN_COLOR_BACKG = 6      # Color of cell
         COLUMN_COLOR_TEXT_ID = 7    # Color of text ID
-        
+
         column = [COLUMN_TITLE, COLUMN_ID, COLUMN_DESC]
-        
+
         # search text if is set
         if params["text"] != "":
             pattern = re.compile(params["text"], re.IGNORECASE)
             if pattern.search(model.get_value(iter, column[params["searchData"]])) == None:
                 return False
-        
+
         #type of result
         if len(params["results"]) > 0:
             if model.get_value(iter, COLUMN_RESULT) not in params["results"]:
                 return False
 
         return True
-  
+
 
 class Loader(object):
     """Filter loader that loads all .py files in the filter directory

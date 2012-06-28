@@ -42,18 +42,18 @@ class ExceptionDialog(object):
     def __init__(self, exc_type, exc_message, exc_traceback):
         """Takes given exception information and constructs a dialog from them
         """
-        
+
         self.builder = Gtk.Builder()
         self.builder.set_translation_domain(l10n.TRANSLATION_DOMAIN)
         self.builder.add_from_file(os.path.join(paths.glade_prefix, "error.glade"))
-        
+
         self.window = self.builder.get_object("exception_dialog")
         # keep the window above to prevent the user from ignoring it
         self.window.set_keep_above(True)
         self.details = self.builder.get_object("exception_dialog:details")
-        
+
         self.builder.connect_signals(self)
-        
+
         import traceback
         formatted_traceback = traceback.format_tb(exc_traceback)
         self.traceback_str = "\n".join(formatted_traceback)
@@ -73,64 +73,64 @@ class ExceptionDialog(object):
                              "Traceback:\n"
                              "%s" % (version.AS_STRING, sys.version,
                                      exc_type, exc_message, self.traceback_str))
-        
+
         self.details.set_buffer(text_buffer)
-        
+
     def run(self):
         """Displays the dialog and waits for user to react
         """
-        
+
         return self.window.run()
 
     def cb_continue_clicked(self, widget, user_data = None):
         """Internal callback for when user clicks Continue
         """
-        
+
         # destroy the whole dialog
         self.window.destroy()
 
     def cb_close_clicked(self, widget, user_data = None):
         """Internal callback for when user clicks Close
         """
-        
+
         # stop annoying the user
         uninstall_exception_hook()
-        
+
         # try to destroy the whole dialog
         try:
-            self.window.destroy()    
+            self.window.destroy()
         except:
             pass
 
         # and try to quit as soon as possible
         # we don't care about exception safety/cleaning up at this point
         sys.exit(1)
-        
+
 def excepthook(exc_type, exc_message, exc_traceback):
     """We are overriding sys.excepthook and setting it to this method.
-    
+
     Internal method, do not call directly!
     """
 
     # we also call the original excepthook which will just output things to stderr
     sys.__excepthook__(exc_type, exc_message, exc_traceback)
-    
+
     dialog = ExceptionDialog(exc_type, exc_message, exc_traceback)
     dialog.run()
 
 def install_exception_hook():
     """After this method is called all uncaught exceptions will spawn the ExceptionDialog.
-    
+
     See uninstall_exception_hook
     """
-    
+
     sys.excepthook = excepthook
 
 def uninstall_exception_hook():
     """After this method is called the standard __excepthook__ is used (outputs exceptions to stderr)
     """
-    
+
     sys.excepthook = sys.__excepthook__
 
-# Only expose the install and uninstall methods, all else is implementation internal details    
+# Only expose the install and uninstall methods, all else is implementation internal details
 __all__ = ["install_exception_hook", "uninstall_exception_hook"]

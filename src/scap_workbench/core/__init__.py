@@ -39,10 +39,10 @@ from scap_workbench.core.logger import LOGGER
 
 import openscap_api as openscap
 
-def label_set_autowrap(widget): 
+def label_set_autowrap(widget):
     """Make labels automatically re-wrap if their containers are resized.  Accepts label or container widgets.
     """
-    
+
     # For this to work the label in the glade file must be set to wrap on words.
     if isinstance(widget, Gtk.Container):
         children = widget.get_children()
@@ -54,7 +54,7 @@ def label_set_autowrap(widget):
 def label_size_allocate(widget, allocation):
     """Callback which re-allocates the size of a label.
     """
-    
+
     layout = widget.get_layout()
     lw_old, lh_old = layout.get_size()
     # fixed width labels
@@ -90,12 +90,12 @@ class Notification(object):
 
     def __init__(self, text, lvl = 0, link_cb = None):
         """Constructs a new notification
-        
+
         text - text of the notification (unicode string)
         lvl - level of the notification, valid range is 0 to 4
         link_cb - callback that gets fired off when user clicks on a link in the notification
         """
-        
+
         # Check the boundaries
         if lvl > 4: lvl = 4
         if lvl < 0: lvl = 0
@@ -121,7 +121,7 @@ class Notification(object):
             box.pack_start(self.label, True, True, 0)
         else:
             box.pack_start(text, True, True, 0)
-            
+
         self.close_btn = Gtk.Button()
         self.close_btn.set_relief(Gtk.ReliefStyle.NONE)
         self.close_btn.connect("clicked", self.__cb_destroy)
@@ -134,7 +134,7 @@ class Notification(object):
         self.widget = Gtk.EventBox()
         self.widget.modify_bg(Gtk.StateType.NORMAL, Gdk.color_parse(Notification.COLOR[lvl]))
         self.widget.add(self.eb)
-    
+
         self.widget.show_all()
 
     def __cb_destroy(self, widget):
@@ -144,11 +144,11 @@ class Notification(object):
     def destroy(self):
         if self.widget:
             self.widget.destroy()
-        
+
 class XCCDFImportError(RuntimeError):
     """Exception thrown when import of XCCDF file fails.
     """
-    
+
     def __init__(self, *args, **kwargs):
         super(XCCDFImportError, self).__init__(*args, **kwargs)
 
@@ -161,7 +161,7 @@ class Library(object):
         """Class that represents OVAL file that is imported to
         library and used by XCCDF file
         """
-        
+
         def __init__(self, path, sess, model):
             self.path = path
             self.session = sess
@@ -178,19 +178,19 @@ class Library(object):
         self.oval_files = {}
         self.sce_files = set()
         self.loaded = False
-        
+
         self.sce_parameters = None
 
     def init_policy_model(self):
         """This function should init policy model for scanning
         """
-        
+
         raise NotImplementedError("Not implemented yet")
 
     def new(self):
         """Create new XCCDF Benchmark
         """
-        
+
         openscap.OSCAP.oscap_init()
         self.benchmark = openscap.xccdf.benchmark()
         self.loaded = True
@@ -204,17 +204,17 @@ class Library(object):
     def import_xccdf(self, xccdf):
         """Import XCCDF Benchmark from file
         """
-        
+
         openscap.OSCAP.oscap_init()
         self.xccdf = xccdf
         self.benchmark = openscap.xccdf.benchmark_import(xccdf)
         if self.benchmark.instance is None:
             desc = openscap.common.err_desc() if openscap.common.err() else "Unknown error, please report this bug (%s)" % (paths.BUGTRACKER_URL)
             raise XCCDFImportError("Benchmark \"%s\" loading failed: %s" % (xccdf, desc))
-        
+
         # Look for OVAL files in CWD, current XCCDF directory and
         # in openscap default content directory
-        
+
         dirnames = [".", os.path.dirname(xccdf)]
         self.oval_files = {}
         self.sce_files = set()
@@ -222,7 +222,7 @@ class Library(object):
         for file_entry in self.benchmark.to_item().get_systems_and_files().get_files():
             file = openscap.OSCAP.oscap_file_entry_get_file(file_entry.instance)
             system = openscap.OSCAP.oscap_file_entry_get_system(file_entry.instance)
-            
+
             if system == "http://oval.mitre.org/XMLSchema/oval-definitions-5":
                 def_model = None
                 for directory in dirnames:
@@ -232,12 +232,12 @@ class Library(object):
                             desc = openscap.common.err_desc() if openscap.common.err() else "Unknown error, please report this bug (%s)" % (paths.BUGTRACKER_URL)
                             raise XCCDFImportError("Cannot import definition model for \"%s\": %s" % (file, desc))
                         break
-    
+
                 if def_model:
                     self.add_oval_file(file, None, def_model)
                 else:
                     LOGGER.warning("WARNING: Skipping '%s' OVAL file which is referenced from XCCDF content." % (file))
-            
+
             elif system == "http://open-scap.org/page/SCE":
                 self.sce_files.add(file)
 
@@ -246,13 +246,13 @@ class Library(object):
         else:
             LOGGER.debug("Initialization failed. Benchmark can't be imported")
             raise RuntimeError("Can't initialize openscap library, Benchmark import failed.")
-        
+
         self.loaded = True
 
     def init_policy(self):
         """Scanner needs a policy_model initialized. This is not wanted in editor
         """
-        
+
         self.policy_model = openscap.xccdf.policy_model_new(self.benchmark)
         for file in self.oval_files:
             sess = openscap.oval.agent_new_session(self.oval_files[file].model, file)
@@ -261,25 +261,25 @@ class Library(object):
                     desc = openscap.OSCAP.oscap_err_desc()
                 else:
                     desc = "Unknown error, please report this bug (%s)" % (paths.BUGTRACKER_URL)
-                    
+
                 raise XCCDFImportError("Cannot create agent session for \"%s\": %s" % (file, desc))
             self.oval_files[file].session = sess
             self.policy_model.register_engine_oval(sess)
-            
+
         if len(self.sce_files) > 0:
             try:
                 self.sce_parameters = openscap.sce.parameters_new()
                 self.sce_parameters.set_xccdf_directory(os.path.dirname(os.path.abspath(self.xccdf)) if self.xccdf else None)
                 self.sce_parameters.allocate_session()
                 self.policy_model.register_engine_sce(self.sce_parameters)
-            
+
             except Exception as e:
                 LOGGER.warn("Tried to enable SCE support but failed, was openscap compiled without SCE support? (exception details: %s)" % (e))
 
     def destroy(self):
         """Destroy the library objects
         """
-        
+
         if self.benchmark and self.policy_model == None:
             self.benchmark.free()
         elif self.policy_model != None:
@@ -295,10 +295,10 @@ class Library(object):
 
 class SWBCore(object):
     """ScapWorkBench Core - central class binding various singleton pieces together
-    
+
     core.Library is one of it's contained classes
     """
-    
+
     # FIXME: These two properties are essentially are a workaround to ensure we pass strings to openscap bindings
     #        when openscap python bindings can accept python's unicode strings, this should be removed
     selected_profile = property(lambda self: str(self._selected_profile) if (self._selected_profile is not None and self._selected_profile != "") else None,
@@ -306,7 +306,7 @@ class SWBCore(object):
 
     selected_item = property(lambda self: str(self._selected_item)  if (self._selected_item is not None and self._selected_item != "") else None,
                              lambda self, value: setattr(self, "_selected_item", value))
-    
+
     def __init__(self, builder, with_policy=False):
         self.thread_manager = ThreadManager(self)
         self.builder = builder
@@ -337,10 +337,10 @@ class SWBCore(object):
         """Initializes the scanner or editor to use the given XCCDF.
         If XCCDF is None a new one is created.
         """
-        
+
         if self.lib:
             self.lib.destroy()
-            
+
         if self.info_box:
             for child in self.info_box:
                 child.destroy()
@@ -360,7 +360,7 @@ class SWBCore(object):
             try:
                 self.lib.import_xccdf(XCCDF)
                 self.lib.init_policy()
-                
+
             except XCCDFImportError as err:
                 LOGGER.exception(err)
                 return False
@@ -369,8 +369,8 @@ class SWBCore(object):
         if self.lib.benchmark is None:
             LOGGER.error("FATAL: Benchmark does not exist")
             raise RuntimeError("Can't initialize openscap library")
-        
-        if not self.lib.benchmark.lang in self.langs: 
+
+        if not self.lib.benchmark.lang in self.langs:
             self.langs.append(self.lib.benchmark.lang)
         self.selected_lang = self.lib.benchmark.lang
         if self.lib.benchmark.lang == None:
@@ -379,14 +379,14 @@ class SWBCore(object):
 
     def notify(self, text, lvl=0, info_box=None, msg_id=None, link_cb=None):
         """Create a notification with the text and level from Notification class.
-        
+
         info_box parameter is the Gtk.Container that will be a parent for the notification
         window.
         msg_id is unique identificator of type of notification to prevent for showing
         same type of notification more times. None are used for global notifications
         link_cb is callback function that is called when label is clicked
         """
-        
+
         notification = Notification(text, lvl, link_cb)
         if msg_id:
             if msg_id in self.__global_notifications:
@@ -400,17 +400,17 @@ class SWBCore(object):
             info_box.pack_start(notification.widget, False, True, 0)
         else:
             self.info_box.pack_start(notification.widget, False, True, 0)
-        
+
         return notification
 
     def notify_destroy(self, msg_id):
         """Used to destroy some specific message, for example when warning message is created
         when user input the wrong data, this message has to be destroyed itself when the data are
         corrected.
-        
+
         msg_id is the unique identificator of that type of notification
         """
-        
+
         if not msg_id:
             raise AttributeError("notify_destroy: msg_id can't be None -> not allowed to destroy global notifications")
         if msg_id in self.__global_notifications:
@@ -426,7 +426,7 @@ class SWBCore(object):
         """Force lists and object to reload
         This is used in case of new file is loaded
         """
-        
+
         self.registered_callbacks = False
         self.force_reload_items = True
         self.force_reload_profiles = True
@@ -443,13 +443,13 @@ class SWBCore(object):
     def get_item(self, id):
         if id not in self.__objects:
             raise LookupError("FATAL: Object %s not registered" % (id))
-        
+
         return self.__objects[id]
 
     def register(self, id, object):
         if id in self.__objects:
             raise LookupError("FATAL: Object %s already registered" % (id))
-        
+
         LOGGER.debug("Registering object %s done.", id)
         self.__objects[id] = object
 
@@ -457,19 +457,19 @@ class GdkLock(object):
     """A helper class that allows more exception-safe Gdk locking. In case of exceptions the locks
     are released. Without it it's quite hard to make exception-safe locking and it involves a lot
     of boilerplate code.
-    
+
     How to use:
     ... code not requiring exclusive gdk access
-    
+
     with gdk_lock:
         ... code requiring exclusive gdk access ...
-        
+
     ... code not requiring exclusive gdk access
     """
-    
+
     def __enter__(self):
         Gdk.threads_enter()
-        
+
     def __exit__(self, type, value, traceback):
         Gdk.threads_leave()
 

@@ -75,7 +75,7 @@ class DataHandler(object):
 
     def open_webbrowser(self, url):
         """Opens client's web browser using the webbrowser module.
-        
+
         url - file to open with the web browser
         """
 
@@ -84,7 +84,7 @@ class DataHandler(object):
             core.Notification.INFORMATION, msg_id="notify:scan:export_report")
 
     def get_title(self, titles):
-        
+
         if titles == None or len(titles) == 0:
             return ""
 
@@ -106,7 +106,7 @@ class DataHandler(object):
         if check != None:
             if check.complex:
                 # This check is complext so there is more checks within
-                for child in check.children: 
+                for child in check.children:
                     self.get_values_by_rule_id(id, check=child)
             else:
                 for export in check.exports:
@@ -117,12 +117,12 @@ class DataHandler(object):
         item = self.core.lib.benchmark.get_item(id)
         if item.type != openscap.OSCAP.XCCDF_RULE:
             raise TypeError("Wrong type of item with id \"%s\". Expected XCCDF_RULE, got \"%i\"." % (id, item.type))
-        
+
         rule = item.to_rule()
         for check in rule.checks:
             if check.complex:
                 # This check is complex so there is more checks within
-                for child in check.children: 
+                for child in check.children:
                     values.extend(self.get_values_by_rule_id(id, check=child))
             else:
                 for export in check.exports:
@@ -131,7 +131,7 @@ class DataHandler(object):
         for value in self.core.lib.benchmark.get_all_values():
             if value.id in values:
                 items.append(self.parse_value(value))
-            
+
         return items
 
     def parse_value(self, value):
@@ -147,7 +147,7 @@ class DataHandler(object):
         # Titles / Questions
         if len(value.question):
             for question in value.question: item["titles"][question.lang] = question.text
-        else: 
+        else:
             for title in value.title: item["titles"][title.lang] = title.text
         if item["lang"] not in item["titles"]: item["titles"][item["lang"]] = ""
         # Descriptions
@@ -193,7 +193,7 @@ class DataHandler(object):
 
     def get_all_item_ids(self, item=None):
         if not self.check_library(): return []
-    
+
         if item == None:
             items = []
             for child in self.core.lib.benchmark.content:
@@ -232,7 +232,7 @@ class DataHandler(object):
 
             # Get selector from policy
             select = policy.get_select_by_id(item.id)
-            if select == None: 
+            if select == None:
                 return item.selected
             else: return select.selected
 
@@ -250,7 +250,7 @@ class DataHandler(object):
         values = []
         if id == self.core.lib.benchmark.id: item = self.core.lib.benchmark
         else: item = self.core.lib.benchmark.item(id)
-        
+
         if item.type == openscap.OSCAP.XCCDF_RULE:
             return self.get_values_by_rule_id(id)
         else:
@@ -269,7 +269,7 @@ class DataHandler(object):
         if check != None:
             for child in check.children:
                 if child.complex: content.extend(self.get_item_check_exports(check=child))
-                else: 
+                else:
                     for ref in child.exports:
                         content.append((ref.value, ref.name))
         else:
@@ -279,7 +279,7 @@ class DataHandler(object):
                 rule = item.to_rule()
                 for check in rule.checks:
                     if check.complex: content.extend(self.get_item_check_exports(check=child))
-                    else: 
+                    else:
                         for ref in check.exports:
                             content.append((ref.value, ref.name))
             else: return []
@@ -293,7 +293,7 @@ class DataHandler(object):
         if check != None:
             for child in check.children:
                 if child.complex: content.extend(self.get_item_content(check=child))
-                else: 
+                else:
                     for ref in child.content_refs:
                         content.append((ref.name, ref.href))
         else:
@@ -303,7 +303,7 @@ class DataHandler(object):
                 rule = item.to_rule()
                 for check in rule.checks:
                     if check.complex: content.extend(self.get_item_content(check=child))
-                    else: 
+                    else:
                         for ref in check.content_refs:
                             content.append((ref.name, ref.href))
             else: return []
@@ -337,7 +337,7 @@ class DataHandler(object):
                 rule.checks[0].content_refs[0].name = name
             if href != None and rule.checks[0].content_refs[0].href != href:
                 rule.checks[0].content_refs[0].href = href
-                        
+
         else: return False, _("Set content ref fatal: Item is not a rule!")
 
         return True, ""
@@ -424,7 +424,7 @@ class DataHandler(object):
                     "status_current":   item.status_current,
                     "vtype":            item.type
                     })
-            else: 
+            else:
                 LOGGER.error("Item type not supported %d", item.type)
                 return None
 
@@ -433,12 +433,12 @@ class DataHandler(object):
             return None
 
         return values
- 
+
     def set_selected(self, model, path, iter, usr):
 
         id, view, col = usr
         selection = view.get_selection()
-        
+
         if model.get_value(iter, col) == id:
             view.expand_to_path(path)
             selection.select_path(path)
@@ -447,12 +447,12 @@ class DataHandler(object):
         """Get the item from benchmark
         """
         if not self.check_library(): return None
-        
+
         # FIXME: workaround for openscap bindings unicode issues
         id = str(id) if id is not None else None
-        
+
         return self.core.lib.benchmark.item(id or self.core.selected_item)
-        
+
     def get_profiles(self):
         """Get all profiles of the Benchmark
         """
@@ -460,9 +460,9 @@ class DataHandler(object):
         profiles = []
         for item in self.core.lib.benchmark.profiles:
             pvalues = self.get_profile_details(item.id)
-            if self.core.selected_lang in pvalues["titles"]: 
-                profiles.append((item.id, pvalues["titles"][self.core.selected_lang])) 
-            else: 
+            if self.core.selected_lang in pvalues["titles"]:
+                profiles.append((item.id, pvalues["titles"][self.core.selected_lang]))
+            else:
                 profiles.append((item.id, _("Unknown profile")))
 
         return profiles
@@ -493,7 +493,7 @@ class DataHandler(object):
             return None
 
         return values
-        
+
     def __rule_get_fixes(self, item):
         fixes = []
         for fix in item.fixes:
@@ -529,7 +529,7 @@ class DataHandler(object):
         if action == Gtk.FileChooserAction.SAVE:
             dialog_buttons = (Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL, Gtk.STOCK_SAVE, Gtk.ResponseType.OK)
         else: dialog_buttons = (Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL, Gtk.STOCK_OPEN, Gtk.ResponseType.OK)
- 
+
         file_dialog = Gtk.FileChooserDialog(title,
                 action=action,
                 buttons=dialog_buttons)
@@ -539,7 +539,7 @@ class DataHandler(object):
         if file:
             path = os.path.dirname(file)
             file_dialog.set_current_folder(path)
-            if action == Gtk.FileChooserAction.SAVE: 
+            if action == Gtk.FileChooserAction.SAVE:
                 file_dialog.set_current_name(os.path.basename(file))
 
         """Init the return value"""
@@ -659,7 +659,7 @@ class DataHandler(object):
             return item.add_title(title)
 
         elif operation == self.CMD_OPER_EDIT:
-            if obj == None: 
+            if obj == None:
                 return False
             obj.lang = lang
             obj.text = text
@@ -683,11 +683,11 @@ class DataHandler(object):
             description.text = text
             description.lang = lang
             description.overrides = overrides
-        
+
             return item.add_description(description)
 
         elif operation == self.CMD_OPER_EDIT:
-            if obj == None: 
+            if obj == None:
                 return False
             obj.lang = lang
             obj.text = text
@@ -714,11 +714,11 @@ class DataHandler(object):
             new_text.overrides = overrides
             warning.text = new_text
             if category != None: warning.category = category
-    
+
             return item.add_warning(warning)
 
         elif operation == self.CMD_OPER_EDIT:
-            if obj == None: 
+            if obj == None:
                 return False
             obj.text.lang = lang
             obj.text.text = text
@@ -743,7 +743,7 @@ class DataHandler(object):
             item = self.core.lib.benchmark.get_item(self.core.selected_item)
 
         if operation == self.CMD_OPER_ADD:
-            if date != None: 
+            if date != None:
                 t = datetime.strptime(date, "%Y-%m-%d")
                 the_date = time.mktime(t.timetuple())
             else: the_date = time.time()
@@ -754,7 +754,7 @@ class DataHandler(object):
             return item.add_status(new_status)
 
         elif operation == self.CMD_OPER_EDIT:
-            if obj == None: 
+            if obj == None:
                 return False
             t = datetime.strptime(date, "%Y-%m-%d")
             obj.date = time.mktime(t.timetuple())
@@ -779,11 +779,11 @@ class DataHandler(object):
             question.text = text
             question.lang = lang
             question.overrides = overrides
-            
+
             return item.add_question(question)
 
         elif operation == self.CMD_OPER_EDIT:
-            if obj == None: 
+            if obj == None:
                 return False
             obj.lang = lang
             obj.text = text
@@ -807,11 +807,11 @@ class DataHandler(object):
             rationale.text = text
             rationale.lang = lang
             rationale.overrides = overrides
-            
+
             return item.add_rationale(rationale)
 
         elif operation == self.CMD_OPER_EDIT:
-            if obj == None: 
+            if obj == None:
                 return False
             obj.lang = lang
             obj.text = text
@@ -826,7 +826,7 @@ class DataHandler(object):
     def edit_platform(self, operation, obj, cpe, item=None):
 
         if not self.check_library(): return None
-        
+
         # FIXME: Workaround for issues regarding openscap python bindings and unicode
         if type(obj) == unicode:
             obj = str(obj)
@@ -838,7 +838,7 @@ class DataHandler(object):
             return item.add_platform(cpe)
 
         elif operation == self.CMD_OPER_EDIT:
-            if obj == None: 
+            if obj == None:
                 return False
             #TODO: We have to remove and add in case of edit :'(
             item.platforms.remove(obj)
@@ -862,20 +862,20 @@ class DataHandler(object):
             item = item.to_value()
             if arg != None: # We have policy, let's return the profile tailored value
                 new_item = arg.tailor_item(item.to_item())
-                if new_item: 
+                if new_item:
                     post = new_item.to_value().instances[0].defval_string or new_item.to_value().instances[0].value
                     openscap.OSCAP.oscap_free(new_item)
-                else: 
+                else:
                     instance = item.instance_by_selector(None)
                     post = instance.value
-            else: 
+            else:
                 instance = item.instance_by_selector(None) or item.instances[0]
                 post = instance.value
             return post
-        
+
         else:
             raise ValueError("Can substitute only VALUE item, got ID of %s" % item.type)
-                
+
         return None
 
     def edit_ident(self, operation, obj, id, system, item=None):
@@ -890,11 +890,11 @@ class DataHandler(object):
             ident = openscap.xccdf.ident_new()
             ident.id = id
             ident.system = system
-    
+
             return item.add_ident(ident)
 
         elif operation == self.CMD_OPER_EDIT:
-            if obj == None: 
+            if obj == None:
                 return False
             obj.system = system
             obj.id = id
@@ -951,7 +951,7 @@ class DHXccdf(DataHandler):
         super(DHXccdf, self).__init__(core)
 
     def get_details(self):
-    
+
         if not self.check_library(): return None
         benchmark = self.core.lib.benchmark
         details = {
@@ -985,12 +985,12 @@ class DHXccdf(DataHandler):
             info[name]["product_version"] = def_model.generator.product_version
             info[name]["schema_version"] = def_model.generator.schema_version
             info[name]["timestamp"] = def_model.generator.timestamp
-        
+
         return info
-    
+
     def get_sce_files(self):
         if not self.check_library(): return None
-        
+
         return self.core.lib.sce_files
 
     def update(self, id=None, version=None, resolved=None, lang=None):
@@ -1007,7 +1007,7 @@ class DHXccdf(DataHandler):
         """Resolves the current benchmark and returns True if successful and False
         if there are dependency loops.
         """
-        
+
         if not self.check_library():
             return False
 
@@ -1024,7 +1024,7 @@ class DHXccdf(DataHandler):
             # according to openscap API docs, -1 means that an error happened
             if self.core.lib.benchmark.export(file_name) == -1:
                 return None
-            
+
             LOGGER.debug("Exported benchmark: %s", file_name)
             return file_name
         return None
@@ -1094,11 +1094,11 @@ class DHXccdf(DataHandler):
             new_text.text = text
             notice.text = new_text
             notice.id = id
-    
+
             return self.core.lib.benchmark.add_notice(notice)
 
         elif operation == self.CMD_OPER_EDIT:
-            if obj == None: 
+            if obj == None:
                 return False
             obj.text.text = text
             obj.id = id
@@ -1139,7 +1139,7 @@ class DHValues(DataHandler):
     def __init__(self, core, items_model=False):
         super(DHValues, self).__init__(core)
         self.items_model = items_model
-        
+
     def render(self, treeView):
         """Make a model ListStore of Dependencies object"""
         self.treeView = treeView
@@ -1159,13 +1159,13 @@ class DHValues(DataHandler):
             self.model.clear()
             if self.core.selected_item is not None:
                 item = self.core.lib.benchmark.get_item(self.core.selected_item)
-                if item is None: 
+                if item is None:
                     LOGGER.error("XCCDF Item \"%s\" does not exists. Can't fill data", self.core.selected_item)
                     raise LookupError("XCCDF Item \"%s\" does not exists. Can't fill data" % (self.core.selected_item))
-                
+
             else:
                 return
-        
+
         # Append a couple of rows.
         item = self.core.lib.benchmark.get_item(self.core.selected_item)
         values = self.get_item_values(self.core.selected_item)
@@ -1182,7 +1182,7 @@ class DHValues(DataHandler):
                 elif value["selected"][1] != None: selected = value["selected"][1]
             self.model.append([value["id"], value["titles"][lang], selected, color, model])
         self.treeView.columns_autosize()
-        
+
         return True
 
     def cellcombo_edited(self, cell, path, new_text):
@@ -1231,7 +1231,7 @@ class DHValues(DataHandler):
         item = self.core.lib.benchmark.get_item(self.core.selected_item)
         if item:
             item = item.to_value()
-            
+
         if item is None:
             raise RuntimeError("Edit items update: No item selected!")
 
@@ -1274,7 +1274,7 @@ class DHValues(DataHandler):
     def get_values_from_item_instance(cls, item, instance):
         """Returns a tuple (default_value, value)
         """
-        
+
         if item.type == openscap.OSCAP.XCCDF_TYPE_NUMBER:
             op_defval = float(instance.defval_number)
             op_value  = float(instance.value_number)
@@ -1286,12 +1286,12 @@ class DHValues(DataHandler):
             op_value  = bool(instance.value_boolean)
         else:
             raise NotImplementedError("Type of instance not supported: \"%s\"" % (instance.type))
-        
+
         return op_defval, op_value
 
     def edit_value_of_value(self, operation, obj, selector, value, default, match, upper_bound, lower_bound, must_match):
         if not self.check_library(): return None
-        
+
         item = self.core.lib.benchmark.get_item(self.core.selected_item).to_value()
         if item is None:
             raise RuntimeError("Edit values: No item selected")
@@ -1299,7 +1299,7 @@ class DHValues(DataHandler):
         if operation == self.CMD_OPER_ADD:
             new_instance = item.new_instance()
             DHValues.set_values_of_item_instance(item, new_instance, default, value)
-            
+
             if match: new_instance.match = match
             if upper_bound != None: new_instance.upper_bound = upper_bound
             if lower_bound != None: new_instance.lower_bound = lower_bound
@@ -1310,26 +1310,26 @@ class DHValues(DataHandler):
             return item.add_instance(new_instance)
 
         elif operation == self.CMD_OPER_EDIT:
-            if obj is None: 
+            if obj is None:
                 LOGGER.error("Can't edit None object")
                 return False
-            
+
             DHValues.set_values_of_item_instance(item, obj, default, value)
-            
+
             obj.match = match
             if upper_bound != None: obj.upper_bound = upper_bound
             if lower_bound != None: obj.lower_bound = lower_bound
             obj.must_match = must_match
             obj.must_match_given = True
             obj.selector = selector
-            
+
             return True
 
         elif operation == self.CMD_OPER_DEL:
-            if obj is None: 
+            if obj is None:
                 LOGGER.error("Can't remove None object")
                 return False
-            
+
             return item.instances.remove(obj)
 
         else:
@@ -1343,7 +1343,7 @@ class DHValues(DataHandler):
 
         for instance in item.instances:
             op_defval, op_value = DHValues.get_values_from_item_instance(item, instance)
-            
+
             instances.append({
                     "item":         instance,
                     "choices":      instance.choices,
@@ -1382,7 +1382,7 @@ class DHItemsTree(DataHandler, EventObject):
         self.combo_box = combo_box
         self.items_model = items_model
         self.no_checks = no_checks
-        
+
         core.register(id, self)
         self.add_sender(self.id, "filled")
         self.__progress = progress
@@ -1390,12 +1390,12 @@ class DHItemsTree(DataHandler, EventObject):
         self.__step = None
         self.map_filter = None
         self.model = None
-        
+
     def render(self, treeView):
         """Make a model ListStore of Dependencies object"""
 
         self.treeView = treeView
-        
+
         # priperin model for view and filtering
         self.model = self.treeView.get_model()
         self.ref_model = self.model
@@ -1416,7 +1416,7 @@ class DHItemsTree(DataHandler, EventObject):
                 model[child.path][DHItemsTree.COLUMN_PARENT] = pselected
                 model[child.path][DHItemsTree.COLUMN_COLOR] = ["gray", "black"][model[child.path][DHItemsTree.COLUMN_SELECTED] and pselected]
 
-                # Alter the policy. All underneath rules/groups should 
+                # Alter the policy. All underneath rules/groups should
                 # be deselected when parent group is deselected.
 
                 # FIXME: str(..) are workarounds for openscap bindings unicode issues
@@ -1438,18 +1438,18 @@ class DHItemsTree(DataHandler, EventObject):
 
 
     def cb_toggled(self, cell, path, model=None):
-        """Function is called from GTK when checkbox of treeView item is toggled. 
+        """Function is called from GTK when checkbox of treeView item is toggled.
         Function will alter present and previous models (if filters are applied) and
         change the selection of rule/group in policy. At the end is called __set_sensitive
         function for all childs for better user experience with altering the rule/group model"""
 
-        """Check if library is initialized, 
+        """Check if library is initialized,
         return otherwise"""
         if not self.check_library(): return None
 
         """model is alternative attribute for previous
         model if filters were applied"""
-        if not model: 
+        if not model:
             model = self.treeView.get_model()
 
             """If there is a reference model and filters are applied
@@ -1469,7 +1469,7 @@ class DHItemsTree(DataHandler, EventObject):
            2) Get selector by ID from selected item in treeView
            3) If there is no selector create one and set up by attributes from treeView"""
         policy = self.core.lib.policy_model.get_policy_by_id(self.core.selected_profile)
-        if policy == None: 
+        if policy == None:
             raise LookupError("Policy for profile '%s' does not exist" % (self.core.selected_profile))
 
         # FIXME: str(..) are workarounds for openscap bindings unicode issues
@@ -1494,14 +1494,14 @@ class DHItemsTree(DataHandler, EventObject):
         """Function to fill the treeModel. Recursive call through benchmark items
         for constructing the tree structure. Select attribute is from selected policy (profile).
         See profiles.
-        
+
         with_values - if the model has the values of groups
-        
+
         Internal: The commented threads_enter and leave calls are leftover from the past when
         the data model fill was done in a separate worker thread.
         """
 
-        """This is recusive call (item is not None) so let's get type of 
+        """This is recusive call (item is not None) so let's get type of
         item and add it to model. If the item is Group continue more deep with
         recursion to get all items to the tree"""
         color = None
@@ -1517,7 +1517,7 @@ class DHItemsTree(DataHandler, EventObject):
         change the color of the font to the gray"""
         selected = self.get_selected(item, self.items_model)
         color = ["gray", None][not self.items_model and selected and pselected]
-        
+
         """If item is not None let's fill the model with groups and rules.
         """
         if item is not None:
@@ -1570,7 +1570,7 @@ class DHItemsTree(DataHandler, EventObject):
             #TYPE: UNKNOWN
             else: LOGGER.warning("Unknown type of %s, should be Rule or Group (got %s)", item.type, item.id)
 
-        else: 
+        else:
             raise ValueError("Can't fill because of invalid passed data. Expected XCCDF Item (got %s)" % (item))
 
     def __item_count(self, item, with_values=False):
@@ -1595,7 +1595,7 @@ class DHItemsTree(DataHandler, EventObject):
         Internal: The commented threads_enter and leave calls are leftover from the past when
         the data model fill was done in a separate worker thread.
         """
-        
+
         if not self.check_library(): return None
 
         """we don't know item so it's first call and we need to clear
@@ -1669,21 +1669,21 @@ class DHItemsTree(DataHandler, EventObject):
 
         """There is no item selected therefor we are adding new item to the
         root level: benchmark. Get benchmark and check it for None value"""
-        if parent == None: 
+        if parent == None:
             parent = self.core.lib.benchmark.to_item()
             if parent == None:
                 return False
 
         """If relation between selected and new item is SIBLING then we need
-        as parent selected item's parent, if selected item is benchmark: 
+        as parent selected item's parent, if selected item is benchmark:
         return false cause benchmark is a root"""
         if relation == self.RELATION_SIBLING:
             if parent.type == openscap.OSCAP.XCCDF_BENCHMARK:
                 return False
-            else: 
+            else:
                 parent = parent.parent
                 iter = model.iter_parent(iter)
-                if not parent: 
+                if not parent:
                     return False
 
         """Convert parent of item (which is XCCDF_ITEM now) to the appropriate
@@ -1694,7 +1694,7 @@ class DHItemsTree(DataHandler, EventObject):
             parent = parent.to_group()
         elif parent.type == openscap.OSCAP.XCCDF_BENCHMARK:
             parent = parent.to_benchmark()
-        else: 
+        else:
             LOGGER.error("Unsupported itme format: %s" % (parent.type,))
             return False
 
@@ -1721,11 +1721,11 @@ class DHItemsTree(DataHandler, EventObject):
 
         # op is a bound callable selected above, depending on which type of item is being added
         op(parent, item)
-        
+
         # NOTE: parent.selected is an OSCAP_Object, we have to convert it to bool for Gtk3 to accept it
         item_it = self.model.append(iter, [["group", "rule", "value"][itype], item_dict["id"], item_dict["title"], #TODO: type
             ["emblem-documents", "document-new", "emblem-downloads"][itype], ""+item_dict["title"], None, True, True if parent.selected else False])
-        
+
         self.treeView.expand_to_path(model.get_path(item_it))
         selection.select_iter(item_it)
         return True
@@ -1734,7 +1734,7 @@ class DHProfiles(DataHandler):
 
     def __init__(self, core):
         super(DHProfiles, self).__init__(core)
-        
+
         self.treeView = None
         self.model = None
 
@@ -1745,7 +1745,7 @@ class DHProfiles(DataHandler):
         #self.model = treeView.get_model() TODO
         self.model = Gtk.TreeStore(str, str, GObject.TYPE_PYOBJECT, str, str, str)
         self.treeView.set_model(self.model)
-        
+
     def update(self, id=None, version=None, extends=None, abstract=None, prohibit_changes=None):
         if not self.check_library(): return None
 
@@ -1774,7 +1774,7 @@ class DHProfiles(DataHandler):
     def add(self, id, lang, title):
         """Add a new profile to the benchmark.
         Item is a dictionary specifing profile to be added
-        
+
         This method is using @ref edit method to fill the data from
         item to the XCCDF Profile structure"""
 
@@ -1804,7 +1804,7 @@ class DHProfiles(DataHandler):
         Internal: The commented threads_enter and leave calls are leftover from the past when
         the data model fill was done in a separate worker thread.
         """
-        
+
         # -- RULES --
         rules = {}
         color = ""
@@ -1846,7 +1846,7 @@ class DHProfiles(DataHandler):
         for value_k in values.keys():
             # add list of values into the profile parent iter
             item = self.core.lib.benchmark.get_item(value_k)
-            if item == None: 
+            if item == None:
                 LOGGER.error("%s points to nonexisting value %s" % (values[value_k][0].object, value_k))
                 #Gdk.threads_enter()
                 self.model.append(iter, ["value", value_k, values[value_k], "dialog-error", "Broken reference: %s" % (value_k,), "red"])
@@ -1860,7 +1860,7 @@ class DHProfiles(DataHandler):
     def fill(self, item=None, parent=None, no_default=False):
         """Fill the model with existing profiles from loaded benchmark
         no_default parameter means that there should not be a default document representation of policy
-        
+
         Internal: The commented threads_enter and leave calls are leftover from the past when
         the data model fill was done in a separate worker thread.
         """
@@ -1979,7 +1979,7 @@ class DHProfiles(DataHandler):
         super(DHProfiles, self).edit_status(operation, obj, date, status, item=self.__get_current_profile())
 
     def remove_refine(self, id, items):
-        """Remove refine from 
+        """Remove refine from
         """
         if not self.check_library(): return None
 
@@ -2001,8 +2001,8 @@ class DHProfiles(DataHandler):
             profile_iter = iter
         elif model.iter_parent(iter) and model.get_value(model.iter_parent(iter), 1) == self.core.selected_profile:
             profile_iter = model.iter_parent(iter)
-            
-        if profile_iter == None: 
+
+        if profile_iter == None:
             LOGGER.error("Can't add data. No profile specified!")
             return
 
@@ -2021,7 +2021,7 @@ class DHProfiles(DataHandler):
     def update_refines(self, type, id, items, idref=None, selected=None, weight=None, value=None, selector=None, operator=None, severity=None):
         if not self.check_library(): return None
 
-        # TODO: This happened because we focused out the changed item by clicking on 
+        # TODO: This happened because we focused out the changed item by clicking on
         # profile and in the time of calling this function is current item profile
         if type == "profile": return
 
@@ -2096,12 +2096,12 @@ class DHProfiles(DataHandler):
         else: raise AttributeError("Unknown type of refines in profile: %s" % (type,))
 
 class DHEditItems(DataHandler):
-    
+
     def __init__(self, core=None):
         super(DHEditItems, self).__init__(core)
-        
+
         self.item = None # TODO: bug workaround - commands.py:1589 AttributeError: DHEditItems instance has no attribute 'item'
-        
+
     def get_fixtexts(self):
         if not self.check_library(): return None
         item = self.core.lib.benchmark.get_item(self.core.selected_item)
@@ -2120,7 +2120,7 @@ class DHEditItems(DataHandler):
         item = self.core.lib.benchmark.get_item(self.core.selected_item)
         if item is None:
             raise RuntimeError("Edit items update fix: No item selected!")
-        
+
         item = item.to_rule()
 
         if operation == self.CMD_OPER_ADD:
@@ -2154,12 +2154,12 @@ class DHEditItems(DataHandler):
         elif operation == self.CMD_OPER_DEL:
             if fix == None: return False
             item.fixes.remove(fix)
-            
+
         else:
             raise NotImplementedError("Edit items update fix: Unsupported operation %s" % (operation))
 
         return True
-        
+
     def edit_fixtext(self, operation, fixtext=None, lang=None, description=None, fixref=None, complexity=None, disruption=None,
                      reboot=None, strategy=None, overrides=None):
         if not self.check_library(): return None
@@ -2167,7 +2167,7 @@ class DHEditItems(DataHandler):
         item = self.core.lib.benchmark.get_item(self.core.selected_item)
         if item is None:
             raise RuntimeError("Edit items update fixtext: No item selected!")
-        
+
         item = item.to_rule()
 
         if operation == self.CMD_OPER_ADD:
@@ -2204,9 +2204,9 @@ class DHEditItems(DataHandler):
             raise NotImplementedError("Edit items update fixtext: Unsupported operation %s" % operation)
 
         return True
-        
 
-    def update(self, id=None, version=None, version_time=None, selected=None, hidden=None, prohibit=None, 
+
+    def update(self, id=None, version=None, version_time=None, selected=None, hidden=None, prohibit=None,
             abstract=None, cluster_id=None, weight=None, severity=None):
         if not self.check_library(): return None
 
@@ -2248,7 +2248,7 @@ class DHEditItems(DataHandler):
         item = self.core.lib.benchmark.get_item(self.core.selected_item)
         if item.type != openscap.OSCAP.XCCDF_RULE:
             raise RuntimeError("Invalid type of item '%s', expected 'XCCDF_RULE'. We can only edit values of rules!" % (item.type))
-        
+
         item = item.to_rule()
 
         if operation == self.CMD_OPER_ADD:
@@ -2257,7 +2257,7 @@ class DHEditItems(DataHandler):
             for check_ex in item.checks:
                 check_add = check_ex
                 break
-            
+
             #check not exist create new
             if not check_add:
                 check_add = openscap.xccdf.check_new()
@@ -2277,19 +2277,19 @@ class DHEditItems(DataHandler):
                         check_export.value = value
                         check_export.name = export_name
                         return
-                    
+
             raise RuntimeError("Edit operation failed, cant find the specified value '%s' to edit." % (value))
-                
+
         elif operation == self.CMD_OPER_DEL:
             LOGGER.error("Delete of value references not supported.")
-            
+
         else:
             raise NotImplementedError("Operation of type '%i' not implemented" % (operation))
 
     def add_oval_reference(self, f_OVAL):
         if not self.check_library(): return False
 
-        if os.path.exists(f_OVAL): 
+        if os.path.exists(f_OVAL):
             def_model = openscap.oval.definition_model_import(f_OVAL)
             if def_model.instance == None:
                 if openscap.OSCAP.oscap_err(): desc = openscap.OSCAP.oscap_err_desc()
@@ -2331,7 +2331,7 @@ class DHEditItems(DataHandler):
             else:
                 LOGGER.debug("Removing %s" %(object,))
                 item.idents.remove(object)
-                model.remove(iter)  
+                model.remove(iter)
         else:
             LOGGER.error("Error: Not read item.")
 
@@ -2358,10 +2358,10 @@ class DHEditItems(DataHandler):
             else:
                 LOGGER.debug("Removing %s" %(value,))
                 item.platforms.remove(value)
-                model.remove(iter)  
+                model.remove(iter)
         else:
             LOGGER.error("Error: Not read item.")
-            
+
     def DHEditImpactMetric(self, rule, text):
         if rule:
             if rule != openscap.OSCAP.XCCDF_RULE:
@@ -2377,22 +2377,22 @@ class DHEditItems(DataHandler):
             value.set_oper(oper)
         else:
             LOGGER.error("Error: Not value.")
-    
+
     def DHChBoxValueInteractive(self, value, state):
         if value:
             value.set_interactive(state)
         else:
             LOGGER.error("Error: Not value.")
-    
+
     def DHEditValueInstance(self, value, item, selector, match, upper, lower, default, mustMuch, model_combo_choices):
-        
+
         LOGGER.debug("Editing value: %s", value)
         instance = item.get_instance_by_selector(selector)
         if not instance:
             instance = item.new_instance()
             item.add_instance(instance)
         else: LOGGER.debug("Found instance for %s", selector)
-            
+
         if item.get_type() == openscap.OSCAP.XCCDF_TYPE_NUMBER:
             if value != None and value != '':
                 try:
@@ -2402,36 +2402,36 @@ class DHEditItems(DataHandler):
                     #Try float.
                     try:
                         data = float(value)
-                        
+
                     except ValueError:
                         data = float('nan')
             else:
                 data = float('nan')
-                
+
         else:
             data = value
 
         LOGGER.debug("Set selector to %s", selector)
         instance.set_selector(selector)
-        [lambda x: LOGGER.error("Unknown type of value: %s", item.get_type()), 
+        [lambda x: LOGGER.error("Unknown type of value: %s", item.get_type()),
                 instance.set_value_number,
                 instance.set_value_string,
                 instance.set_value_boolean
                 ][item.get_type()](data)
 
         return instance
-        
+
     def DHEditValueInstanceDel(self, item, model, iter):
         COLUMN_SELECTOR = 0
         COLUMN_VALUE = 1
         COLUMN_MODEL_CHOICES = 2
         COLUMN_OBJECT = 3
-    
+
         object = model.get_value(iter, COLUMN_OBJECT)
         LOGGER.debug("Removing %s" %(object,))
         item.instances.remove(object)
         model.remove(iter)
-    
+
     def DHEditBoundMatch(self, value, upper, lower, match):
         # if exist instance without selector take bound and match from this instance
         instance = None
@@ -2444,7 +2444,7 @@ class DHEditItems(DataHandler):
             value.add_instance(instance)
             if value.type == openscap.OSCAP.XCCDF_TYPE_NUMBER:
                 instance.set_value_number(float('nan'))
-                
+
         if upper != None:
             if not instance.set_upper_bound(upper):
                 return None
@@ -2455,7 +2455,7 @@ class DHEditItems(DataHandler):
             if not instance.set_match(match):
                 return None
         return instance
-        
+
     def DHEditRequires(self, item, id, add):
         if add:
             try:

@@ -35,10 +35,10 @@ class EventObject(GObject.GObject):
     """
 
     def __init__(self, core=None):
-        """ Constructor of EventObject. Call Gobject constructor for 
+        """ Constructor of EventObject. Call Gobject constructor for
         signals handling. Register objects.
         """
-        
+
         super(EventObject, self).__init__()
         self.core = core
         GObject.type_register(EventObject)
@@ -46,14 +46,14 @@ class EventObject(GObject.GObject):
 
         # Notifications are global for each event object
         self.notifications = []
-    
+
     def emit(self, signal):
         """Emit signal. This is overriding GObject's method
         for better logging.
 
         signal: string representing the signal
         """
-        
+
         LOGGER.debug("Emiting signal %s from %s" % (signal, getattr(self, "id", "<unknown>")))
         super(EventObject, self).emit(signal)
 
@@ -66,8 +66,8 @@ class EventObject(GObject.GObject):
         signal: string representing the signal
         *args: optional arguments (TODO: propagation not implemented)
         """
-        
-        if not GObject.signal_lookup(signal, EventObject): 
+
+        if not GObject.signal_lookup(signal, EventObject):
             LOGGER.debug("Creating signal %s::%s" % (id, signal))
             GObject.signal_new(signal, EventObject, GObject.SignalFlags.RUN_FIRST, None, ())
 
@@ -82,7 +82,7 @@ class EventObject(GObject.GObject):
         signal: identifier of signal
         callback: callable function called when signal is emitted
         """
-        
+
         if self.core != None:
             self.core.set_receiver(id, signal, callback, args)
 
@@ -105,9 +105,9 @@ class EventHandler(EventObject):
         """ Constructor of EventHandler class. EventHandler inherits
         EventObject and contains dictionary of receivers.
         """
-        
+
         super(EventHandler, self).__init__(core)
-        
+
         self.receivers = {}
 
     def set_sender(self, signal, sender):
@@ -117,7 +117,7 @@ class EventHandler(EventObject):
         The third argument of connect function is used to
         pass the name of signal to __propagate function
         """
-        
+
         sender.connect(signal, self.__propagate, signal)
 
     def register_receiver(self, sender_id, signal, callback, *args):
@@ -126,7 +126,7 @@ class EventHandler(EventObject):
         dictionary. The signal dictionary contains signal strings as keys
         and list of callbacks as value of the dictionary.
         """
-        
+
         if not callable(callback):
             LOGGER.error("Given callback is not callable: %s", callback)
             return False
@@ -137,7 +137,7 @@ class EventHandler(EventObject):
                 self.receivers[sender_id][signal].append(callback)
             else:
                 self.receivers[sender_id][signal] = [callback]
-        else: 
+        else:
             self.receivers[sender_id] = {}
             self.receivers[sender_id][signal] = [callback]
 
@@ -147,15 +147,15 @@ class EventHandler(EventObject):
         """Propagate the signal to all receivers from the sender.
         If callback is not callable, raise Exception.
         """
-        
+
         if sender.id in self.receivers:
             if signal in self.receivers[sender.id]:
                 for cb in self.receivers[sender.id][signal]:
                     LOGGER.debug("Received signal \"%s\" from \"%s\" into \"%s\"" % (signal, sender.id, cb))
-                    
-                    if callable(cb): 
+
+                    if callable(cb):
                         cb()
-                    else: 
+                    else:
                         LOGGER.error("Callback %s is not callable", cb)
                         raise ValueError("Registered callback is not callable! signal: %s, sender id: %s, callback: %s" % (signal, sender.id, cb))
 

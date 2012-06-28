@@ -27,22 +27,22 @@ def main():
     from scap_workbench import paths
     # __file__ helps the paths module to figure out the prefix directory
     paths.notify_executable_file_path(__file__)
-    
+
     from scap_workbench import l10n
     l10n.init()
-    
+
     import gi
     gi.require_version("Gtk", "3.0")
 
     from gi.repository import Gtk
     from gi.repository import Gdk
     from gi.repository import GObject
-    
+
     from scap_workbench.scanner import MainWindow
 
     GObject.threads_init()
     Gdk.threads_init()
-    
+
     wnd = MainWindow()
     wnd.run()
 

@@ -28,19 +28,19 @@ from scap_workbench.core.logger import LOGGER
 def thread(func):
     """Usually used as a decorator to make a method start a thread
     and execute itself in it. The central self.core.thread_manager is used.
-    
+
     IMPORTANT: Only use on methods from classes that have attribute "core",
                so that self.core is accessible!
-               
+
     Despite this being very often imported as threadSave it does not
     by any means make the function thread safe! It simply means that we
     want to save data in a separate thread in that function to avoid
     slowing the GUI down.
     """
-    
+
     def callback(self, *args, **kwargs):
         self.core.thread_manager.new_thread(func, self, *args, **kwargs)
-        
+
     return callback
 
 def thread_free(func):
@@ -48,17 +48,17 @@ def thread_free(func):
     handler is created instead of using self.core.thread_manager,
     so this can be used in cases where self.core isn't accessible.
     """
-    
+
     def callback(self, *args, **kwargs):
         handler = ThreadHandler(None, func, self, *args, **kwargs)
         handler.start()
-        
+
     return callback
 
 class ThreadManager(object):
     """A singleton thread manager used to start new threads. You can access it
     via core.thread_manager.
-    
+
     Instead of using it directly, consider using one of the decorators defined
     in this module.
     """
@@ -71,10 +71,10 @@ class ThreadManager(object):
         """Creates a handler from given parameters, immediately starts it by
         spawning a thread. The newly spawned thread calls self.start_thread(..).
         """
-        
+
         handler = ThreadHandler(self, func, obj, *args, **kwargs)
         handler.start()
-            
+
         return handler
 
     def start_thread(self, func, obj, *args, **kwargs):
@@ -82,7 +82,7 @@ class ThreadManager(object):
         method does not spawn any new threads!). ThreadHandler calls this in its
         overridden run(..) method.
         """
-        
+
         while func in self.handlers:
             LOGGER.debug("Handler for function %s already running, waiting..." % (func,))
             time.sleep(1.0)
@@ -94,22 +94,22 @@ class ThreadManager(object):
     def stop_thread(self, func):
         """Called when thread stops (so this does not pro-actively stop the thread!)
         """
-        
+
         if func not in self.handlers:
             LOGGER.warning("Function called stop, but no function %s running" % (func,))
-        
+
         else:
             LOGGER.debug("Thread function %s stopped." % (func,))
             self.handlers.remove(func)
 
 class ThreadHandler(threading.Thread):
     """A callable wrapper used to execute such a callable in a thread.
-    
+
     Not intended to be used directly! Use one of the 2 decorators or ThreadManager instead.
     """
     def __init__(self, master, func, obj, *args, **kwargs):
         """ Initializing variables """
-        
+
         self.__func = func
         self.__args = args
         self.__kwargs = kwargs
@@ -125,7 +125,7 @@ class ThreadHandler(threading.Thread):
         if self.__master:
             self.__master.start_thread(self.__func, self.__obj, *self.__args, **self.__kwargs)
             self.__master.stop_thread(self.__func)
-            
+
         else:
             LOGGER.debug("Running thread handler (free) \"%s:%s\"", self.__func, self.__args)
             self.__func(self.__obj, *self.__args, **self.__kwargs)

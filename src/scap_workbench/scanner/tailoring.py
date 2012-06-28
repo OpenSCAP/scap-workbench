@@ -41,36 +41,36 @@ from scap_workbench.core.htmltextview import HtmlTextView
 from scap_workbench.core.logger import LOGGER
 
 class ItemList(abstract.List):
-    
+
     def __init__(self, builder, core, progress=None):
         self.builder = builder
         self.__progress = progress
         self.profiles = builder.get_object("tailoring:profile")
         self.data_model = commands.DHItemsTree("gui:tailoring:DHItemsTree", core, progress, self.profiles)
         super(ItemList, self).__init__("gui:tailoring:item_list", core, builder.get_object("tailoring:tw_items"))
-        
+
         self.__has_model_changed = False
         self.filter_box = self.builder.get_object("tailoring:filter:box")
         self.filter_toggle = self.builder.get_object("tailoring:filter:toggle")
         self.filter_toggle.connect("toggled", self.__cb_filter_toggle)
         self.search = self.builder.get_object("tailoring:filter:search")
         self.search.connect("key-press-event", self.__cb_search, self.get_TreeView())
-        
+
         selection = self.get_TreeView().get_selection()
         selection.set_mode(Gtk.SelectionMode.SINGLE)
 
         # actions
         self.add_receiver("gui:btn:menu:tailoring", "update", self.__update)
-        
+
         builder.get_object("tailoring:items:toggled:cellrenderer").connect("toggled", self.data_model.cb_toggled)
         selection.connect("changed", self.__cb_item_changed, self.get_TreeView())
         self.__cb_filter_toggle()
-        
+
         # if True an idle worker that will perform the update (after selection changes) is already pending
         self.item_changed_worker_pending = False
 
     def __filter(self, model, path, iter, usr):
-        
+
         pattern, columns = usr
 
         selection = self.get_TreeView().get_selection()
@@ -112,7 +112,7 @@ class ItemList(abstract.List):
     def __update(self):
         if not self.core.lib.loaded:
             self.data_model.model.clear()
-            
+
         if not hasattr(self, "profile") or self.profile != self.core.selected_profile or self.core.force_reload_items:
             self.profile = self.core.selected_profile
             self.profiles.set_sensitive(False)
@@ -145,14 +145,14 @@ class ItemList(abstract.List):
 
         def worker():
             selection = treeView.get_selection( )
-            if selection != None: 
+            if selection != None:
                 (model, iter) = selection.get_selected( )
-                if iter: 
+                if iter:
                     self.core.selected_item = model.get_value(iter, commands.DHItemsTree.COLUMN_ID)
                     self.emit("update")
-                    
+
             self.item_changed_worker_pending = False
-        
+
         # The reason for the item_changed_worker_pending attribute is to avoid stacking up
         # many update requests that would all query the selection state again and do repeated
         # work. This way the update happens only once even though the selection changes many times.
@@ -161,14 +161,14 @@ class ItemList(abstract.List):
             # we handle this in the idle function when no higher priority events are to be handled
             GLib.idle_add(worker)
             self.item_changed_worker_pending = True
-        
+
 class ValuesList(abstract.List):
-    
+
     def __init__(self, widget, core, builder):
         self.builder = builder
         self.data_model = commands.DHValues(core)
         super(ValuesList, self).__init__("gui:tailoring:values_list", core, widget)
-        
+
         self.get_TreeView().set_enable_tree_lines(True)
 
         selection = self.get_TreeView().get_selection()
@@ -190,7 +190,7 @@ class ItemDetails(EventObject):
 
     def __init__(self, builder, core):
         super(ItemDetails, self).__init__(core)
-        
+
         #create view
         self.builder = builder
         self.data_model = commands.DataHandler(self.core)
@@ -198,7 +198,7 @@ class ItemDetails(EventObject):
         self.add_receiver("gui:tailoring:item_list", "update", self.__update)
         self.add_receiver("gui:tailoring:item_list", "changed", self.__update)
         self.add_receiver("gui:tailoring:values_list", "update", self.__update)
-        
+
         self.draw()
 
     def __update(self):
@@ -206,30 +206,30 @@ class ItemDetails(EventObject):
         self.id.set_text(details["id"])
         self.type.set_text(details["typetext"])
         self.weight.set_text(str(details["weight"]))
-        if "idents" in details: 
+        if "idents" in details:
             self.idents.set_text(str("\n".join([ident[0] for ident in details["idents"]])))
 
         # clear
         self.description.get_buffer().set_text("")
         self.fixes.get_buffer().set_text("")
-        
+
         self.title.set_text("")
         for child in self.refBox.get_children():
             child.destroy()
         fixes = []
 
-        if self.core.selected_lang in details["titles"]: 
+        if self.core.selected_lang in details["titles"]:
             self.title.set_text(details["titles"][self.core.selected_lang])
-        else: 
+        else:
             for lang in details["titles"]:
                 self.title.set_text(details["titles"][lang])
                 break
 
         description = ""
-        if self.core.selected_lang in details["descriptions"]: 
+        if self.core.selected_lang in details["descriptions"]:
             description = details["descriptions"][self.core.selected_lang].replace("xhtml:","")
             description = description.replace("xmlns:", "")
-        else: 
+        else:
             for lang in details["descriptions"]:
                 description = details["descriptions"][lang].replace("xhtml:","")
                 break
@@ -240,7 +240,7 @@ class ItemDetails(EventObject):
             self.description.display_html(description)
         except Exception as err:
             LOGGER.exception("Exception: %s" % (err))
-        
+
         for i, ref in enumerate(details["references"]):
             hbox = Gtk.HBox()
             counter = Gtk.Label(label="%d) " % (i+1,))
@@ -251,14 +251,14 @@ class ItemDetails(EventObject):
             hbox.pack_start(label, True, True, 0)
             label.set_tooltip_text(ref["title"])
             label.set_use_markup(True)
-            
+
             try:
                 label.set_track_visited_links(True)
             except AttributeError:
                 pass
-            
+
             label.set_line_wrap(True)
-            label.set_line_wrap_mode(Pango.WrapMode.WORD) 
+            label.set_line_wrap_mode(Pango.WrapMode.WORD)
             label.set_alignment(0,0)
             label.connect("size-allocate", core.label_size_allocate)
             hbox.show_all()
@@ -324,7 +324,7 @@ class ItemDetails(EventObject):
         self.type.set_alignment(0,0)
         hbox.pack_start(self.type, True, True, 1)
         vbox.pack_start(hbox, False, False, 1)
-        
+
         #weight
         hbox = Gtk.HBox()
         hbox.pack_start(Gtk.Label(label = _("Weight: ")), False, True, 1)
@@ -340,7 +340,7 @@ class ItemDetails(EventObject):
         self.idents.set_alignment(0,0)
         hbox.pack_start(self.idents, True, True, 1)
         vbox.pack_start(hbox, False, False, 1)
-        
+
         #References
         expander = Gtk.Expander(label = _("<b>References</b>"))
         expander.set_expanded(False)
@@ -355,7 +355,7 @@ class ItemDetails(EventObject):
         self.refBox = Gtk.VBox()
         vbox.pack_start(self.refBox, False, False, 0)
         self.box_details.pack_start(expander, False, False, 1)
-        
+
         # Get the background color from window and destroy it
         window = Gtk.Window()
         nb = Gtk.Notebook()
@@ -413,7 +413,7 @@ class ItemDetails(EventObject):
         self.box_details.show_all()
 
 class RefineDetails(EventObject):
-    
+
     def __init__(self, builder, core):
         super(RefineDetails, self).__init__(core)
 
@@ -428,11 +428,11 @@ class RefineDetails(EventObject):
         self.role = self.builder.get_object("tailoring:refines:role")
         self.role.set_model(ENUM.ROLE.get_model())
         self.role.connect('changed', self.__cb_edit)
-        
+
         self.severity = self.builder.get_object("tailoring:refines:severity")
         self.severity.set_model(ENUM.LEVEL.get_model())
         self.severity.connect('changed', self.__cb_edit)
-        
+
         self.weight = self.builder.get_object("tailoring:refines:weight")
         self.weight.connect("focus-out-event", self.__cb_edit)
 
@@ -463,17 +463,17 @@ class RefineDetails(EventObject):
                 self.severity.set_active(ENUM.LEVEL.pos(details["severity"]))
             else:
                 self.severity.set_active(0)
-            
+
             if "weight" in details:
                 self.weight.set_text(str(details["weight"]))
             else:
                 self.weight.set_text("")
-        
+
         else:
             self.role.set_sensitive(False)
             self.severity.set_sensitive(False)
             self.weight.set_sensitive(False)
-            
+
             # -1 means no combobox item is active, the combobox will appear blank
             self.role.set_active(-1)
             self.severity.set_active(-1)
@@ -482,50 +482,50 @@ class RefineDetails(EventObject):
         self.role.handler_unblock_by_func(self.__cb_edit)
         self.severity.handler_unblock_by_func(self.__cb_edit)
         self.weight.handler_unblock_by_func(self.__cb_edit)
-            
+
     def add_widget(self, body, text, expand, widget):
-                
+
         frame = Gtk.Frame(text)
         label = frame.get_label_widget()
-        label.set_use_markup(True)        
+        label.set_use_markup(True)
         frame.set_shadow_type(Gtk.ShadowType.NONE)
-        
+
         if expand:
             body.pack_start(frame, True, True, 0)
         else:
             body.pack_start(frame, False, True, 0)
-            
+
         alig = Gtk.Alignment.new(0.5, 0.5, 1, 1)
         alig.set_padding(0, 0, 12, 0)
         frame.add(alig)
         alig.add(widget)
         return widget
-        
+
     def __cb_edit(self, widget, event=None):
         severity = role = None
         if self.severity.get_active() != -1: severity = ENUM.LEVEL[self.severity.get_active()][0]
         if self.role.get_active() != -1: role = ENUM.ROLE[self.role.get_active()][0]
         self.data_model.change_refines( severity=severity, role=role, weight=self.__cb_get_weight())
-    
+
     def __cb_get_weight(self):
         weight = self.func.controlFloat(self.weight.get_text(), _("Weight"), self.core.main_window)
         if weight:
             return weight
-        else: 
+        else:
             details = self.data_model.get_item_details(self.core.selected_item)
             if details == None: return
 
             if "weight" in details:
                 return str(details["weight"])
             else: return None
-        
+
 class MenuButtonTailoring(abstract.MenuButton):
     """GUI for refines.
     """
-    
+
     def __init__(self, builder, widget, core):
         super(MenuButtonTailoring, self).__init__("gui:btn:menu:tailoring", widget, core)
-        
+
         self.builder = builder
 
         # Profiles combo box
@@ -570,8 +570,8 @@ class MenuButtonTailoring(abstract.MenuButton):
         """ Append the first "No Profile" item. This use to be the
         representation of the benchmark not altered by profiles """
         model.append(["", "(No profile)"])
-        
-        """ For each profile in the benchmark append the title of 
+
+        """ For each profile in the benchmark append the title of
         current language or the title with ID of profile """
         for item in self.core.lib.benchmark.profiles:
             title = self.data_model.get_title(item.title) or "%s (ID)" % (item.id,)

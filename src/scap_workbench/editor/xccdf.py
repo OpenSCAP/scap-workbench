@@ -44,7 +44,7 @@ class EditNotice(abstract.ListEditor):
 
     def __init__(self, core, id, widget, data_model):
 
-        self.data_model = data_model 
+        self.data_model = data_model
         super(EditNotice, self).__init__(id, core, widget=widget, model=Gtk.ListStore(str, str, GObject.TYPE_PYOBJECT))
         self.add_sender(id, "update")
 
@@ -61,24 +61,24 @@ class EditNotice(abstract.ListEditor):
                     core.Notification.ERROR, info_box=self.info_box, msg_id="notify:dialog_notify")
             self.wid.grab_focus()
             return
-        
+
         item = None
         buffer = self.notice.get_buffer()
-        if self.iter and self.get_model() != None: 
+        if self.iter and self.get_model() != None:
             item = self.get_model()[self.iter][self.COLUMN_OBJ]
-            
+
             # check for duplicate IDs
             for row in self.get_model():
                 # we don't check ourselves for conflicts
                 if row.path == self.get_model()[self.iter].path:
                     continue
-                
+
                 if row[self.COLUMN_ID] == self.wid.get_text():
                     self.core.notify(_("ID of the notice has to be unique!"),
                             core.Notification.ERROR, info_box=self.info_box, msg_id="notify:dialog_notify")
                     self.wid.grab_focus()
                     return
-            
+
         else:
             # we are adding, none of the existing notices can have our future ID
             for row in self.get_model():
@@ -97,18 +97,18 @@ class EditNotice(abstract.ListEditor):
     def __dialog_destroy(self, widget=None):
         """
         """
-        if self.wdialog: 
+        if self.wdialog:
             self.wdialog.destroy()
 
     def dialog(self, widget, operation):
         """
         """
         self.operation = operation
-        
+
         builder = Gtk.Builder()
         builder.set_translation_domain(l10n.TRANSLATION_DOMAIN)
         builder.add_from_file(os.path.join(paths.glade_prefix, "dialogs.glade"))
-        
+
         self.wdialog = builder.get_object("dialog:edit_notice")
         self.info_box = builder.get_object("dialog:edit_notice:info_box")
         self.wid = builder.get_object("dialog:edit_notice:id")
@@ -133,12 +133,12 @@ class EditNotice(abstract.ListEditor):
                 self.notifications.append(self.core.notify(_("Please select at least one item to delete"),
                     core.Notification.ERROR, msg_id="notify:not_selected"))
                 return
-            else: 
+            else:
                 iter = self.dialogDel(self.core.main_window, self.get_selection())
                 if iter != None:
                     self.__do()
                 return
-        else: 
+        else:
             LOGGER.error("Unknown operation for description dialog: \"%s\"" % (operation,))
             return
 
@@ -155,10 +155,10 @@ class MenuButtonEditXCCDF(abstract.MenuButton):
 
     def __init__(self, builder, widget, core):
         super(MenuButtonEditXCCDF, self).__init__("gui:btn:menu:edit:XCCDF", widget, core)
-        
+
         self.builder = builder
         self.data_model = commands.DHXccdf(core)
-        
+
         #draw body
         self.body = self.builder.get_object("xccdf:box")
         self.sub_menu = self.builder.get_object("edit:sub:main")
@@ -309,7 +309,7 @@ class MenuButtonEditXCCDF(abstract.MenuButton):
             self.data_model.update(status=ENUM.STATUS_CURRENT[widget.get_active()][0])
         elif object == "lang":
             self.data_model.update(lang=widget.get_text())
-        else: 
+        else:
             LOGGER.error("Change \"%s\" not supported object in \"%s\"" % (object, widget))
             return
         self.emit("update")
@@ -338,7 +338,7 @@ class MenuButtonEditXCCDF(abstract.MenuButton):
 
     def __update(self):
 
-        # TODO: this blocks of handlers could be substitute ?        
+        # TODO: this blocks of handlers could be substitute ?
         self.entry_id.handler_block_by_func(self.__change)
         self.entry_version.handler_block_by_func(self.__change)
         self.entry_resolved.handler_block_by_func(self.__change)
@@ -354,7 +354,7 @@ class MenuButtonEditXCCDF(abstract.MenuButton):
         self.builder.get_object("edit:xccdf:notebook").set_sensitive(details != None)
         self.builder.get_object("edit:xccdf:entries").set_sensitive(details != None)
 
-        """Update 
+        """Update
         """
         if details:
             self.entry_id.set_text(details["id"] or "")
@@ -373,4 +373,3 @@ class MenuButtonEditXCCDF(abstract.MenuButton):
         self.entry_version.handler_unblock_by_func(self.__change)
         self.entry_resolved.handler_unblock_by_func(self.__change)
         self.entry_lang.handler_unblock_by_func(self.__change)
-        

@@ -63,16 +63,16 @@ class Menu(EventObject):
         @param widget GTK Widget for menu item
         @param core SWBCore singleton
         """
-        
+
         super(Menu, self).__init__(core)
-        
+
         self.id = id
         self.btnList = []
         self.active_item = None
         self.default_item = None
         self.widget = widget
         core.register(id, self)
-    
+
     def add_item(self, item):
         """ Add item to the menu list
         """
@@ -83,7 +83,7 @@ class Menu(EventObject):
 
         self.btnList.append(item)
         item.parent = self
-        
+
         # Return added item for further configuration
         return item
 
@@ -115,7 +115,7 @@ class Menu(EventObject):
         self.active_item.set_active(True)
 
 class MenuButton(EventObject):
-    """Class containing GTK Widget button with the content of 
+    """Class containing GTK Widget button with the content of
     the page associated with this button.
     """
 
@@ -126,7 +126,7 @@ class MenuButton(EventObject):
         @param widget GTK Widget for menu item
         @param core SWBCore singleton
         """
-        
+
         super(MenuButton, self).__init__(core)
 
         self.id = id
@@ -143,9 +143,9 @@ class MenuButton(EventObject):
     def add_frame_vp(self,body, text,pos = 1):
         frame = Gtk.Frame(text)
         frame.set_shadow_type(Gtk.ShadowType.NONE)
-        #frame.set_border_width(5)        
+        #frame.set_border_width(5)
         label = frame.get_label_widget()
-        label.set_use_markup(True)        
+        label.set_use_markup(True)
         if pos == 1: body.pack1(frame,  resize=False, shrink=False)
         else: body.pack2(frame,  resize=False, shrink=False)
         alig = Gtk.Alignment.new(0.5, 0.5, 1, 1)
@@ -169,7 +169,7 @@ class MenuButton(EventObject):
     def add_frame_cBox(self, body, text, expand):
         frame = Gtk.Frame(text)
         label = frame.get_label_widget()
-        label.set_use_markup(True)        
+        label.set_use_markup(True)
         frame.set_shadow_type(Gtk.ShadowType.NONE)
         if expand: body.pack_start(frame, True, True, 0)
         else: body.pack_start(frame, False, True, 0)
@@ -187,19 +187,19 @@ class MenuButton(EventObject):
     def set_active(self, active):
         """
         Show or hide MenuButton object and dependent menu, body.
-        @param active True/False - Show/Hide 
+        @param active True/False - Show/Hide
         """
         self.activate(active)
         if active: LOGGER.debug("Switching active button to %s" % (self.id))
         self.widget.handler_block_by_func(self.cb_toggle)
         self.widget.set_active(active)
         self.set_body(active)
-        if self.menu: 
+        if self.menu:
             self.menu.set_active(active)
             if self.menu.active_item and not active:
                 self.menu.active_item.set_active(active)
         self.widget.handler_unblock_by_func(self.cb_toggle)
-        if active: 
+        if active:
             self.emit("update")
             self.update()
 
@@ -211,7 +211,7 @@ class MenuButton(EventObject):
         self.menu = menu
 
     def cb_toggle(self, widget):
-        """ 
+        """
         CallBack function which change active of toggleButtons in current toolBar
         and visibility of child.
         """
@@ -220,7 +220,7 @@ class MenuButton(EventObject):
     def set_body(self,active):
         """
         Show or hide content of body if exist.
-        @param active True/False - Show/Hide 
+        @param active True/False - Show/Hide
         """
         if self.body:
             if active:
@@ -231,35 +231,35 @@ class MenuButton(EventObject):
 class Window(EventObject):
     """Free floating Window
     """
-    
+
     def __init__(self, id, core = None, skip_registration = False):
         """Constructor
-        
+
         id - unique id of the object
         core - SWBCore singleton instance
         skip_registration - if True the window won't be registered in SWBCore
                             (mainly for windows that get repeatedly created and destroyed)
         """
-        
+
         EventObject.__init__(self, core)
 
         self.id = id
-        
+
         if not skip_registration and self.core is not None:
             self.core.register(id, self)
 
 class List(EventObject):
-    
+
     def __init__(self, id, core=None, widget=None):
         super(List, self).__init__(core)
-        
+
         #create view
         self.id = id
         self.core.register(id, self)
         self.filter_model = None
         self.selected = None
-        
-        # TODO: Does it really make sense to have "None" as default value of widget if that's not permitted? 
+
+        # TODO: Does it really make sense to have "None" as default value of widget if that's not permitted?
         if widget is None:
             raise ValueError("No widget for List specified")
         else:
@@ -271,7 +271,7 @@ class List(EventObject):
     def filter_listview(self, model, iter, data):
         search, columns = data
         text = search.get_text()
-        if len(text) == 0: 
+        if len(text) == 0:
             return True
         pattern = re.compile(text, re.I)
         for col in data:
@@ -284,10 +284,10 @@ class List(EventObject):
         return
 
     def set_selected(self, model, path, iter, usr):
-        
+
         id, view, col = usr
         selection = view.get_selection()
-        
+
         if iter and model.get_value(iter, col) == id:
             view.expand_to_path(path)
             selection.select_path(path)
@@ -325,14 +325,14 @@ class List(EventObject):
         return pattern.search(model.get_value(iter, column)) != None
 
     def __search_branch(self, model, iter, iter_start, data):
-        """ Search data in model from iter next. Search terminates when a row is found. 
+        """ Search data in model from iter next. Search terminates when a row is found.
             @param model is Gtk.treeModel
             @param iter is start position
             @param data is a tuple containing column number and key
             @return iter or None
         """
         while iter:
-            # If all data was searched, stop the search. 
+            # If all data was searched, stop the search.
             if iter_start == model.get_string_from_iter(iter):
                 return None
 
@@ -340,7 +340,7 @@ class List(EventObject):
                 return iter
 
             result = self.__search_branch(model, model.iter_children(iter), iter_start, data)
-            if result: 
+            if result:
                 return result
 
             iter = model.iter_next(iter)
@@ -352,7 +352,7 @@ class List(EventObject):
         selection = self.treeView.get_selection()
         model, iter =  selection.get_selected()
         iter_old = iter
-        
+
         if iter == None:
             # nothing selected
             # iter_first is the the root node in this case
@@ -390,7 +390,7 @@ class List(EventObject):
                         else:
                             iter_parent = model.iter_parent(iter_parent)
                     if iter_parent == None:
-                        # searched to end (not found) and will go to search from start 
+                        # searched to end (not found) and will go to search from start
                         iter = self.__search_branch(model, model.get_iter_first(), iter_start, (column, key))
                         break
 
@@ -408,7 +408,7 @@ class List(EventObject):
 
         Let parent None if you want to start the search. "parent"
         variable is used to set recursivity.
-        
+
         iter - local variable used for iteration thru iters
         """
         if pattern == None or columns == None or len(columns) == 0:
@@ -438,21 +438,21 @@ class List(EventObject):
             # Look within this child.
             retval = self.recursive_search(pattern, columns, iter)
             if retval: return True
-            
+
             # Not found, let's continue
             iter = model.iter_next(iter)
-            
+
         # If the the iter is None there is no more items as
         # children of the start item. We have to continue to next
         # iter in parent level of the tree """
 
         # We have parent specified but no child is found
         # This is the point we are returning up from recursive call
-        
+
         if parent != None: return False
 
         # This is the start of the second recursive search because
-        # we haven't found anything within the selected item. 
+        # we haven't found anything within the selected item.
 
         # We have to go thru parents now, but not the parent of selected
         # item.
@@ -474,7 +474,7 @@ class List(EventObject):
                 # Look within this child.
                 retval = self.recursive_search(pattern, columns, iter)
                 if retval: return retval
-            
+
             # Not found, let's continue
             i_parent = model.iter_parent(i_parent)
 
@@ -501,7 +501,7 @@ class List(EventObject):
     def filtering_list(self, model, iter, new_model, filters, n_column):
         """Filter data to list
         """
-        
+
         while iter:
             if self.match_fiter(filters, model, iter):
                 iter_to = self.copy_row(model, iter, new_model, None, n_column)
@@ -513,7 +513,7 @@ class List(EventObject):
     def filtering_tree(self, model, iter, new_model, iter_parent, filters, n_column):
         """Filter data to tree
         """
-        
+
         res_branch = False
 
         while iter:
@@ -535,7 +535,7 @@ class List(EventObject):
     def init_filters(self, filter, ref_model, filter_model):
         """Init filter for first use or model changed
         """
-        
+
         self.filter_model = filter_model
         filter.init_filter()
         self.ref_model = ref_model
@@ -560,7 +560,7 @@ class List(EventObject):
         iter = self.ref_model.get_iter_first()
         n_column = self.ref_model.get_n_columns()
         self.filter_model.clear()
-        
+
         # get final struct (tree or list)
         struct = True
         for item in filters:
@@ -577,7 +577,7 @@ class List(EventObject):
         """find a deleted filter
         @propagate_change is list of column wich should be control and propagate
         """
-        
+
         if propagate_changes != None:
             for key in self.map_filter.keys():
                 path = self.map_filter[key]
@@ -593,15 +593,15 @@ class Func(object):
     """Provides miscellaneous functionality like preview, datetime helper methods, etc...
     The only reason the methods are not classmethods or staticmethods are the notifications
     (self.notifications).
-    
+
     The intended usage is probably as a mixin class to a class with EventObject as one of the
     base classes.
     """
-    
+
     # FIXME: This is almost exclusively used as a mixin class and its constructor is not called
     #        IMO it creates a very strange pseudo-diamond hierarchy that should be removed
     #        at some point in the future
-    
+
     def __init__(self, core=None):
 
         self.core = core
@@ -642,13 +642,13 @@ class Func(object):
           </body>
         </html>
         """
-        
+
         self.description_widget = WebKit.WebView()
         self.description_widget.load_html_string(desc, "file:///")
         self.description_widget.set_zoom_level(0.75)
         #description.modify_bg(Gtk.StateType.NORMAL, bg_color)
         #description.parent.modify_bg(Gtk.StateType.NORMAL, bg_color)
-        
+
         self.preview_scw.add(self.description_widget)
         self.description_widget.show()
         #self.preview_dialog.window.set_cursor(Gdk.Cursor.new(Gdk.WATCH))
@@ -659,13 +659,13 @@ class Func(object):
     def preview(self, widget=None, desc=None, save=None):
         if widget:
             selection = self.widget.get_selection()
-            if selection != None: 
+            if selection != None:
                 (model, iter) = selection.get_selected()
                 if not iter:
                     return False
             else:
                 return False
-        
+
         if not hasattr(self, "preview_dialog") or self.preview_dialog is None:
             self.prepare_preview()
 
@@ -680,7 +680,7 @@ class Func(object):
             desc = "<body><div>"+desc+"</div></body>"
 
         self.description_widget.load_html_string(desc, "file:///")
-            
+
         #self.preview_dialog.window.set_cursor(Gdk.Cursor.new(Gdk.ARROW))
 
         self.save.set_property("visible", save is not None)
@@ -688,7 +688,7 @@ class Func(object):
             # We want to have option to save what we see in the preview dialog.
             # In this case pass the callback function as "save" parameter it should
             # have format as widget callback method
-            
+
             if not callable(save):
                 raise ValueError("Passed invalid callback to the preview function")
 
@@ -696,7 +696,7 @@ class Func(object):
                 """Nested function to call callback function from parent
                 and show the notification in the info_box of the preview dialog
                 """
-                
+
                 retval, text = save()
                 if retval != None:
                     self.notifications.append(self.core.notify(text, retval, info_box=self.info_box))
@@ -709,18 +709,18 @@ class Func(object):
         @param selection Selection of TreeView.
         @return Iter of treViw fi yes else return None
         """
-        
+
         (model,iter) = selection.get_selected()
         if iter:
-            md = Gtk.MessageDialog(window, 
+            md = Gtk.MessageDialog(window,
                 Gtk.DialogFlags.MODAL, Gtk.MessageType.QUESTION,
                 Gtk.ButtonsType.YES_NO, _("Do you want delete selected row?"))
             md.set_title(_("Delete row"))
             result = md.run()
             md.destroy()
-            if result == Gtk.ResponseType.NO: 
+            if result == Gtk.ResponseType.NO:
                 return None
-            else: 
+            else:
                 return iter
         else:
             self.dialogInfo(_("Choose row which you want delete."), window)
@@ -728,10 +728,10 @@ class Func(object):
     def dialogNotSelected(self, window):
         LOGGER.warning("Deprecation warning: This function should not be used.") # TODO
         return
-        
+
     def dialogInfo(self, text, window):
         #window = self.core.main_window
-        md = Gtk.MessageDialog(window, 
+        md = Gtk.MessageDialog(window,
                     Gtk.DialogFlags.MODAL, Gtk.MessageType.INFO,
                     Gtk.ButtonsType.OK, text)
         md.set_title(_("Info"))
@@ -749,34 +749,34 @@ class Func(object):
     def set_active_comboBox(self, comboBox, data, column, text = ""):
         """Function set active row which is same as data in column.
         """
-        
+
         set_c = False
         model =  comboBox.get_model()
         iter = model.get_iter_first()
         while iter:
             if data == model.get_value(iter, column):
-                comboBox.set_active_iter(iter) 
+                comboBox.set_active_iter(iter)
                 set_c = True
                 break
             iter = model.iter_next(iter)
-            
+
         if not set_c:
             if text != "":
                 text = "(" + text + ") "
             LOGGER.error("Invalid data passed to combobox: \"%s\"" % (text))
             comboBox.set_active(-1)
-        
+
     def set_model_to_comboBox(self, combo, model, view_column):
         cell = Gtk.CellRendererText()
         combo.pack_start(cell, True)
-        combo.add_attribute(cell, 'text', view_column)  
+        combo.add_attribute(cell, 'text', view_column)
         combo.set_model(model)
 
     def controlDate(self, text):
-        """Function concert sting to timestamp (gregorina). 
+        """Function concert sting to timestamp (gregorina).
         If set text is incorrect format return False and show message.
         """
-        
+
         self.core.notify_destroy("notify:date_format")
         if text != "":
             date = text.split("-")
@@ -790,9 +790,9 @@ class Func(object):
                 self.notifications.append(self.core.notify(_("The date is in incorrect format. Correct format is YYYY-MM-DD."),
                     Notification.ERROR, msg_id="notify:date_format"))
                 return None
-            
+
             try:
-                timestamp = int(time.mktime(d.timetuple())) 
+                timestamp = int(time.mktime(d.timetuple()))
             except (OverflowError, ValueError):
                 self.notifications.append(self.core.notify(_("The date is out of range."),
                     Notification.ERROR, msg_id="notify:date_format"))
@@ -803,16 +803,16 @@ class Func(object):
         else:
             self.core.notify_destroy("notify:date_format")
             return None
-            
+
     def controlImpactMetric(self, text, core):
         """Function control impact metric
         """
-        
+
         #pattern = re.compile ("^AV:[L,A,N]/AC:[H,M,L]/Au:[M,S,N]/C:[N,P,C]/I:[N,P,C]/A:[N,P,C]$|^E:[U,POC,F,H,ND]/RL:[OF,TF,W,U,ND]/RC:[UC,UR,C,ND]$|^CDP:[N,L,LM,MH,H,ND]/TD:[N,L,M,H,ND]/CR:[L,M,H,ND]/ IR:[L,M,H,ND]/AR:[L,M,H,ND]$",re.IGNORECASE)
         patternBase = re.compile("^AV:[L,A,N]/AC:[H,M,L]/Au:[M,S,N]/C:[N,P,C]/I:[N,P,C]/A:[N,P,C]$",re.IGNORECASE)
         patternTempo = re.compile("^E:(U|(POC)|F|H|(ND))/RL:((OF)|(TF)|W|U|(ND))/RC:((UC)|(UR)|C|(ND))$",re.IGNORECASE)
         patternEnvi = re.compile("^CDP:(N|L|H|(LM)|(MH)|(ND))/TD:(N|L|M|H|(ND))/CR:(L|M|H|(ND))/IR:(L|M|H|(ND))/AR:(L|M|H|(ND))$",re.IGNORECASE)
-        
+
         if patternBase.search(text) != None or patternTempo.search(text) != None or patternEnvi.search(text) != None:
             return True
         else:
@@ -821,7 +821,7 @@ Incorrect value of Impact Metric, correct is: Metric Value Description
 Base =    AV:[L,A,N]/AC:[H,M,L]/Au:[M,S,N]/C:[N,P,C]/I:[N,P,C]/A:[N,P,C]\n")
 Temporal =     E:[U,POC,F,H,ND]/RL:[OF,TF,W,U,ND]/RC:[UC,UR,C,ND]\n"
 Environmental =    CDP:[N,L,LM,MH,H,ND]/TD:[N,L,M,H,ND]/CR:[L,M,H,ND]/IR:[L,M,H,ND]/AR:[L,M,H,ND]""")
-            
+
             self.notifications.append(core.notify(error, Notification.ERROR, msg_id="notify:control:metric"))
             return False
 
@@ -843,7 +843,7 @@ Environmental =    CDP:[N,L,LM,MH,H,ND]/TD:[N,L,M,H,ND]/CR:[L,M,H,ND]/IR:[L,M,H,
             return float('nan')
 
 class ListEditor(EventObject, Func):
-    """Abstract class for implementing all edit formulars that appear as list/tree view and 
+    """Abstract class for implementing all edit formulars that appear as list/tree view and
     has add, edit and del buttons
     """
 
@@ -868,27 +868,27 @@ class ListEditor(EventObject, Func):
     def append_column(self, column):
         """For ControlEditWindow, remove after
         """
-        
+
         retval = self.widget.append_column(column)
- 
+
         return column if retval else None
 
     def get_model(self):
         """For ControlEditWindow, remove after
         """
-        
+
         return self.model
 
     def get_selection(self):
         """For ControlEditWindow, remove after
         """
-        
+
         return self.widget.get_selection()
 
     def cb_edit_row(self, widget=None, values=None):
         """From ControlEditWindow
         """
-        
+
         (model,iter) = self.get_selection().get_selected()
         if iter:
             window = EditDialogWindow(None, self.core, values, new=False)
@@ -898,13 +898,13 @@ class ListEditor(EventObject, Func):
     def cb_add_row(self, widget=None, values=None):
         """From ControlEditWindow
         """
-        
+
         window = EditDialogWindow(None, self.core, values, new=True)
 
     def cb_del_row(self, widget=None, values=None):
         """From ControlEditWindow
         """
-        
+
         iter = self.dialogDel(self.core.main_window, self.get_selection())
         if iter is not None:
             values["cb"](getattr(self, "item", None), self.get_model(), iter, None, None, True)
@@ -918,14 +918,14 @@ class ListEditor(EventObject, Func):
     def append(self, item):
         try:
             self.model.append(item)
-            
+
         except ValueError as err:
             raise ValueError("Value Error in model appending \"%s\": %s" % (item, err))
 
     def filter_listview(self, model, iter, data):
         search, columns = data
         text = search.get_text()
-        if len(text) == 0: 
+        if len(text) == 0:
             return True
         pattern = re.compile(text, re.I)
         for col in columns:
@@ -938,7 +938,7 @@ class ListEditor(EventObject, Func):
         return
 
 class HTMLEditor(ListEditor):
-    """Abstract class for implementing all edit formulars that appear as list/tree view and 
+    """Abstract class for implementing all edit formulars that appear as list/tree view and
     has add, edit and del buttons
     """
 
@@ -986,7 +986,7 @@ class HTMLEditor(ListEditor):
             # contenteditable is a new attribute in HTML5 that marks the element as WYSIWYG editable in the browser
             self.__html.load_html_string("<body contenteditable=\"true\">%s</body>" % (text), url)
             #self.__html.set_editable(True)
-            
+
         else:
             self.__plain.get_buffer().set_text(text)
 
@@ -1029,7 +1029,7 @@ class HTMLEditor(ListEditor):
         if match[1] in ["head", "body"]:
             return ""
         elif match[1] in ["br", "hr"]: return match[0]+TAG+" ".join(match[1:3])+NS_TAG+END_TAG # unpaired tags
-        elif match[1] in ["sub"]: 
+        elif match[1] in ["sub"]:
             if match[2].find("idref") != -1: return match[0]+" ".join(match[1:3])+NS_TAG+END_TAG # <sub>
             else: return "" # </sub>
         else: return match[0]+TAG+" ".join(match[1:3]).strip()+NS_TAG+">" # paired tags
@@ -1088,12 +1088,12 @@ class HTMLEditor(ListEditor):
         elif self.__switcher.get_active() == 1: # HTML -> TEXT
             self.__html_sw.set_property("visible", False)
             self.__plain_sw.set_property("visible", True)
-            
+
             # the following is a JavaScript trick to get exact innerHTML inside <body></body> out
             # using document's title
             self.__html.execute_script("document.title=document.documentElement.innerHTML;")
             desc = self.__html.get_main_frame().get_title()
-            
+
             desc = desc.replace("<head></head>", "")
             desc = desc.replace("<body contenteditable=\"true\">", "").replace("</body>", "")
 
@@ -1104,7 +1104,7 @@ class HTMLEditor(ListEditor):
                 # Use Beutiful soup to prettify the HTML
                 soup = BeautifulSoup(desc)
                 desc = soup.prettify()
-            else: 
+            else:
                 self.core.notify(_("Missing BeautifulSoup python module, HTML processing disabled."),
                     Notification.INFORMATION, info_box=self.info_box, msg_id="")
             self.__plain.get_buffer().set_text(desc)
@@ -1120,7 +1120,7 @@ class HTMLEditor(ListEditor):
 class EnterList(EventObject):
     """Abstract class for enter listView
     """
-    
+
     COLUMN_MARK_ROW = 0
 
     def __init__(self, core, id, model, treeView, cb_action=None, window=None):
@@ -1162,24 +1162,24 @@ class EnterList(EventObject):
             if iter != None:
                 status = self.model.get_value(iter, 0)
                 if status != "*":
-                    
+
                     #control if is empty
                     for cell in self.control_empty:
                         (column, name) = cell
                         data = self.model.get_value(iter, column)
                         if (data == "" or data == None):
-                            md = Gtk.MessageDialog(self.window, 
+                            md = Gtk.MessageDialog(self.window,
                                     Gtk.DialogFlags.MODAL, Gtk.MessageType.INFO,
                                     Gtk.ButtonsType.OK, _("Column \"%s\" can't be empty.") % (name))
                             md.set_title("Info")
                             md.run()
                             md.destroy()
-                            
+
                             self.selection.handler_block(self.hendler_item_changed)
                             self.selection.select_path(self.model.get_path(iter))
                             self.selection.handler_unblock(self.hendler_item_changed)
                             return
-                            
+
                     # control is unique
                     for cell in self.control_unique:
                         (column, name) = cell
@@ -1187,7 +1187,7 @@ class EnterList(EventObject):
                         new_text = self.model.get_value(iter, column)
                         for row in self.model:
                             if row[column] == new_text and self.model.get_path(row.iter) != path:
-                                md = Gtk.MessageDialog(self.window, 
+                                md = Gtk.MessageDialog(self.window,
                                         Gtk.DialogFlags.MODAL, Gtk.MessageType.QUESTION,
                                         Gtk.ButtonsType.YES_NO, _("%(name)s \"%(new_text)s\" already specified.\n\nRewrite stored data?") % {"name": name, "new_text" : new_text})
                                 md.set_title(_("Language found"))
@@ -1199,7 +1199,7 @@ class EnterList(EventObject):
                                     self.selection.select_path(self.model.get_path(iter))
                                     self.selection.handler_unblock(self.hendler_item_changed)
                                     return
-                                else: 
+                                else:
                                     self.iter_del = row.iter
                                     if self.cb_action:
                                         self.cb_action("del")
@@ -1213,7 +1213,7 @@ class EnterList(EventObject):
         self.edit_path = path
         self.edit_column = column
         self.edit_text = new_text
-        
+
         if self.model[path][EnterList.COLUMN_MARK_ROW] == "*" and new_text != "":
             self.model[path][EnterList.COLUMN_MARK_ROW] = ""
             iter = self.model.append(None)
@@ -1227,23 +1227,23 @@ class EnterList(EventObject):
                 self.cb_action("edit")
             else:
                 self.emit("edit")
-            
+
     def __cb_del_row(self, widget, event):
         keyname = Gdk.keyval_name(event.keyval)
         if keyname == "Delete":
             selection = self.treeView.get_selection( )
-            if selection != None: 
+            if selection != None:
                 (model, iter) = selection.get_selected( )
                 if  iter != None and self.model.get_value(iter, EnterList.COLUMN_MARK_ROW) != "*":
-                    md = Gtk.MessageDialog(self.window, 
+                    md = Gtk.MessageDialog(self.window,
                         Gtk.DialogFlags.MODAL, Gtk.MessageType.QUESTION,
                         Gtk.ButtonsType.YES_NO, _("Do you want delete selected row?"))
                     md.set_title(_("Delete row"))
                     result = md.run()
                     md.destroy()
-                    if result == Gtk.ResponseType.NO: 
+                    if result == Gtk.ResponseType.NO:
                         return
-                    else: 
+                    else:
                         self.selected_old = None
                         self.iter_del = iter
                         if self.cb_action:
@@ -1257,7 +1257,7 @@ class EnterList(EventObject):
 class ControlEditWindow(Func):
     def __init__(self, core, lv, values):
         super(ControlEditWindow, self).__init__(core)
-        
+
         self.values = values
         self.item = None
         if lv:
@@ -1291,11 +1291,11 @@ class EditDialogWindow(EventObject):
                     "cb":           self.DHEditFix,
                     "textEntry":    {"name":    "ID",
                                     "column":   self.COLUMN_ID,
-                                    "empty":    False, 
+                                    "empty":    False,
                                     "unique":   True},
                     "textView":     {"name":    "Content",
                                     "column":   self.COLUMN_TEXT,
-                                    "empty":    False, 
+                                    "empty":    False,
                                     "unique":   False}
                         }
     """
@@ -1309,23 +1309,23 @@ class EditDialogWindow(EventObject):
         builder = Gtk.Builder()
         builder.set_translation_domain(l10n.TRANSLATION_DOMAIN)
         builder.add_from_file(os.path.join(paths.glade_prefix, "dialogs.glade"))
-        
+
         self.window = builder.get_object("dialog:edit_item")
         self.window.connect("delete-event", self.__delete_event)
         self.window.resize(400, 150)
-        
+
         btn_ok = builder.get_object("btn_ok")
         btn_ok.connect("clicked", self.__cb_do)
         btn_cancel = builder.get_object("btn_cancel")
         btn_cancel.connect("clicked", self.__delete_event)
-        
+
         #info for change
         self.iter_del = None
 
         table = builder.get_object("table")
         table.hide_all()
         table.show()
-        
+
         self.selection = values["view"].get_selection()
         (self.model, self.iter) = self.selection.get_selected()
 
@@ -1358,7 +1358,7 @@ class EditDialogWindow(EventObject):
             self.cBox = builder.get_object("cBox")
             cell = Gtk.CellRendererText()
             self.cBox.pack_start(cell, True)
-            self.cBox.add_attribute(cell, 'text',values["cBox"]["cBox_view"])  
+            self.cBox.add_attribute(cell, 'text',values["cBox"]["cBox_view"])
             self.cBox.set_model(values["cBox"]["model"])
             lbl_cBox = builder.get_object("lbl_cBox")
             lbl_cBox.set_label(values["cBox"]["name"])
@@ -1368,43 +1368,43 @@ class EditDialogWindow(EventObject):
                 self.cBox.set_active_iter(self.model.get_value(self.iter,values["cBox"]["column"]))
 
         self.show()
-        
+
     def __cb_do(self, widget):
         if self.new:
             dest_path = None
             self.iter = None
         else:
             dest_path = self.model.get_path(self.iter)
-        
+
         if "textEntry" in self.values:
             text_textEntry = self.textEntry.get_text()
-            
+
             # if data should not be empty and control
             if self.values["textEntry"]["empty"] == False:
                 if not self.control_empty(text_textEntry, self.values["textEntry"]["name"]):
                     return
-            
+
             # if data sould be unique and control
             if self.values["textEntry"]["unique"] == True:
-                path = self.control_unique(self.values["textEntry"]["name"], self.model, 
+                path = self.control_unique(self.values["textEntry"]["name"], self.model,
                                             self.values["textEntry"]["column"], text_textEntry, self.iter)
                 if path == False:
                     return
                 else:
                     dest_path = path
-            
+
             # if exist control function for data
             if "control_fce" in self.values["textEntry"]:
                 if self.values["textEntry"]["control_fce"](text_textEntry) == False:
                     return
-                   
-                    
+
+
         if "textView" in self.values:
             buff = self.textView.get_buffer()
             iter_start = buff.get_start_iter()
             iter_end = buff.get_end_iter()
             text_textView = buff.get_text(iter_start, iter_end, True)
-            
+
             # if data should not be empty and control
             if self.values["textView"]["empty"] == False:
                 if not self.control_empty(text_textView, self.values["textView"]["name"]):
@@ -1412,7 +1412,7 @@ class EditDialogWindow(EventObject):
 
             # if data sould be unique and control
             if self.values["textView"]["unique"] == True:
-                path = self.control_unique(self.values["textView"]["name"], self.model, 
+                path = self.control_unique(self.values["textView"]["name"], self.model,
                                             self.values["textView"]["column"], text_textView, self.iter)
                 if path == False:
                     return
@@ -1421,7 +1421,7 @@ class EditDialogWindow(EventObject):
 
             if "init_data" in self.values["textView"]:
                 self.init_data = text_textView
-                
+
         if "cBox" in self.values:
             active = self.cBox.get_active()
             if active < 0:
@@ -1432,24 +1432,24 @@ class EditDialogWindow(EventObject):
                 data_selected = self.values["cBox"]["model"][active][self.values["cBox"]["cBox_data"]]
                 view_selected = self.values["cBox"]["model"][active][self.values["cBox"]["cBox_view"]]
                 iter_selected = self.cBox.get_active_iter()
-                
+
             # if data should not be empty and control
             if self.values["cBox"]["empty"] == False:
                 if not self.control_empty(data_selected, self.values["cBox"]["name"]):
                     return
-            
+
             # if data sould be unique and control
             if self.values["cBox"]["unique"] == True:
-                path = self.control_unique(self.values["cBox"]["name"], self.model, 
+                path = self.control_unique(self.values["cBox"]["name"], self.model,
                                             self.values["cBox"]["column"], data_selected, self.iter)
                 if path == False:
                     return
                 else:
                     dest_path = path
-                    
+
             if "init_data" in self.values["cBox"]:
                 self.init_data = data_selected
-                
+
         # new row and unique => add new row
         if dest_path == None:
             iter = self.model.append()
@@ -1465,11 +1465,11 @@ class EditDialogWindow(EventObject):
         # if insert data are correct, put them to the model
         if "textEntry" in self.values:
             self.model.set_value(iter,self.values["textEntry"]["column"], text_textEntry)
-            
+
             if "control_fce" in self.values["textEntry"]:
                 text_textEntry = self.values["textEntry"]["control_fce"](text_textEntry)
             self.values["cb"](self.item, self.model, iter, self.values["textEntry"]["column"], text_textEntry, False)
-                    
+
         if "textView" in self.values:
             self.values["cb"](self.item, self.model, iter, self.values["textView"]["column"], text_textView, False)
             self.model.set_value(iter,self.values["textView"]["column"], text_textView)
@@ -1478,7 +1478,7 @@ class EditDialogWindow(EventObject):
             self.model.set_value(iter,self.values["cBox"]["column"], iter_selected)
             self.model.set_value(iter,self.values["cBox"]["column_view"], view_selected)
             self.values["cb"](self.item, self.model, iter, self.values["cBox"]["column"], data_selected, False)
-            
+
         self.window.destroy()
 
     def __delete_event(self, widget, event=None):
@@ -1487,22 +1487,22 @@ class EditDialogWindow(EventObject):
     def show(self):
         self.set_transient_for(self.core.main_window)
         self.window.show()
-        
+
     def control_unique(self, name, model, column, data, iter):
         """Control if data is unique.
-        
+
         @return None if data are dulplicat and user do not want changed exist data. Return Iter for store date
                 if data are not duplicate or data are duplicate and user can change them.
         """
-        
+
         if iter:
             path = model.get_path(iter)
         else:
             path = None
-            
+
         for row in model:
             if row[column] == data and self.model.get_path(row.iter) != path:
-                md = Gtk.MessageDialog(self.window, 
+                md = Gtk.MessageDialog(self.window,
                         Gtk.DialogFlags.MODAL, Gtk.MessageType.QUESTION,
                         Gtk.ButtonsType.YES_NO, _("%(name)s \"%(data)s\" already specified.\n\nRewrite stored data?") % {"name": name, "data": data})
                 md.set_title(_("Information exist"))
@@ -1510,23 +1510,23 @@ class EditDialogWindow(EventObject):
                 md.destroy()
                 if result == Gtk.ResponseType.NO:
                     return False
-                else: 
+                else:
                     return model.get_path(row.iter)
         return path
-    
+
     def control_empty(self, data, name):
         """Control data if are not empty.
-        
+
         @return True if not empty else return false
         """
-        
+
         if (data == "" or data == None):
-            md = Gtk.MessageDialog(self.window, 
+            md = Gtk.MessageDialog(self.window,
                     Gtk.DialogFlags.MODAL, Gtk.MessageType.INFO,
                     Gtk.ButtonsType.OK, _("\"%s\" can't be empty.") % (name))
             md.set_title(_("Info"))
             md.run()
             md.destroy()
             return False
-        
+
         return True

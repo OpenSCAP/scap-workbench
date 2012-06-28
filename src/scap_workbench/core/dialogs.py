@@ -42,17 +42,17 @@ class ImportDialog(abstract.Window, abstract.ListEditor):
 
     def __init__(self, core, data_model, cb):
         """Constructor
-        
+
         core - the SWBCore singleton instance
         data_model - commands.DXccdf instance (actually it's a DataHandler, not model!)
         cb - the import callback, if the import dialog succeeds in choosing a file this
              will be called to import the file
         """
-        
+
         # FIXME: constructors of both base classes are not called here!
-        
+
         self.core = core
-        
+
         self.__import = cb
         self.data_model = data_model
         builder = Gtk.Builder()
@@ -70,10 +70,10 @@ class ImportDialog(abstract.Window, abstract.ListEditor):
         #       where user can choose a callback?
         if not callable(self.__import):
             LOGGER.critical("FATAL: Function for import is not callable")
-            self.core.notify(_("<b>FATAL !</b> Function for import is not callable ! <a href='#bug'>Report</a>"), 
+            self.core.notify(_("<b>FATAL !</b> Function for import is not callable ! <a href='#bug'>Report</a>"),
                     Notification.FATAL, msg_id="notify:xccdf:import:dialog", link_cb=self.__action_link)
             return
-        
+
         if os.access(paths.stock_data_prefix, os.X_OK):
             self.filechooser.set_current_folder(paths.stock_data_prefix)
         self.wdialog.set_transient_for(self.core.main_window)
@@ -91,7 +91,7 @@ class ImportDialog(abstract.Window, abstract.ListEditor):
         if action == "#overvalid":
             self.core.notify_destroy("notify:xccdf:import:dialog")
             self.__do(overvalid=True)
-        
+
         elif action == "#log":
             builder = Gtk.Builder()
             builder.set_translation_domain(l10n.TRANSLATION_DOMAIN)
@@ -110,7 +110,7 @@ class ImportDialog(abstract.Window, abstract.ListEditor):
 
         elif action == "#bug":
             self.data_model.open_webbrowser(paths.BUGTRACKER_URL)
-        
+
         else:
             return False
 
@@ -119,23 +119,23 @@ class ImportDialog(abstract.Window, abstract.ListEditor):
 
     def __do(self, widget=None, overvalid=False):
         """Performs the import.
-        
+
         widget - the widget (usually the OK button) that caused this to happen
         overvalid - if True the validation step will be skipped
         """
-        
+
         import_file = self.filechooser.get_filename()
         if import_file == None:
             self.core.notify(_("Choose a file first."),
                 Notification.INFORMATION, info_box=self.info_box, msg_id="notify:xccdf:import:dialog")
             return
-        
+
         if not overvalid and self.valid.get_active():
             # Test the validity of exported model
             self.log = []
             retval = self.data_model.validate_file(import_file, reporter=self.__cb_report)
             if retval != True:
-                self.core.notify(_("You are trying to import non-valid XCCDF Benchmark ! <a href='#overvalid'>Proceed</a> <a href='#log'>More</a>"), 
+                self.core.notify(_("You are trying to import non-valid XCCDF Benchmark ! <a href='#overvalid'>Proceed</a> <a href='#log'>More</a>"),
                         Notification.WARNING, info_box=self.info_box, msg_id="notify:xccdf:import:dialog", link_cb=self.__action_link)
                 #self.progress.destroy()
                 return
@@ -145,10 +145,10 @@ class ImportDialog(abstract.Window, abstract.ListEditor):
 
     def __dialog_destroy(self, widget=None):
         """Destroy the dialog window, usually as a reponse to Cancel being clicked.
-        
+
         widget - the widget that caused this to happen
         """
-        if self.wdialog: 
+        if self.wdialog:
             self.wdialog.destroy()
 
 class ExportDialog(abstract.Window, abstract.ListEditor):
@@ -159,16 +159,16 @@ class ExportDialog(abstract.Window, abstract.ListEditor):
 
     def __init__(self, core, data_model):
         # FIXME: Constructors of both base classes are not called here!
-        
+
         self.core = core
-        
+
         self.data_model = data_model
         self.log = []
 
         builder = Gtk.Builder()
         builder.set_translation_domain(l10n.TRANSLATION_DOMAIN)
         builder.add_from_file(os.path.join(paths.glade_dialog_prefix, "export.glade"))
-        
+
         self.wdialog = builder.get_object("dialog:export")
         self.progress = builder.get_object("dialog:progress")
         self.info_box = builder.get_object("dialog:export:info_box")
@@ -212,27 +212,27 @@ class ExportDialog(abstract.Window, abstract.ListEditor):
         if action == "#overwrite":
             self.core.notify_destroy("notify:xccdf:export:dialog")
             self.__do(overwrite=True)
-            
+
         if action == "#overvalid":
             self.core.notify_destroy("notify:xccdf:export:dialog")
             self.__do(overvalid=True)
-            
+
         elif action == "#browser":
             self.core.notify_destroy("notify:xccdf:export")
             self.data_model.open_webbrowser(self.export_file)
-            
+
         elif action == "#webkit":
             self.core.notify_destroy("notify:xccdf:export")
             f = open(self.export_file)
             desc = f.read()
             f.close()
             self.preview(widget=None, desc=desc)
-            
+
         elif action == "#log":
             builder = Gtk.Builder()
             builder.set_translation_domain(l10n.TRANSLATION_DOMAIN)
             builder.add_from_file(os.path.join(paths.glade_dialog_prefix, "preview.glade"))
-            
+
             preview_dialog = builder.get_object("dialog:preview")
             box = Gtk.VBox()
             box.set_spacing(2)
@@ -257,12 +257,12 @@ class ExportDialog(abstract.Window, abstract.ListEditor):
                 Notification.INFORMATION, info_box=self.info_box, msg_id="dialog:export:notify")
             #self.progress.destroy()
             return
-        
+
         self.export_file = export_file
 
         if not overwrite and export_file == self.core.lib.xccdf and self.guide_rb.get_active():
             # We are trying to export guide to the XCCDF file (common mistake)
-            self.core.notify(_("You are trying to overwrite loaded XCCDF Benchmark by XCCDF Guide ! <a href='#overwrite'>Proceed</a>"), 
+            self.core.notify(_("You are trying to overwrite loaded XCCDF Benchmark by XCCDF Guide ! <a href='#overwrite'>Proceed</a>"),
                     Notification.WARNING, info_box=self.info_box, msg_id="notify:xccdf:export:dialog", link_cb=self.__action_link)
             #self.progress.destroy()
             return
@@ -272,7 +272,7 @@ class ExportDialog(abstract.Window, abstract.ListEditor):
             self.log = []
             retval = self.data_model.validate(reporter=self.__cb_report)
             if not retval:
-                self.core.notify(_("You are trying to export non-valid XCCDF Benchmark ! <a href='#overvalid'>Proceed</a> <a href='#log'>More</a>"), 
+                self.core.notify(_("You are trying to export non-valid XCCDF Benchmark ! <a href='#overvalid'>Proceed</a> <a href='#log'>More</a>"),
                         Notification.WARNING, info_box=self.info_box, msg_id="notify:xccdf:export:dialog", link_cb=self.__action_link)
                 #self.progress.destroy()
                 return
@@ -312,5 +312,5 @@ class ExportDialog(abstract.Window, abstract.ListEditor):
     def __dialog_destroy(self, widget=None):
         """
         """
-        if self.wdialog: 
+        if self.wdialog:
             self.wdialog.destroy()

@@ -61,10 +61,10 @@ class EditTitle(abstract.ListEditor):
         """
         item = None
         buffer = self.title.get_buffer()
-        if self.iter and self.get_model() != None: 
+        if self.iter and self.get_model() != None:
             item = self.get_model()[self.iter][self.COLUMN_OBJ]
 
-        retval = self.data_model.edit_title(self.operation, item, self.lang.get_text(), buffer.get_text(buffer.get_start_iter(), buffer.get_end_iter(), True), 
+        retval = self.data_model.edit_title(self.operation, item, self.lang.get_text(), buffer.get_text(buffer.get_start_iter(), buffer.get_end_iter(), True),
                                             self.overrides.get_active())
         self.fill()
         self.__dialog_destroy()
@@ -73,18 +73,18 @@ class EditTitle(abstract.ListEditor):
     def __dialog_destroy(self, widget=None):
         """
         """
-        if self.wdialog: 
+        if self.wdialog:
             self.wdialog.destroy()
 
     def dialog(self, widget, operation):
         """
         """
         self.operation = operation
-        
+
         builder = Gtk.Builder()
         builder.set_translation_domain(l10n.TRANSLATION_DOMAIN)
         builder.add_from_file(os.path.join(paths.glade_dialog_prefix, "edit_title.glade"))
-        
+
         self.wdialog = builder.get_object("dialog:edit_title")
         self.info_box = builder.get_object("dialog:edit_title:info_box")
         self.lang = builder.get_object("dialog:edit_title:lang")
@@ -111,12 +111,12 @@ class EditTitle(abstract.ListEditor):
                 self.notifications.append(self.core.notify(_("Please select at least one item to delete"),
                     core.Notification.ERROR, msg_id="notify:not_selected"))
                 return
-            else: 
+            else:
                 iter = self.dialogDel(self.core.main_window, self.get_selection())
                 if iter != None:
                     self.__do()
                 return
-        else: 
+        else:
             LOGGER.error("Unknown operation for title dialog: \"%s\"" % (operation,))
             return
 
@@ -139,7 +139,7 @@ class EditDescription(abstract.HTMLEditor):
 
     def __init__(self, core, id, widget, data_model):
 
-        self.data_model = data_model 
+        self.data_model = data_model
         super(EditDescription, self).__init__(id, core, widget=widget, model=Gtk.ListStore(str, bool, str, GObject.TYPE_PYOBJECT))
         self.add_sender(id, "update")
 
@@ -152,7 +152,7 @@ class EditDescription(abstract.HTMLEditor):
         """
         item = None
         (model, iter) = self.get_selection().get_selected()
-        if iter and model != None: 
+        if iter and model != None:
             item = model[iter][self.COLUMN_OBJ]
 
         if self.operation == self.data_model.CMD_OPER_DEL:
@@ -168,25 +168,25 @@ class EditDescription(abstract.HTMLEditor):
     def __dialog_destroy(self, widget=None):
         """
         """
-        if self.wdialog: 
+        if self.wdialog:
             self.wdialog.destroy()
 
     def dialog(self, widget, operation):
         """
         """
         self.operation = operation
-        
+
         builder = Gtk.Builder()
         builder.set_translation_domain(l10n.TRANSLATION_DOMAIN)
         builder.add_from_file(os.path.join(paths.glade_dialog_prefix, "edit_description.glade"))
-        
+
         self.wdialog = builder.get_object("dialog:edit_description")
         self.info_box = builder.get_object("dialog:edit_description:info_box")
         self.lang = builder.get_object("dialog:edit_description:lang")
         self.overrides = builder.get_object("dialog:edit_description:overrides")
         self.toolbar = builder.get_object("dialog:edit_description:toolbar")
         self.html_box = builder.get_object("dialog:edit_description:html:box")
-        
+
         builder.get_object("dialog:edit_description:action:bold").connect("activate", self.on_action, "bold")
         builder.get_object("dialog:edit_description:action:italic").connect("activate", self.on_action, "italic")
         builder.get_object("dialog:edit_description:action:underline").connect("activate", self.on_action, "underline")
@@ -227,12 +227,12 @@ class EditDescription(abstract.HTMLEditor):
                 self.notifications.append(self.core.notify(_("Please select at least one item to delete"),
                     core.Notification.ERROR, msg_id="notify:not_selected"))
                 return
-            else: 
+            else:
                 retval = self.dialogDel(self.core.main_window, self.get_selection())
                 if retval != None:
                     self.__do()
                 return
-        else: 
+        else:
             LOGGER.error("Unknown operation for description dialog: \"%s\"" % (operation,))
             return
 
@@ -254,7 +254,7 @@ class EditWarning(abstract.ListEditor):
     COLUMN_OBJ          = 4
 
     def __init__(self, core, id, widget, data_model):
-        
+
         self.data_model = data_model
         super(EditWarning, self).__init__(id, core, widget=widget, model=Gtk.ListStore(str, bool, str, str, GObject.TYPE_PYOBJECT))
         self.add_sender(id, "update")
@@ -270,7 +270,7 @@ class EditWarning(abstract.ListEditor):
         item = None
         category = None
         buffer = self.warning.get_buffer()
-        if self.iter and self.get_model() != None: 
+        if self.iter and self.get_model() != None:
             item = self.get_model()[self.iter][self.COLUMN_OBJ]
         if self.category.get_active() != -1:
             category = self.category.get_model()[self.category.get_active()][0]
@@ -285,18 +285,18 @@ class EditWarning(abstract.ListEditor):
     def __dialog_destroy(self, widget=None):
         """
         """
-        if self.wdialog: 
+        if self.wdialog:
             self.wdialog.destroy()
 
     def dialog(self, widget, operation):
         """
         """
         self.operation = operation
-        
+
         builder = Gtk.Builder()
         builder.set_translation_domain(l10n.TRANSLATION_DOMAIN)
         builder.add_from_file(os.path.join(paths.glade_dialog_prefix, "edit_warning.glade"))
-        
+
         self.wdialog = builder.get_object("dialog:edit_warning")
         self.info_box = builder.get_object("dialog:edit_warning:info_box")
         self.lang = builder.get_object("dialog:edit_warning:lang")
@@ -326,12 +326,12 @@ class EditWarning(abstract.ListEditor):
                 self.notifications.append(self.core.notify(_("Please select at least one item to delete"),
                     core.Notification.ERROR, msg_id="notify:not_selected"))
                 return
-            else: 
+            else:
                 iter = self.dialogDel(self.core.main_window, self.get_selection())
                 if iter != None:
                     self.__do()
                 return
-        else: 
+        else:
             LOGGER.error("Unknown operation for description dialog: \"%s\"" % (operation,))
             return
 
@@ -352,7 +352,7 @@ class EditStatus(abstract.ListEditor):
 
     def __init__(self, core, id, widget, data_model):
 
-        self.data_model = data_model 
+        self.data_model = data_model
         super(EditStatus, self).__init__(id, core, widget=widget, model=Gtk.ListStore(str, str, GObject.TYPE_PYOBJECT))
         self.add_sender(id, "update")
 
@@ -371,7 +371,7 @@ class EditStatus(abstract.ListEditor):
             return
 
         item = None
-        if self.iter and self.get_model() != None: 
+        if self.iter and self.get_model() != None:
             item = self.get_model()[self.iter][self.COLUMN_OBJ]
 
         year, month, day = self.calendar.get_date()
@@ -384,18 +384,18 @@ class EditStatus(abstract.ListEditor):
     def __dialog_destroy(self, widget=None):
         """
         """
-        if self.wdialog: 
+        if self.wdialog:
             self.wdialog.destroy()
 
     def dialog(self, widget, operation):
         """
         """
         self.operation = operation
-        
+
         builder = Gtk.Builder()
         builder.set_translation_domain(l10n.TRANSLATION_DOMAIN)
         builder.add_from_file(os.path.join(paths.glade_dialog_prefix, "edit_status.glade"))
-        
+
         self.wdialog = builder.get_object("dialog:edit_status")
         self.info_box = builder.get_object("dialog:edit_status:info_box")
         self.calendar = builder.get_object("dialog:edit_status:calendar")
@@ -425,12 +425,12 @@ class EditStatus(abstract.ListEditor):
                 self.notifications.append(self.core.notify(_("Please select at least one item to delete"),
                     core.Notification.ERROR, msg_id="notify:not_selected"))
                 return
-            else: 
+            else:
                 iter = self.dialogDel(self.core.main_window, self.get_selection())
                 if iter != None:
                     self.__do()
                 return
-        else: 
+        else:
             LOGGER.error("Unknown operation for description dialog: \"%s\"" % (operation,))
             return
 
@@ -446,18 +446,18 @@ class EditStatus(abstract.ListEditor):
             self.append([time.strftime("%d-%m-%Y", time.localtime(item.date)), status[1], item])
 
 class EditSelectIdDialogWindow(object):
-    
+
     COLUMN_ID = 0
     COLUMN_TITLE = 1
     COLUMN_SELECTED = 2
-    
+
     def __init__(self, item, core, model_conflict, model_item, cb):
         self.core = core
         self.item = item
         self.cb = cb
         self.model_conflict = model_conflict
         self.model_item = model_item
-        
+
         builder = Gtk.Builder()
         builder.set_translation_domain(l10n.TRANSLATION_DOMAIN)
         builder.add_from_file(os.path.join(paths.glade_prefix, "dialogs.glade"))
@@ -465,7 +465,7 @@ class EditSelectIdDialogWindow(object):
         self.window = builder.get_object("dialog:add_id")
         self.window.connect("delete-event", self.__delete_event)
         self.window.resize(800, 600)
-        
+
         btn_ok = builder.get_object("add_id:btn_ok")
         btn_ok.connect("clicked", self.__cb_do)
         btn_cancel = builder.get_object("add_id:btn_cancel")
@@ -475,19 +475,19 @@ class EditSelectIdDialogWindow(object):
         btn_add.connect("clicked", self.cb_btn_add)
         btn_remove = builder.get_object("add_id:btn_remove")
         btn_remove.connect("clicked", self.__cb_del_row)
-        
+
         self.btn_search = builder.get_object("add_id:btn_search")
         self.btn_search.connect("clicked",self.__cb_search)
         self.btn_search_reset = builder.get_object("add_id:btn_search_reset")
         self.btn_search_reset.connect("clicked",self.__cb_search_reset)
-        
+
         self.text_search_id = builder.get_object("add_id:text_search_id")
         self.text_search_title = builder.get_object("add_id:text_search_title")
-        
+
         #treeView for search item for select to add
         self.model_search = Gtk.TreeStore(str, str, bool)
         self.tw_search = builder.get_object("add_id:tw_search")
-        
+
         cell = Gtk.CellRendererText()
         column = Gtk.TreeViewColumn(_("ID Item"), cell, text=self.COLUMN_ID)
         column.set_resizable(True)
@@ -498,13 +498,13 @@ class EditSelectIdDialogWindow(object):
         column.set_expand(True)
         column.set_resizable(True)
         self.tw_search.append_column(column)
-        
+
         self.tw_search.set_model(self.model_search)
-        
+
         #treeView for item, which will be add
         self.model_to_add = Gtk.ListStore(str, str)
         self.tw_add = builder.get_object("add_id:tw_add")
-        
+
         cell = Gtk.CellRendererText()
         column = Gtk.TreeViewColumn(_("ID Item"), cell, text=self.COLUMN_ID)
         column.set_resizable(True)
@@ -517,7 +517,7 @@ class EditSelectIdDialogWindow(object):
         self.tw_add.append_column(column)
 
         self.tw_add.set_model(self.model_to_add)
-        
+
         menu = Gtk.Menu()
         menu_item = Gtk.MenuItem(_("Remove from add"))
         menu_item.show()
@@ -533,13 +533,13 @@ class EditSelectIdDialogWindow(object):
         menu_item.connect("activate", self.cb_btn_add)
         self.tw_search.connect ("button_press_event",self.cb_popupMenu_to_add, menu_search)
 
-        
+
         self.model_search.clear()
         self.copy_model(model_item, model_item.get_iter_first(), self.model_search, None)
         self.show()
 
     def __cb_do(self, widget):
-        
+
         iter_add =  self.model_to_add.get_iter_first()
         while iter_add:
             #add row, which not added before
@@ -555,37 +555,37 @@ class EditSelectIdDialogWindow(object):
                 self.model_conflict.append([id_add])
             iter_add = self.model_to_add.iter_next(iter_add)
         self.window.destroy()
-            
+
     def __cb_del_row1(self, widget, event):
         keyname = Gdk.keyval_name(event.keyval)
         if keyname == "Delete":
             selection = self.tw_add.get_selection( )
-            if selection != None: 
+            if selection != None:
                 (model, iter) = selection.get_selected( )
                 if  iter != None:
                     model.remove(iter)
 
-                        
+
     def __cb_del_row(self, widget):
         selection = self.tw_add.get_selection()
         (model, iter) = selection.get_selected()
         if iter != None:
             model.remove(iter)
-    
+
     def cb_popupMenu_to_add (self, treeview, event, menu):
         if event.button == 3:
             time = event.time
             menu.popup(None,None,None,event.button,event.time)
-            
+
     def show(self):
         self.window.set_transient_for(self.core.main_window)
         self.window.show()
 
     def __delete_event(self, widget, event=None):
         self.window.destroy()
-            
+
     def __cb_toggled(self, cell, path ):
-        
+
         self.model_search[path][self.COLUMN_SELECTED] = not self.model_search[path][self.COLUMN_SELECTED]
         id_item = self.model_search[path][self.COLUMN_ID]
         if not self.model_search[path][self.COLUMN_SELECTED]:
@@ -608,7 +608,7 @@ class EditSelectIdDialogWindow(object):
 
     def cb_btn_add(self, widget):
         selection = self.tw_search.get_selection( )
-        if selection != None: 
+        if selection != None:
             (model, iter_add) = selection.get_selected( )
             if  iter_add != None:
                 id_item = self.model_search.get_value(iter_add, self.COLUMN_ID)
@@ -618,7 +618,7 @@ class EditSelectIdDialogWindow(object):
                         return
                     iter = self.model_to_add.iter_next(iter)
                 self.model_to_add.append([id_item,self.model_search.get_value(iter_add, self.COLUMN_TITLE)])
-            
+
     def copy_model(self, model_item, iter, model_search, iter_parent):
         """
         copy_model to search model
@@ -632,18 +632,18 @@ class EditSelectIdDialogWindow(object):
             self.copy_model(model_item, model_item.iter_children(iter), model_search, iter_self)
             iter = model_item.iter_next(iter)
         return
-    
+
     def __cb_search(self, widget):
         self.model_search.clear()
-        self.search(self.model_item, self.model_item.get_iter_first(), self.model_search, 
+        self.search(self.model_item, self.model_item.get_iter_first(), self.model_search,
                                 self.text_search_id.get_text(), self.text_search_title.get_text())
 
     def __cb_search_reset(self, widget):
         self.model_search.clear()
         self.copy_model(self.model_item, self.model_item.get_iter_first(), self.model_search, None)
-                                
+
     def search(self, model_item, iter, model_search, id, title):
-        """ 
+        """
         Filter data to list
         """
         while iter:
@@ -655,15 +655,15 @@ class EditSelectIdDialogWindow(object):
                 iter_to = model_search.append(None, row)
             self.search(model_item, model_item.iter_children(iter), model_search, id, title)
             iter = model_item.iter_next(iter)
-    
-    
+
+
     def match_fiter(self, id, title,  model_item, iter):
         try:
             pattern = re.compile(id,re.IGNORECASE)
-            res_id = pattern.search(model_item.get_value(iter,0)) 
+            res_id = pattern.search(model_item.get_value(iter,0))
             pattern = re.compile(title,re.IGNORECASE)
-            res_title = pattern.search(model_item.get_value(iter,3)) 
-            
+            res_title = pattern.search(model_item.get_value(iter,3))
+
             if res_id == None or res_title == None:
                 return False
             return True
@@ -702,14 +702,14 @@ class FindOvalDef(abstract.Window, abstract.ListEditor):
     def __dialog_destroy(self, widget=None):
         """
         """
-        if self.wdialog: 
+        if self.wdialog:
             self.wdialog.destroy()
 
     def dialog(self, widget, href):
         builder = Gtk.Builder()
         builder.set_translation_domain(l10n.TRANSLATION_DOMAIN)
         builder.add_from_file(os.path.join(paths.glade_prefix, "dialogs.glade"))
-        
+
         self.wdialog = builder.get_object("dialog:find_definition")
         self.info_box = builder.get_object("dialog:find_definition:info_box")
         self.definitions = builder.get_object("dialog:find_definition:definitions")
@@ -727,7 +727,7 @@ class FindOvalDef(abstract.Window, abstract.ListEditor):
         self.definitions.set_model(modelfilter)
 
         definitions = self.data_model.get_oval_definitions(href)
-        for definition in definitions: 
+        for definition in definitions:
             self.definitions.get_model().get_model().append([definition.id, definition.title])
 
         self.wdialog.set_transient_for(self.core.main_window)
@@ -769,20 +769,20 @@ class FindItem(abstract.Window, abstract.ListEditor):
     def __dialog_destroy(self, widget=None):
         """
         """
-        if self.wdialog: 
+        if self.wdialog:
             self.wdialog.destroy()
 
     def dialog(self, type):
         builder = Gtk.Builder()
         builder.set_translation_domain(l10n.TRANSLATION_DOMAIN)
         builder.add_from_file(os.path.join(paths.glade_prefix, "dialogs.glade"))
-        
+
         self.wdialog = builder.get_object("dialog:find_value")
         self.info_box = builder.get_object("dialog:find_value:info_box")
         self.items = builder.get_object("dialog:find_value:values")
         self.search = builder.get_object("dialog:find_value:search")
         self.search.connect("changed", self.search_treeview, self.items)
-        
+
         builder.get_object("dialog:find_value:btn_cancel").connect("clicked", self.__dialog_destroy)
         builder.get_object("dialog:find_value:btn_ok").connect("clicked", self.__do)
         builder.get_object("dialog:find_value:export_name:box").set_property('visible', False)

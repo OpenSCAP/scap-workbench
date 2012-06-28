@@ -44,44 +44,44 @@ class Enum(tuple):
     def map(self, id):
         """Maps given id to item, returns None on failure
         """
-        
+
         for item in tuple(self):
             if item[0] == id:
                 return item
-            
+
         return None
 
     def pos(self, id):
         """Returns position of given id (in a model), returns -1 on failure
         """
-        
+
         for item in tuple(self):
             if item[0] == id:
                 return tuple.index(self, item)
-            
+
         return -1
 
     def value(self, pos):
         """Returns value on given position, returns None on failure
         """
-        
+
         if pos > len(tuple(self)) or len(tuple(self)[pos]) < 1:
             return None
-        
+
         else:
             return tuple(self)[pos][0]
 
     def get_model(self):
         """Creates a ListStore model, puts enumeration values to it as list items
         and returns the result.
-        
+
         This method can never fail, it always returns a model but the model can be empty!
         """
-        
+
         model = Gtk.ListStore(int, str, str)
         for item in tuple(self):
             model.append(item)
-            
+
         return model
 
 BOOLEAN = Enum((

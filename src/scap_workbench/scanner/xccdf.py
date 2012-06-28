@@ -37,17 +37,17 @@ from scap_workbench.core.logger import LOGGER
 class MenuButtonXCCDF(abstract.MenuButton):
     """GUI for operations with xccdf file.
     """
-    
+
     def __init__(self, builder, widget, _core):
         self.builder = builder
         self.data_model = commands.DHXccdf(_core)
         super(MenuButtonXCCDF, self).__init__("gui:btn:main:xccdf", widget, _core)
-        
+
         self.widget = widget
-        
+
         self.body = self.builder.get_object("xccdf:box")
         self.sub_menu = self.builder.get_object("main:subtoolbar")
-        
+
         # info
         self.label_info = self.builder.get_object("xccdf:lbl_info")
         self.label_title = self.builder.get_object("xccdf:lbl_title")
@@ -95,12 +95,12 @@ class MenuButtonXCCDF(abstract.MenuButton):
         """Adds file info for OVAL references files, comprises of filename,
         product name, product version, schema version, timestamp and validation status
         """
-        
+
         # Add table of information to the expander with label name
         expander = Gtk.Expander()
         label = Gtk.Label(_("OVAL: %s") % (name,))
         pango_list = Pango.AttrList()
-            
+
         label.set_attributes(pango_list)
         expander.set_label_widget(label)
         expander.set_expanded(True)
@@ -144,37 +144,37 @@ class MenuButtonXCCDF(abstract.MenuButton):
         expander.add(align)
         self.files_box.pack_start(expander, False, False, 0)
         expander.show_all()
-        
+
     def __add_sce_file_info(self, name):
         """Adds file info for ScriptCheckEngine referenced file, this currently
         only contains filename of the referenced file
         """
-        
+
         # Add table of information to the expander with label name
         expander = Gtk.Expander()
         label = Gtk.Label(_("SCE: %s") % (name,))
         pango_list = Pango.AttrList()
-            
+
         label.set_attributes(pango_list)
         expander.set_label_widget(label)
         expander.set_expanded(True)
 
         self.files_box.pack_start(expander, False, False, 0)
         expander.show_all()
-        
+
     def __add_error_file_info(self, name):
         """Adds file info for a referenced file that wasn't found (or other error happened)
         """
-        
+
         # Add table of information to the expander with label name
         expander = Gtk.Expander()
         label = Gtk.Label(label=_("File not found: %s") % (name))
         pango_list = Pango.AttrList()
-        
+
         label.set_attributes(pango_list)
         expander.set_label_widget(label)
         expander.set_expanded(True)
-        
+
         self.files_box.pack_start(expander, False, False, 0)
         expander.show_all()
 
@@ -189,7 +189,7 @@ class MenuButtonXCCDF(abstract.MenuButton):
         self.label_warnings.set_text("")
         self.label_notices.set_text("")
         self.label_language.set_text("")
-        
+
         for child in self.box_references.get_children():
             child.destroy()
         self.__clear_file_infos()
@@ -223,7 +223,7 @@ class MenuButtonXCCDF(abstract.MenuButton):
         self.label_warnings.set_text("\n".join(["%s: %s" % (warn[0], warn[1].text) for warn in details["warnings"]]) or "None")
         self.label_notices.set_text("\n".join(["%s: %s" % (notice[0], notice[1].text) for notice in details["notices"]]) or "None")
         self.label_language.set_text(lang or "")
-        
+
         self.btn_close.set_sensitive(True)
         self.btn_export.set_sensitive(True)
         self.__menu_sensitive(True)
@@ -242,14 +242,14 @@ class MenuButtonXCCDF(abstract.MenuButton):
             self.box_references.pack_start(label, True, True, 0)
             #label.set_tooltip_text(ref[1])
             label.set_use_markup(True)
-            
+
             try:
                 label.set_track_visited_links(True)
             except AttributeError:
                 pass
-            
+
             label.set_line_wrap(True)
-            label.set_line_wrap_mode(Pango.WrapMode.WORD) 
+            label.set_line_wrap_mode(Pango.WrapMode.WORD)
             label.set_alignment(0,0)
             label.connect("size-allocate", core.label_size_allocate)
             label.show()
@@ -258,7 +258,7 @@ class MenuButtonXCCDF(abstract.MenuButton):
 
         oval_files = self.data_model.get_oval_files_info()
         sce_files = self.data_model.get_sce_files()
-        
+
         for f in details["files"]:
             if f in oval_files:
                 self.__add_oval_file_info(f, oval_files[f])
@@ -271,7 +271,7 @@ class MenuButtonXCCDF(abstract.MenuButton):
     def __cb_new(self, widget):
         if not self.core.init(None):
             return
-        
+
         self.data_model.update(id = "New_SCAP_Benchmark", version="0", lang="en")
         self.core.selected_lang = "en"
         self.data_model.edit_status(self.data_model.CMD_OPER_ADD)
@@ -294,7 +294,7 @@ class MenuButtonXCCDF(abstract.MenuButton):
                 self.__update()
             except KeyError:
                 pass
-            
+
             self.btn_import.set_sensitive(False)
 
     def __cb_import(self, widget):
@@ -306,18 +306,18 @@ class MenuButtonXCCDF(abstract.MenuButton):
             self.notifications.append(self.core.notify(_("Benchmark has been exported to \"%s\"") % (file_name,),
                 core.Notification.SUCCESS, msg_id="notify:xccdf:export"))
             self.core.xccdf_file = file_name
-            
+
         else:
             self.notifications.append(self.core.notify(_("Export canceled or unsuccessful."),
                 core.Notification.INFORMATION, msg_id="notify:xccdf:export"))
 
     def __menu_sensitive(self, active):
         """This gets called as a reaction to a file being loaded or closed.
-        
+
         If active is True this will make the latter 2 buttons in the top menu sensitive,
         otherwise it will make them insensitive.
         """
-        
+
         self.core.get_item("gui:btn:menu:tailoring").set_sensitive(active)
         self.core.get_item("gui:btn:menu:scan").set_sensitive(active)
 

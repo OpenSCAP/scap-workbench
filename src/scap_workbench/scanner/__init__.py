@@ -52,22 +52,22 @@ class MainWindow(abstract.Window):
                             help = _("Enable verbose debug level logging"))
         parser.add_argument("XCCDF_FILE", type = str, nargs = "?",
                             help = _("Load given XCCDF file immediately after the application starts"))
-        
+
         args = parser.parse_args()
-        
+
         if args.debug:
             LOGGER.setLevel(logging.DEBUG)
-            LOGGER.root.setLevel(logging.DEBUG)        
-        
+            LOGGER.root.setLevel(logging.DEBUG)
+
         error.install_exception_hook()
 
         self.builder = Gtk.Builder()
         self.builder.set_translation_domain(l10n.TRANSLATION_DOMAIN)
         self.builder.add_from_file(os.path.join(paths.glade_prefix, "scanner.glade"))
         self.builder.connect_signals(self)
-        
+
         super(MainWindow, self).__init__("gui:main", core.SWBCore(self.builder, True))
-        
+
         if self.core is None:
             raise RuntimeError("Initialization failed, core is None")
 
@@ -88,31 +88,31 @@ class MainWindow(abstract.Window):
         self.menu.add_item(abstract.MenuButton("gui:btn:menu:reports", self.builder.get_object("main:toolbar:reports"), self.core))
         self.menu.add_item(tailoring.MenuButtonTailoring(self.builder, self.builder.get_object("main:toolbar:tailoring"), self.core))
         self.menu.add_item(scan.MenuButtonScan(self.builder, self.builder.get_object("main:toolbar:scan"), self.core))
-        
+
         self.window.show()
         self.builder.get_object("main:toolbar:main").set_active(True)
 
         self.core.get_item("gui:btn:main:xccdf").update()
-        
+
         if args.XCCDF_FILE is not None:
             xccdf_menu_button.import_xccdf(args.XCCDF_FILE)
-        
+
     def delete_event(self, widget, event, data=None):
         """Closes the window and quits
         """
-        
+
         self.emit("quit")
-        
+
         # since we are quitting gtk we can't be popping a dialog when exception happens anymore
         error.uninstall_exception_hook()
         Gtk.main_quit()
-        
+
         return False
 
     def run(self):
         """Starts the event loop
         """
-        
+
         Gtk.main()
 
 # we only expose the MainWindow from the entire scanner subpackage because that's all that's needed to start the app
