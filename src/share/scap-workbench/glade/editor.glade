@@ -4484,8 +4484,8 @@ This attribute is DEPRECATED and appears in the specification only for backward 
                                                             <property name="visible">True</property>
                                                             <property name="can_focus">False</property>
                                                             <property name="has_tooltip">True</property>
-                                                            <property name="tooltip_markup" translatable="yes">A keyword that designates the potencial for disruption or degradation of target operation</property>
-                                                            <property name="tooltip_text" translatable="yes">A keyword that designates the potencial for disruption or degradation of target operation</property>
+                                                            <property name="tooltip_markup" translatable="yes">A keyword that designates the potential for disruption or degradation of target operation</property>
+                                                            <property name="tooltip_text" translatable="yes">A keyword that designates the potential for disruption or degradation of target operation</property>
                                                             <property name="hexpand">True</property>
                                                             <child>
                                                             <object class="GtkCellRendererText" id="cellrenderertext21"/>

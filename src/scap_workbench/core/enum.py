@@ -144,7 +144,7 @@ LEVEL = Enum((
     [openscap.OSCAP.XCCDF_HIGH, "HIGH", _("High.")]))
 
 ROLE = Enum((
-    [openscap.OSCAP.XCCDF_ROLE_FULL, "FULL", _("Check the rule and let the result contriburte to the score and appear in reports..")],
+    [openscap.OSCAP.XCCDF_ROLE_FULL, "FULL", _("Check the rule and let the result contribute to the score and appear in reports..")],
     [openscap.OSCAP.XCCDF_ROLE_UNSCORED, "UNSCORED", _("Check the rule and include the result in reports, but do not include it into score computations")],
     [openscap.OSCAP.XCCDF_ROLE_UNCHECKED, "UNCHECKED", _("Don't check the rule, result will be XCCDF_RESULT_UNKNOWN.")]))
 
