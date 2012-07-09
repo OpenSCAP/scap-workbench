@@ -193,7 +193,7 @@ class DHScan(commands.DataHandler, commands.EventObject):
 
         # choose color for cell, and text of result
         if  item[DHScan.COLUMN_RESULT] == None:
-            text = "Running .."
+            text = _("Running ..")
             color_backG = DHScan.BG_RUNNING
             colorText_title = DHScan.FG_TITLE_NORMAL
             colorText_ID = DHScan.FG_ID_NORMAL
@@ -317,7 +317,7 @@ class DHScan(commands.DataHandler, commands.EventObject):
                 self.__progress.set_text(_("Scanning rule '%(rule_id)s' ... (%(step)i/%(total)i)") % {"rule_id": id, "step": self.count_current + 1, "total": self.count_all})
                 LOGGER.debug("[%s/%s] Scanning rule '%s'" % (self.count_current + 1, self.count_all, id))
 
-                self.__progress.set_tooltip_text("Scanning rule '%s'" % (title))
+                self.__progress.set_tooltip_text(_("Scanning rule '%s'") % (title))
 
             return self.__cancel
 

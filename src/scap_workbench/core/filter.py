@@ -115,7 +115,7 @@ class Search(object):
 
         self.button = Gtk.Button()
         self.button.set_relief(Gtk.ReliefStyle.NONE)
-        self.button.set_label("Search")
+        self.button.set_label(_("Search"))
         self.button.connect("clicked", self.__cb_search)
         alig = Gtk.Alignment(xalign = 0.0, yalign = 0.0, xscale = 1.0, yscale = 1.0)
         alig.set_padding(5, 5, 10, 5)

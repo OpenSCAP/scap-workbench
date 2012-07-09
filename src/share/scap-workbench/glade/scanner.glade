@@ -1382,7 +1382,7 @@
                                                         <child>
                                                           <object class="GtkTreeViewColumn" id="Name">
                                                             <property name="resizable">True</property>
-                                                            <property name="title">Name</property>
+                                                            <property name="title" translatable="yes">Name</property>
                                                             <child>
                                                             <object class="GtkCellRendererText" id="tailoring:tw_values:cell_text"/>
                                                             <attributes>
@@ -1394,7 +1394,7 @@
                                                         </child>
                                                         <child>
                                                           <object class="GtkTreeViewColumn" id="Value">
-                                                            <property name="title">Value</property>
+                                                            <property name="title" translatable="yes">Value</property>
                                                             <child>
                                                             <object class="GtkCellRendererCombo" id="tailoring:tw_values:cell_values">
                                                             <property name="editable">True</property>

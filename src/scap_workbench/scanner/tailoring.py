@@ -569,7 +569,7 @@ class MenuButtonTailoring(abstract.MenuButton):
 
         """ Append the first "No Profile" item. This use to be the
         representation of the benchmark not altered by profiles """
-        model.append(["", "(No profile)"])
+        model.append(["", _("(No profile)")])
 
         """ For each profile in the benchmark append the title of
         current language or the title with ID of profile """
