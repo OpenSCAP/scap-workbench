@@ -338,7 +338,7 @@
                 <property name="receives_default">True</property>
                 <property name="use_action_appearance">False</property>
                 <property name="is_important">True</property>
-                <property name="label">Close</property>
+                <property name="label" translatable="yes">Close</property>
                 <property name="stock_id">gtk-close</property>
               </object>
               <packing>

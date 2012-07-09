@@ -2,67 +2,67 @@
 <interface>
   <requires lib="gtk+" version="2.16"/>
   <object class="GtkAction" id="dialog:edit_description:action:bold">
-    <property name="label">_Bold</property>
+    <property name="label" translatable="yes">_Bold</property>
     <property name="short_label">_Bold</property>
     <property name="tooltip">Bold</property>
     <property name="stock_id">gtk-bold</property>
   </object>
   <object class="GtkAction" id="dialog:edit_description:action:bul_list">
-    <property name="label">_Bullet List</property>
+    <property name="label" translatable="yes">_Bullet List</property>
     <property name="short_label">_Bullet List</property>
     <property name="tooltip">Make a unordered list</property>
     <property name="stock_id">gnome-stock-text-bulleted-list</property>
   </object>
   <object class="GtkAction" id="dialog:edit_description:action:code">
-    <property name="label">_Code</property>
+    <property name="label" translatable="yes">_Code</property>
     <property name="short_label">_Code</property>
     <property name="tooltip">Code</property>
     <property name="icon_name">format-text-code</property>
   </object>
   <object class="GtkAction" id="dialog:edit_description:action:indent">
-    <property name="label">_Indent</property>
+    <property name="label" translatable="yes">_Indent</property>
     <property name="short_label">_Indent</property>
     <property name="tooltip">indent text (move right)</property>
     <property name="stock_id">gtk-indent</property>
   </object>
   <object class="GtkAction" id="dialog:edit_description:action:italic">
-    <property name="label">_Italic</property>
+    <property name="label" translatable="yes">_Italic</property>
     <property name="short_label">_Italic</property>
     <property name="tooltip">Italic</property>
     <property name="stock_id">gtk-italic</property>
   </object>
   <object class="GtkAction" id="dialog:edit_description:action:link">
-    <property name="label">_Link</property>
+    <property name="label" translatable="yes">_Link</property>
     <property name="short_label">_Link</property>
     <property name="tooltip">Insert link</property>
     <property name="icon_name">insert-link</property>
   </object>
   <object class="GtkAction" id="dialog:edit_description:action:num_list">
-    <property name="label">_Num List</property>
+    <property name="label" translatable="yes">_Num List</property>
     <property name="short_label">_Num List</property>
     <property name="tooltip">Make a ordered list</property>
     <property name="stock_id">gnome-stock-text-numbered-list</property>
   </object>
   <object class="GtkAction" id="dialog:edit_description:action:outdent">
-    <property name="label">_Outdent</property>
+    <property name="label" translatable="yes">_Outdent</property>
     <property name="short_label">_Outdent</property>
     <property name="tooltip">Outdent text (move left)</property>
     <property name="stock_id">gtk-unindent</property>
   </object>
   <object class="GtkAction" id="dialog:edit_description:action:underline">
-    <property name="label">_Underline</property>
+    <property name="label" translatable="yes">_Underline</property>
     <property name="short_label">_Underline</property>
     <property name="tooltip">Underline</property>
     <property name="stock_id">gtk-underline</property>
   </object>
   <object class="GtkAction" id="dialog:edit_description:action:zoomin">
-    <property name="label">_Zoom in</property>
+    <property name="label" translatable="yes">_Zoom in</property>
     <property name="short_label">_Zoom in</property>
     <property name="tooltip">Larger font size</property>
     <property name="stock_id">gtk-zoom-in</property>
   </object>
   <object class="GtkAction" id="dialog:edit_description:action:zoomout">
-    <property name="label">_Zoom out</property>
+    <property name="label" translatable="yes">_Zoom out</property>
     <property name="short_label">_Zoom out</property>
     <property name="tooltip">Smaller font size</property>
     <property name="stock_id">gtk-zoom-out</property>
