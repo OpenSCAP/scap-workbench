@@ -237,7 +237,7 @@ class DataHandler(object):
             else: return select.selected
 
     def get_profile(self, id):
-        profile = self.core.lib.benchmark.get_item(str(id))
+        profile = self.core.lib.benchmark.get_member(openscap.OSCAP.XCCDF_PROFILE, str(id))
 
         if profile: return profile.to_profile()
         else: return None
@@ -1939,7 +1939,7 @@ class DHProfiles(DataHandler):
         """
         if not self.check_library(): return None
 
-        profile = self.core.lib.benchmark.get_item(id).to_profile()
+        profile = self.core.lib.benchmark.get_member(openscap.OSCAP.XCCDF_PROFILE, str(id)).to_profile()
         self.core.lib.benchmark.profiles.remove(profile)
 
     def change_refines(self, weight=None, severity=None, role=None):
