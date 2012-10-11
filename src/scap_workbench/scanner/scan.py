@@ -267,28 +267,7 @@ class DHScan(commands.DataHandler, commands.EventObject):
                 )
         return iter
 
-    @classmethod
-    def __decode_callback_message(cls, msg):
-        """Decodes a callback message and returns a 3-tuple containing the
-        result, title and description of the test performed, in that order.
-
-        This method is only to be used in __callback_start and __callback_output.
-        """
-
-        id = msg.user1str
-        result = msg.user2num
-
-        # The join of split string is used to convert all whitespace characters,
-        # including newlines, tabs, etc, to plain spaces.
-        #
-        # In this case we need to do this because we are filling a table and
-        # only have one line for all entries
-        title = " ".join(msg.user3str.split()) if msg.user3str is not None else ""
-        desc  = " ".join(msg.string.split()) if msg.string is not None else ""
-
-        return (id, result, title, desc)
-
-    def __callback_start(self, msg, plugin):
+    def __callback_start(self, rule, plugin):
         """Start callback is registered in "prepare" method and is called
         when each of the tests to be performed starts.
 
@@ -299,14 +278,25 @@ class DHScan(commands.DataHandler, commands.EventObject):
         """
 
         with core.gdk_lock:
-            id, result, title, desc = DHScan.__decode_callback_message(msg)
-            if result == openscap.OSCAP.XCCDF_RESULT_NOT_SELECTED:
-                return self.__cancel
+            #id, title, desc = DHScan.__decode_callback_message(msg)
+            self.last_id = rule.get_id()
 
-            self.__current_iter = self.fill([msg.user1str, None, False, title, desc])
+            titles = rule.get_title() # contrary to the name, this returns list of titles!
+            self.last_title = unicode("(null)") # same behavior as oscap tool is preferred
+            for title in titles:
+                self.last_title = unicode(title.get_plaintext(), "utf-8")
+                break
+
+            descs = rule.get_description() # contrary to the name, this returns list of descriptions!
+            self.last_desc = unicode("(null)") # same behavior as oscap tool is preferred
+            for desc in descs:
+                self.last_desc = unicode(desc.get_plaintext(), "utf-8")
+                break
+
+            self.__current_iter = self.fill([self.last_id, None, False, self.last_title, self.last_desc])
 
             if self.__progress is not None:
-                # a check is starting, that means that all the preparations
+                # A CHECK is starting, that means that all the preparations
                 # have just been done or have been already done long before
                 # this point
                 # we count the preparation as one step
@@ -317,11 +307,11 @@ class DHScan(commands.DataHandler, commands.EventObject):
                 self.__progress.set_text(_("Scanning rule '%(rule_id)s' ... (%(step)i/%(total)i)") % {"rule_id": id, "step": self.count_current + 1, "total": self.count_all})
                 LOGGER.debug("[%s/%s] Scanning rule '%s'" % (self.count_current + 1, self.count_all, id))
 
-                self.__progress.set_tooltip_text(_("Scanning rule '%s'") % (title))
+                self.__progress.set_tooltip_text(_("Scanning rule '%s'") % (self.last_title))
 
             return self.__cancel
 
-    def __callback_output(self, msg, plugin):
+    def __callback_output(self, rule_result, plugin):
         """The output callback is registered in "prepare" method and is called
         when each of the tests to be performed ends (regardless of the result).
 
@@ -329,13 +319,11 @@ class DHScan(commands.DataHandler, commands.EventObject):
         """
 
         with core.gdk_lock:
-            id, result, title, desc = DHScan.__decode_callback_message(msg)
-            if result == openscap.OSCAP.XCCDF_RESULT_NOT_SELECTED:
-                return self.__cancel
+            result = rule_result.get_result()
 
             self.count_current += 1
 
-            self.fill([id, result, False, title, desc], iter=self.__current_iter)
+            self.fill([self.last_id, result, False, self.last_title, self.last_desc], iter=self.__current_iter)
             self.emit("filled")
             self.treeView.queue_draw()
 
