@@ -83,8 +83,15 @@ def notify_executable_file_path(path):
     We assume that prefix is ${directory of executable}/../
     """
 
+    # rationale for realpath:
+    # We are trying to figure out the prefix here so we want the real path
+    # of the executable script. If it's called from a symlink we can't assume
+    # that using it's parent dir as prefix will work!
+    #
+    # This solves issues with usrmove and /bin preceding /usr/bin in $PATH
+    realpath = os.path.realpath(os.path.abspath(path))
     # the first dirname gets the directory of the executable, the second dirname gets the parent directory of that
     # so if the executable is in (something)/bin the prefix would be (something)
-    set_prefix(os.path.dirname(os.path.dirname(os.path.abspath(path))))
+    set_prefix(os.path.dirname(os.path.dirname(realpath)))
 
 BUGTRACKER_URL = "http://fedorahosted.org/scap-workbench"
