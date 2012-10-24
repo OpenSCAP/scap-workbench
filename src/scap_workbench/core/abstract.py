@@ -620,7 +620,7 @@ class Func(object):
         self.preview_scw = builder.get_object("dialog:preview:scw")
         self.info_box = builder.get_object("dialog:preview:info_box")
         self.save = builder.get_object("dialog:preview:btn_save")
-        self.save.set_property("visible", False)
+        self.save.set_visible(False)
         builder.get_object("dialog:preview:btn_ok").connect("clicked", self.destroy_preview)
         self.preview_dialog.connect("destroy", self.destroy_preview)
         # Get the background color from window and destroy it
@@ -683,7 +683,7 @@ class Func(object):
 
         #self.preview_dialog.window.set_cursor(Gdk.Cursor.new(Gdk.ARROW))
 
-        self.save.set_property("visible", save is not None)
+        self.save.set_visible(save is not None)
         if save is not None:
             # We want to have option to save what we see in the preview dialog.
             # In this case pass the callback function as "save" parameter it should
@@ -974,8 +974,8 @@ class HTMLEditor(ListEditor):
         self.__html_sw.add(self.__html)
         self.__html_sw.show_all()
 
-        self.__html_sw.set_property("visible", self.__switcher.get_active() == 0)
-        self.__plain_sw.set_property("visible", self.__switcher.get_active() == 1)
+        self.__html_sw.set_visible(self.__switcher.get_active() == 0)
+        self.__plain_sw.set_visible(self.__switcher.get_active() == 1)
 
         for child in self.__toolbar.get_children():
             child.set_sensitive(False)
@@ -1080,14 +1080,14 @@ class HTMLEditor(ListEditor):
 
     def __propagate(self, widget=None):
         if self.__switcher.get_active() == 0: # TEXT -> HTML
-            self.__html_sw.set_property("visible", True)
-            self.__plain_sw.set_property("visible", False)
+            self.__html_sw.set_visible(True)
+            self.__plain_sw.set_visible(False)
             desc = self.__plain.get_buffer().get_slice(self.__plain.get_buffer().get_start_iter(), self.__plain.get_buffer().get_end_iter(), True)
             self.load_html(desc or "", "file:///")
 
         elif self.__switcher.get_active() == 1: # HTML -> TEXT
-            self.__html_sw.set_property("visible", False)
-            self.__plain_sw.set_property("visible", True)
+            self.__html_sw.set_visible(False)
+            self.__plain_sw.set_visible(True)
 
             # the following is a JavaScript trick to get exact innerHTML inside <body></body> out
             # using document's title

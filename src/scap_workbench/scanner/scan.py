@@ -438,7 +438,8 @@ class DHScan(commands.DataHandler, commands.EventObject):
 
         retval = openscap.common.oscap_apply_xslt(file, xslfile, expfile, params)
         # TODO If this call (below) is not executed, there will come some strange behaviour
-        LOGGER.debug("Export report file %s" % (["failed: %s" % (openscap.common.err_desc(),), "done"][retval],))
+        err_desc = openscap.common.err_desc()
+        LOGGER.debug("Export report file %s" % ("failed: %s" % (err_desc) if retval < 0 else "done"))
         return expfile
 
 class MenuButtonScan(abstract.MenuButton, abstract.Func):
