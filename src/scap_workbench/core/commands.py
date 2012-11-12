@@ -389,7 +389,7 @@ class DataHandler(object):
                     #"content":         item.content,
                     #"values":           self.__item_get_values(item),
                     "selected":         item.selected,
-                    "status_current":   item.status_current,
+                    "status_current":   item.status_current.get_status(),
                     "values":           item.values,
                     "weight":           item.weight
                     })
@@ -408,7 +408,7 @@ class DataHandler(object):
                     "role":             item.role,
                     "selected":         item.selected,
                     "severity":         item.severity,
-                    "status_current":   item.status_current,
+                    "status_current":   item.status_current.get_status(),
                     "weight":           item.weight
                     })
             elif item.type == openscap.OSCAP.XCCDF_VALUE:
@@ -421,7 +421,7 @@ class DataHandler(object):
                     "interface_hint":   item.interface_hint,
                     "oper":             item.oper,
                     "sources":          item.sources,
-                    "status_current":   item.status_current,
+                    "status_current":   item.status_current.get_status(),
                     "vtype":            item.type
                     })
             else:
@@ -961,7 +961,7 @@ class DHXccdf(DataHandler):
                 "lang":             benchmark.lang,
                 "notices":          [(notice.id, notice.text) for notice in benchmark.notices],
                 "resolved":         benchmark.resolved,
-                "status_current":   benchmark.status_current,
+                "status_current":   benchmark.status_current.get_status(),
                 "titles":           dict([(title.lang, " ".join(title.text.split())) for title in benchmark.title]),
                 "version":          benchmark.version,
                 "references":       self.parse_refs(benchmark.references),
