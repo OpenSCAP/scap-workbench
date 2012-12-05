@@ -40,6 +40,19 @@ IMG_GROUP   = "emblem-documents"
 IMG_RULE    = "document-new"
 IMG_VALUE   = "emblem-downloads"
 
+def get_xccdf_status_from_object(obj):
+    """Helper method to extract xccdf_status enum value from xccdf_status object
+
+    This is necessary because of openscap API changes.
+
+    FIXME: Get rid of this, use xccdf_status object everywhere
+    """
+
+    if obj is None:
+        return openscap.OSCAP.XCCDF_STATUS_NOT_SPECIFIED
+    else:
+        return obj.get_status()
+
 class DataHandler(object):
     """DataHandler Class implements handling data from Openscap library,
     calling oscap functions and parsing oscap output to models specified by
@@ -389,7 +402,7 @@ class DataHandler(object):
                     #"content":         item.content,
                     #"values":           self.__item_get_values(item),
                     "selected":         item.selected,
-                    "status_current":   item.status_current.get_status(),
+                    "status_current":   get_xccdf_status_from_object(item.status_current),
                     "values":           item.values,
                     "weight":           item.weight
                     })
@@ -408,7 +421,7 @@ class DataHandler(object):
                     "role":             item.role,
                     "selected":         item.selected,
                     "severity":         item.severity,
-                    "status_current":   item.status_current.get_status(),
+                    "status_current":   get_xccdf_status_from_object(item.status_current),
                     "weight":           item.weight
                     })
             elif item.type == openscap.OSCAP.XCCDF_VALUE:
@@ -421,7 +434,7 @@ class DataHandler(object):
                     "interface_hint":   item.interface_hint,
                     "oper":             item.oper,
                     "sources":          item.sources,
-                    "status_current":   item.status_current.get_status(),
+                    "status_current":   get_xccdf_status_from_object(item.status_current),
                     "vtype":            item.type
                     })
             else:
@@ -961,7 +974,7 @@ class DHXccdf(DataHandler):
                 "lang":             benchmark.lang,
                 "notices":          [(notice.id, notice.text) for notice in benchmark.notices],
                 "resolved":         benchmark.resolved,
-                "status_current":   benchmark.status_current.get_status(),
+                "status_current":   get_xccdf_status_from_object(benchmark.status_current),
                 "titles":           dict([(title.lang, " ".join(title.text.split())) for title in benchmark.title]),
                 "version":          benchmark.version,
                 "references":       self.parse_refs(benchmark.references),
