@@ -364,7 +364,7 @@ class DHScan(commands.DataHandler, commands.EventObject):
         self.__cancel = False
 
         if self.core.selected_profile == None:
-            self.policy = self.core.lib.policy_model.policies[0]
+            self.policy = self.core.lib.policy_model.get_policy_by_id(None) # Default profile policy
         else:
             self.policy = self.core.lib.policy_model.get_policy_by_id(str(self.core.selected_profile))
 
