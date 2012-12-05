@@ -1485,19 +1485,24 @@ class DHItemsTree(DataHandler, EventObject):
         if policy == None:
             raise LookupError("Policy for profile '%s' does not exist" % (self.core.selected_profile))
 
-        # FIXME: str(..) are workarounds for openscap bindings unicode issues
-        select = policy.get_select_by_id(str(model[path][DHItemsTree.COLUMN_ID]))
-        if select == None:
-            newselect = openscap.xccdf.select()
-            newselect.item = str(model[path][DHItemsTree.COLUMN_ID])
-            newselect.selected = model[path][DHItemsTree.COLUMN_SELECTED]
-            policy.add_select(newselect.clone())
-            policy.profile.add_select(newselect)
-        else:
-            select.selected = model[path][DHItemsTree.COLUMN_SELECTED]
-            for select in policy.profile.selects:
-                if select.item == str(model[path][DHItemsTree.COLUMN_ID]):
-                    select.selected = model[path][DHItemsTree.COLUMN_SELECTED]
+        # the root benchmark element is not an item and can never be
+        # selected/unselected
+        if ":" in path: # it is not the path of the root
+            print path
+            # FIXME: str(..) are workarounds for openscap bindings unicode issues
+            select = policy.get_select_by_id(str(model[path][DHItemsTree.COLUMN_ID]))
+
+            if select is None:
+                newselect = openscap.xccdf.select()
+                newselect.item = str(model[path][DHItemsTree.COLUMN_ID])
+                newselect.selected = model[path][DHItemsTree.COLUMN_SELECTED]
+                policy.add_select(newselect.clone())
+                policy.profile.add_select(newselect)
+            else:
+                select.selected = model[path][DHItemsTree.COLUMN_SELECTED]
+                for select in policy.profile.selects:
+                    if select.item == str(model[path][DHItemsTree.COLUMN_ID]):
+                        select.selected = model[path][DHItemsTree.COLUMN_SELECTED]
 
         """This could be a group and we need set the sensitivity
         for all children."""
