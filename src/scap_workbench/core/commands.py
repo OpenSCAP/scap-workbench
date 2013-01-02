@@ -238,16 +238,14 @@ class DataHandler(object):
 
         if not self.core.lib.policy_model or self.core.selected_profile == None or items_model == True:
             return item.selected
+
         else:
             policy = self.core.lib.policy_model.get_policy_by_id(self.core.selected_profile)
+
             if policy is None:
                 raise LookupError("Policy for profile '%s' does not exist" % (self.core.selected_profile))
 
-            # Get selector from policy
-            select = policy.get_select_by_id(item.id)
-            if select == None:
-                return item.selected
-            else: return select.selected
+            return policy.is_item_selected(item.id)
 
     def get_profile(self, id):
         profile = self.core.lib.benchmark.get_member(openscap.OSCAP.XCCDF_PROFILE, str(id))
@@ -1429,26 +1427,12 @@ class DHItemsTree(DataHandler, EventObject):
                 model[child.path][DHItemsTree.COLUMN_PARENT] = pselected
                 model[child.path][DHItemsTree.COLUMN_COLOR] = ["gray", "black"][model[child.path][DHItemsTree.COLUMN_SELECTED] and pselected]
 
-                # Alter the policy. All underneath rules/groups should
-                # be deselected when parent group is deselected.
-
-                # FIXME: str(..) are workarounds for openscap bindings unicode issues
-                if benchmark.item(str(model[child.path][DHItemsTree.COLUMN_ID])).type == openscap.OSCAP.XCCDF_RULE:
-                    select = policy.get_select_by_id(str(model[child.path][DHItemsTree.COLUMN_ID]))
-                    if select == None:
-                        newselect = openscap.xccdf.select()
-                        newselect.item = str(model[child.path][DHItemsTree.COLUMN_ID])
-                        newselect.selected = (model[child.path][DHItemsTree.COLUMN_SELECTED] and pselected)
-                        policy.select = newselect
-                    else:
-                        select.selected = (model[child.path][DHItemsTree.COLUMN_SELECTED] and pselected)
-
                 """Recursive call for all children
                 """
                 self.__set_sensitive(policy, child, model, pselected and model[child.path][DHItemsTree.COLUMN_SELECTED])
+
             except StopIteration:
                 break
-
 
     def cb_toggled(self, cell, path, model=None):
         """Function is called from GTK when checkbox of treeView item is toggled.
@@ -1487,22 +1471,22 @@ class DHItemsTree(DataHandler, EventObject):
 
         # the root benchmark element is not an item and can never be
         # selected/unselected
-        if ":" in path: # it is not the path of the root
-            print path
-            # FIXME: str(..) are workarounds for openscap bindings unicode issues
-            select = policy.get_select_by_id(str(model[path][DHItemsTree.COLUMN_ID]))
 
-            if select is None:
-                newselect = openscap.xccdf.select()
-                newselect.item = str(model[path][DHItemsTree.COLUMN_ID])
-                newselect.selected = model[path][DHItemsTree.COLUMN_SELECTED]
-                policy.add_select(newselect.clone())
-                policy.profile.add_select(newselect)
-            else:
-                select.selected = model[path][DHItemsTree.COLUMN_SELECTED]
-                for select in policy.profile.selects:
-                    if select.item == str(model[path][DHItemsTree.COLUMN_ID]):
-                        select.selected = model[path][DHItemsTree.COLUMN_SELECTED]
+        # FIXME: str(..) are workarounds for openscap bindings unicode issues
+        select = policy.get_select_by_id(str(model[path][DHItemsTree.COLUMN_ID]))
+
+        if select is None:
+            newselect = openscap.xccdf.select()
+            newselect.item = str(model[path][DHItemsTree.COLUMN_ID])
+            newselect.selected = model[path][DHItemsTree.COLUMN_SELECTED]
+            policy.add_select(newselect.clone())
+            policy.profile.add_select(newselect)
+
+        else:
+            select.selected = model[path][DHItemsTree.COLUMN_SELECTED]
+            for select in policy.profile.selects:
+                if select.item == str(model[path][DHItemsTree.COLUMN_ID]):
+                    select.selected = model[path][DHItemsTree.COLUMN_SELECTED]
 
         """This could be a group and we need set the sensitivity
         for all children."""
