@@ -1,5 +1,4 @@
 PKG=scap-workbench
-PKG_EDITOR=scap-workbench-editor
 WRK_PKG=scap_workbench
 VERSION := $(shell python src/scap_workbench/version.py)
 
@@ -38,31 +37,25 @@ install:
 	test -d $(PYTHON_LIB) || $(INSTALL) $(MODE_DIR) -d $(PYTHON_LIB)
 	test -d $(PYTHON_LIB_PKG) || $(INSTALL) $(MODE_DIR) -d $(PYTHON_LIB_PKG)
 	test -d $(PYTHON_LIB_PKG)/core || $(INSTALL) $(MODE_DIR) -d $(PYTHON_LIB_PKG)/core
-	test -d $(PYTHON_LIB_PKG)/editor || $(INSTALL) $(MODE_DIR) -d $(PYTHON_LIB_PKG)/editor
 	test -d $(PYTHON_LIB_PKG)/scanner || $(INSTALL) $(MODE_DIR) -d $(PYTHON_LIB_PKG)/scanner
 	$(INSTALL) $(MODE_EXEC) src/bin/$(PKG) $(BINDIR)/$(PKG)
-	$(INSTALL) $(MODE_EXEC) src/bin/$(PKG_EDITOR) $(BINDIR)/$(PKG_EDITOR)
 	$(INSTALL) $(MODE_REG) src/$(WRK_PKG)/*.py $(PYTHON_LIB_PKG)
 	$(INSTALL) $(MODE_REG) src/$(WRK_PKG)/core/*.py $(PYTHON_LIB_PKG)/core
-	$(INSTALL) $(MODE_REG) src/$(WRK_PKG)/editor/*.py $(PYTHON_LIB_PKG)/editor
 	$(INSTALL) $(MODE_REG) src/$(WRK_PKG)/scanner/*.py $(PYTHON_LIB_PKG)/scanner
 	$(INSTALL) $(MODE_REG) src/etc/$(PKG)/logger.conf $(SYSCONFDIR)/$(PKG)/logger.conf
 	$(INSTALL) $(MODE_REG) src/share/$(PKG)/glade/*.glade $(DATADIR)/$(PKG)/glade
 	$(INSTALL) $(MODE_REG) src/share/$(PKG)/glade/dialogs/*.glade $(DATADIR)/$(PKG)/glade/dialogs
 	$(INSTALL) $(MODE_REG) src/share/$(PKG)/filters/*.py $(DATADIR)/$(PKG)/filters
 	$(INSTALL) $(MODE_REG) src/man/scap-workbench.8 $(MANDIR)/man8
-	$(INSTALL) $(MODE_REG) src/man/scap-workbench-editor.8 $(MANDIR)/man8
 	gzip -f $(MANDIR)/man8/scap-workbench.8
-	gzip -f $(MANDIR)/man8/scap-workbench-editor.8
 	$(INSTALL) $(MODE_REG) src/share/pixmaps/*.png $(DATADIR)/pixmaps
 	$(INSTALL) $(MODE_REG) scap-workbench.desktop $(DATADIR)/applications/scap-workbench.desktop
-	$(INSTALL) $(MODE_REG) scap-workbench-editor.desktop $(DATADIR)/applications/scap-workbench-editor.desktop
 
 archive: clean
 	@rm -rf $(PKG)-$(VERSION).tar.bz2
 	@rm -rf /tmp/$(PKG)-$(VERSION)
 	@mkdir /tmp/$(PKG)-$(VERSION)
-	@cp -a COPYING README Makefile scap-workbench.desktop scap-workbench-editor.desktop src /tmp/$(PKG)-$(VERSION)
+	@cp -a COPYING README Makefile scap-workbench.desktop src /tmp/$(PKG)-$(VERSION)
 	@rm -f /tmp/$(PKG)-$(VERSION)/src/bin/runwrapper.sh
 	@rm -f /tmp/$(PKG)-$(VERSION)/src/{pylint.cfg,perform-pylint,pylint-output}
 	@find /tmp/$(PKG)-$(VERSION) -type f -name "*.pyc" | xargs rm -f
