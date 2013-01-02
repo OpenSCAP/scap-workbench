@@ -19,8 +19,7 @@
 # Authors:
 #      Martin Preisler <mpreisle@redhat.com>
 
-"""This module holds version info for reuse in both scap workbench
-scanner and editor.
+"""Single point of truth regarding version info of scap-workbench
 """
 
 MAJOR = 0

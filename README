@@ -1,12 +1,12 @@
 SCAP WORKBENCH
 ==============
 
-A GUI tool that provides scanning, tailoring, editing and validation functionality for SCAP content
+A GUI tool that provides scanning, tailoring and validation functionality for SCAP content
 
 About
 -----
-Scap Workbench is a GUI tool that provides scanning, tailoring,
-editing and validation functionality for SCAP content. It uses openscap library
+SCAP Workbench is a GUI tool that provides scanning, tailoring
+and validation functionality for SCAP content. It uses openscap library
 to access SCAP functionalities.
 
 Homepage of the project is https://fedorahosted.org/scap-workbench/
@@ -15,8 +15,9 @@ Homepage of the project is https://fedorahosted.org/scap-workbench/
 How to run it out of the box
 ----------------------------
 
-1) Make sure you have installed all prerequisites as 
-   python and openscap-python
+1) Make sure you have installed all prerequisites
+
+    $ yum install openscap-python
 
 2) Install scap workbench:
 
@@ -31,13 +32,3 @@ How to run it out of the box
 
     With an XCCDF file to load:
     $ scap-workbench /path/to/xccdf-file
-
-3b) Run the editor
-
-    $ scap-workbench-editor
-
-    With debug:
-    $ scap-workbench-editor --debug
-
-    With an XCCDF file to load:
-    $ scap-workbench-editor /path/to/xccdf-file
