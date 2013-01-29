@@ -1,17 +1,5 @@
 # Backups
 *~
 
-# Python bytecode
-*.py[co]
-
-# doc (auto generated)
-doc/
-
-# in case the developer is using eclipse
-.project
-.pydevproject
-.settings/
-
-# pylint static analysis output
-src/pylint-output
-
+# Build dir
+build/
