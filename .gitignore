@@ -3,3 +3,5 @@
 
 # Build dir
 build/
+
+.clang_complete
