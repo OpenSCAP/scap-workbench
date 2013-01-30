@@ -1,5 +1,6 @@
-#include "ui_MainWindow.h"
 #include <QMainWindow>
+
+#include "ui_MainWindow.h"
 
 class MainWindow : public QMainWindow
 {
@@ -17,6 +18,13 @@ class MainWindow : public QMainWindow
         void openFileDialog();
 
     private:
+        void reloadSession();
+        void refreshProfiles();
+
         Ui_MainWindow mUI;
         struct xccdf_session* mSession;
+
+    private slots:
+        void checklistComboboxChanged(const QString& text);
+
 };
