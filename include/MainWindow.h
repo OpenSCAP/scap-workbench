@@ -19,7 +19,15 @@
  *      Martin Preisler <mpreisle@redhat.com>
  */
 
+#include "ForwardDecls.h"
+
 #include <QMainWindow>
+#include <QThread>
+
+extern "C"
+{
+#include <xccdf_benchmark.h>
+}
 
 #include "ui_MainWindow.h"
 
@@ -31,21 +39,34 @@ class MainWindow : public QMainWindow
         explicit MainWindow(QWidget* parent = 0);
         virtual ~MainWindow();
 
-        void clearResults();
-
     public slots:
+        void clearResults();
         void openFile(const QString& path);
         void closeFile();
         void openFileDialog();
 
+        void scanAsync();
+        void cancelScanAsync();
+
     private:
         void reloadSession();
         void refreshProfiles();
+        void cleanupScanThread();
 
         Ui_MainWindow mUI;
         struct xccdf_session* mSession;
 
+        QThread* mScanThread;
+        Evaluator* mEvaluator;
+
+    signals:
+        void cancelScan();
+
     private slots:
         void checklistComboboxChanged(const QString& text);
+        void profileComboboxChanged(int index);
 
+        void scanProgressReport(const QString& rule_id, xccdf_test_result_type_t result);
+        void scanCanceled();
+        void scanFinished();
 };

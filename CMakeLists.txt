@@ -22,4 +22,4 @@ add_executable(scap_workbench
 # TODO: Find openscap as part of the configuration step
 target_link_libraries(scap_workbench ${QT_QTCORE_LIBRARY} ${QT_QTGUI_LIBRARY} /usr/lib/libopenscap.so)
 # TODO: Find openscap as part of the configuration step
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include ${CMAKE_CURRENT_BINARY_DIR} ${QT_QTGUI_INCLUDE_DIR} "/usr/include/openscap")
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include ${CMAKE_CURRENT_BINARY_DIR} ${QT_QTCORE_INCLUDE_DIR} ${QT_QTGUI_INCLUDE_DIR} "/usr/include/openscap")

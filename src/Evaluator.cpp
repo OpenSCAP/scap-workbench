@@ -19,21 +19,25 @@
  *      Martin Preisler <mpreisle@redhat.com>
  */
 
-#include "MainWindow.h"
+#include "Evaluator.h"
+#include <QThread>
 
-#include <QApplication>
+Evaluator::Evaluator(QThread* thread, struct xccdf_session* session, const QString& target):
+    mThread(thread),
+    mSession(session),
+    mTarget(target)
+{}
 
-extern "C"
+Evaluator::~Evaluator()
+{}
+
+void Evaluator::signalCompletion(bool cancel)
 {
-#include <xccdf_benchmark.h>
-}
+    if (cancel)
+        emit canceled();
+    else
+        emit finished();
 
-int main(int argc, char** argv)
-{
-    // Needed to pass this type via signals&slots.
-    qRegisterMetaType<xccdf_test_result_type_t>("xccdf_test_result_type_t");
-
-    QApplication app(argc, argv);
-    MainWindow win;
-    return app.exec();
+    moveToThread(0);
+    mThread->quit();
 }

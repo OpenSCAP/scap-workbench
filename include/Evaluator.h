@@ -19,21 +19,36 @@
  *      Martin Preisler <mpreisle@redhat.com>
  */
 
-#include "MainWindow.h"
+#include "ForwardDecls.h"
 
-#include <QApplication>
+#include <QObject>
 
 extern "C"
 {
 #include <xccdf_benchmark.h>
 }
 
-int main(int argc, char** argv)
+class Evaluator : public QObject
 {
-    // Needed to pass this type via signals&slots.
-    qRegisterMetaType<xccdf_test_result_type_t>("xccdf_test_result_type_t");
+    Q_OBJECT
 
-    QApplication app(argc, argv);
-    MainWindow win;
-    return app.exec();
-}
+    public:
+        Evaluator(QThread* thread, struct xccdf_session* session, const QString& target);
+        virtual ~Evaluator();
+
+    public slots:
+        virtual void evaluate() = 0;
+        virtual void cancel() = 0;
+
+    signals:
+        void progressReport(const QString& rule_id, xccdf_test_result_type_t result);
+        void canceled();
+        void finished();
+
+    protected:
+        QThread* mThread;
+        struct xccdf_session* mSession;
+        const QString mTarget;
+
+        void signalCompletion(bool canceled);
+};

@@ -21,10 +21,14 @@
 
 #include "MainWindow.h"
 
+#include "OscapEvaluator.h"
+
 #include <QFileDialog>
 #include <QMessageBox>
+#include <QtConcurrentRun>
 
 #include <cassert>
+#include <iostream>
 
 extern "C" {
 #include <xccdf_policy.h>
@@ -36,7 +40,10 @@ extern "C" {
 MainWindow::MainWindow(QWidget* parent):
     QMainWindow(parent),
 
-    mSession(0)
+    mSession(0),
+
+    mScanThread(0),
+    mEvaluator(0)
 {
     mUI.setupUi(this);
 
@@ -48,6 +55,26 @@ MainWindow::MainWindow(QWidget* parent):
     QObject::connect(
         mUI.checklistComboBox, SIGNAL(currentIndexChanged(const QString&)),
         this, SLOT(checklistComboboxChanged(const QString&))
+    );
+
+    QObject::connect(
+        mUI.profileComboBox, SIGNAL(currentIndexChanged(int)),
+        this, SLOT(profileComboboxChanged(int))
+    );
+
+    QObject::connect(
+        mUI.scanButton, SIGNAL(released()),
+        this, SLOT(scanAsync())
+    );
+
+    QObject::connect(
+        mUI.cancelButton, SIGNAL(released()),
+        this, SLOT(cancelScanAsync())
+    );
+
+    QObject::connect(
+        mUI.clearButton, SIGNAL(released()),
+        this, SLOT(clearResults())
     );
 
     show();
@@ -63,6 +90,7 @@ MainWindow::~MainWindow()
 void MainWindow::clearResults()
 {
     mUI.preScanTools->show();
+    mUI.scanTools->hide();
     mUI.postScanTools->hide();
 
     mUI.ruleResultsTree->clear();
@@ -159,6 +187,40 @@ void MainWindow::openFileDialog()
     }
 }
 
+void MainWindow::scanAsync()
+{
+    assert(!mEvaluator);
+    assert(!mScanThread);
+
+    clearResults();
+
+    mUI.preScanTools->hide();
+    mUI.scanTools->show();
+
+    mScanThread = new QThread(this);
+
+    mEvaluator = new OscapEvaluatorLocal(mScanThread, mSession, "localhost");
+    mEvaluator->moveToThread(mScanThread);
+
+    QObject::connect(mScanThread, SIGNAL(started()), mEvaluator, SLOT(evaluate()));
+    QObject::connect(this, SIGNAL(cancelScan()), mEvaluator, SLOT(cancel()));
+    QObject::connect(mEvaluator, SIGNAL(progressReport(const QString&, xccdf_test_result_type_t)), this, SLOT(scanProgressReport(const QString&, xccdf_test_result_type_t)));
+    QObject::connect(mEvaluator, SIGNAL(canceled()), this, SLOT(scanCanceled()));
+    QObject::connect(mEvaluator, SIGNAL(finished()), this, SLOT(scanFinished()));
+
+    mScanThread->start();
+}
+
+void MainWindow::cancelScanAsync()
+{
+    mUI.cancelButton->setEnabled(false);
+
+    assert(mEvaluator);
+    assert(mScanThread);
+
+    emit cancelScan();
+}
+
 void MainWindow::reloadSession()
 {
     if (!mSession)
@@ -249,6 +311,15 @@ void MainWindow::refreshProfiles()
     }
 }
 
+void MainWindow::cleanupScanThread()
+{
+    delete mScanThread;
+    delete mEvaluator;
+
+    mScanThread = 0;
+    mEvaluator = 0;
+}
+
 void MainWindow::checklistComboboxChanged(const QString& text)
 {
     if (!mSession)
@@ -268,4 +339,52 @@ void MainWindow::checklistComboboxChanged(const QString& text)
     }
 
     reloadSession();
+}
+
+void MainWindow::profileComboboxChanged(int index)
+{
+    if (!mSession)
+        return;
+
+    QString profileId = mUI.profileComboBox->itemData(index).toString();
+
+    if (profileId == QString::Null())
+    {
+        xccdf_session_set_profile_id(mSession, 0);
+    }
+    else
+    {
+        // TODO: error handling
+        xccdf_session_set_profile_id(mSession, profileId.toUtf8().constData());
+    }
+}
+
+void MainWindow::scanProgressReport(const QString& rule_id, xccdf_test_result_type_t result)
+{
+    QStringList resultRow;
+    resultRow.append(rule_id);
+    resultRow.append("TODO TODO TODO");
+    resultRow.append(xccdf_test_result_type_get_text(result));
+
+    mUI.ruleResultsTree->addTopLevelItem(new QTreeWidgetItem(resultRow));
+}
+
+void MainWindow::scanCanceled()
+{
+    mUI.cancelButton->setEnabled(true);
+
+    cleanupScanThread();
+
+    mUI.preScanTools->show();
+    mUI.scanTools->hide();
+    mUI.postScanTools->hide();
+}
+
+void MainWindow::scanFinished()
+{
+    cleanupScanThread();
+
+    mUI.preScanTools->hide();
+    mUI.scanTools->hide();
+    mUI.postScanTools->show();
 }

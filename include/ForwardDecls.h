@@ -19,21 +19,7 @@
  *      Martin Preisler <mpreisle@redhat.com>
  */
 
-#include "MainWindow.h"
-
-#include <QApplication>
-
-extern "C"
-{
-#include <xccdf_benchmark.h>
-}
-
-int main(int argc, char** argv)
-{
-    // Needed to pass this type via signals&slots.
-    qRegisterMetaType<xccdf_test_result_type_t>("xccdf_test_result_type_t");
-
-    QApplication app(argc, argv);
-    MainWindow win;
-    return app.exec();
-}
+class Evaluator;
+class MainWindow;
+class OscapEvaluatorBase;
+class OscapEvaluatorLocal;

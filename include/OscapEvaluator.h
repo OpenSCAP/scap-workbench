@@ -19,21 +19,37 @@
  *      Martin Preisler <mpreisle@redhat.com>
  */
 
-#include "MainWindow.h"
+#include "ForwardDecls.h"
 
-#include <QApplication>
+#include "Evaluator.h"
+#include <QStringList>
+#include <QProcess>
 
-extern "C"
+class OscapEvaluatorBase : public Evaluator
 {
-#include <xccdf_benchmark.h>
-}
+    Q_OBJECT
 
-int main(int argc, char** argv)
+    public:
+        OscapEvaluatorBase(QThread* thread, struct xccdf_session* session, const QString& target);
+        virtual ~OscapEvaluatorBase();
+
+    protected:
+        QStringList buildCommandLineArgs(const QString& inputFile, const QString& resultFile);
+};
+
+class OscapEvaluatorLocal : public OscapEvaluatorBase
 {
-    // Needed to pass this type via signals&slots.
-    qRegisterMetaType<xccdf_test_result_type_t>("xccdf_test_result_type_t");
+    Q_OBJECT
 
-    QApplication app(argc, argv);
-    MainWindow win;
-    return app.exec();
-}
+    public:
+        OscapEvaluatorLocal(QThread* thread, struct xccdf_session* session, const QString& target);
+        virtual ~OscapEvaluatorLocal();
+
+        virtual void evaluate();
+        virtual void cancel();
+
+    private:
+        bool tryToReadLine(QProcess& process);
+
+        bool mCancelRequested;
+};
