@@ -89,6 +89,8 @@ MainWindow::~MainWindow()
 
 void MainWindow::clearResults()
 {
+    mUI.scanProperties->setEnabled(true);
+
     mUI.preScanTools->show();
     mUI.scanTools->hide();
     mUI.postScanTools->hide();
@@ -194,6 +196,7 @@ void MainWindow::scanAsync()
 
     clearResults();
 
+    mUI.scanProperties->setEnabled(false);
     mUI.preScanTools->hide();
     mUI.scanTools->show();
 
@@ -383,6 +386,7 @@ void MainWindow::scanCanceled()
 
     cleanupScanThread();
 
+    mUI.scanProperties->setEnabled(true);
     mUI.preScanTools->show();
     mUI.scanTools->hide();
     mUI.postScanTools->hide();
