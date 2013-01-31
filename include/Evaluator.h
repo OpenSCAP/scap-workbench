@@ -36,12 +36,14 @@ class Evaluator : public QObject
         Evaluator(QThread* thread, struct xccdf_session* session, const QString& target);
         virtual ~Evaluator();
 
+        virtual QByteArray getResults() = 0;
+
     public slots:
         virtual void evaluate() = 0;
         virtual void cancel() = 0;
 
     signals:
-        void progressReport(const QString& rule_id, xccdf_test_result_type_t result);
+        void progressReport(const QString& rule_id, const QString& result);
         void canceled();
         void finished();
 

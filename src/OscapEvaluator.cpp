@@ -23,7 +23,9 @@
 
 #include <QThread>
 #include <QAbstractEventDispatcher>
+#include <QTemporaryFile>
 #include <iostream>
+#include <cassert>
 
 extern "C"
 {
@@ -89,11 +91,16 @@ OscapEvaluatorLocal::~OscapEvaluatorLocal()
 void OscapEvaluatorLocal::evaluate()
 {
     // TODO: Error handling!
+    QTemporaryFile resultFile;
+    resultFile.setAutoRemove(true);
+    // the following 2 lines force Qt to give us the filename
+    resultFile.open();
+    resultFile.close();
 
     QString inputFile = xccdf_session_get_filename(mSession);
 
     QProcess process(this);
-    process.start("oscap", buildCommandLineArgs(inputFile, "/tmp/test.xml"));
+    process.start("oscap", buildCommandLineArgs(inputFile, resultFile.fileName()));
 
     const unsigned int pollInterval = 100;
 
@@ -112,19 +119,14 @@ void OscapEvaluatorLocal::evaluate()
         }
     }
 
-    if (mCancelRequested)
-    {
-        // we have already closed the process so we can't read anything from it
-        emit canceled();
-        mThread->exit(1);
-    }
-    else
+    if (!mCancelRequested)
     {
         // read everything left over
         while (tryToReadLine(process));
 
-        emit finished();
-        mThread->exit(0);
+        resultFile.open();
+        mResults = resultFile.readAll();
+        resultFile.close();
     }
 
     signalCompletion(mCancelRequested);
@@ -137,6 +139,13 @@ void OscapEvaluatorLocal::cancel()
     mCancelRequested = true;
 }
 
+QByteArray OscapEvaluatorLocal::getResults()
+{
+    assert(!mCancelRequested);
+
+    return mResults;
+}
+
 bool OscapEvaluatorLocal::tryToReadLine(QProcess& process)
 {
     if (!process.canReadLine())
@@ -145,7 +154,11 @@ bool OscapEvaluatorLocal::tryToReadLine(QProcess& process)
     QString stringLine = QString::fromUtf8(process.readLine().constData());
     QStringList split = stringLine.split(":");
 
-    // TODO: parse the result correctly
-    emit progressReport(split.at(0), XCCDF_RESULT_UNKNOWN);
+    // TODO: error handling!
+
+    // NB: trimmed because the line might be padded with either LF or even CR LF
+    //     from the right side.
+    emit progressReport(split.at(0), split.at(1).trimmed());
+
     return true;
 }

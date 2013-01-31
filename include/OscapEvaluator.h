@@ -48,8 +48,11 @@ class OscapEvaluatorLocal : public OscapEvaluatorBase
         virtual void evaluate();
         virtual void cancel();
 
+        virtual QByteArray getResults();
+
     private:
         bool tryToReadLine(QProcess& process);
 
         bool mCancelRequested;
+        QByteArray mResults;
 };

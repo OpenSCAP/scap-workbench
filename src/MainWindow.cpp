@@ -204,7 +204,7 @@ void MainWindow::scanAsync()
 
     QObject::connect(mScanThread, SIGNAL(started()), mEvaluator, SLOT(evaluate()));
     QObject::connect(this, SIGNAL(cancelScan()), mEvaluator, SLOT(cancel()));
-    QObject::connect(mEvaluator, SIGNAL(progressReport(const QString&, xccdf_test_result_type_t)), this, SLOT(scanProgressReport(const QString&, xccdf_test_result_type_t)));
+    QObject::connect(mEvaluator, SIGNAL(progressReport(const QString&, const QString&)), this, SLOT(scanProgressReport(const QString&, const QString&)));
     QObject::connect(mEvaluator, SIGNAL(canceled()), this, SLOT(scanCanceled()));
     QObject::connect(mEvaluator, SIGNAL(finished()), this, SLOT(scanFinished()));
 
@@ -313,7 +313,7 @@ void MainWindow::refreshProfiles()
 
 void MainWindow::cleanupScanThread()
 {
-    delete mScanThread;
+    mScanThread->deleteLater();
     delete mEvaluator;
 
     mScanThread = 0;
@@ -359,12 +359,20 @@ void MainWindow::profileComboboxChanged(int index)
     }
 }
 
-void MainWindow::scanProgressReport(const QString& rule_id, xccdf_test_result_type_t result)
+void MainWindow::scanProgressReport(const QString& rule_id, const QString& result)
 {
+    assert(mSession);
+
+    struct xccdf_benchmark* benchmark = xccdf_policy_model_get_benchmark(xccdf_session_get_policy_model(mSession));
+
+    struct xccdf_item* item = xccdf_benchmark_get_member(benchmark, XCCDF_ITEM, rule_id.toUtf8().constData());
+
+    // TODO: error checking!
+
     QStringList resultRow;
     resultRow.append(rule_id);
-    resultRow.append("TODO TODO TODO");
-    resultRow.append(xccdf_test_result_type_get_text(result));
+    resultRow.append(oscap_textlist_get_preferred_plaintext(xccdf_item_get_title(item), NULL));
+    resultRow.append(result);
 
     mUI.ruleResultsTree->addTopLevelItem(new QTreeWidgetItem(resultRow));
 }
@@ -382,6 +390,8 @@ void MainWindow::scanCanceled()
 
 void MainWindow::scanFinished()
 {
+    QByteArray results = mEvaluator->getResults();
+
     cleanupScanThread();
 
     mUI.preScanTools->hide();

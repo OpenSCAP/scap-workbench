@@ -19,8 +19,18 @@
   <widget class="QWidget" name="centralwidget">
    <layout class="QVBoxLayout" name="verticalLayout">
     <item>
-     <widget class="QWidget" name="widget_3" native="true">
+     <widget class="QWidget" name="scanProperties" native="true">
       <layout class="QGridLayout" name="gridLayout">
+       <item row="0" column="0">
+        <widget class="QLabel" name="label_2">
+         <property name="text">
+          <string>Input file</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="1" colspan="2">
+        <widget class="QComboBox" name="checklistComboBox"/>
+       </item>
        <item row="0" column="1">
         <widget class="QLineEdit" name="openedFileLineEdit">
          <property name="font">
@@ -46,19 +56,39 @@
          </property>
         </widget>
        </item>
-       <item row="0" column="0">
-        <widget class="QLabel" name="label_2">
-         <property name="text">
-          <string>Input file</string>
-         </property>
-        </widget>
-       </item>
        <item row="3" column="0">
         <widget class="QLabel" name="label_3">
          <property name="text">
           <string>Profile</string>
          </property>
         </widget>
+       </item>
+       <item row="4" column="1" colspan="2">
+        <widget class="QLineEdit" name="targetLineEdit">
+         <property name="text">
+          <string>localhost</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="0">
+        <widget class="QLabel" name="label_4">
+         <property name="text">
+          <string>Tailoring file</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="1">
+        <widget class="QComboBox" name="profileComboBox"/>
+       </item>
+       <item row="0" column="2">
+        <widget class="QPushButton" name="fileCloseButton">
+         <property name="text">
+          <string>Close</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="1" colspan="2">
+        <widget class="QComboBox" name="tailoringFileComboBox"/>
        </item>
        <item row="4" column="0" alignment="Qt::AlignTop">
         <widget class="QLabel" name="label">
@@ -73,37 +103,10 @@
          </property>
         </widget>
        </item>
-       <item row="4" column="1" colspan="2">
-        <widget class="QLineEdit" name="targetLineEdit">
-         <property name="text">
-          <string>localhost</string>
-         </property>
-        </widget>
-       </item>
-       <item row="3" column="1">
-        <widget class="QComboBox" name="profileComboBox"/>
-       </item>
-       <item row="2" column="0">
-        <widget class="QLabel" name="label_4">
-         <property name="text">
-          <string>Tailoring file</string>
-         </property>
-        </widget>
-       </item>
-       <item row="2" column="1" colspan="2">
-        <widget class="QComboBox" name="tailoringFileComboBox"/>
-       </item>
        <item row="3" column="2">
         <widget class="QPushButton" name="tailorButton">
          <property name="text">
           <string>Tailor</string>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="2">
-        <widget class="QPushButton" name="fileCloseButton">
-         <property name="text">
-          <string>Close</string>
          </property>
         </widget>
        </item>
@@ -114,9 +117,6 @@
          </property>
         </widget>
        </item>
-       <item row="1" column="1" colspan="2">
-        <widget class="QComboBox" name="checklistComboBox"/>
-       </item>
       </layout>
      </widget>
     </item>
@@ -125,6 +125,14 @@
       <layout class="QVBoxLayout" name="verticalLayout_2">
        <item>
         <widget class="QTreeWidget" name="ruleResultsTree">
+         <property name="font">
+          <font>
+           <pointsize>12</pointsize>
+          </font>
+         </property>
+         <attribute name="headerDefaultSectionSize">
+          <number>217</number>
+         </attribute>
          <column>
           <property name="text">
            <string>ID</string>
@@ -237,6 +245,11 @@
              </property>
              <item>
               <widget class="QPushButton" name="clearButton">
+               <property name="font">
+                <font>
+                 <pointsize>13</pointsize>
+                </font>
+               </property>
                <property name="text">
                 <string>Clear</string>
                </property>
@@ -246,6 +259,11 @@
               <widget class="QPushButton" name="remediateButton">
                <property name="enabled">
                 <bool>false</bool>
+               </property>
+               <property name="font">
+                <font>
+                 <pointsize>13</pointsize>
+                </font>
                </property>
                <property name="text">
                 <string>Remediate</string>
@@ -262,6 +280,11 @@
               <widget class="QPushButton" name="saveResultsButton">
                <property name="enabled">
                 <bool>false</bool>
+               </property>
+               <property name="font">
+                <font>
+                 <pointsize>13</pointsize>
+                </font>
                </property>
                <property name="text">
                 <string>Save Results</string>

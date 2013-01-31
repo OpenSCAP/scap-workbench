@@ -66,7 +66,7 @@ class MainWindow : public QMainWindow
         void checklistComboboxChanged(const QString& text);
         void profileComboboxChanged(int index);
 
-        void scanProgressReport(const QString& rule_id, xccdf_test_result_type_t result);
+        void scanProgressReport(const QString& rule_id, const QString& result);
         void scanCanceled();
         void scanFinished();
 };
