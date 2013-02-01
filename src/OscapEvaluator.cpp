@@ -34,11 +34,27 @@ extern "C"
 }
 
 OscapEvaluatorBase::OscapEvaluatorBase(QThread* thread, struct xccdf_session* session, const QString& target):
-    Evaluator(thread, session, target)
+    Evaluator(thread, session, target),
+
+    mCancelRequested(false)
 {}
 
 OscapEvaluatorBase::~OscapEvaluatorBase()
 {}
+
+void OscapEvaluatorBase::cancel()
+{
+    // NB: No need for mutexes here, this will be run in the same thread because
+    //     the event queue we pump in evaluate will run it.
+    mCancelRequested = true;
+}
+
+QByteArray OscapEvaluatorBase::getResults()
+{
+    assert(!mCancelRequested);
+
+    return mResults;
+}
 
 QStringList OscapEvaluatorBase::buildCommandLineArgs(const QString& inputFile, const QString& resultFile)
 {
@@ -79,10 +95,25 @@ QStringList OscapEvaluatorBase::buildCommandLineArgs(const QString& inputFile, c
     return ret;
 }
 
-OscapEvaluatorLocal::OscapEvaluatorLocal(QThread* thread, struct xccdf_session* session, const QString& target):
-    OscapEvaluatorBase(thread, session, target),
+bool OscapEvaluatorBase::tryToReadLine(QProcess& process)
+{
+    if (!process.canReadLine())
+        return false;
 
-    mCancelRequested(false)
+    QString stringLine = QString::fromUtf8(process.readLine().constData());
+    QStringList split = stringLine.split(":");
+
+    // TODO: error handling!
+
+    // NB: trimmed because the line might be padded with either LF or even CR LF
+    //     from the right side.
+    emit progressReport(split.at(0), split.at(1).trimmed());
+
+    return true;
+}
+
+OscapEvaluatorLocal::OscapEvaluatorLocal(QThread* thread, struct xccdf_session* session, const QString& target):
+    OscapEvaluatorBase(thread, session, target)
 {}
 
 OscapEvaluatorLocal::~OscapEvaluatorLocal()
@@ -110,7 +141,7 @@ void OscapEvaluatorLocal::evaluate()
         while (tryToReadLine(process));
 
         // pump the event queue, mainly because the user might want to cancel
-        QAbstractEventDispatcher::instance()->processEvents(QEventLoop::AllEvents);
+        QAbstractEventDispatcher::instance(mThread)->processEvents(QEventLoop::AllEvents);
 
         if (mCancelRequested)
         {
@@ -132,33 +163,70 @@ void OscapEvaluatorLocal::evaluate()
     signalCompletion(mCancelRequested);
 }
 
-void OscapEvaluatorLocal::cancel()
+OscapEvaluatorRemoteSsh::OscapEvaluatorRemoteSsh(QThread* thread, struct xccdf_session* session, const QString& target):
+    OscapEvaluatorBase(thread, session, target)
 {
-    // NB: No need for mutexes here, this will be run in the same thread because
-    //     the event queue we pump in evaluate will run it.
-    mCancelRequested = true;
+    mMasterSocket.setAutoRemove(false);
 }
 
-QByteArray OscapEvaluatorLocal::getResults()
+OscapEvaluatorRemoteSsh::~OscapEvaluatorRemoteSsh()
 {
-    assert(!mCancelRequested);
+    if (mMasterSocket.fileName() != QString::Null())
+    {
+        QProcess socketClosing;
 
-    return mResults;
+        QStringList args;
+        args.append("-S"); args.append(mMasterSocket.fileName());
+
+        args.append("-O"); args.append("exit");
+        args.append(mTarget);
+
+        socketClosing.start("ssh", args);
+        socketClosing.waitForFinished(1000);
+    }
 }
 
-bool OscapEvaluatorLocal::tryToReadLine(QProcess& process)
+void OscapEvaluatorRemoteSsh::evaluate()
 {
-    if (!process.canReadLine())
-        return false;
+    establish();
 
-    QString stringLine = QString::fromUtf8(process.readLine().constData());
-    QStringList split = stringLine.split(":");
+    if (mCancelRequested)
+        signalCompletion(true);
+}
 
-    // TODO: error handling!
+void OscapEvaluatorRemoteSsh::establish()
+{
+    // These two calls force Qt to allocate the file on disk and give us
+    // the path back.
+    mMasterSocket.open();
+    mMasterSocket.close();
 
-    // NB: trimmed because the line might be padded with either LF or even CR LF
-    //     from the right side.
-    emit progressReport(split.at(0), split.at(1).trimmed());
+    QStringList args;
+    args.append("-M");
+    args.append("-f");
+    args.append("-N");
 
-    return true;
+    args.append("-o"); args.append(QString("ControlPath=%1").arg(mMasterSocket.fileName()));
+
+    // TODO: sanitize input?
+    args.append(mTarget);
+
+    mMasterProcess = new QProcess(this);
+    mMasterProcess->start("ssh", args);
+    //mMasterProcess->closeWriteChannel();
+
+    while (!mMasterProcess->waitForFinished(100))
+    {
+        // pump the event queue, mainly because the user might want to cancel
+        QAbstractEventDispatcher::instance(mThread)->processEvents(QEventLoop::AllEvents);
+
+        if (mCancelRequested)
+        {
+            mMasterProcess->close();
+            break;
+        }
+    }
+
+    // TODO: Check this differently
+    //assert(mMasterProcess->exitCode() == 0);
 }

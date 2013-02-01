@@ -202,7 +202,13 @@ void MainWindow::scanAsync()
 
     mScanThread = new QThread(this);
 
-    mEvaluator = new OscapEvaluatorLocal(mScanThread, mSession, "localhost");
+    const QString target = mUI.targetLineEdit->text();
+
+    if (target == "localhost")
+        mEvaluator = new OscapEvaluatorLocal(mScanThread, mSession, "localhost");
+    else
+        mEvaluator = new OscapEvaluatorRemoteSsh(mScanThread, mSession, target);
+
     mEvaluator->moveToThread(mScanThread);
 
     QObject::connect(mScanThread, SIGNAL(started()), mEvaluator, SLOT(evaluate()));
@@ -228,6 +234,8 @@ void MainWindow::reloadSession()
 {
     if (!mSession)
         return;
+
+    clearResults();
 
     if (xccdf_session_load(mSession) != 0)
     {
@@ -360,6 +368,8 @@ void MainWindow::profileComboboxChanged(int index)
         // TODO: error handling
         xccdf_session_set_profile_id(mSession, profileId.toUtf8().constData());
     }
+
+    clearResults();
 }
 
 void MainWindow::scanProgressReport(const QString& rule_id, const QString& result)

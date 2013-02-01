@@ -24,6 +24,7 @@
 #include "Evaluator.h"
 #include <QStringList>
 #include <QProcess>
+#include <QTemporaryFile>
 
 class OscapEvaluatorBase : public Evaluator
 {
@@ -33,8 +34,15 @@ class OscapEvaluatorBase : public Evaluator
         OscapEvaluatorBase(QThread* thread, struct xccdf_session* session, const QString& target);
         virtual ~OscapEvaluatorBase();
 
+        virtual void cancel();
+        virtual QByteArray getResults();
+
     protected:
         QStringList buildCommandLineArgs(const QString& inputFile, const QString& resultFile);
+        bool tryToReadLine(QProcess& process);
+
+        bool mCancelRequested;
+        QByteArray mResults;
 };
 
 class OscapEvaluatorLocal : public OscapEvaluatorBase
@@ -46,13 +54,22 @@ class OscapEvaluatorLocal : public OscapEvaluatorBase
         virtual ~OscapEvaluatorLocal();
 
         virtual void evaluate();
-        virtual void cancel();
+};
 
-        virtual QByteArray getResults();
+class OscapEvaluatorRemoteSsh : public OscapEvaluatorBase
+{
+    Q_OBJECT
+
+    public:
+        OscapEvaluatorRemoteSsh(QThread* thread, struct xccdf_session* session, const QString& target);
+        virtual ~OscapEvaluatorRemoteSsh();
+
+        virtual void evaluate();
 
     private:
+        void establish();
         bool tryToReadLine(QProcess& process);
 
-        bool mCancelRequested;
-        QByteArray mResults;
+        QTemporaryFile mMasterSocket;
+        QProcess* mMasterProcess;
 };
