@@ -19,6 +19,9 @@
  *      Martin Preisler <mpreisle@redhat.com>
  */
 
+#ifndef SCAP_WORKBENCH_OSCAP_EVALUATOR_H_
+#define SCAP_WORKBENCH_OSCAP_EVALUATOR_H_
+
 #include "ForwardDecls.h"
 
 #include "Evaluator.h"
@@ -35,14 +38,24 @@ class OscapEvaluatorBase : public Evaluator
         virtual ~OscapEvaluatorBase();
 
         virtual void cancel();
-        virtual QByteArray getResults();
+
+        virtual void getResults(QByteArray& destination);
+        virtual void getReport(QByteArray& destination);
+        virtual void getARF(QByteArray& destination);
 
     protected:
-        QStringList buildCommandLineArgs(const QString& inputFile, const QString& resultFile);
+        QStringList buildCommandLineArgs(const QString& inputFile,
+                                         const QString& resultFile,
+                                         const QString& reportFile,
+                                         const QString& arfFile);
+
         bool tryToReadLine(QProcess& process);
 
         bool mCancelRequested;
+
         QByteArray mResults;
+        QByteArray mReport;
+        QByteArray mARF;
 };
 
 class OscapEvaluatorLocal : public OscapEvaluatorBase
@@ -73,3 +86,5 @@ class OscapEvaluatorRemoteSsh : public OscapEvaluatorBase
         QTemporaryFile mMasterSocket;
         QProcess* mMasterProcess;
 };
+
+#endif

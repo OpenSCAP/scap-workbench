@@ -19,6 +19,9 @@
  *      Martin Preisler <mpreisle@redhat.com>
  */
 
+#ifndef SCAP_WORKBENCH_MAIN_WINDOW_H_
+#define SCAP_WORKBENCH_MAIN_WINDOW_H_
+
 #include "ForwardDecls.h"
 
 #include <QMainWindow>
@@ -36,7 +39,7 @@ class MainWindow : public QMainWindow
     Q_OBJECT
 
     public:
-        explicit MainWindow(QWidget* parent = 0);
+        MainWindow(QWidget* parent = 0);
         virtual ~MainWindow();
 
     public slots:
@@ -59,6 +62,8 @@ class MainWindow : public QMainWindow
         QThread* mScanThread;
         Evaluator* mEvaluator;
 
+        ResultViewer* mResultViewer;
+
     signals:
         void cancelScan();
 
@@ -69,4 +74,8 @@ class MainWindow : public QMainWindow
         void scanProgressReport(const QString& rule_id, const QString& result);
         void scanCanceled();
         void scanFinished();
+
+        void showResults();
 };
+
+#endif

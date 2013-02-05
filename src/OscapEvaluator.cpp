@@ -49,14 +49,31 @@ void OscapEvaluatorBase::cancel()
     mCancelRequested = true;
 }
 
-QByteArray OscapEvaluatorBase::getResults()
+void OscapEvaluatorBase::getResults(QByteArray& destination)
 {
     assert(!mCancelRequested);
 
-    return mResults;
+    destination.append(mResults);
 }
 
-QStringList OscapEvaluatorBase::buildCommandLineArgs(const QString& inputFile, const QString& resultFile)
+void OscapEvaluatorBase::getReport(QByteArray& destination)
+{
+    assert(!mCancelRequested);
+
+    destination.append(mReport);
+}
+
+void OscapEvaluatorBase::getARF(QByteArray& destination)
+{
+    assert(!mCancelRequested);
+
+    destination.append(mARF);
+}
+
+QStringList OscapEvaluatorBase::buildCommandLineArgs(const QString& inputFile,
+                                                     const QString& resultFile,
+                                                     const QString& reportFile,
+                                                     const QString& arfFile)
 {
     QStringList ret;
     ret.append("xccdf");
@@ -87,6 +104,12 @@ QStringList OscapEvaluatorBase::buildCommandLineArgs(const QString& inputFile, c
 
     ret.append("--results");
     ret.append(resultFile);
+
+    ret.append("--results-arf");
+    ret.append(arfFile);
+
+    ret.append("--report");
+    ret.append(reportFile);
 
     ret.append("--progress");
 
@@ -122,16 +145,27 @@ OscapEvaluatorLocal::~OscapEvaluatorLocal()
 void OscapEvaluatorLocal::evaluate()
 {
     // TODO: Error handling!
+
     QTemporaryFile resultFile;
     resultFile.setAutoRemove(true);
-    // the following 2 lines force Qt to give us the filename
-    resultFile.open();
-    resultFile.close();
+    // the following forces Qt to give us the filename
+    resultFile.open(); resultFile.close();
+
+    QTemporaryFile reportFile;
+    reportFile.setAutoRemove(true);
+    reportFile.open(); reportFile.close();
+
+    QTemporaryFile arfFile;
+    arfFile.setAutoRemove(true);
+    arfFile.open(); arfFile.close();
 
     QString inputFile = xccdf_session_get_filename(mSession);
 
     QProcess process(this);
-    process.start("oscap", buildCommandLineArgs(inputFile, resultFile.fileName()));
+    process.start("oscap", buildCommandLineArgs(inputFile,
+                                                resultFile.fileName(),
+                                                reportFile.fileName(),
+                                                arfFile.fileName()));
 
     const unsigned int pollInterval = 100;
 
@@ -158,6 +192,14 @@ void OscapEvaluatorLocal::evaluate()
         resultFile.open();
         mResults = resultFile.readAll();
         resultFile.close();
+
+        reportFile.open();
+        mReport = reportFile.readAll();
+        reportFile.close();
+
+        arfFile.open();
+        mARF = arfFile.readAll();
+        arfFile.close();
     }
 
     signalCompletion(mCancelRequested);

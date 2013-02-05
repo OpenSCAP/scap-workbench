@@ -19,13 +19,27 @@
  *      Martin Preisler <mpreisle@redhat.com>
  */
 
-#ifndef SCAP_WORKBENCH_FORWARD_DECLS_H_
-#define SCAP_WORKBENCH_FORWARD_DECLS_H_
+#include "ResultViewer.h"
+#include "Evaluator.h"
 
-class Evaluator;
-class MainWindow;
-class OscapEvaluatorBase;
-class OscapEvaluatorLocal;
-class ResultViewer;
+ResultViewer::ResultViewer(QWidget* parent):
+    QDialog(parent)
+{
+    mUI.setupUi(this);
+}
 
-#endif
+ResultViewer::~ResultViewer()
+{}
+
+void ResultViewer::clear()
+{
+    mUI.webView->setContent(QByteArray());
+}
+
+void ResultViewer::loadContent(Evaluator* evaluator)
+{
+    QByteArray report;
+    evaluator->getReport(report);
+
+    mUI.webView->setContent(report);
+}

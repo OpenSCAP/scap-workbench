@@ -20,8 +20,8 @@
  */
 
 #include "MainWindow.h"
-
 #include "OscapEvaluator.h"
+#include "ResultViewer.h"
 
 #include <QFileDialog>
 #include <QMessageBox>
@@ -43,7 +43,9 @@ MainWindow::MainWindow(QWidget* parent):
     mSession(0),
 
     mScanThread(0),
-    mEvaluator(0)
+    mEvaluator(0),
+
+    mResultViewer(0)
 {
     mUI.setupUi(this);
 
@@ -77,6 +79,14 @@ MainWindow::MainWindow(QWidget* parent):
         this, SLOT(clearResults())
     );
 
+    QObject::connect(
+        mUI.showResultsButton, SIGNAL(released()),
+        this, SLOT(showResults())
+    );
+
+    mResultViewer = new ResultViewer(this);
+    mResultViewer->hide();
+
     show();
 
     openFileDialog();
@@ -85,6 +95,7 @@ MainWindow::MainWindow(QWidget* parent):
 MainWindow::~MainWindow()
 {
     closeFile();
+    delete mResultViewer;
 }
 
 void MainWindow::clearResults()
@@ -96,6 +107,8 @@ void MainWindow::clearResults()
     mUI.postScanTools->hide();
 
     mUI.ruleResultsTree->clear();
+
+    mResultViewer->clear();
 }
 
 void MainWindow::openFile(const QString& path)
@@ -404,11 +417,16 @@ void MainWindow::scanCanceled()
 
 void MainWindow::scanFinished()
 {
-    QByteArray results = mEvaluator->getResults();
+    mResultViewer->loadContent(mEvaluator);
 
     cleanupScanThread();
 
     mUI.preScanTools->hide();
     mUI.scanTools->hide();
     mUI.postScanTools->show();
+}
+
+void MainWindow::showResults()
+{
+    mResultViewer->show();
 }

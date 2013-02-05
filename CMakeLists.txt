@@ -20,6 +20,10 @@ add_executable(scap_workbench
 )
 #set_target_properties(scap_workbench PROPERTIES LINKER_LANGUAGE CXX)
 # TODO: Find openscap as part of the configuration step
-target_link_libraries(scap_workbench ${QT_QTCORE_LIBRARY} ${QT_QTGUI_LIBRARY} /usr/lib/libopenscap.so)
+target_link_libraries(scap_workbench ${QT_QTCORE_LIBRARY} ${QT_QTGUI_LIBRARY} ${QT_QTWEBKIT_LIBRARY} /usr/lib/libopenscap.so)
 # TODO: Find openscap as part of the configuration step
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include ${CMAKE_CURRENT_BINARY_DIR} ${QT_QTCORE_INCLUDE_DIR} ${QT_QTGUI_INCLUDE_DIR} "/usr/include/openscap")
+include_directories(
+    ${CMAKE_CURRENT_SOURCE_DIR}/include ${CMAKE_CURRENT_BINARY_DIR}
+    ${QT_QTCORE_INCLUDE_DIR} ${QT_QTGUI_INCLUDE_DIR} ${QT_QTWEBKIT_INCLUDE_DIR}
+    "/usr/include/openscap"
+)

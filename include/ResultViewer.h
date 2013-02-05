@@ -19,45 +19,37 @@
  *      Martin Preisler <mpreisle@redhat.com>
  */
 
-#ifndef SCAP_WORKBENCH_EVALUATOR_H_
-#define SCAP_WORKBENCH_EVALUATOR_H_
+#ifndef SCAP_WORKBENCH_RESULT_VIEWER_H_
+#define SCAP_WORKBENCH_RESULT_VIEWER_H_
 
 #include "ForwardDecls.h"
 
-#include <QObject>
+#include <QDialog>
 
 extern "C"
 {
 #include <xccdf_benchmark.h>
 }
 
-class Evaluator : public QObject
+#include "ui_ResultViewer.h"
+
+class ResultViewer : public QDialog
 {
     Q_OBJECT
 
     public:
-        Evaluator(QThread* thread, struct xccdf_session* session, const QString& target);
-        virtual ~Evaluator();
+        ResultViewer(QWidget* parent = 0);
+        virtual ~ResultViewer();
 
-        virtual void getResults(QByteArray& destination) = 0;
-        virtual void getReport(QByteArray& destination) = 0;
-        virtual void getARF(QByteArray& destination) = 0;
+        void clear();
+        void loadContent(Evaluator* evaluator);
 
-    public slots:
-        virtual void evaluate() = 0;
-        virtual void cancel() = 0;
+    private:
+        Ui_ResultViewer mUI;
 
-    signals:
-        void progressReport(const QString& rule_id, const QString& result);
-        void canceled();
-        void finished();
-
-    protected:
-        QThread* mThread;
-        struct xccdf_session* mSession;
-        const QString mTarget;
-
-        void signalCompletion(bool canceled);
+        QByteArray mResults;
+        QByteArray mReport;
+        QByteArray mARF;
 };
 
 #endif
