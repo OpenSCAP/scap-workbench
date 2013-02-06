@@ -179,12 +179,28 @@ void OscapEvaluatorLocal::evaluate()
 
         if (mCancelRequested)
         {
-            process.close();
+            // TODO: On Windows we have to kill immediately, terminate() posts WM_CLOSE
+            //       but oscap doesn't have any event loop running.
+            process.terminate();
             break;
         }
     }
 
-    if (!mCancelRequested)
+    if (mCancelRequested)
+    {
+        unsigned int waited = 0;
+        while (!process.waitForFinished(pollInterval))
+        {
+            waited += pollInterval;
+            if (waited > 3000) // 3 seconds should be enough for the process to terminate
+            {
+                // if it didn't terminate, we have to kill it at this point
+                process.kill();
+                break;
+            }
+        }
+    }
+    else
     {
         // read everything left over
         while (tryToReadLine(process));
