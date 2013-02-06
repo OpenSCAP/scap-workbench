@@ -44,6 +44,11 @@ class ResultViewer : public QDialog
         void clear();
         void loadContent(Evaluator* evaluator);
 
+    private slots:
+        void saveReport();
+        void saveResults();
+        void saveARF();
+
     private:
         Ui_ResultViewer mUI;
 

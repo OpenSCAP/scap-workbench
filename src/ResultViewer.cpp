@@ -21,11 +21,32 @@
 
 #include "ResultViewer.h"
 #include "Evaluator.h"
+#include <QFileDialog>
 
 ResultViewer::ResultViewer(QWidget* parent):
     QDialog(parent)
 {
     mUI.setupUi(this);
+
+    QObject::connect(
+        mUI.saveResultsButton, SIGNAL(released()),
+        this, SLOT(saveResults())
+    );
+
+    QObject::connect(
+        mUI.saveReportButton, SIGNAL(released()),
+        this, SLOT(saveReport())
+    );
+
+    QObject::connect(
+        mUI.saveARFButton, SIGNAL(released()),
+        this, SLOT(saveARF())
+    );
+
+    QObject::connect(
+        mUI.closeButton, SIGNAL(released()),
+        this, SLOT(reject())
+    );
 }
 
 ResultViewer::~ResultViewer()
@@ -38,8 +59,52 @@ void ResultViewer::clear()
 
 void ResultViewer::loadContent(Evaluator* evaluator)
 {
-    QByteArray report;
-    evaluator->getReport(report);
+    mReport.clear();
+    evaluator->getReport(mReport);
+    mUI.webView->setContent(mReport);
 
-    mUI.webView->setContent(report);
+    mResults.clear();
+    evaluator->getResults(mResults);
+
+    mARF.clear();
+    evaluator->getARF(mARF);
+}
+
+void ResultViewer::saveReport()
+{
+    const QString filename = QFileDialog::getSaveFileName(this, "Save Report (HTML)", QString(), "HTML Report (*.html)");
+
+    if (filename == QString::Null())
+        return;
+
+    QFile file(filename);
+    file.open(QIODevice::WriteOnly);
+    file.write(mReport);
+    file.close();
+}
+
+void ResultViewer::saveResults()
+{
+    const QString filename = QFileDialog::getSaveFileName(this, "Save as XCCDF Results", QString(), "XCCDF Results (*.xml)");
+
+    if (filename == QString::Null())
+        return;
+
+    QFile file(filename);
+    file.open(QIODevice::WriteOnly);
+    file.write(mResults);
+    file.close();
+}
+
+void ResultViewer::saveARF()
+{
+    const QString filename = QFileDialog::getSaveFileName(this, "Save as Result DataStream / ARF", QString(), "Result DataStream / ARF (*.xml)");
+
+    if (filename == QString::Null())
+        return;
+
+    QFile file(filename);
+    file.open(QIODevice::WriteOnly);
+    file.write(mARF);
+    file.close();
 }
