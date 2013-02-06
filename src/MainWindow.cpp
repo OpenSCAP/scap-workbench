@@ -48,6 +48,7 @@ MainWindow::MainWindow(QWidget* parent):
     mResultViewer(0)
 {
     mUI.setupUi(this);
+    mUI.progressBar->reset();
 
     // Target has to be in the [USER@]HOSTNAME[:PORT] scheme.
     QString targetRegExp = "^([a-z][-a-z0-9]*@)?"; // username, optional
@@ -221,6 +222,11 @@ void MainWindow::scanAsync()
     mUI.preScanTools->hide();
     mUI.scanTools->show();
 
+    struct xccdf_policy* policy = xccdf_session_get_xccdf_policy(mSession);
+    mUI.progressBar->setRange(0, xccdf_policy_get_selected_rules_count(policy));
+    mUI.progressBar->reset();
+    mUI.progressBar->setEnabled(true);
+
     mScanThread = new QThread(this);
 
     const QString target = mUI.targetLineEdit->text();
@@ -350,6 +356,10 @@ void MainWindow::cleanupScanThread()
 
     mScanThread = 0;
     mEvaluator = 0;
+
+    mUI.progressBar->setRange(0, 1);
+    mUI.progressBar->reset();
+    mUI.progressBar->setEnabled(false);
 }
 
 void MainWindow::checklistComboboxChanged(const QString& text)
@@ -398,10 +408,18 @@ void MainWindow::scanProgressReport(const QString& rule_id, const QString& resul
     assert(mSession);
 
     struct xccdf_benchmark* benchmark = xccdf_policy_model_get_benchmark(xccdf_session_get_policy_model(mSession));
-
     struct xccdf_item* item = xccdf_benchmark_get_member(benchmark, XCCDF_ITEM, rule_id.toUtf8().constData());
 
-    // TODO: error checking!
+    if (!item)
+    {
+        // TODO: Log this as failure
+        return;
+    }
+
+    // Guard ourselves against multi checks, only count each rule result once
+    // for progress estimation.
+    if (mUI.ruleResultsTree->findItems(rule_id, Qt::MatchExactly, 0).empty())
+        mUI.progressBar->setValue(mUI.progressBar->value() + 1);
 
     QStringList resultRow;
     resultRow.append(rule_id);
@@ -409,6 +427,7 @@ void MainWindow::scanProgressReport(const QString& rule_id, const QString& resul
     resultRow.append(result);
 
     mUI.ruleResultsTree->addTopLevelItem(new QTreeWidgetItem(resultRow));
+
 }
 
 void MainWindow::scanCanceled()
