@@ -19,19 +19,19 @@
  *      Martin Preisler <mpreisle@redhat.com>
  */
 
-#include "Evaluator.h"
+#include "Scanner.h"
 #include <QThread>
 
-Evaluator::Evaluator(QThread* thread, struct xccdf_session* session, const QString& target):
+Scanner::Scanner(QThread* thread, struct xccdf_session* session, const QString& target):
     mThread(thread),
     mSession(session),
     mTarget(target)
 {}
 
-Evaluator::~Evaluator()
+Scanner::~Scanner()
 {}
 
-void Evaluator::signalCompletion(bool cancel)
+void Scanner::signalCompletion(bool cancel)
 {
     if (cancel)
         emit canceled();

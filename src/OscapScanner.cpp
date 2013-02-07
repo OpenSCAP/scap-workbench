@@ -19,7 +19,7 @@
  *      Martin Preisler <mpreisle@redhat.com>
  */
 
-#include "OscapEvaluator.h"
+#include "OscapScanner.h"
 
 #include <QThread>
 #include <QAbstractEventDispatcher>
@@ -33,44 +33,44 @@ extern "C"
 #include <xccdf_benchmark.h>
 }
 
-OscapEvaluatorBase::OscapEvaluatorBase(QThread* thread, struct xccdf_session* session, const QString& target):
-    Evaluator(thread, session, target),
+OscapScannerBase::OscapScannerBase(QThread* thread, struct xccdf_session* session, const QString& target):
+    Scanner(thread, session, target),
 
     mCancelRequested(false)
 {}
 
-OscapEvaluatorBase::~OscapEvaluatorBase()
+OscapScannerBase::~OscapScannerBase()
 {}
 
-void OscapEvaluatorBase::cancel()
+void OscapScannerBase::cancel()
 {
     // NB: No need for mutexes here, this will be run in the same thread because
     //     the event queue we pump in evaluate will run it.
     mCancelRequested = true;
 }
 
-void OscapEvaluatorBase::getResults(QByteArray& destination)
+void OscapScannerBase::getResults(QByteArray& destination)
 {
     assert(!mCancelRequested);
 
     destination.append(mResults);
 }
 
-void OscapEvaluatorBase::getReport(QByteArray& destination)
+void OscapScannerBase::getReport(QByteArray& destination)
 {
     assert(!mCancelRequested);
 
     destination.append(mReport);
 }
 
-void OscapEvaluatorBase::getARF(QByteArray& destination)
+void OscapScannerBase::getARF(QByteArray& destination)
 {
     assert(!mCancelRequested);
 
     destination.append(mARF);
 }
 
-QStringList OscapEvaluatorBase::buildCommandLineArgs(const QString& inputFile,
+QStringList OscapScannerBase::buildCommandLineArgs(const QString& inputFile,
                                                      const QString& resultFile,
                                                      const QString& reportFile,
                                                      const QString& arfFile)
@@ -118,7 +118,7 @@ QStringList OscapEvaluatorBase::buildCommandLineArgs(const QString& inputFile,
     return ret;
 }
 
-bool OscapEvaluatorBase::tryToReadLine(QProcess& process)
+bool OscapScannerBase::tryToReadLine(QProcess& process)
 {
     if (!process.canReadLine())
         return false;
@@ -135,14 +135,14 @@ bool OscapEvaluatorBase::tryToReadLine(QProcess& process)
     return true;
 }
 
-OscapEvaluatorLocal::OscapEvaluatorLocal(QThread* thread, struct xccdf_session* session, const QString& target):
-    OscapEvaluatorBase(thread, session, target)
+OscapScannerLocal::OscapScannerLocal(QThread* thread, struct xccdf_session* session, const QString& target):
+    OscapScannerBase(thread, session, target)
 {}
 
-OscapEvaluatorLocal::~OscapEvaluatorLocal()
+OscapScannerLocal::~OscapScannerLocal()
 {}
 
-void OscapEvaluatorLocal::evaluate()
+void OscapScannerLocal::evaluate()
 {
     // TODO: Error handling!
 
@@ -221,13 +221,13 @@ void OscapEvaluatorLocal::evaluate()
     signalCompletion(mCancelRequested);
 }
 
-OscapEvaluatorRemoteSsh::OscapEvaluatorRemoteSsh(QThread* thread, struct xccdf_session* session, const QString& target):
-    OscapEvaluatorBase(thread, session, target)
+OscapScannerRemoteSsh::OscapScannerRemoteSsh(QThread* thread, struct xccdf_session* session, const QString& target):
+    OscapScannerBase(thread, session, target)
 {
     mMasterSocket.setAutoRemove(false);
 }
 
-OscapEvaluatorRemoteSsh::~OscapEvaluatorRemoteSsh()
+OscapScannerRemoteSsh::~OscapScannerRemoteSsh()
 {
     if (mMasterSocket.fileName() != QString::Null())
     {
@@ -244,7 +244,7 @@ OscapEvaluatorRemoteSsh::~OscapEvaluatorRemoteSsh()
     }
 }
 
-void OscapEvaluatorRemoteSsh::evaluate()
+void OscapScannerRemoteSsh::evaluate()
 {
     establish();
 
@@ -252,7 +252,7 @@ void OscapEvaluatorRemoteSsh::evaluate()
         signalCompletion(true);
 }
 
-void OscapEvaluatorRemoteSsh::establish()
+void OscapScannerRemoteSsh::establish()
 {
     // These two calls force Qt to allocate the file on disk and give us
     // the path back.

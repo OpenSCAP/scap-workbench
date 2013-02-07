@@ -22,10 +22,11 @@
 #ifndef SCAP_WORKBENCH_FORWARD_DECLS_H_
 #define SCAP_WORKBENCH_FORWARD_DECLS_H_
 
-class Evaluator;
+class Scanner;
 class MainWindow;
-class OscapEvaluatorBase;
-class OscapEvaluatorLocal;
+class OscapScannerBase;
+class OscapScannerLocal;
+class OscapScannerRemoteSsh;
 class ResultViewer;
 
 #endif

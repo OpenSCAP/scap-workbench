@@ -19,23 +19,23 @@
  *      Martin Preisler <mpreisle@redhat.com>
  */
 
-#ifndef SCAP_WORKBENCH_OSCAP_EVALUATOR_H_
-#define SCAP_WORKBENCH_OSCAP_EVALUATOR_H_
+#ifndef SCAP_WORKBENCH_OSCAP_SCANNER_H_
+#define SCAP_WORKBENCH_OSCAP_SCANNER_H_
 
 #include "ForwardDecls.h"
 
-#include "Evaluator.h"
+#include "Scanner.h"
 #include <QStringList>
 #include <QProcess>
 #include <QTemporaryFile>
 
-class OscapEvaluatorBase : public Evaluator
+class OscapScannerBase : public Scanner
 {
     Q_OBJECT
 
     public:
-        OscapEvaluatorBase(QThread* thread, struct xccdf_session* session, const QString& target);
-        virtual ~OscapEvaluatorBase();
+        OscapScannerBase(QThread* thread, struct xccdf_session* session, const QString& target);
+        virtual ~OscapScannerBase();
 
         virtual void cancel();
 
@@ -58,24 +58,24 @@ class OscapEvaluatorBase : public Evaluator
         QByteArray mARF;
 };
 
-class OscapEvaluatorLocal : public OscapEvaluatorBase
+class OscapScannerLocal : public OscapScannerBase
 {
     Q_OBJECT
 
     public:
-        OscapEvaluatorLocal(QThread* thread, struct xccdf_session* session, const QString& target);
-        virtual ~OscapEvaluatorLocal();
+        OscapScannerLocal(QThread* thread, struct xccdf_session* session, const QString& target);
+        virtual ~OscapScannerLocal();
 
         virtual void evaluate();
 };
 
-class OscapEvaluatorRemoteSsh : public OscapEvaluatorBase
+class OscapScannerRemoteSsh : public OscapScannerBase
 {
     Q_OBJECT
 
     public:
-        OscapEvaluatorRemoteSsh(QThread* thread, struct xccdf_session* session, const QString& target);
-        virtual ~OscapEvaluatorRemoteSsh();
+        OscapScannerRemoteSsh(QThread* thread, struct xccdf_session* session, const QString& target);
+        virtual ~OscapScannerRemoteSsh();
 
         virtual void evaluate();
 

@@ -42,7 +42,7 @@ class ResultViewer : public QDialog
         virtual ~ResultViewer();
 
         void clear();
-        void loadContent(Evaluator* evaluator);
+        void loadContent(Scanner* scanner);
 
     private slots:
         void saveReport();

@@ -20,7 +20,7 @@
  */
 
 #include "MainWindow.h"
-#include "OscapEvaluator.h"
+#include "OscapScanner.h"
 #include "ResultViewer.h"
 
 #include <QFileDialog>
@@ -43,7 +43,7 @@ MainWindow::MainWindow(QWidget* parent):
     mSession(0),
 
     mScanThread(0),
-    mEvaluator(0),
+    mScanner(0),
 
     mResultViewer(0)
 {
@@ -62,32 +62,26 @@ MainWindow::MainWindow(QWidget* parent):
         mUI.fileCloseButton, SIGNAL(released()),
         this, SLOT(openFileDialog())
     );
-
     QObject::connect(
         mUI.checklistComboBox, SIGNAL(currentIndexChanged(const QString&)),
         this, SLOT(checklistComboboxChanged(const QString&))
     );
-
     QObject::connect(
         mUI.profileComboBox, SIGNAL(currentIndexChanged(int)),
         this, SLOT(profileComboboxChanged(int))
     );
-
     QObject::connect(
         mUI.scanButton, SIGNAL(released()),
         this, SLOT(scanAsync())
     );
-
     QObject::connect(
         mUI.cancelButton, SIGNAL(released()),
         this, SLOT(cancelScanAsync())
     );
-
     QObject::connect(
         mUI.clearButton, SIGNAL(released()),
         this, SLOT(clearResults())
     );
-
     QObject::connect(
         mUI.showResultsButton, SIGNAL(released()),
         this, SLOT(showResults())
@@ -165,27 +159,6 @@ void MainWindow::openFile(const QString& path)
     setEnabled(true);
 }
 
-void MainWindow::closeFile()
-{
-    if (mSession)
-    {
-        xccdf_session_free(mSession);
-        mSession = 0;
-    }
-
-    setEnabled(false);
-
-    mUI.openedFileLineEdit->setText("");
-
-    mUI.checklistComboBox->clear();
-    mUI.checklistComboBox->hide();
-    mUI.checklistLabel->hide();
-
-    mUI.profileComboBox->clear();
-
-    clearResults();
-}
-
 void MainWindow::openFileDialog()
 {
     closeFile();
@@ -213,7 +186,8 @@ void MainWindow::openFileDialog()
 
 void MainWindow::scanAsync()
 {
-    assert(!mEvaluator);
+    assert(mSession);
+    assert(!mScanner);
     assert(!mScanThread);
 
     clearResults();
@@ -232,29 +206,63 @@ void MainWindow::scanAsync()
     const QString target = mUI.targetLineEdit->text();
 
     if (target == "localhost")
-        mEvaluator = new OscapEvaluatorLocal(mScanThread, mSession, "localhost");
+        mScanner = new OscapScannerLocal(mScanThread, mSession, "localhost");
     else
-        mEvaluator = new OscapEvaluatorRemoteSsh(mScanThread, mSession, target);
+        mScanner = new OscapScannerRemoteSsh(mScanThread, mSession, target);
 
-    mEvaluator->moveToThread(mScanThread);
+    mScanner->moveToThread(mScanThread);
 
-    QObject::connect(mScanThread, SIGNAL(started()), mEvaluator, SLOT(evaluate()));
-    QObject::connect(this, SIGNAL(cancelScan()), mEvaluator, SLOT(cancel()));
-    QObject::connect(mEvaluator, SIGNAL(progressReport(const QString&, const QString&)), this, SLOT(scanProgressReport(const QString&, const QString&)));
-    QObject::connect(mEvaluator, SIGNAL(canceled()), this, SLOT(scanCanceled()));
-    QObject::connect(mEvaluator, SIGNAL(finished()), this, SLOT(scanFinished()));
+    QObject::connect(
+        mScanThread, SIGNAL(started()),
+        mScanner, SLOT(evaluate())
+    );
+    QObject::connect(
+        this, SIGNAL(cancelScan()),
+        mScanner, SLOT(cancel())
+    );
+    QObject::connect(
+        mScanner, SIGNAL(progressReport(const QString&, const QString&)),
+        this, SLOT(scanProgressReport(const QString&, const QString&))
+    );
+    QObject::connect(
+        mScanner, SIGNAL(canceled()),
+        this, SLOT(scanCanceled())
+    );
+    QObject::connect(
+        mScanner, SIGNAL(finished()),
+        this, SLOT(scanFinished())
+    );
 
     mScanThread->start();
 }
 
 void MainWindow::cancelScanAsync()
 {
+    assert(mSession);
+
     mUI.cancelButton->setEnabled(false);
-
-    assert(mEvaluator);
-    assert(mScanThread);
-
     emit cancelScan();
+}
+
+void MainWindow::closeFile()
+{
+    if (mSession)
+    {
+        xccdf_session_free(mSession);
+        mSession = 0;
+    }
+
+    setEnabled(false);
+
+    mUI.openedFileLineEdit->setText("");
+
+    mUI.checklistComboBox->clear();
+    mUI.checklistComboBox->hide();
+    mUI.checklistLabel->hide();
+
+    mUI.profileComboBox->clear();
+
+    clearResults();
 }
 
 void MainWindow::reloadSession()
@@ -268,6 +276,7 @@ void MainWindow::reloadSession()
     {
         QMessageBox::critical(this, QString("Failed to reload session"),
             QString("OpenSCAP error message:\n%1").arg(oscap_err_desc()));
+        return;
     }
 
     refreshProfiles();
@@ -275,6 +284,10 @@ void MainWindow::reloadSession()
 
 void MainWindow::refreshProfiles()
 {
+    const int previousIndex = mUI.profileComboBox->currentIndex();
+    const QString previouslySelected = previousIndex == -1 ?
+        QString::Null() : mUI.profileComboBox->itemData(previousIndex).toString();
+
     mUI.profileComboBox->clear();
 
     if (!mSession)
@@ -347,15 +360,22 @@ void MainWindow::refreshProfiles()
     {
         mUI.profileComboBox->addItem(it->second, QVariant(it->first));
     }
+
+    if (previouslySelected != QString::Null())
+    {
+        int indexCandidate = mUI.profileComboBox->findData(QVariant(previouslySelected));
+        if (indexCandidate != -1)
+            mUI.profileComboBox->setCurrentIndex(indexCandidate);
+    }
 }
 
 void MainWindow::cleanupScanThread()
 {
     mScanThread->deleteLater();
-    delete mEvaluator;
+    delete mScanner;
 
     mScanThread = 0;
-    mEvaluator = 0;
+    mScanner = 0;
 
     mUI.progressBar->setRange(0, 1);
     mUI.progressBar->reset();
@@ -405,6 +425,17 @@ void MainWindow::profileComboboxChanged(int index)
 
 void MainWindow::scanProgressReport(const QString& rule_id, const QString& result)
 {
+    /* It is quite hard to accurately estimate completion of SCAP scans.
+       Our method is quite naive and simplistic, we keep filling the
+       result tree, we know the amount of selected rules. Our estimation
+       is that each rule takes the same amount of time. The percentage of
+       completion is "uniqueResults / selectedRuleCount".
+
+       We must only count unique result because multi check causes one rule
+       to produce multiple result. This would skew our estimation to be too
+       optimistic!
+    */
+
     assert(mSession);
 
     struct xccdf_benchmark* benchmark = xccdf_policy_model_get_benchmark(xccdf_session_get_policy_model(mSession));
@@ -444,7 +475,7 @@ void MainWindow::scanCanceled()
 
 void MainWindow::scanFinished()
 {
-    mResultViewer->loadContent(mEvaluator);
+    mResultViewer->loadContent(mScanner);
 
     cleanupScanThread();
 

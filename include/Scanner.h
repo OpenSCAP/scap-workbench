@@ -19,8 +19,8 @@
  *      Martin Preisler <mpreisle@redhat.com>
  */
 
-#ifndef SCAP_WORKBENCH_EVALUATOR_H_
-#define SCAP_WORKBENCH_EVALUATOR_H_
+#ifndef SCAP_WORKBENCH_SCANNER_H_
+#define SCAP_WORKBENCH_SCANNER_H_
 
 #include "ForwardDecls.h"
 
@@ -31,13 +31,13 @@ extern "C"
 #include <xccdf_benchmark.h>
 }
 
-class Evaluator : public QObject
+class Scanner : public QObject
 {
     Q_OBJECT
 
     public:
-        Evaluator(QThread* thread, struct xccdf_session* session, const QString& target);
-        virtual ~Evaluator();
+        Scanner(QThread* thread, struct xccdf_session* session, const QString& target);
+        virtual ~Scanner();
 
         virtual void getResults(QByteArray& destination) = 0;
         virtual void getReport(QByteArray& destination) = 0;

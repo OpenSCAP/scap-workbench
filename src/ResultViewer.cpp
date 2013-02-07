@@ -20,7 +20,7 @@
  */
 
 #include "ResultViewer.h"
-#include "Evaluator.h"
+#include "Scanner.h"
 #include <QFileDialog>
 
 ResultViewer::ResultViewer(QWidget* parent):
@@ -57,17 +57,17 @@ void ResultViewer::clear()
     mUI.webView->setContent(QByteArray());
 }
 
-void ResultViewer::loadContent(Evaluator* evaluator)
+void ResultViewer::loadContent(Scanner *scanner)
 {
     mReport.clear();
-    evaluator->getReport(mReport);
+    scanner->getReport(mReport);
     mUI.webView->setContent(mReport);
 
     mResults.clear();
-    evaluator->getResults(mResults);
+    scanner->getResults(mResults);
 
     mARF.clear();
-    evaluator->getARF(mARF);
+    scanner->getARF(mARF);
 }
 
 void ResultViewer::saveReport()
