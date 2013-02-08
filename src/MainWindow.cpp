@@ -63,8 +63,8 @@ MainWindow::MainWindow(QWidget* parent):
         this, SLOT(openFileDialog())
     );
     QObject::connect(
-        mUI.checklistComboBox, SIGNAL(currentIndexChanged(const QString&)),
-        this, SLOT(checklistComboboxChanged(const QString&))
+        mUI.checklistComboBox, SIGNAL(currentIndexChanged(int)),
+        this, SLOT(checklistComboboxChanged(int))
     );
     QObject::connect(
         mUI.profileComboBox, SIGNAL(currentIndexChanged(int)),
@@ -144,7 +144,12 @@ void MainWindow::openFile(const QString& path)
             while (oscap_string_iterator_has_more(checklists_it))
             {
                 const char* checklist_id = oscap_string_iterator_next(checklists_it);
-                mUI.checklistComboBox->addItem(QString("%1 / %2").arg(stream_id).arg(checklist_id));
+
+                QStringList data;
+                data.append(stream_id);
+                data.append(checklist_id);
+
+                mUI.checklistComboBox->addItem(QString("%1 / %2").arg(stream_id).arg(checklist_id), data);
             }
             oscap_string_iterator_free(checklists_it);
         }
@@ -155,7 +160,7 @@ void MainWindow::openFile(const QString& path)
     }
 
     // force load up of the session
-    checklistComboboxChanged("");
+    checklistComboboxChanged(0);
     setEnabled(true);
 }
 
@@ -382,17 +387,20 @@ void MainWindow::cleanupScanThread()
     mUI.progressBar->setEnabled(false);
 }
 
-void MainWindow::checklistComboboxChanged(const QString& text)
+void MainWindow::checklistComboboxChanged(int index)
 {
     if (!mSession)
         return;
 
-    const QStringList split = text.split(" / ");
+    const QStringList data = mUI.checklistComboBox->itemData(index).toStringList();
 
-    if (split.size() == 2)
+    if (data.size() == 2)
     {
-        xccdf_session_set_datastream_id(mSession, split.at(0).toUtf8().constData());
-        xccdf_session_set_component_id(mSession, split.at(1).toUtf8().constData());
+        std::cout <<data.at(0).toUtf8().constData() << std::endl;
+        std::cout <<data.at(1).toUtf8().constData() << std::endl;
+
+        xccdf_session_set_datastream_id(mSession, data.at(0).toUtf8().constData());
+        xccdf_session_set_component_id(mSession, data.at(1).toUtf8().constData());
     }
     else
     {

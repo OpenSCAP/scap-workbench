@@ -44,6 +44,11 @@ class OscapScannerBase : public Scanner
         virtual void getARF(QByteArray& destination);
 
     protected:
+        int runProcessSync(const QString& cmd, const QStringList& args,
+                           unsigned int pollInterval,
+                           unsigned int termLimit,
+                           QString& diagnosticInfo);
+
         QStringList buildCommandLineArgs(const QString& inputFile,
                                          const QString& resultFile,
                                          const QString& reportFile,
@@ -81,9 +86,9 @@ class OscapScannerRemoteSsh : public OscapScannerBase
 
     private:
         void establish();
-        bool tryToReadLine(QProcess& process);
+        QString copyInputDataOver();
 
-        QTemporaryFile mMasterSocket;
+        QString mMasterSocket;
         QProcess* mMasterProcess;
 };
 

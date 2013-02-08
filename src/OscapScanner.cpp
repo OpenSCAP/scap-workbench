@@ -70,10 +70,60 @@ void OscapScannerBase::getARF(QByteArray& destination)
     destination.append(mARF);
 }
 
+int OscapScannerBase::runProcessSync(const QString& cmd, const QStringList& args,
+                                     unsigned int pollInterval,
+                                     unsigned int termLimit,
+                                     QString& diagnosticInfo)
+{
+    QProcess process(this);
+    process.start(cmd, args);
+
+    diagnosticInfo += QString("Starting process '") + cmd + QString(" ") + args.join(" ") + QString("'\n");
+
+    while (!process.waitForFinished(pollInterval))
+    {
+        // pump the event queue, mainly because the user might want to cancel
+        QAbstractEventDispatcher::instance(mThread)->processEvents(QEventLoop::AllEvents);
+
+        if (mCancelRequested)
+        {
+            diagnosticInfo += "Cancel was requested! Sending terminate signal to the process...\n";
+
+            // TODO: On Windows we have to kill immediately, terminate() posts WM_CLOSE
+            //       but oscap doesn't have any event loop running.
+            process.terminate();
+            break;
+        }
+    }
+
+    if (mCancelRequested)
+    {
+        unsigned int termWaited = 0;
+
+        while (!process.waitForFinished(pollInterval))
+        {
+            QAbstractEventDispatcher::instance(mThread)->processEvents(QEventLoop::AllEvents);
+            termWaited += pollInterval;
+
+            if (termWaited > termLimit)
+            {
+                diagnosticInfo += QString("Process had to be killed! Didn't terminate after %1 msec of waiting.\n").arg(termWaited);
+                process.kill();
+                break;
+            }
+        }
+    }
+
+    diagnosticInfo += "stdout:\n===============================\n" + QString(process.readAllStandardOutput()) + QString("\n");
+    diagnosticInfo += "stderr:\n===============================\n" + QString(process.readAllStandardError()) + QString("\n");
+
+    return process.exitCode();
+}
+
 QStringList OscapScannerBase::buildCommandLineArgs(const QString& inputFile,
-                                                     const QString& resultFile,
-                                                     const QString& reportFile,
-                                                     const QString& arfFile)
+                                                   const QString& resultFile,
+                                                   const QString& reportFile,
+                                                   const QString& arfFile)
 {
     QStringList ret;
     ret.append("xccdf");
@@ -90,7 +140,7 @@ QStringList OscapScannerBase::buildCommandLineArgs(const QString& inputFile,
 
     if (component_id)
     {
-        ret.append("--component_id");
+        ret.append("--xccdf-id");
         ret.append(component_id);
     }
 
@@ -159,7 +209,7 @@ void OscapScannerLocal::evaluate()
     arfFile.setAutoRemove(true);
     arfFile.open(); arfFile.close();
 
-    QString inputFile = xccdf_session_get_filename(mSession);
+    const QString inputFile = xccdf_session_get_filename(mSession);
 
     QProcess process(this);
     process.start("oscap", buildCommandLineArgs(inputFile,
@@ -223,48 +273,122 @@ void OscapScannerLocal::evaluate()
 
 OscapScannerRemoteSsh::OscapScannerRemoteSsh(QThread* thread, struct xccdf_session* session, const QString& target):
     OscapScannerBase(thread, session, target)
-{
-    mMasterSocket.setAutoRemove(false);
-}
+{}
 
 OscapScannerRemoteSsh::~OscapScannerRemoteSsh()
 {
-    if (mMasterSocket.fileName() != QString::Null())
+    if (mMasterSocket != QString::Null())
     {
         QProcess socketClosing;
 
         QStringList args;
-        args.append("-S"); args.append(mMasterSocket.fileName());
+        args.append("-S"); args.append(mMasterSocket);
 
         args.append("-O"); args.append("exit");
         args.append(mTarget);
 
         socketClosing.start("ssh", args);
-        socketClosing.waitForFinished(1000);
+        if (!socketClosing.waitForFinished(1000))
+        {
+            socketClosing.kill();
+        }
     }
 }
 
 void OscapScannerRemoteSsh::evaluate()
 {
     establish();
+    copyInputDataOver();
 
     if (mCancelRequested)
         signalCompletion(true);
+
+    const QString inputFile = xccdf_session_get_filename(mSession);
+    const QString reportFile = "/tmp/test.oscap.report";
+    const QString resultFile = "/tmp/test.oscap.result";
+    const QString arfFile = "/tmp/test.oscap.arf";
+
+    const QString sshCmd =  buildCommandLineArgs(inputFile,
+                                                 resultFile,
+                                                 reportFile,
+                                                 arfFile).join(" ");
+
+    QStringList args;
+    args.append("-o"); args.append(QString("ControlPath=%1").arg(mMasterSocket));
+    args.append(mTarget);
+    args.append(QString("\"oscap %1\"").arg(sshCmd));
+
+    std::cout << "oscap " << sshCmd.toUtf8().constData() << std::endl;
+
+    QProcess process(this);
+    process.start("ssh", args);
+
+    const unsigned int pollInterval = 100;
+
+    while (!process.waitForFinished(pollInterval))
+    {
+        // read everything new
+        while (tryToReadLine(process));
+
+        // pump the event queue, mainly because the user might want to cancel
+        QAbstractEventDispatcher::instance(mThread)->processEvents(QEventLoop::AllEvents);
+
+        if (mCancelRequested)
+        {
+            // TODO: On Windows we have to kill immediately, terminate() posts WM_CLOSE
+            //       but oscap doesn't have any event loop running.
+            process.terminate();
+            break;
+        }
+    }
+
+    if (mCancelRequested)
+    {
+        unsigned int waited = 0;
+        while (!process.waitForFinished(pollInterval))
+        {
+            waited += pollInterval;
+            if (waited > 3000) // 3 seconds should be enough for the process to terminate
+            {
+                // if it didn't terminate, we have to kill it at this point
+                process.kill();
+                break;
+            }
+        }
+    }
+    else
+    {
+        // read everything left over
+        while (tryToReadLine(process));
+
+/*        resultFile.open();
+        mResults = resultFile.readAll();
+        resultFile.close();
+
+        reportFile.open();
+        mReport = reportFile.readAll();
+        reportFile.close();
+
+        arfFile.open();
+        mARF = arfFile.readAll();
+        arfFile.close();*/
+    }
+
+    signalCompletion(mCancelRequested);
 }
 
 void OscapScannerRemoteSsh::establish()
 {
-    // These two calls force Qt to allocate the file on disk and give us
-    // the path back.
-    mMasterSocket.open();
-    mMasterSocket.close();
+    mMasterSocket = "/tmp/oscap.socket";
+
+    std::cout << mMasterSocket.toUtf8().constData() << std::endl;
 
     QStringList args;
     args.append("-M");
     args.append("-f");
     args.append("-N");
 
-    args.append("-o"); args.append(QString("ControlPath=%1").arg(mMasterSocket.fileName()));
+    args.append("-o"); args.append(QString("ControlPath=%1").arg(mMasterSocket));
 
     // TODO: sanitize input?
     args.append(mTarget);
@@ -285,6 +409,28 @@ void OscapScannerRemoteSsh::establish()
         }
     }
 
+    std::cout << "Master socket created" << std::endl;
+
     // TODO: Check this differently
-    //assert(mMasterProcess->exitCode() == 0);
+    assert(mMasterProcess->exitCode() == 0);
+}
+
+QString OscapScannerRemoteSsh::copyInputDataOver()
+{
+    QString ret = "/tmp/test.oscap.remote";
+
+    QStringList args;
+    args.append("-o"); args.append(QString("ControlPath=%1").arg(mMasterSocket));
+    args.append(xccdf_session_get_filename(mSession));
+    args.append(QString("%1:/%2").arg(mTarget).arg(ret));
+
+    QString diagnosticInfo;
+    if (runProcessSync("scp", args, 100, 3000, diagnosticInfo) != 0)
+    {
+        // TODO: handle errors
+    }
+
+    std::cout << "Input data copied" << std::endl;
+
+    return ret;
 }
