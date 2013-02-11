@@ -196,6 +196,8 @@ void OscapScannerLocal::evaluate()
 {
     // TODO: Error handling!
 
+    emit infoMessage("Creating temporary files...");
+
     QTemporaryFile resultFile;
     resultFile.setAutoRemove(true);
     // the following forces Qt to give us the filename
@@ -211,6 +213,7 @@ void OscapScannerLocal::evaluate()
 
     const QString inputFile = xccdf_session_get_filename(mSession);
 
+    emit infoMessage("Starting the oscap process...");
     QProcess process(this);
     process.start("oscap", buildCommandLineArgs(inputFile,
                                                 resultFile.fileName(),
@@ -219,6 +222,7 @@ void OscapScannerLocal::evaluate()
 
     const unsigned int pollInterval = 100;
 
+    emit infoMessage("Scanning...");
     while (!process.waitForFinished(pollInterval))
     {
         // read everything new
@@ -229,6 +233,7 @@ void OscapScannerLocal::evaluate()
 
         if (mCancelRequested)
         {
+            emit infoMessage("Cancelation was requested! Terminating scanning...");
             // TODO: On Windows we have to kill immediately, terminate() posts WM_CLOSE
             //       but oscap doesn't have any event loop running.
             process.terminate();
@@ -239,33 +244,53 @@ void OscapScannerLocal::evaluate()
     if (mCancelRequested)
     {
         unsigned int waited = 0;
+        bool killed = false;
         while (!process.waitForFinished(pollInterval))
         {
             waited += pollInterval;
             if (waited > 3000) // 3 seconds should be enough for the process to terminate
             {
+                emit warningMessage("The oscap process didn't terminate in time, it will be killed instead.");
                 // if it didn't terminate, we have to kill it at this point
                 process.kill();
+                killed = true;
                 break;
             }
         }
+
+        if (!killed)
+            emit infoMessage("Scanning canceled, the oscap tool has been successfuly terminated.");
     }
     else
     {
-        // read everything left over
-        while (tryToReadLine(process));
+        if (process.exitCode() == 1) // error happened
+        {
+            // TODO: pass the diagnostics over
+            emit errorMessage("There was an error during evaluation! Exit code of the 'oscap' process was 1.");
+            // mark this run as canceled
+            mCancelRequested = true;
+        }
+        else
+        {
+            // read everything left over
+            while (tryToReadLine(process));
 
-        resultFile.open();
-        mResults = resultFile.readAll();
-        resultFile.close();
+            emit errorMessage("The oscap tool has finished. Reading results...");
 
-        reportFile.open();
-        mReport = reportFile.readAll();
-        reportFile.close();
+            resultFile.open();
+            mResults = resultFile.readAll();
+            resultFile.close();
 
-        arfFile.open();
-        mARF = arfFile.readAll();
-        arfFile.close();
+            reportFile.open();
+            mReport = reportFile.readAll();
+            reportFile.close();
+
+            arfFile.open();
+            mARF = arfFile.readAll();
+            arfFile.close();
+
+            emit infoMessage("Scanning has been finished!");
+        }
     }
 
     signalCompletion(mCancelRequested);
@@ -297,7 +322,9 @@ OscapScannerRemoteSsh::~OscapScannerRemoteSsh()
 
 void OscapScannerRemoteSsh::evaluate()
 {
+    emit infoMessage("Establishing connecting to remote target...");
     establish();
+    emit infoMessage("Copying input data to remote target...");
     copyInputDataOver();
 
     if (mCancelRequested)
@@ -320,6 +347,7 @@ void OscapScannerRemoteSsh::evaluate()
 
     std::cout << "oscap " << sshCmd.toUtf8().constData() << std::endl;
 
+    emit infoMessage("Starting the remote scanning process...");
     QProcess process(this);
     process.start("ssh", args);
 
@@ -335,6 +363,7 @@ void OscapScannerRemoteSsh::evaluate()
 
         if (mCancelRequested)
         {
+            emit infoMessage("Cancelation was requested! Terminating scanning...");
             // TODO: On Windows we have to kill immediately, terminate() posts WM_CLOSE
             //       but oscap doesn't have any event loop running.
             process.terminate();
@@ -350,6 +379,7 @@ void OscapScannerRemoteSsh::evaluate()
             waited += pollInterval;
             if (waited > 3000) // 3 seconds should be enough for the process to terminate
             {
+                emit warningMessage("The oscap process didn't terminate in time, it will be killed instead.");
                 // if it didn't terminate, we have to kill it at this point
                 process.kill();
                 break;

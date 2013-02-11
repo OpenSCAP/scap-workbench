@@ -49,6 +49,11 @@ class Scanner : public QObject
 
     signals:
         void progressReport(const QString& rule_id, const QString& result);
+
+        void infoMessage(const QString& message);
+        void warningMessage(const QString& message);
+        void errorMessage(const QString& message);
+
         void canceled();
         void finished();
 

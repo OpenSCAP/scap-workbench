@@ -168,7 +168,41 @@ class MainWindow : public QMainWindow
         void scanProgressReport(const QString& rule_id, const QString& result);
 
         /**
+         * @brief Scanner triggers this to show a message about progress
+         *
+         * Example: Connecting to remote target..., Copying input file..., etc.
+         * No action is required by the user upon receiving this message.
+         */
+        void scanInfoMessage(const QString& message);
+
+        /**
+         * @brief Scanner triggers this to show a warning message
+         *
+         * Scanner must continue to scan after triggering this, the dialog
+         * will be modal but scanning will continue in the background and
+         * results will be visible. User can resume normal operation after
+         * dismissing the warning dialog.
+         */
+        void scanWarningMessage(const QString& message);
+
+        /**
+         * @brief Scanner triggers this to show an error message
+         *
+         * Scanner might continue to scan after triggering this, the dialog
+         * will be modal but scanning may continue in the background and
+         * results will be visible.
+         *
+         * However scanner is expected to trigger scanCanceled after triggering
+         * the error report.
+         */
+        void scanErrorMessage(const QString& message);
+
+        /**
          * @brief Scanner triggers this after cancelation is complete
+         *
+         * @note It is most likely that user pressed the "Cancel" button to
+         * trigger this but sometimes scanner will trigger cancelation when
+         * unrecoverable errors are encountered.
          */
         void scanCanceled();
 

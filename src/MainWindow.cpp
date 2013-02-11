@@ -230,6 +230,18 @@ void MainWindow::scanAsync()
         this, SLOT(scanProgressReport(const QString&, const QString&))
     );
     QObject::connect(
+        mScanner, SIGNAL(infoMessage(const QString&)),
+        this, SLOT(scanInfoMessage(const QString&))
+    );
+    QObject::connect(
+        mScanner, SIGNAL(warningMessage(const QString&)),
+        this, SLOT(scanWarningMessage(const QString&))
+    );
+    QObject::connect(
+        mScanner, SIGNAL(errorMessage(const QString&)),
+        this, SLOT(scanErrorMessage(const QString&))
+    );
+    QObject::connect(
         mScanner, SIGNAL(canceled()),
         this, SLOT(scanCanceled())
     );
@@ -467,6 +479,21 @@ void MainWindow::scanProgressReport(const QString& rule_id, const QString& resul
 
     mUI.ruleResultsTree->addTopLevelItem(new QTreeWidgetItem(resultRow));
 
+}
+
+void MainWindow::scanInfoMessage(const QString& message)
+{
+    statusBar()->showMessage(message);
+}
+
+void MainWindow::scanWarningMessage(const QString& message)
+{
+    QMessageBox::warning(this, "Scanner warning", message);
+}
+
+void MainWindow::scanErrorMessage(const QString &message)
+{
+    QMessageBox::critical(this, "Scanner error", message);
 }
 
 void MainWindow::scanCanceled()
