@@ -4,21 +4,22 @@ project(scap_workbench)
 
 find_package(Qt4 REQUIRED)
 
-file(GLOB scap_workbench_HEADERS "include/*.h")
+file(GLOB scap_workbench_HEADERS "${CMAKE_SOURCE_DIR}/include/*.h")
 qt4_wrap_cpp(scap_workbench_HEADERS_MOC ${scap_workbench_HEADERS})
 
-file(GLOB scap_workbench_UIS "ui/*.ui")
+file(GLOB scap_workbench_UIS "${CMAKE_SOURCE_DIR}/ui/*.ui")
 qt4_wrap_ui(scap_workbench_UIS_HEADERS ${scap_workbench_UIS})
 
-file(GLOB scap_workbench_SOURCES "src/*.cpp")
+file(GLOB scap_workbench_SOURCES "${CMAKE_SOURCE_DIR}/src/*.cpp")
 
 add_executable(scap_workbench
+    ${scap_workbench_HEADERS}
     ${scap_workbench_SOURCES}
 
     ${scap_workbench_HEADERS_MOC}
     ${scap_workbench_UIS_HEADERS}
 )
-#set_target_properties(scap_workbench PROPERTIES LINKER_LANGUAGE CXX)
+
 # TODO: Find openscap as part of the configuration step
 target_link_libraries(scap_workbench ${QT_QTCORE_LIBRARY} ${QT_QTGUI_LIBRARY} ${QT_QTWEBKIT_LIBRARY} /usr/lib/libopenscap.so)
 # TODO: Find openscap as part of the configuration step
