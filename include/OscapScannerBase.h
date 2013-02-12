@@ -19,15 +19,14 @@
  *      Martin Preisler <mpreisle@redhat.com>
  */
 
-#ifndef SCAP_WORKBENCH_OSCAP_SCANNER_H_
-#define SCAP_WORKBENCH_OSCAP_SCANNER_H_
+#ifndef SCAP_WORKBENCH_OSCAP_SCANNER_BASE_H_
+#define SCAP_WORKBENCH_OSCAP_SCANNER_BASE_H_
 
 #include "ForwardDecls.h"
 
 #include "Scanner.h"
 #include <QStringList>
 #include <QProcess>
-#include <QTemporaryFile>
 
 class OscapScannerBase : public Scanner
 {
@@ -61,35 +60,6 @@ class OscapScannerBase : public Scanner
         QByteArray mResults;
         QByteArray mReport;
         QByteArray mARF;
-};
-
-class OscapScannerLocal : public OscapScannerBase
-{
-    Q_OBJECT
-
-    public:
-        OscapScannerLocal(QThread* thread, struct xccdf_session* session, const QString& target);
-        virtual ~OscapScannerLocal();
-
-        virtual void evaluate();
-};
-
-class OscapScannerRemoteSsh : public OscapScannerBase
-{
-    Q_OBJECT
-
-    public:
-        OscapScannerRemoteSsh(QThread* thread, struct xccdf_session* session, const QString& target);
-        virtual ~OscapScannerRemoteSsh();
-
-        virtual void evaluate();
-
-    private:
-        void establish();
-        QString copyInputDataOver();
-
-        QString mMasterSocket;
-        QProcess* mMasterProcess;
 };
 
 #endif

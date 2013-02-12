@@ -20,7 +20,8 @@
  */
 
 #include "MainWindow.h"
-#include "OscapScanner.h"
+#include "OscapScannerLocal.h"
+#include "OscapScannerRemoteSsh.h"
 #include "ResultViewer.h"
 
 #include <QFileDialog>
