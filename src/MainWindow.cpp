@@ -330,13 +330,14 @@ void MainWindow::refreshProfiles()
         {
             struct xccdf_profile* profile = xccdf_profile_iterator_next(profile_it);
             const QString profile_id = QString(xccdf_profile_get_id(profile));
+            oscap_text_iterator* titles = xccdf_profile_get_title(profile);
 
             assert(profileCrossMap.find(profile_id) == profileCrossMap.end());
 
             profileCrossMap.insert(
                 std::make_pair(
                     profile_id,
-                    profile_id
+                    oscap_textlist_get_preferred_plaintext(titles, NULL)
                 )
             );
         }
@@ -349,6 +350,7 @@ void MainWindow::refreshProfiles()
     {
         struct xccdf_profile* profile = xccdf_profile_iterator_next(profile_it);
         const QString profile_id = QString(xccdf_profile_get_id(profile));
+        oscap_text_iterator* titles = xccdf_profile_get_title(profile);
 
         if (profileCrossMap.find(profile_id) != profileCrossMap.end())
         {
@@ -360,7 +362,7 @@ void MainWindow::refreshProfiles()
             profileCrossMap.insert(
                 std::make_pair(
                     profile_id,
-                    profile_id
+                    oscap_textlist_get_preferred_plaintext(titles, NULL)
                 )
             );
         }
