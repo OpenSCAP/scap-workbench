@@ -168,17 +168,47 @@ QStringList OscapScannerBase::buildCommandLineArgs(const QString& inputFile,
 
 bool OscapScannerBase::tryToReadLine(QProcess& process)
 {
+    process.setReadChannel(QProcess::StandardOutput);
+
     if (!process.canReadLine())
         return false;
 
     QString stringLine = QString::fromUtf8(process.readLine().constData());
     QStringList split = stringLine.split(":");
 
-    // TODO: error handling!
+    if (split.size() != 2)
+    {
+        // This is definitely not fatal, it just means that the progress
+        // reporting might be off.
+        emit warningMessage(QString("Error when parsing scan progress output from stdout of the 'oscap' process. "
+                                    "Attempted to split '%1' into 2 fields as rule_id:result and failed. The result "
+                                    "doesn't have 2 fields but %1 instead.").arg(stringLine).arg(split.size()));
+        // We did read "something".
+        return true;
+    }
 
     // NB: trimmed because the line might be padded with either LF or even CR LF
     //     from the right side.
     emit progressReport(split.at(0), split.at(1).trimmed());
 
     return true;
+}
+
+void OscapScannerBase::watchStdErr(QProcess& process)
+{
+    process.setReadChannel(QProcess::StandardError);
+
+    QString errorMessage = QString::Null();
+
+    while (process.canReadLine())
+    {
+        // Trailing \n is returned by QProcess::readLine
+        errorMessage += process.readLine();
+    }
+
+    if (!errorMessage.isEmpty())
+    {
+        emit warningMessage(QString("The 'oscap' process has written the following content to stderr:\n"
+                                    "%1").arg(errorMessage));
+    }
 }

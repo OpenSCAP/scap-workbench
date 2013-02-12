@@ -94,6 +94,7 @@ void OscapScannerRemoteSsh::evaluate()
     {
         // read everything new
         while (tryToReadLine(process));
+        watchStdErr(process);
 
         // pump the event queue, mainly because the user might want to cancel
         QAbstractEventDispatcher::instance(mThread)->processEvents(QEventLoop::AllEvents);
@@ -127,6 +128,7 @@ void OscapScannerRemoteSsh::evaluate()
     {
         // read everything left over
         while (tryToReadLine(process));
+        watchStdErr(process);
 
 /*        resultFile.open();
         mResults = resultFile.readAll();

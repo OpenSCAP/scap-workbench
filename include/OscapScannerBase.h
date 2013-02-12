@@ -54,6 +54,7 @@ class OscapScannerBase : public Scanner
                                          const QString& arfFile);
 
         bool tryToReadLine(QProcess& process);
+        void watchStdErr(QProcess& process);
 
         bool mCancelRequested;
 

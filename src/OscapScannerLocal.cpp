@@ -72,6 +72,7 @@ void OscapScannerLocal::evaluate()
     {
         // read everything new
         while (tryToReadLine(process));
+        watchStdErr(process);
 
         // pump the event queue, mainly because the user might want to cancel
         QAbstractEventDispatcher::instance(mThread)->processEvents(QEventLoop::AllEvents);
@@ -110,6 +111,7 @@ void OscapScannerLocal::evaluate()
     {
         if (process.exitCode() == 1) // error happened
         {
+            watchStdErr(process);
             // TODO: pass the diagnostics over
             emit errorMessage("There was an error during evaluation! Exit code of the 'oscap' process was 1.");
             // mark this run as canceled
@@ -119,6 +121,7 @@ void OscapScannerLocal::evaluate()
         {
             // read everything left over
             while (tryToReadLine(process));
+            watchStdErr(process);
 
             emit errorMessage("The oscap tool has finished. Reading results...");
 
