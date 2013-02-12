@@ -26,7 +26,6 @@
 
 #include <QFileDialog>
 #include <QMessageBox>
-#include <QtConcurrentRun>
 
 #include <cassert>
 #include <iostream>
@@ -437,8 +436,18 @@ void MainWindow::profileComboboxChanged(int index)
     }
     else
     {
-        // TODO: error handling
-        xccdf_session_set_profile_id(mSession, profileId.toUtf8().constData());
+        if (!xccdf_session_set_profile_id(mSession, profileId.toUtf8().constData()))
+        {
+            xccdf_session_set_profile_id(mSession, 0);
+
+            QMessageBox::warning(
+                this, "Failed to change profile",
+                QString(
+                    "Can't change session profile to '%1'!\n"
+                    "oscap error description:\n%2"
+                ).arg(profileId).arg(oscap_err_desc())
+            );
+        }
     }
 
     clearResults();
@@ -464,7 +473,8 @@ void MainWindow::scanProgressReport(const QString& rule_id, const QString& resul
 
     if (!item)
     {
-        // TODO: Log this as failure
+        scanWarningMessage(QString("Received scanning progress of rule of ID '%1'. "
+                                   "Rule with such ID hasn't been found in the benchmark!").arg(rule_id));
         return;
     }
 
