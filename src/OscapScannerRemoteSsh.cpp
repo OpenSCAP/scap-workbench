@@ -62,11 +62,19 @@ void OscapScannerRemoteSsh::evaluate()
 {
     emit infoMessage("Establishing connecting to remote target...");
     establish();
+    if (mCancelRequested)
+    {
+        signalCompletion(true);
+        return;
+    }
+
     emit infoMessage("Copying input data to remote target...");
     const QString inputFile = copyInputDataOver();
-
     if (mCancelRequested)
+    {
         signalCompletion(true);
+        return;
+    }
 
     const QString reportFile = createRemoteTemporaryFile();
     const QString resultFile = createRemoteTemporaryFile();
