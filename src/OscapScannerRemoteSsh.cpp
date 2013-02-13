@@ -195,27 +195,10 @@ void OscapScannerRemoteSsh::establish()
 
 QString OscapScannerRemoteSsh::copyInputDataOver()
 {
-    QString ret = "";
+    QString ret = createRemoteTemporaryFile();
 
     QStringList args;
     QString diagnosticInfo;
-
-    diagnosticInfo = "";
-    args.clear();
-    args.append("-o"); args.append(QString("ControlPath=%1").arg(mMasterSocket));
-    args.append(mTarget);
-    args.append(QString("mktemp"));
-
-    if (runProcessSyncStdOut("ssh", args, 100, 3000, ret, diagnosticInfo) != 0)
-    {
-        emit errorMessage(
-            QString("Failed to create a valid temporary file to copy input "
-                    "data to! Diagnostic info: %1").arg(diagnosticInfo)
-        );
-    }
-
-    diagnosticInfo = "";
-    args.clear();
     args.append("-o"); args.append(QString("ControlPath=%1").arg(mMasterSocket));
     args.append(xccdf_session_get_filename(mSession));
     args.append(QString("%1:/%2").arg(mTarget).arg(ret));
@@ -225,6 +208,29 @@ QString OscapScannerRemoteSsh::copyInputDataOver()
         emit errorMessage(
             QString("Failed to copy input data over to the remote machine! "
                     "Diagnostic info:\n%1").arg(diagnosticInfo)
+        );
+
+        mCancelRequested = true;
+    }
+
+    return ret;
+}
+
+QString OscapScannerRemoteSsh::createRemoteTemporaryFile(bool cancelOnFailure)
+{
+    QStringList args;
+    QString diagnosticInfo;
+
+    args.append("-o"); args.append(QString("ControlPath=%1").arg(mMasterSocket));
+    args.append(mTarget);
+    args.append(QString("mktemp"));
+
+    QString ret = "";
+    if (runProcessSyncStdOut("ssh", args, 100, 3000, ret, diagnosticInfo) != 0)
+    {
+        emit errorMessage(
+            QString("Failed to create a valid temporary file to copy input "
+                    "data to! Diagnostic info: %1").arg(diagnosticInfo)
         );
 
         mCancelRequested = true;

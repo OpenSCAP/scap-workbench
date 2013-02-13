@@ -38,6 +38,7 @@ class OscapScannerRemoteSsh : public OscapScannerBase
     private:
         void establish();
         QString copyInputDataOver();
+        QString createRemoteTemporaryFile(bool cancelOnFailure = true);
 
         QString mMasterSocket;
         QProcess* mMasterProcess;
