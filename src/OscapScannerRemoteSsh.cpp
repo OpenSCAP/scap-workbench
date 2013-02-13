@@ -177,8 +177,6 @@ void OscapScannerRemoteSsh::establish()
         }
     }
 
-    std::cout << "Master socket created" << std::endl;
-
     if (mMasterProcess->exitCode() != 0)
     {
         // TODO: Fix unicode woes
@@ -197,14 +195,31 @@ void OscapScannerRemoteSsh::establish()
 
 QString OscapScannerRemoteSsh::copyInputDataOver()
 {
-    QString ret = "/tmp/test.oscap.remote";
+    QString ret = "";
 
     QStringList args;
+    QString diagnosticInfo;
+
+    diagnosticInfo = "";
+    args.clear();
+    args.append("-o"); args.append(QString("ControlPath=%1").arg(mMasterSocket));
+    args.append(mTarget);
+    args.append(QString("mktemp"));
+
+    if (runProcessSyncStdOut("ssh", args, 100, 3000, ret, diagnosticInfo) != 0)
+    {
+        emit errorMessage(
+            QString("Failed to create a valid temporary file to copy input "
+                    "data to! Diagnostic info: %1").arg(diagnosticInfo)
+        );
+    }
+
+    diagnosticInfo = "";
+    args.clear();
     args.append("-o"); args.append(QString("ControlPath=%1").arg(mMasterSocket));
     args.append(xccdf_session_get_filename(mSession));
     args.append(QString("%1:/%2").arg(mTarget).arg(ret));
 
-    QString diagnosticInfo;
     if (runProcessSync("scp", args, 100, 3000, diagnosticInfo) != 0)
     {
         emit errorMessage(

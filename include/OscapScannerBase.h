@@ -48,6 +48,12 @@ class OscapScannerBase : public Scanner
                            unsigned int termLimit,
                            QString& diagnosticInfo);
 
+        int runProcessSyncStdOut(const QString& cmd, const QStringList& args,
+                           unsigned int pollInterval,
+                           unsigned int termLimit,
+                           QString& stdOut,
+                           QString& diagnosticInfo);
+
         QStringList buildCommandLineArgs(const QString& inputFile,
                                          const QString& resultFile,
                                          const QString& reportFile,

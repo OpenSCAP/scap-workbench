@@ -73,6 +73,16 @@ int OscapScannerBase::runProcessSync(const QString& cmd, const QStringList& args
                                      unsigned int termLimit,
                                      QString& diagnosticInfo)
 {
+    QString dummy;
+    return runProcessSyncStdOut(cmd, args, pollInterval, termLimit, dummy, diagnosticInfo);
+}
+
+int OscapScannerBase::runProcessSyncStdOut(const QString& cmd, const QStringList& args,
+                                           unsigned int pollInterval,
+                                           unsigned int termLimit,
+                                           QString& stdOut,
+                                           QString& diagnosticInfo)
+{
     QProcess process(this);
     process.start(cmd, args);
 
@@ -112,7 +122,9 @@ int OscapScannerBase::runProcessSync(const QString& cmd, const QStringList& args
         }
     }
 
-    diagnosticInfo += "stdout:\n===============================\n" + QString(process.readAllStandardOutput()) + QString("\n");
+    stdOut = process.readAllStandardOutput();
+
+    diagnosticInfo += "stdout:\n===============================\n" + QString(stdOut) + QString("\n");
     diagnosticInfo += "stderr:\n===============================\n" + QString(process.readAllStandardError()) + QString("\n");
 
     return process.exitCode();
