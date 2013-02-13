@@ -39,6 +39,7 @@ OscapScannerRemoteSsh::OscapScannerRemoteSsh(QThread* thread, struct xccdf_sessi
 
 OscapScannerRemoteSsh::~OscapScannerRemoteSsh()
 {
+    // This is just cleanup, don't show any dialogs if we fail at this stage.
     if (mMasterSocket != QString::Null())
     {
         QProcess socketClosing;
@@ -72,17 +73,15 @@ void OscapScannerRemoteSsh::evaluate()
     const QString resultFile = "/tmp/test.oscap.result";
     const QString arfFile = "/tmp/test.oscap.arf";
 
-    const QString sshCmd =  buildCommandLineArgs(inputFile,
-                                                 resultFile,
-                                                 reportFile,
-                                                 arfFile).join(" ");
+    const QString sshCmd = buildCommandLineArgs(inputFile,
+                                                resultFile,
+                                                reportFile,
+                                                arfFile).join(" ");
 
     QStringList args;
     args.append("-o"); args.append(QString("ControlPath=%1").arg(mMasterSocket));
     args.append(mTarget);
-    args.append(QString("\"oscap %1\"").arg(sshCmd));
-
-    std::cout << "oscap " << sshCmd.toUtf8().constData() << std::endl;
+    args.append(QString("oscap %1").arg(sshCmd));
 
     emit infoMessage("Starting the remote scanning process...");
     QProcess process(this);
@@ -180,8 +179,20 @@ void OscapScannerRemoteSsh::establish()
 
     std::cout << "Master socket created" << std::endl;
 
-    // TODO: Check this differently
-    assert(mMasterProcess->exitCode() == 0);
+    if (mMasterProcess->exitCode() != 0)
+    {
+        // TODO: Fix unicode woes
+        const QString stdout = mMasterProcess->readAllStandardOutput();
+        const QString stderr = mMasterProcess->readAllStandardError();
+
+        emit errorMessage(
+            QString("Failed to establish connection and create the master ssh socket.\n"
+                    "stdout:\n%1\n\n"
+                    "stderr:\n%2").arg(stdout).arg(stderr)
+        );
+
+        mCancelRequested = true;
+    }
 }
 
 QString OscapScannerRemoteSsh::copyInputDataOver()
@@ -196,10 +207,13 @@ QString OscapScannerRemoteSsh::copyInputDataOver()
     QString diagnosticInfo;
     if (runProcessSync("scp", args, 100, 3000, diagnosticInfo) != 0)
     {
-        // TODO: handle errors
-    }
+        emit errorMessage(
+            QString("Failed to copy input data over to the remote machine! "
+                    "Diagnostic info:\n%1").arg(diagnosticInfo)
+        );
 
-    std::cout << "Input data copied" << std::endl;
+        mCancelRequested = true;
+    }
 
     return ret;
 }
