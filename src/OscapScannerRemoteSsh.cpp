@@ -63,12 +63,11 @@ void OscapScannerRemoteSsh::evaluate()
     emit infoMessage("Establishing connecting to remote target...");
     establish();
     emit infoMessage("Copying input data to remote target...");
-    copyInputDataOver();
+    const QString inputFile = copyInputDataOver();
 
     if (mCancelRequested)
         signalCompletion(true);
 
-    const QString inputFile = xccdf_session_get_filename(mSession);
     const QString reportFile = "/tmp/test.oscap.report";
     const QString resultFile = "/tmp/test.oscap.result";
     const QString arfFile = "/tmp/test.oscap.arf";
