@@ -68,9 +68,9 @@ void OscapScannerRemoteSsh::evaluate()
     if (mCancelRequested)
         signalCompletion(true);
 
-    const QString reportFile = "/tmp/test.oscap.report";
-    const QString resultFile = "/tmp/test.oscap.result";
-    const QString arfFile = "/tmp/test.oscap.arf";
+    const QString reportFile = createRemoteTemporaryFile();
+    const QString resultFile = createRemoteTemporaryFile();
+    const QString arfFile = createRemoteTemporaryFile();
 
     const QString sshCmd = buildCommandLineArgs(inputFile,
                                                 resultFile,
@@ -128,17 +128,48 @@ void OscapScannerRemoteSsh::evaluate()
         while (tryToReadLine(process));
         watchStdErr(process);
 
-/*        resultFile.open();
-        mResults = resultFile.readAll();
-        resultFile.close();
+        QString diagnosticInfo;
+        QString tempString;
 
-        reportFile.open();
-        mReport = reportFile.readAll();
-        reportFile.close();
+        QStringList baseArgs;
+        baseArgs.append("-o"); baseArgs.append(QString("ControlPath=%1").arg(mMasterSocket));
+        baseArgs.append(mTarget);
 
-        arfFile.open();
-        mARF = arfFile.readAll();
-        arfFile.close();*/
+        diagnosticInfo = "";
+        tempString = "";
+        if (runProcessSyncStdOut(
+            "ssh", baseArgs + QStringList(QString("cat '%1'").arg(resultFile)),
+            100, 3000, tempString, diagnosticInfo) != 0)
+        {
+            emit warningMessage(QString(
+                "Failed to copy back XCCDF results. "
+                "You will not be able to save them! Diagnostic info: %1").arg(diagnosticInfo));
+        }
+        mResults = tempString.toUtf8();
+
+        diagnosticInfo = "";
+        tempString = "";
+        if (runProcessSyncStdOut(
+            "ssh", baseArgs + QStringList(QString("cat '%1'").arg(reportFile)),
+            100, 3000, tempString, diagnosticInfo) != 0)
+        {
+            emit warningMessage(QString(
+                "Failed to copy back XCCDF report (HTML). "
+                "You will not be able to save or view the report! Diagnostic info: %1").arg(diagnosticInfo));
+        }
+        mReport = tempString.toUtf8();
+
+        diagnosticInfo = "";
+        tempString = "";
+        if (runProcessSyncStdOut(
+            "ssh", baseArgs + QStringList(QString("cat '%1'").arg(arfFile)),
+            100, 3000, tempString, diagnosticInfo) != 0)
+        {
+            emit warningMessage(QString(
+                "Failed to copy back Result DataStream (ARF). "
+                "You will not be able to save the Result DataStream! Diagnostic info: %1").arg(diagnosticInfo));
+        }
+        mARF = tempString.toUtf8();
     }
 
     signalCompletion(mCancelRequested);
@@ -235,5 +266,5 @@ QString OscapScannerRemoteSsh::createRemoteTemporaryFile(bool cancelOnFailure)
         mCancelRequested = true;
     }
 
-    return ret;
+    return ret.trimmed();
 }
