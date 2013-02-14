@@ -185,9 +185,18 @@ void OscapScannerRemoteSsh::evaluate()
 
 void OscapScannerRemoteSsh::establish()
 {
-    mMasterSocket = "/tmp/oscap.socket";
+    mMasterSocket = "";
+    QString diagnosticInfo = "";
+    if (runProcessSyncStdOut("mktemp", QStringList("-d"), 100, 3000, mMasterSocket, diagnosticInfo) != 0)
+    {
+        emit errorMessage(
+            QString("Failed to create a temporary directory on local machine! Diagnostic info: %1").arg(diagnosticInfo));
 
-    std::cout << mMasterSocket.toUtf8().constData() << std::endl;
+        mCancelRequested = true;
+        return;
+    }
+
+    mMasterSocket = mMasterSocket.trimmed() + "/ssh_socket";
 
     QStringList args;
     args.append("-M");
