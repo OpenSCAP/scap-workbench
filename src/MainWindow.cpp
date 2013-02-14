@@ -515,6 +515,8 @@ void MainWindow::scanCanceled()
     mUI.preScanTools->show();
     mUI.scanTools->hide();
     mUI.postScanTools->hide();
+
+    statusBar()->clearMessage();
 }
 
 void MainWindow::scanFinished()
@@ -526,6 +528,8 @@ void MainWindow::scanFinished()
     mUI.preScanTools->hide();
     mUI.scanTools->hide();
     mUI.postScanTools->show();
+
+    statusBar()->clearMessage();
 }
 
 void MainWindow::showResults()
