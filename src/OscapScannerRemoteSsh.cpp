@@ -24,6 +24,8 @@
 #include <QThread>
 #include <QAbstractEventDispatcher>
 #include <QTemporaryFile>
+#include <QFileInfo>
+#include <QDir>
 #include <iostream>
 #include <cassert>
 
@@ -54,6 +56,18 @@ OscapScannerRemoteSsh::~OscapScannerRemoteSsh()
         if (!socketClosing.waitForFinished(1000))
         {
             socketClosing.kill();
+        }
+
+        // delete the parent temporary firectory we created
+        QFileInfo socketFile(mMasterSocket);
+        QString tempDir = socketFile.dir().absolutePath();
+
+        QString diagnosticInfo = "";
+        if (runProcessSync("rmdir", QStringList(tempDir), 100, 3000, diagnosticInfo) != 0)
+        {
+            emit warningMessage(
+                QString("Failed to remove temporary directory hosting the ssh "
+                        "connection socket. Diagnostic info: %1").arg(diagnosticInfo));
         }
     }
 }
