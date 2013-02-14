@@ -28,7 +28,6 @@
 #include <QMessageBox>
 
 #include <cassert>
-#include <iostream>
 
 extern "C" {
 #include <xccdf_policy.h>
@@ -410,9 +409,6 @@ void MainWindow::checklistComboboxChanged(int index)
 
     if (data.size() == 2)
     {
-        std::cout <<data.at(0).toUtf8().constData() << std::endl;
-        std::cout <<data.at(1).toUtf8().constData() << std::endl;
-
         xccdf_session_set_datastream_id(mSession, data.at(0).toUtf8().constData());
         xccdf_session_set_component_id(mSession, data.at(1).toUtf8().constData());
     }
