@@ -33,6 +33,11 @@ extern "C"
 
 #include "ui_ResultViewer.h"
 
+/**
+ * @brief Handles all result and report viewing/saving
+ *
+ * This is a final class and is not supposed to be inherited.
+ */
 class ResultViewer : public QDialog
 {
     Q_OBJECT
@@ -41,12 +46,22 @@ class ResultViewer : public QDialog
         ResultViewer(QWidget* parent = 0);
         virtual ~ResultViewer();
 
+        /**
+         * @brief Clears all kept content
+         */
         void clear();
+
+        /**
+         * @brief Loads and keeps results and report in given scanner
+         */
         void loadContent(Scanner* scanner);
 
     private slots:
+        /// Pops up a save dialog for HTML report
         void saveReport();
+        /// Pops up a save dialog for XCCDF result file
         void saveResults();
+        /// Pops up a save dialog for ARF / result datastream
         void saveARF();
 
     private:
