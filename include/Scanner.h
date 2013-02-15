@@ -31,37 +31,133 @@ extern "C"
 #include <xccdf_benchmark.h>
 }
 
+/**
+ * @brief The scanner interface class
+ *
+ * Classes implementing this interface are responsible for actually scanning
+ * the targets they are given.
+ *
+ * In essence we pass session data and target and expect to get the 3 resulting
+ * files when scanning finishes.
+ *
+ * All implementors of the interface have to keep in mind that scanning might
+ * (and actually always does at the moment) run in parallel to the main event
+ * loop. You are advised to do all communication between threads using Qt's
+ * signal & slot system.
+ */
 class Scanner : public QObject
 {
     Q_OBJECT
 
     public:
+        /**
+         * @param thread Thread that runs the evaluation
+         * @param session Session with all the settings required for scanning
+         * @param target Representation of the target machine to scan
+         */
         Scanner(QThread* thread, struct xccdf_session* session, const QString& target);
+
         virtual ~Scanner();
 
+        /**
+         * @brief Retrieves XCCDF results from the scan
+         *
+         * @param destination QByteArray that will be filled with XCCDF result
+         * @note This will only work after "evaluate()" finished successfully.
+         */
         virtual void getResults(QByteArray& destination) = 0;
+
+        /**
+         * @brief Retrieves HTML report from the scan
+         *
+         * @param destination QByteArray that will be filled with HTML report
+         * @note This will only work after "evaluate()" finished successfully.
+         */
         virtual void getReport(QByteArray& destination) = 0;
+
+        /**
+         * @brief Retrieves results in Result DataStream (ARF) format
+         *
+         * @param destination QByteArray that will be filled with ARF results
+         * @note This will only work after "evaluate()" finished successfully.
+         */
         virtual void getARF(QByteArray& destination) = 0;
 
     public slots:
+        /**
+         * @brief Evaluate with given parameters
+         *
+         * Probably the most important method of this interface, this will start
+         * the evaluation.
+         *
+         * This method will not return until after evaluation has finished.
+         * It will, however, pump the event queue while evaluation is running,
+         * so signals, slots and events get delivered and acted upon.
+         *
+         * You are advised to run evaluate in a separate thread to avoid blocking
+         * the GUI's main loop.
+         */
         virtual void evaluate() = 0;
+
+        /**
+         * @brief Requests to cancel the evaluation
+         *
+         * Usually fired via a signal from another thread, this will make sure
+         * that evaluation is canceled "as soon as possible". Do not count on it
+         * being canceled immediately when this method returns!
+         */
         virtual void cancel() = 0;
 
     signals:
+        /**
+         * Main window hooks into this signal to receive feedback about evaluation
+         * progress. Some of the data returned may be misleading, skewed or downright
+         * false! You should use the resulting XCCDF report or ARF results for
+         * conclusive results instead of data returned via this signal.
+         */
         void progressReport(const QString& rule_id, const QString& result);
 
+        /**
+         * @brief Scanner signals this when it wants to give high-level progress
+         */
         void infoMessage(const QString& message);
+
+        /**
+         * @brief Scanner signals this when non-critical issues happen
+         *
+         * Scanning may or may not continue after this is emited.
+         */
         void warningMessage(const QString& message);
+
+        /**
+         * @brief Scanner signals this when critical and/or important issues happen
+         *
+         * Scanning may or may not continue after this is emited.
+         */
         void errorMessage(const QString& message);
 
+        /**
+         * Signaled when evaluation finishes after cancel was requested.
+         */
         void canceled();
+
+        /**
+         * Signaled when evaluation finishes without any critical issues and
+         * without any cancel requests.
+         */
         void finished();
 
     protected:
+        /// Thread that is running the evaluation
         QThread* mThread;
+        /// Session containing setup parameters for the scan
         struct xccdf_session* mSession;
+        /// Target machine we should be scanning
         const QString mTarget;
 
+        /**
+         * A helper method that will signal completion and finish off the thread.
+         */
         void signalCompletion(bool canceled);
 };
 
