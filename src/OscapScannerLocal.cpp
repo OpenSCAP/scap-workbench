@@ -123,7 +123,7 @@ void OscapScannerLocal::evaluate()
             while (tryToReadLine(process));
             watchStdErr(process);
 
-            emit errorMessage("The oscap tool has finished. Reading results...");
+            emit infoMessage("The oscap tool has finished. Reading results...");
 
             resultFile.open();
             mResults = resultFile.readAll();
