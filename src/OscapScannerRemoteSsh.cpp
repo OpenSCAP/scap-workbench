@@ -58,7 +58,7 @@ OscapScannerRemoteSsh::~OscapScannerRemoteSsh()
             socketClosing.kill();
         }
 
-        // delete the parent temporary firectory we created
+        // delete the parent temporary directory we created
         QFileInfo socketFile(mMasterSocket);
         QDir socketDir = socketFile.dir();
 
@@ -159,7 +159,7 @@ void OscapScannerRemoteSsh::evaluate()
         diagnosticInfo = "";
         tempString = "";
         if (runProcessSyncStdOut(
-            "ssh", baseArgs + QStringList(QString("cat '%1'").arg(resultFile)),
+            "ssh", baseArgs + QStringList(QString("cat '%1'; rm '%1'").arg(resultFile)),
             100, 3000, tempString, diagnosticInfo) != 0)
         {
             emit warningMessage(QString(
@@ -171,7 +171,7 @@ void OscapScannerRemoteSsh::evaluate()
         diagnosticInfo = "";
         tempString = "";
         if (runProcessSyncStdOut(
-            "ssh", baseArgs + QStringList(QString("cat '%1'").arg(reportFile)),
+            "ssh", baseArgs + QStringList(QString("cat '%1'; rm '%1'").arg(reportFile)),
             100, 3000, tempString, diagnosticInfo) != 0)
         {
             emit warningMessage(QString(
@@ -183,7 +183,7 @@ void OscapScannerRemoteSsh::evaluate()
         diagnosticInfo = "";
         tempString = "";
         if (runProcessSyncStdOut(
-            "ssh", baseArgs + QStringList(QString("cat '%1'").arg(arfFile)),
+            "ssh", baseArgs + QStringList(QString("cat '%1'; rm '%1'").arg(arfFile)),
             100, 3000, tempString, diagnosticInfo) != 0)
         {
             emit warningMessage(QString(
