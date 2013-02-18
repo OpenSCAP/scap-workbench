@@ -92,20 +92,27 @@ void OscapScannerRemoteSsh::evaluate()
     const QString reportFile = createRemoteTemporaryFile();
     const QString resultFile = createRemoteTemporaryFile();
     const QString arfFile = createRemoteTemporaryFile();
+    // TODO: We could be leaking any of the temporary files at this point!
+    if (mCancelRequested)
+    {
+        signalCompletion(true);
+        return;
+    }
 
     const QString sshCmd = buildCommandLineArgs(inputFile,
                                                 resultFile,
                                                 reportFile,
                                                 arfFile).join(" ");
 
-    QStringList args;
-    args.append("-o"); args.append(QString("ControlPath=%1").arg(mMasterSocket));
-    args.append(mTarget);
-    args.append(QString("oscap %1").arg(sshCmd));
+    QStringList baseArgs;
+    baseArgs.append("-o"); baseArgs.append(QString("ControlPath=%1").arg(mMasterSocket));
+    baseArgs.append(mTarget);
+
+    QString diagnosticInfo;
 
     emit infoMessage("Starting the remote scanning process...");
     QProcess process(this);
-    process.start("ssh", args);
+    process.start("ssh", baseArgs + QStringList(QString("oscap %1").arg(sshCmd)));
 
     const unsigned int pollInterval = 100;
 
@@ -149,17 +156,12 @@ void OscapScannerRemoteSsh::evaluate()
         while (tryToReadLine(process));
         watchStdErr(process);
 
-        QString diagnosticInfo;
         QString tempString;
-
-        QStringList baseArgs;
-        baseArgs.append("-o"); baseArgs.append(QString("ControlPath=%1").arg(mMasterSocket));
-        baseArgs.append(mTarget);
 
         diagnosticInfo = "";
         tempString = "";
         if (runProcessSyncStdOut(
-            "ssh", baseArgs + QStringList(QString("cat '%1'; rm '%1'").arg(resultFile)),
+            "ssh", baseArgs + QStringList(QString("cat '%1'").arg(resultFile)),
             100, 3000, tempString, diagnosticInfo) != 0)
         {
             emit warningMessage(QString(
@@ -171,7 +173,7 @@ void OscapScannerRemoteSsh::evaluate()
         diagnosticInfo = "";
         tempString = "";
         if (runProcessSyncStdOut(
-            "ssh", baseArgs + QStringList(QString("cat '%1'; rm '%1'").arg(reportFile)),
+            "ssh", baseArgs + QStringList(QString("cat '%1'").arg(reportFile)),
             100, 3000, tempString, diagnosticInfo) != 0)
         {
             emit warningMessage(QString(
@@ -183,7 +185,7 @@ void OscapScannerRemoteSsh::evaluate()
         diagnosticInfo = "";
         tempString = "";
         if (runProcessSyncStdOut(
-            "ssh", baseArgs + QStringList(QString("cat '%1'; rm '%1'").arg(arfFile)),
+            "ssh", baseArgs + QStringList(QString("cat '%1'").arg(arfFile)),
             100, 3000, tempString, diagnosticInfo) != 0)
         {
             emit warningMessage(QString(
@@ -191,6 +193,40 @@ void OscapScannerRemoteSsh::evaluate()
                 "You will not be able to save the Result DataStream! Diagnostic info: %1").arg(diagnosticInfo));
         }
         mARF = tempString.toUtf8();
+    }
+
+    // Remove all the temporary remote files
+    if (runProcessSync(
+        "ssh", baseArgs + QStringList(QString("rm '%1'").arg(inputFile)),
+        100, 3000, diagnosticInfo) != 0)
+    {
+        emit warningMessage(QString(
+            "Failed to remove remote temporary file with input file content. "
+            "Diagnostic info: %1").arg(diagnosticInfo));
+    }
+    if (runProcessSync(
+        "ssh", baseArgs + QStringList(QString("rm '%1'").arg(resultFile)),
+        100, 3000, diagnosticInfo) != 0)
+    {
+        emit warningMessage(QString(
+            "Failed to remove remote temporary files with XCCDF result content. "
+            "Diagnostic info: %1").arg(diagnosticInfo));
+    }
+    if (runProcessSync(
+        "ssh", baseArgs + QStringList(QString("rm '%1'").arg(reportFile)),
+        100, 3000, diagnosticInfo) != 0)
+    {
+        emit warningMessage(QString(
+            "Failed to remove remote temporary files with HTML report content. "
+            "Diagnostic info: %1").arg(diagnosticInfo));
+    }
+    if (runProcessSync(
+        "ssh", baseArgs + QStringList(QString("rm '%1'").arg(arfFile)),
+        100, 3000, diagnosticInfo) != 0)
+    {
+        emit warningMessage(QString(
+            "Failed to remove remote temporary files with Result DataStream (ARF) content. "
+            "Diagnostic info: %1").arg(diagnosticInfo));
     }
 
     signalCompletion(mCancelRequested);
