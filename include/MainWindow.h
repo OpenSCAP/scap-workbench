@@ -141,6 +141,14 @@ class MainWindow : public QMainWindow
 
     signals:
         /**
+         * @brief We signal this to show the dialog
+         *
+         * This is to make sure we open the dialog in the event loop, not 
+         * before it even starts.
+         */
+        void showOpenFileDialog();
+
+        /**
          * @brief This is signaled when scanning is canceled
          *
          * Qt handles thread messaging for us via the slot & signal mechanism.

@@ -19,15 +19,15 @@
  *      Martin Preisler <mpreisle@redhat.com>
  */
 
-#include "Application.h"
+#include "ForwardDecls.h"
+#include <QApplication>
 
-extern "C"
+class Application : public QApplication
 {
-#include <xccdf_benchmark.h>
-}
+    public:
+        Application(int argc, char** argv);
+        ~Application();
 
-int main(int argc, char** argv)
-{
-    Application app(argc, argv);
-    return app.exec();
-}
+    private:
+        MainWindow* mMainWindow;
+};

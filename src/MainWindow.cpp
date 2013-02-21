@@ -58,6 +58,13 @@ MainWindow::MainWindow(QWidget* parent):
     mUI.targetLineEdit->setValidator(new QRegExpValidator(QRegExp(targetRegExp)));
 
     QObject::connect(
+        this, SIGNAL(showOpenFileDialog()),
+        this, SLOT(openFileDialog()),
+        // Queued to prevent opening a blocking dialog before event loop is
+        // entered. Without this the application wouldn't quit gracefully.
+        Qt::QueuedConnection
+    );
+    QObject::connect(
         mUI.fileCloseButton, SIGNAL(released()),
         this, SLOT(openFileDialog())
     );
@@ -91,7 +98,7 @@ MainWindow::MainWindow(QWidget* parent):
 
     show();
 
-    openFileDialog();
+    emit showOpenFileDialog();
 }
 
 MainWindow::~MainWindow()
@@ -179,8 +186,6 @@ void MainWindow::openFileDialog()
         {
             // user cancelled the dialog, exit the entire app gracefully
             close();
-            QApplication::instance()->quit();
-            // TODO: ^^^ this doesn't work properly!
             return;
         }
 

@@ -20,14 +20,19 @@
  */
 
 #include "Application.h"
+#include "MainWindow.h"
 
-extern "C"
+Application::Application(int argc, char** argv):
+    QApplication(argc, argv),
+    mMainWindow(new MainWindow())
 {
-#include <xccdf_benchmark.h>
+    QObject::connect(
+        this, SIGNAL(lastWindowClosed()),
+        this, SLOT(quit())
+    );
 }
 
-int main(int argc, char** argv)
+Application::~Application()
 {
-    Application app(argc, argv);
-    return app.exec();
+    delete mMainWindow;
 }
