@@ -55,7 +55,7 @@ MainWindow::MainWindow(QWidget* parent):
     // [2] https://www.ietf.org/rfc/rfc2396.txt
     targetRegExp += "(?:(?:(?:(?:[a-zA-Z0-9][-a-zA-Z0-9]*)?[a-zA-Z0-9])[.])*(?:[a-zA-Z][-a-zA-Z0-9]*[a-zA-Z0-9]|[a-zA-Z])[.]?)"; // hostname, required
     targetRegExp += "(:[0-9]+)?"; // port, optional
-    mUI.targetLineEdit->setValidator(new QRegExpValidator(QRegExp(targetRegExp)));
+    mUI.targetLineEdit->setValidator(new QRegExpValidator(QRegExp(targetRegExp), this));
 
     QObject::connect(
         this, SIGNAL(showOpenFileDialog()),
