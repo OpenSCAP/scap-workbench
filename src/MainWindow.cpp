@@ -36,6 +36,9 @@ extern "C" {
 #include <oscap_error.h>
 }
 
+const QString TAILORING_CUSTOM_FILE = "(...)";
+const QString TAILORING_NONE = "(none)";
+
 MainWindow::MainWindow(QWidget* parent):
     QMainWindow(parent),
 
@@ -71,6 +74,10 @@ MainWindow::MainWindow(QWidget* parent):
     QObject::connect(
         mUI.checklistComboBox, SIGNAL(currentIndexChanged(int)),
         this, SLOT(checklistComboboxChanged(int))
+    );
+    QObject::connect(
+        mUI.tailoringFileComboBox, SIGNAL(currentIndexChanged(int)),
+        this, SLOT(tailoringFileComboboxChanged(int))
     );
     QObject::connect(
         mUI.profileComboBox, SIGNAL(currentIndexChanged(int)),
@@ -135,6 +142,8 @@ void MainWindow::openFile(const QString& path)
         return;
     }
 
+    mUI.tailoringFileComboBox->addItem(QString("(none)"), QVariant(QString::Null()));
+
     mUI.openedFileLineEdit->setText(path);
     if (xccdf_session_is_sds(mSession))
     {
@@ -163,7 +172,11 @@ void MainWindow::openFile(const QString& path)
 
         mUI.checklistComboBox->show();
         mUI.checklistLabel->show();
+
+        // TODO: Tailoring files inside datastream should be added to tailoring combobox
     }
+
+    mUI.tailoringFileComboBox->addItem(QString("(...)"), QVariant(QString::Null()));
 
     // force load up of the session
     checklistComboboxChanged(0);
@@ -280,6 +293,8 @@ void MainWindow::closeFile()
     mUI.checklistComboBox->clear();
     mUI.checklistComboBox->hide();
     mUI.checklistLabel->hide();
+
+    mUI.tailoringFileComboBox->clear();
 
     mUI.profileComboBox->clear();
 
@@ -421,6 +436,54 @@ void MainWindow::checklistComboboxChanged(int index)
     {
         xccdf_session_set_datastream_id(mSession, 0);
         xccdf_session_set_component_id(mSession, 0);
+    }
+
+    reloadSession();
+}
+
+void MainWindow::tailoringFileComboboxChanged(int index)
+{
+    if (!mSession)
+        return;
+
+    const QString text = mUI.tailoringFileComboBox->itemText(index);
+    const QString data = mUI.tailoringFileComboBox->itemData(index).toString();
+
+    if (data == QString::Null()) // special cases first
+    {
+        if (text == TAILORING_NONE)
+        {
+            xccdf_session_set_user_tailoring_file(mSession, NULL);
+            xccdf_session_set_user_tailoring_cid(mSession, NULL);
+        }
+        else if (text == TAILORING_CUSTOM_FILE)
+        {
+            QString filePath = QFileDialog::getOpenFileName(
+                this, "Open custom XCCDF tailoring file", QString(),
+                "XCCDF tailoring file (*.xml)"
+            );
+
+            if (filePath == QString::Null())
+            {
+                // user canceled, set to (none)
+                mUI.tailoringFileComboBox->setCurrentIndex(0);
+            }
+            else
+            {
+                xccdf_session_set_user_tailoring_cid(mSession, NULL);
+                xccdf_session_set_user_tailoring_file(mSession, filePath.toUtf8().constData());
+            }
+        }
+        else
+        {
+            // TODO: report something meaningful
+            assert(0);
+        }
+    }
+    else
+    {
+        xccdf_session_set_user_tailoring_file(mSession, NULL);
+        xccdf_session_set_user_tailoring_cid(mSession, data.toUtf8().constData());
     }
 
     reloadSession();

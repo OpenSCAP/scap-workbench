@@ -165,6 +165,8 @@ class MainWindow : public QMainWindow
     private slots:
         /// Checklist changed, we might have to reload session
         void checklistComboboxChanged(int index);
+        /// Tailoring file changed, we might have to reload session
+        void tailoringFileComboboxChanged(int index);
         /// Profile change, we simply change the profile id in the session
         void profileComboboxChanged(int index);
 
