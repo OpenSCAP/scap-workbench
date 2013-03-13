@@ -104,8 +104,6 @@ MainWindow::MainWindow(QWidget* parent):
     mResultViewer->hide();
 
     show();
-
-    emit showOpenFileDialog();
 }
 
 MainWindow::~MainWindow()
@@ -204,6 +202,11 @@ void MainWindow::openFileDialog()
 
         openFile(path);
     }
+}
+
+void MainWindow::openFileDialogAsync()
+{
+    emit showOpenFileDialog();
 }
 
 void MainWindow::scanAsync()

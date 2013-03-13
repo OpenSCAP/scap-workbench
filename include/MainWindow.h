@@ -66,6 +66,14 @@ class MainWindow : public QMainWindow
         void openFileDialog();
 
         /**
+         * @brief Queues a file dialog to be opened later when in the event loop
+         *
+         * This avoids having a modal dialog block event queues.
+         * @see MainWindow::openFileDialog
+         */
+        void openFileDialogAsync();
+
+        /**
          * @brief Starts scanning in a separate thread and returns
          *
          * @see MainWindow::cancelScanAsync()

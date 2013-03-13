@@ -30,6 +30,17 @@ Application::Application(int argc, char** argv):
         this, SIGNAL(lastWindowClosed()),
         this, SLOT(quit())
     );
+
+    QStringList args = arguments();
+    if (args.length() > 1)
+    {
+        QString fileToOpen = args.last();
+        mMainWindow->openFile(fileToOpen);
+    }
+    else
+    {
+        mMainWindow->openFileDialog();
+    }
 }
 
 Application::~Application()
