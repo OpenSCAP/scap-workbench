@@ -34,12 +34,12 @@ Application::Application(int argc, char** argv):
     QStringList args = arguments();
     if (args.length() > 1)
     {
-        QString fileToOpen = args.last();
+        const QString& fileToOpen = args.last();
         mMainWindow->openFile(fileToOpen);
     }
     else
     {
-        mMainWindow->openFileDialog();
+        mMainWindow->openFileDialogAsync();
     }
 }
 
