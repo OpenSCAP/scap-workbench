@@ -143,13 +143,8 @@
           <bool>true</bool>
          </property>
          <attribute name="headerDefaultSectionSize">
-          <number>217</number>
+          <number>350</number>
          </attribute>
-         <column>
-          <property name="text">
-           <string>ID</string>
-          </property>
-         </column>
          <column>
           <property name="text">
            <string>Title</string>

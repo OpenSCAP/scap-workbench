@@ -566,7 +566,6 @@ void MainWindow::scanProgressReport(const QString& rule_id, const QString& resul
         mUI.progressBar->setValue(mUI.progressBar->value() + 1);
 
     QStringList resultRow;
-    resultRow.append(rule_id);
     resultRow.append(oscap_textlist_get_preferred_plaintext(xccdf_item_get_title(item), NULL));
     resultRow.append(result);
 
