@@ -140,7 +140,7 @@
           <bool>true</bool>
          </property>
          <property name="sortingEnabled">
-          <bool>true</bool>
+          <bool>false</bool>
          </property>
          <attribute name="headerDefaultSectionSize">
           <number>350</number>
