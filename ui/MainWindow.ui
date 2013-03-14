@@ -226,6 +226,20 @@
                </property>
               </widget>
              </item>
+             <item>
+              <widget class="QPushButton" name="scanAndRemediateButton">
+               <property name="font">
+                <font>
+                 <pointsize>13</pointsize>
+                 <weight>75</weight>
+                 <bold>true</bold>
+                </font>
+               </property>
+               <property name="text">
+                <string>Scan &amp;&amp; Remediate</string>
+               </property>
+              </widget>
+             </item>
             </layout>
            </widget>
           </item>

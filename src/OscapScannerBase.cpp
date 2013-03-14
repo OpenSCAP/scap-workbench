@@ -31,8 +31,8 @@ extern "C"
 #include <xccdf_session.h>
 }
 
-OscapScannerBase::OscapScannerBase(QThread* thread, struct xccdf_session* session, const QString& target):
-    Scanner(thread, session, target),
+OscapScannerBase::OscapScannerBase(QThread* thread):
+    Scanner(thread),
 
     mCancelRequested(false)
 {}
@@ -130,10 +130,16 @@ int OscapScannerBase::runProcessSyncStdOut(const QString& cmd, const QStringList
     return process.exitCode();
 }
 
-QStringList OscapScannerBase::buildCommandLineArgs(const QString& inputFile,
-                                                   const QString& resultFile,
-                                                   const QString& reportFile,
-                                                   const QString& arfFile)
+QStringList OscapScannerBase::buildVersionCheckArgs() const
+{
+    return QStringList("--v");
+}
+
+QStringList OscapScannerBase::buildEvaluationArgs(const QString& inputFile,
+                                                  const QString& resultFile,
+                                                  const QString& reportFile,
+                                                  const QString& arfFile,
+                                                  bool onlineRemediation) const
 {
     QStringList ret;
     ret.append("xccdf");
@@ -172,6 +178,11 @@ QStringList OscapScannerBase::buildCommandLineArgs(const QString& inputFile,
     ret.append(reportFile);
 
     ret.append("--progress");
+
+    if (onlineRemediation)
+    {
+        ret.append("--remediate");
+    }
 
     ret.append(inputFile);
 

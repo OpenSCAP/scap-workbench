@@ -55,9 +55,13 @@ class Scanner : public QObject
          * @param session Session with all the settings required for scanning
          * @param target Representation of the target machine to scan
          */
-        Scanner(QThread* thread, struct xccdf_session* session, const QString& target);
+        Scanner(QThread* thread);
 
         virtual ~Scanner();
+
+        virtual void setSession(struct xccdf_session* session);
+        virtual void setTarget(const QString& target);
+        virtual void setOnlineRemediationEnabled(bool enabled);
 
         /**
          * @brief Retrieves XCCDF results from the scan
@@ -153,7 +157,9 @@ class Scanner : public QObject
         /// Session containing setup parameters for the scan
         struct xccdf_session* mSession;
         /// Target machine we should be scanning
-        const QString mTarget;
+        QString mTarget;
+        /// If true, failed rules will be remediated while scanning
+        bool mOnlineRemediationEnabled;
 
         /**
          * A helper method that will signal completion and finish off the thread.

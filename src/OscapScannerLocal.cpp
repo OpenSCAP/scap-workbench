@@ -30,8 +30,8 @@ extern "C"
 #include <xccdf_session.h>
 }
 
-OscapScannerLocal::OscapScannerLocal(QThread* thread, struct xccdf_session* session, const QString& target):
-    OscapScannerBase(thread, session, target)
+OscapScannerLocal::OscapScannerLocal(QThread* thread):
+    OscapScannerBase(thread)
 {}
 
 OscapScannerLocal::~OscapScannerLocal()
@@ -60,10 +60,11 @@ void OscapScannerLocal::evaluate()
 
     emit infoMessage("Starting the oscap process...");
     QProcess process(this);
-    process.start("oscap", buildCommandLineArgs(inputFile,
-                                                resultFile.fileName(),
-                                                reportFile.fileName(),
-                                                arfFile.fileName()));
+    process.start("oscap", buildEvaluationArgs(inputFile,
+                                               resultFile.fileName(),
+                                               reportFile.fileName(),
+                                               arfFile.fileName(),
+                                               mOnlineRemediationEnabled));
 
     const unsigned int pollInterval = 100;
 

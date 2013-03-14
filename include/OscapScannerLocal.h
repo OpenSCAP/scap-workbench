@@ -30,7 +30,7 @@ class OscapScannerLocal : public OscapScannerBase
     Q_OBJECT
 
     public:
-        OscapScannerLocal(QThread* thread, struct xccdf_session* session, const QString& target);
+        OscapScannerLocal(QThread* thread);
         virtual ~OscapScannerLocal();
 
         virtual void evaluate();

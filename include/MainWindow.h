@@ -83,7 +83,17 @@ class MainWindow : public QMainWindow
          * scanning has to end or be canceled before scanAsync can be
          * called again).
          */
-        void scanAsync();
+        void scanAsync(bool onlineRemediation = false);
+
+        /**
+         * @brief Starts scanning and remediation in a separate thread and returns
+         *
+         * The only reason this method has to exist is the complexity of
+         * parameter binding with Qt4.
+         *
+         * @todo Use Qt5 functors and C++0x lambdas instead
+         */
+        void scanAndRemediateAsync();
 
         /**
          * @brief Cancels scanning in separate thread

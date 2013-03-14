@@ -88,6 +88,10 @@ MainWindow::MainWindow(QWidget* parent):
         this, SLOT(scanAsync())
     );
     QObject::connect(
+        mUI.scanAndRemediateButton, SIGNAL(released()),
+        this, SLOT(scanAndRemediateAsync())
+    );
+    QObject::connect(
         mUI.cancelButton, SIGNAL(released()),
         this, SLOT(cancelScanAsync())
     );
@@ -209,7 +213,7 @@ void MainWindow::openFileDialogAsync()
     emit showOpenFileDialog();
 }
 
-void MainWindow::scanAsync()
+void MainWindow::scanAsync(bool onlineRemediation)
 {
     assert(mSession);
     assert(!mScanner);
@@ -231,9 +235,13 @@ void MainWindow::scanAsync()
     const QString target = mUI.targetLineEdit->text();
 
     if (target == "localhost")
-        mScanner = new OscapScannerLocal(mScanThread, mSession, "localhost");
+        mScanner = new OscapScannerLocal(mScanThread);
     else
-        mScanner = new OscapScannerRemoteSsh(mScanThread, mSession, target);
+        mScanner = new OscapScannerRemoteSsh(mScanThread);
+
+    mScanner->setSession(mSession);
+    mScanner->setTarget(target);
+    mScanner->setOnlineRemediationEnabled(onlineRemediation);
 
     mScanner->moveToThread(mScanThread);
 
@@ -271,6 +279,11 @@ void MainWindow::scanAsync()
     );
 
     mScanThread->start();
+}
+
+void MainWindow::scanAndRemediateAsync()
+{
+    scanAsync(true);
 }
 
 void MainWindow::cancelScanAsync()

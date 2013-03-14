@@ -22,14 +22,33 @@
 #include "Scanner.h"
 #include <QThread>
 
-Scanner::Scanner(QThread* thread, struct xccdf_session* session, const QString& target):
+Scanner::Scanner(QThread* thread):
     mThread(thread),
-    mSession(session),
-    mTarget(target)
+    mSession(0),
+    mTarget(""),
+    mOnlineRemediationEnabled(false)
 {}
 
 Scanner::~Scanner()
 {}
+
+void Scanner::setSession(struct xccdf_session* session)
+{
+    // TODO: assert that we are not running
+    mSession = session;
+}
+
+void Scanner::setTarget(const QString& target)
+{
+    // TODO: assert that we are not running
+    mTarget = target;
+}
+
+void Scanner::setOnlineRemediationEnabled(bool enabled)
+{
+    // TODO: assert that we are not running
+    mOnlineRemediationEnabled = enabled;
+}
 
 void Scanner::signalCompletion(bool cancel)
 {

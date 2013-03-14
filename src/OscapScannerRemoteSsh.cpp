@@ -35,8 +35,8 @@ extern "C"
 #include <xccdf_benchmark.h>
 }
 
-OscapScannerRemoteSsh::OscapScannerRemoteSsh(QThread* thread, struct xccdf_session* session, const QString& target):
-    OscapScannerBase(thread, session, target)
+OscapScannerRemoteSsh::OscapScannerRemoteSsh(QThread* thread):
+    OscapScannerBase(thread)
 {}
 
 OscapScannerRemoteSsh::~OscapScannerRemoteSsh()
@@ -99,10 +99,11 @@ void OscapScannerRemoteSsh::evaluate()
         return;
     }
 
-    const QString sshCmd = buildCommandLineArgs(inputFile,
-                                                resultFile,
-                                                reportFile,
-                                                arfFile).join(" ");
+    const QString sshCmd = buildEvaluationArgs(inputFile,
+                                               resultFile,
+                                               reportFile,
+                                               arfFile,
+                                               mOnlineRemediationEnabled).join(" ");
 
     QStringList baseArgs;
     baseArgs.append("-o"); baseArgs.append(QString("ControlPath=%1").arg(mMasterSocket));

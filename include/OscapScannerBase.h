@@ -33,7 +33,7 @@ class OscapScannerBase : public Scanner
     Q_OBJECT
 
     public:
-        OscapScannerBase(QThread* thread, struct xccdf_session* session, const QString& target);
+        OscapScannerBase(QThread* thread);
         virtual ~OscapScannerBase();
 
         virtual void cancel();
@@ -54,10 +54,12 @@ class OscapScannerBase : public Scanner
                            QString& stdOut,
                            QString& diagnosticInfo);
 
-        QStringList buildCommandLineArgs(const QString& inputFile,
-                                         const QString& resultFile,
-                                         const QString& reportFile,
-                                         const QString& arfFile);
+        QStringList buildVersionCheckArgs() const;
+        QStringList buildEvaluationArgs(const QString& inputFile,
+                                        const QString& resultFile,
+                                        const QString& reportFile,
+                                        const QString& arfFile,
+                                        bool onlineRemediation) const;
 
         bool tryToReadLine(QProcess& process);
         void watchStdErr(QProcess& process);
