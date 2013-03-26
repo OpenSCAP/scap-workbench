@@ -356,7 +356,6 @@ void MainWindow::refreshProfiles()
     std::map<QString, QString> profileCrossMap;
     struct xccdf_profile_iterator* profile_it;
 
-    // TODO: we likely want profile titles shown in the future, not their IDs
     struct xccdf_tailoring* tailoring = xccdf_policy_model_get_tailoring(pmodel);
     if (tailoring)
     {
@@ -569,8 +568,21 @@ void MainWindow::scanProgressReport(const QString& rule_id, const QString& resul
     resultRow.append(oscap_textlist_get_preferred_plaintext(xccdf_item_get_title(item), NULL));
     resultRow.append(result);
 
-    mUI.ruleResultsTree->addTopLevelItem(new QTreeWidgetItem(resultRow));
+    QBrush resultBrush;
+    if (result == "pass")
+        resultBrush.setColor(Qt::darkGreen);
+    else if (result == "fixed")
+        resultBrush.setColor(Qt::darkGreen);
+    else if (result == "fail")
+        resultBrush.setColor(Qt::red);
+    else if (result == "error")
+        resultBrush.setColor(Qt::red);
+    else
+        resultBrush.setColor(Qt::darkGray);
 
+    QTreeWidgetItem* treeItem = new QTreeWidgetItem(resultRow);
+    treeItem->setForeground(1, resultBrush);
+    mUI.ruleResultsTree->addTopLevelItem(treeItem);
 }
 
 void MainWindow::scanInfoMessage(const QString& message)
