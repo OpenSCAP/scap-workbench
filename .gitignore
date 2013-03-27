@@ -5,3 +5,4 @@
 build/
 
 .clang_complete
+CMakeLists.txt.user
