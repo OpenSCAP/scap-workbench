@@ -27,6 +27,7 @@
 
 #include <QFileDialog>
 #include <QMessageBox>
+#include <QAbstractEventDispatcher>
 
 #include <cassert>
 
@@ -210,6 +211,13 @@ void MainWindow::openFileDialog()
         }
 
         openFile(path);
+        if (!mSession)
+        {
+            while (mDiagnosticsDialog->isVisible())
+            {
+                QAbstractEventDispatcher::instance(0)->processEvents(QEventLoop::AllEvents);
+            }
+        }
     }
 }
 

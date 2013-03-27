@@ -53,7 +53,7 @@ void DiagnosticsDialog::warningMessage(const QString& message)
     columns.append(message);
 
     QTreeWidgetItem* item = new QTreeWidgetItem(columns);
-    item->setForeground(0, QBrush(Qt::yellow));
+    item->setForeground(0, QBrush(Qt::darkYellow));
     mUI.messages->addTopLevelItem(item);
 
     // warning message is important, make sure the diagnostics are shown
