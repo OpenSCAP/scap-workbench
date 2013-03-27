@@ -23,6 +23,7 @@
 #include "OscapScannerLocal.h"
 #include "OscapScannerRemoteSsh.h"
 #include "ResultViewer.h"
+#include "DiagnosticsDialog.h"
 
 #include <QFileDialog>
 #include <QMessageBox>
@@ -47,7 +48,8 @@ MainWindow::MainWindow(QWidget* parent):
     mScanThread(0),
     mScanner(0),
 
-    mResultViewer(0)
+    mResultViewer(0),
+    mDiagnosticsDialog(0)
 {
     mUI.setupUi(this);
     mUI.progressBar->reset();
@@ -107,6 +109,9 @@ MainWindow::MainWindow(QWidget* parent):
     mResultViewer = new ResultViewer(this);
     mResultViewer->hide();
 
+    mDiagnosticsDialog = new DiagnosticsDialog(this);
+    mDiagnosticsDialog->hide();
+
     show();
 }
 
@@ -139,8 +144,8 @@ void MainWindow::openFile(const QString& path)
     mSession = xccdf_session_new(path.toUtf8().constData());
     if (!mSession)
     {
-        QMessageBox::critical(this, QString("Failed to create session for '%1'").arg(path),
-            QString("OpenSCAP error message:\n%1").arg(oscap_err_desc()));
+        mDiagnosticsDialog->errorMessage(
+            QString("Failed to create session for '%1'. OpenSCAP error message:\n%2").arg(path).arg(oscap_err_desc()));
         return;
     }
 
@@ -315,6 +320,7 @@ void MainWindow::closeFile()
     mUI.profileComboBox->clear();
 
     clearResults();
+    mDiagnosticsDialog->clear();
 }
 
 void MainWindow::reloadSession()
@@ -326,8 +332,8 @@ void MainWindow::reloadSession()
 
     if (xccdf_session_load(mSession) != 0)
     {
-        QMessageBox::critical(this, QString("Failed to reload session"),
-            QString("OpenSCAP error message:\n%1").arg(oscap_err_desc()));
+        mDiagnosticsDialog->errorMessage(
+            QString("Failed to reload session. OpenSCAP error message:\n%1").arg(oscap_err_desc()));
         return;
     }
 
@@ -521,8 +527,7 @@ void MainWindow::profileComboboxChanged(int index)
         {
             xccdf_session_set_profile_id(mSession, 0);
 
-            QMessageBox::warning(
-                this, "Failed to change profile",
+            mDiagnosticsDialog->warningMessage(
                 QString(
                     "Can't change session profile to '%1'!\n"
                     "oscap error description:\n%2"
@@ -588,16 +593,17 @@ void MainWindow::scanProgressReport(const QString& rule_id, const QString& resul
 void MainWindow::scanInfoMessage(const QString& message)
 {
     statusBar()->showMessage(message);
+    mDiagnosticsDialog->infoMessage(message);
 }
 
 void MainWindow::scanWarningMessage(const QString& message)
 {
-    QMessageBox::warning(this, "Scanner warning", message);
+    mDiagnosticsDialog->warningMessage(message);
 }
 
 void MainWindow::scanErrorMessage(const QString &message)
 {
-    QMessageBox::critical(this, "Scanner error", message);
+    mDiagnosticsDialog->errorMessage(message);
 }
 
 void MainWindow::scanCanceled()

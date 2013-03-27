@@ -157,6 +157,10 @@ class MainWindow : public QMainWindow
         /// Qt Dialog that displays results and allows user to save them
         ResultViewer* mResultViewer;
 
+        /// Qt Dialog that displays messages (errors, warnings, infos)
+        /// Gets shown whenever a warning or error is emitted
+        DiagnosticsDialog* mDiagnosticsDialog;
+
     signals:
         /**
          * @brief We signal this to show the dialog

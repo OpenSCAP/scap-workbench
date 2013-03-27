@@ -22,11 +22,12 @@
 #ifndef SCAP_WORKBENCH_FORWARD_DECLS_H_
 #define SCAP_WORKBENCH_FORWARD_DECLS_H_
 
-class Scanner;
+class DiagnosticsDialog;
 class MainWindow;
 class OscapScannerBase;
 class OscapScannerLocal;
 class OscapScannerRemoteSsh;
 class ResultViewer;
+class Scanner;
 
 #endif
