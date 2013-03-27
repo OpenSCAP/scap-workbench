@@ -25,6 +25,11 @@ DiagnosticsDialog::DiagnosticsDialog(QWidget* parent):
     QDialog(parent)
 {
     mUI.setupUi(this);
+
+    QObject::connect(
+        mUI.closeButton, SIGNAL(released()),
+        this, SLOT(hide())
+    );
 }
 
 DiagnosticsDialog::~DiagnosticsDialog()

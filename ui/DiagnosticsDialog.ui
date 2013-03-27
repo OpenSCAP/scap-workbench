@@ -23,6 +23,21 @@
    </item>
    <item>
     <widget class="QTreeWidget" name="messages">
+     <property name="autoScroll">
+      <bool>false</bool>
+     </property>
+     <property name="showDropIndicator" stdset="0">
+      <bool>false</bool>
+     </property>
+     <property name="alternatingRowColors">
+      <bool>true</bool>
+     </property>
+     <property name="selectionMode">
+      <enum>QAbstractItemView::NoSelection</enum>
+     </property>
+     <property name="verticalScrollMode">
+      <enum>QAbstractItemView::ScrollPerPixel</enum>
+     </property>
      <property name="rootIsDecorated">
       <bool>false</bool>
      </property>
