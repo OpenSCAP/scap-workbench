@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>608</width>
-    <height>746</height>
+    <width>777</width>
+    <height>760</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -17,7 +17,7 @@
    <item>
     <widget class="QLabel" name="label">
      <property name="text">
-      <string>Potentially severe issues have been detected.</string>
+      <string>The messages are displayed in the order they were reported (top-down).</string>
      </property>
     </widget>
    </item>
@@ -28,6 +28,9 @@
      </property>
      <property name="itemsExpandable">
       <bool>false</bool>
+     </property>
+     <property name="wordWrap">
+      <bool>true</bool>
      </property>
      <property name="expandsOnDoubleClick">
       <bool>false</bool>

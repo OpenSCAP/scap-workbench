@@ -26,7 +26,6 @@
 #include "DiagnosticsDialog.h"
 
 #include <QFileDialog>
-#include <QMessageBox>
 #include <QAbstractEventDispatcher>
 
 #include <cassert>
@@ -239,6 +238,17 @@ void MainWindow::scanAsync(bool onlineRemediation)
     mUI.scanTools->show();
 
     struct xccdf_policy* policy = xccdf_session_get_xccdf_policy(mSession);
+    if (!policy)
+    {
+        mDiagnosticsDialog->errorMessage(
+            QString("Can't get XCCDF policy from the session. Very likely it failed to load. OpenSCAP error message:\n%1").arg(oscap_err_desc()));
+
+        mUI.scanProperties->setEnabled(true);
+        mUI.preScanTools->show();
+        mUI.scanTools->hide();
+        return;
+    }
+
     mUI.progressBar->setRange(0, xccdf_policy_get_selected_rules_count(policy));
     mUI.progressBar->reset();
     mUI.progressBar->setEnabled(true);

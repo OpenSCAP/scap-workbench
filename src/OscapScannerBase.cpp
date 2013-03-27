@@ -205,7 +205,7 @@ bool OscapScannerBase::tryToReadLine(QProcess& process)
         // reporting might be off.
         emit warningMessage(QString("Error when parsing scan progress output from stdout of the 'oscap' process. "
                                     "Attempted to split '%1' into 2 fields as rule_id:result and failed. The result "
-                                    "doesn't have 2 fields but %1 instead.").arg(stringLine).arg(split.size()));
+                                    "doesn't have 2 fields but %2 instead.").arg(stringLine).arg(split.size()));
         // We did read "something".
         return true;
     }

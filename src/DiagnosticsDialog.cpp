@@ -32,7 +32,7 @@ DiagnosticsDialog::~DiagnosticsDialog()
 
 void DiagnosticsDialog::clear()
 {
-    // TODO
+    mUI.messages->clear();
 }
 
 void DiagnosticsDialog::infoMessage(const QString& message)
