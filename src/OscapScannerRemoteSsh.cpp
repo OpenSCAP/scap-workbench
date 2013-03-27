@@ -117,6 +117,7 @@ void OscapScannerRemoteSsh::evaluate()
 
     const unsigned int pollInterval = 100;
 
+    emit infoMessage("Scanning remotely...");
     while (!process.waitForFinished(pollInterval))
     {
         // read everything new
@@ -196,6 +197,8 @@ void OscapScannerRemoteSsh::evaluate()
         mARF = tempString.toUtf8();
     }
 
+    emit infoMessage("Cleaning up...");
+
     // Remove all the temporary remote files
     if (runProcessSync(
         "ssh", baseArgs + QStringList(QString("rm '%1'").arg(inputFile)),
@@ -230,6 +233,7 @@ void OscapScannerRemoteSsh::evaluate()
             "Diagnostic info: %1").arg(diagnosticInfo));
     }
 
+    emit infoMessage("Scanning has been finished!");
     signalCompletion(mCancelRequested);
 }
 
