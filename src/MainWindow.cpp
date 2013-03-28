@@ -130,6 +130,7 @@ void MainWindow::clearResults()
     mUI.postScanTools->hide();
 
     mUI.ruleResultsTree->clear();
+    mUI.ruleResultsTree->setEnabled(false);
 
     mResultViewer->clear();
 }
@@ -252,6 +253,7 @@ void MainWindow::scanAsync(bool onlineRemediation)
     mUI.progressBar->setRange(0, xccdf_policy_get_selected_rules_count(policy));
     mUI.progressBar->reset();
     mUI.progressBar->setEnabled(true);
+    mUI.ruleResultsTree->setEnabled(true);
 
     mScanThread = new QThread(this);
 
@@ -629,6 +631,10 @@ void MainWindow::scanCanceled()
     mUI.cancelButton->setEnabled(true);
 
     cleanupScanThread();
+    // Essentially, this is done to notify the user that the progress results
+    // are only partial. Yet it could be useful to review them so we don't
+    // clear them completely.
+    mUI.ruleResultsTree->setEnabled(false);
 
     mUI.scanProperties->setEnabled(true);
     mUI.preScanTools->show();
