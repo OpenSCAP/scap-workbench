@@ -31,6 +31,13 @@ extern "C"
 #include <xccdf_benchmark.h>
 }
 
+enum ScannerMode
+{
+    SM_SCAN,
+    SM_SCAN_ONLINE_REMEDIATION,
+    SM_OFFLINE_REMEDIATION
+};
+
 /**
  * @brief The scanner interface class
  *
@@ -61,7 +68,9 @@ class Scanner : public QObject
 
         virtual void setSession(struct xccdf_session* session);
         virtual void setTarget(const QString& target);
-        virtual void setOnlineRemediationEnabled(bool enabled);
+
+        virtual void setScannerMode(ScannerMode mode);
+        ScannerMode getScannerMode() const;
 
         /**
          * @brief Retrieves XCCDF results from the scan
@@ -152,14 +161,15 @@ class Scanner : public QObject
         void finished();
 
     protected:
+        /// Which mode should the scanner run in for the next evaluation() invocation
+        ScannerMode mScannerMode;
+
         /// Thread that is running the evaluation
         QThread* mThread;
         /// Session containing setup parameters for the scan
         struct xccdf_session* mSession;
         /// Target machine we should be scanning
         QString mTarget;
-        /// If true, failed rules will be remediated while scanning
-        bool mOnlineRemediationEnabled;
 
         /**
          * A helper method that will signal completion and finish off the thread.

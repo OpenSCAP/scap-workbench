@@ -56,6 +56,13 @@ class ResultViewer : public QDialog
          */
         void loadContent(Scanner* scanner);
 
+        /**
+         * @brief Retrieve currently loaded XCCDF results
+         *
+         * This can be used to perform offline remediation for example.
+         */
+        const QByteArray& getXCCDFResults() const;
+
     private slots:
         /// Pops up a save dialog for HTML report
         void saveReport();

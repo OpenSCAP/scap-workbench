@@ -266,7 +266,7 @@ void MainWindow::scanAsync(bool onlineRemediation)
 
     mScanner->setSession(mSession);
     mScanner->setTarget(target);
-    mScanner->setOnlineRemediationEnabled(onlineRemediation);
+    mScanner->setScannerMode(onlineRemediation ? SM_SCAN_ONLINE_REMEDIATION : SM_SCAN);
 
     mScanner->moveToThread(mScanThread);
 
@@ -653,6 +653,8 @@ void MainWindow::scanFinished()
     mUI.preScanTools->hide();
     mUI.scanTools->hide();
     mUI.postScanTools->show();
+
+    mUI.remediateButton->setEnabled(mScanner->getScannerMode() == SM_SCAN);
 
     statusBar()->clearMessage();
 }

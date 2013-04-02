@@ -88,6 +88,8 @@ class MainWindow : public QMainWindow
         /**
          * @brief Starts scanning and remediation in a separate thread and returns
          *
+         * @note This is the online remediation.
+         *
          * The only reason this method has to exist is the complexity of
          * parameter binding with Qt4.
          *
@@ -104,6 +106,13 @@ class MainWindow : public QMainWindow
          * deal with scan finished/canceled race that could happen (at least in theory).
          */
         void cancelScanAsync();
+
+        /**
+         * @note This will only work if scan results are still in ResultViewer.
+         *
+         * @see MainWindow::scanAndRemediateAsync
+         */
+        //void offlineRemediateAsync();
 
     private:
         /**

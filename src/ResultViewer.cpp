@@ -70,6 +70,11 @@ void ResultViewer::loadContent(Scanner *scanner)
     scanner->getARF(mARF);
 }
 
+const QByteArray& ResultViewer::getXCCDFResults() const
+{
+    return mResults;
+}
+
 void ResultViewer::saveReport()
 {
     const QString filename = QFileDialog::getSaveFileName(this, "Save Report (HTML)", QString(), "HTML Report (*.html)");

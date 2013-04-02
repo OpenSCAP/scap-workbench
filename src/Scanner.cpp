@@ -23,10 +23,10 @@
 #include <QThread>
 
 Scanner::Scanner(QThread* thread):
+    mScannerMode(SM_SCAN),
     mThread(thread),
     mSession(0),
-    mTarget(""),
-    mOnlineRemediationEnabled(false)
+    mTarget("")
 {}
 
 Scanner::~Scanner()
@@ -44,10 +44,15 @@ void Scanner::setTarget(const QString& target)
     mTarget = target;
 }
 
-void Scanner::setOnlineRemediationEnabled(bool enabled)
+void Scanner::setScannerMode(ScannerMode mode)
 {
     // TODO: assert that we are not running
-    mOnlineRemediationEnabled = enabled;
+    mScannerMode = mode;
+}
+
+ScannerMode Scanner::getScannerMode() const
+{
+    return mScannerMode;
 }
 
 void Scanner::signalCompletion(bool cancel)

@@ -103,7 +103,7 @@ void OscapScannerRemoteSsh::evaluate()
                                                resultFile,
                                                reportFile,
                                                arfFile,
-                                               mOnlineRemediationEnabled).join(" ");
+                                               mScannerMode == SM_SCAN_ONLINE_REMEDIATION).join(" ");
 
     QStringList baseArgs;
     baseArgs.append("-o"); baseArgs.append(QString("ControlPath=%1").arg(mMasterSocket));

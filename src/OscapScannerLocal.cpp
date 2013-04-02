@@ -64,7 +64,7 @@ void OscapScannerLocal::evaluate()
                                                resultFile.fileName(),
                                                reportFile.fileName(),
                                                arfFile.fileName(),
-                                               mOnlineRemediationEnabled));
+                                               mScannerMode == SM_SCAN_ONLINE_REMEDIATION));
 
     const unsigned int pollInterval = 100;
 
