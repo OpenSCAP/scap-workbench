@@ -43,10 +43,13 @@ enum ScannerMode
  * @brief The scanner interface class
  *
  * Classes implementing this interface are responsible for actually scanning
- * the targets they are given.
+ * and remediating the targets they are given.
  *
  * In essence we pass session data and target and expect to get the 3 resulting
- * files when scanning finishes.
+ * files when scanning or remediation finishes. Results for scans and remediations
+ * are of the same type so there is only one interface class. Furthermore, there
+ * is a mode where the scanner scans and remediates at the same time which is
+ * also in favor of a single interface for this.
  *
  * All implementors of the interface have to keep in mind that scanning might
  * (and actually always does at the moment) run in parallel to the main event
@@ -63,12 +66,14 @@ class Scanner : public QObject
          * @param session Session with all the settings required for scanning
          * @param target Representation of the target machine to scan
          */
-        Scanner(QThread* thread);
+        Scanner();
 
         virtual ~Scanner();
 
+        virtual void setThread(QThread* thread);
         virtual void setSession(struct xccdf_session* session);
         virtual void setTarget(const QString& target);
+        const QString& getTarget() const;
 
         virtual void setScannerMode(ScannerMode mode);
         ScannerMode getScannerMode() const;

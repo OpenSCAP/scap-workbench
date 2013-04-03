@@ -35,8 +35,8 @@ extern "C"
 #include <xccdf_benchmark.h>
 }
 
-OscapScannerRemoteSsh::OscapScannerRemoteSsh(QThread* thread):
-    OscapScannerBase(thread)
+OscapScannerRemoteSsh::OscapScannerRemoteSsh():
+    OscapScannerBase()
 {}
 
 OscapScannerRemoteSsh::~OscapScannerRemoteSsh()

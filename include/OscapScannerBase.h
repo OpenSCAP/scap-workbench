@@ -33,7 +33,7 @@ class OscapScannerBase : public Scanner
     Q_OBJECT
 
     public:
-        OscapScannerBase(QThread* thread);
+        OscapScannerBase();
         virtual ~OscapScannerBase();
 
         virtual void cancel();

@@ -30,7 +30,7 @@ class OscapScannerLocal : public OscapScannerBase
     Q_OBJECT
 
     public:
-        OscapScannerLocal(QThread* thread);
+        OscapScannerLocal();
         virtual ~OscapScannerLocal();
 
         virtual void evaluate();

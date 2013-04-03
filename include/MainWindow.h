@@ -23,6 +23,7 @@
 #define SCAP_WORKBENCH_MAIN_WINDOW_H_
 
 #include "ForwardDecls.h"
+#include "Scanner.h"
 
 #include <QMainWindow>
 #include <QThread>
@@ -83,7 +84,7 @@ class MainWindow : public QMainWindow
          * scanning has to end or be canceled before scanAsync can be
          * called again).
          */
-        void scanAsync(bool onlineRemediation = false);
+        void scanAsync(ScannerMode scannerMode = SM_SCAN);
 
         /**
          * @brief Starts scanning and remediation in a separate thread and returns
@@ -112,7 +113,7 @@ class MainWindow : public QMainWindow
          *
          * @see MainWindow::scanAndRemediateAsync
          */
-        //void offlineRemediateAsync();
+        void offlineRemediateAsync();
 
     private:
         /**
@@ -155,7 +156,7 @@ class MainWindow : public QMainWindow
         /// This is our central point of interaction with openscap
         struct xccdf_session* mSession;
 
-        /// Thread that handles scanning, NULL if no scanning is underway
+        /// Thread that handles scanning and/or remediating, NULL if none is underway
         QThread* mScanThread;
         /**
          * This is a scanner suitable for scanning target as specified by user
@@ -194,6 +195,8 @@ class MainWindow : public QMainWindow
         void cancelScan();
 
     private slots:
+        /// Target changed, we might have to recreate scanner
+        //void targetChanged(const QString& target);
         /// Checklist changed, we might have to reload session
         void checklistComboboxChanged(int index);
         /// Tailoring file changed, we might have to reload session

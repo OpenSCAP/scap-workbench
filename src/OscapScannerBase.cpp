@@ -31,8 +31,8 @@ extern "C"
 #include <xccdf_session.h>
 }
 
-OscapScannerBase::OscapScannerBase(QThread* thread):
-    Scanner(thread),
+OscapScannerBase::OscapScannerBase():
+    Scanner(),
 
     mCancelRequested(false)
 {}

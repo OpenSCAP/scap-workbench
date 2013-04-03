@@ -226,7 +226,7 @@ void MainWindow::openFileDialogAsync()
     emit showOpenFileDialog();
 }
 
-void MainWindow::scanAsync(bool onlineRemediation)
+void MainWindow::scanAsync(ScannerMode scannerMode)
 {
     assert(mSession);
     assert(!mScanner);
@@ -260,13 +260,14 @@ void MainWindow::scanAsync(bool onlineRemediation)
     const QString target = mUI.targetLineEdit->text();
 
     if (target == "localhost")
-        mScanner = new OscapScannerLocal(mScanThread);
+        mScanner = new OscapScannerLocal();
     else
-        mScanner = new OscapScannerRemoteSsh(mScanThread);
+        mScanner = new OscapScannerRemoteSsh();
 
+    mScanner->setThread(mScanThread);
     mScanner->setSession(mSession);
     mScanner->setTarget(target);
-    mScanner->setScannerMode(onlineRemediation ? SM_SCAN_ONLINE_REMEDIATION : SM_SCAN);
+    mScanner->setScannerMode(scannerMode);
 
     mScanner->moveToThread(mScanThread);
 
@@ -308,7 +309,12 @@ void MainWindow::scanAsync(bool onlineRemediation)
 
 void MainWindow::scanAndRemediateAsync()
 {
-    scanAsync(true);
+    scanAsync(SM_SCAN_ONLINE_REMEDIATION);
+}
+
+void MainWindow::offlineRemediateAsync()
+{
+    scanAsync(SM_OFFLINE_REMEDIATION);
 }
 
 void MainWindow::cancelScanAsync()
@@ -648,13 +654,13 @@ void MainWindow::scanFinished()
 {
     mResultViewer->loadContent(mScanner);
 
-    cleanupScanThread();
-
     mUI.preScanTools->hide();
     mUI.scanTools->hide();
     mUI.postScanTools->show();
 
     mUI.remediateButton->setEnabled(mScanner->getScannerMode() == SM_SCAN);
+
+    cleanupScanThread();
 
     statusBar()->clearMessage();
 }

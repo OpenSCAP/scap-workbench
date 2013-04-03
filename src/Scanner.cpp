@@ -22,15 +22,20 @@
 #include "Scanner.h"
 #include <QThread>
 
-Scanner::Scanner(QThread* thread):
+Scanner::Scanner():
     mScannerMode(SM_SCAN),
-    mThread(thread),
+    mThread(0),
     mSession(0),
     mTarget("")
 {}
 
 Scanner::~Scanner()
 {}
+
+void Scanner::setThread(QThread* thread)
+{
+    mThread = thread;
+}
 
 void Scanner::setSession(struct xccdf_session* session)
 {
@@ -42,6 +47,11 @@ void Scanner::setTarget(const QString& target)
 {
     // TODO: assert that we are not running
     mTarget = target;
+}
+
+const QString& Scanner::getTarget() const
+{
+    return mTarget;
 }
 
 void Scanner::setScannerMode(ScannerMode mode)
@@ -72,6 +82,10 @@ void Scanner::signalCompletion(bool cancel)
     else
         emit finished();
 
-    moveToThread(0);
-    mThread->quit();
+    if (mThread)
+    {
+        moveToThread(0);
+        mThread->quit();
+        mThread = 0;
+    }
 }

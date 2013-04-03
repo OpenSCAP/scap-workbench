@@ -30,8 +30,8 @@ extern "C"
 #include <xccdf_session.h>
 }
 
-OscapScannerLocal::OscapScannerLocal(QThread* thread):
-    OscapScannerBase(thread)
+OscapScannerLocal::OscapScannerLocal():
+    OscapScannerBase()
 {}
 
 OscapScannerLocal::~OscapScannerLocal()

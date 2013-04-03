@@ -30,7 +30,7 @@ class OscapScannerRemoteSsh : public OscapScannerBase
     Q_OBJECT
 
     public:
-        OscapScannerRemoteSsh(QThread* thread);
+        OscapScannerRemoteSsh();
         virtual ~OscapScannerRemoteSsh();
 
         virtual void setTarget(const QString& target);
