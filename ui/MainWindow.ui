@@ -280,7 +280,7 @@
               </widget>
              </item>
              <item>
-              <widget class="QPushButton" name="remediateButton">
+              <widget class="QPushButton" name="offlineRemediateButton">
                <property name="enabled">
                 <bool>false</bool>
                </property>

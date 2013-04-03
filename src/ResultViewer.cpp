@@ -70,9 +70,9 @@ void ResultViewer::loadContent(Scanner *scanner)
     scanner->getARF(mARF);
 }
 
-const QByteArray& ResultViewer::getXCCDFResults() const
+const QByteArray& ResultViewer::getARF() const
 {
-    return mResults;
+    return mARF;
 }
 
 void ResultViewer::saveReport()

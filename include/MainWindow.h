@@ -99,6 +99,13 @@ class MainWindow : public QMainWindow
         void scanAndRemediateAsync();
 
         /**
+         * @note This will only work if scan results are still in ResultViewer.
+         *
+         * @see MainWindow::scanAndRemediateAsync
+         */
+        void offlineRemediateAsync();
+
+        /**
          * @brief Cancels scanning in separate thread
          *
          * This method asserts that session has already been loaded.
@@ -107,13 +114,6 @@ class MainWindow : public QMainWindow
          * deal with scan finished/canceled race that could happen (at least in theory).
          */
         void cancelScanAsync();
-
-        /**
-         * @note This will only work if scan results are still in ResultViewer.
-         *
-         * @see MainWindow::scanAndRemediateAsync
-         */
-        void offlineRemediateAsync();
 
     private:
         /**

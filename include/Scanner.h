@@ -103,8 +103,8 @@ class Scanner : public QObject
          */
         virtual void getARF(QByteArray& destination) = 0;
 
-        virtual void setResultsForRemediation(const QByteArray& results);
-        const QByteArray& getResultsForRemediation() const;
+        virtual void setARFForRemediation(const QByteArray& results);
+        const QByteArray& getARFForRemediation() const;
 
     public slots:
         /**
@@ -185,7 +185,7 @@ class Scanner : public QObject
         QString mTarget;
 
         /// Stores results that will be used in case scanner mode is SM_OFFLINE_REMEDIATION
-        QByteArray mResultsForRemediation;
+        QByteArray mARFForRemediation;
 
         /**
          * A helper method that will signal completion and finish off the thread.

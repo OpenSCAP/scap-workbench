@@ -57,11 +57,11 @@ class ResultViewer : public QDialog
         void loadContent(Scanner* scanner);
 
         /**
-         * @brief Retrieve currently loaded XCCDF results
+         * @brief Retrieve currently loaded ARF
          *
          * This can be used to perform offline remediation for example.
          */
-        const QByteArray& getXCCDFResults() const;
+        const QByteArray& getARF() const;
 
     private slots:
         /// Pops up a save dialog for HTML report

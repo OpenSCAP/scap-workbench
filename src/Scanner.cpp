@@ -71,14 +71,14 @@ ScannerMode Scanner::getScannerMode() const
     return mScannerMode;
 }
 
-void Scanner::setResultsForRemediation(const QByteArray& results)
+void Scanner::setARFForRemediation(const QByteArray& results)
 {
-    mResultsForRemediation = results;
+    mARFForRemediation = results;
 }
 
-const QByteArray& Scanner::getResultsForRemediation() const
+const QByteArray& Scanner::getARFForRemediation() const
 {
-    return mResultsForRemediation;
+    return mARFForRemediation;
 }
 
 void Scanner::signalCompletion(bool cancel)

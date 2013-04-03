@@ -60,17 +60,16 @@ void OscapScannerLocal::evaluate()
 
     QStringList args;
 
-    QTemporaryFile inputResultsFile;
-    inputResultsFile.setAutoRemove(true);
+    QTemporaryFile inputARFFile;
+    inputARFFile.setAutoRemove(true);
 
     if (mScannerMode == SM_OFFLINE_REMEDIATION)
     {
-        //inputResultsFile.setOpenMode(QIODevice::WriteOnly);
-        inputResultsFile.open();
-        inputResultsFile.write(getResultsForRemediation());
-        inputResultsFile.close();
+        inputARFFile.open();
+        inputARFFile.write(getARFForRemediation());
+        inputARFFile.close();
 
-        args = buildOfflineRemediationArgs(inputResultsFile.fileName(),
+        args = buildOfflineRemediationArgs(inputARFFile.fileName(),
                 resultFile.fileName(),
                 reportFile.fileName(),
                 arfFile.fileName());

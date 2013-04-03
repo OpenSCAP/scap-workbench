@@ -94,6 +94,10 @@ MainWindow::MainWindow(QWidget* parent):
         this, SLOT(scanAndRemediateAsync())
     );
     QObject::connect(
+        mUI.offlineRemediateButton, SIGNAL(released()),
+        this, SLOT(offlineRemediateAsync())
+    );
+    QObject::connect(
         mUI.cancelButton, SIGNAL(released()),
         this, SLOT(cancelScanAsync())
     );
@@ -306,6 +310,12 @@ void MainWindow::scanAsync(ScannerMode scannerMode)
     mScanner->setMainThread(thread());
     mScanner->setSession(mSession);
     mScanner->setScannerMode(scannerMode);
+
+    if (scannerMode == SM_OFFLINE_REMEDIATION)
+    {
+        // TODO: Allow user to tweak the results to deselect/select rules to remediate, etc...
+        mScanner->setARFForRemediation(mResultViewer->getARF());
+    }
 
     mScanner->moveToThread(mScanThread);
 
@@ -665,7 +675,7 @@ void MainWindow::scanFinished()
     mUI.scanTools->hide();
     mUI.postScanTools->show();
 
-    mUI.remediateButton->setEnabled(mScanner->getScannerMode() == SM_SCAN);
+    mUI.offlineRemediateButton->setEnabled(mScanner->getScannerMode() == SM_SCAN);
 
     cleanupScanThread();
 
