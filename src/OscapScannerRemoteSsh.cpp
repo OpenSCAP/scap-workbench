@@ -79,11 +79,25 @@ void OscapScannerRemoteSsh::evaluate()
         return;
     }
 
-    const QString sshCmd = buildEvaluationArgs(inputFile,
-                                               resultFile,
-                                               reportFile,
-                                               arfFile,
-                                               mScannerMode == SM_SCAN_ONLINE_REMEDIATION).join(" ");
+    QStringList args;
+
+    if (mScannerMode == SM_OFFLINE_REMEDIATION)
+    {
+        args = buildOfflineRemediationArgs(inputFile,
+                resultFile,
+                reportFile,
+                arfFile);
+    }
+    else
+    {
+        args = buildEvaluationArgs(inputFile,
+                resultFile,
+                reportFile,
+                arfFile,
+                mScannerMode == SM_SCAN_ONLINE_REMEDIATION);
+    }
+
+    const QString sshCmd = args.join(" ");
 
     QStringList baseArgs;
     baseArgs.append("-o"); baseArgs.append(QString("ControlPath=%1").arg(mMasterSocket));
@@ -91,13 +105,13 @@ void OscapScannerRemoteSsh::evaluate()
 
     QString diagnosticInfo;
 
-    emit infoMessage("Starting the remote scanning process...");
+    emit infoMessage("Starting the remote process...");
     QProcess process(this);
     process.start("ssh", baseArgs + QStringList(QString("oscap %1").arg(sshCmd)));
 
     const unsigned int pollInterval = 100;
 
-    emit infoMessage("Scanning remotely...");
+    emit infoMessage("Processing on the remote machine...");
     while (!process.waitForFinished(pollInterval))
     {
         // read everything new
@@ -109,7 +123,7 @@ void OscapScannerRemoteSsh::evaluate()
 
         if (mCancelRequested)
         {
-            emit infoMessage("Cancelation was requested! Terminating scanning...");
+            emit infoMessage("Cancelation was requested! Terminating...");
             // TODO: On Windows we have to kill immediately, terminate() posts WM_CLOSE
             //       but oscap doesn't have any event loop running.
             process.terminate();
@@ -213,7 +227,7 @@ void OscapScannerRemoteSsh::evaluate()
             "Diagnostic info: %1").arg(diagnosticInfo));
     }
 
-    emit infoMessage("Scanning has been finished!");
+    emit infoMessage("Processing has been finished!");
     signalCompletion(mCancelRequested);
 }
 
@@ -281,10 +295,24 @@ QString OscapScannerRemoteSsh::copyInputDataOver()
 {
     QString ret = createRemoteTemporaryFile();
 
+    QTemporaryFile inputARFFile;
+    inputARFFile.setAutoRemove(true);
+
     QStringList args;
     QString diagnosticInfo;
     args.append("-o"); args.append(QString("ControlPath=%1").arg(mMasterSocket));
-    args.append(xccdf_session_get_filename(mSession));
+    if (mScannerMode == SM_OFFLINE_REMEDIATION)
+    {
+        inputARFFile.open();
+        inputARFFile.write(getARFForRemediation());
+        inputARFFile.close();
+
+        args.append(inputARFFile.fileName());
+    }
+    else
+    {
+        args.append(xccdf_session_get_filename(mSession));
+    }
     args.append(QString("%1:/%2").arg(mTarget).arg(ret));
 
     if (runProcessSync("scp", args, 100, 3000, diagnosticInfo) != 0)
