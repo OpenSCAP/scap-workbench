@@ -43,6 +43,8 @@ class OscapScannerBase : public Scanner
         virtual void getARF(QByteArray& destination);
 
     protected:
+        virtual void signalCompletion(bool canceled);
+
         int runProcessSync(const QString& cmd, const QStringList& args,
                            unsigned int pollInterval,
                            unsigned int termLimit,

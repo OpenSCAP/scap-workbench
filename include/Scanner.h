@@ -70,7 +70,8 @@ class Scanner : public QObject
 
         virtual ~Scanner();
 
-        virtual void setThread(QThread* thread);
+        virtual void setScanThread(QThread* thread);
+        virtual void setMainThread(QThread* thread);
         virtual void setSession(struct xccdf_session* session);
         virtual void setTarget(const QString& target);
         const QString& getTarget() const;
@@ -174,7 +175,10 @@ class Scanner : public QObject
         ScannerMode mScannerMode;
 
         /// Thread that is running the evaluation
-        QThread* mThread;
+        QThread* mScanThread;
+        /// Thread that is running the main window event queue
+        QThread* mMainThread;
+
         /// Session containing setup parameters for the scan
         struct xccdf_session* mSession;
         /// Target machine we should be scanning
@@ -186,7 +190,7 @@ class Scanner : public QObject
         /**
          * A helper method that will signal completion and finish off the thread.
          */
-        void signalCompletion(bool canceled);
+        virtual void signalCompletion(bool canceled);
 };
 
 #endif

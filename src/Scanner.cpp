@@ -24,7 +24,8 @@
 
 Scanner::Scanner():
     mScannerMode(SM_SCAN),
-    mThread(0),
+    mScanThread(0),
+    mMainThread(0),
     mSession(0),
     mTarget("")
 {}
@@ -32,9 +33,14 @@ Scanner::Scanner():
 Scanner::~Scanner()
 {}
 
-void Scanner::setThread(QThread* thread)
+void Scanner::setScanThread(QThread* thread)
 {
-    mThread = thread;
+    mScanThread = thread;
+}
+
+void Scanner::setMainThread(QThread* thread)
+{
+    mMainThread = thread;
 }
 
 void Scanner::setSession(struct xccdf_session* session)
@@ -82,10 +88,14 @@ void Scanner::signalCompletion(bool cancel)
     else
         emit finished();
 
-    if (mThread)
+    if (mMainThread)
     {
-        moveToThread(0);
-        mThread->quit();
-        mThread = 0;
+        moveToThread(mMainThread);
+    }
+
+    if (mScanThread)
+    {
+        mScanThread->quit();
+        mScanThread = 0;
     }
 }

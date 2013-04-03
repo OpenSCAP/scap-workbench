@@ -105,7 +105,7 @@ void OscapScannerRemoteSsh::evaluate()
         watchStdErr(process);
 
         // pump the event queue, mainly because the user might want to cancel
-        QAbstractEventDispatcher::instance(mThread)->processEvents(QEventLoop::AllEvents);
+        QAbstractEventDispatcher::instance(mScanThread)->processEvents(QEventLoop::AllEvents);
 
         if (mCancelRequested)
         {
@@ -252,7 +252,7 @@ void OscapScannerRemoteSsh::establish()
     while (!mMasterProcess->waitForFinished(100))
     {
         // pump the event queue, mainly because the user might want to cancel
-        QAbstractEventDispatcher::instance(mThread)->processEvents(QEventLoop::AllEvents);
+        QAbstractEventDispatcher::instance(mScanThread)->processEvents(QEventLoop::AllEvents);
 
         if (mCancelRequested)
         {

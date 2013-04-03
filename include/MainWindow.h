@@ -195,8 +195,6 @@ class MainWindow : public QMainWindow
         void cancelScan();
 
     private slots:
-        /// Target changed, we might have to recreate scanner
-        //void targetChanged(const QString& target);
         /// Checklist changed, we might have to reload session
         void checklistComboboxChanged(int index);
         /// Tailoring file changed, we might have to reload session

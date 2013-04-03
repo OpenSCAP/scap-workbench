@@ -68,6 +68,14 @@ void OscapScannerBase::getARF(QByteArray& destination)
     destination.append(mARF);
 }
 
+void OscapScannerBase::signalCompletion(bool canceled)
+{
+    Scanner::signalCompletion(canceled);
+
+    // reset the cancel flag now that we have finished XOR canceled
+    mCancelRequested = false;
+}
+
 int OscapScannerBase::runProcessSync(const QString& cmd, const QStringList& args,
                                      unsigned int pollInterval,
                                      unsigned int termLimit,
@@ -91,7 +99,7 @@ int OscapScannerBase::runProcessSyncStdOut(const QString& cmd, const QStringList
     while (!process.waitForFinished(pollInterval))
     {
         // pump the event queue, mainly because the user might want to cancel
-        QAbstractEventDispatcher::instance(mThread)->processEvents(QEventLoop::AllEvents);
+        QAbstractEventDispatcher::instance(mScanThread)->processEvents(QEventLoop::AllEvents);
 
         if (mCancelRequested)
         {
@@ -110,7 +118,7 @@ int OscapScannerBase::runProcessSyncStdOut(const QString& cmd, const QStringList
 
         while (!process.waitForFinished(pollInterval))
         {
-            QAbstractEventDispatcher::instance(mThread)->processEvents(QEventLoop::AllEvents);
+            QAbstractEventDispatcher::instance(mScanThread)->processEvents(QEventLoop::AllEvents);
             termWaited += pollInterval;
 
             if (termWaited > termLimit)
