@@ -25,6 +25,7 @@
 #include "ForwardDecls.h"
 
 #include <QObject>
+#include <QByteArray>
 
 extern "C"
 {
@@ -95,6 +96,9 @@ class Scanner : public QObject
          * @note This will only work after "evaluate()" finished successfully.
          */
         virtual void getARF(QByteArray& destination) = 0;
+
+        virtual void setResultsForRemediation(const QByteArray& results);
+        const QByteArray& getResultsForRemediation() const;
 
     public slots:
         /**
@@ -170,6 +174,9 @@ class Scanner : public QObject
         struct xccdf_session* mSession;
         /// Target machine we should be scanning
         QString mTarget;
+
+        /// Stores results that will be used in case scanner mode is SM_OFFLINE_REMEDIATION
+        QByteArray mResultsForRemediation;
 
         /**
          * A helper method that will signal completion and finish off the thread.

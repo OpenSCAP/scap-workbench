@@ -40,7 +40,6 @@ OscapScannerLocal::~OscapScannerLocal()
 void OscapScannerLocal::evaluate()
 {
     // TODO: Error handling!
-
     emit infoMessage("Creating temporary files...");
 
     QTemporaryFile resultFile;
@@ -56,19 +55,42 @@ void OscapScannerLocal::evaluate()
     arfFile.setAutoRemove(true);
     arfFile.open(); arfFile.close();
 
-    const QString inputFile = xccdf_session_get_filename(mSession);
-
     emit infoMessage("Starting the oscap process...");
     QProcess process(this);
-    process.start("oscap", buildEvaluationArgs(inputFile,
-                                               resultFile.fileName(),
-                                               reportFile.fileName(),
-                                               arfFile.fileName(),
-                                               mScannerMode == SM_SCAN_ONLINE_REMEDIATION));
+
+    QStringList args;
+
+    QTemporaryFile inputResultsFile;
+    inputResultsFile.setAutoRemove(true);
+
+    if (mScannerMode == SM_OFFLINE_REMEDIATION)
+    {
+        //inputResultsFile.setOpenMode(QIODevice::WriteOnly);
+        inputResultsFile.open();
+        inputResultsFile.write(getResultsForRemediation());
+        inputResultsFile.close();
+
+        args = buildOfflineRemediationArgs(inputResultsFile.fileName(),
+                resultFile.fileName(),
+                reportFile.fileName(),
+                arfFile.fileName());
+    }
+    else
+    {
+        const QString inputFile = xccdf_session_get_filename(mSession);
+
+        args = buildEvaluationArgs(inputFile,
+                resultFile.fileName(),
+                reportFile.fileName(),
+                arfFile.fileName(),
+                mScannerMode == SM_SCAN_ONLINE_REMEDIATION);
+    }
+
+    process.start("oscap", args);
 
     const unsigned int pollInterval = 100;
 
-    emit infoMessage("Scanning...");
+    emit infoMessage("Processing...");
     while (!process.waitForFinished(pollInterval))
     {
         // read everything new
@@ -138,7 +160,7 @@ void OscapScannerLocal::evaluate()
             mARF = arfFile.readAll();
             arfFile.close();
 
-            emit infoMessage("Scanning has been finished!");
+            emit infoMessage("Processing has been finished!");
         }
     }
 

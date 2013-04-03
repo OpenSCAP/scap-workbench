@@ -189,6 +189,31 @@ QStringList OscapScannerBase::buildEvaluationArgs(const QString& inputFile,
     return ret;
 }
 
+QStringList OscapScannerBase::buildOfflineRemediationArgs(const QString& resultInputFile,
+                                                          const QString& resultFile,
+                                                          const QString& reportFile,
+                                                          const QString& arfFile) const
+{
+    QStringList ret;
+    ret.append("xccdf");
+    ret.append("remediate");
+
+    ret.append("--results");
+    ret.append(resultFile);
+
+    ret.append("--results-arf");
+    ret.append(arfFile);
+
+    ret.append("--report");
+    ret.append(reportFile);
+
+    ret.append("--progress");
+
+    ret.append(resultInputFile);
+
+    return ret;
+}
+
 bool OscapScannerBase::tryToReadLine(QProcess& process)
 {
     process.setReadChannel(QProcess::StandardOutput);

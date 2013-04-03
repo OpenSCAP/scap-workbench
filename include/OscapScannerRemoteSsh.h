@@ -33,12 +33,16 @@ class OscapScannerRemoteSsh : public OscapScannerBase
         OscapScannerRemoteSsh(QThread* thread);
         virtual ~OscapScannerRemoteSsh();
 
+        virtual void setTarget(const QString& target);
+
         virtual void evaluate();
 
     private:
         void establish();
         QString copyInputDataOver();
         QString createRemoteTemporaryFile(bool cancelOnFailure = true);
+
+        void cleanupMasterSocket();
 
         QString mMasterSocket;
         QProcess* mMasterProcess;

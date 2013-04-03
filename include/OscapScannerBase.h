@@ -60,6 +60,10 @@ class OscapScannerBase : public Scanner
                                         const QString& reportFile,
                                         const QString& arfFile,
                                         bool onlineRemediation) const;
+        QStringList buildOfflineRemediationArgs(const QString& resultInputFile,
+                                                const QString& resultFile,
+                                                const QString& reportFile,
+                                                const QString& arfFile) const;
 
         bool tryToReadLine(QProcess& process);
         void watchStdErr(QProcess& process);

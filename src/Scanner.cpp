@@ -55,6 +55,16 @@ ScannerMode Scanner::getScannerMode() const
     return mScannerMode;
 }
 
+void Scanner::setResultsForRemediation(const QByteArray& results)
+{
+    mResultsForRemediation = results;
+}
+
+const QByteArray& Scanner::getResultsForRemediation() const
+{
+    return mResultsForRemediation;
+}
+
 void Scanner::signalCompletion(bool cancel)
 {
     if (cancel)

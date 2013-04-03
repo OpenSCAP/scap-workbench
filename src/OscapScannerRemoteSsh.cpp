@@ -41,34 +41,14 @@ OscapScannerRemoteSsh::OscapScannerRemoteSsh(QThread* thread):
 
 OscapScannerRemoteSsh::~OscapScannerRemoteSsh()
 {
-    // This is just cleanup, don't show any dialogs if we fail at this stage.
-    if (mMasterSocket != QString::Null())
-    {
-        QProcess socketClosing;
+    cleanupMasterSocket();
+}
 
-        QStringList args;
-        args.append("-S"); args.append(mMasterSocket);
+void OscapScannerRemoteSsh::setTarget(const QString& target)
+{
+    OscapScannerBase::setTarget(target);
 
-        args.append("-O"); args.append("exit");
-        args.append(mTarget);
-
-        socketClosing.start("ssh", args);
-        if (!socketClosing.waitForFinished(1000))
-        {
-            socketClosing.kill();
-        }
-
-        // delete the parent temporary directory we created
-        QFileInfo socketFile(mMasterSocket);
-        QDir socketDir = socketFile.dir();
-
-        if (!socketDir.rmdir(socketDir.absolutePath()))
-        {
-            emit warningMessage(
-                QString("Failed to remove temporary directory hosting the ssh "
-                        "connection socket."));
-        }
-    }
+    cleanupMasterSocket();
 }
 
 void OscapScannerRemoteSsh::evaluate()
@@ -239,7 +219,10 @@ void OscapScannerRemoteSsh::evaluate()
 
 void OscapScannerRemoteSsh::establish()
 {
-    mMasterSocket = "";
+    if (mMasterSocket != "")
+        // connection already established!
+        return;
+
     QString diagnosticInfo = "";
     if (runProcessSyncStdOut("mktemp", QStringList("-d"), 100, 3000, mMasterSocket, diagnosticInfo) != 0)
     {
@@ -338,4 +321,36 @@ QString OscapScannerRemoteSsh::createRemoteTemporaryFile(bool cancelOnFailure)
     }
 
     return ret.trimmed();
+}
+
+void OscapScannerRemoteSsh::cleanupMasterSocket()
+{
+    // This is just cleanup, don't show any dialogs if we fail at this stage.
+    if (mMasterSocket != QString::Null())
+    {
+        QProcess socketClosing;
+
+        QStringList args;
+        args.append("-S"); args.append(mMasterSocket);
+
+        args.append("-O"); args.append("exit");
+        args.append(mTarget);
+
+        socketClosing.start("ssh", args);
+        if (!socketClosing.waitForFinished(1000))
+        {
+            socketClosing.kill();
+        }
+
+        // delete the parent temporary directory we created
+        QFileInfo socketFile(mMasterSocket);
+        QDir socketDir = socketFile.dir();
+
+        if (!socketDir.rmdir(socketDir.absolutePath()))
+        {
+            emit warningMessage(
+                QString("Failed to remove temporary directory hosting the ssh "
+                        "connection socket."));
+        }
+    }
 }
