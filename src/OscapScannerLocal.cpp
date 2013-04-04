@@ -39,6 +39,23 @@ OscapScannerLocal::~OscapScannerLocal()
 
 void OscapScannerLocal::evaluate()
 {
+    emit infoMessage("Querying capabilities...");
+
+    QString mmv;
+    QString diagnosticInfo;
+    if (runProcessSyncStdOut("oscap", QStringList("--v"), 100, 3000, mmv, diagnosticInfo) != 0)
+    {
+        emit errorMessage(
+            QString("Failed to query capabilities of oscap on local machine.\n"
+                    "Diagnostic info:\n%1").arg(diagnosticInfo)
+        );
+
+        mCancelRequested = true;
+        signalCompletion(mCancelRequested);
+        return;
+    }
+    mCapabilities.parse(mmv);
+
     // TODO: Error handling!
     emit infoMessage("Creating temporary files...");
 

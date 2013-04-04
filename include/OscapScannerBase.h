@@ -25,6 +25,8 @@
 #include "ForwardDecls.h"
 
 #include "Scanner.h"
+#include "OscapCapabilities.h"
+
 #include <QStringList>
 #include <QProcess>
 
@@ -71,6 +73,8 @@ class OscapScannerBase : public Scanner
         void watchStdErr(QProcess& process);
 
         bool mCancelRequested;
+
+        OscapCapabilities mCapabilities;
 
         QByteArray mResults;
         QByteArray mReport;
