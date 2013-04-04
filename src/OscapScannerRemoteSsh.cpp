@@ -26,7 +26,6 @@
 #include <QTemporaryFile>
 #include <QFileInfo>
 #include <QDir>
-#include <iostream>
 #include <cassert>
 
 extern "C"
@@ -60,6 +59,30 @@ void OscapScannerRemoteSsh::evaluate()
         signalCompletion(true);
         return;
     }
+
+    QStringList baseArgs;
+    baseArgs.append("-o"); baseArgs.append(QString("ControlPath=%1").arg(mMasterSocket));
+    baseArgs.append(mTarget);
+
+    QString diagnosticInfo;
+
+    emit infoMessage("Querying capabilities of oscap on the remote target...");
+
+    QString mmv;
+    if (runProcessSyncStdOut(
+            "ssh", baseArgs + QStringList(QString("oscap --v")),
+            100, 3000, mmv, diagnosticInfo) != 0)
+    {
+        emit errorMessage(
+            QString("Failed to query capabilities of oscap on remote machine.\n"
+                    "Diagnostic info:\n%1").arg(diagnosticInfo)
+        );
+
+        mCancelRequested = true;
+        signalCompletion(mCancelRequested);
+        return;
+    }
+    mCapabilities.parse(mmv);
 
     emit infoMessage("Copying input data to remote target...");
     const QString inputFile = copyInputDataOver();
@@ -98,12 +121,6 @@ void OscapScannerRemoteSsh::evaluate()
     }
 
     const QString sshCmd = args.join(" ");
-
-    QStringList baseArgs;
-    baseArgs.append("-o"); baseArgs.append(QString("ControlPath=%1").arg(mMasterSocket));
-    baseArgs.append(mTarget);
-
-    QString diagnosticInfo;
 
     emit infoMessage("Starting the remote process...");
     QProcess process(this);
