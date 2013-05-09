@@ -41,7 +41,7 @@ class SyncProcess : QObject
         void setCommand(const QString& command);
         void setArguments(const QStringList& args);
 
-        void setCancelSignalSource(bool* source);
+        void setCancelRequestSource(bool* source);
 
         void run();
         void cancel();

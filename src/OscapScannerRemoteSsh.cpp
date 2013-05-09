@@ -20,6 +20,7 @@
  */
 
 #include "OscapScannerRemoteSsh.h"
+#include "Exceptions.h"
 
 #include <QThread>
 #include <QAbstractEventDispatcher>
@@ -35,25 +36,30 @@ extern "C"
 }
 
 OscapScannerRemoteSsh::OscapScannerRemoteSsh():
-    OscapScannerBase()
-{}
+    OscapScannerBase(),
+    mSshConnection(this)
+{
+    mSshConnection.setCancelRequestSource(&mCancelRequested);
+}
 
 OscapScannerRemoteSsh::~OscapScannerRemoteSsh()
-{
-    cleanupMasterSocket();
-}
+{}
 
 void OscapScannerRemoteSsh::setTarget(const QString& target)
 {
     OscapScannerBase::setTarget(target);
 
-    cleanupMasterSocket();
+    if (mSshConnection.isConnected())
+        mSshConnection.disconnect();
+
+    mSshConnection.setTarget(target);
 }
 
 void OscapScannerRemoteSsh::evaluate()
 {
     emit infoMessage("Establishing connecting to remote target...");
-    establish();
+    ensureConnected();
+
     if (mCancelRequested)
     {
         signalCompletion(true);
@@ -61,7 +67,7 @@ void OscapScannerRemoteSsh::evaluate()
     }
 
     QStringList baseArgs;
-    baseArgs.append("-o"); baseArgs.append(QString("ControlPath=%1").arg(mMasterSocket));
+    baseArgs.append("-o"); baseArgs.append(QString("ControlPath=%1").arg(mSshConnection._getMasterSocket()));
     baseArgs.append(mTarget);
 
     QString diagnosticInfo;
@@ -248,68 +254,26 @@ void OscapScannerRemoteSsh::evaluate()
     signalCompletion(mCancelRequested);
 }
 
-void OscapScannerRemoteSsh::establish()
+void OscapScannerRemoteSsh::ensureConnected()
 {
-    if (mMasterSocket != "")
-        // connection already established!
-        return;
-
-    QString diagnosticInfo = "";
-    if (runProcessSyncStdOut("mktemp", QStringList("-d"), 100, 3000, mMasterSocket, diagnosticInfo) != 0)
+    if (!mSshConnection.isConnected())
     {
-        emit errorMessage(
-            QString("Failed to create a temporary directory on local machine! Diagnostic info: %1").arg(diagnosticInfo));
-
-        mCancelRequested = true;
-        return;
-    }
-
-    mMasterSocket = mMasterSocket.trimmed() + "/ssh_socket";
-
-    QStringList args;
-    args.append("-M");
-    args.append("-f");
-    args.append("-N");
-
-    args.append("-o"); args.append(QString("ControlPath=%1").arg(mMasterSocket));
-
-    // TODO: sanitize input?
-    args.append(mTarget);
-
-    mMasterProcess = new QProcess(this);
-    mMasterProcess->start("ssh", args);
-    //mMasterProcess->closeWriteChannel();
-
-    while (!mMasterProcess->waitForFinished(100))
-    {
-        // pump the event queue, mainly because the user might want to cancel
-        QAbstractEventDispatcher::instance(mScanThread)->processEvents(QEventLoop::AllEvents);
-
-        if (mCancelRequested)
+        try
         {
-            mMasterProcess->close();
-            break;
+            mSshConnection.connect();
         }
-    }
-
-    if (mMasterProcess->exitCode() != 0)
-    {
-        // TODO: Fix unicode woes
-        const QString stdout = mMasterProcess->readAllStandardOutput();
-        const QString stderr = mMasterProcess->readAllStandardError();
-
-        emit errorMessage(
-            QString("Failed to establish connection and create the master ssh socket.\n"
-                    "stdout:\n%1\n\n"
-                    "stderr:\n%2").arg(stdout).arg(stderr)
-        );
-
-        mCancelRequested = true;
+        catch(const SshConnectionException& e)
+        {
+            emit errorMessage("Can't connect to remote machine! Exception was: " + QString(e.what()));
+            mCancelRequested = true;
+        }
     }
 }
 
 QString OscapScannerRemoteSsh::copyInputDataOver()
 {
+    ensureConnected();
+
     QString ret = createRemoteTemporaryFile();
 
     QTemporaryFile inputARFFile;
@@ -317,7 +281,7 @@ QString OscapScannerRemoteSsh::copyInputDataOver()
 
     QStringList args;
     QString diagnosticInfo;
-    args.append("-o"); args.append(QString("ControlPath=%1").arg(mMasterSocket));
+    args.append("-o"); args.append(QString("ControlPath=%1").arg(mSshConnection._getMasterSocket()));
     if (mScannerMode == SM_OFFLINE_REMEDIATION)
     {
         inputARFFile.open();
@@ -347,10 +311,12 @@ QString OscapScannerRemoteSsh::copyInputDataOver()
 
 QString OscapScannerRemoteSsh::createRemoteTemporaryFile(bool cancelOnFailure)
 {
+    ensureConnected();
+
     QStringList args;
     QString diagnosticInfo;
 
-    args.append("-o"); args.append(QString("ControlPath=%1").arg(mMasterSocket));
+    args.append("-o"); args.append(QString("ControlPath=%1").arg(mSshConnection._getMasterSocket()));
     args.append(mTarget);
     args.append(QString("mktemp"));
 
@@ -366,36 +332,4 @@ QString OscapScannerRemoteSsh::createRemoteTemporaryFile(bool cancelOnFailure)
     }
 
     return ret.trimmed();
-}
-
-void OscapScannerRemoteSsh::cleanupMasterSocket()
-{
-    // This is just cleanup, don't show any dialogs if we fail at this stage.
-    if (mMasterSocket != QString::Null())
-    {
-        QProcess socketClosing;
-
-        QStringList args;
-        args.append("-S"); args.append(mMasterSocket);
-
-        args.append("-O"); args.append("exit");
-        args.append(mTarget);
-
-        socketClosing.start("ssh", args);
-        if (!socketClosing.waitForFinished(1000))
-        {
-            socketClosing.kill();
-        }
-
-        // delete the parent temporary directory we created
-        QFileInfo socketFile(mMasterSocket);
-        QDir socketDir = socketFile.dir();
-
-        if (!socketDir.rmdir(socketDir.absolutePath()))
-        {
-            emit warningMessage(
-                QString("Failed to remove temporary directory hosting the ssh "
-                        "connection socket."));
-        }
-    }
 }

@@ -58,7 +58,7 @@ void SyncProcess::setArguments(const QStringList& args)
     mArguments = args;
 }
 
-void SyncProcess::setCancelSignalSource(bool* source)
+void SyncProcess::setCancelRequestSource(bool* source)
 {
     mCancelRequestSource = source;
 }

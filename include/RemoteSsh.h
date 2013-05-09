@@ -19,33 +19,37 @@
  *      Martin Preisler <mpreisle@redhat.com>
  */
 
-#ifndef SCAP_WORKBENCH_OSCAP_SCANNER_REMOTE_SSH_H_
-#define SCAP_WORKBENCH_OSCAP_SCANNER_REMOTE_SSH_H_
+#ifndef SCAP_WORKBENCH_REMOTE_SSH_H_
+#define SCAP_WORKBENCH_REMOTE_SSH_H_
 
 #include "ForwardDecls.h"
-#include "OscapScannerBase.h"
-#include "RemoteSsh.h"
+#include <QObject>
 
-class OscapScannerRemoteSsh : public OscapScannerBase
+class SshConnection : public QObject
 {
     Q_OBJECT
 
     public:
-        OscapScannerRemoteSsh();
-        virtual ~OscapScannerRemoteSsh();
+        SshConnection(QObject* parent);
+        ~SshConnection();
 
-        virtual void setTarget(const QString& target);
+        void setTarget(const QString& target);
+        const QString& getTarget() const;
 
-        virtual void evaluate();
+        void setCancelRequestSource(bool* source);
+
+        void connect();
+        void disconnect();
+        bool isConnected() const;
+
+        const QString& _getMasterSocket() const;
 
     private:
-        void ensureConnected();
+        QString mTarget;
+        QString mMasterSocket;
+        bool mConnected;
 
-        QString copyInputDataOver();
-        QString createRemoteTemporaryFile(bool cancelOnFailure = true);
-
-        SshConnection mSshConnection;
-        QProcess* mMasterProcess;
+        bool* mCancelRequestSource;
 };
 
 #endif
