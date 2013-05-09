@@ -20,6 +20,7 @@
  */
 
 #include "OscapScannerLocal.h"
+#include "ProcessHelpers.h"
 
 #include <QThread>
 #include <QAbstractEventDispatcher>
@@ -41,20 +42,26 @@ void OscapScannerLocal::evaluate()
 {
     emit infoMessage("Querying capabilities...");
 
-    QString mmv;
-    QString diagnosticInfo;
-    if (runProcessSyncStdOut("oscap", QStringList("--v"), 100, 3000, mmv, diagnosticInfo) != 0)
     {
-        emit errorMessage(
-            QString("Failed to query capabilities of oscap on local machine.\n"
-                    "Diagnostic info:\n%1").arg(diagnosticInfo)
-        );
+        SyncProcess proc(this);
+        proc.setCommand("oscap");
+        proc.setArguments(QStringList("--v"));
+        proc.run();
 
-        mCancelRequested = true;
-        signalCompletion(mCancelRequested);
-        return;
+        if (proc.getExitCode() != 0)
+        {
+            emit errorMessage(
+                QString("Failed to query capabilities of oscap on local machine.\n"
+                        "Diagnostic info:\n%1").arg(proc.getDiagnosticInfo())
+            );
+
+            mCancelRequested = true;
+            signalCompletion(mCancelRequested);
+            return;
+        }
+
+        mCapabilities.parse(proc.getStdOutContents());
     }
-    mCapabilities.parse(mmv);
 
     // TODO: Error handling!
     emit infoMessage("Creating temporary files...");
