@@ -71,6 +71,7 @@ void OscapScannerRemoteSsh::evaluate()
         SshSyncProcess proc(mSshConnection, this);
         proc.setCommand("oscap");
         proc.setArguments(QStringList("--v"));
+        proc.setCancelRequestSource(&mCancelRequested);
         proc.run();
 
         if (proc.getExitCode() != 0)
@@ -179,43 +180,66 @@ void OscapScannerRemoteSsh::evaluate()
         while (tryToReadLine(process));
         watchStdErr(process);
 
-        QString tempString;
-
-        diagnosticInfo = "";
-        tempString = "";
-        if (runProcessSyncStdOut(
-            "ssh", baseArgs + QStringList(QString("cat '%1'").arg(resultFile)),
-            100, 3000, tempString, diagnosticInfo) != 0)
         {
-            emit warningMessage(QString(
-                "Failed to copy back XCCDF results. "
-                "You will not be able to save them! Diagnostic info: %1").arg(diagnosticInfo));
-        }
-        mResults = tempString.toUtf8();
+            SshSyncProcess proc(mSshConnection, this);
+            proc.setCommand("cat");
+            proc.setArguments(QStringList(resultFile));
+            proc.setCancelRequestSource(&mCancelRequested);
+            proc.run();
 
-        diagnosticInfo = "";
-        tempString = "";
-        if (runProcessSyncStdOut(
-            "ssh", baseArgs + QStringList(QString("cat '%1'").arg(reportFile)),
-            100, 3000, tempString, diagnosticInfo) != 0)
-        {
-            emit warningMessage(QString(
-                "Failed to copy back XCCDF report (HTML). "
-                "You will not be able to save or view the report! Diagnostic info: %1").arg(diagnosticInfo));
-        }
-        mReport = tempString.toUtf8();
+            if (proc.getExitCode() != 0)
+            {
+                emit warningMessage(QString(
+                    "Failed to copy back XCCDF results. "
+                    "You will not be able to save them! Diagnostic info: %1").arg(proc.getDiagnosticInfo()));
 
-        diagnosticInfo = "";
-        tempString = "";
-        if (runProcessSyncStdOut(
-            "ssh", baseArgs + QStringList(QString("cat '%1'").arg(arfFile)),
-            100, 3000, tempString, diagnosticInfo) != 0)
-        {
-            emit warningMessage(QString(
-                "Failed to copy back Result DataStream (ARF). "
-                "You will not be able to save the Result DataStream! Diagnostic info: %1").arg(diagnosticInfo));
+                mCancelRequested = true;
+                signalCompletion(mCancelRequested);
+                return;
+            }
+
+            mResults = proc.getStdOutContents().toUtf8();
         }
-        mARF = tempString.toUtf8();
+        {
+            SshSyncProcess proc(mSshConnection, this);
+            proc.setCommand("cat");
+            proc.setArguments(QStringList(reportFile));
+            proc.setCancelRequestSource(&mCancelRequested);
+            proc.run();
+
+            if (proc.getExitCode() != 0)
+            {
+                emit warningMessage(QString(
+                    "Failed to copy back XCCDF report (HTML). "
+                    "You will not be able to save them! Diagnostic info: %1").arg(proc.getDiagnosticInfo()));
+
+                mCancelRequested = true;
+                signalCompletion(mCancelRequested);
+                return;
+            }
+
+            mReport = proc.getStdOutContents().toUtf8();
+        }
+        {
+            SshSyncProcess proc(mSshConnection, this);
+            proc.setCommand("cat");
+            proc.setArguments(QStringList(arfFile));
+            proc.setCancelRequestSource(&mCancelRequested);
+            proc.run();
+
+            if (proc.getExitCode() != 0)
+            {
+                emit warningMessage(QString(
+                    "Failed to copy back Result DataStream (ARF). "
+                    "You will not be able to save them! Diagnostic info: %1").arg(proc.getDiagnosticInfo()));
+
+                mCancelRequested = true;
+                signalCompletion(mCancelRequested);
+                return;
+            }
+
+            mARF = proc.getStdOutContents().toUtf8();
+        }
     }
 
     emit infoMessage("Cleaning up...");
