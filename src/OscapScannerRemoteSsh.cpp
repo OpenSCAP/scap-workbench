@@ -188,38 +188,10 @@ void OscapScannerRemoteSsh::evaluate()
     emit infoMessage("Cleaning up...");
 
     // Remove all the temporary remote files
-    if (runProcessSync(
-        "ssh", baseArgs + QStringList(QString("rm '%1'").arg(inputFile)),
-        100, 3000, diagnosticInfo) != 0)
-    {
-        emit warningMessage(QString(
-            "Failed to remove remote temporary file with input file content. "
-            "Diagnostic info: %1").arg(diagnosticInfo));
-    }
-    if (runProcessSync(
-        "ssh", baseArgs + QStringList(QString("rm '%1'").arg(resultFile)),
-        100, 3000, diagnosticInfo) != 0)
-    {
-        emit warningMessage(QString(
-            "Failed to remove remote temporary files with XCCDF result content. "
-            "Diagnostic info: %1").arg(diagnosticInfo));
-    }
-    if (runProcessSync(
-        "ssh", baseArgs + QStringList(QString("rm '%1'").arg(reportFile)),
-        100, 3000, diagnosticInfo) != 0)
-    {
-        emit warningMessage(QString(
-            "Failed to remove remote temporary files with HTML report content. "
-            "Diagnostic info: %1").arg(diagnosticInfo));
-    }
-    if (runProcessSync(
-        "ssh", baseArgs + QStringList(QString("rm '%1'").arg(arfFile)),
-        100, 3000, diagnosticInfo) != 0)
-    {
-        emit warningMessage(QString(
-            "Failed to remove remote temporary files with Result DataStream (ARF) content. "
-            "Diagnostic info: %1").arg(diagnosticInfo));
-    }
+    removeRemoteFile(inputFile, "input file");
+    removeRemoteFile(resultFile, "XCCDF result file");
+    removeRemoteFile(reportFile, "XCCDF report file");
+    removeRemoteFile(arfFile, "Result DataStream file");
 
     emit infoMessage("Processing has been finished!");
     signalCompletion(mCancelRequested);
@@ -333,4 +305,23 @@ QString OscapScannerRemoteSsh::readRemoteFile(const QString& path, const QString
     }
 
     return proc.getStdOutContents();
+}
+
+void OscapScannerRemoteSsh::removeRemoteFile(const QString& path, const QString& desc)
+{
+    SshSyncProcess proc(mSshConnection, this);
+    proc.setCommand("rm");
+    proc.setArguments(QStringList(path));
+    proc.setCancelRequestSource(&mCancelRequested);
+    proc.run();
+
+    if (proc.getExitCode() != 0)
+    {
+        emit warningMessage(QString(
+            "Failed to remote remote file %1. "
+            "Diagnostic info: %2").arg(desc).arg(proc.getDiagnosticInfo()));
+
+        mCancelRequested = true;
+        signalCompletion(mCancelRequested);
+    }
 }

@@ -45,6 +45,7 @@ class OscapScannerRemoteSsh : public OscapScannerBase
         QString createRemoteTemporaryFile(bool cancelOnFailure = true);
 
         QString readRemoteFile(const QString& path, const QString& desc);
+        void removeRemoteFile(const QString& path, const QString& desc);
 
         SshConnection mSshConnection;
         QProcess* mMasterProcess;
