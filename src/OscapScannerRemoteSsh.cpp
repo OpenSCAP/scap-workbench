@@ -180,66 +180,9 @@ void OscapScannerRemoteSsh::evaluate()
         while (tryToReadLine(process));
         watchStdErr(process);
 
-        {
-            SshSyncProcess proc(mSshConnection, this);
-            proc.setCommand("cat");
-            proc.setArguments(QStringList(resultFile));
-            proc.setCancelRequestSource(&mCancelRequested);
-            proc.run();
-
-            if (proc.getExitCode() != 0)
-            {
-                emit warningMessage(QString(
-                    "Failed to copy back XCCDF results. "
-                    "You will not be able to save them! Diagnostic info: %1").arg(proc.getDiagnosticInfo()));
-
-                mCancelRequested = true;
-                signalCompletion(mCancelRequested);
-                return;
-            }
-
-            mResults = proc.getStdOutContents().toUtf8();
-        }
-        {
-            SshSyncProcess proc(mSshConnection, this);
-            proc.setCommand("cat");
-            proc.setArguments(QStringList(reportFile));
-            proc.setCancelRequestSource(&mCancelRequested);
-            proc.run();
-
-            if (proc.getExitCode() != 0)
-            {
-                emit warningMessage(QString(
-                    "Failed to copy back XCCDF report (HTML). "
-                    "You will not be able to save them! Diagnostic info: %1").arg(proc.getDiagnosticInfo()));
-
-                mCancelRequested = true;
-                signalCompletion(mCancelRequested);
-                return;
-            }
-
-            mReport = proc.getStdOutContents().toUtf8();
-        }
-        {
-            SshSyncProcess proc(mSshConnection, this);
-            proc.setCommand("cat");
-            proc.setArguments(QStringList(arfFile));
-            proc.setCancelRequestSource(&mCancelRequested);
-            proc.run();
-
-            if (proc.getExitCode() != 0)
-            {
-                emit warningMessage(QString(
-                    "Failed to copy back Result DataStream (ARF). "
-                    "You will not be able to save them! Diagnostic info: %1").arg(proc.getDiagnosticInfo()));
-
-                mCancelRequested = true;
-                signalCompletion(mCancelRequested);
-                return;
-            }
-
-            mARF = proc.getStdOutContents().toUtf8();
-        }
+        mResults = readRemoteFile(resultFile, "XCCDF results").toUtf8();
+        mReport = readRemoteFile(reportFile, "XCCDF report (HTML)").toUtf8();
+        mARF = readRemoteFile(arfFile, "Result DataStream (ARF)").toUtf8();
     }
 
     emit infoMessage("Cleaning up...");
@@ -368,4 +311,26 @@ QString OscapScannerRemoteSsh::createRemoteTemporaryFile(bool cancelOnFailure)
     }
 
     return ret.trimmed();
+}
+
+QString OscapScannerRemoteSsh::readRemoteFile(const QString& path, const QString& desc)
+{
+    SshSyncProcess proc(mSshConnection, this);
+    proc.setCommand("cat");
+    proc.setArguments(QStringList(path));
+    proc.setCancelRequestSource(&mCancelRequested);
+    proc.run();
+
+    if (proc.getExitCode() != 0)
+    {
+        emit warningMessage(QString(
+            "Failed to copy back %1. "
+            "You will not be able to save this data! Diagnostic info: %2").arg(desc).arg(proc.getDiagnosticInfo()));
+
+        mCancelRequested = true;
+        signalCompletion(mCancelRequested);
+        return "";
+    }
+
+    return proc.getStdOutContents();
 }
