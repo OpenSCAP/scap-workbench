@@ -57,7 +57,6 @@ void OscapScannerRemoteSsh::setTarget(const QString& target)
 
 void OscapScannerRemoteSsh::evaluate()
 {
-    emit infoMessage("Establishing connecting to remote target...");
     ensureConnected();
 
     if (mCancelRequested)
@@ -256,17 +255,19 @@ void OscapScannerRemoteSsh::evaluate()
 
 void OscapScannerRemoteSsh::ensureConnected()
 {
-    if (!mSshConnection.isConnected())
+    if (mSshConnection.isConnected())
+        return;
+
+    try
     {
-        try
-        {
-            mSshConnection.connect();
-        }
-        catch(const SshConnectionException& e)
-        {
-            emit errorMessage("Can't connect to remote machine! Exception was: " + QString(e.what()));
-            mCancelRequested = true;
-        }
+        emit infoMessage("Establishing connecting to remote target...");
+        mSshConnection.connect();
+        emit infoMessage("Connection established.");
+    }
+    catch(const SshConnectionException& e)
+    {
+        emit errorMessage("Can't connect to remote machine! Exception was: " + QString(e.what()));
+        mCancelRequested = true;
     }
 }
 
@@ -274,36 +275,42 @@ QString OscapScannerRemoteSsh::copyInputDataOver()
 {
     ensureConnected();
 
+    QString localPath = "";
     QString ret = createRemoteTemporaryFile();
 
     QTemporaryFile inputARFFile;
     inputARFFile.setAutoRemove(true);
-
-    QStringList args;
-    QString diagnosticInfo;
-    args.append("-o"); args.append(QString("ControlPath=%1").arg(mSshConnection._getMasterSocket()));
     if (mScannerMode == SM_OFFLINE_REMEDIATION)
     {
         inputARFFile.open();
         inputARFFile.write(getARFForRemediation());
         inputARFFile.close();
 
-        args.append(inputARFFile.fileName());
+        localPath = inputARFFile.fileName();
     }
     else
     {
-        args.append(xccdf_session_get_filename(mSession));
+        localPath = xccdf_session_get_filename(mSession);
     }
-    args.append(QString("%1:/%2").arg(mTarget).arg(ret));
 
-    if (runProcessSync("scp", args, 100, 3000, diagnosticInfo) != 0)
     {
-        emit errorMessage(
-            QString("Failed to copy input data over to the remote machine! "
-                    "Diagnostic info:\n%1").arg(diagnosticInfo)
-        );
+        ScpSyncProcess proc(mSshConnection, this);
+        proc.setDirection(SD_LOCAL_TO_REMOTE);
+        proc.setLocalPath(localPath);
+        proc.setRemotePath(ret);
+        proc.setCancelRequestSource(&mCancelRequested);
 
-        mCancelRequested = true;
+        proc.run();
+
+        if (proc.getExitCode() != 0)
+        {
+            emit errorMessage(
+                QString("Failed to copy input data over to the remote machine! "
+                        "Diagnostic info:\n%1").arg(proc.getDiagnosticInfo())
+            );
+
+            mCancelRequested = true;
+        }
     }
 
     return ret;

@@ -29,5 +29,8 @@ class OscapScannerLocal;
 class OscapScannerRemoteSsh;
 class ResultViewer;
 class Scanner;
+class SshConnection;
+class SshSyncProcess;
+class SyncProcess;
 
 #endif

@@ -165,3 +165,131 @@ const QString& SshConnection::_getMasterSocket() const
 {
     return mMasterSocket;
 }
+
+SshSyncProcess::SshSyncProcess(SshConnection& connection, QObject* parent):
+    SyncProcess(parent),
+
+    mSshConnection(connection)
+{}
+
+SshSyncProcess::~SshSyncProcess()
+{}
+
+QString SshSyncProcess::generateFullCommand() const
+{
+    return "ssh";
+}
+
+QStringList SshSyncProcess::generateFullArguments() const
+{
+    if (!mSshConnection.isConnected())
+        mSshConnection.connect();
+
+    QStringList args;
+
+    args.append("-o"); args.append(QString("ControlPath=%1").arg(mSshConnection._getMasterSocket()));
+    args.append(mSshConnection.getTarget());
+    args.append(SyncProcess::generateFullCommand());
+}
+
+QString SshSyncProcess::generateDescription() const
+{
+    return QString("Remote command '%1' on machine '%2'").arg(SyncProcess::generateDescription()).arg(mSshConnection.getTarget());
+}
+
+ScpSyncProcess::ScpSyncProcess(SshConnection& connection, QObject* parent):
+    SyncProcess(parent),
+
+    mScpDirection(SD_LOCAL_TO_REMOTE),
+    mSshConnection(connection)
+{}
+
+ScpSyncProcess::~ScpSyncProcess()
+{}
+
+void ScpSyncProcess::setDirection(ScpDirection direction)
+{
+    if (isRunning())
+        throw SyncProcessException("Already running, can't change scp direction!");
+
+    mScpDirection = direction;
+}
+
+ScpDirection ScpSyncProcess::getDirection() const
+{
+    return mScpDirection;
+}
+
+void ScpSyncProcess::setLocalPath(const QString& path)
+{
+    if (isRunning())
+        throw SyncProcessException("Already running, can't change local path!");
+
+    mLocalPath = path;
+}
+
+const QString& ScpSyncProcess::getLocalPath() const
+{
+    return mLocalPath;
+}
+
+void ScpSyncProcess::setRemotePath(const QString& path)
+{
+    if (isRunning())
+        throw SyncProcessException("Already running, can't change remote path!");
+
+    mRemotePath = path;
+}
+
+const QString& ScpSyncProcess::getRemotePath() const
+{
+    return mRemotePath;
+}
+
+QString ScpSyncProcess::generateFullCommand() const
+{
+    return "scp";
+}
+
+QStringList ScpSyncProcess::generateFullArguments() const
+{
+    if (!mSshConnection.isConnected())
+        mSshConnection.connect();
+
+    QStringList args;
+
+    args.append("-o"); args.append(QString("ControlPath=%1").arg(mSshConnection._getMasterSocket()));
+
+    if (mScpDirection == SD_LOCAL_TO_REMOTE)
+    {
+        args.append(mLocalPath);
+        args.append(QString("%1:%2").arg(mSshConnection.getTarget()).arg(mRemotePath));
+    }
+    else if (mScpDirection == SD_REMOTE_TO_LOCAL)
+    {
+        args.append(QString("%1:%2").arg(mSshConnection.getTarget()).arg(mRemotePath));
+        args.append(mLocalPath);
+    }
+    else
+    {
+        // TODO: Error
+    }
+
+    return args;
+}
+
+QString ScpSyncProcess::generateDescription() const
+{
+    if (mScpDirection == SD_LOCAL_TO_REMOTE)
+    {
+        return QString("Copy file '%1' on local machine to file '%2' on remote machine '%3'").arg(mLocalPath).arg(mRemotePath).arg(mSshConnection.getTarget());
+    }
+    else if (mScpDirection == SD_REMOTE_TO_LOCAL)
+    {
+        return QString("Copy file '%1' on remote machine '%2' to local file '%3'").arg(mRemotePath).arg(mSshConnection.getTarget().arg(mLocalPath));
+    }
+    else
+    {
+        // TODO: Error
+    }
+}

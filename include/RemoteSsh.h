@@ -23,6 +23,7 @@
 #define SCAP_WORKBENCH_REMOTE_SSH_H_
 
 #include "ForwardDecls.h"
+#include "ProcessHelpers.h"
 #include <QObject>
 
 class SshConnection : public QObject
@@ -52,4 +53,53 @@ class SshConnection : public QObject
         bool* mCancelRequestSource;
 };
 
+class SshSyncProcess : public SyncProcess
+{
+    Q_OBJECT
+
+    public:
+        SshSyncProcess(SshConnection& connection, QObject* parent = 0);
+        virtual ~SshSyncProcess();
+
+    protected:
+        virtual QString generateFullCommand() const;
+        virtual QStringList generateFullArguments() const;
+        virtual QString generateDescription() const;
+
+        SshConnection& mSshConnection;
+};
+
+enum ScpDirection
+{
+    SD_LOCAL_TO_REMOTE,
+    SD_REMOTE_TO_LOCAL
+};
+
+class ScpSyncProcess : public SyncProcess
+{
+    Q_OBJECT
+
+    public:
+        ScpSyncProcess(SshConnection& connection, QObject* parent = 0);
+        virtual ~ScpSyncProcess();
+
+        void setDirection(ScpDirection direction);
+        ScpDirection getDirection() const;
+
+        void setLocalPath(const QString& path);
+        const QString& getLocalPath() const;
+
+        void setRemotePath(const QString& path);
+        const QString& getRemotePath() const;
+
+    protected:
+        virtual QString generateFullCommand() const;
+        virtual QStringList generateFullArguments() const;
+        virtual QString generateDescription() const;
+
+        ScpDirection mScpDirection;
+        QString mLocalPath;
+        QString mRemotePath;
+        SshConnection& mSshConnection;
+};
 #endif

@@ -30,7 +30,7 @@
 /**
  * @brief Runs a process and pumps event queue of given thread
  */
-class SyncProcess : QObject
+class SyncProcess : public QObject
 {
     Q_OBJECT
 
