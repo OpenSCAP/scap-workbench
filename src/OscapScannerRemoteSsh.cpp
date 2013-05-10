@@ -65,29 +65,34 @@ void OscapScannerRemoteSsh::evaluate()
         return;
     }
 
+    emit infoMessage("Querying capabilities on remote machine...");
+
+    {
+        SshSyncProcess proc(mSshConnection, this);
+        proc.setCommand("oscap");
+        proc.setArguments(QStringList("--v"));
+        proc.run();
+
+        if (proc.getExitCode() != 0)
+        {
+            emit errorMessage(
+                QString("Failed to query capabilities of oscap on local machine.\n"
+                        "Diagnostic info:\n%1").arg(proc.getDiagnosticInfo())
+            );
+
+            mCancelRequested = true;
+            signalCompletion(mCancelRequested);
+            return;
+        }
+
+        mCapabilities.parse(proc.getStdOutContents());
+    }
+
     QStringList baseArgs;
     baseArgs.append("-o"); baseArgs.append(QString("ControlPath=%1").arg(mSshConnection._getMasterSocket()));
     baseArgs.append(mTarget);
 
     QString diagnosticInfo;
-
-    emit infoMessage("Querying capabilities of oscap on the remote target...");
-
-    QString mmv;
-    if (runProcessSyncStdOut(
-            "ssh", baseArgs + QStringList(QString("oscap --v")),
-            100, 3000, mmv, diagnosticInfo) != 0)
-    {
-        emit errorMessage(
-            QString("Failed to query capabilities of oscap on remote machine.\n"
-                    "Diagnostic info:\n%1").arg(diagnosticInfo)
-        );
-
-        mCancelRequested = true;
-        signalCompletion(mCancelRequested);
-        return;
-    }
-    mCapabilities.parse(mmv);
 
     emit infoMessage("Copying input data to remote target...");
     const QString inputFile = copyInputDataOver();

@@ -189,7 +189,9 @@ QStringList SshSyncProcess::generateFullArguments() const
 
     args.append("-o"); args.append(QString("ControlPath=%1").arg(mSshConnection._getMasterSocket()));
     args.append(mSshConnection.getTarget());
-    args.append(SyncProcess::generateFullCommand());
+    args.append(SyncProcess::generateFullCommand() + QString(" ") + SyncProcess::generateFullArguments().join(" "));
+
+    return args;
 }
 
 QString SshSyncProcess::generateDescription() const
