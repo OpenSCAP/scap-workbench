@@ -4,10 +4,10 @@
 #  LIBOPENSCAP_LIBRARY - The libraries needed to use OpenSCAP
 
 find_package(PkgConfig)
-pkg_check_modules(PC_LIBOPENSCAP QUIET libopenscap)
+pkg_check_modules(PC_LIBOPENSCAP QUIET openscap)
 set(LIBOPENSCAP_DEFINITIONS ${PC_LIBOPENSCAP_CFLAGS_OTHER})
 
-find_path(LIBOPENSCAP_INCLUDE_DIR xccdf.h
+find_path(LIBOPENSCAP_INCLUDE_DIR xccdf_session.h
     HINTS ${PC_LIBOPENSCAP_INCLUDEDIR} ${PC_LIBOPENSCAP_INCLUDE_DIRS}
     PATH_SUFFIXES openscap)
 
