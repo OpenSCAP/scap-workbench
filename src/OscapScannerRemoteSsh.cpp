@@ -277,6 +277,7 @@ QString OscapScannerRemoteSsh::createRemoteTemporaryFile(bool cancelOnFailure)
         );
 
         mCancelRequested = true;
+        signalCompletion(mCancelRequested);
         return "";
     }
 

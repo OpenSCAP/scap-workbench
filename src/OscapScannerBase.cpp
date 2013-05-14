@@ -76,11 +76,6 @@ void OscapScannerBase::signalCompletion(bool canceled)
     mCancelRequested = false;
 }
 
-QStringList OscapScannerBase::buildVersionCheckArgs() const
-{
-    return QStringList("--v");
-}
-
 QStringList OscapScannerBase::buildEvaluationArgs(const QString& inputFile,
                                                   const QString& resultFile,
                                                   const QString& reportFile,

@@ -47,7 +47,6 @@ class OscapScannerBase : public Scanner
     protected:
         virtual void signalCompletion(bool canceled);
 
-        QStringList buildVersionCheckArgs() const;
         QStringList buildEvaluationArgs(const QString& inputFile,
                                         const QString& resultFile,
                                         const QString& reportFile,
