@@ -264,25 +264,22 @@ QString OscapScannerRemoteSsh::createRemoteTemporaryFile(bool cancelOnFailure)
 {
     ensureConnected();
 
-    QStringList args;
-    QString diagnosticInfo;
+    SshSyncProcess proc(mSshConnection, this);
+    proc.setCommand("mktemp");
+    proc.setCancelRequestSource(&mCancelRequested);
+    proc.run();
 
-    args.append("-o"); args.append(QString("ControlPath=%1").arg(mSshConnection._getMasterSocket()));
-    args.append(mTarget);
-    args.append(QString("mktemp"));
-
-    QString ret = "";
-    if (runProcessSyncStdOut("ssh", args, 100, 3000, ret, diagnosticInfo) != 0)
+    if (proc.getExitCode() != 0)
     {
         emit errorMessage(
             QString("Failed to create a valid temporary file to copy input "
-                    "data to! Diagnostic info: %1").arg(diagnosticInfo)
+                    "data to! Diagnostic info: %1").arg(proc.getDiagnosticInfo())
         );
 
         mCancelRequested = true;
     }
 
-    return ret.trimmed();
+    return proc.getStdOutContents().trimmed();
 }
 
 QString OscapScannerRemoteSsh::readRemoteFile(const QString& path, const QString& desc)

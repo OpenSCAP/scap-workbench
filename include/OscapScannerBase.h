@@ -47,17 +47,6 @@ class OscapScannerBase : public Scanner
     protected:
         virtual void signalCompletion(bool canceled);
 
-        int runProcessSync(const QString& cmd, const QStringList& args,
-                           unsigned int pollInterval,
-                           unsigned int termLimit,
-                           QString& diagnosticInfo);
-
-        int runProcessSyncStdOut(const QString& cmd, const QStringList& args,
-                           unsigned int pollInterval,
-                           unsigned int termLimit,
-                           QString& stdOut,
-                           QString& diagnosticInfo);
-
         QStringList buildVersionCheckArgs() const;
         QStringList buildEvaluationArgs(const QString& inputFile,
                                         const QString& resultFile,

@@ -76,68 +76,6 @@ void OscapScannerBase::signalCompletion(bool canceled)
     mCancelRequested = false;
 }
 
-int OscapScannerBase::runProcessSync(const QString& cmd, const QStringList& args,
-                                     unsigned int pollInterval,
-                                     unsigned int termLimit,
-                                     QString& diagnosticInfo)
-{
-    QString dummy;
-    return runProcessSyncStdOut(cmd, args, pollInterval, termLimit, dummy, diagnosticInfo);
-}
-
-int OscapScannerBase::runProcessSyncStdOut(const QString& cmd, const QStringList& args,
-                                           unsigned int pollInterval,
-                                           unsigned int termLimit,
-                                           QString& stdOut,
-                                           QString& diagnosticInfo)
-{
-    QProcess process(this);
-    process.start(cmd, args);
-
-    diagnosticInfo += QString("Starting process '") + cmd + QString(" ") + args.join(" ") + QString("'\n");
-
-    while (!process.waitForFinished(pollInterval))
-    {
-        // pump the event queue, mainly because the user might want to cancel
-        QAbstractEventDispatcher::instance(mScanThread)->processEvents(QEventLoop::AllEvents);
-
-        if (mCancelRequested)
-        {
-            diagnosticInfo += "Cancel was requested! Sending terminate signal to the process...\n";
-
-            // TODO: On Windows we have to kill immediately, terminate() posts WM_CLOSE
-            //       but oscap doesn't have any event loop running.
-            process.terminate();
-            break;
-        }
-    }
-
-    if (mCancelRequested)
-    {
-        unsigned int termWaited = 0;
-
-        while (!process.waitForFinished(pollInterval))
-        {
-            QAbstractEventDispatcher::instance(mScanThread)->processEvents(QEventLoop::AllEvents);
-            termWaited += pollInterval;
-
-            if (termWaited > termLimit)
-            {
-                diagnosticInfo += QString("Process had to be killed! Didn't terminate after %1 msec of waiting.\n").arg(termWaited);
-                process.kill();
-                break;
-            }
-        }
-    }
-
-    stdOut = process.readAllStandardOutput();
-
-    diagnosticInfo += "stdout:\n===============================\n" + QString(stdOut) + QString("\n");
-    diagnosticInfo += "stderr:\n===============================\n" + QString(process.readAllStandardError()) + QString("\n");
-
-    return process.exitCode();
-}
-
 QStringList OscapScannerBase::buildVersionCheckArgs() const
 {
     return QStringList("--v");
