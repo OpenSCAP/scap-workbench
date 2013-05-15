@@ -14,6 +14,12 @@ qt4_wrap_ui(scap_workbench_UIS_HEADERS ${scap_workbench_UIS})
 
 file(GLOB scap_workbench_SOURCES "${CMAKE_SOURCE_DIR}/src/*.cpp")
 
+include_directories(
+    ${CMAKE_CURRENT_SOURCE_DIR}/include ${CMAKE_CURRENT_BINARY_DIR}
+    ${QT_QTCORE_INCLUDE_DIR} ${QT_QTGUI_INCLUDE_DIR} ${QT_QTWEBKIT_INCLUDE_DIR}
+    ${LIBOPENSCAP_INCLUDE_DIR}
+)
+
 add_executable(scap_workbench
     ${scap_workbench_HEADERS}
     ${scap_workbench_SOURCES}
@@ -26,8 +32,5 @@ target_link_libraries(scap_workbench
     ${QT_QTCORE_LIBRARY} ${QT_QTGUI_LIBRARY} ${QT_QTWEBKIT_LIBRARY}
     ${LIBOPENSCAP_LIBRARY})
 
-include_directories(
-    ${CMAKE_CURRENT_SOURCE_DIR}/include ${CMAKE_CURRENT_BINARY_DIR}
-    ${QT_QTCORE_INCLUDE_DIR} ${QT_QTGUI_INCLUDE_DIR} ${QT_QTWEBKIT_INCLUDE_DIR}
-    ${LIBOPENSCAP_INCLUDE_DIR}
-)
+install(TARGETS scap_workbench
+    RUNTIME DESTINATION bin)
