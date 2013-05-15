@@ -1,6 +1,11 @@
 cmake_minimum_required(VERSION 2.8)
 
 project(scap_workbench)
+set(SCAP_WORKBENCH_VERSION_MAJOR "0")
+set(SCAP_WORKBENCH_VERSION_MINOR "8")
+set(SCAP_WORKBENCH_VERSION_PATCH "0")
+set(SCAP_WORKBENCH_SHORT_VERSION "${SCAP_WORKBENCH_VERSION_MAJOR}.${SCAP_WORKBENCH_VERSION_MINOR}.${SCAP_WORKBENCH_VERSION_PATCH}")
+
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/")
 
 find_package(Qt4 REQUIRED)
@@ -34,3 +39,15 @@ target_link_libraries(scap_workbench
 
 install(TARGETS scap_workbench
     RUNTIME DESTINATION bin)
+
+# only CPack should follow
+set(CPACK_CMAKE_GENERATOR "Unix Makefiles")
+set(CPACK_SOURCE_GENERATOR "TBZ2")
+set(CPACK_SOURCE_PACKAGE_FILE_NAME "scap_workbench-${SCAP_WORKBENCH_SHORT_VERSION}" CACHE INTERNAL "tarball basename")
+set(CPACK_SOURCE_IGNORE_FILES
+"\\\\.git.*"
+
+"build/"
+"~$"
+)
+include(CPack)
