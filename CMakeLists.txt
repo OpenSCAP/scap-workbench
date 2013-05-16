@@ -42,6 +42,9 @@ target_link_libraries(scap_workbench
 install(TARGETS scap_workbench
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 
+install(FILES man/scap-workbench.8
+    DESTINATION ${CMAKE_INSTALL_MANDIR}/man8)
+
 # only CPack should follow
 set(CPACK_CMAKE_GENERATOR "Unix Makefiles")
 set(CPACK_SOURCE_GENERATOR "TBZ2")
