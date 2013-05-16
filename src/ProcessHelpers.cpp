@@ -29,6 +29,8 @@
 SyncProcess::SyncProcess(QObject* parent):
     QObject(parent),
 
+    mEnvironment(QProcessEnvironment::systemEnvironment()),
+
     mPollInterval(100),
     mTermLimit(3000),
 
@@ -58,6 +60,14 @@ void SyncProcess::setArguments(const QStringList& args)
     mArguments = args;
 }
 
+void SyncProcess::setEnvironment(const QProcessEnvironment& env)
+{
+    if (isRunning())
+        throw SyncProcessException("Already running, can't change environment!");
+
+    mEnvironment = env;
+}
+
 void SyncProcess::setCancelRequestSource(bool* source)
 {
     mCancelRequestSource = source;
@@ -68,7 +78,9 @@ void SyncProcess::run()
     mDiagnosticInfo = "";
 
     QProcess process(this);
+    process.setProcessEnvironment(generateFullEnvironment());
     mDiagnosticInfo += QString("Starting process '") + generateDescription() + QString("'\n");
+    process.setStandardInputFile("/dev/null");
     process.start(generateFullCommand(), generateFullArguments());
 
     mRunning = true;
@@ -174,6 +186,11 @@ QString SyncProcess::generateFullCommand() const
 QStringList SyncProcess::generateFullArguments() const
 {
     return mArguments;
+}
+
+QProcessEnvironment SyncProcess::generateFullEnvironment() const
+{
+    return mEnvironment;
 }
 
 QString SyncProcess::generateDescription() const

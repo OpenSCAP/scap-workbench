@@ -26,6 +26,7 @@
 #include <QObject>
 #include <QString>
 #include <QStringList>
+#include <QProcessEnvironment>
 
 /**
  * @brief Runs a process and pumps event queue of given thread
@@ -40,6 +41,7 @@ class SyncProcess : public QObject
 
         void setCommand(const QString& command);
         void setArguments(const QStringList& args);
+        void setEnvironment(const QProcessEnvironment& env);
 
         void setCancelRequestSource(bool* source);
 
@@ -57,10 +59,12 @@ class SyncProcess : public QObject
 
         virtual QString generateFullCommand() const;
         virtual QStringList generateFullArguments() const;
+        virtual QProcessEnvironment generateFullEnvironment() const;
         virtual QString generateDescription() const;
 
         QString mCommand;
         QStringList mArguments;
+        QProcessEnvironment mEnvironment;
 
         /// How often do we poll for status, in msec
         unsigned int mPollInterval;

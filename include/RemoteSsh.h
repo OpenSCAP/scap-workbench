@@ -44,10 +44,13 @@ class SshConnection : public QObject
         bool isConnected() const;
 
         const QString& _getMasterSocket() const;
+        const QProcessEnvironment& _getEnvironment() const;
 
     private:
         QString mTarget;
         QString mMasterSocket;
+        QProcessEnvironment mEnvironment;
+
         bool mConnected;
 
         bool* mCancelRequestSource;
@@ -64,6 +67,7 @@ class SshSyncProcess : public SyncProcess
     protected:
         virtual QString generateFullCommand() const;
         virtual QStringList generateFullArguments() const;
+        virtual QProcessEnvironment generateFullEnvironment() const;
         virtual QString generateDescription() const;
 
         SshConnection& mSshConnection;
@@ -95,6 +99,7 @@ class ScpSyncProcess : public SyncProcess
     protected:
         virtual QString generateFullCommand() const;
         virtual QStringList generateFullArguments() const;
+        virtual QProcessEnvironment generateFullEnvironment() const;
         virtual QString generateDescription() const;
 
         ScpDirection mScpDirection;

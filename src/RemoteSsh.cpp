@@ -29,9 +29,13 @@
 SshConnection::SshConnection(QObject* parent):
     QObject(parent),
 
+    mEnvironment(QProcessEnvironment::systemEnvironment()),
     mConnected(false),
     mCancelRequestSource(0)
-{}
+{
+    mEnvironment.remove("SSH_TTY");
+    mEnvironment.insert("DISPLAY", ":0");
+}
 
 SshConnection::~SshConnection()
 {
@@ -73,6 +77,7 @@ void SshConnection::connect()
         SyncProcess proc(this);
         proc.setCommand("mktemp");
         proc.setArguments(QStringList("-d"));
+        proc.setEnvironment(mEnvironment);
         proc.setCancelRequestSource(mCancelRequestSource);
         proc.run();
 
@@ -90,6 +95,7 @@ void SshConnection::connect()
     try
     {
         QStringList args;
+        args.append("ssh");
         args.append("-M");
         args.append("-f");
         args.append("-N");
@@ -100,8 +106,9 @@ void SshConnection::connect()
         args.append(mTarget);
 
         SyncProcess proc(this);
-        proc.setCommand("ssh");
+        proc.setCommand("setsid");
         proc.setArguments(args);
+        proc.setEnvironment(mEnvironment);
         proc.setCancelRequestSource(mCancelRequestSource);
         proc.run();
 
@@ -139,6 +146,7 @@ void SshConnection::disconnect()
         SyncProcess proc(this);
         proc.setCommand("ssh");
         proc.setArguments(args);
+        proc.setEnvironment(mEnvironment);
         proc.run();
     }
 
@@ -164,6 +172,11 @@ bool SshConnection::isConnected() const
 const QString& SshConnection::_getMasterSocket() const
 {
     return mMasterSocket;
+}
+
+const QProcessEnvironment& SshConnection::_getEnvironment() const
+{
+    return mEnvironment;
 }
 
 SshSyncProcess::SshSyncProcess(SshConnection& connection, QObject* parent):
@@ -192,6 +205,14 @@ QStringList SshSyncProcess::generateFullArguments() const
     args.append(SyncProcess::generateFullCommand() + QString(" ") + SyncProcess::generateFullArguments().join(" "));
 
     return args;
+}
+
+QProcessEnvironment SshSyncProcess::generateFullEnvironment() const
+{
+    if (!mSshConnection.isConnected())
+        mSshConnection.connect();
+
+    return mSshConnection._getEnvironment();
 }
 
 QString SshSyncProcess::generateDescription() const
@@ -278,6 +299,14 @@ QStringList ScpSyncProcess::generateFullArguments() const
     }
 
     return args;
+}
+
+QProcessEnvironment ScpSyncProcess::generateFullEnvironment() const
+{
+    if (!mSshConnection.isConnected())
+        mSshConnection.connect();
+
+    return mSshConnection._getEnvironment();
 }
 
 QString ScpSyncProcess::generateDescription() const
