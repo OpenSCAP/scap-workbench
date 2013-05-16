@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 2.8)
 
+include(GNUInstallDirs)
+
 project(scap_workbench)
 set(SCAP_WORKBENCH_VERSION_MAJOR "0")
 set(SCAP_WORKBENCH_VERSION_MINOR "8")
@@ -38,7 +40,7 @@ target_link_libraries(scap_workbench
     ${LIBOPENSCAP_LIBRARY})
 
 install(TARGETS scap_workbench
-    RUNTIME DESTINATION bin)
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 
 # only CPack should follow
 set(CPACK_CMAKE_GENERATOR "Unix Makefiles")
