@@ -42,8 +42,11 @@ target_link_libraries(scap_workbench
 install(TARGETS scap_workbench
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 
-install(FILES man/scap-workbench.8
+install(FILES man/scap_workbench.8
     DESTINATION ${CMAKE_INSTALL_MANDIR}/man8)
+
+install(FILES share/pixmaps/scap_workbench.png
+    DESTINATION ${CMAKE_INSTALL_DATADIR}/pixmaps)
 
 # only CPack should follow
 set(CPACK_CMAKE_GENERATOR "Unix Makefiles")
