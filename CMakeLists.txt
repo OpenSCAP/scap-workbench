@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 2.8)
 
 include(GNUInstallDirs)
 
-project(scap_workbench)
+project("scap-workbench")
 set(SCAP_WORKBENCH_VERSION_MAJOR "0")
 set(SCAP_WORKBENCH_VERSION_MINOR "8")
 set(SCAP_WORKBENCH_VERSION_PATCH "0")
@@ -27,7 +27,7 @@ include_directories(
     ${LIBOPENSCAP_INCLUDE_DIR}
 )
 
-add_executable(scap_workbench
+add_executable("scap-workbench"
     ${scap_workbench_HEADERS}
     ${scap_workbench_SOURCES}
 
@@ -35,23 +35,23 @@ add_executable(scap_workbench
     ${scap_workbench_UIS_HEADERS}
 )
 
-target_link_libraries(scap_workbench
+target_link_libraries("scap-workbench"
     ${QT_QTCORE_LIBRARY} ${QT_QTGUI_LIBRARY} ${QT_QTWEBKIT_LIBRARY}
     ${LIBOPENSCAP_LIBRARY})
 
-install(TARGETS scap_workbench
+install(TARGETS "scap-workbench"
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 
-install(FILES man/scap_workbench.8
-    DESTINATION ${CMAKE_INSTALL_MANDIR}/man8)
+install(FILES "man/scap-workbench.8"
+    DESTINATION "${CMAKE_INSTALL_MANDIR}/man8")
 
-install(FILES share/pixmaps/scap_workbench.png
-    DESTINATION ${CMAKE_INSTALL_DATADIR}/pixmaps)
+install(FILES "share/pixmaps/scap-workbench.png"
+    DESTINATION "${CMAKE_INSTALL_DATADIR}/pixmaps")
 
 # only CPack should follow
 set(CPACK_CMAKE_GENERATOR "Unix Makefiles")
 set(CPACK_SOURCE_GENERATOR "TBZ2")
-set(CPACK_SOURCE_PACKAGE_FILE_NAME "scap_workbench-${SCAP_WORKBENCH_VERSION}" CACHE INTERNAL "tarball basename")
+set(CPACK_SOURCE_PACKAGE_FILE_NAME "scap-workbench-${SCAP_WORKBENCH_VERSION}" CACHE INTERNAL "tarball basename")
 set(CPACK_SOURCE_IGNORE_FILES
 "\\\\.git.*"
 
