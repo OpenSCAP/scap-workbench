@@ -22,6 +22,8 @@
 #ifndef SCAP_WORKBENCH_FORWARD_DECLS_H_
 #define SCAP_WORKBENCH_FORWARD_DECLS_H_
 
+#include "Config.h"
+
 class DiagnosticsDialog;
 class MainWindow;
 class OscapScannerBase;

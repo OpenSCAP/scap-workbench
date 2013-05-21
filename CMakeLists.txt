@@ -7,8 +7,12 @@ set(SCAP_WORKBENCH_VERSION_MAJOR "0")
 set(SCAP_WORKBENCH_VERSION_MINOR "8")
 set(SCAP_WORKBENCH_VERSION_PATCH "0")
 set(SCAP_WORKBENCH_VERSION "${SCAP_WORKBENCH_VERSION_MAJOR}.${SCAP_WORKBENCH_VERSION_MINOR}.${SCAP_WORKBENCH_VERSION_PATCH}")
-configure_file("include/Version.h.in" "${CMAKE_CURRENT_BINARY_DIR}/Version.h")
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/")
+
+set(SCAP_WORKBENCH_DEFAULT_LOCAL_OSCAP_PATH "oscap" CACHE STRING "Default path where to find 'oscap' on local machines. The final value can be changed in application settings.")
+set(SCAP_WORKBENCH_DEFAULT_REMOTE_OSCAP_PATH "oscap" CACHE STRING "Default path where to find 'oscap' on local machines. The final value can be changed in application settings.")
+
+configure_file("include/Config.h.in" "${CMAKE_CURRENT_BINARY_DIR}/Config.h")
 
 find_package(Qt4 REQUIRED)
 find_package(OpenSCAP REQUIRED)
