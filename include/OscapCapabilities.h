@@ -52,6 +52,20 @@ class OscapCapabilities
         void parse(const QString& mmv);
 
         /**
+         * @brief Returns version of openscap that was detected
+         */
+        const QString& getOpenSCAPVersion() const;
+
+        /**
+         * @brief Returns true if enough is supported for workbench to use the oscap
+         *
+         * This is a critical requirement, for very old oscap versions this will
+         * return false and these versions just can't be used with the new
+         * workbench!
+         */
+        bool baselineSupport() const;
+
+        /**
          * @brief Returns true if --progress flag is supported
          *
          * If the flag is not supported, we don't do any GUI progress reporting.
@@ -72,9 +86,9 @@ class OscapCapabilities
         bool sourceDatastreams() const;
 
         /**
-         * @brief Returns true if ARFs are supported
+         * @brief Returns true if ARFs are supported as input
          */
-        bool ARF() const;
+        bool ARFInput() const;
 
         const QString& XCCDFVersion() const;
         const QString& OVALVersion() const;
@@ -83,10 +97,11 @@ class OscapCapabilities
     private:
         QString mVersion;
 
+        bool mBaselineSupport;
         bool mProgressReporting;
         bool mOnlineRemediation;
         bool mSourceDataStreams;
-        bool mARF;
+        bool mARFInput;
         bool mSCE;
 
         QString mXCCDFVersion;

@@ -33,10 +33,11 @@ void OscapCapabilities::clear()
 {
     mVersion = "Unknown";
 
+    mBaselineSupport = false;
     mProgressReporting = false;
     mOnlineRemediation = false;
     mSourceDataStreams = false;
-    mARF = false;
+    mARFInput = false;
     mSCE = false;
 
     mXCCDFVersion = "Unknown";
@@ -80,6 +81,10 @@ void OscapCapabilities::parse(const QString& mmv)
 
     mVersion = versionCandidate;
 
+    // TODO: Pick a better version
+    if (versionGreaterThan(mVersion, "0.8.0"))
+        mBaselineSupport = true;
+
     if (versionGreaterThan(mVersion, "0.9.3"))
         mProgressReporting = true;
 
@@ -120,6 +125,16 @@ void OscapCapabilities::parse(const QString& mmv)
     }
 }
 
+const QString& OscapCapabilities::getOpenSCAPVersion() const
+{
+    return mVersion;
+}
+
+bool OscapCapabilities::baselineSupport() const
+{
+    return mBaselineSupport;
+}
+
 bool OscapCapabilities::progressReporting() const
 {
     return mProgressReporting;
@@ -135,9 +150,9 @@ bool OscapCapabilities::sourceDatastreams() const
     return mSourceDataStreams;
 }
 
-bool OscapCapabilities::ARF() const
+bool OscapCapabilities::ARFInput() const
 {
-    return mARF;
+    return mARFInput;
 }
 
 const QString& OscapCapabilities::XCCDFVersion() const

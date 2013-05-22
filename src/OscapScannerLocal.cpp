@@ -52,7 +52,7 @@ void OscapScannerLocal::evaluate()
         {
             emit errorMessage(
                 QString("Failed to query capabilities of oscap on local machine.\n"
-                        "Diagnostic info:\n%1").arg(proc.getDiagnosticInfo())
+                    "Diagnostic info:\n%1").arg(proc.getDiagnosticInfo())
             );
 
             mCancelRequested = true;
@@ -61,6 +61,12 @@ void OscapScannerLocal::evaluate()
         }
 
         mCapabilities.parse(proc.getStdOutContents());
+    }
+
+    if (!checkPrerequisites())
+    {
+        signalCompletion(mCancelRequested);
+        return;
     }
 
     // TODO: Error handling!

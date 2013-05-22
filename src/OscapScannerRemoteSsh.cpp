@@ -89,6 +89,12 @@ void OscapScannerRemoteSsh::evaluate()
         mCapabilities.parse(proc.getStdOutContents());
     }
 
+    if (!checkPrerequisites())
+    {
+        signalCompletion(mCancelRequested);
+        return;
+    }
+
     QStringList baseArgs;
     baseArgs.append("-o"); baseArgs.append(QString("ControlPath=%1").arg(mSshConnection._getMasterSocket()));
     baseArgs.append(mTarget);

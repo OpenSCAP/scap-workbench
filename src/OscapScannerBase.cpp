@@ -76,6 +76,35 @@ void OscapScannerBase::signalCompletion(bool canceled)
     mCancelRequested = false;
 }
 
+bool OscapScannerBase::checkPrerequisites()
+{
+    if (!mCapabilities.baselineSupport())
+    {
+        emit errorMessage(
+            QString("oscap tool doesn't support basic features required for workbench. "
+                "Please make sure you have openscap 0.8.0 or newer. "
+                "oscap version was detected as '%1'.").arg(mCapabilities.getOpenSCAPVersion())
+        );
+
+        mCancelRequested = true;
+        return false;
+    }
+
+    if (xccdf_session_is_sds(mSession) && !mCapabilities.sourceDatastreams())
+    {
+        emit errorMessage(
+            QString("oscap tool doesn't support source datastreams as input. "
+                "Please make sure you have openscap 0.9.0 or newer. "
+                "oscap version was detected as '%1'.").arg(mCapabilities.getOpenSCAPVersion())
+        );
+
+        mCancelRequested = true;
+        return false;
+    }
+
+    return true;
+}
+
 QStringList OscapScannerBase::buildEvaluationArgs(const QString& inputFile,
                                                   const QString& resultFile,
                                                   const QString& reportFile,
