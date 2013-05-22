@@ -59,6 +59,14 @@ class OscapCapabilities
         bool progressReporting() const;
 
         /**
+         * @brief Returns true of online remediation is supported
+         *
+         * Only returns true if --progress flag is supported and works correctly for online remediation
+         * If the flag is not supported, we don't do any GUI progress reporting when remediating.
+         */
+        bool onlineRemediation() const;
+
+        /**
          * @brief Returns true if source datastreams are supported
          */
         bool sourceDatastreams() const;
@@ -76,7 +84,7 @@ class OscapCapabilities
         QString mVersion;
 
         bool mProgressReporting;
-        bool mRemediationProgressReporting;
+        bool mOnlineRemediation;
         bool mSourceDataStreams;
         bool mARF;
         bool mSCE;

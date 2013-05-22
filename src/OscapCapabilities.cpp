@@ -34,6 +34,7 @@ void OscapCapabilities::clear()
     mVersion = "Unknown";
 
     mProgressReporting = false;
+    mOnlineRemediation = false;
     mSourceDataStreams = false;
     mARF = false;
     mSCE = false;
@@ -83,7 +84,7 @@ void OscapCapabilities::parse(const QString& mmv)
         mProgressReporting = true;
 
     if (versionGreaterThan(mVersion, "0.9.5"))
-        mRemediationProgressReporting = true;
+        mOnlineRemediation = true;
 
     if (versionGreaterThan(mVersion, "0.9.0"))
         mSourceDataStreams = true;
@@ -122,6 +123,11 @@ void OscapCapabilities::parse(const QString& mmv)
 bool OscapCapabilities::progressReporting() const
 {
     return mProgressReporting;
+}
+
+bool OscapCapabilities::onlineRemediation() const
+{
+    return mOnlineRemediation;
 }
 
 bool OscapCapabilities::sourceDatastreams() const

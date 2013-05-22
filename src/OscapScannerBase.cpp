@@ -118,12 +118,11 @@ QStringList OscapScannerBase::buildEvaluationArgs(const QString& inputFile,
     ret.append("--report");
     ret.append(reportFile);
 
-    ret.append("--progress");
+    if (mCapabilities.progressReporting())
+        ret.append("--progress");
 
-    if (onlineRemediation)
-    {
+    if (onlineRemediation && mCapabilities.onlineRemediation())
         ret.append("--remediate");
-    }
 
     ret.append(inputFile);
 
@@ -148,7 +147,8 @@ QStringList OscapScannerBase::buildOfflineRemediationArgs(const QString& resultI
     ret.append("--report");
     ret.append(reportFile);
 
-    ret.append("--progress");
+    if (mCapabilities.progressReporting())
+        ret.append("--progress");
 
     ret.append(resultInputFile);
 
@@ -161,6 +161,9 @@ bool OscapScannerBase::tryToReadLine(QProcess& process)
 
     if (!process.canReadLine())
         return false;
+
+    if (!mCapabilities.progressReporting())
+        return true; // We did read something but it's not in a format we can parse.
 
     QString stringLine = QString::fromUtf8(process.readLine().constData());
     QStringList split = stringLine.split(":");
