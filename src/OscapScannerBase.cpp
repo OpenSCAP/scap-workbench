@@ -90,11 +90,38 @@ bool OscapScannerBase::checkPrerequisites()
         return false;
     }
 
+    if (mScannerMode == SM_SCAN_ONLINE_REMEDIATION && !mCapabilities.onlineRemediation())
+    {
+        emit errorMessage(
+            QString("oscap tool doesn't support online remediation. "
+                "Please make sure you have openscap 0.9.5 or newer if you want "
+                "to use online remediation. "
+                "oscap version was detected as '%1'.").arg(mCapabilities.getOpenSCAPVersion())
+        );
+
+        mCancelRequested = true;
+        return false;
+    }
+
+    if (mScannerMode == SM_OFFLINE_REMEDIATION && !mCapabilities.ARFInput())
+    {
+        emit errorMessage(
+            QString("oscap tool doesn't support taking ARFs (result datastreams) as input. "
+                "Please make sure you have openscap <NOT IMPLEMENTED YET> or newer if you want "
+                "to use offline remediation. "
+                "oscap version was detected as '%1'.").arg(mCapabilities.getOpenSCAPVersion())
+        );
+
+        mCancelRequested = true;
+        return false;
+    }
+
     if (xccdf_session_is_sds(mSession) && !mCapabilities.sourceDatastreams())
     {
         emit errorMessage(
             QString("oscap tool doesn't support source datastreams as input. "
-                "Please make sure you have openscap 0.9.0 or newer. "
+                "Please make sure you have openscap 0.9.0 or newer if you want "
+                "to use source datastreams. "
                 "oscap version was detected as '%1'.").arg(mCapabilities.getOpenSCAPVersion())
         );
 
@@ -106,10 +133,10 @@ bool OscapScannerBase::checkPrerequisites()
 }
 
 QStringList OscapScannerBase::buildEvaluationArgs(const QString& inputFile,
-                                                  const QString& resultFile,
-                                                  const QString& reportFile,
-                                                  const QString& arfFile,
-                                                  bool onlineRemediation) const
+        const QString& resultFile,
+        const QString& reportFile,
+        const QString& arfFile,
+        bool onlineRemediation) const
 {
     QStringList ret;
     ret.append("xccdf");
@@ -159,9 +186,9 @@ QStringList OscapScannerBase::buildEvaluationArgs(const QString& inputFile,
 }
 
 QStringList OscapScannerBase::buildOfflineRemediationArgs(const QString& resultInputFile,
-                                                          const QString& resultFile,
-                                                          const QString& reportFile,
-                                                          const QString& arfFile) const
+        const QString& resultFile,
+        const QString& reportFile,
+        const QString& arfFile) const
 {
     QStringList ret;
     ret.append("xccdf");
