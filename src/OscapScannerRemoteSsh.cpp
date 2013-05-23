@@ -91,6 +91,7 @@ void OscapScannerRemoteSsh::evaluate()
 
     if (!checkPrerequisites())
     {
+        mCancelRequested = true;
         signalCompletion(mCancelRequested);
         return;
     }

@@ -65,6 +65,7 @@ void OscapScannerLocal::evaluate()
 
     if (!checkPrerequisites())
     {
+        mCancelRequested = true;
         signalCompletion(mCancelRequested);
         return;
     }

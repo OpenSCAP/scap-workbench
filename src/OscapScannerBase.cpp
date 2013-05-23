@@ -218,10 +218,11 @@ bool OscapScannerBase::tryToReadLine(QProcess& process)
     if (!process.canReadLine())
         return false;
 
+    QString stringLine = QString::fromUtf8(process.readLine().constData());
+
     if (!mCapabilities.progressReporting())
         return true; // We did read something but it's not in a format we can parse.
 
-    QString stringLine = QString::fromUtf8(process.readLine().constData());
     QStringList split = stringLine.split(":");
 
     if (split.size() != 2)
