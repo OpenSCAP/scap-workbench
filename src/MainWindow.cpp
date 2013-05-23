@@ -206,8 +206,8 @@ void MainWindow::openFileDialog()
     {
         QString path = QFileDialog::getOpenFileName(this,
             "Open Source DataStream or XCCDF file",
-            "/home/mpreisle/d/openscap/dist/", // TODO: temporary
-            "Source DataStream, XCCDF or tailoring file (*.xml)"
+            "",
+            "Source DataStream, XCCDF or tailoring file (*.xml);;All files (*)"
         );
 
         if (path == QString::Null())
