@@ -95,7 +95,7 @@ void SshConnection::connect()
     try
     {
         QStringList args;
-        args.append("ssh");
+        args.append(SCAP_WORKBENCH_LOCAL_SSH_PATH);
         args.append("-M");
         args.append("-f");
         args.append("-N");
@@ -106,7 +106,7 @@ void SshConnection::connect()
         args.append(mTarget);
 
         SyncProcess proc(this);
-        proc.setCommand("setsid");
+        proc.setCommand(SCAP_WORKBENCH_LOCAL_SETSID_PATH);
         proc.setArguments(args);
         proc.setEnvironment(mEnvironment);
         proc.setCancelRequestSource(mCancelRequestSource);
@@ -144,7 +144,7 @@ void SshConnection::disconnect()
         args.append(mTarget);
 
         SyncProcess proc(this);
-        proc.setCommand("ssh");
+        proc.setCommand(SCAP_WORKBENCH_LOCAL_SSH_PATH);
         proc.setArguments(args);
         proc.setEnvironment(mEnvironment);
         proc.run();
@@ -190,7 +190,7 @@ SshSyncProcess::~SshSyncProcess()
 
 QString SshSyncProcess::generateFullCommand() const
 {
-    return "ssh";
+    return SCAP_WORKBENCH_LOCAL_SSH_PATH;
 }
 
 QStringList SshSyncProcess::generateFullArguments() const

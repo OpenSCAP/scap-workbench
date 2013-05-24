@@ -13,10 +13,14 @@ find_package(Qt4 REQUIRED)
 find_package(OpenSCAP REQUIRED)
 find_program(OSCAP_EXECUTABLE NAMES oscap PATHS /usr/bin /usr/bin/local)
 find_program(SSH_EXECUTABLE NAMES ssh PATHS /usr/bin /usr/bin/local)
+find_program(SCP_EXECUTABLE NAMES scp PATHS /usr/bin /usr/bin/local)
+find_program(SETSID_EXECUTABLE NAMES setsid PATHS /usr/bin /usr/bin/local)
 
-set(SCAP_WORKBENCH_DEFAULT_LOCAL_OSCAP_PATH "${OSCAP_EXECUTABLE}" CACHE STRING "Default path where to find 'oscap' on local machines. The final value can be changed in application settings.")
-set(SCAP_WORKBENCH_DEFAULT_REMOTE_OSCAP_PATH "oscap" CACHE STRING "Default path where to find 'oscap' on local machines. The final value can be changed in application settings.")
-set(SCAP_WORKBENCH_DEFAULT_LOCAL_SSH_PATH "${SSH_EXECUTABLE}" CACHE STRING "Default path where to find 'oscap' on local machines. The final value can be changed in application settings.")
+set(SCAP_WORKBENCH_LOCAL_OSCAP_PATH "${OSCAP_EXECUTABLE}" CACHE STRING "Default path where to find 'oscap' on local machines.")
+set(SCAP_WORKBENCH_REMOTE_OSCAP_PATH "oscap" CACHE STRING "Default path where to find 'oscap' on local machines.")
+set(SCAP_WORKBENCH_LOCAL_SSH_PATH "${SSH_EXECUTABLE}" CACHE STRING "Default path where to find 'ssh' on local machines.")
+set(SCAP_WORKBENCH_LOCAL_SCP_PATH "${SCP_EXECUTABLE}" CACHE STRING "Default path where to find 'scp' on local machines.")
+set(SCAP_WORKBENCH_LOCAL_SETSID_PATH "${SETSID_EXECUTABLE}" CACHE STRING "Default path where to find 'setsid' on local machines.")
 
 configure_file("include/Config.h.in" "${CMAKE_CURRENT_BINARY_DIR}/Config.h")
 
