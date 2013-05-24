@@ -69,7 +69,7 @@ void OscapScannerRemoteSsh::evaluate()
 
     {
         SshSyncProcess proc(mSshConnection, this);
-        proc.setCommand("oscap");
+        proc.setCommand(SCAP_WORKBENCH_DEFAULT_REMOTE_OSCAP_PATH);
         proc.setArguments(QStringList("--v"));
         proc.setCancelRequestSource(&mCancelRequested);
         proc.run();
@@ -142,7 +142,7 @@ void OscapScannerRemoteSsh::evaluate()
 
     emit infoMessage("Starting the remote process...");
     QProcess process(this);
-    process.start("ssh", baseArgs + QStringList(QString("oscap %1").arg(sshCmd)));
+    process.start("ssh", baseArgs + QStringList(QString(SCAP_WORKBENCH_DEFAULT_REMOTE_OSCAP_PATH " %1").arg(sshCmd)));
 
     const unsigned int pollInterval = 100;
 

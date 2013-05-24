@@ -44,7 +44,7 @@ void OscapScannerLocal::evaluate()
 
     {
         SyncProcess proc(this);
-        proc.setCommand("oscap");
+        proc.setCommand(SCAP_WORKBENCH_DEFAULT_LOCAL_OSCAP_PATH);
         proc.setArguments(QStringList("--v"));
         proc.run();
 
@@ -116,7 +116,7 @@ void OscapScannerLocal::evaluate()
                 mScannerMode == SM_SCAN_ONLINE_REMEDIATION);
     }
 
-    process.start("oscap", args);
+    process.start(SCAP_WORKBENCH_DEFAULT_LOCAL_OSCAP_PATH, args);
 
     const unsigned int pollInterval = 100;
 
