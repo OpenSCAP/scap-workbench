@@ -80,6 +80,8 @@ class DiagnosticsDialog : public QDialog
         void errorMessage(const QString& message);
 
     private:
+        void pushMessage(const QString& fullMessage, const bool error = false);
+
         Ui_DiagnosticsDialog mUI;
 };
 

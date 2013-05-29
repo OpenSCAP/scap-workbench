@@ -20,6 +20,7 @@
  */
 
 #include "DiagnosticsDialog.h"
+#include <iostream>
 
 DiagnosticsDialog::DiagnosticsDialog(QWidget* parent):
     QDialog(parent)
@@ -42,24 +43,12 @@ void DiagnosticsDialog::clear()
 
 void DiagnosticsDialog::infoMessage(const QString& message)
 {
-    QStringList columns;
-    columns.append("info");
-    columns.append(message);
-
-    QTreeWidgetItem* item = new QTreeWidgetItem(columns);
-    item->setForeground(0, QBrush(Qt::gray));
-    mUI.messages->addTopLevelItem(item);
+    pushMessage("[info] " + message);
 }
 
 void DiagnosticsDialog::warningMessage(const QString& message)
 {
-    QStringList columns;
-    columns.append("warning");
-    columns.append(message);
-
-    QTreeWidgetItem* item = new QTreeWidgetItem(columns);
-    item->setForeground(0, QBrush(Qt::darkYellow));
-    mUI.messages->addTopLevelItem(item);
+    pushMessage("[warn] " + message);
 
     // warning message is important, make sure the diagnostics are shown
     show();
@@ -67,14 +56,29 @@ void DiagnosticsDialog::warningMessage(const QString& message)
 
 void DiagnosticsDialog::errorMessage(const QString& message)
 {
-    QStringList columns;
-    columns.append("error");
-    columns.append(message);
-
-    QTreeWidgetItem* item = new QTreeWidgetItem(columns);
-    item->setForeground(0, QBrush(Qt::red));
-    mUI.messages->addTopLevelItem(item);
+    pushMessage("[err ] " + message, true);
 
     // error message is important, make sure the diagnostics are shown
     show();
+}
+
+void DiagnosticsDialog::pushMessage(const QString& fullMessage, const bool error)
+{
+    char stime[11];
+    stime[10] = '\0';
+
+    time_t rawtime;
+    struct tm* timeinfo;
+
+    time(&rawtime);
+    timeinfo = localtime(&rawtime);
+
+    strftime(stime, 10, "%H:%M:%S", timeinfo);
+
+    const QString outMessage = QString(stime) + " " + fullMessage;
+
+    std::ostream& stream = error ? std::cerr : std::cout;
+    stream << outMessage.toUtf8().data() << std::endl;
+
+    mUI.messages->append(outMessage + "\n\n");
 }
