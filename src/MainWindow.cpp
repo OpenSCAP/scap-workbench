@@ -417,15 +417,19 @@ void MainWindow::refreshProfiles()
             struct xccdf_profile* profile = xccdf_profile_iterator_next(profile_it);
             const QString profile_id = QString(xccdf_profile_get_id(profile));
             oscap_text_iterator* titles = xccdf_profile_get_title(profile);
+            char* preferred_title = oscap_textlist_get_preferred_plaintext(titles, NULL);
+            oscap_text_iterator_free(titles);
 
             assert(profileCrossMap.find(profile_id) == profileCrossMap.end());
 
             profileCrossMap.insert(
                 std::make_pair(
                     profile_id,
-                    oscap_textlist_get_preferred_plaintext(titles, NULL)
+                    QString(preferred_title)
                 )
             );
+
+            free(preferred_title);
         }
         xccdf_profile_iterator_free(profile_it);
     }
@@ -437,6 +441,8 @@ void MainWindow::refreshProfiles()
         struct xccdf_profile* profile = xccdf_profile_iterator_next(profile_it);
         const QString profile_id = QString(xccdf_profile_get_id(profile));
         oscap_text_iterator* titles = xccdf_profile_get_title(profile);
+        char* preferred_title = oscap_textlist_get_preferred_plaintext(titles, NULL);
+        oscap_text_iterator_free(titles);
 
         if (profileCrossMap.find(profile_id) != profileCrossMap.end())
         {
@@ -448,10 +454,12 @@ void MainWindow::refreshProfiles()
             profileCrossMap.insert(
                 std::make_pair(
                     profile_id,
-                    oscap_textlist_get_preferred_plaintext(titles, NULL)
+                    QString(preferred_title)
                 )
             );
         }
+
+        free(preferred_title);
     }
     xccdf_profile_iterator_free(profile_it);
 
@@ -613,7 +621,11 @@ void MainWindow::scanProgressReport(const QString& rule_id, const QString& resul
         mUI.progressBar->setValue(mUI.progressBar->value() + 1);
 
     QStringList resultRow;
-    resultRow.append(oscap_textlist_get_preferred_plaintext(xccdf_item_get_title(item), NULL));
+    struct oscap_text_iterator* title_it = xccdf_item_get_title(item);
+    char* preferred_title = oscap_textlist_get_preferred_plaintext(title_it, NULL);
+    oscap_text_iterator_free(title_it);
+    resultRow.append(preferred_title);
+    free(preferred_title);
     resultRow.append(result);
 
     QBrush resultBrush;
