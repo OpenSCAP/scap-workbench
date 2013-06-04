@@ -25,6 +25,7 @@
 #include "ForwardDecls.h"
 
 #include <QDialog>
+#include <QTemporaryFile>
 
 #ifdef SCAP_WORKBENCH_USE_WEBKIT
 #    include <QWebView>
@@ -72,6 +73,8 @@ class ResultViewer : public QDialog
     private slots:
         /// Pops up a save dialog for HTML report
         void saveReport();
+        /// Opens the HTML report using Qt desktop services
+        void openReport();
         /// Pops up a save dialog for XCCDF result file
         void saveResults();
         /// Pops up a save dialog for ARF / result datastream
@@ -88,6 +91,8 @@ class ResultViewer : public QDialog
 
         QByteArray mResults;
         QByteArray mReport;
+        /// If user requests to open the file via desktop services
+        QTemporaryFile mReportFile;
         QByteArray mARF;
 };
 

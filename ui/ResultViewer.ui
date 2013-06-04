@@ -45,14 +45,28 @@
       <item>
        <widget class="QPushButton" name="saveResultsButton">
         <property name="text">
-         <string>Save as XCCDF Result</string>
+         <string>Save XCCDF Result</string>
         </property>
        </widget>
       </item>
       <item>
        <widget class="QPushButton" name="saveARFButton">
         <property name="text">
-         <string>Save as ARF</string>
+         <string>Save ARF</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="Line" name="line">
+        <property name="orientation">
+         <enum>Qt::Vertical</enum>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="openReportButton">
+        <property name="text">
+         <string>Open HTML report</string>
         </property>
        </widget>
       </item>
@@ -60,6 +74,13 @@
        <widget class="QPushButton" name="saveReportButton">
         <property name="text">
          <string>Save HTML report</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="Line" name="line_2">
+        <property name="orientation">
+         <enum>Qt::Vertical</enum>
         </property>
        </widget>
       </item>

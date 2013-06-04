@@ -22,6 +22,7 @@
 #include "ResultViewer.h"
 #include "Scanner.h"
 #include <QFileDialog>
+#include <QDesktopServices>
 
 ResultViewer::ResultViewer(QWidget* parent):
     QDialog(parent)
@@ -36,6 +37,11 @@ ResultViewer::ResultViewer(QWidget* parent):
     QObject::connect(
         mUI.saveReportButton, SIGNAL(released()),
         this, SLOT(saveReport())
+    );
+
+    QObject::connect(
+        mUI.openReportButton, SIGNAL(released()),
+        this, SLOT(openReport())
     );
 
     QObject::connect(
@@ -108,6 +114,19 @@ void ResultViewer::saveReport()
     file.open(QIODevice::WriteOnly);
     file.write(mReport);
     file.close();
+}
+
+void ResultViewer::openReport()
+{
+    mReportFile.open();
+    mReportFile.write(mReport);
+    mReportFile.flush();
+
+    QDesktopServices::openUrl(QUrl::fromLocalFile(mReportFile.fileName()));
+
+    mReportFile.close();
+
+    // the temporary file will be destroyed when scap-workbench closes
 }
 
 void ResultViewer::saveResults()
