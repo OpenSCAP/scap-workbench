@@ -47,6 +47,10 @@ ResultViewer::ResultViewer(QWidget* parent):
         mUI.closeButton, SIGNAL(released()),
         this, SLOT(reject())
     );
+
+#ifdef SCAP_WORKBENCH_USE_WEBKIT
+    mWebView = new QWebView(mUI.webViewContainer);
+#endif
 }
 
 ResultViewer::~ResultViewer()
@@ -54,14 +58,19 @@ ResultViewer::~ResultViewer()
 
 void ResultViewer::clear()
 {
-    mUI.webView->setContent(QByteArray());
+#ifdef SCAP_WORKBENCH_USE_WEBKIT
+    mWebView->setContent(QByteArray());
+#endif
 }
 
 void ResultViewer::loadContent(Scanner *scanner)
 {
     mReport.clear();
     scanner->getReport(mReport);
-    mUI.webView->setContent(mReport);
+
+#ifdef SCAP_WORKBENCH_USE_WEBKIT
+    mWebView->setContent(mReport);
+#endif
 
     mResults.clear();
     scanner->getResults(mResults);

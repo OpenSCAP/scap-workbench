@@ -9,7 +9,7 @@ set(SCAP_WORKBENCH_VERSION_PATCH "0")
 set(SCAP_WORKBENCH_VERSION "${SCAP_WORKBENCH_VERSION_MAJOR}.${SCAP_WORKBENCH_VERSION_MINOR}.${SCAP_WORKBENCH_VERSION_PATCH}")
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/")
 
-find_package(Qt4 REQUIRED)
+find_package(Qt4 COMPONENTS QtCore QtGui QtWebKit)
 find_package(OpenSCAP REQUIRED)
 find_program(OSCAP_EXECUTABLE NAMES oscap PATHS /usr/bin /usr/bin/local)
 find_program(SSH_EXECUTABLE NAMES ssh PATHS /usr/bin /usr/bin/local)
@@ -22,8 +22,6 @@ set(SCAP_WORKBENCH_LOCAL_SSH_PATH "${SSH_EXECUTABLE}" CACHE STRING "Default path
 set(SCAP_WORKBENCH_LOCAL_SCP_PATH "${SCP_EXECUTABLE}" CACHE STRING "Default path where to find 'scp' on local machines.")
 set(SCAP_WORKBENCH_LOCAL_SETSID_PATH "${SETSID_EXECUTABLE}" CACHE STRING "Default path where to find 'setsid' on local machines.")
 
-configure_file("include/Config.h.in" "${CMAKE_CURRENT_BINARY_DIR}/Config.h")
-
 file(GLOB scap_workbench_HEADERS "${CMAKE_SOURCE_DIR}/include/*.h")
 qt4_wrap_cpp(scap_workbench_HEADERS_MOC ${scap_workbench_HEADERS})
 
@@ -32,11 +30,25 @@ qt4_wrap_ui(scap_workbench_UIS_HEADERS ${scap_workbench_UIS})
 
 file(GLOB scap_workbench_SOURCES "${CMAKE_SOURCE_DIR}/src/*.cpp")
 
-include_directories(
+set(SCAP_WORKBENCH_INCLUDE_DIRS
     ${CMAKE_CURRENT_SOURCE_DIR}/include ${CMAKE_CURRENT_BINARY_DIR}
-    ${QT_QTCORE_INCLUDE_DIR} ${QT_QTGUI_INCLUDE_DIR} ${QT_QTWEBKIT_INCLUDE_DIR}
-    ${LIBOPENSCAP_INCLUDE_DIR}
-)
+    ${QT_QTCORE_INCLUDE_DIR} ${QT_QTGUI_INCLUDE_DIR}
+    ${LIBOPENSCAP_INCLUDE_DIR})
+
+set(SCAP_WORKBENCH_LINK_LIBRARIES
+    ${QT_QTCORE_LIBRARY}
+    ${QT_QTGUI_LIBRARY}
+    ${LIBOPENSCAP_LIBRARY})
+
+if(QT_USE_QTWEBKIT)
+    set(SCAP_WORKBENCH_USE_WEBKIT TRUE CACHE BOOL "Whether we should use Qt WebKit to show reports in workbench directly.")
+    list(APPEND SCAP_WORKBENCH_LINK_LIBRARIES ${QT_QTWEBKIT_LIBRARY})
+    list(APPEND SCAP_WORKBENCH_INCLUDE_DIRS ${QT_QTWEBKIT_INCLUDE_DIR})
+endif()
+
+configure_file("include/Config.h.in" "${CMAKE_CURRENT_BINARY_DIR}/Config.h")
+
+include_directories(${SCAP_WORKBENCH_INCLUDE_DIRS})
 
 add_executable("scap-workbench"
     ${scap_workbench_HEADERS}
@@ -46,9 +58,7 @@ add_executable("scap-workbench"
     ${scap_workbench_UIS_HEADERS}
 )
 
-target_link_libraries("scap-workbench"
-    ${QT_QTCORE_LIBRARY} ${QT_QTGUI_LIBRARY} ${QT_QTWEBKIT_LIBRARY}
-    ${LIBOPENSCAP_LIBRARY})
+target_link_libraries("scap-workbench" ${SCAP_WORKBENCH_LINK_LIBRARIES})
 
 install(TARGETS "scap-workbench"
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})

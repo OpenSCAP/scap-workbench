@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1003</width>
+    <width>805</width>
     <height>702</height>
    </rect>
   </property>
@@ -15,7 +15,7 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
-    <widget class="QWebView" name="webView" native="true"/>
+    <widget class="QWidget" name="webViewContainer" native="true"/>
    </item>
    <item>
     <widget class="QWidget" name="buttonBox" native="true">
@@ -75,14 +75,6 @@
    </item>
   </layout>
  </widget>
- <customwidgets>
-  <customwidget>
-   <class>QWebView</class>
-   <extends>QWidget</extends>
-   <header location="global">QWebView</header>
-   <container>1</container>
-  </customwidget>
- </customwidgets>
  <resources/>
  <connections/>
 </ui>

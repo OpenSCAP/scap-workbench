@@ -26,6 +26,10 @@
 
 #include <QDialog>
 
+#ifdef SCAP_WORKBENCH_USE_WEBKIT
+#include <QWebView>
+#endif
+
 extern "C"
 {
 #include <xccdf_benchmark.h>
@@ -73,6 +77,10 @@ class ResultViewer : public QDialog
 
     private:
         Ui_ResultViewer mUI;
+
+#ifdef SCAP_WORKBENCH_USE_WEBKIT
+        QWebView* mWebView;
+#endif
 
         QByteArray mResults;
         QByteArray mReport;
