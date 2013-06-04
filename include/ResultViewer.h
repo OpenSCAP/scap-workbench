@@ -27,7 +27,9 @@
 #include <QDialog>
 
 #ifdef SCAP_WORKBENCH_USE_WEBKIT
-#include <QWebView>
+#    include <QWebView>
+#else
+#    include <QLabel>
 #endif
 
 extern "C"
@@ -80,6 +82,8 @@ class ResultViewer : public QDialog
 
 #ifdef SCAP_WORKBENCH_USE_WEBKIT
         QWebView* mWebView;
+#else
+        QLabel* mNoWebKitNotification;
 #endif
 
         QByteArray mResults;

@@ -48,8 +48,21 @@ ResultViewer::ResultViewer(QWidget* parent):
         this, SLOT(reject())
     );
 
+    mUI.webViewContainer->setLayout(new QVBoxLayout());
+
 #ifdef SCAP_WORKBENCH_USE_WEBKIT
     mWebView = new QWebView(mUI.webViewContainer);
+    mUI.webViewContainer->layout()->addWidget(mWebView);
+#else
+    mNoWebKitNotification = new QLabel(mUI.webViewContainer);
+    mNoWebKitNotification->setText(
+        "Workbench was compiled without WebKit support.\n"
+        "Report can't be viewed directly in the application.\n"
+        "Please click \"Open report\" to view it in an external "
+        "application instead.");
+    mNoWebKitNotification->setWordWrap(true);
+    mNoWebKitNotification->setAlignment(Qt::AlignCenter);
+    mUI.webViewContainer->layout()->addWidget(mNoWebKitNotification);
 #endif
 }
 
