@@ -1,13 +1,13 @@
 cmake_minimum_required(VERSION 2.6)
 
-include(GNUInstallDirs)
-
 project("scap-workbench")
 set(SCAP_WORKBENCH_VERSION_MAJOR "0")
 set(SCAP_WORKBENCH_VERSION_MINOR "8")
 set(SCAP_WORKBENCH_VERSION_PATCH "0")
 set(SCAP_WORKBENCH_VERSION "${SCAP_WORKBENCH_VERSION_MAJOR}.${SCAP_WORKBENCH_VERSION_MINOR}.${SCAP_WORKBENCH_VERSION_PATCH}")
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/")
+
+include(GNUInstallDirs)
 
 find_package(Qt4 REQUIRED QtCore QtGui)
 find_package(Qt4 COMPONENTS QtWebKit) # optional
