@@ -9,7 +9,13 @@ set(SCAP_WORKBENCH_VERSION_PATCH "0")
 set(SCAP_WORKBENCH_VERSION "${SCAP_WORKBENCH_VERSION_MAJOR}.${SCAP_WORKBENCH_VERSION_MINOR}.${SCAP_WORKBENCH_VERSION_PATCH}")
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/")
 
-find_package(Qt4 COMPONENTS QtCore QtGui QtWebKit)
+find_package(Qt4 REQUIRED QtCore QtGui)
+find_package(Qt4 COMPONENTS QtWebKit) # optional
+
+if(NOT QT_QTWEBKIT_INCLUDE_DIR)
+  set(QT_USE_QTWEBKIT 0) # do not use webkit if it was not found
+endif()
+
 find_package(OpenSCAP REQUIRED)
 find_program(OSCAP_EXECUTABLE NAMES oscap PATHS /usr/bin /usr/bin/local)
 find_program(SSH_EXECUTABLE NAMES ssh PATHS /usr/bin /usr/bin/local)
@@ -40,8 +46,8 @@ set(SCAP_WORKBENCH_LINK_LIBRARIES
     ${QT_QTGUI_LIBRARY}
     ${LIBOPENSCAP_LIBRARY})
 
-if(QT_USE_QTWEBKIT)
-    set(SCAP_WORKBENCH_USE_WEBKIT TRUE CACHE BOOL "Whether we should use Qt WebKit to show reports in workbench directly.")
+set(SCAP_WORKBENCH_USE_WEBKIT ${QT_USE_QTWEBKIT} CACHE BOOL "Whether we should use Qt WebKit to show reports in workbench directly.")
+if(SCAP_WORKBENCH_USE_WEBKIT)
     list(APPEND SCAP_WORKBENCH_LINK_LIBRARIES ${QT_QTWEBKIT_LIBRARY})
     list(APPEND SCAP_WORKBENCH_INCLUDE_DIRS ${QT_QTWEBKIT_INCLUDE_DIR})
 endif()

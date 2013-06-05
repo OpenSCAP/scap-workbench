@@ -23,6 +23,7 @@
 #include "Scanner.h"
 #include <QFileDialog>
 #include <QDesktopServices>
+#include <QUrl>
 
 ResultViewer::ResultViewer(QWidget* parent):
     QDialog(parent)
