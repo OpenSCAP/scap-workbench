@@ -18,32 +18,6 @@ endif()
 
 find_package(OpenSCAP REQUIRED)
 
-find_program(OSCAP_EXECUTABLE NAMES oscap)
-if(NOT OSCAP_EXECUTABLE)
-    message(SEND_ERROR "'oscap' executable was not found! It is required for local scanning.")
-endif()
-
-find_program(SSH_EXECUTABLE NAMES ssh)
-if(NOT SSH_EXECUTABLE)
-    message(SEND_ERROR "'ssh' executable was not found! It is required for remote scanning.")
-endif()
-
-find_program(SCP_EXECUTABLE NAMES scp)
-if(NOT SCP_EXECUTABLE)
-    message(SEND_ERROR "'scp' executable was not found! It is required for remote scanning.")
-endif()
-
-find_program(SETSID_EXECUTABLE NAMES setsid)
-if(NOT SETSID_EXECUTABLE)
-    message(SEND_ERROR "'setsid' executable was not found! It is required for remote scanning.")
-endif()
-
-set(SCAP_WORKBENCH_LOCAL_OSCAP_PATH "${OSCAP_EXECUTABLE}" CACHE STRING "Default path where to find 'oscap' on local machines.")
-set(SCAP_WORKBENCH_REMOTE_OSCAP_PATH "oscap" CACHE STRING "Default path where to find 'oscap' on local machines.")
-set(SCAP_WORKBENCH_LOCAL_SSH_PATH "${SSH_EXECUTABLE}" CACHE STRING "Default path where to find 'ssh' on local machines.")
-set(SCAP_WORKBENCH_LOCAL_SCP_PATH "${SCP_EXECUTABLE}" CACHE STRING "Default path where to find 'scp' on local machines.")
-set(SCAP_WORKBENCH_LOCAL_SETSID_PATH "${SETSID_EXECUTABLE}" CACHE STRING "Default path where to find 'setsid' on local machines.")
-
 file(GLOB scap_workbench_HEADERS "${CMAKE_SOURCE_DIR}/include/*.h")
 qt4_wrap_cpp(scap_workbench_HEADERS_MOC ${scap_workbench_HEADERS})
 
