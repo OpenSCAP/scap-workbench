@@ -110,6 +110,8 @@ MainWindow::MainWindow(QWidget* parent):
         this, SLOT(showResults())
     );
 
+    mUI.tailorButton->hide();
+
     mResultViewer = new ResultViewer(this);
     mResultViewer->hide();
 
