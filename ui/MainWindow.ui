@@ -43,7 +43,7 @@
           </font>
          </property>
          <property name="text">
-          <string>sds.xml</string>
+          <string/>
          </property>
          <property name="frame">
           <bool>false</bool>

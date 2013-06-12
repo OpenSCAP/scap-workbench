@@ -198,6 +198,8 @@ void MainWindow::openFile(const QString& path)
     // force load up of the session
     checklistComboboxChanged(0);
     setEnabled(true);
+
+    mDiagnosticsDialog->infoMessage(QString("Opened file '%1'.").arg(path));
 }
 
 void MainWindow::openFileDialog()
@@ -349,7 +351,8 @@ void MainWindow::cancelScanAsync()
 
 void MainWindow::closeEvent(QCloseEvent* event)
 {
-    cancelScanAsync();
+    if (mSession)
+        cancelScanAsync();
 
     // wait until scanner cancels
     while (mScanThread != 0)
@@ -357,6 +360,7 @@ void MainWindow::closeEvent(QCloseEvent* event)
         QAbstractEventDispatcher::instance(0)->processEvents(QEventLoop::AllEvents);
     }
 
+    mDiagnosticsDialog->infoMessage("Closing the main window...");
     QMainWindow::closeEvent(event);
 }
 
@@ -370,6 +374,7 @@ void MainWindow::closeFile()
 
     setEnabled(false);
 
+    const QString oldOpenedFile = mUI.openedFileLineEdit->text();
     mUI.openedFileLineEdit->setText("");
 
     mUI.checklistComboBox->clear();
@@ -382,6 +387,9 @@ void MainWindow::closeFile()
 
     clearResults();
     mDiagnosticsDialog->clear();
+
+    if (!oldOpenedFile.isEmpty())
+        mDiagnosticsDialog->infoMessage(QString("Closed file '%1'.").arg(oldOpenedFile));
 }
 
 void MainWindow::reloadSession()
