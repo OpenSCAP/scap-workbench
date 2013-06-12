@@ -347,6 +347,19 @@ void MainWindow::cancelScanAsync()
     emit cancelScan();
 }
 
+void MainWindow::closeEvent(QCloseEvent* event)
+{
+    cancelScanAsync();
+
+    // wait until scanner cancels
+    while (mScanThread != 0)
+    {
+        QAbstractEventDispatcher::instance(0)->processEvents(QEventLoop::AllEvents);
+    }
+
+    QMainWindow::closeEvent(event);
+}
+
 void MainWindow::closeFile()
 {
     if (mSession)

@@ -115,6 +115,10 @@ class MainWindow : public QMainWindow
          */
         void cancelScanAsync();
 
+    protected:
+        /// reimplemented to make sure we cancel any scanning before closing the window
+        virtual void closeEvent(QCloseEvent* event);
+
     private:
         /**
          * @brief Closes currently opened file (if any) and resets the interface
