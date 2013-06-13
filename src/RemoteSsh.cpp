@@ -295,7 +295,7 @@ QStringList ScpSyncProcess::generateFullArguments() const
     }
     else
     {
-        // TODO: Error
+        throw SyncProcessException("ScpSyncProcess has unknown direction. Can't generate full arguments.");
     }
 
     return args;
@@ -321,6 +321,6 @@ QString ScpSyncProcess::generateDescription() const
     }
     else
     {
-        // TODO: Error
+        return QString("ScpSyncProcess with unknown direction.");
     }
 }
