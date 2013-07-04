@@ -1,6 +1,5 @@
 SCAP WORKBENCH
 ==============
-
 A GUI tool that provides scanning, tailoring and validation functionality for SCAP content
 
 About
@@ -11,24 +10,34 @@ to access SCAP functionalities.
 
 Homepage of the project is https://fedorahosted.org/scap-workbench/
 
-
 How to run it out of the box
 ----------------------------
-
 1) Make sure you have installed all prerequisites
 
-    $ yum install openscap-python
+  required dependencies:
+    # yum install cmake openssh-clients util-linux openscap-devel qt-devel
 
-2) Install scap workbench:
+  optional dependencies:
+    # yum install qtwebkit-devel
 
-    $ make install
+2) Build scap-workbench:
+
+    $ mkdir build; cd build
+    $ cmake ../
+    $ make
+
+3) Install scap-workbench:
+
+  (inside the build folder):
+    # make install
 
 3a) Run the scanner
 
+  spawning open file dialog:
     $ scap-workbench
-  
-    With debug:
-    $ scap-workbench --debug
 
-    With an XCCDF file to load:
+  with an XCCDF file to load:
     $ scap-workbench /path/to/xccdf-file
+
+  with a source datastream (SDS) to load:
+    $ scap-workbench /path/to/sds-file
