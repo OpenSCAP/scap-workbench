@@ -1,17 +1,8 @@
 # Backups
 *~
 
-# Python bytecode
-*.py[co]
+# Build dir
+build/
 
-# doc (auto generated)
-doc/
-
-# in case the developer is using eclipse
-.project
-.pydevproject
-.settings/
-
-# pylint static analysis output
-src/pylint-output
-
+.clang_complete
+CMakeLists.txt.user
