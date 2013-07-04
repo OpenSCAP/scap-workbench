@@ -51,7 +51,7 @@ static bool versionGreaterThan(const QString& a, const QString& b)
     const QStringList aSplit = a.split(".");
     const QStringList bSplit = a.split(".");
 
-    size_t pos = 0;
+    QStringList::size_type pos = 0;
 
     while (pos < aSplit.size() && pos < bSplit.size())
     {
@@ -97,7 +97,7 @@ void OscapCapabilities::parse(const QString& mmv)
     if (lines.size() < 4 || !lines[3].contains("Supported specifications"))
         return; // TODO: Throw exception?
 
-    size_t linePos = 4;
+    QStringList::size_type linePos = 4;
     while (linePos < lines.size())
     {
         const QStringList versionLineSplit = lines[linePos].split(": ");
