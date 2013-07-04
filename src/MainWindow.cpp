@@ -197,7 +197,7 @@ void MainWindow::openFile(const QString& path)
 
     // force load up of the session
     checklistComboboxChanged(0);
-    setEnabled(true);
+    centralWidget()->setEnabled(true);
 
     mDiagnosticsDialog->infoMessage(QString("Opened file '%1'.").arg(path));
 }
@@ -374,7 +374,7 @@ void MainWindow::closeFile()
         mSession = 0;
     }
 
-    setEnabled(false);
+    centralWidget()->setEnabled(false);
 
     const QString oldOpenedFile = mUI.openedFileLineEdit->text();
     mUI.openedFileLineEdit->setText("");
