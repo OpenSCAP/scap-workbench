@@ -19,14 +19,39 @@
  *      Martin Preisler <mpreisle@redhat.com>
  */
 
-#include "TailoringDialog.h"
+#ifndef SCAP_WORKBENCH_TAILORING_WINDOW_H_
+#define SCAP_WORKBENCH_TAILORING_WINDOW_H_
 
-TailoringDialog::TailoringDialog(QWidget* parent):
-    QDialog(parent)
+#include "ForwardDecls.h"
+
+#include <QDialog>
+
+extern "C"
 {
-    mUI.setupUi(this);
-    show();
+#include <xccdf_benchmark.h>
 }
 
-TailoringDialog::~TailoringDialog()
-{}
+#include "ui_TailoringWindow.h"
+
+/**
+ * @brief Tailors given profile by editing it directly
+ *
+ * If you want to inherit a profile and tailor that, create a new profile,
+ * set up the inheritance and then pass the new profile to this class.
+ */
+class TailoringWindow : public QMainWindow
+{
+    Q_OBJECT
+
+    public:
+        TailoringWindow(struct xccdf_profile* profile, QWidget* parent = 0);
+        virtual ~TailoringWindow();
+
+    protected:
+        /// UI designed in Qt Designer
+        Ui_TailoringWindow mUI;
+
+        struct xccdf_profile* mProfile;
+};
+
+#endif

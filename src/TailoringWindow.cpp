@@ -19,32 +19,15 @@
  *      Martin Preisler <mpreisle@redhat.com>
  */
 
-#ifndef SCAP_WORKBENCH_TAILORING_DIALOG_H_
-#define SCAP_WORKBENCH_TAILORING_DIALOG_H_
+#include "TailoringWindow.h"
 
-#include "ForwardDecls.h"
-
-#include <QDialog>
-
-extern "C"
+TailoringWindow::TailoringWindow(struct xccdf_profile* profile, QWidget* parent):
+    QMainWindow(parent),
+    mProfile(profile)
 {
-#include <xccdf_benchmark.h>
+    mUI.setupUi(this);
+    show();
 }
 
-#include "ui_TailoringDialog.h"
-
-class TailoringDialog : public QDialog
-{
-    Q_OBJECT
-
-    public:
-        TailoringDialog(QWidget* parent = 0);
-        virtual ~TailoringDialog();
-
-    protected:
-        /// UI designed in Qt Designer
-        Ui_TailoringDialog mUI;
-
-};
-
-#endif
+TailoringWindow::~TailoringWindow()
+{}

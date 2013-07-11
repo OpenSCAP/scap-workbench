@@ -24,15 +24,22 @@
     <item>
      <widget class="QWidget" name="scanProperties" native="true">
       <layout class="QGridLayout" name="gridLayout">
-       <item row="0" column="0">
-        <widget class="QLabel" name="label_2">
+       <item row="4" column="1" colspan="3">
+        <widget class="QLineEdit" name="targetLineEdit">
+         <property name="toolTip">
+          <string>&quot;localhost&quot; scans the local machine, without privilege escalation. Any other string is used for ssh connection and remote scanning.</string>
+         </property>
          <property name="text">
-          <string>Input file</string>
+          <string>localhost</string>
          </property>
         </widget>
        </item>
-       <item row="1" column="1" colspan="2">
-        <widget class="QComboBox" name="checklistComboBox"/>
+       <item row="0" column="3">
+        <widget class="QPushButton" name="fileCloseButton">
+         <property name="text">
+          <string>Close</string>
+         </property>
+        </widget>
        </item>
        <item row="0" column="1">
         <widget class="QLineEdit" name="openedFileLineEdit">
@@ -59,20 +66,6 @@
          </property>
         </widget>
        </item>
-       <item row="3" column="0">
-        <widget class="QLabel" name="label_3">
-         <property name="text">
-          <string>Profile</string>
-         </property>
-        </widget>
-       </item>
-       <item row="4" column="1" colspan="2">
-        <widget class="QLineEdit" name="targetLineEdit">
-         <property name="text">
-          <string>localhost</string>
-         </property>
-        </widget>
-       </item>
        <item row="2" column="0">
         <widget class="QLabel" name="label_4">
          <property name="text">
@@ -83,15 +76,29 @@
        <item row="3" column="1">
         <widget class="QComboBox" name="profileComboBox"/>
        </item>
-       <item row="0" column="2">
-        <widget class="QPushButton" name="fileCloseButton">
+       <item row="3" column="0">
+        <widget class="QLabel" name="label_3">
          <property name="text">
-          <string>Close</string>
+          <string>Profile</string>
          </property>
         </widget>
        </item>
-       <item row="2" column="1" colspan="2">
-        <widget class="QComboBox" name="tailoringFileComboBox"/>
+       <item row="1" column="1" colspan="3">
+        <widget class="QComboBox" name="checklistComboBox"/>
+       </item>
+       <item row="1" column="0">
+        <widget class="QLabel" name="checklistLabel">
+         <property name="text">
+          <string>Checklist</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="0">
+        <widget class="QLabel" name="label_2">
+         <property name="text">
+          <string>Input file</string>
+         </property>
+        </widget>
        </item>
        <item row="4" column="0">
         <widget class="QLabel" name="label">
@@ -106,17 +113,23 @@
          </property>
         </widget>
        </item>
-       <item row="3" column="2">
-        <widget class="QPushButton" name="tailorButton">
+       <item row="2" column="1" colspan="3">
+        <widget class="QComboBox" name="tailoringFileComboBox"/>
+       </item>
+       <item row="0" column="2">
+        <widget class="QPushButton" name="saveAsButton">
          <property name="text">
-          <string>Tailor</string>
+          <string>Save As</string>
          </property>
         </widget>
        </item>
-       <item row="1" column="0">
-        <widget class="QLabel" name="checklistLabel">
+       <item row="3" column="2" colspan="2">
+        <widget class="QPushButton" name="tailorButton">
+         <property name="toolTip">
+          <string>Creates a new profile that inherits selected profile, opens a window to edit the newly created profile.</string>
+         </property>
          <property name="text">
-          <string>Checklist</string>
+          <string>Tailor</string>
          </property>
         </widget>
        </item>

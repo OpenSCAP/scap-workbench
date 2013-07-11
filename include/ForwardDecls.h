@@ -34,5 +34,6 @@ class Scanner;
 class SshConnection;
 class SshSyncProcess;
 class SyncProcess;
+class TailoringDialog;
 
 #endif

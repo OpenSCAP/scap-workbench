@@ -24,6 +24,7 @@
 #include "OscapScannerRemoteSsh.h"
 #include "ResultViewer.h"
 #include "DiagnosticsDialog.h"
+#include "TailoringWindow.h"
 
 #include <QFileDialog>
 #include <QAbstractEventDispatcher>
@@ -110,7 +111,20 @@ MainWindow::MainWindow(QWidget* parent):
         this, SLOT(showResults())
     );
 
-    mUI.tailorButton->hide();
+    mInheritAndEditProfileAction = new QAction("Create new profile and inherit selected", this);
+    QObject::connect(
+        mInheritAndEditProfileAction, SIGNAL(triggered()),
+        this, SLOT(inheritAndEditProfile())
+    );
+    mEditProfileAction = new QAction("Edit selected profile", this);
+    QObject::connect(
+        mEditProfileAction, SIGNAL(triggered()),
+        this, SLOT(editProfile())
+    );
+    mTailorButtonMenu = new QMenu(this);
+    mTailorButtonMenu->addAction(mInheritAndEditProfileAction);
+    mTailorButtonMenu->addAction(mEditProfileAction);
+    mUI.tailorButton->setMenu(mTailorButtonMenu);
 
     mResultViewer = new ResultViewer(this);
     mResultViewer->hide();
@@ -612,6 +626,12 @@ void MainWindow::profileComboboxChanged(int index)
         }
     }
 
+    // scap-workbench cannot tailor (default) profile, that would be equivalent to
+    // changing the @selected attributes of Rule elements and that's out of scope.
+    // Note: We can inherit and edit (default) profile by creating a new empty profile.
+
+    mEditProfileAction->setEnabled(xccdf_session_get_profile_id(mSession) != 0);
+
     clearResults();
 }
 
@@ -722,4 +742,26 @@ void MainWindow::scanFinished()
 void MainWindow::showResults()
 {
     mResultViewer->show();
+}
+
+void MainWindow::inheritAndEditProfile()
+{
+    // TODO: create new, inherit current and select new
+    editProfile();
+}
+
+void MainWindow::editProfile()
+{
+    if (!mSession)
+        return;
+
+    struct xccdf_policy* policy = xccdf_session_get_xccdf_policy(mSession);
+    if (!policy)
+        return;
+
+    struct xccdf_profile* profile = xccdf_policy_get_profile(policy);
+    if (!profile)
+        return;
+
+    /*TailoringWindow* tailoringWindow = */new TailoringWindow(profile, this);
 }

@@ -27,6 +27,7 @@
 
 #include <QMainWindow>
 #include <QThread>
+#include <QMenu>
 
 extern "C"
 {
@@ -157,6 +158,12 @@ class MainWindow : public QMainWindow
         /// UI designed in Qt Designer
         Ui_MainWindow mUI;
 
+        /// Menu used for the tailor "combo pushbutton"
+        QMenu* mTailorButtonMenu;
+
+        QAction* mInheritAndEditProfileAction;
+        QAction* mEditProfileAction;
+
         /// This is our central point of interaction with openscap
         struct xccdf_session* mSession;
 
@@ -264,6 +271,9 @@ class MainWindow : public QMainWindow
          * it. It is not destroyed upon closing, just hidden.
          */
         void showResults();
+
+        void inheritAndEditProfile();
+        void editProfile();
 };
 
 #endif
