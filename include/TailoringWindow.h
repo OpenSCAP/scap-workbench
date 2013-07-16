@@ -48,6 +48,8 @@ class TailoringWindow : public QMainWindow
         virtual ~TailoringWindow();
 
     protected:
+        void synchronizeTreeItem(QTreeWidgetItem* treeItem, struct xccdf_item* xccdfItem);
+
         /// UI designed in Qt Designer
         Ui_TailoringWindow mUI;
 
