@@ -30,6 +30,11 @@ TailoringWindow::TailoringWindow(struct xccdf_profile* profile, QWidget* parent)
 
     struct xccdf_benchmark* benchmark = xccdf_item_get_benchmark(xccdf_profile_to_item(profile));
     QTreeWidgetItem* benchmarkItem = new QTreeWidgetItem();
+    // benchmark can't be unselected
+    benchmarkItem->setFlags(
+        Qt::ItemIsSelectable |
+        /*Qt::ItemIsUserCheckable |*/
+        Qt::ItemIsEnabled);
     benchmarkItem->setData(0, Qt::UserRole, QVariant::fromValue(reinterpret_cast<void*>(benchmark)));
     mUI.itemsTree->addTopLevelItem(benchmarkItem);
 
@@ -56,6 +61,29 @@ void TailoringWindow::synchronizeTreeItem(QTreeWidgetItem* treeItem, struct xccd
     char* titleText = oscap_textlist_get_preferred_plaintext(title, NULL);
     treeItem->setText(0, QString(titleText));
     free(titleText);
+
+    const unsigned int typeColumn = 1;
+
+    switch (xccdf_item_get_type(xccdfItem))
+    {
+        case XCCDF_BENCHMARK:
+            treeItem->setText(typeColumn, QString("Benchmark"));
+            break;
+
+        case XCCDF_GROUP:
+            treeItem->setText(typeColumn, QString("Group"));
+            break;
+
+        case XCCDF_RULE:
+            treeItem->setText(typeColumn, QString("Rule"));
+            break;
+
+        default:
+            treeItem->setText(typeColumn, QString("Unknown"));
+            break;
+    }
+
+    treeItem->setText(2, QString(xccdf_item_get_id(xccdfItem)));
 
     treeItem->setData(0, Qt::UserRole, QVariant(0, xccdfItem));
 
@@ -112,6 +140,12 @@ void TailoringWindow::synchronizeTreeItem(QTreeWidgetItem* treeItem, struct xccd
          it != itemsToAdd.end(); ++it)
     {
         QTreeWidgetItem* childTreeItem = new QTreeWidgetItem();
+        childTreeItem->setFlags(
+            Qt::ItemIsSelectable |
+            Qt::ItemIsUserCheckable |
+            Qt::ItemIsEnabled);
+        childTreeItem->setCheckState(0, Qt::Checked);
+
         treeItem->addChild(childTreeItem);
         struct xccdf_item* childXccdfItem = *it;
 
