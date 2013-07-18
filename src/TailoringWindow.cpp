@@ -52,6 +52,11 @@ void XCCDFItemPropertiesDockWidget::refresh()
         free(titleText);
 
         mUI.idLineEdit->setText(QString(xccdf_item_get_id(mXccdfItem)));
+
+        struct oscap_text_iterator* description = xccdf_item_get_description(mXccdfItem);
+        char* descriptionText = oscap_textlist_get_preferred_plaintext(description, NULL);
+        mUI.descriptionTextEdit->setHtml(QString(descriptionText));
+        free(descriptionText);
     }
     else
     {
