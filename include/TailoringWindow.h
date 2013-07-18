@@ -32,6 +32,25 @@ extern "C"
 }
 
 #include "ui_TailoringWindow.h"
+#include "ui_XCCDFItemPropertiesDockWidget.h"
+
+class XCCDFItemPropertiesDockWidget : public QDockWidget
+{
+    Q_OBJECT
+
+    public:
+        XCCDFItemPropertiesDockWidget(QWidget* parent = 0);
+        virtual ~XCCDFItemPropertiesDockWidget();
+
+        void setXccdfItem(struct xccdf_item* item);
+        void refresh();
+
+    protected:
+        /// UI designed in Qt Designer
+        Ui_XCCDFItemPropertiesDockWidget mUI;
+
+        struct xccdf_item* mXccdfItem;
+};
 
 /**
  * @brief Tailors given profile by editing it directly
@@ -53,7 +72,12 @@ class TailoringWindow : public QMainWindow
         /// UI designed in Qt Designer
         Ui_TailoringWindow mUI;
 
+        XCCDFItemPropertiesDockWidget* mItemPropertiesDockWidget;
+
         struct xccdf_profile* mProfile;
+
+    protected slots:
+        void currentXccdfItemChanged(QTreeWidgetItem* current, QTreeWidgetItem* previous);
 };
 
 #endif

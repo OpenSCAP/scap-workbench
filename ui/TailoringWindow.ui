@@ -66,15 +66,6 @@
    <addaction name="actionUndo"/>
    <addaction name="actionRedo"/>
   </widget>
-  <widget class="QDockWidget" name="itemPropertiesDockWidget">
-   <property name="windowTitle">
-    <string>Item Properties</string>
-   </property>
-   <attribute name="dockWidgetArea">
-    <number>2</number>
-   </attribute>
-   <widget class="QWidget" name="dockWidgetContents"/>
-  </widget>
   <action name="actionUndo">
    <property name="text">
     <string>Undo</string>

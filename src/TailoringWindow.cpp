@@ -22,11 +22,57 @@
 #include "TailoringWindow.h"
 #include <set>
 
+XCCDFItemPropertiesDockWidget::XCCDFItemPropertiesDockWidget(QWidget* parent):
+    QDockWidget(parent),
+
+    mXccdfItem(0)
+{
+    mUI.setupUi(this);
+
+    refresh();
+}
+
+XCCDFItemPropertiesDockWidget::~XCCDFItemPropertiesDockWidget()
+{}
+
+void XCCDFItemPropertiesDockWidget::setXccdfItem(struct xccdf_item* item)
+{
+    mXccdfItem = item;
+
+    refresh();
+}
+
+void XCCDFItemPropertiesDockWidget::refresh()
+{
+    if (mXccdfItem)
+    {
+        struct oscap_text_iterator* title = xccdf_item_get_title(mXccdfItem);
+        char* titleText = oscap_textlist_get_preferred_plaintext(title, NULL);
+        mUI.titleLineEdit->setText(QString(titleText));
+        free(titleText);
+
+        mUI.idLineEdit->setText(QString(xccdf_item_get_id(mXccdfItem)));
+    }
+    else
+    {
+        mUI.titleLineEdit->setText("<no item selected>");
+        mUI.idLineEdit->setText("");
+    }
+}
+
 TailoringWindow::TailoringWindow(struct xccdf_profile* profile, QWidget* parent):
     QMainWindow(parent),
+    mItemPropertiesDockWidget(new XCCDFItemPropertiesDockWidget(this)),
+
     mProfile(profile)
 {
     mUI.setupUi(this);
+    addDockWidget(Qt::RightDockWidgetArea, mItemPropertiesDockWidget);
+
+    QObject::connect(
+        mUI.itemsTree, SIGNAL(currentItemChanged(QTreeWidgetItem*, QTreeWidgetItem*)),
+        this, SLOT(currentXccdfItemChanged(QTreeWidgetItem*, QTreeWidgetItem*))
+    );
 
     struct xccdf_benchmark* benchmark = xccdf_item_get_benchmark(xccdf_profile_to_item(profile));
     QTreeWidgetItem* benchmarkItem = new QTreeWidgetItem();
@@ -35,7 +81,6 @@ TailoringWindow::TailoringWindow(struct xccdf_profile* profile, QWidget* parent)
         Qt::ItemIsSelectable |
         /*Qt::ItemIsUserCheckable |*/
         Qt::ItemIsEnabled);
-    benchmarkItem->setData(0, Qt::UserRole, QVariant::fromValue(reinterpret_cast<void*>(benchmark)));
     mUI.itemsTree->addTopLevelItem(benchmarkItem);
 
     synchronizeTreeItem(benchmarkItem, xccdf_benchmark_to_item(benchmark));
@@ -84,8 +129,7 @@ void TailoringWindow::synchronizeTreeItem(QTreeWidgetItem* treeItem, struct xccd
     }
 
     treeItem->setText(2, QString(xccdf_item_get_id(xccdfItem)));
-
-    treeItem->setData(0, Qt::UserRole, QVariant(0, xccdfItem));
+    treeItem->setData(0, Qt::UserRole, QVariant::fromValue(reinterpret_cast<void*>(xccdfItem)));
 
     std::set<struct xccdf_item*> itemsToAdd;
     struct xccdf_item_iterator* itemsIt = NULL;
@@ -151,4 +195,10 @@ void TailoringWindow::synchronizeTreeItem(QTreeWidgetItem* treeItem, struct xccd
 
         synchronizeTreeItem(childTreeItem, childXccdfItem);
     }
+}
+
+void TailoringWindow::currentXccdfItemChanged(QTreeWidgetItem* current, QTreeWidgetItem* previous)
+{
+    struct xccdf_item* item = getXccdfItemFromTreeItem(current);
+    mItemPropertiesDockWidget->setXccdfItem(item);
 }
