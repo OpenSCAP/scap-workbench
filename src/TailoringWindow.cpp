@@ -62,6 +62,7 @@ void XCCDFItemPropertiesDockWidget::refresh()
     {
         mUI.titleLineEdit->setText("<no item selected>");
         mUI.idLineEdit->setText("");
+        mUI.descriptionTextEdit->setHtml("");
     }
 }
 
