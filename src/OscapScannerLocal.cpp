@@ -116,7 +116,16 @@ void OscapScannerLocal::evaluate()
                 mScannerMode == SM_SCAN_ONLINE_REMEDIATION);
     }
 
+#if SCAP_WORKBENCH_OSCAP_LOCAL_NICENESS != 0
+    args.prepend(SCAP_WORKBENCH_LOCAL_OSCAP_PATH);
+    args.prepend(QString::number(SCAP_WORKBENCH_OSCAP_LOCAL_NICENESS));
+    args.prepend("-n");
+
+    process.start(SCAP_WORKBENCH_LOCAL_NICE_PATH, args);
+#else
     process.start(SCAP_WORKBENCH_LOCAL_OSCAP_PATH, args);
+#endif
+
 
     const unsigned int pollInterval = 100;
 
