@@ -25,6 +25,8 @@
 #include "ForwardDecls.h"
 
 #include <QDialog>
+#include <QUndoCommand>
+#include <QUndoStack>
 
 extern "C"
 {
@@ -53,6 +55,26 @@ class XCCDFItemPropertiesDockWidget : public QDockWidget
         struct xccdf_item* mXccdfItem;
 };
 
+class TailoringWindow;
+
+class XCCDFItemSelectUndoCommand : public QUndoCommand
+{
+    public:
+        XCCDFItemSelectUndoCommand(TailoringWindow* window, QTreeWidgetItem* item, bool newSelect);
+        virtual ~XCCDFItemSelectUndoCommand();
+
+        virtual int id() const;
+
+        virtual void redo();
+        virtual void undo();
+
+    private:
+        TailoringWindow* mWindow;
+
+        QTreeWidgetItem* mTreeItem;
+        bool mNewSelect;
+};
+
 /**
  * @brief Tailors given profile by editing it directly
  *
@@ -67,10 +89,12 @@ class TailoringWindow : public QMainWindow
         TailoringWindow(struct xccdf_policy* policy, QWidget* parent = 0);
         virtual ~TailoringWindow();
 
+        void setItemSelected(struct xccdf_item* xccdfItem, bool selected);
+        void synchronizeTreeItem(QTreeWidgetItem* treeItem, struct xccdf_item* xccdfItem, bool recursive);
+
     protected:
         /// if > 0, ignore itemChanged signals, these would just excessively add selects and bloat memory
         unsigned int mSynchronizeItemLock;
-        void synchronizeTreeItem(QTreeWidgetItem* treeItem, struct xccdf_item* xccdfItem, bool recursive);
 
         /// UI designed in Qt Designer
         Ui_TailoringWindow mUI;
@@ -79,6 +103,8 @@ class TailoringWindow : public QMainWindow
 
         struct xccdf_policy* mPolicy;
         struct xccdf_profile* mProfile;
+
+        QUndoStack mUndoStack;
 
     protected slots:
         void itemSelectionChanged(QTreeWidgetItem* current, QTreeWidgetItem* previous);
