@@ -29,6 +29,7 @@
 extern "C"
 {
 #include <xccdf_benchmark.h>
+#include <xccdf_policy.h>
 }
 
 #include "ui_TailoringWindow.h"
@@ -63,21 +64,25 @@ class TailoringWindow : public QMainWindow
     Q_OBJECT
 
     public:
-        TailoringWindow(struct xccdf_profile* profile, QWidget* parent = 0);
+        TailoringWindow(struct xccdf_policy* policy, QWidget* parent = 0);
         virtual ~TailoringWindow();
 
     protected:
-        void synchronizeTreeItem(QTreeWidgetItem* treeItem, struct xccdf_item* xccdfItem);
+        /// if > 0, ignore itemChanged signals, these would just excessively add selects and bloat memory
+        unsigned int mSynchronizeItemLock;
+        void synchronizeTreeItem(QTreeWidgetItem* treeItem, struct xccdf_item* xccdfItem, bool recursive);
 
         /// UI designed in Qt Designer
         Ui_TailoringWindow mUI;
 
         XCCDFItemPropertiesDockWidget* mItemPropertiesDockWidget;
 
+        struct xccdf_policy* mPolicy;
         struct xccdf_profile* mProfile;
 
     protected slots:
-        void currentXccdfItemChanged(QTreeWidgetItem* current, QTreeWidgetItem* previous);
+        void itemSelectionChanged(QTreeWidgetItem* current, QTreeWidgetItem* previous);
+        void itemChanged(QTreeWidgetItem* item, int column);
 };
 
 #endif

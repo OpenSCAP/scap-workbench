@@ -759,9 +759,9 @@ void MainWindow::editProfile()
     if (!policy)
         return;
 
-    struct xccdf_profile* profile = xccdf_policy_get_profile(policy);
+    /*struct xccdf_profile* profile = xccdf_policy_get_profile(policy);
     if (!profile)
-        return;
+        return;*/
 
-    /*TailoringWindow* tailoringWindow = */new TailoringWindow(profile, this);
+    /*TailoringWindow* tailoringWindow = */new TailoringWindow(policy, this);
 }
