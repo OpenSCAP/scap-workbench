@@ -746,7 +746,61 @@ void MainWindow::showResults()
 
 void MainWindow::inheritAndEditProfile()
 {
-    // TODO: create new, inherit current and select new
+    if (!mSession)
+        return;
+
+    // create a new profile, inheriting the currently selected profile
+    // or no profile if currently selected profile is the '(default profile)'
+    struct xccdf_policy_model* policyModel = xccdf_session_get_policy_model(mSession);
+    if (!policyModel)
+        return;
+
+    struct xccdf_policy* policy= xccdf_session_get_xccdf_policy(mSession);
+    if (!policy)
+        return;
+
+    struct xccdf_profile* newProfile = xccdf_profile_new();
+
+    struct xccdf_profile* oldProfile = xccdf_policy_get_profile(policy);
+    // TODO: new profile's ID may clash with existing profile!
+    if (oldProfile)
+    {
+        xccdf_profile_set_extends(newProfile, xccdf_profile_get_id(oldProfile));
+
+        QString newId = QString(xccdf_profile_get_id(oldProfile)) + QString("_tailored");
+        xccdf_profile_set_id(newProfile, newId.toUtf8().constData());
+
+        struct oscap_text_iterator* titles = xccdf_profile_get_title(oldProfile);
+        while (oscap_text_iterator_has_more(titles))
+        {
+            struct oscap_text* oldTitle = oscap_text_iterator_next(titles);
+            struct oscap_text* newTitle = oscap_text_clone(oldTitle);
+
+            oscap_text_set_text(newTitle, (QString(oscap_text_get_text(oldTitle)) + QString(" tailored")).toUtf8().constData());
+            xccdf_profile_add_title(newProfile, newTitle);
+        }
+    }
+    else
+    {
+        xccdf_profile_set_id(newProfile, "xccdf_profile_default_tailored");
+
+        struct oscap_text* newTitle = oscap_text_new();
+        oscap_text_set_lang(newTitle, "en_US");
+        oscap_text_set_text(newTitle, "(default profile) tailored");
+        xccdf_profile_add_title(newProfile, newTitle);
+    }
+
+    struct xccdf_benchmark* benchmark = xccdf_policy_model_get_benchmark(policyModel);
+    xccdf_benchmark_add_profile(benchmark, newProfile);
+
+    refreshProfiles();
+
+    // select the new profile as current
+    int indexCandidate = mUI.profileComboBox->findData(QVariant(xccdf_profile_get_id(newProfile)));
+    if (indexCandidate != -1)
+        mUI.profileComboBox->setCurrentIndex(indexCandidate);
+
+    // and edit it
     editProfile();
 }
 
