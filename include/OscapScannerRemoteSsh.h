@@ -48,7 +48,6 @@ class OscapScannerRemoteSsh : public OscapScannerBase
         void removeRemoteFile(const QString& path, const QString& desc);
 
         SshConnection mSshConnection;
-        QProcess* mMasterProcess;
 };
 
 #endif
