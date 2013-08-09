@@ -35,6 +35,7 @@ class OscapScannerRemoteSsh : public OscapScannerBase
         virtual ~OscapScannerRemoteSsh();
 
         virtual void setTarget(const QString& target);
+        virtual void setSession(struct xccdf_session* session);
 
         virtual void evaluate();
 

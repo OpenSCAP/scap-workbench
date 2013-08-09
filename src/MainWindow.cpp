@@ -326,15 +326,26 @@ void MainWindow::scanAsync(ScannerMode scannerMode)
         );
     }
 
-    mScanner->setScanThread(mScanThread);
-    mScanner->setMainThread(thread());
-    mScanner->setSession(mSession);
-    mScanner->setScannerMode(scannerMode);
-
-    if (scannerMode == SM_OFFLINE_REMEDIATION)
+    try
     {
-        // TODO: Allow user to tweak the results to deselect/select rules to remediate, etc...
-        mScanner->setARFForRemediation(mResultViewer->getARF());
+        mScanner->setScanThread(mScanThread);
+        mScanner->setMainThread(thread());
+        mScanner->setSession(mSession);
+        mScanner->setScannerMode(scannerMode);
+
+        if (scannerMode == SM_OFFLINE_REMEDIATION)
+        {
+            // TODO: Allow user to tweak the results to deselect/select rules to remediate, etc...
+            mScanner->setARFForRemediation(mResultViewer->getARF());
+        }
+    }
+    catch (const std::exception& e)
+    {
+        mDiagnosticsDialog->errorMessage(
+            QString("There was a problem when setting up the scanner. Details follow:\n%1").arg(e.what()));
+
+        scanCanceled();
+        return;
     }
 
     mScanner->moveToThread(mScanThread);

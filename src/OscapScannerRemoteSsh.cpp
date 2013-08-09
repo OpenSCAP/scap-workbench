@@ -54,6 +54,15 @@ void OscapScannerRemoteSsh::setTarget(const QString& target)
 
     mSshConnection.setTarget(target);
 }
+void OscapScannerRemoteSsh::setSession(struct xccdf_session* session)
+{
+    OscapScannerBase::setSession(session);
+
+    if (!xccdf_session_is_sds(session))
+    {
+        throw OscapScannerRemoteSshException("You can only use source datastreams for scanning remotely!");
+    }
+}
 
 void OscapScannerRemoteSsh::evaluate()
 {

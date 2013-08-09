@@ -45,4 +45,7 @@ SCAP_WORKBENCH_SIMPLE_EXCEPTION(SyncProcessException,
 SCAP_WORKBENCH_SIMPLE_EXCEPTION(SshConnectionException,
     "There was a problem with SshConnection!\n");
 
+SCAP_WORKBENCH_SIMPLE_EXCEPTION(OscapScannerRemoteSshException,
+    "There was a problem with OscapScannerRemoteSsh!\n");
+
 #endif
