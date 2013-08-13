@@ -158,6 +158,10 @@ class MainWindow : public QMainWindow
         /// UI designed in Qt Designer
         Ui_MainWindow mUI;
 
+        /// Qt Dialog that displays messages (errors, warnings, infos)
+        /// Gets shown whenever a warning or error is emitted
+        DiagnosticsDialog* mDiagnosticsDialog;
+
         /// Menu used for the tailor "combo pushbutton"
         QMenu* mTailorButtonMenu;
 
@@ -165,7 +169,10 @@ class MainWindow : public QMainWindow
         QAction* mEditProfileAction;
 
         /// This is our central point of interaction with openscap
-        struct xccdf_session* mSession;
+        ScanningSession* mScanningSession;
+
+        /// Qt Dialog that displays results and allows user to save them
+        ResultViewer* mResultViewer;
 
         /// Thread that handles scanning and/or remediating, NULL if none is underway
         QThread* mScanThread;
@@ -174,13 +181,6 @@ class MainWindow : public QMainWindow
          * @see Scanner
          */
         Scanner* mScanner;
-
-        /// Qt Dialog that displays results and allows user to save them
-        ResultViewer* mResultViewer;
-
-        /// Qt Dialog that displays messages (errors, warnings, infos)
-        /// Gets shown whenever a warning or error is emitted
-        DiagnosticsDialog* mDiagnosticsDialog;
 
     signals:
         /**

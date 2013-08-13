@@ -24,16 +24,18 @@
 
 #include "Config.h"
 
+class Application;
 class DiagnosticsDialog;
 class MainWindow;
 class OscapScannerBase;
 class OscapScannerLocal;
 class OscapScannerRemoteSsh;
 class ResultViewer;
+class ScanningSession;
 class Scanner;
 class SshConnection;
 class SshSyncProcess;
 class SyncProcess;
-class TailoringDialog;
+class TailoringWindow;
 
 #endif

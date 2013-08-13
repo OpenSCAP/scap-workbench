@@ -25,6 +25,7 @@
 #include "ResultViewer.h"
 #include "DiagnosticsDialog.h"
 #include "TailoringWindow.h"
+#include "ScanningSession.h"
 
 #include <QFileDialog>
 #include <QAbstractEventDispatcher>
@@ -44,13 +45,12 @@ const QString TAILORING_NONE = "(none)";
 MainWindow::MainWindow(QWidget* parent):
     QMainWindow(parent),
 
-    mSession(0),
+    mDiagnosticsDialog(0),
+
+    mScanningSession(0),
 
     mScanThread(0),
-    mScanner(0),
-
-    mResultViewer(0),
-    mDiagnosticsDialog(0)
+    mScanner(0)
 {
     mUI.setupUi(this);
     mUI.progressBar->reset();
@@ -132,6 +132,8 @@ MainWindow::MainWindow(QWidget* parent):
     mDiagnosticsDialog = new DiagnosticsDialog(this);
     mDiagnosticsDialog->hide();
 
+    mScanningSession = new ScanningSession(mDiagnosticsDialog, this);
+
     show();
 }
 
@@ -141,6 +143,8 @@ MainWindow::~MainWindow()
     mScanner = 0;
 
     closeFile();
+    delete mScanningSession;
+
     delete mResultViewer;
 }
 
@@ -160,25 +164,14 @@ void MainWindow::clearResults()
 
 void MainWindow::openFile(const QString& path)
 {
-    if (mSession)
-    {
-        closeFile();
-    }
-
-    mSession = xccdf_session_new(path.toUtf8().constData());
-    if (!mSession)
-    {
-        mDiagnosticsDialog->errorMessage(
-            QString("Failed to create session for '%1'. OpenSCAP error message:\n%2").arg(path).arg(oscap_err_desc()));
-        return;
-    }
+    mScanningSession->openFile(path);
 
     mUI.tailoringFileComboBox->addItem(QString("(none)"), QVariant(QString::Null()));
 
     mUI.openedFileLineEdit->setText(path);
-    if (xccdf_session_is_sds(mSession))
+    if (mScanningSession->isSDS())
     {
-        struct ds_sds_index* sds_idx = xccdf_session_get_sds_idx(mSession);
+        struct ds_sds_index* sds_idx = xccdf_session_get_sds_idx(mScanningSession->getXCCDFSession());
 
         struct ds_stream_index_iterator* streams_it = ds_sds_index_get_streams(sds_idx);
         while (ds_stream_index_iterator_has_more(streams_it))
@@ -220,7 +213,7 @@ void MainWindow::openFileDialog()
 {
     closeFile();
 
-    while (!mSession)
+    while (!mScanningSession->fileOpened())
     {
         QString path = QFileDialog::getOpenFileName(this,
             "Open Source DataStream or XCCDF file",
@@ -238,8 +231,10 @@ void MainWindow::openFileDialog()
         }
 
         openFile(path);
-        if (!mSession)
+        if (!mScanningSession->fileOpened())
         {
+            // Error occured, keep pumping events and don't move on until user
+            // dismisses diagnostics dialog.
             while (mDiagnosticsDialog->isVisible())
             {
                 QAbstractEventDispatcher::instance(0)->processEvents(QEventLoop::AllEvents);
@@ -255,7 +250,7 @@ void MainWindow::openFileDialogAsync()
 
 void MainWindow::scanAsync(ScannerMode scannerMode)
 {
-    assert(mSession);
+    assert(mScanningSession->fileOpened());
     assert(!mScanThread);
 
     clearResults();
@@ -264,7 +259,7 @@ void MainWindow::scanAsync(ScannerMode scannerMode)
     mUI.preScanTools->hide();
     mUI.scanTools->show();
 
-    struct xccdf_policy* policy = xccdf_session_get_xccdf_policy(mSession);
+    struct xccdf_policy* policy = xccdf_session_get_xccdf_policy(mScanningSession->getXCCDFSession());
     if (!policy)
     {
         mDiagnosticsDialog->errorMessage(
@@ -330,7 +325,7 @@ void MainWindow::scanAsync(ScannerMode scannerMode)
     {
         mScanner->setScanThread(mScanThread);
         mScanner->setMainThread(thread());
-        mScanner->setSession(mSession);
+        mScanner->setSession(mScanningSession->getXCCDFSession());
         mScanner->setScannerMode(scannerMode);
 
         if (scannerMode == SM_OFFLINE_REMEDIATION)
@@ -370,7 +365,7 @@ void MainWindow::offlineRemediateAsync()
 
 void MainWindow::cancelScanAsync()
 {
-    assert(mSession);
+    assert(mScanningSession->fileOpened());
 
     mUI.cancelButton->setEnabled(false);
     emit cancelScan();
@@ -378,7 +373,7 @@ void MainWindow::cancelScanAsync()
 
 void MainWindow::closeEvent(QCloseEvent* event)
 {
-    if (mSession)
+    if (mScanningSession->fileOpened())
         cancelScanAsync();
 
     // wait until scanner cancels
@@ -393,15 +388,10 @@ void MainWindow::closeEvent(QCloseEvent* event)
 
 void MainWindow::closeFile()
 {
-    if (mSession)
-    {
-        xccdf_session_free(mSession);
-        mSession = 0;
-    }
+    mScanningSession->closeFile();
 
     centralWidget()->setEnabled(false);
 
-    const QString oldOpenedFile = mUI.openedFileLineEdit->text();
     mUI.openedFileLineEdit->setText("");
 
     mUI.checklistComboBox->clear();
@@ -413,26 +403,13 @@ void MainWindow::closeFile()
     mUI.profileComboBox->clear();
 
     clearResults();
-    mDiagnosticsDialog->clear();
-
-    if (!oldOpenedFile.isEmpty())
-        mDiagnosticsDialog->infoMessage(QString("Closed file '%1'.").arg(oldOpenedFile));
 }
 
 void MainWindow::reloadSession()
 {
-    if (!mSession)
-        return;
+    mScanningSession->reloadSession();
 
-    clearResults();
-
-    if (xccdf_session_load(mSession) != 0)
-    {
-        mDiagnosticsDialog->errorMessage(
-            QString("Failed to reload session. OpenSCAP error message:\n%1").arg(oscap_err_desc()));
-        return;
-    }
-
+    mResultViewer->clear();
     refreshProfiles();
 }
 
@@ -444,12 +421,12 @@ void MainWindow::refreshProfiles()
 
     mUI.profileComboBox->clear();
 
-    if (!mSession)
+    if (!mScanningSession->fileOpened())
         return;
 
     mUI.profileComboBox->addItem("(default)", QVariant(QString::Null()));
 
-    struct xccdf_policy_model* pmodel = xccdf_session_get_policy_model(mSession);
+    struct xccdf_policy_model* pmodel = xccdf_session_get_policy_model(mScanningSession->getXCCDFSession());
 
     // We construct a temporary map that maps profile IDs to what we will show
     // in the combobox. We do this to convey that some profiles are shadowed
@@ -544,20 +521,20 @@ void MainWindow::cleanupScanThread()
 
 void MainWindow::checklistComboboxChanged(int index)
 {
-    if (!mSession)
+    if (!mScanningSession->fileOpened())
         return;
 
     const QStringList data = mUI.checklistComboBox->itemData(index).toStringList();
 
     if (data.size() == 2)
     {
-        xccdf_session_set_datastream_id(mSession, data.at(0).toUtf8().constData());
-        xccdf_session_set_component_id(mSession, data.at(1).toUtf8().constData());
+        mScanningSession->setDatastreamID(data.at(0), true);
+        mScanningSession->setComponentID(data.at(1), true);
     }
     else
     {
-        xccdf_session_set_datastream_id(mSession, 0);
-        xccdf_session_set_component_id(mSession, 0);
+        mScanningSession->setDatastreamID(QString(), true);
+        mScanningSession->setComponentID(QString(), true);
     }
 
     reloadSession();
@@ -565,7 +542,7 @@ void MainWindow::checklistComboboxChanged(int index)
 
 void MainWindow::tailoringFileComboboxChanged(int index)
 {
-    if (!mSession)
+    if (!mScanningSession->fileOpened())
         return;
 
     const QString text = mUI.tailoringFileComboBox->itemText(index);
@@ -575,8 +552,7 @@ void MainWindow::tailoringFileComboboxChanged(int index)
     {
         if (text == TAILORING_NONE)
         {
-            xccdf_session_set_user_tailoring_file(mSession, NULL);
-            xccdf_session_set_user_tailoring_cid(mSession, NULL);
+            mScanningSession->resetTailoring();
         }
         else if (text == TAILORING_CUSTOM_FILE)
         {
@@ -592,8 +568,7 @@ void MainWindow::tailoringFileComboboxChanged(int index)
             }
             else
             {
-                xccdf_session_set_user_tailoring_cid(mSession, NULL);
-                xccdf_session_set_user_tailoring_file(mSession, filePath.toUtf8().constData());
+                mScanningSession->setTailoringFile(filePath);
             }
         }
         else
@@ -604,8 +579,7 @@ void MainWindow::tailoringFileComboboxChanged(int index)
     }
     else
     {
-        xccdf_session_set_user_tailoring_file(mSession, NULL);
-        xccdf_session_set_user_tailoring_cid(mSession, data.toUtf8().constData());
+        mScanningSession->setTailoringComponentID(data);
     }
 
     reloadSession();
@@ -613,20 +587,21 @@ void MainWindow::tailoringFileComboboxChanged(int index)
 
 void MainWindow::profileComboboxChanged(int index)
 {
-    if (!mSession)
+    if (!mScanningSession->fileOpened())
         return;
 
     QString profileId = mUI.profileComboBox->itemData(index).toString();
 
     if (profileId == QString::Null())
     {
-        xccdf_session_set_profile_id(mSession, 0);
+        mScanningSession->setProfileID(QString());
     }
     else
     {
-        if (!xccdf_session_set_profile_id(mSession, profileId.toUtf8().constData()))
+        // todo: use exceptions here
+        if (!mScanningSession->setProfileID(profileId))
         {
-            xccdf_session_set_profile_id(mSession, 0);
+            mScanningSession->setProfileID(QString());
 
             mDiagnosticsDialog->warningMessage(
                 QString(
@@ -641,7 +616,7 @@ void MainWindow::profileComboboxChanged(int index)
     // changing the @selected attributes of Rule elements and that's out of scope.
     // Note: We can inherit and edit (default) profile by creating a new empty profile.
 
-    mEditProfileAction->setEnabled(xccdf_session_get_profile_id(mSession) != 0);
+    mEditProfileAction->setEnabled(mScanningSession->profileSelected());
 
     clearResults();
 }
@@ -659,9 +634,9 @@ void MainWindow::scanProgressReport(const QString& rule_id, const QString& resul
        optimistic!
     */
 
-    assert(mSession);
+    assert(mScanningSession->fileOpened());
 
-    struct xccdf_benchmark* benchmark = xccdf_policy_model_get_benchmark(xccdf_session_get_policy_model(mSession));
+    struct xccdf_benchmark* benchmark = xccdf_policy_model_get_benchmark(xccdf_session_get_policy_model(mScanningSession->getXCCDFSession()));
     struct xccdf_item* item = xccdf_benchmark_get_member(benchmark, XCCDF_ITEM, rule_id.toUtf8().constData());
 
     if (!item)
@@ -757,53 +732,7 @@ void MainWindow::showResults()
 
 void MainWindow::inheritAndEditProfile()
 {
-    if (!mSession)
-        return;
-
-    // create a new profile, inheriting the currently selected profile
-    // or no profile if currently selected profile is the '(default profile)'
-    struct xccdf_policy_model* policyModel = xccdf_session_get_policy_model(mSession);
-    if (!policyModel)
-        return;
-
-    struct xccdf_policy* policy= xccdf_session_get_xccdf_policy(mSession);
-    if (!policy)
-        return;
-
-    struct xccdf_profile* newProfile = xccdf_profile_new();
-
-    struct xccdf_profile* oldProfile = xccdf_policy_get_profile(policy);
-    // TODO: new profile's ID may clash with existing profile!
-    if (oldProfile)
-    {
-        xccdf_profile_set_extends(newProfile, xccdf_profile_get_id(oldProfile));
-
-        QString newId = QString(xccdf_profile_get_id(oldProfile)) + QString("_tailored");
-        xccdf_profile_set_id(newProfile, newId.toUtf8().constData());
-
-        struct oscap_text_iterator* titles = xccdf_profile_get_title(oldProfile);
-        while (oscap_text_iterator_has_more(titles))
-        {
-            struct oscap_text* oldTitle = oscap_text_iterator_next(titles);
-            struct oscap_text* newTitle = oscap_text_clone(oldTitle);
-
-            oscap_text_set_text(newTitle, (QString(oscap_text_get_text(oldTitle)) + QString(" tailored")).toUtf8().constData());
-            xccdf_profile_add_title(newProfile, newTitle);
-        }
-    }
-    else
-    {
-        xccdf_profile_set_id(newProfile, "xccdf_profile_default_tailored");
-
-        struct oscap_text* newTitle = oscap_text_new();
-        oscap_text_set_lang(newTitle, "en_US");
-        oscap_text_set_text(newTitle, "(default profile) tailored");
-        xccdf_profile_add_title(newProfile, newTitle);
-    }
-
-    struct xccdf_benchmark* benchmark = xccdf_policy_model_get_benchmark(policyModel);
-    xccdf_benchmark_add_profile(benchmark, newProfile);
-
+    struct xccdf_profile* newProfile = mScanningSession->tailorCurrentProfile(false);
     refreshProfiles();
 
     // select the new profile as current
@@ -817,10 +746,10 @@ void MainWindow::inheritAndEditProfile()
 
 void MainWindow::editProfile()
 {
-    if (!mSession)
+    if (!mScanningSession->fileOpened())
         return;
 
-    struct xccdf_policy* policy = xccdf_session_get_xccdf_policy(mSession);
+    struct xccdf_policy* policy = xccdf_session_get_xccdf_policy(mScanningSession->getXCCDFSession());
     if (!policy)
         return;
 
