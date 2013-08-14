@@ -34,6 +34,7 @@ ScanningSession::ScanningSession(DiagnosticsDialog* diagnosticsDialog, QObject* 
     QObject(parent),
 
     mSession(0),
+    mSessionDirty(false),
 
     mDiagnosticsDialog(diagnosticsDialog)
 {}
@@ -45,7 +46,8 @@ ScanningSession::~ScanningSession()
 
 struct xccdf_session* ScanningSession::getXCCDFSession() const
 {
-        return mSession;
+    reloadSession();
+    return mSession;
 }
 
 bool ScanningSession::fileOpened() const
@@ -58,6 +60,7 @@ bool ScanningSession::profileSelected() const
     if (!fileOpened())
         return false;
 
+    reloadSession();
     return xccdf_session_get_profile_id(mSession) != 0;
 }
 
@@ -73,6 +76,7 @@ void ScanningSession::openFile(const QString& path)
             QString("Failed to create session for '%1'. OpenSCAP error message:\n%2").arg(path).arg(oscap_err_desc()));
         return;
     }
+    mSessionDirty = true;
 
     mDiagnosticsDialog->infoMessage(QString("Opened file '%1'.").arg(path));
 }
@@ -85,6 +89,7 @@ void ScanningSession::closeFile()
     {
         xccdf_session_free(mSession);
         mSession = 0;
+        mSessionDirty = false;
     }
 
     if (!oldOpenedFile.isEmpty())
@@ -96,29 +101,28 @@ bool ScanningSession::isSDS() const
     if (!fileOpened())
         return false;
 
+    reloadSession();
     return xccdf_session_is_sds(mSession);
 }
 
-void ScanningSession::setDatastreamID(const QString& datastreamID, bool skipReload)
+void ScanningSession::setDatastreamID(const QString& datastreamID)
 {
     if (datastreamID.isEmpty())
         xccdf_session_set_datastream_id(mSession, 0);
     else
         xccdf_session_set_datastream_id(mSession, datastreamID.toUtf8().constData());
 
-    if (!skipReload)
-        reloadSession();
+    mSessionDirty = true;
 }
 
-void ScanningSession::setComponentID(const QString& componentID, bool skipReload)
+void ScanningSession::setComponentID(const QString& componentID)
 {
     if (componentID.isEmpty())
         xccdf_session_set_component_id(mSession, 0);
     else
         xccdf_session_set_component_id(mSession, componentID.toUtf8().constData());
 
-    if (!skipReload)
-        reloadSession();
+    mSessionDirty = true;
 }
 
 void ScanningSession::resetTailoring()
@@ -128,6 +132,8 @@ void ScanningSession::resetTailoring()
 
     xccdf_session_set_user_tailoring_cid(mSession, 0);
     xccdf_session_set_user_tailoring_file(mSession, 0);
+
+    mSessionDirty = true;
 }
 
 void ScanningSession::setTailoringFile(const QString& tailoringFile)
@@ -137,6 +143,8 @@ void ScanningSession::setTailoringFile(const QString& tailoringFile)
 
     xccdf_session_set_user_tailoring_cid(mSession, 0);
     xccdf_session_set_user_tailoring_file(mSession, tailoringFile.toUtf8().constData());
+
+    mSessionDirty = true;
 }
 
 void ScanningSession::setTailoringComponentID(const QString& componentID)
@@ -146,6 +154,8 @@ void ScanningSession::setTailoringComponentID(const QString& componentID)
 
     xccdf_session_set_user_tailoring_file(mSession, 0);
     xccdf_session_set_user_tailoring_cid(mSession, componentID.toUtf8().constData());
+
+    mSessionDirty = true;
 }
 
 bool ScanningSession::setProfileID(const QString& profileID)
@@ -153,19 +163,24 @@ bool ScanningSession::setProfileID(const QString& profileID)
     if (!fileOpened())
         return false;
 
+    // changing the profile does NOT require session reload
     return xccdf_session_set_profile_id(mSession, profileID.toUtf8().constData());
 }
 
-void ScanningSession::reloadSession()
+void ScanningSession::reloadSession(bool forceReload) const
 {
     if (!mSession)
         return;
 
-    if (xccdf_session_load(mSession) != 0)
+    if (mSessionDirty || forceReload)
     {
-        mDiagnosticsDialog->errorMessage(
-            QString("Failed to reload session. OpenSCAP error message:\n%1").arg(oscap_err_desc()));
-        return;
+        if (xccdf_session_load(mSession) != 0)
+        {
+            mDiagnosticsDialog->errorMessage(
+                QString("Failed to reload session. OpenSCAP error message:\n%1").arg(oscap_err_desc()));
+        }
+        else
+            mSessionDirty = false;
     }
 }
 

@@ -528,13 +528,13 @@ void MainWindow::checklistComboboxChanged(int index)
 
     if (data.size() == 2)
     {
-        mScanningSession->setDatastreamID(data.at(0), true);
-        mScanningSession->setComponentID(data.at(1), true);
+        mScanningSession->setDatastreamID(data.at(0));
+        mScanningSession->setComponentID(data.at(1));
     }
     else
     {
-        mScanningSession->setDatastreamID(QString(), true);
-        mScanningSession->setComponentID(QString(), true);
+        mScanningSession->setDatastreamID(QString());
+        mScanningSession->setComponentID(QString());
     }
 
     reloadSession();

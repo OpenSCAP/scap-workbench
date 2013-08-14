@@ -56,8 +56,8 @@ class ScanningSession : public QObject
 
         bool isSDS() const;
 
-        void setDatastreamID(const QString& datastreamID, bool skipReload = false);
-        void setComponentID(const QString& componentID, bool skipReload = false);
+        void setDatastreamID(const QString& datastreamID);
+        void setComponentID(const QString& componentID);
 
         void resetTailoring();
         void setTailoringFile(const QString& tailoringFile);
@@ -66,13 +66,18 @@ class ScanningSession : public QObject
         bool setProfileID(const QString& profileID);
 
         /**
-         * @brief Reloads the session, datastream split is potentially done again
+         * @brief Reloads the session if needed, datastream split is potentially done again
+         *
+         * @param forceReload if true, the reload is forced no matter what mSessionDirty is
          *
          * The main purpose of this method is to allow to reload the session when
          * parameters that affect "loading" of the session change. These parameters
          * are mainly datastream ID and component ID.
+         *
+         * mSessionDirty is automatically set to true whenever crucial parameters of
+         * the session change. reloadSession will early out if reload is not necessary.
          */
-        void reloadSession();
+        void reloadSession(bool forceReload = false) const;
 
         struct xccdf_session* getXCCDFSession() const;
 
@@ -90,6 +95,9 @@ class ScanningSession : public QObject
     private:
         /// This is our central point of interaction with openscap
         struct xccdf_session* mSession;
+
+        /// If true, the session will be reloaded
+        mutable bool mSessionDirty;
 
         /// Qt Dialog that displays messages (errors, warnings, infos)
         /// Gets shown whenever a warning or error is emitted
