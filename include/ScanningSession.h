@@ -95,9 +95,15 @@ class ScanningSession : public QObject
     private:
         /// This is our central point of interaction with openscap
         struct xccdf_session* mSession;
+        /// Our own tailoring that may or may not initially be loaded from a file
+        mutable struct xccdf_tailoring* mTailoring;
 
         /// If true, the session will be reloaded
         mutable bool mSessionDirty;
+        /// If true, we no longer allow changing tailoring entirely
+        /// (loading new file, setting it to load from datastream, ...)
+        /// user changes to the tailoring would be lost if we reloaded.
+        bool mTailoringUserChanges;
 
         /// Qt Dialog that displays messages (errors, warnings, infos)
         /// Gets shown whenever a warning or error is emitted

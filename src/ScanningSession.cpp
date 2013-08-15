@@ -34,7 +34,10 @@ ScanningSession::ScanningSession(DiagnosticsDialog* diagnosticsDialog, QObject* 
     QObject(parent),
 
     mSession(0),
+    mTailoring(0),
+
     mSessionDirty(false),
+    mTailoringUserChanges(false),
 
     mDiagnosticsDialog(diagnosticsDialog)
 {}
@@ -76,7 +79,9 @@ void ScanningSession::openFile(const QString& path)
             QString("Failed to create session for '%1'. OpenSCAP error message:\n%2").arg(path).arg(oscap_err_desc()));
         return;
     }
+
     mSessionDirty = true;
+    mTailoringUserChanges = false;
 
     mDiagnosticsDialog->infoMessage(QString("Opened file '%1'.").arg(path));
 }
@@ -87,9 +92,14 @@ void ScanningSession::closeFile()
 
     if (mSession)
     {
+        // session "owns" mTailoring and will free it as part of xccdf_policy_model
         xccdf_session_free(mSession);
+
         mSession = 0;
+        mTailoring = 0;
+
         mSessionDirty = false;
+        mTailoringUserChanges = false;
     }
 
     if (!oldOpenedFile.isEmpty())
@@ -133,7 +143,10 @@ void ScanningSession::resetTailoring()
     xccdf_session_set_user_tailoring_cid(mSession, 0);
     xccdf_session_set_user_tailoring_file(mSession, 0);
 
+    mTailoring = 0;
+
     mSessionDirty = true;
+    mTailoringUserChanges = false;
 }
 
 void ScanningSession::setTailoringFile(const QString& tailoringFile)
@@ -144,7 +157,10 @@ void ScanningSession::setTailoringFile(const QString& tailoringFile)
     xccdf_session_set_user_tailoring_cid(mSession, 0);
     xccdf_session_set_user_tailoring_file(mSession, tailoringFile.toUtf8().constData());
 
+    mTailoring = 0;
+
     mSessionDirty = true;
+    mTailoringUserChanges = false;
 }
 
 void ScanningSession::setTailoringComponentID(const QString& componentID)
@@ -155,7 +171,10 @@ void ScanningSession::setTailoringComponentID(const QString& componentID)
     xccdf_session_set_user_tailoring_file(mSession, 0);
     xccdf_session_set_user_tailoring_cid(mSession, componentID.toUtf8().constData());
 
+    mTailoring = 0;
+
     mSessionDirty = true;
+    mTailoringUserChanges = false;
 }
 
 bool ScanningSession::setProfileID(const QString& profileID)
@@ -180,7 +199,20 @@ void ScanningSession::reloadSession(bool forceReload) const
                 QString("Failed to reload session. OpenSCAP error message:\n%1").arg(oscap_err_desc()));
         }
         else
+        {
+            struct xccdf_policy_model* policyModel = xccdf_session_get_policy_model(mSession);
+
+            // In case we didn't have any tailoring previously, lets use the one from the session.
+            // Otherwise we will reuse our own tailoring instead of the session's because we may
+            // already have user-made changes in it!
+
+            if (!mTailoringUserChanges)
+                mTailoring = xccdf_policy_model_get_tailoring(policyModel);
+            else
+                xccdf_policy_model_set_tailoring(policyModel, mTailoring);
+
             mSessionDirty = false;
+        }
     }
 }
 
@@ -237,8 +269,14 @@ struct xccdf_profile* ScanningSession::tailorCurrentProfile(bool shadowed)
         xccdf_profile_add_title(newProfile, newTitle);
     }
 
-    struct xccdf_benchmark* benchmark = xccdf_policy_model_get_benchmark(policyModel);
-    xccdf_benchmark_add_profile(benchmark, newProfile);
+    if (xccdf_tailoring_add_profile(mTailoring, newProfile) != 0)
+    {
+        mDiagnosticsDialog->errorMessage("Failed to add a newly created profile for tailoring!");
+        xccdf_profile_free(xccdf_profile_to_item((newProfile)));
 
+        return 0;
+    }
+
+    mTailoringUserChanges = true;
     return newProfile;
 }
