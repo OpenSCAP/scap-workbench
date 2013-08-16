@@ -130,6 +130,7 @@ MainWindow::MainWindow(QWidget* parent):
     mTailorButtonMenu = new QMenu(this);
     mTailorButtonMenu->addAction(mTailorAction);
     mTailorButtonMenu->addAction(mTailorAndShadowAction);
+    mTailorButtonMenu->addAction(mEditProfileAction);
     mUI.tailorButton->setMenu(mTailorButtonMenu);
 
     mResultViewer = new ResultViewer(this);
