@@ -101,7 +101,7 @@ void XCCDFItemSelectUndoCommand::undo()
     mWindow->synchronizeTreeItem(mTreeItem, xccdfItem, false);
 }
 
-TailoringWindow::TailoringWindow(struct xccdf_policy* policy, QWidget* parent):
+TailoringWindow::TailoringWindow(struct xccdf_policy* policy, struct xccdf_benchmark* benchmark, QWidget* parent):
     QMainWindow(parent),
 
     mSynchronizeItemLock(0),
@@ -110,6 +110,7 @@ TailoringWindow::TailoringWindow(struct xccdf_policy* policy, QWidget* parent):
 
     mPolicy(policy),
     mProfile(xccdf_policy_get_profile(policy)),
+    mBenchmark(benchmark),
 
     mUndoStack(this)
 {
@@ -129,7 +130,6 @@ TailoringWindow::TailoringWindow(struct xccdf_policy* policy, QWidget* parent):
         this, SLOT(itemChanged(QTreeWidgetItem*, int))
     );
 
-    struct xccdf_benchmark* benchmark = xccdf_item_get_benchmark(xccdf_profile_to_item(mProfile));
     QTreeWidgetItem* benchmarkItem = new QTreeWidgetItem();
     // benchmark can't be unselected
     benchmarkItem->setFlags(
@@ -138,7 +138,7 @@ TailoringWindow::TailoringWindow(struct xccdf_policy* policy, QWidget* parent):
         Qt::ItemIsEnabled);
     mUI.itemsTree->addTopLevelItem(benchmarkItem);
 
-    synchronizeTreeItem(benchmarkItem, xccdf_benchmark_to_item(benchmark), true);
+    synchronizeTreeItem(benchmarkItem, xccdf_benchmark_to_item(mBenchmark), true);
 
     show();
 }

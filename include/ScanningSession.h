@@ -59,6 +59,7 @@ class ScanningSession : public QObject
         void setDatastreamID(const QString& datastreamID);
         void setComponentID(const QString& componentID);
 
+        void ensureTailoringExists();
         void resetTailoring();
         void setTailoringFile(const QString& tailoringFile);
         void setTailoringComponentID(const QString& componentID);
@@ -82,7 +83,9 @@ class ScanningSession : public QObject
         struct xccdf_session* getXCCDFSession() const;
 
         bool fileOpened() const;
+
         bool profileSelected() const;
+        bool isSelectedProfileTailoring() const;
 
         /**
          * @brief Creates a new profile, makes it inherit current profile

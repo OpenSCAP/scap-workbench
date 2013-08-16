@@ -165,7 +165,8 @@ class MainWindow : public QMainWindow
         /// Menu used for the tailor "combo pushbutton"
         QMenu* mTailorButtonMenu;
 
-        QAction* mInheritAndEditProfileAction;
+        QAction* mTailorAction;
+        QAction* mTailorAndShadowAction;
         QAction* mEditProfileAction;
 
         /// This is our central point of interaction with openscap
@@ -272,7 +273,10 @@ class MainWindow : public QMainWindow
          */
         void showResults();
 
-        void inheritAndEditProfile();
+        void inheritAndEditProfile(bool shadowed);
+
+        void tailorNewID();
+        void tailorShadowed();
         void editProfile();
 };
 

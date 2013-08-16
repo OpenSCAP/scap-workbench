@@ -86,7 +86,7 @@ class TailoringWindow : public QMainWindow
     Q_OBJECT
 
     public:
-        TailoringWindow(struct xccdf_policy* policy, QWidget* parent = 0);
+        TailoringWindow(struct xccdf_policy* policy, struct xccdf_benchmark* benchmark, QWidget* parent = 0);
         virtual ~TailoringWindow();
 
         void setItemSelected(struct xccdf_item* xccdfItem, bool selected);
@@ -103,6 +103,7 @@ class TailoringWindow : public QMainWindow
 
         struct xccdf_policy* mPolicy;
         struct xccdf_profile* mProfile;
+        struct xccdf_benchmark* mBenchmark;
 
         QUndoStack mUndoStack;
 

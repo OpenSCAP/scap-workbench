@@ -111,19 +111,25 @@ MainWindow::MainWindow(QWidget* parent):
         this, SLOT(showResults())
     );
 
-    mInheritAndEditProfileAction = new QAction("Create new profile and inherit selected", this);
+    mTailorAction = new QAction("Tailor (new ID)", this);
     QObject::connect(
-        mInheritAndEditProfileAction, SIGNAL(triggered()),
-        this, SLOT(inheritAndEditProfile())
+        mTailorAction, SIGNAL(triggered()),
+        this, SLOT(tailorNewID())
     );
-    mEditProfileAction = new QAction("Edit selected profile", this);
+    mTailorAndShadowAction = new QAction("Tailor (shadowed = same ID)", this);
+    QObject::connect(
+        mTailorAndShadowAction, SIGNAL(triggered()),
+        this, SLOT(tailorShadowed())
+    );
+    mEditProfileAction = new QAction("Edit profile", this);
     QObject::connect(
         mEditProfileAction, SIGNAL(triggered()),
         this, SLOT(editProfile())
     );
+
     mTailorButtonMenu = new QMenu(this);
-    mTailorButtonMenu->addAction(mInheritAndEditProfileAction);
-    mTailorButtonMenu->addAction(mEditProfileAction);
+    mTailorButtonMenu->addAction(mTailorAction);
+    mTailorButtonMenu->addAction(mTailorAndShadowAction);
     mUI.tailorButton->setMenu(mTailorButtonMenu);
 
     mResultViewer = new ResultViewer(this);
@@ -612,11 +618,15 @@ void MainWindow::profileComboboxChanged(int index)
         }
     }
 
-    // scap-workbench cannot tailor (default) profile, that would be equivalent to
-    // changing the @selected attributes of Rule elements and that's out of scope.
+    // scap-workbench can tailor any profile but it doesn't make to "tailor" a tailoring profile.
+    // Doing so would create yet another profile inheriting the old. Instead we allow user to
+    // edit the already tailored profile.
+
     // Note: We can inherit and edit (default) profile by creating a new empty profile.
 
-    mEditProfileAction->setEnabled(mScanningSession->profileSelected());
+    mTailorAction->setEnabled(!mScanningSession->isSelectedProfileTailoring());
+    mTailorAndShadowAction->setEnabled(!mScanningSession->isSelectedProfileTailoring());
+    mEditProfileAction->setEnabled(mScanningSession->isSelectedProfileTailoring());
 
     clearResults();
 }
@@ -730,9 +740,12 @@ void MainWindow::showResults()
     mResultViewer->show();
 }
 
-void MainWindow::inheritAndEditProfile()
+void MainWindow::inheritAndEditProfile(bool shadowed)
 {
-    struct xccdf_profile* newProfile = mScanningSession->tailorCurrentProfile(false);
+    if (!mScanningSession->fileOpened())
+        return;
+
+    struct xccdf_profile* newProfile = mScanningSession->tailorCurrentProfile(shadowed);
     refreshProfiles();
 
     // select the new profile as current
@@ -744,6 +757,16 @@ void MainWindow::inheritAndEditProfile()
     editProfile();
 }
 
+void MainWindow::tailorNewID()
+{
+    inheritAndEditProfile(false);
+}
+
+void MainWindow::tailorShadowed()
+{
+    inheritAndEditProfile(true);
+}
+
 void MainWindow::editProfile()
 {
     if (!mScanningSession->fileOpened())
@@ -753,9 +776,24 @@ void MainWindow::editProfile()
     if (!policy)
         return;
 
-    /*struct xccdf_profile* profile = xccdf_policy_get_profile(policy);
+    struct xccdf_profile* profile = xccdf_policy_get_profile(policy);
     if (!profile)
-        return;*/
+        return;
 
-    /*TailoringWindow* tailoringWindow = */new TailoringWindow(policy, this);
+    if (!xccdf_profile_get_tailoring(profile))
+    {
+        mDiagnosticsDialog->errorMessage(
+            QString(
+                "Can't edit a profile that isn't a tailoring profile!"
+                "This is most likely a bug, please report it!"
+            )
+        );
+
+        return;
+    }
+
+    struct xccdf_policy_model* policyModel = xccdf_session_get_policy_model(mScanningSession->getXCCDFSession());
+    struct xccdf_benchmark* benchmark = xccdf_policy_model_get_benchmark(policyModel);
+
+    new TailoringWindow(policy, benchmark, this);
 }

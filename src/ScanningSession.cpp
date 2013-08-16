@@ -67,6 +67,28 @@ bool ScanningSession::profileSelected() const
     return xccdf_session_get_profile_id(mSession) != 0;
 }
 
+bool ScanningSession::isSelectedProfileTailoring() const
+{
+    if (!fileOpened())
+        return false;
+
+    reloadSession();
+
+    struct xccdf_policy_model* policyModel = xccdf_session_get_policy_model(mSession);
+    if (!policyModel)
+        return false;
+
+    struct xccdf_policy* policy= xccdf_session_get_xccdf_policy(mSession);
+    if (!policy)
+        return false;
+
+    struct xccdf_profile* profile = xccdf_policy_get_profile(policy);
+    if (!profile)
+        return false;
+
+    return xccdf_profile_get_tailoring(profile);
+}
+
 void ScanningSession::openFile(const QString& path)
 {
     if (mSession)
@@ -133,6 +155,18 @@ void ScanningSession::setComponentID(const QString& componentID)
         xccdf_session_set_component_id(mSession, componentID.toUtf8().constData());
 
     mSessionDirty = true;
+}
+
+void ScanningSession::ensureTailoringExists()
+{
+    reloadSession();
+
+    if (!mTailoring)
+    {
+        mTailoring = xccdf_tailoring_new();
+        mTailoringUserChanges = true;
+        reloadSession(true);
+    }
 }
 
 void ScanningSession::resetTailoring()
@@ -218,6 +252,8 @@ void ScanningSession::reloadSession(bool forceReload) const
 
 struct xccdf_profile* ScanningSession::tailorCurrentProfile(bool shadowed)
 {
+    reloadSession();
+
     if (!mSession)
         return 0;
 
@@ -227,13 +263,11 @@ struct xccdf_profile* ScanningSession::tailorCurrentProfile(bool shadowed)
     if (!policyModel)
         return 0;
 
-    struct xccdf_policy* policy= xccdf_session_get_xccdf_policy(mSession);
-    if (!policy)
-        return 0;
-
     struct xccdf_profile* newProfile = xccdf_profile_new();
 
-    struct xccdf_profile* oldProfile = xccdf_policy_get_profile(policy);
+    struct xccdf_policy* policy= xccdf_session_get_xccdf_policy(mSession);
+    struct xccdf_profile* oldProfile = policy ? xccdf_policy_get_profile(policy) : 0;
+
     // TODO: new profile's ID may clash with existing profile!
     if (oldProfile)
     {
@@ -269,7 +303,9 @@ struct xccdf_profile* ScanningSession::tailorCurrentProfile(bool shadowed)
         xccdf_profile_add_title(newProfile, newTitle);
     }
 
-    if (xccdf_tailoring_add_profile(mTailoring, newProfile) != 0)
+    ensureTailoringExists();
+
+    if (!xccdf_tailoring_add_profile(mTailoring, newProfile))
     {
         mDiagnosticsDialog->errorMessage("Failed to add a newly created profile for tailoring!");
         xccdf_profile_free(xccdf_profile_to_item((newProfile)));
