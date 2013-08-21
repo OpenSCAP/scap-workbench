@@ -24,6 +24,7 @@
 
 #include "ForwardDecls.h"
 #include <QObject>
+#include <QTemporaryFile>
 
 extern "C"
 {
@@ -95,11 +96,17 @@ class ScanningSession : public QObject
          */
         struct xccdf_profile* tailorCurrentProfile(bool shadowed = false);
 
+        QString getTailoringFile();
+
     private:
+        struct xccdf_benchmark* getXCCDFInputBenchmark();
+
         /// This is our central point of interaction with openscap
         struct xccdf_session* mSession;
         /// Our own tailoring that may or may not initially be loaded from a file
         mutable struct xccdf_tailoring* mTailoring;
+
+        QTemporaryFile mTailoringFile;
 
         /// If true, the session will be reloaded
         mutable bool mSessionDirty;

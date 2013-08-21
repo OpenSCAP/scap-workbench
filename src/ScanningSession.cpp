@@ -40,7 +40,9 @@ ScanningSession::ScanningSession(DiagnosticsDialog* diagnosticsDialog, QObject* 
     mTailoringUserChanges(false),
 
     mDiagnosticsDialog(diagnosticsDialog)
-{}
+{
+    mTailoringFile.setAutoRemove(true);
+}
 
 ScanningSession::~ScanningSession()
 {
@@ -315,4 +317,31 @@ struct xccdf_profile* ScanningSession::tailorCurrentProfile(bool shadowed)
 
     mTailoringUserChanges = true;
     return newProfile;
+}
+
+QString ScanningSession::getTailoringFile()
+{
+    ensureTailoringExists();
+
+    if (mTailoringFile.isOpen())
+        mTailoringFile.close();
+
+    mTailoringFile.open();
+    mTailoringFile.close();
+
+    struct xccdf_benchmark* benchmark = getXCCDFInputBenchmark();
+    xccdf_tailoring_export(mTailoring, mTailoringFile.fileName().toUtf8().constData(), xccdf_benchmark_get_schema_version(benchmark));
+
+    return mTailoringFile.fileName();
+}
+
+struct xccdf_benchmark* ScanningSession::getXCCDFInputBenchmark()
+{
+    reloadSession();
+
+    if (!mSession)
+        return NULL;
+
+    struct xccdf_policy_model* policyModel = xccdf_session_get_policy_model(mSession);
+    return xccdf_policy_model_get_benchmark(policyModel);
 }
