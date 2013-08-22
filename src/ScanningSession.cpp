@@ -107,6 +107,9 @@ void ScanningSession::openFile(const QString& path)
     mSessionDirty = true;
     mTailoringUserChanges = false;
 
+    // set default profile after opening, this ensures that xccdf_policy can be returned
+    setProfileID(QString());
+
     mDiagnosticsDialog->infoMessage(QString("Opened file '%1'.").arg(path));
 }
 
@@ -218,8 +221,8 @@ bool ScanningSession::setProfileID(const QString& profileID)
     if (!fileOpened())
         return false;
 
-    // changing the profile does NOT require session reload
-    return xccdf_session_set_profile_id(mSession, profileID.toUtf8().constData());
+    reloadSession();
+    return xccdf_session_set_profile_id(mSession, profileID.isEmpty() ? NULL : profileID.toUtf8().constData());
 }
 
 void ScanningSession::reloadSession(bool forceReload) const
