@@ -81,6 +81,8 @@ class ScanningSession : public QObject
          */
         void reloadSession(bool forceReload = false) const;
 
+        QString getInputFile() const;
+
         struct xccdf_session* getXCCDFSession() const;
 
         bool fileOpened() const;
@@ -97,6 +99,8 @@ class ScanningSession : public QObject
         struct xccdf_profile* tailorCurrentProfile(bool shadowed = false);
 
         QString getTailoringFile();
+
+        bool hasTailoring() const;
 
     private:
         struct xccdf_benchmark* getXCCDFInputBenchmark();

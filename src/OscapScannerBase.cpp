@@ -134,6 +134,7 @@ bool OscapScannerBase::checkPrerequisites()
 }
 
 QStringList OscapScannerBase::buildEvaluationArgs(const QString& inputFile,
+        const QString& tailoringFile,
         const QString& resultFile,
         const QString& reportFile,
         const QString& arfFile,
@@ -156,6 +157,12 @@ QStringList OscapScannerBase::buildEvaluationArgs(const QString& inputFile,
     {
         ret.append("--xccdf-id");
         ret.append(component_id);
+    }
+
+    if (!tailoringFile.isEmpty())
+    {
+        ret.append("--tailoring-file");
+        ret.append(tailoringFile);
     }
 
     const char* profile_id = xccdf_session_get_profile_id(mSession->getXCCDFSession());

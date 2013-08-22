@@ -113,7 +113,11 @@ void OscapScannerRemoteSsh::evaluate()
     QString diagnosticInfo;
 
     emit infoMessage("Copying input data to remote target...");
-    const QString inputFile = copyInputDataOver();
+
+    const QString inputFile = copyInputFileOver();
+    const QString tailoringFile = mSession->hasTailoring() ?
+        copyFileOver(mSession->getTailoringFile()) : QString();
+
     if (mCancelRequested)
     {
         signalCompletion(true);
@@ -142,6 +146,7 @@ void OscapScannerRemoteSsh::evaluate()
     else
     {
         args = buildEvaluationArgs(inputFile,
+                tailoringFile,
                 resultFile,
                 reportFile,
                 arfFile,
@@ -231,13 +236,40 @@ void OscapScannerRemoteSsh::ensureConnected()
         mCancelRequested = true;
     }
 }
+QString OscapScannerRemoteSsh::copyFileOver(const QString& localPath)
+{
+    ensureConnected();
 
-QString OscapScannerRemoteSsh::copyInputDataOver()
+    QString ret = createRemoteTemporaryFile();
+
+    {
+        ScpSyncProcess proc(mSshConnection, this);
+        proc.setDirection(SD_LOCAL_TO_REMOTE);
+        proc.setLocalPath(localPath);
+        proc.setRemotePath(ret);
+        proc.setCancelRequestSource(&mCancelRequested);
+
+        proc.run();
+
+        if (proc.getExitCode() != 0)
+        {
+            emit errorMessage(
+                QString("Failed to copy '%1' over to the remote machine! "
+                        "Diagnostic info:\n%1").arg(localPath).arg(proc.getDiagnosticInfo())
+            );
+
+            mCancelRequested = true;
+        }
+    }
+
+    return ret;
+}
+
+QString OscapScannerRemoteSsh::copyInputFileOver()
 {
     ensureConnected();
 
     QString localPath = "";
-    QString ret = createRemoteTemporaryFile();
 
     QTemporaryFile inputARFFile;
     inputARFFile.setAutoRemove(true);
@@ -254,27 +286,7 @@ QString OscapScannerRemoteSsh::copyInputDataOver()
         localPath = xccdf_session_get_filename(mSession->getXCCDFSession());
     }
 
-    {
-        ScpSyncProcess proc(mSshConnection, this);
-        proc.setDirection(SD_LOCAL_TO_REMOTE);
-        proc.setLocalPath(localPath);
-        proc.setRemotePath(ret);
-        proc.setCancelRequestSource(&mCancelRequested);
-
-        proc.run();
-
-        if (proc.getExitCode() != 0)
-        {
-            emit errorMessage(
-                QString("Failed to copy input data over to the remote machine! "
-                        "Diagnostic info:\n%1").arg(proc.getDiagnosticInfo())
-            );
-
-            mCancelRequested = true;
-        }
-    }
-
-    return ret;
+    return copyFileOver(localPath);
 }
 
 QString OscapScannerRemoteSsh::createRemoteTemporaryFile(bool cancelOnFailure)

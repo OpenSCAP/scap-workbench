@@ -42,7 +42,9 @@ class OscapScannerRemoteSsh : public OscapScannerBase
     private:
         void ensureConnected();
 
-        QString copyInputDataOver();
+        QString copyFileOver(const QString& localPath);
+        QString copyInputFileOver();
+
         QString createRemoteTemporaryFile(bool cancelOnFailure = true);
 
         QString readRemoteFile(const QString& path, const QString& desc);

@@ -30,6 +30,8 @@ extern "C" {
 #include <oscap_error.h>
 }
 
+#include <ctime>
+
 ScanningSession::ScanningSession(DiagnosticsDialog* diagnosticsDialog, QObject* parent):
     QObject(parent),
 
@@ -169,6 +171,21 @@ void ScanningSession::ensureTailoringExists()
     if (!mTailoring)
     {
         mTailoring = xccdf_tailoring_new();
+        xccdf_tailoring_set_version(mTailoring, "1");
+
+        {
+            time_t rawtime;
+            struct tm* timeinfo;
+            char buffer[80];
+
+            time(&rawtime);
+            timeinfo = localtime(&rawtime);
+
+            strftime(buffer, 80, "%Y-%m-%dT%H:%M:%S", timeinfo);
+
+            xccdf_tailoring_set_version_time(mTailoring, buffer);
+        }
+
         mTailoringUserChanges = true;
         reloadSession(true);
     }
@@ -255,6 +272,14 @@ void ScanningSession::reloadSession(bool forceReload) const
     }
 }
 
+QString ScanningSession::getInputFile() const
+{
+    if (!mSession)
+        return "";
+
+    return xccdf_session_get_filename(mSession);
+}
+
 struct xccdf_profile* ScanningSession::tailorCurrentProfile(bool shadowed)
 {
     reloadSession();
@@ -336,6 +361,11 @@ QString ScanningSession::getTailoringFile()
     xccdf_tailoring_export(mTailoring, mTailoringFile.fileName().toUtf8().constData(), xccdf_benchmark_get_schema_version(benchmark));
 
     return mTailoringFile.fileName();
+}
+
+bool ScanningSession::hasTailoring() const
+{
+    return mTailoring != NULL;
 }
 
 struct xccdf_benchmark* ScanningSession::getXCCDFInputBenchmark()

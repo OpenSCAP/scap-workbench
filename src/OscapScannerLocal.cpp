@@ -108,9 +108,8 @@ void OscapScannerLocal::evaluate()
     }
     else
     {
-        const QString inputFile = xccdf_session_get_filename(mSession->getXCCDFSession());
-
-        args = buildEvaluationArgs(inputFile,
+        args = buildEvaluationArgs(mSession->getInputFile(),
+                mSession->hasTailoring() ? mSession->getTailoringFile() : QString(),
                 resultFile.fileName(),
                 reportFile.fileName(),
                 arfFile.fileName(),

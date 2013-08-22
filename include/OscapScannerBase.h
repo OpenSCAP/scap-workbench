@@ -50,6 +50,7 @@ class OscapScannerBase : public Scanner
         bool checkPrerequisites();
 
         QStringList buildEvaluationArgs(const QString& inputFile,
+                                        const QString& tailoringFile,
                                         const QString& resultFile,
                                         const QString& reportFile,
                                         const QString& arfFile,
