@@ -171,6 +171,7 @@ void ScanningSession::ensureTailoringExists()
     if (!mTailoring)
     {
         mTailoring = xccdf_tailoring_new();
+        xccdf_tailoring_set_id(mTailoring, "xccdf_scap-workbench_tailoring_default");
         xccdf_tailoring_set_version(mTailoring, "1");
 
         {
