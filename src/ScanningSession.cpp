@@ -299,7 +299,7 @@ struct xccdf_profile* ScanningSession::tailorCurrentProfile(bool shadowed)
     struct xccdf_profile* oldProfile = policy ? xccdf_policy_get_profile(policy) : 0;
 
     // TODO: new profile's ID may clash with existing profile!
-    if (oldProfile)
+    if (oldProfile && xccdf_profile_get_id(oldProfile))
     {
         xccdf_profile_set_extends(newProfile, xccdf_profile_get_id(oldProfile));
 
@@ -325,7 +325,7 @@ struct xccdf_profile* ScanningSession::tailorCurrentProfile(bool shadowed)
     }
     else
     {
-        xccdf_profile_set_id(newProfile, "xccdf_profile_default_tailored");
+        xccdf_profile_set_id(newProfile, "xccdf_scap-workbench_profile_default_tailored");
 
         struct oscap_text* newTitle = oscap_text_new();
         oscap_text_set_lang(newTitle, "en_US");
