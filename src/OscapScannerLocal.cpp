@@ -21,6 +21,7 @@
 
 #include "OscapScannerLocal.h"
 #include "ProcessHelpers.h"
+#include "ScanningSession.h"
 
 #include <QThread>
 #include <QAbstractEventDispatcher>
@@ -107,7 +108,7 @@ void OscapScannerLocal::evaluate()
     }
     else
     {
-        const QString inputFile = xccdf_session_get_filename(mSession);
+        const QString inputFile = xccdf_session_get_filename(mSession->getXCCDFSession());
 
         args = buildEvaluationArgs(inputFile,
                 resultFile.fileName(),

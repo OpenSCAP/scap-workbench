@@ -72,7 +72,7 @@ class Scanner : public QObject
 
         virtual void setScanThread(QThread* thread);
         virtual void setMainThread(QThread* thread);
-        virtual void setSession(struct xccdf_session* session);
+        virtual void setSession(ScanningSession* session);
         virtual void setTarget(const QString& target);
         const QString& getTarget() const;
 
@@ -180,7 +180,7 @@ class Scanner : public QObject
         QThread* mMainThread;
 
         /// Session containing setup parameters for the scan
-        struct xccdf_session* mSession;
+        ScanningSession* mSession;
         /// Target machine we should be scanning
         QString mTarget;
 

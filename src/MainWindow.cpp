@@ -332,7 +332,7 @@ void MainWindow::scanAsync(ScannerMode scannerMode)
     {
         mScanner->setScanThread(mScanThread);
         mScanner->setMainThread(thread());
-        mScanner->setSession(mScanningSession->getXCCDFSession());
+        mScanner->setSession(mScanningSession);
         mScanner->setScannerMode(scannerMode);
 
         if (scannerMode == SM_OFFLINE_REMEDIATION)

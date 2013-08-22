@@ -43,7 +43,7 @@ void Scanner::setMainThread(QThread* thread)
     mMainThread = thread;
 }
 
-void Scanner::setSession(struct xccdf_session* session)
+void Scanner::setSession(ScanningSession* session)
 {
     // TODO: assert that we are not running
     mSession = session;

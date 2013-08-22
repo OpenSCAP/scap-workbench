@@ -21,6 +21,7 @@
 
 #include "OscapScannerRemoteSsh.h"
 #include "Exceptions.h"
+#include "ScanningSession.h"
 
 #include <QThread>
 #include <QAbstractEventDispatcher>
@@ -54,11 +55,11 @@ void OscapScannerRemoteSsh::setTarget(const QString& target)
 
     mSshConnection.setTarget(target);
 }
-void OscapScannerRemoteSsh::setSession(struct xccdf_session* session)
+void OscapScannerRemoteSsh::setSession(ScanningSession* session)
 {
     OscapScannerBase::setSession(session);
 
-    if (!xccdf_session_is_sds(session))
+    if (!xccdf_session_is_sds(session->getXCCDFSession()))
     {
         throw OscapScannerRemoteSshException("You can only use source datastreams for scanning remotely!");
     }
@@ -250,7 +251,7 @@ QString OscapScannerRemoteSsh::copyInputDataOver()
     }
     else
     {
-        localPath = xccdf_session_get_filename(mSession);
+        localPath = xccdf_session_get_filename(mSession->getXCCDFSession());
     }
 
     {

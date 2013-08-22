@@ -20,6 +20,7 @@
  */
 
 #include "OscapScannerBase.h"
+#include "ScanningSession.h"
 
 #include <QThread>
 #include <QAbstractEventDispatcher>
@@ -116,7 +117,7 @@ bool OscapScannerBase::checkPrerequisites()
         return false;
     }
 
-    if (xccdf_session_is_sds(mSession) && !mCapabilities.sourceDatastreams())
+    if (xccdf_session_is_sds(mSession->getXCCDFSession()) && !mCapabilities.sourceDatastreams())
     {
         emit errorMessage(
             QString("oscap tool doesn't support source datastreams as input. "
@@ -142,8 +143,8 @@ QStringList OscapScannerBase::buildEvaluationArgs(const QString& inputFile,
     ret.append("xccdf");
     ret.append("eval");
 
-    const char* datastream_id = xccdf_session_get_datastream_id(mSession);
-    const char* component_id = xccdf_session_get_component_id(mSession);
+    const char* datastream_id = xccdf_session_get_datastream_id(mSession->getXCCDFSession());
+    const char* component_id = xccdf_session_get_component_id(mSession->getXCCDFSession());
 
     if (datastream_id)
     {
@@ -157,7 +158,7 @@ QStringList OscapScannerBase::buildEvaluationArgs(const QString& inputFile,
         ret.append(component_id);
     }
 
-    const char* profile_id = xccdf_session_get_profile_id(mSession);
+    const char* profile_id = xccdf_session_get_profile_id(mSession->getXCCDFSession());
 
     if (profile_id)
     {
