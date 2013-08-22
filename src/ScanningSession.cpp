@@ -329,7 +329,7 @@ struct xccdf_profile* ScanningSession::tailorCurrentProfile(bool shadowed)
         xccdf_profile_set_id(newProfile, "xccdf_scap-workbench_profile_default_tailored");
 
         struct oscap_text* newTitle = oscap_text_new();
-        oscap_text_set_lang(newTitle, "en_US");
+        oscap_text_set_lang(newTitle, OSCAP_LANG_ENGLISH_US);
         oscap_text_set_text(newTitle, "(default profile) tailored");
         xccdf_profile_add_title(newProfile, newTitle);
     }
