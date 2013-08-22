@@ -211,6 +211,8 @@ void OscapScannerRemoteSsh::evaluate()
 
     // Remove all the temporary remote files
     removeRemoteFile(inputFile, "input file");
+    if (!tailoringFile.isEmpty())
+        removeRemoteFile(tailoringFile, "tailoring file");
     removeRemoteFile(resultFile, "XCCDF result file");
     removeRemoteFile(reportFile, "XCCDF report file");
     removeRemoteFile(arfFile, "Result DataStream file");
