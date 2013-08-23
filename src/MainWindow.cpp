@@ -626,7 +626,8 @@ void MainWindow::profileComboboxChanged(int index)
     // Note: We can inherit and edit (default) profile by creating a new empty profile.
 
     mTailorAction->setEnabled(!mScanningSession->isSelectedProfileTailoring());
-    mTailorAndShadowAction->setEnabled(!mScanningSession->isSelectedProfileTailoring());
+    // NB: default profile can't be shadow tailored, it makes no sense
+    mTailorAndShadowAction->setEnabled(!profileId.isEmpty() && !mScanningSession->isSelectedProfileTailoring());
     mEditProfileAction->setEnabled(mScanningSession->isSelectedProfileTailoring());
 
     clearResults();
