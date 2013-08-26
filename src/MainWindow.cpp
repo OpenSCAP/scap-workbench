@@ -619,7 +619,7 @@ void MainWindow::profileComboboxChanged(int index)
         }
     }
 
-    // scap-workbench can tailor any profile but it doesn't make to "tailor" a tailoring profile.
+    // scap-workbench can tailor any profile but it doesn't make sense to "tailor" a tailoring profile.
     // Doing so would create yet another profile inheriting the old. Instead we allow user to
     // edit the already tailored profile.
 

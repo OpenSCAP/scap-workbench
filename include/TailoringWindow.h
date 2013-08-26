@@ -37,6 +37,9 @@ extern "C"
 #include "ui_TailoringWindow.h"
 #include "ui_XCCDFItemPropertiesDockWidget.h"
 
+/**
+ * @brief Provides reference about currently selected XCCDF item
+ */
 class XCCDFItemPropertiesDockWidget : public QDockWidget
 {
     Q_OBJECT
@@ -57,6 +60,9 @@ class XCCDFItemPropertiesDockWidget : public QDockWidget
 
 class TailoringWindow;
 
+/**
+ * @brief Stores info about one selection or deselection of an XCCDF item
+ */
 class XCCDFItemSelectUndoCommand : public QUndoCommand
 {
     public:
@@ -72,6 +78,7 @@ class XCCDFItemSelectUndoCommand : public QUndoCommand
         TailoringWindow* mWindow;
 
         QTreeWidgetItem* mTreeItem;
+        /// selection state after this undo command is "redone" (applied)
         bool mNewSelect;
 };
 

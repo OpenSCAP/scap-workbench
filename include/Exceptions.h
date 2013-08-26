@@ -48,4 +48,7 @@ SCAP_WORKBENCH_SIMPLE_EXCEPTION(SshConnectionException,
 SCAP_WORKBENCH_SIMPLE_EXCEPTION(OscapScannerRemoteSshException,
     "There was a problem with OscapScannerRemoteSsh!\n");
 
+SCAP_WORKBENCH_SIMPLE_EXCEPTION(TailoringWindowException,
+    "There was a problem with TailoringWindow!\n");
+
 #endif

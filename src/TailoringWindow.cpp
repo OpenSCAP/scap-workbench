@@ -20,8 +20,9 @@
  */
 
 #include "TailoringWindow.h"
+#include "Exceptions.h"
+
 #include <set>
-#include <cassert>
 
 XCCDFItemPropertiesDockWidget::XCCDFItemPropertiesDockWidget(QWidget* parent):
     QDockWidget(parent),
@@ -114,11 +115,29 @@ TailoringWindow::TailoringWindow(struct xccdf_policy* policy, struct xccdf_bench
 
     mUndoStack(this)
 {
+    // sanity check
+    if (!mPolicy)
+        throw TailoringWindowException("TailoringWindow needs a proper policy "
+            "being given. NULL was given instead!");
+
+    if (!mProfile)
+        throw TailoringWindowException("TailoringWindow was given a non-NULL "
+            "policy but profile associated with it is NULL. Can't proceed!");
+
+    if (!mBenchmark)
+        throw TailoringWindowException("TailoringWindow was given a NULL "
+            "benchmark. Can't proceed!");
+
     mUI.setupUi(this);
     addDockWidget(Qt::RightDockWidgetArea, mItemPropertiesDockWidget);
 
-    mUI.toolBar->addAction(mUndoStack.createUndoAction(this));
-    mUI.toolBar->addAction(mUndoStack.createRedoAction(this));
+    {
+        QAction* undoAction = mUndoStack.createUndoAction(this);
+        QAction* redoAction = mUndoStack.createRedoAction(this);
+
+        mUI.toolBar->addAction(undoAction);
+        mUI.toolBar->addAction(redoAction);
+    }
 
     QObject::connect(
         mUI.itemsTree, SIGNAL(currentItemChanged(QTreeWidgetItem*, QTreeWidgetItem*)),
@@ -139,6 +158,9 @@ TailoringWindow::TailoringWindow(struct xccdf_policy* policy, struct xccdf_bench
     mUI.itemsTree->addTopLevelItem(benchmarkItem);
 
     synchronizeTreeItem(benchmarkItem, xccdf_benchmark_to_item(mBenchmark), true);
+
+    setWindowTitle(QString("Tailoring '%1'").arg(
+        oscap_textlist_get_preferred_plaintext(xccdf_profile_get_title(mProfile), NULL)));
 
     show();
 }
@@ -161,15 +183,18 @@ void TailoringWindow::setItemSelected(struct xccdf_item* xccdfItem, bool selecte
     xccdf_profile_add_select(mProfile, newSelect);
     xccdf_policy_add_select(mPolicy, xccdf_select_clone(newSelect));
 
-    assert(getXccdfItemInternalSelected(mPolicy, xccdfItem) == selected);
+    if (getXccdfItemInternalSelected(mPolicy, xccdfItem) != selected)
+        throw TailoringWindowException(
+             QString(
+                 "Even though xccdf_select was added to both profile and policy "
+                 "to make '%1' selected=%2, it remains selected=%3."
+             ).arg(xccdf_item_get_id(xccdfItem)).arg(selected).arg(!selected)
+        );
 }
 
 void TailoringWindow::synchronizeTreeItem(QTreeWidgetItem* treeItem, struct xccdf_item* xccdfItem, bool recursive)
 {
     ++mSynchronizeItemLock;
-
-    //if (treeItem == NULL || xccdfItem == NULL)
-    //    return;
 
     struct oscap_text_iterator* title = xccdf_item_get_title(xccdfItem);
     char* titleText = oscap_textlist_get_preferred_plaintext(title, NULL);
@@ -294,15 +319,14 @@ void TailoringWindow::itemChanged(QTreeWidgetItem* treeItem, int column)
     if (mSynchronizeItemLock > 0)
         return;
 
-    bool checkState = treeItem->checkState(0);
+    const bool checkState = treeItem->checkState(0);
+
     struct xccdf_item* xccdfItem = getXccdfItemFromTreeItem(treeItem);
     if (!xccdfItem)
         return;
 
-    bool itemCheckState = getXccdfItemInternalSelected(mPolicy, xccdfItem);
+    const bool itemCheckState = getXccdfItemInternalSelected(mPolicy, xccdfItem);
 
     if (checkState != itemCheckState)
-    {
         mUndoStack.push(new XCCDFItemSelectUndoCommand(this, treeItem, checkState));
-    }
 }
