@@ -32,9 +32,7 @@ extern "C" {
 
 #include <ctime>
 
-ScanningSession::ScanningSession(QObject* parent):
-    QObject(parent),
-
+ScanningSession::ScanningSession():
     mSession(0),
     mTailoring(0),
 
@@ -53,42 +51,6 @@ struct xccdf_session* ScanningSession::getXCCDFSession() const
 {
     reloadSession();
     return mSession;
-}
-
-bool ScanningSession::fileOpened() const
-{
-    return mSession != 0;
-}
-
-bool ScanningSession::profileSelected() const
-{
-    if (!fileOpened())
-        return false;
-
-    reloadSession();
-    return xccdf_session_get_profile_id(mSession) != 0;
-}
-
-bool ScanningSession::isSelectedProfileTailoring() const
-{
-    if (!fileOpened())
-        return false;
-
-    reloadSession();
-
-    struct xccdf_policy_model* policyModel = xccdf_session_get_policy_model(mSession);
-    if (!policyModel)
-        return false;
-
-    struct xccdf_policy* policy= xccdf_session_get_xccdf_policy(mSession);
-    if (!policy)
-        return false;
-
-    struct xccdf_profile* profile = xccdf_policy_get_profile(policy);
-    if (!profile)
-        return false;
-
-    return xccdf_profile_get_tailoring(profile);
 }
 
 void ScanningSession::openFile(const QString& path)
@@ -125,6 +87,19 @@ void ScanningSession::closeFile()
     }
 }
 
+QString ScanningSession::getOpenedFilePath() const
+{
+    if (!fileOpened())
+        return QString::null;
+
+    return xccdf_session_get_filename(mSession);
+}
+
+bool ScanningSession::fileOpened() const
+{
+    return mSession != 0;
+}
+
 bool ScanningSession::isSDS() const
 {
     if (!fileOpened())
@@ -136,6 +111,10 @@ bool ScanningSession::isSDS() const
 
 void ScanningSession::setDatastreamID(const QString& datastreamID)
 {
+    if (!isSDS())
+        throw ScanningSessionException(
+            "Can't set datastream ID in scanning session unless opened file is a source datastream");
+
     if (datastreamID.isEmpty())
         xccdf_session_set_datastream_id(mSession, 0);
     else
@@ -144,8 +123,21 @@ void ScanningSession::setDatastreamID(const QString& datastreamID)
     mSessionDirty = true;
 }
 
+QString ScanningSession::getDatastreamID() const
+{
+    if (!isSDS())
+        throw ScanningSessionException(
+            "Can't get datastream ID in scanning session unless opened file is a source datastream");
+
+    return xccdf_session_get_datastream_id(mSession);
+}
+
 void ScanningSession::setComponentID(const QString& componentID)
 {
+    if (!isSDS())
+        throw ScanningSessionException(
+            "Can't set datastream ID in scanning session unless opened file is a source datastream");
+
     if (componentID.isEmpty())
         xccdf_session_set_component_id(mSession, 0);
     else
@@ -154,6 +146,14 @@ void ScanningSession::setComponentID(const QString& componentID)
     mSessionDirty = true;
 }
 
+QString ScanningSession::getComponentID() const
+{
+    if (!isSDS())
+        throw ScanningSessionException(
+            "Can't get component ID in scanning session unless opened file is a source datastream");
+
+    return xccdf_session_get_component_id(mSession);
+}
 void ScanningSession::ensureTailoringExists()
 {
     reloadSession();
@@ -224,15 +224,83 @@ void ScanningSession::setTailoringComponentID(const QString& componentID)
     mTailoringUserChanges = false;
 }
 
-bool ScanningSession::setProfileID(const QString& profileID)
+QString ScanningSession::getTailoringFilePath()
+{
+    ensureTailoringExists();
+
+    if (mTailoringFile.isOpen())
+        mTailoringFile.close();
+
+    mTailoringFile.open();
+    mTailoringFile.close();
+
+    struct xccdf_benchmark* benchmark = getXCCDFInputBenchmark();
+    xccdf_tailoring_export(
+        mTailoring,
+        mTailoringFile.fileName().toUtf8().constData(),
+        xccdf_benchmark_get_schema_version(benchmark)
+    );
+
+    return mTailoringFile.fileName();
+}
+
+bool ScanningSession::hasTailoring() const
+{
+    return mTailoring != NULL;
+}
+
+void ScanningSession::setProfileID(const QString& profileID)
 {
     if (!fileOpened())
         throw ScanningSessionException(QString("File hasn't been opened, can't set profile to '%1'").arg(profileID));
 
     reloadSession();
 
-    return xccdf_session_set_profile_id(mSession, profileID.isEmpty() ? NULL : profileID.toUtf8().constData());
+    if (!xccdf_session_set_profile_id(mSession, profileID.isEmpty() ? NULL : profileID.toUtf8().constData()))
+        throw ScanningSessionException(QString("Failed to set profile ID to '%1'. oscap error: %2").arg(profileID).arg(oscap_err_desc()));
 }
+
+QString ScanningSession::getProfileID() const
+{
+    if (!fileOpened())
+        throw ScanningSessionException(QString("File hasn't been opened, can't get profile ID"));
+
+    reloadSession();
+
+    return xccdf_session_get_profile_id(mSession);
+}
+
+bool ScanningSession::profileSelected() const
+{
+    if (!fileOpened())
+        return false;
+
+    reloadSession();
+    return xccdf_session_get_profile_id(mSession) != 0;
+}
+
+bool ScanningSession::isSelectedProfileTailoring() const
+{
+    if (!fileOpened())
+        return false;
+
+    reloadSession();
+
+    struct xccdf_policy_model* policyModel = xccdf_session_get_policy_model(mSession);
+    if (!policyModel)
+        return false;
+
+    struct xccdf_policy* policy= xccdf_session_get_xccdf_policy(mSession);
+    if (!policy)
+        return false;
+
+    struct xccdf_profile* profile = xccdf_policy_get_profile(policy);
+    if (!profile)
+        return false;
+
+    return xccdf_profile_get_tailoring(profile);
+}
+
 
 void ScanningSession::reloadSession(bool forceReload) const
 {
@@ -259,14 +327,6 @@ void ScanningSession::reloadSession(bool forceReload) const
 
         mSessionDirty = false;
     }
-}
-
-QString ScanningSession::getInputFile() const
-{
-    if (!fileOpened())
-        return QString::null;
-
-    return xccdf_session_get_filename(mSession);
 }
 
 struct xccdf_profile* ScanningSession::tailorCurrentProfile(bool shadowed)
@@ -334,27 +394,6 @@ struct xccdf_profile* ScanningSession::tailorCurrentProfile(bool shadowed)
 
     mTailoringUserChanges = true;
     return newProfile;
-}
-
-QString ScanningSession::getTailoringFile()
-{
-    ensureTailoringExists();
-
-    if (mTailoringFile.isOpen())
-        mTailoringFile.close();
-
-    mTailoringFile.open();
-    mTailoringFile.close();
-
-    struct xccdf_benchmark* benchmark = getXCCDFInputBenchmark();
-    xccdf_tailoring_export(mTailoring, mTailoringFile.fileName().toUtf8().constData(), xccdf_benchmark_get_schema_version(benchmark));
-
-    return mTailoringFile.fileName();
-}
-
-bool ScanningSession::hasTailoring() const
-{
-    return mTailoring != NULL;
 }
 
 struct xccdf_benchmark* ScanningSession::getXCCDFInputBenchmark()

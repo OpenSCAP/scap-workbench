@@ -23,7 +23,6 @@
 #define SCAP_WORKBENCH_SCANNING_SESSION_H_
 
 #include "ForwardDecls.h"
-#include <QObject>
 #include <QTemporaryFile>
 
 extern "C"
@@ -32,16 +31,21 @@ extern "C"
 }
 
 /**
+ * @brief Encapsulates xccdf_session, tailoring and profile selection
  */
-class ScanningSession : public QObject
+class ScanningSession
 {
-    Q_OBJECT
-
     public:
-        ScanningSession(QObject* parent = 0);
+        ScanningSession();
         ~ScanningSession();
 
-    public slots:
+        /**
+         * @brief Retrieves the internal xccdf_session structure
+         *
+         * @note Use of this method is discouraged.
+         */
+        struct xccdf_session* getXCCDFSession() const;
+
         /**
          * @brief Opens a specific file
          *
@@ -55,17 +59,70 @@ class ScanningSession : public QObject
          */
         void closeFile();
 
+        /**
+         * @brief Retrieves path of the opened file
+         */
+        QString getOpenedFilePath() const;
+
+        /**
+         * @brief Returns true if a file has been opened in this session
+         *
+         * @note Never throws exceptions!
+         */
+        bool fileOpened() const;
+
+        /**
+         * @brief Returns true if a file is loaded and is a source datastream, false otherwise
+         */
         bool isSDS() const;
 
+        /**
+         * @brief Sets ID of datastream inside the SDS
+         *
+         * @par
+         * This method will throw an exception if no file is opened or if opened file is
+         * not a source datastream.
+         */
         void setDatastreamID(const QString& datastreamID);
+        QString getDatastreamID() const;
+
+        /**
+         * @brief Sets ID of XCCDF component inside the SDS
+         *
+         * @par
+         * This method will throw an exception if no file is opened or if opened file is
+         * not a source datastream.
+         */
         void setComponentID(const QString& componentID);
+        QString getComponentID() const;
 
         void ensureTailoringExists();
         void resetTailoring();
         void setTailoringFile(const QString& tailoringFile);
         void setTailoringComponentID(const QString& componentID);
 
-        bool setProfileID(const QString& profileID);
+        /**
+         * @brief Exports tailoring file to a temporary path and returns the path
+         *
+         * @par
+         * This method ensures that the file resides at the path returned. If no
+         * tailoring file has been loaded, this method ensures a new one is created
+         * and exported.
+         */
+        QString getTailoringFilePath();
+
+        /**
+         * @brief Returns true if tailoring has been created
+         *
+         * @note Can be caused by user changes or getTailoringFilePath called
+         */
+        bool hasTailoring() const;
+
+        void setProfileID(const QString& profileID);
+        QString getProfileID() const;
+
+        bool profileSelected() const;
+        bool isSelectedProfileTailoring() const;
 
         /**
          * @brief Reloads the session if needed, datastream split is potentially done again
@@ -81,20 +138,6 @@ class ScanningSession : public QObject
          */
         void reloadSession(bool forceReload = false) const;
 
-        QString getInputFile() const;
-
-        struct xccdf_session* getXCCDFSession() const;
-
-        /**
-         * @brief Returns true if a file has been opened in this session
-         *
-         * @note Never throws exceptions!
-         */
-        bool fileOpened() const;
-
-        bool profileSelected() const;
-        bool isSelectedProfileTailoring() const;
-
         /**
          * @brief Creates a new profile, makes it inherit current profile
          *
@@ -102,10 +145,6 @@ class ScanningSession : public QObject
          * @return created profile (can be passed to TailoringWindow for further tailoring)
          */
         struct xccdf_profile* tailorCurrentProfile(bool shadowed = false);
-
-        QString getTailoringFile();
-
-        bool hasTailoring() const;
 
     private:
         struct xccdf_benchmark* getXCCDFInputBenchmark();
@@ -115,6 +154,7 @@ class ScanningSession : public QObject
         /// Our own tailoring that may or may not initially be loaded from a file
         mutable struct xccdf_tailoring* mTailoring;
 
+        /// Temporary file provides auto deletion and a valid temp file path
         QTemporaryFile mTailoringFile;
 
         /// If true, the session will be reloaded

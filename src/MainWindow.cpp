@@ -140,7 +140,7 @@ MainWindow::MainWindow(QWidget* parent):
     mDiagnosticsDialog = new DiagnosticsDialog(this);
     mDiagnosticsDialog->hide();
 
-    mScanningSession = new ScanningSession(this);
+    mScanningSession = new ScanningSession();
 
     show();
 }

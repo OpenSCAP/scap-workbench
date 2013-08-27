@@ -55,14 +55,13 @@ void OscapScannerRemoteSsh::setTarget(const QString& target)
 
     mSshConnection.setTarget(target);
 }
+
 void OscapScannerRemoteSsh::setSession(ScanningSession* session)
 {
     OscapScannerBase::setSession(session);
 
-    if (!xccdf_session_is_sds(session->getXCCDFSession()))
-    {
+    if (!mSession->isSDS())
         throw OscapScannerRemoteSshException("You can only use source datastreams for scanning remotely!");
-    }
 }
 
 void OscapScannerRemoteSsh::evaluate()
@@ -116,7 +115,7 @@ void OscapScannerRemoteSsh::evaluate()
 
     const QString inputFile = copyInputFileOver();
     const QString tailoringFile = mSession->hasTailoring() ?
-        copyFileOver(mSession->getTailoringFile()) : QString();
+        copyFileOver(mSession->getTailoringFilePath()) : QString();
 
     if (mCancelRequested)
     {
@@ -285,7 +284,7 @@ QString OscapScannerRemoteSsh::copyInputFileOver()
     }
     else
     {
-        localPath = xccdf_session_get_filename(mSession->getXCCDFSession());
+        localPath = mSession->getOpenedFilePath();
     }
 
     return copyFileOver(localPath);

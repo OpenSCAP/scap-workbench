@@ -108,8 +108,8 @@ void OscapScannerLocal::evaluate()
     }
     else
     {
-        args = buildEvaluationArgs(mSession->getInputFile(),
-                mSession->hasTailoring() ? mSession->getTailoringFile() : QString(),
+        args = buildEvaluationArgs(mSession->getOpenedFilePath(),
+                mSession->hasTailoring() ? mSession->getTailoringFilePath() : QString(),
                 resultFile.fileName(),
                 reportFile.fileName(),
                 arfFile.fileName(),
