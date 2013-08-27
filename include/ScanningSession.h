@@ -71,6 +71,7 @@ class ScanningSession : public QObject
          * @brief Reloads the session if needed, datastream split is potentially done again
          *
          * @param forceReload if true, the reload is forced no matter what mSessionDirty is
+         * @return true if reload was successful or wasn't needed, false otherwise
          *
          * The main purpose of this method is to allow to reload the session when
          * parameters that affect "loading" of the session change. These parameters
@@ -79,7 +80,7 @@ class ScanningSession : public QObject
          * mSessionDirty is automatically set to true whenever crucial parameters of
          * the session change. reloadSession will early out if reload is not necessary.
          */
-        void reloadSession(bool forceReload = false) const;
+        bool reloadSession(bool forceReload = false) const;
 
         QString getInputFile() const;
 

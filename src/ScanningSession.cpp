@@ -112,7 +112,7 @@ void ScanningSession::openFile(const QString& path)
     // set default profile after opening, this ensures that xccdf_policy can be returned
     setProfileID(QString());
 
-    mDiagnosticsDialog->infoMessage(QString("Opened file '%1'.").arg(path));
+    mDiagnosticsDialog->infoMessage(QString("Scanning session opened for file '%1'.").arg(path));
 }
 
 void ScanningSession::closeFile()
@@ -132,7 +132,7 @@ void ScanningSession::closeFile()
     }
 
     if (!oldOpenedFile.isEmpty())
-        mDiagnosticsDialog->infoMessage(QString("Closed file '%1'.").arg(oldOpenedFile));
+        mDiagnosticsDialog->infoMessage(QString("Scanning session closed for file '%1'.").arg(oldOpenedFile));
 }
 
 bool ScanningSession::isSDS() const
@@ -239,14 +239,16 @@ bool ScanningSession::setProfileID(const QString& profileID)
     if (!fileOpened())
         return false;
 
-    reloadSession();
+    if (!reloadSession())
+        return false; // the error has already been reported
+
     return xccdf_session_set_profile_id(mSession, profileID.isEmpty() ? NULL : profileID.toUtf8().constData());
 }
 
-void ScanningSession::reloadSession(bool forceReload) const
+bool ScanningSession::reloadSession(bool forceReload) const
 {
     if (!mSession)
-        return;
+        return false;
 
     if (mSessionDirty || forceReload)
     {
@@ -254,6 +256,8 @@ void ScanningSession::reloadSession(bool forceReload) const
         {
             mDiagnosticsDialog->errorMessage(
                 QString("Failed to reload session. OpenSCAP error message:\n%1").arg(oscap_err_desc()));
+
+            return false;
         }
         else
         {
@@ -269,8 +273,12 @@ void ScanningSession::reloadSession(bool forceReload) const
                 xccdf_policy_model_set_tailoring(policyModel, mTailoring);
 
             mSessionDirty = false;
+
+            return true;
         }
     }
+
+    return true;
 }
 
 QString ScanningSession::getInputFile() const
