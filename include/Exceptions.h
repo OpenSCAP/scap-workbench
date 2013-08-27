@@ -39,16 +39,19 @@ class NAME : public std::runtime_error \
         {} \
 };
 
+SCAP_WORKBENCH_SIMPLE_EXCEPTION(MainWindowException,
+    "There was a problem with MainWindow!\n");
+
 SCAP_WORKBENCH_SIMPLE_EXCEPTION(SyncProcessException,
     "There was a problem with SyncProcess!\n");
 
 SCAP_WORKBENCH_SIMPLE_EXCEPTION(SshConnectionException,
     "There was a problem with SshConnection!\n");
 
-SCAP_WORKBENCH_SIMPLE_EXCEPTION(OscapScannerRemoteSshException,
-    "There was a problem with OscapScannerRemoteSsh!\n");
-
 SCAP_WORKBENCH_SIMPLE_EXCEPTION(TailoringWindowException,
     "There was a problem with TailoringWindow!\n");
+
+SCAP_WORKBENCH_SIMPLE_EXCEPTION(OscapScannerRemoteSshException,
+    "There was a problem with OscapScannerRemoteSsh!\n");
 
 #endif

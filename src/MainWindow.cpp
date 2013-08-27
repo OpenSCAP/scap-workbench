@@ -26,6 +26,7 @@
 #include "DiagnosticsDialog.h"
 #include "TailoringWindow.h"
 #include "ScanningSession.h"
+#include "Exceptions.h"
 
 #include <QFileDialog>
 #include <QAbstractEventDispatcher>
@@ -211,6 +212,7 @@ void MainWindow::openFile(const QString& path)
 
     // force load up of the session
     checklistComboboxChanged(0);
+
     centralWidget()->setEnabled(true);
 
     mDiagnosticsDialog->infoMessage(QString("Opened file '%1'.").arg(path));
@@ -233,7 +235,9 @@ void MainWindow::openFileDialog()
         if (path == QString::Null())
         {
             // user cancelled the dialog, exit the entire app gracefully
-            close();
+            if (!close())
+                throw MainWindowException("Failed to close main window!");
+
             return;
         }
 
@@ -269,12 +273,14 @@ void MainWindow::scanAsync(ScannerMode scannerMode)
     struct xccdf_policy* policy = xccdf_session_get_xccdf_policy(mScanningSession->getXCCDFSession());
     if (!policy)
     {
-        mDiagnosticsDialog->errorMessage(
-            QString("Can't get XCCDF policy from the session. Very likely it failed to load. OpenSCAP error message:\n%1").arg(oscap_err_desc()));
+        mDiagnosticsDialog->errorMessage(QString(
+            "Can't get XCCDF policy from the session. Very likely it failed to load. "
+            "OpenSCAP error message:\n%1").arg(oscap_err_desc()));
 
         mUI.scanProperties->setEnabled(true);
         mUI.preScanTools->show();
         mUI.scanTools->hide();
+
         return;
     }
 
@@ -569,19 +575,15 @@ void MainWindow::tailoringFileComboboxChanged(int index)
             );
 
             if (filePath == QString::Null())
-            {
-                // user canceled, set to (none)
-                mUI.tailoringFileComboBox->setCurrentIndex(0);
-            }
+                mUI.tailoringFileComboBox->setCurrentIndex(0); // user canceled, set to (none)
             else
-            {
                 mScanningSession->setTailoringFile(filePath);
-            }
         }
         else
         {
-            // TODO: report something meaningful
-            assert(0);
+            mDiagnosticsDialog->errorMessage(QString(
+                "Can't set scanning session to use tailoring '%1' (from combobox "
+                "item data). Expected '%2' or '%3'").arg(text).arg(TAILORING_NONE).arg(TAILORING_CUSTOM_FILE));
         }
     }
     else
@@ -653,8 +655,10 @@ void MainWindow::scanProgressReport(const QString& rule_id, const QString& resul
 
     if (!item)
     {
-        scanWarningMessage(QString("Received scanning progress of rule of ID '%1'. "
-                                   "Rule with such ID hasn't been found in the benchmark!").arg(rule_id));
+        scanWarningMessage(QString(
+            "Received scanning progress of rule of ID '%1'. "
+            "Rule with such ID hasn't been found in the benchmark!").arg(rule_id));
+
         return;
     }
 
@@ -761,11 +765,13 @@ void MainWindow::inheritAndEditProfile(bool shadowed)
 
 void MainWindow::tailorNewID()
 {
+    // TODO: Use lambdas
     inheritAndEditProfile(false);
 }
 
 void MainWindow::tailorShadowed()
 {
+    // TODO: Use lambdas
     inheritAndEditProfile(true);
 }
 

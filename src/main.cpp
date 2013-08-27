@@ -21,11 +21,6 @@
 
 #include "Application.h"
 
-extern "C"
-{
-#include <xccdf_benchmark.h>
-}
-
 int main(int argc, char** argv)
 {
     Application app(argc, argv);
