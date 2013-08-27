@@ -42,6 +42,9 @@ class NAME : public std::runtime_error \
 SCAP_WORKBENCH_SIMPLE_EXCEPTION(MainWindowException,
     "There was a problem with MainWindow!\n");
 
+SCAP_WORKBENCH_SIMPLE_EXCEPTION(ScanningSessionException,
+    "There was a problem with ScanningSession!\n");
+
 SCAP_WORKBENCH_SIMPLE_EXCEPTION(SyncProcessException,
     "There was a problem with SyncProcess!\n");
 

@@ -38,7 +38,7 @@ class ScanningSession : public QObject
     Q_OBJECT
 
     public:
-        ScanningSession(DiagnosticsDialog* diagnosticsDialog, QObject* parent = 0);
+        ScanningSession(QObject* parent = 0);
         ~ScanningSession();
 
     public slots:
@@ -71,7 +71,6 @@ class ScanningSession : public QObject
          * @brief Reloads the session if needed, datastream split is potentially done again
          *
          * @param forceReload if true, the reload is forced no matter what mSessionDirty is
-         * @return true if reload was successful or wasn't needed, false otherwise
          *
          * The main purpose of this method is to allow to reload the session when
          * parameters that affect "loading" of the session change. These parameters
@@ -80,12 +79,17 @@ class ScanningSession : public QObject
          * mSessionDirty is automatically set to true whenever crucial parameters of
          * the session change. reloadSession will early out if reload is not necessary.
          */
-        bool reloadSession(bool forceReload = false) const;
+        void reloadSession(bool forceReload = false) const;
 
         QString getInputFile() const;
 
         struct xccdf_session* getXCCDFSession() const;
 
+        /**
+         * @brief Returns true if a file has been opened in this session
+         *
+         * @note Never throws exceptions!
+         */
         bool fileOpened() const;
 
         bool profileSelected() const;
@@ -119,10 +123,6 @@ class ScanningSession : public QObject
         /// (loading new file, setting it to load from datastream, ...)
         /// user changes to the tailoring would be lost if we reloaded.
         bool mTailoringUserChanges;
-
-        /// Qt Dialog that displays messages (errors, warnings, infos)
-        /// Gets shown whenever a warning or error is emitted
-        DiagnosticsDialog* mDiagnosticsDialog;
 };
 
 #endif

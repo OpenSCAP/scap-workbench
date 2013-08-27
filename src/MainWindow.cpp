@@ -140,7 +140,7 @@ MainWindow::MainWindow(QWidget* parent):
     mDiagnosticsDialog = new DiagnosticsDialog(this);
     mDiagnosticsDialog->hide();
 
-    mScanningSession = new ScanningSession(mDiagnosticsDialog, this);
+    mScanningSession = new ScanningSession(this);
 
     show();
 }
@@ -172,50 +172,63 @@ void MainWindow::clearResults()
 
 void MainWindow::openFile(const QString& path)
 {
-    mScanningSession->openFile(path);
-
-    mUI.tailoringFileComboBox->addItem(QString("(none)"), QVariant(QString::Null()));
-
-    mUI.openedFileLineEdit->setText(path);
-    if (mScanningSession->isSDS())
+    try
     {
-        struct ds_sds_index* sds_idx = xccdf_session_get_sds_idx(mScanningSession->getXCCDFSession());
+        mScanningSession->openFile(path);
 
-        struct ds_stream_index_iterator* streams_it = ds_sds_index_get_streams(sds_idx);
-        while (ds_stream_index_iterator_has_more(streams_it))
+        mUI.tailoringFileComboBox->addItem(QString("(none)"), QVariant(QString::Null()));
+
+        mUI.openedFileLineEdit->setText(path);
+        if (mScanningSession->isSDS())
         {
-            struct ds_stream_index* stream_idx = ds_stream_index_iterator_next(streams_it);
-            const char* stream_id = ds_stream_index_get_id(stream_idx);
+            struct ds_sds_index* sds_idx = xccdf_session_get_sds_idx(mScanningSession->getXCCDFSession());
 
-            struct oscap_string_iterator* checklists_it = ds_stream_index_get_checklists(stream_idx);
-            while (oscap_string_iterator_has_more(checklists_it))
+            struct ds_stream_index_iterator* streams_it = ds_sds_index_get_streams(sds_idx);
+            while (ds_stream_index_iterator_has_more(streams_it))
             {
-                const char* checklist_id = oscap_string_iterator_next(checklists_it);
+                struct ds_stream_index* stream_idx = ds_stream_index_iterator_next(streams_it);
+                const char* stream_id = ds_stream_index_get_id(stream_idx);
 
-                QStringList data;
-                data.append(stream_id);
-                data.append(checklist_id);
+                struct oscap_string_iterator* checklists_it = ds_stream_index_get_checklists(stream_idx);
+                while (oscap_string_iterator_has_more(checklists_it))
+                {
+                    const char* checklist_id = oscap_string_iterator_next(checklists_it);
 
-                mUI.checklistComboBox->addItem(QString("%1 / %2").arg(stream_id).arg(checklist_id), data);
+                    QStringList data;
+                    data.append(stream_id);
+                    data.append(checklist_id);
+
+                    mUI.checklistComboBox->addItem(QString("%1 / %2").arg(stream_id).arg(checklist_id), data);
+                }
+                oscap_string_iterator_free(checklists_it);
             }
-            oscap_string_iterator_free(checklists_it);
+            ds_stream_index_iterator_free(streams_it);
+
+            mUI.checklistComboBox->show();
+            mUI.checklistLabel->show();
+
+            // TODO: Tailoring files inside datastream should be added to tailoring combobox
         }
-        ds_stream_index_iterator_free(streams_it);
 
-        mUI.checklistComboBox->show();
-        mUI.checklistLabel->show();
+        mUI.tailoringFileComboBox->addItem(QString("(...)"), QVariant(QString::Null()));
 
-        // TODO: Tailoring files inside datastream should be added to tailoring combobox
+        // force load up of the session
+        checklistComboboxChanged(0);
+
+        centralWidget()->setEnabled(true);
+
+        mDiagnosticsDialog->infoMessage(QString("Opened file '%1'.").arg(path));
     }
+    catch (const std::exception& e)
+    {
+        mScanningSession->closeFile();
 
-    mUI.tailoringFileComboBox->addItem(QString("(...)"), QVariant(QString::Null()));
+        mUI.tailoringFileComboBox->clear();
+        mUI.openedFileLineEdit->setText("");
+        mUI.checklistComboBox->clear();
 
-    // force load up of the session
-    checklistComboboxChanged(0);
-
-    centralWidget()->setEnabled(true);
-
-    mDiagnosticsDialog->infoMessage(QString("Opened file '%1'.").arg(path));
+        mDiagnosticsDialog->errorMessage(e.what());
+    }
 }
 
 void MainWindow::openFileDialog()
@@ -242,6 +255,7 @@ void MainWindow::openFileDialog()
         }
 
         openFile(path);
+
         if (!mScanningSession->fileOpened())
         {
             // Error occured, keep pumping events and don't move on until user
@@ -401,7 +415,14 @@ void MainWindow::closeEvent(QCloseEvent* event)
 
 void MainWindow::closeFile()
 {
-    mScanningSession->closeFile();
+    try
+    {
+        mScanningSession->closeFile();
+    }
+    catch (const std::exception& e)
+    {
+        mDiagnosticsDialog->errorMessage(e.what());
+    }
 
     centralWidget()->setEnabled(false);
 
@@ -420,7 +441,14 @@ void MainWindow::closeFile()
 
 void MainWindow::reloadSession()
 {
-    mScanningSession->reloadSession();
+    try
+    {
+        mScanningSession->reloadSession();
+    }
+    catch (const std::exception& e)
+    {
+        mDiagnosticsDialog->errorMessage(e.what());
+    }
 
     mResultViewer->clear();
     refreshProfiles();
@@ -439,19 +467,45 @@ void MainWindow::refreshProfiles()
 
     mUI.profileComboBox->addItem("(default)", QVariant(QString::Null()));
 
-    struct xccdf_policy_model* pmodel = xccdf_session_get_policy_model(mScanningSession->getXCCDFSession());
-
-    // We construct a temporary map that maps profile IDs to what we will show
-    // in the combobox. We do this to convey that some profiles are shadowed
-    // (tailored) in the tailoring file.
-
-    std::map<QString, QString> profileCrossMap;
-    struct xccdf_profile_iterator* profile_it;
-
-    struct xccdf_tailoring* tailoring = xccdf_policy_model_get_tailoring(pmodel);
-    if (tailoring)
+    try
     {
-        profile_it = xccdf_tailoring_get_profiles(tailoring);
+        struct xccdf_policy_model* pmodel = xccdf_session_get_policy_model(mScanningSession->getXCCDFSession());
+
+        // We construct a temporary map that maps profile IDs to what we will show
+        // in the combobox. We do this to convey that some profiles are shadowed
+        // (tailored) in the tailoring file.
+
+        std::map<QString, QString> profileCrossMap;
+        struct xccdf_profile_iterator* profile_it;
+
+        struct xccdf_tailoring* tailoring = xccdf_policy_model_get_tailoring(pmodel);
+        if (tailoring)
+        {
+            profile_it = xccdf_tailoring_get_profiles(tailoring);
+            while (xccdf_profile_iterator_has_more(profile_it))
+            {
+                struct xccdf_profile* profile = xccdf_profile_iterator_next(profile_it);
+                const QString profile_id = QString(xccdf_profile_get_id(profile));
+                oscap_text_iterator* titles = xccdf_profile_get_title(profile);
+                char* preferred_title = oscap_textlist_get_preferred_plaintext(titles, NULL);
+                oscap_text_iterator_free(titles);
+
+                assert(profileCrossMap.find(profile_id) == profileCrossMap.end());
+
+                profileCrossMap.insert(
+                    std::make_pair(
+                        profile_id,
+                        QString(preferred_title)
+                    )
+                );
+
+                free(preferred_title);
+            }
+            xccdf_profile_iterator_free(profile_it);
+        }
+
+        struct xccdf_benchmark* benchmark = xccdf_policy_model_get_benchmark(pmodel);
+        profile_it = xccdf_benchmark_get_profiles(benchmark);
         while (xccdf_profile_iterator_has_more(profile_it))
         {
             struct xccdf_profile* profile = xccdf_profile_iterator_next(profile_it);
@@ -460,65 +514,47 @@ void MainWindow::refreshProfiles()
             char* preferred_title = oscap_textlist_get_preferred_plaintext(titles, NULL);
             oscap_text_iterator_free(titles);
 
-            assert(profileCrossMap.find(profile_id) == profileCrossMap.end());
-
-            profileCrossMap.insert(
-                std::make_pair(
-                    profile_id,
-                    QString(preferred_title)
-                )
-            );
+            if (profileCrossMap.find(profile_id) != profileCrossMap.end())
+            {
+                // this profile is being shadowed by the tailoring file
+                profileCrossMap[profile_id] += " (tailored)";
+            }
+            else
+            {
+                profileCrossMap.insert(
+                    std::make_pair(
+                        profile_id,
+                        QString(preferred_title)
+                    )
+                );
+            }
 
             free(preferred_title);
         }
         xccdf_profile_iterator_free(profile_it);
-    }
 
-    struct xccdf_benchmark* benchmark = xccdf_policy_model_get_benchmark(pmodel);
-    profile_it = xccdf_benchmark_get_profiles(benchmark);
-    while (xccdf_profile_iterator_has_more(profile_it))
-    {
-        struct xccdf_profile* profile = xccdf_profile_iterator_next(profile_it);
-        const QString profile_id = QString(xccdf_profile_get_id(profile));
-        oscap_text_iterator* titles = xccdf_profile_get_title(profile);
-        char* preferred_title = oscap_textlist_get_preferred_plaintext(titles, NULL);
-        oscap_text_iterator_free(titles);
-
-        if (profileCrossMap.find(profile_id) != profileCrossMap.end())
+        // A nice side effect here is that profiles will be sorted by their IDs
+        // because of the RB-tree implementation of std::map. I am not sure whether
+        // we want that in the final version but it works well for the content
+        // I am testing with.
+        for (std::map<QString, QString>::const_iterator it = profileCrossMap.begin();
+             it != profileCrossMap.end();
+             ++it)
         {
-            // this profile is being shadowed by the tailoring file
-            profileCrossMap[profile_id] += " (tailored)";
-        }
-        else
-        {
-            profileCrossMap.insert(
-                std::make_pair(
-                    profile_id,
-                    QString(preferred_title)
-                )
-            );
+            mUI.profileComboBox->addItem(it->second, QVariant(it->first));
         }
 
-        free(preferred_title);
+        if (previouslySelected != QString::Null())
+        {
+            int indexCandidate = mUI.profileComboBox->findData(QVariant(previouslySelected));
+            if (indexCandidate != -1)
+                mUI.profileComboBox->setCurrentIndex(indexCandidate);
+        }
     }
-    xccdf_profile_iterator_free(profile_it);
-
-    // A nice side effect here is that profiles will be sorted by their IDs
-    // because of the RB-tree implementation of std::map. I am not sure whether
-    // we want that in the final version but it works well for the content
-    // I am testing with.
-    for (std::map<QString, QString>::const_iterator it = profileCrossMap.begin();
-         it != profileCrossMap.end();
-         ++it)
+    catch (const std::exception& e)
     {
-        mUI.profileComboBox->addItem(it->second, QVariant(it->first));
-    }
-
-    if (previouslySelected != QString::Null())
-    {
-        int indexCandidate = mUI.profileComboBox->findData(QVariant(previouslySelected));
-        if (indexCandidate != -1)
-            mUI.profileComboBox->setCurrentIndex(indexCandidate);
+        mUI.profileComboBox->clear();
+        mDiagnosticsDialog->errorMessage(e.what());
     }
 }
 
@@ -539,18 +575,25 @@ void MainWindow::checklistComboboxChanged(int index)
 
     const QStringList data = mUI.checklistComboBox->itemData(index).toStringList();
 
-    if (data.size() == 2)
+    try
     {
-        mScanningSession->setDatastreamID(data.at(0));
-        mScanningSession->setComponentID(data.at(1));
-    }
-    else
-    {
-        mScanningSession->setDatastreamID(QString());
-        mScanningSession->setComponentID(QString());
-    }
+        if (data.size() == 2)
+        {
+            mScanningSession->setDatastreamID(data.at(0));
+            mScanningSession->setComponentID(data.at(1));
+        }
+        else
+        {
+            mScanningSession->setDatastreamID(QString());
+            mScanningSession->setComponentID(QString());
+        }
 
-    reloadSession();
+        reloadSession();
+    }
+    catch (const std::exception& e)
+    {
+        mDiagnosticsDialog->errorMessage(e.what());
+    }
 }
 
 void MainWindow::tailoringFileComboboxChanged(int index)
@@ -561,37 +604,44 @@ void MainWindow::tailoringFileComboboxChanged(int index)
     const QString text = mUI.tailoringFileComboBox->itemText(index);
     const QString data = mUI.tailoringFileComboBox->itemData(index).toString();
 
-    if (data == QString::Null()) // special cases first
+    try
     {
-        if (text == TAILORING_NONE)
+        if (data == QString::Null()) // special cases first
         {
-            mScanningSession->resetTailoring();
-        }
-        else if (text == TAILORING_CUSTOM_FILE)
-        {
-            QString filePath = QFileDialog::getOpenFileName(
-                this, "Open custom XCCDF tailoring file", QString(),
-                "XCCDF tailoring file (*.xml)"
-            );
+            if (text == TAILORING_NONE)
+            {
+                mScanningSession->resetTailoring();
+            }
+            else if (text == TAILORING_CUSTOM_FILE)
+            {
+                QString filePath = QFileDialog::getOpenFileName(
+                    this, "Open custom XCCDF tailoring file", QString(),
+                    "XCCDF tailoring file (*.xml)"
+                );
 
-            if (filePath == QString::Null())
-                mUI.tailoringFileComboBox->setCurrentIndex(0); // user canceled, set to (none)
+                if (filePath == QString::Null())
+                    mUI.tailoringFileComboBox->setCurrentIndex(0); // user canceled, set to (none)
+                else
+                    mScanningSession->setTailoringFile(filePath);
+            }
             else
-                mScanningSession->setTailoringFile(filePath);
+            {
+                mDiagnosticsDialog->errorMessage(QString(
+                    "Can't set scanning session to use tailoring '%1' (from combobox "
+                    "item data). Expected '%2' or '%3'").arg(text).arg(TAILORING_NONE).arg(TAILORING_CUSTOM_FILE));
+            }
         }
         else
         {
-            mDiagnosticsDialog->errorMessage(QString(
-                "Can't set scanning session to use tailoring '%1' (from combobox "
-                "item data). Expected '%2' or '%3'").arg(text).arg(TAILORING_NONE).arg(TAILORING_CUSTOM_FILE));
+            mScanningSession->setTailoringComponentID(data);
         }
-    }
-    else
-    {
-        mScanningSession->setTailoringComponentID(data);
-    }
 
-    reloadSession();
+        reloadSession();
+    }
+    catch (const std::exception& e)
+    {
+        mDiagnosticsDialog->errorMessage(e.what());
+    }
 }
 
 void MainWindow::profileComboboxChanged(int index)
@@ -599,38 +649,27 @@ void MainWindow::profileComboboxChanged(int index)
     if (!mScanningSession->fileOpened())
         return;
 
-    QString profileId = mUI.profileComboBox->itemData(index).toString();
+    const QString profileId = mUI.profileComboBox->itemData(index).toString();
 
-    if (profileId == QString::Null())
+    try
     {
-        mScanningSession->setProfileID(QString());
+        mScanningSession->setProfileID(profileId);
+
+        // scap-workbench can tailor any profile but it doesn't make sense to "tailor" a tailoring profile.
+        // Doing so would create yet another profile inheriting the old. Instead we allow user to
+        // edit the already tailored profile.
+
+        // Note: We can inherit and edit (default) profile by creating a new empty profile.
+
+        mTailorAction->setEnabled(!mScanningSession->isSelectedProfileTailoring());
+        // NB: default profile can't be shadow tailored, it makes no sense
+        mTailorAndShadowAction->setEnabled(!profileId.isEmpty() && !mScanningSession->isSelectedProfileTailoring());
+        mEditProfileAction->setEnabled(mScanningSession->isSelectedProfileTailoring());
     }
-    else
+    catch (std::exception& e)
     {
-        // todo: use exceptions here
-        if (!mScanningSession->setProfileID(profileId))
-        {
-            mScanningSession->setProfileID(QString());
-
-            mDiagnosticsDialog->warningMessage(
-                QString(
-                    "Can't change session profile to '%1'!\n"
-                    "oscap error description:\n%2"
-                ).arg(profileId).arg(oscap_err_desc())
-            );
-        }
+        mDiagnosticsDialog->errorMessage(e.what());
     }
-
-    // scap-workbench can tailor any profile but it doesn't make sense to "tailor" a tailoring profile.
-    // Doing so would create yet another profile inheriting the old. Instead we allow user to
-    // edit the already tailored profile.
-
-    // Note: We can inherit and edit (default) profile by creating a new empty profile.
-
-    mTailorAction->setEnabled(!mScanningSession->isSelectedProfileTailoring());
-    // NB: default profile can't be shadow tailored, it makes no sense
-    mTailorAndShadowAction->setEnabled(!profileId.isEmpty() && !mScanningSession->isSelectedProfileTailoring());
-    mEditProfileAction->setEnabled(mScanningSession->isSelectedProfileTailoring());
 
     clearResults();
 }
@@ -650,7 +689,18 @@ void MainWindow::scanProgressReport(const QString& rule_id, const QString& resul
 
     assert(mScanningSession->fileOpened());
 
-    struct xccdf_benchmark* benchmark = xccdf_policy_model_get_benchmark(xccdf_session_get_policy_model(mScanningSession->getXCCDFSession()));
+    struct xccdf_benchmark* benchmark = 0;
+    try
+    {
+        benchmark = xccdf_policy_model_get_benchmark(xccdf_session_get_policy_model(mScanningSession->getXCCDFSession()));
+    }
+    catch (const std::exception& e)
+    {
+        scanErrorMessage(QString("Can't get benchmark from scanning session, details follow:\n%1").arg(e.what()));
+
+        return;
+    }
+
     struct xccdf_item* item = xccdf_benchmark_get_member(benchmark, XCCDF_ITEM, rule_id.toUtf8().constData());
 
     if (!item)
@@ -751,7 +801,18 @@ void MainWindow::inheritAndEditProfile(bool shadowed)
     if (!mScanningSession->fileOpened())
         return;
 
-    struct xccdf_profile* newProfile = mScanningSession->tailorCurrentProfile(shadowed);
+    struct xccdf_profile* newProfile = 0;
+
+    try
+    {
+        newProfile = mScanningSession->tailorCurrentProfile(shadowed);
+    }
+    catch (const std::exception& e)
+    {
+        mDiagnosticsDialog->errorMessage(
+            QString("Failed to tailor currently selected profile, details follow:\n%1").arg(e.what()));
+    }
+
     refreshProfiles();
 
     // select the new profile as current
@@ -780,7 +841,20 @@ void MainWindow::editProfile()
     if (!mScanningSession->fileOpened())
         return;
 
-    struct xccdf_policy* policy = xccdf_session_get_xccdf_policy(mScanningSession->getXCCDFSession());
+    struct xccdf_session* session = 0;
+    struct xccdf_policy* policy = 0;
+    try
+    {
+        session = mScanningSession->getXCCDFSession();
+        policy = xccdf_session_get_xccdf_policy(session);
+    }
+    catch (const std::exception& e)
+    {
+        mDiagnosticsDialog->errorMessage(
+            QString("Failed to retrieve XCCDF policy when editing profile, details follow:%1").arg(e.what()));
+        return;
+    }
+
     if (!policy)
         return;
 
@@ -800,7 +874,7 @@ void MainWindow::editProfile()
         return;
     }
 
-    struct xccdf_policy_model* policyModel = xccdf_session_get_policy_model(mScanningSession->getXCCDFSession());
+    struct xccdf_policy_model* policyModel = xccdf_session_get_policy_model(session);
     struct xccdf_benchmark* benchmark = xccdf_policy_model_get_benchmark(policyModel);
 
     new TailoringWindow(policy, benchmark, this);
