@@ -159,8 +159,9 @@ TailoringWindow::TailoringWindow(struct xccdf_policy* policy, struct xccdf_bench
 
     synchronizeTreeItem(benchmarkItem, xccdf_benchmark_to_item(mBenchmark), true);
 
-    setWindowTitle(QString("Tailoring '%1'").arg(
-        oscap_textlist_get_preferred_plaintext(xccdf_profile_get_title(mProfile), NULL)));
+    char* profile_title = oscap_textlist_get_preferred_plaintext(xccdf_profile_get_title(mProfile), NULL);
+    setWindowTitle(QString("Tailoring '%1'").arg(profile_title));
+    free(profile_title);
 
     show();
 }
