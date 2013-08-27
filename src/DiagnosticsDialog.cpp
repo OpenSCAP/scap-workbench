@@ -75,10 +75,10 @@ void DiagnosticsDialog::pushMessage(const QString& fullMessage, const bool error
 
     strftime(stime, 10, "%H:%M:%S", timeinfo);
 
-    const QString outMessage = QString(stime) + " " + fullMessage;
+    const QString outMessage = QString(stime) + " | " + fullMessage;
 
     std::ostream& stream = error ? std::cerr : std::cout;
-    stream << outMessage.toUtf8().data() << std::endl;
+    stream << outMessage.toUtf8().constData() << std::endl;
 
-    mUI.messages->append(outMessage + "\n\n");
+    mUI.messages->append(outMessage + "\n");
 }
