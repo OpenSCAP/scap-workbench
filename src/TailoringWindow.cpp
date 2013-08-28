@@ -129,6 +129,12 @@ TailoringWindow::TailoringWindow(struct xccdf_policy* policy, struct xccdf_bench
             "benchmark. Can't proceed!");
 
     mUI.setupUi(this);
+
+    QObject::connect(
+        mUI.finishButton, SIGNAL(released()),
+        this, SLOT(close())
+    );
+
     addDockWidget(Qt::RightDockWidgetArea, mItemPropertiesDockWidget);
 
     {
