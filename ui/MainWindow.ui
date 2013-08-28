@@ -113,17 +113,17 @@
          </property>
         </widget>
        </item>
-       <item row="2" column="1" colspan="3">
-        <widget class="QComboBox" name="tailoringFileComboBox"/>
-       </item>
-       <item row="0" column="2">
-        <widget class="QPushButton" name="saveAsButton">
+       <item row="2" column="3">
+        <widget class="QPushButton" name="saveTailoringButton">
          <property name="text">
-          <string>Save As</string>
+          <string>Save Tailoring</string>
          </property>
         </widget>
        </item>
-       <item row="3" column="2" colspan="2">
+       <item row="2" column="1">
+        <widget class="QComboBox" name="tailoringFileComboBox"/>
+       </item>
+       <item row="3" column="3">
         <widget class="QPushButton" name="tailorButton">
          <property name="toolTip">
           <string>Creates a new profile that inherits selected profile, opens a window to edit the newly created profile.</string>

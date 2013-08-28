@@ -134,6 +134,11 @@ MainWindow::MainWindow(QWidget* parent):
     mTailorButtonMenu->addAction(mEditProfileAction);
     mUI.tailorButton->setMenu(mTailorButtonMenu);
 
+    QObject::connect(
+        mUI.saveTailoringButton, SIGNAL(released()),
+        this, SLOT(saveTailoring())
+    );
+
     mResultViewer = new ResultViewer(this);
     mResultViewer->hide();
 
@@ -878,4 +883,25 @@ void MainWindow::editProfile()
     struct xccdf_benchmark* benchmark = xccdf_policy_model_get_benchmark(policyModel);
 
     new TailoringWindow(policy, benchmark, this);
+}
+
+void MainWindow::saveTailoring()
+{
+    const QString path = QFileDialog::getSaveFileName(this, "Save Tailoring As", "", "XCCDF Tailoring file (*.xml)");
+
+    if (path.isEmpty())
+        return;
+
+    try
+    {
+        mScanningSession->saveTailoring(path);
+    }
+    catch (const std::exception& e)
+    {
+        mDiagnosticsDialog->errorMessage(
+            QString(
+                "Failed to save tailoring file to path '%1'!"
+            ).arg(path)
+        );
+    }
 }

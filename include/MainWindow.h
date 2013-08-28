@@ -278,6 +278,8 @@ class MainWindow : public QMainWindow
         void tailorNewID();
         void tailorShadowed();
         void editProfile();
+
+        void saveTailoring();
 };
 
 #endif
