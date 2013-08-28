@@ -101,6 +101,11 @@ class ScanningSession
         void setTailoringComponentID(const QString& componentID);
 
         /**
+         * @brief Saves tailoring to given file path
+         */
+        void saveTailoring(const QString& path);
+
+        /**
          * @brief Exports tailoring file to a temporary path and returns the path
          *
          * @par

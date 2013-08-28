@@ -197,24 +197,35 @@ void ScanningSession::setTailoringComponentID(const QString& componentID)
     mTailoringUserChanges = false;
 }
 
-QString ScanningSession::getTailoringFilePath()
+void ScanningSession::saveTailoring(const QString& path)
 {
     ensureTailoringExists();
 
+    struct xccdf_benchmark* benchmark = getXCCDFInputBenchmark();
+    if (xccdf_tailoring_export(
+        mTailoring,
+        path.toUtf8().constData(),
+        xccdf_benchmark_get_schema_version(benchmark)
+    ) != 1) // 1 is actually success here, big inconsistency in openscap API :(
+    {
+        throw ScanningSessionException(
+            QString("Exporting tailoring to '%1' failed! Details follow:\n%2").arg(path).arg(oscap_err_desc())
+        );
+    }
+}
+
+QString ScanningSession::getTailoringFilePath()
+{
     if (mTailoringFile.isOpen())
         mTailoringFile.close();
 
     mTailoringFile.open();
     mTailoringFile.close();
 
-    struct xccdf_benchmark* benchmark = getXCCDFInputBenchmark();
-    xccdf_tailoring_export(
-        mTailoring,
-        mTailoringFile.fileName().toUtf8().constData(),
-        xccdf_benchmark_get_schema_version(benchmark)
-    );
+    const QString fileName = mTailoringFile.fileName();
+    saveTailoring(fileName);
 
-    return mTailoringFile.fileName();
+    return fileName;
 }
 
 bool ScanningSession::hasTailoring() const
