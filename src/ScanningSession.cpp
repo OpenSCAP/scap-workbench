@@ -154,33 +154,6 @@ QString ScanningSession::getComponentID() const
 
     return xccdf_session_get_component_id(mSession);
 }
-void ScanningSession::ensureTailoringExists()
-{
-    reloadSession();
-
-    if (!mTailoring)
-    {
-        mTailoring = xccdf_tailoring_new();
-        xccdf_tailoring_set_id(mTailoring, "xccdf_scap-workbench_tailoring_default");
-        xccdf_tailoring_set_version(mTailoring, "1");
-
-        {
-            time_t rawtime;
-            struct tm* timeinfo;
-            char buffer[80];
-
-            time(&rawtime);
-            timeinfo = localtime(&rawtime);
-
-            strftime(buffer, 80, "%Y-%m-%dT%H:%M:%S", timeinfo);
-
-            xccdf_tailoring_set_version_time(mTailoring, buffer);
-        }
-
-        mTailoringUserChanges = true;
-        reloadSession(true);
-    }
-}
 
 void ScanningSession::resetTailoring()
 {
@@ -405,4 +378,32 @@ struct xccdf_benchmark* ScanningSession::getXCCDFInputBenchmark()
 
     struct xccdf_policy_model* policyModel = xccdf_session_get_policy_model(mSession);
     return xccdf_policy_model_get_benchmark(policyModel);
+}
+
+void ScanningSession::ensureTailoringExists()
+{
+    reloadSession();
+
+    if (!mTailoring)
+    {
+        mTailoring = xccdf_tailoring_new();
+        xccdf_tailoring_set_id(mTailoring, "xccdf_scap-workbench_tailoring_default");
+        xccdf_tailoring_set_version(mTailoring, "1");
+
+        {
+            time_t rawtime;
+            struct tm* timeinfo;
+            char buffer[80];
+
+            time(&rawtime);
+            timeinfo = localtime(&rawtime);
+
+            strftime(buffer, 80, "%Y-%m-%dT%H:%M:%S", timeinfo);
+
+            xccdf_tailoring_set_version_time(mTailoring, buffer);
+        }
+
+        mTailoringUserChanges = true;
+        reloadSession(true);
+    }
 }

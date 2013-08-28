@@ -96,7 +96,6 @@ class ScanningSession
         void setComponentID(const QString& componentID);
         QString getComponentID() const;
 
-        void ensureTailoringExists();
         void resetTailoring();
         void setTailoringFile(const QString& tailoringFile);
         void setTailoringComponentID(const QString& componentID);
@@ -118,10 +117,24 @@ class ScanningSession
          */
         bool hasTailoring() const;
 
+        /**
+         * @brief Sets which profile to use for scanning
+         *
+         * Will throw an exception if profile selection fails
+         */
         void setProfileID(const QString& profileID);
         QString getProfileID() const;
 
         bool profileSelected() const;
+
+        /**
+         * @brief Checks whether currently selected profile is a tailoring profile
+         *
+         * Tailoring profile comes from a tailoring file. It can either have ID of
+         * a normal profile (thus shadowing it) or a completely different ID.
+         *
+         * A profile that is not a tailoring profile comes in the input file.
+         */
         bool isSelectedProfileTailoring() const;
 
         /**
@@ -148,6 +161,7 @@ class ScanningSession
 
     private:
         struct xccdf_benchmark* getXCCDFInputBenchmark();
+        void ensureTailoringExists();
 
         /// This is our central point of interaction with openscap
         struct xccdf_session* mSession;
