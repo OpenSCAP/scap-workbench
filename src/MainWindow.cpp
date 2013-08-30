@@ -575,7 +575,7 @@ void MainWindow::cleanupScanThread()
 
 void MainWindow::checklistComboboxChanged(int index)
 {
-    if (!mScanningSession->fileOpened())
+    if (!mScanningSession->isSDS())
         return;
 
     const QStringList data = mUI.checklistComboBox->itemData(index).toStringList();
