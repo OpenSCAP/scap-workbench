@@ -23,6 +23,7 @@
 
 #include <QRegExp>
 #include <QStringList>
+#include <cassert>
 
 OscapCapabilities::OscapCapabilities()
 {
@@ -47,22 +48,33 @@ void OscapCapabilities::clear()
     mSCEVersion = "Unknown";
 }
 
-static bool versionGreaterThan(const QString& a, const QString& b)
+static bool versionGreaterOrEqual(const QString& a, const QString& b)
 {
     const QStringList aSplit = a.split(".");
-    const QStringList bSplit = a.split(".");
+    const QStringList bSplit = b.split(".");
+
+    // we only compare versions of the same number of components!
+    assert(aSplit.size() == bSplit.size());
 
     QStringList::size_type pos = 0;
 
     while (pos < aSplit.size() && pos < bSplit.size())
     {
-        if (aSplit[pos].toInt() < bSplit[pos].toInt())
+        const int aComponent = aSplit[pos].toInt();
+        const int bComponent = bSplit[pos].toInt();
+
+        if (aComponent < bComponent)
             return false;
+        if (aComponent > bComponent)
+            return true;
+
+        // only if they both match do we continue
 
         ++pos;
     }
 
-    return aSplit.size() > 0 && bSplit.size() > 0;
+    // the versions are equal!
+    return true;
 }
 
 void OscapCapabilities::parse(const QString& mmv)
@@ -83,17 +95,23 @@ void OscapCapabilities::parse(const QString& mmv)
     mVersion = versionCandidate;
 
     // TODO: Pick a better version
-    if (versionGreaterThan(mVersion, "0.8.0"))
+    if (versionGreaterOrEqual(mVersion, "0.8.0"))
         mBaselineSupport = true;
 
-    if (versionGreaterThan(mVersion, "0.9.3"))
+    if (versionGreaterOrEqual(mVersion, "0.9.3"))
         mProgressReporting = true;
 
-    if (versionGreaterThan(mVersion, "0.9.5"))
+    if (versionGreaterOrEqual(mVersion, "0.9.5"))
         mOnlineRemediation = true;
 
-    if (versionGreaterThan(mVersion, "0.9.0"))
+    if (versionGreaterOrEqual(mVersion, "0.9.0"))
         mSourceDataStreams = true;
+
+    if (versionGreaterOrEqual(mVersion, "0.9.12"))
+        mTailoringSupport = true;
+
+    /*if (versionGreaterThan(mVersion, "0.999.999"))
+        mARFInput = true;*/
 
     if (lines.size() < 4 || !lines[3].contains("Supported specifications"))
         return; // TODO: Throw exception?
