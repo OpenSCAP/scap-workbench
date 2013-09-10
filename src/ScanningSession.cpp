@@ -238,7 +238,16 @@ QString ScanningSession::getTailoringFilePath()
 
 bool ScanningSession::hasTailoring() const
 {
-    return mTailoring != NULL;
+    if (!mTailoring)
+        return false;
+
+    // Tailoring with 0 profiles is invalid (and it makes no sense to send
+    // such profile to the scanner, it wouldn't affect the scan in any way)
+    struct xccdf_profile_iterator* it = xccdf_tailoring_get_profiles(mTailoring);
+    const bool ret = xccdf_profile_iterator_has_more(it);
+    xccdf_profile_iterator_free(it);
+
+    return ret;
 }
 
 void ScanningSession::setProfileID(const QString& profileID)

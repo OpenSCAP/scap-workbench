@@ -121,8 +121,9 @@ class ScanningSession
         QString getTailoringFilePath();
 
         /**
-         * @brief Returns true if tailoring has been created
+         * @brief Returns true if tailoring has been created and is valid
          *
+         * @note A tailoring with 0 profiles isn't valid, the method will return false in that case
          * @note Can be caused by user changes or getTailoringFilePath called
          */
         bool hasTailoring() const;
