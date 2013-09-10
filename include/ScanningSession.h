@@ -96,6 +96,11 @@ class ScanningSession
         void setComponentID(const QString& componentID);
         QString getComponentID() const;
 
+        /**
+         * @brief Removes all tailoring (including the tailoring loaded from a file!)
+         *
+         * The result scanning session will scan as if only the input file was loaded.
+         */
         void resetTailoring();
         void setTailoringFile(const QString& tailoringFile);
         void setTailoringComponentID(const QString& componentID);

@@ -31,6 +31,7 @@ extern "C" {
 }
 
 #include <ctime>
+#include <QFileInfo>
 
 ScanningSession::ScanningSession():
     mSession(0),
@@ -200,6 +201,13 @@ void ScanningSession::setTailoringComponentID(const QString& componentID)
 void ScanningSession::saveTailoring(const QString& path)
 {
     ensureTailoringExists();
+
+    if (xccdf_tailoring_get_benchmark_ref(mTailoring) == NULL)
+    {
+        // we don't set the absolute path as benchmark ref to avoid revealing directory structure
+        QFileInfo fileInfo(getOpenedFilePath());
+        xccdf_tailoring_set_benchmark_ref(mTailoring, fileInfo.fileName().toUtf8().constData());
+    }
 
     struct xccdf_benchmark* benchmark = getXCCDFInputBenchmark();
     if (xccdf_tailoring_export(
