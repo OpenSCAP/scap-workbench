@@ -87,7 +87,6 @@ bool OscapScannerBase::checkPrerequisites()
                 "oscap version was detected as '%1'.").arg(mCapabilities.getOpenSCAPVersion())
         );
 
-        mCancelRequested = true;
         return false;
     }
 
@@ -100,7 +99,6 @@ bool OscapScannerBase::checkPrerequisites()
                 "oscap version was detected as '%1'.").arg(mCapabilities.getOpenSCAPVersion())
         );
 
-        mCancelRequested = true;
         return false;
     }
 
@@ -113,7 +111,6 @@ bool OscapScannerBase::checkPrerequisites()
                 "oscap version was detected as '%1'.").arg(mCapabilities.getOpenSCAPVersion())
         );
 
-        mCancelRequested = true;
         return false;
     }
 
