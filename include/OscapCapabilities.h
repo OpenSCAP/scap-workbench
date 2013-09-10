@@ -90,6 +90,14 @@ class OscapCapabilities
          */
         bool ARFInput() const;
 
+        /**
+         * @brief Returns true if tailoring is supported to the full extent workbench requires
+         *
+         * This means that XCCDF 1.1 can take tailoring via the openscap extension and XCCDF 1.2
+         * has proper tailoring including profile inheritance.
+         */
+        bool tailoringSupport() const;
+
         const QString& XCCDFVersion() const;
         const QString& OVALVersion() const;
         const QString& CPEVersion() const;
@@ -102,6 +110,7 @@ class OscapCapabilities
         bool mOnlineRemediation;
         bool mSourceDataStreams;
         bool mARFInput;
+        bool mTailoringSupport;
         bool mSCE;
 
         QString mXCCDFVersion;

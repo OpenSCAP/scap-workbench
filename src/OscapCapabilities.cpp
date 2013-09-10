@@ -38,6 +38,7 @@ void OscapCapabilities::clear()
     mOnlineRemediation = false;
     mSourceDataStreams = false;
     mARFInput = false;
+    mTailoringSupport = false;
     mSCE = false;
 
     mXCCDFVersion = "Unknown";
@@ -153,6 +154,11 @@ bool OscapCapabilities::sourceDatastreams() const
 bool OscapCapabilities::ARFInput() const
 {
     return mARFInput;
+}
+
+bool OscapCapabilities::tailoringSupport() const
+{
+    return mTailoringSupport;
 }
 
 const QString& OscapCapabilities::XCCDFVersion() const
