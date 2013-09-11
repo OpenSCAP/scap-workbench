@@ -214,6 +214,8 @@ void TailoringWindow::synchronizeTreeItem(QTreeWidgetItem* treeItem, struct xccd
     {
         case XCCDF_BENCHMARK:
             treeItem->setText(typeColumn, QString("Benchmark"));
+            // benchmark is the root of the tree, it makes no sense to have it collapsed
+            mUI.itemsTree->expandItem(treeItem);
             break;
 
         case XCCDF_GROUP:
