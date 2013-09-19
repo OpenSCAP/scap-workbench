@@ -674,6 +674,11 @@ void MainWindow::profileComboboxChanged(int index)
     catch (std::exception& e)
     {
         mDiagnosticsDialog->errorMessage(e.what());
+
+        // At this point we can't be sure a valid profile is selected. We better disallow tailoring.
+        mTailorAction->setEnabled(false);
+        mTailorAndShadowAction->setEnabled(false);
+        mEditProfileAction->setEnabled(false);
     }
 
     clearResults();
