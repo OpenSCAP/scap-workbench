@@ -312,49 +312,49 @@ void MainWindow::scanAsync(ScannerMode scannerMode)
 
     const QString target = mUI.targetLineEdit->text();
 
-    if (!mScanner || mScanner->getTarget() != target)
-    {
-        delete mScanner;
-
-        if (target == "localhost")
-            mScanner = new OscapScannerLocal();
-        else
-            mScanner = new OscapScannerRemoteSsh();
-
-        mScanner->setTarget(target);
-
-        QObject::connect(
-            this, SIGNAL(cancelScan()),
-            mScanner, SLOT(cancel())
-        );
-        QObject::connect(
-            mScanner, SIGNAL(progressReport(const QString&, const QString&)),
-            this, SLOT(scanProgressReport(const QString&, const QString&))
-        );
-        QObject::connect(
-            mScanner, SIGNAL(infoMessage(const QString&)),
-            this, SLOT(scanInfoMessage(const QString&))
-        );
-        QObject::connect(
-            mScanner, SIGNAL(warningMessage(const QString&)),
-            this, SLOT(scanWarningMessage(const QString&))
-        );
-        QObject::connect(
-            mScanner, SIGNAL(errorMessage(const QString&)),
-            this, SLOT(scanErrorMessage(const QString&))
-        );
-        QObject::connect(
-            mScanner, SIGNAL(canceled()),
-            this, SLOT(scanCanceled())
-        );
-        QObject::connect(
-            mScanner, SIGNAL(finished()),
-            this, SLOT(scanFinished())
-        );
-    }
-
     try
     {
+        if (!mScanner || mScanner->getTarget() != target)
+        {
+            delete mScanner;
+
+            if (target == "localhost")
+                mScanner = new OscapScannerLocal();
+            else
+                mScanner = new OscapScannerRemoteSsh();
+
+            mScanner->setTarget(target);
+
+            QObject::connect(
+                this, SIGNAL(cancelScan()),
+                mScanner, SLOT(cancel())
+            );
+            QObject::connect(
+                mScanner, SIGNAL(progressReport(const QString&, const QString&)),
+                this, SLOT(scanProgressReport(const QString&, const QString&))
+            );
+            QObject::connect(
+                mScanner, SIGNAL(infoMessage(const QString&)),
+                this, SLOT(scanInfoMessage(const QString&))
+            );
+            QObject::connect(
+                mScanner, SIGNAL(warningMessage(const QString&)),
+                this, SLOT(scanWarningMessage(const QString&))
+            );
+            QObject::connect(
+                mScanner, SIGNAL(errorMessage(const QString&)),
+                this, SLOT(scanErrorMessage(const QString&))
+            );
+            QObject::connect(
+                mScanner, SIGNAL(canceled()),
+                this, SLOT(scanCanceled())
+            );
+            QObject::connect(
+                mScanner, SIGNAL(finished()),
+                this, SLOT(scanFinished())
+            );
+        }
+
         mScanner->setScanThread(mScanThread);
         mScanner->setMainThread(thread());
         mScanner->setSession(mScanningSession);
@@ -379,7 +379,7 @@ void MainWindow::scanAsync(ScannerMode scannerMode)
 
     QObject::connect(
         mScanThread, SIGNAL(started()),
-        mScanner, SLOT(evaluate())
+        mScanner, SLOT(evaluateExceptionGuard())
     );
 
     mScanThread->start();

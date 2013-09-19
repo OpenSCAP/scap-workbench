@@ -123,6 +123,15 @@ class Scanner : public QObject
         virtual void evaluate() = 0;
 
         /**
+         * @brief A thin wrapper around evaluate that catches all exceptions
+         *
+         * Exceptions are "converted" into error notifications and passed along
+         * accordingly. The main reason for this method is to avoid throwing
+         * exception in the Qt event loop.
+         */
+        void evaluateExceptionGuard();
+
+        /**
          * @brief Requests to cancel the evaluation
          *
          * Usually fired via a signal from another thread, this will make sure

@@ -81,6 +81,20 @@ const QByteArray& Scanner::getARFForRemediation() const
     return mARFForRemediation;
 }
 
+void Scanner::evaluateExceptionGuard()
+{
+    try
+    {
+        evaluate();
+    }
+    catch (const std::exception& e)
+    {
+        emit errorMessage(
+            QString("Exception was thrown while evaluating! Details follow:\n").arg(e.what()));
+        signalCompletion(true);
+    }
+}
+
 void Scanner::signalCompletion(bool cancel)
 {
     if (cancel)
