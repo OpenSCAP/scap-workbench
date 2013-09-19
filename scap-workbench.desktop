@@ -1,7 +1,7 @@
 [Desktop Entry]
 Type=Application
 Name=SCAP Workbench
-Comment=GUI tool that allows scanning computers using XCCDF content of your choice.
+Comment=GUI tool that allows scanning both local and remote computers using SCAP content of your choice.
 TryExec=scap-workbench
 Exec=scap-workbench
 Icon=scap-workbench
