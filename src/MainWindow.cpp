@@ -641,12 +641,21 @@ void MainWindow::tailoringFileComboboxChanged(int index)
             mScanningSession->setTailoringComponentID(data);
         }
 
-        reloadSession();
+        // We intentionally call mScanningSession->reloadSession() instead of MainWindow::reloadSession
+        // because we want to catch exceptions and not have these filtered.
+        mScanningSession->reloadSession();
     }
     catch (const std::exception& e)
     {
-        mDiagnosticsDialog->errorMessage(e.what());
+        // Something went wrong when setting the tailoring file, lets reset tailoring
+        // to the most likely *sane* state to avoid errors when scanning.
+        mUI.tailoringFileComboBox->setCurrentIndex(0);
+
+        mDiagnosticsDialog->errorMessage(
+            QString("Failed to set up tailoring. Details follow:\n%1").arg(e.what()));
     }
+
+    reloadSession();
 }
 
 void MainWindow::profileComboboxChanged(int index)
