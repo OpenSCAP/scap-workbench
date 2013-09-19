@@ -16,7 +16,7 @@ if(NOT QT_QTWEBKIT_INCLUDE_DIR)
   set(QT_USE_QTWEBKIT 0) # do not use webkit if it was not found
 endif()
 
-find_package(OpenSCAP REQUIRED)
+find_package(OpenSCAP REQUIRED 0.9.12)
 
 file(GLOB scap_workbench_HEADERS "${CMAKE_SOURCE_DIR}/include/*.h")
 qt4_wrap_cpp(scap_workbench_HEADERS_MOC ${scap_workbench_HEADERS})
