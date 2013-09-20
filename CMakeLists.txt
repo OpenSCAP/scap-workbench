@@ -76,5 +76,9 @@ set(CPACK_SOURCE_IGNORE_FILES
 
 "build/"
 "~$"
+
+"\\\\.settings/"
+"\\\\.project"
+"\\\\.cproject"
 )
 include(CPack)
