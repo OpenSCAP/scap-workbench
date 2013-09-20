@@ -1,7 +1,7 @@
-.TH scap-workbench "28" "Jan 2013" "Red Hat" "System Administration Utilities"
+.TH scap-workbench "20" "Sep 2013" "Red Hat" "System Administration Utilities"
 
 .SH NAME
-scap-workbench \- GUI tool for evaluating systems compliance
+scap-workbench \- GUI tool for systems compliance evaluation
 
 .SH SYNOPSIS
 \fBscap-workbench\fR [\fIXCCDF_FILE\fR]
@@ -12,13 +12,15 @@ described with SCAP standards - XCCDF and OVAL.
 
 This tool enables users to:
 .RS
- * perform security scans driven by SCAP content \fB(scanner)\fR
+ * evaluate local and/or remote machines using SCAP content \fB(scanning)\fR
+ * perform remediation on both local and remote machines \fB(remediation)\fR
  * adjust XCCDF scanning profiles \fB(tailoring)\fR
 
 .SH OPTIONS
 .TP
 \fBXCCDF_FILE\fR
-If this parameter is provided the scanner will immediately open given XCCDF file after starting.
+If this parameter is provided the scanner will immediately open given XCCDF or
+source datastream (SDS) file after it starts.
 
 .SH SCAP CONTENT
 Sample content is provided by the OpenSCAP project (in the \fBopenscap-content\fR package).
@@ -30,6 +32,8 @@ Other sources of SCAP content are:
 \fBRed Hat content repository\fR - \fIhttp://www.redhat.com/security/data/oval/\fR
 .TP
 \fBscap-security-guide project\fR - \fIhttp://fedorahosted.org/scap-security-guide/\fR
+.TP
+\fBsce-community-content project\fR - \fIhttp://fedorahosted.org/sce-community-content/\fR
 
 .SH AUTHORS
 
