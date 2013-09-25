@@ -24,6 +24,7 @@
 
 #include "ForwardDecls.h"
 #include <QTemporaryFile>
+#include <QSet>
 
 extern "C"
 {
@@ -63,6 +64,13 @@ class ScanningSession
          * @brief Retrieves path of the opened file
          */
         QString getOpenedFilePath() const;
+
+        /**
+         * @brief List of all files (paths) necessary to evaluate content that is currently loaded
+         *
+         * Returns XCCDF, OVAL, CPEs, anything that is necessary to evaluate.
+         */
+        QSet<QString> getOpenedFilesClosure() const;
 
         /**
          * @brief Returns true if a file has been opened in this session

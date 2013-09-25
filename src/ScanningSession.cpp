@@ -28,10 +28,17 @@ extern "C" {
 #include <xccdf_session.h>
 #include <scap_ds.h>
 #include <oscap_error.h>
+#include <oscap.h>
 }
 
+#include <cassert>
 #include <ctime>
 #include <QFileInfo>
+#include <QDir>
+#include <QXmlQuery>
+#include <QXmlItem>
+#include <QXmlResultItems>
+#include <QXmlNodeModelIndex>
 
 ScanningSession::ScanningSession():
     mSession(0),
@@ -94,6 +101,57 @@ QString ScanningSession::getOpenedFilePath() const
         return QString::null;
 
     return xccdf_session_get_filename(mSession);
+}
+
+inline void getDependencyClosureOfFile(const QString& filePath, QSet<QString>& targetSet)
+{
+    targetSet.insert(filePath); // insert current file
+
+    QFileInfo fileInfo(filePath);
+    QDir parentDir = fileInfo.dir();
+
+    oscap_document_type_t docType;
+    if (oscap_determine_document_type(filePath.toUtf8().constData(), &docType) != 0)
+        return;
+
+    QFile file(filePath);
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
+    {} // FIXME
+
+    if (docType == OSCAP_DOCUMENT_XCCDF)
+    {
+        QXmlQuery depQuery;
+        depQuery.setFocus(&file);
+        depQuery.setQuery("//*[local-name() = 'check-content-ref']/@href");
+
+        if (depQuery.isValid())
+        {
+            QXmlResultItems result;
+            depQuery.evaluateTo(&result);
+
+            QXmlItem item(result.next());
+            while (!item.isNull())
+            {
+                QXmlNodeModelIndex itemIdx = item.toNodeModelIndex();
+                const QAbstractXmlNodeModel* model = itemIdx.model();
+                const QString  relativeFileName = model->stringValue(itemIdx);
+                getDependencyClosureOfFile(parentDir.absoluteFilePath(relativeFileName), targetSet);
+                item = result.next();
+            }
+
+            if (result.hasError())
+            {} // FIXME
+        }
+    }
+    else if (docType == OSCAP_DOCUMENT_OVAL_DEFINITIONS)
+    {}
+}
+
+QSet<QString> ScanningSession::getOpenedFilesClosure() const
+{
+    QSet<QString> ret;
+    getDependencyClosureOfFile(getOpenedFilePath(), ret);
+    return ret;
 }
 
 bool ScanningSession::fileOpened() const
