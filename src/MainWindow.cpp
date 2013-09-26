@@ -240,7 +240,7 @@ void MainWindow::openFileDialog()
 {
     closeFile();
 
-    while (!mScanningSession->fileOpened())
+    while (!fileOpened())
     {
         QString path = QFileDialog::getOpenFileName(this,
             "Open Source DataStream or XCCDF file",
@@ -261,7 +261,7 @@ void MainWindow::openFileDialog()
 
         openFile(path);
 
-        if (!mScanningSession->fileOpened())
+        if (!fileOpened())
         {
             // Error occured, keep pumping events and don't move on until user
             // dismisses diagnostics dialog.
@@ -278,9 +278,14 @@ void MainWindow::openFileDialogAsync()
     emit showOpenFileDialog();
 }
 
+bool MainWindow::fileOpened() const
+{
+    return mScanningSession && mScanningSession->fileOpened();
+}
+
 void MainWindow::scanAsync(ScannerMode scannerMode)
 {
-    assert(mScanningSession->fileOpened());
+    assert(fileOpened());
     assert(!mScanThread);
 
     clearResults();
@@ -397,7 +402,7 @@ void MainWindow::offlineRemediateAsync()
 
 void MainWindow::cancelScanAsync()
 {
-    assert(mScanningSession->fileOpened());
+    assert(fileOpened());
 
     mUI.cancelButton->setEnabled(false);
     emit cancelScan();
@@ -405,7 +410,7 @@ void MainWindow::cancelScanAsync()
 
 void MainWindow::closeEvent(QCloseEvent* event)
 {
-    if (mScanningSession->fileOpened())
+    if (fileOpened())
         cancelScanAsync();
 
     // wait until scanner cancels
@@ -467,7 +472,7 @@ void MainWindow::refreshProfiles()
 
     mUI.profileComboBox->clear();
 
-    if (!mScanningSession->fileOpened())
+    if (!fileOpened())
         return;
 
     mUI.profileComboBox->addItem("(default)", QVariant(QString::Null()));
@@ -603,7 +608,7 @@ void MainWindow::checklistComboboxChanged(int index)
 
 void MainWindow::tailoringFileComboboxChanged(int index)
 {
-    if (!mScanningSession->fileOpened())
+    if (!fileOpened())
         return;
 
     const QString text = mUI.tailoringFileComboBox->itemText(index);
@@ -660,7 +665,7 @@ void MainWindow::tailoringFileComboboxChanged(int index)
 
 void MainWindow::profileComboboxChanged(int index)
 {
-    if (!mScanningSession->fileOpened())
+    if (!fileOpened())
         return;
 
     const QString profileId = mUI.profileComboBox->itemData(index).toString();
@@ -706,7 +711,7 @@ void MainWindow::scanProgressReport(const QString& rule_id, const QString& resul
        optimistic!
     */
 
-    assert(mScanningSession->fileOpened());
+    assert(fileOpened());
 
     struct xccdf_benchmark* benchmark = 0;
     try
@@ -817,7 +822,7 @@ void MainWindow::showResults()
 
 void MainWindow::inheritAndEditProfile(bool shadowed)
 {
-    if (!mScanningSession->fileOpened())
+    if (!fileOpened())
         return;
 
     struct xccdf_profile* newProfile = 0;
@@ -857,7 +862,7 @@ void MainWindow::tailorShadowed()
 
 void MainWindow::editProfile()
 {
-    if (!mScanningSession->fileOpened())
+    if (!fileOpened())
         return;
 
     struct xccdf_session* session = 0;

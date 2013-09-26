@@ -36,11 +36,12 @@ Application::Application(int argc, char** argv):
     {
         const QString& fileToOpen = args.last();
         mMainWindow->openFile(fileToOpen);
+
+        if (mMainWindow->fileOpened())
+            return;
     }
-    else
-    {
-        mMainWindow->openFileDialogAsync();
-    }
+
+    mMainWindow->openFileDialogAsync();
 }
 
 Application::~Application()

@@ -76,6 +76,11 @@ class MainWindow : public QMainWindow
         void openFileDialogAsync();
 
         /**
+         * @brief Checks whether a file is currently opened
+         */
+        bool fileOpened() const;
+
+        /**
          * @brief Starts scanning in a separate thread and returns
          *
          * @see MainWindow::cancelScanAsync()
