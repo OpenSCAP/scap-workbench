@@ -75,8 +75,10 @@ class ScanningSession
 
         /**
          * @brief Saves opened file and its dependencies to given directory
+         *
+         * @return set of file paths we have saved
          */
-        void saveOpenedFilesClosureToDir(const QDir& dir);
+        QSet<QString> saveOpenedFilesClosureToDir(const QDir& dir);
 
         /**
          * @brief Returns true if a file has been opened in this session

@@ -38,7 +38,6 @@ extern "C" {
 #include <QXmlItem>
 #include <QXmlResultItems>
 #include <QXmlNodeModelIndex>
-#include <QDebug>
 
 ScanningSession::ScanningSession():
     mSession(0),
@@ -174,8 +173,27 @@ inline QDir getCommonAncestorDirectory(const QSet<QString>& paths)
     return commonAncestor;
 }
 
-void ScanningSession::saveOpenedFilesClosureToDir(const QDir& dir)
+inline void copyOrReplace(const QString& from, const QString& to)
 {
+    // QFile::copy does not overwrite, if the target file already exist
+    // we have to remove it.
+    if (QFile::exists(to))
+    {
+        if (!QFile::remove(to))
+            throw ScanningSessionException(QString(
+                "Could not replace '%1'. Make sure you have permissions to "
+                "overwrite the files.").arg(to));
+    }
+
+    if (!QFile::copy(from, to))
+        throw ScanningSessionException(QString(
+            "Could not save file to '%1' (copying '%2' to '%1'). Make sure you have permissions to "
+            "write to that directory").arg(to).arg(from));
+}
+
+QSet<QString> ScanningSession::saveOpenedFilesClosureToDir(const QDir& dir)
+{
+    QSet<QString> ret; // we insert files we have saved to this set
     const QSet<QString> closure = getOpenedFilesClosure();
 
     QDir commonAncestor = getCommonAncestorDirectory(closure);
@@ -197,25 +215,31 @@ void ScanningSession::saveOpenedFilesClosureToDir(const QDir& dir)
                 "Can't make directory for file '%1' (directory = '%2'). Therefore "
                 "the file can't be saved.").arg(targetFilePath).arg(targetFile.dir().absolutePath()));
 
-        // QFile::copy does not overwrite, if the target file already exist
-        // we have to remove it.
-        if (QFile::exists(targetFilePath))
-        {
-            if (!QFile::remove(targetFilePath))
-                throw ScanningSessionException(QString(
-                    "Could not replace '%1'. Make sure you have permissions to "
-                    "overwrite the files.").arg(targetFilePath));
-
-        }
-
-        if (!QFile::copy(currentFilePath, targetFilePath))
-            throw ScanningSessionException(QString(
-                "Could not save file to '%1' (copying '%2' to '%1'). Make sure you have permissions to "
-                "write to that directory").arg(targetFilePath).arg(currentFilePath));
+        copyOrReplace(currentFilePath, targetFilePath);
 
         // Sanity test, this should always check out if the copy was successful.
         assert(targetFile.exists());
+        ret.insert(targetFilePath);
     }
+
+    // Tailoring file is a special case (if it's in temp directory it would break closure)
+    // we add it to the target dir which seems to fit most use cases
+    if (hasTailoring())
+    {
+        QFileInfo tailoringFile(getTailoringFilePath());
+        assert(tailoringFile.exists());
+
+        // Intentionally use a hardcoded filename because tailoring filename will
+        // most likely be a garbled temporary filename ("qt_temp.XXXX")
+        QFileInfo targetFile(dir, "tailoring-xccdf.xml");
+
+        copyOrReplace(tailoringFile.absoluteFilePath(), targetFile.absoluteFilePath());
+
+        assert(targetFile.exists());
+        ret.insert(targetFile.absoluteFilePath());
+    }
+
+    return ret;
 }
 
 bool ScanningSession::fileOpened() const

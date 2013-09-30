@@ -942,7 +942,7 @@ void MainWindow::saveTailoring()
 
 void MainWindow::saveIntoDirectory()
 {
-    if (!mScanningSession)
+    if (!fileOpened())
         return;
 
     const QString targetPath = QFileDialog::getExistingDirectory(this, "Select target directory");
@@ -962,5 +962,6 @@ void MainWindow::saveIntoDirectory()
 
 void MainWindow::saveAsRPM()
 {
-
+    if (!fileOpened())
+        return;
 }
