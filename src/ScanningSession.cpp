@@ -104,7 +104,6 @@ QString ScanningSession::getOpenedFilePath() const
 
 inline void getDependencyClosureOfFile(const QString& filePath, QSet<QString>& targetSet)
 {
-
     QFileInfo fileInfo(filePath);
     targetSet.insert(fileInfo.absoluteFilePath()); // insert current file
     QDir parentDir = fileInfo.dir();
@@ -115,7 +114,8 @@ inline void getDependencyClosureOfFile(const QString& filePath, QSet<QString>& t
 
     QFile file(filePath);
     if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
-    {} // FIXME
+        throw ScanningSessionException(QString(
+            "Can't open file '%1' when calculating opened files closure.").arg(filePath));
 
     if (docType == OSCAP_DOCUMENT_XCCDF)
     {
@@ -139,11 +139,20 @@ inline void getDependencyClosureOfFile(const QString& filePath, QSet<QString>& t
             }
 
             if (result.hasError())
-            {} // FIXME
+                throw ScanningSessionException(QString(
+                    "Error encountered when running an XPath query on file '%1'. "
+                    "The most likely reason is that the file is not a valid XCCDF file. "
+                    "If you think this is not the case, please report this bug!").arg(filePath));
         }
     }
     else if (docType == OSCAP_DOCUMENT_OVAL_DEFINITIONS)
-    {}
+    {
+        // TODO
+    }
+    else if (docType == OSCAP_DOCUMENT_SDS)
+    {
+        // NOOP, source datastream should have everything inbuilt
+    }
 }
 
 QSet<QString> ScanningSession::getOpenedFilesClosure() const
