@@ -34,11 +34,11 @@ extern "C" {
 #include <cassert>
 #include <ctime>
 #include <QFileInfo>
-#include <QDir>
 #include <QXmlQuery>
 #include <QXmlItem>
 #include <QXmlResultItems>
 #include <QXmlNodeModelIndex>
+#include <QDebug>
 
 ScanningSession::ScanningSession():
     mSession(0),
@@ -105,9 +105,9 @@ QString ScanningSession::getOpenedFilePath() const
 
 inline void getDependencyClosureOfFile(const QString& filePath, QSet<QString>& targetSet)
 {
-    targetSet.insert(filePath); // insert current file
 
     QFileInfo fileInfo(filePath);
+    targetSet.insert(fileInfo.absoluteFilePath()); // insert current file
     QDir parentDir = fileInfo.dir();
 
     oscap_document_type_t docType;
@@ -152,6 +152,70 @@ QSet<QString> ScanningSession::getOpenedFilesClosure() const
     QSet<QString> ret;
     getDependencyClosureOfFile(getOpenedFilePath(), ret);
     return ret;
+}
+
+inline QDir getCommonAncestorDirectory(const QSet<QString>& paths)
+{
+    if (paths.isEmpty())
+        return QDir::root();
+
+    QSet<QString>::const_iterator it = paths.begin();
+    QDir commonAncestor = QFileInfo(*it).dir();
+    while (it != paths.end())
+    {
+        QDir parentDir = QFileInfo(*it).dir();
+
+        while (!parentDir.absolutePath().startsWith(commonAncestor.absolutePath()))
+            commonAncestor.cdUp();
+
+        ++it;
+    }
+
+    return commonAncestor;
+}
+
+void ScanningSession::saveOpenedFilesClosureToDir(const QDir& dir)
+{
+    const QSet<QString> closure = getOpenedFilesClosure();
+
+    QDir commonAncestor = getCommonAncestorDirectory(closure);
+    if (commonAncestor.isRoot())
+        throw ScanningSessionException(
+            "Common ancestor of opened files closure is the root directory. "
+            "This is likely not expected. I refuse to save the closure!");
+
+    for (QSet<QString>::const_iterator it = closure.begin(); it != closure.end(); ++it)
+    {
+        const QString& currentFilePath = *it;
+        const QString currentFileRelPath = commonAncestor.relativeFilePath(currentFilePath);
+
+        const QFileInfo targetFile(dir, currentFileRelPath);
+        const QString targetFilePath = targetFile.absoluteFilePath();
+
+        if (!dir.mkpath(targetFile.dir().absolutePath()))
+            throw ScanningSessionException(QString(
+                "Can't make directory for file '%1' (directory = '%2'). Therefore "
+                "the file can't be saved.").arg(targetFilePath).arg(targetFile.dir().absolutePath()));
+
+        // QFile::copy does not overwrite, if the target file already exist
+        // we have to remove it.
+        if (QFile::exists(targetFilePath))
+        {
+            if (!QFile::remove(targetFilePath))
+                throw ScanningSessionException(QString(
+                    "Could not replace '%1'. Make sure you have permissions to "
+                    "overwrite the files.").arg(targetFilePath));
+
+        }
+
+        if (!QFile::copy(currentFilePath, targetFilePath))
+            throw ScanningSessionException(QString(
+                "Could not save file to '%1' (copying '%2' to '%1'). Make sure you have permissions to "
+                "write to that directory").arg(targetFilePath).arg(currentFilePath));
+
+        // Sanity test, this should always check out if the copy was successful.
+        assert(targetFile.exists());
+    }
 }
 
 bool ScanningSession::fileOpened() const

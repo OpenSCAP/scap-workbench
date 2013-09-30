@@ -25,6 +25,7 @@
 #include "ForwardDecls.h"
 #include <QTemporaryFile>
 #include <QSet>
+#include <QDir>
 
 extern "C"
 {
@@ -71,6 +72,11 @@ class ScanningSession
          * Returns XCCDF, OVAL, CPEs, anything that is necessary to evaluate.
          */
         QSet<QString> getOpenedFilesClosure() const;
+
+        /**
+         * @brief Saves opened file and its dependencies to given directory
+         */
+        void saveOpenedFilesClosureToDir(const QDir& dir);
 
         /**
          * @brief Returns true if a file has been opened in this session

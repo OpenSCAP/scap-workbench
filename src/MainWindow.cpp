@@ -112,6 +112,21 @@ MainWindow::MainWindow(QWidget* parent):
         this, SLOT(showResults())
     );
 
+    mSaveIntoDirAction = new QAction("Save into a directory", this);
+    QObject::connect(
+        mSaveIntoDirAction, SIGNAL(triggered()),
+        this, SLOT(saveIntoDirectory())
+    );
+    mSaveAsRPMAction = new QAction("Save as RPM", this);
+    QObject::connect(
+        mSaveAsRPMAction, SIGNAL(triggered()),
+        this, SLOT(saveAsRPM())
+    );
+    mSaveMenu = new QMenu(this);
+    mSaveMenu->addAction(mSaveIntoDirAction);
+    mSaveMenu->addAction(mSaveAsRPMAction);
+    mUI.saveButton->setMenu(mSaveMenu);
+
     mTailorAction = new QAction("Tailor (new ID)", this);
     QObject::connect(
         mTailorAction, SIGNAL(triggered()),
@@ -923,4 +938,18 @@ void MainWindow::saveTailoring()
             ).arg(path)
         );
     }
+}
+
+void MainWindow::saveIntoDirectory()
+{
+    if (!mScanningSession)
+        return;
+
+    const QString targetPath = QFileDialog::getExistingDirectory(this, "Select target directory");
+    mScanningSession->saveOpenedFilesClosureToDir(targetPath);
+}
+
+void MainWindow::saveAsRPM()
+{
+
 }

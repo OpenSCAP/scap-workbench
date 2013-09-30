@@ -168,6 +168,12 @@ class MainWindow : public QMainWindow
         DiagnosticsDialog* mDiagnosticsDialog;
 
         /// Menu used for the tailor "combo pushbutton"
+        QMenu* mSaveMenu;
+
+        QAction* mSaveIntoDirAction;
+        QAction* mSaveAsRPMAction;
+
+        /// Menu used for the tailor "combo pushbutton"
         QMenu* mTailorButtonMenu;
 
         QAction* mTailorAction;
@@ -285,6 +291,9 @@ class MainWindow : public QMainWindow
         void editProfile();
 
         void saveTailoring();
+
+        void saveIntoDirectory();
+        void saveAsRPM();
 };
 
 #endif
