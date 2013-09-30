@@ -934,8 +934,8 @@ void MainWindow::saveTailoring()
     {
         mDiagnosticsDialog->errorMessage(
             QString(
-                "Failed to save tailoring file to path '%1'!"
-            ).arg(path)
+                "Failed to save tailoring file to path '%1'! Details follow:\n%2"
+            ).arg(path).arg(e.what())
         );
     }
 }
@@ -946,7 +946,18 @@ void MainWindow::saveIntoDirectory()
         return;
 
     const QString targetPath = QFileDialog::getExistingDirectory(this, "Select target directory");
-    mScanningSession->saveOpenedFilesClosureToDir(targetPath);
+    try
+    {
+        mScanningSession->saveOpenedFilesClosureToDir(targetPath);
+    }
+    catch (const std::exception& e)
+    {
+        mDiagnosticsDialog->errorMessage(
+            QString(
+                "Failed to save opened files to path '%1'! Details follow:\n%2"
+            ).arg(targetPath).arg(e.what())
+        );
+    }
 }
 
 void MainWindow::saveAsRPM()
