@@ -245,9 +245,15 @@ bool OscapScannerBase::tryToReadStdOut(QProcess& process)
         return false;
 
     char buffer[1];
+    buffer[0] = '\0';
 
     if (process.read(buffer, 1) != 1)
-    {} // FIXME: ERROR
+    {
+        emit warningMessage(QString(
+            "Error: Could not read from stdout of running 'oscap' process. "
+            "This is very strange and most likely a bug. "
+            "Read buffer is '%1'.").arg(mReadBuffer));
+    }
 
     if (!mCapabilities.progressReporting())
         return true; // We did read something but it's not in a format we can parse.
@@ -255,27 +261,33 @@ bool OscapScannerBase::tryToReadStdOut(QProcess& process)
     if (buffer[0] == ':')
     {
         mLastRuleID = mReadBuffer;
-        if (!mReadingRuleID) // sanity check
+        if (mReadingRuleID) // sanity check
+        {
+            emit progressReport(mLastRuleID, "processing");
+        }
+        else
         {
             emit warningMessage(QString(
                 "Error when parsing scan progress output from stdout of the 'oscap' process. "
                 "':' encountered while not reading rule ID, newline and/or rule result are missing! "
                 "Read buffer is '%1'.").arg(mReadBuffer));
         }
-        emit progressReport(mLastRuleID, "processing");
         mReadBuffer = "";
         mReadingRuleID = false;
     }
     else if (buffer[0] == '\n')
     {
-        if (mReadingRuleID) // sanity check
+        if (!mReadingRuleID) // sanity check
+        {
+            emit progressReport(mLastRuleID, mReadBuffer);
+        }
+        else
         {
             emit warningMessage(QString(
                 "Error when parsing scan progress output from stdout of the 'oscap' process. "
                 "Newline encountered while reading rule ID, rule result and/or ':' are missing! "
                 "Read buffer is '%1'.").arg(mReadBuffer));
         }
-        emit progressReport(mLastRuleID, mReadBuffer);
         mReadBuffer = "";
         mReadingRuleID = true;
     }
