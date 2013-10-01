@@ -35,6 +35,9 @@ extern "C"
 OscapScannerBase::OscapScannerBase():
     Scanner(),
 
+    mLastRuleID(""),
+    mReadingRuleID(true),
+    mReadBuffer(""),
     mCancelRequested(false)
 {}
 
@@ -72,6 +75,10 @@ void OscapScannerBase::getARF(QByteArray& destination)
 void OscapScannerBase::signalCompletion(bool canceled)
 {
     Scanner::signalCompletion(canceled);
+
+    mLastRuleID = "";
+    mReadingRuleID = true;
+    mReadBuffer = "";
 
     // reset the cancel flag now that we have finished XOR canceled
     mCancelRequested = false;
@@ -230,34 +237,52 @@ QStringList OscapScannerBase::buildOfflineRemediationArgs(const QString& resultI
     return ret;
 }
 
-bool OscapScannerBase::tryToReadLine(QProcess& process)
+bool OscapScannerBase::tryToReadStdOut(QProcess& process)
 {
     process.setReadChannel(QProcess::StandardOutput);
 
-    if (!process.canReadLine())
+    if (process.bytesAvailable() <= 0)
         return false;
 
-    QString stringLine = QString::fromUtf8(process.readLine().constData());
+    char buffer[1];
+
+    if (process.read(buffer, 1) != 1)
+    {} // FIXME: ERROR
 
     if (!mCapabilities.progressReporting())
         return true; // We did read something but it's not in a format we can parse.
 
-    QStringList split = stringLine.split(":");
-
-    if (split.size() != 2)
+    if (buffer[0] == ':')
     {
-        // This is definitely not fatal, it just means that the progress
-        // reporting might be off.
-        emit warningMessage(QString("Error when parsing scan progress output from stdout of the 'oscap' process. "
-                                    "Attempted to split '%1' into 2 fields as rule_id:result and failed. The result "
-                                    "doesn't have 2 fields but %2 instead.").arg(stringLine).arg(split.size()));
-        // We did read "something".
-        return true;
+        mLastRuleID = mReadBuffer;
+        if (!mReadingRuleID) // sanity check
+        {
+            emit warningMessage(QString(
+                "Error when parsing scan progress output from stdout of the 'oscap' process. "
+                "':' encountered while not reading rule ID, newline and/or rule result are missing! "
+                "Read buffer is '%1'.").arg(mReadBuffer));
+        }
+        emit progressReport(mLastRuleID, "processing");
+        mReadBuffer = "";
+        mReadingRuleID = false;
     }
-
-    // NB: trimmed because the line might be padded with either LF or even CR LF
-    //     from the right side.
-    emit progressReport(split.at(0), split.at(1).trimmed());
+    else if (buffer[0] == '\n')
+    {
+        if (mReadingRuleID) // sanity check
+        {
+            emit warningMessage(QString(
+                "Error when parsing scan progress output from stdout of the 'oscap' process. "
+                "Newline encountered while reading rule ID, rule result and/or ':' are missing! "
+                "Read buffer is '%1'.").arg(mReadBuffer));
+        }
+        emit progressReport(mLastRuleID, mReadBuffer);
+        mReadBuffer = "";
+        mReadingRuleID = true;
+    }
+    else
+    {
+        mReadBuffer += buffer[0];
+    }
 
     return true;
 }

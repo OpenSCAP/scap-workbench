@@ -164,7 +164,7 @@ void OscapScannerRemoteSsh::evaluate()
     while (!process.waitForFinished(pollInterval))
     {
         // read everything new
-        while (tryToReadLine(process));
+        while (tryToReadStdOut(process));
         watchStdErr(process);
 
         // pump the event queue, mainly because the user might want to cancel
@@ -198,7 +198,7 @@ void OscapScannerRemoteSsh::evaluate()
     else
     {
         // read everything left over
-        while (tryToReadLine(process));
+        while (tryToReadStdOut(process));
         watchStdErr(process);
 
         mResults = readRemoteFile(resultFile, "XCCDF results").toUtf8();

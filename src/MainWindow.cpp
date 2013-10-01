@@ -756,16 +756,16 @@ void MainWindow::scanProgressReport(const QString& rule_id, const QString& resul
     if (mUI.ruleResultsTree->findItems(rule_id, Qt::MatchExactly, 0).empty())
         mUI.progressBar->setValue(mUI.progressBar->value() + 1);
 
-    QStringList resultRow;
     struct oscap_text_iterator* title_it = xccdf_item_get_title(item);
-    char* preferred_title = oscap_textlist_get_preferred_plaintext(title_it, NULL);
+    char* preferred_title_s = oscap_textlist_get_preferred_plaintext(title_it, NULL);
     oscap_text_iterator_free(title_it);
-    resultRow.append(preferred_title);
-    free(preferred_title);
-    resultRow.append(result);
+    const QString preferred_title(preferred_title_s);
+    free(preferred_title_s);
 
     QBrush resultBrush;
-    if (result == "pass")
+    if (result == "processing")
+        resultBrush.setColor(Qt::darkYellow);
+    else if (result == "pass")
         resultBrush.setColor(Qt::darkGreen);
     else if (result == "fixed")
         resultBrush.setColor(Qt::darkGreen);
@@ -776,9 +776,22 @@ void MainWindow::scanProgressReport(const QString& rule_id, const QString& resul
     else
         resultBrush.setColor(Qt::darkGray);
 
-    QTreeWidgetItem* treeItem = new QTreeWidgetItem(resultRow);
+    QTreeWidgetItem* treeItem = 0;
+
+    QTreeWidgetItem* replacementCandidate = mUI.ruleResultsTree->topLevelItemCount() > 0 ? mUI.ruleResultsTree->topLevelItem(mUI.ruleResultsTree->topLevelItemCount() - 1) : 0;
+    if (replacementCandidate && replacementCandidate->text(0) == preferred_title && replacementCandidate->text(1) == "processing")
+        treeItem = replacementCandidate;
+
+    if (!treeItem)
+        treeItem = new QTreeWidgetItem();
+
+    treeItem->setText(0, preferred_title);
+    treeItem->setText(1, result);
+
     treeItem->setForeground(1, resultBrush);
-    mUI.ruleResultsTree->addTopLevelItem(treeItem);
+
+    if (treeItem != replacementCandidate)
+        mUI.ruleResultsTree->addTopLevelItem(treeItem);
 }
 
 void MainWindow::scanInfoMessage(const QString& message)

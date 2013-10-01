@@ -60,7 +60,19 @@ class OscapScannerBase : public Scanner
                                                 const QString& reportFile,
                                                 const QString& arfFile) const;
 
-        bool tryToReadLine(QProcess& process);
+        /// Last read rule id
+        QString mLastRuleID;
+        /// If true we are in the rule ID reading phase, if false we are reading rule result
+        bool mReadingRuleID;
+        /// We keep filling this buffer until we reach : or \n
+        QString mReadBuffer;
+
+        /**
+         * @brief Tries to read something (at least one character) from stdout
+         *
+         * @returns false when there is nothing to be read, true otherwise
+         */
+        bool tryToReadStdOut(QProcess& process);
         void watchStdErr(QProcess& process);
 
         bool mCancelRequested;
