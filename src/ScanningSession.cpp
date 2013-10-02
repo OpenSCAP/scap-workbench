@@ -162,7 +162,7 @@ QSet<QString> ScanningSession::getOpenedFilesClosure() const
     return ret;
 }
 
-inline QDir getCommonAncestorDirectory(const QSet<QString>& paths)
+QDir ScanningSession::getCommonAncestorDirectory(const QSet<QString>& paths)
 {
     if (paths.isEmpty())
         return QDir::root();

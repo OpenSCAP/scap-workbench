@@ -67,6 +67,11 @@ class ScanningSession
         QString getOpenedFilePath() const;
 
         /**
+         * @brief A helper method that gets the longest common ancestor dir from a set of paths
+         */
+        static QDir getCommonAncestorDirectory(const QSet<QString>& paths);
+
+        /**
          * @brief List of all files (paths) necessary to evaluate content that is currently loaded
          *
          * Returns XCCDF, OVAL, CPEs, anything that is necessary to evaluate.
