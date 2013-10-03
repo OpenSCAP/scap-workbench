@@ -30,6 +30,7 @@ SyncProcess::SyncProcess(QObject* parent):
     QObject(parent),
 
     mEnvironment(QProcessEnvironment::systemEnvironment()),
+    mWorkingDirectory("./"),
 
     mPollInterval(100),
     mTermLimit(3000),
@@ -68,6 +69,11 @@ void SyncProcess::setEnvironment(const QProcessEnvironment& env)
     mEnvironment = env;
 }
 
+void SyncProcess::setWorkingDirectory(const QString& dir)
+{
+    mWorkingDirectory = dir;
+}
+
 void SyncProcess::setCancelRequestSource(bool* source)
 {
     mCancelRequestSource = source;
@@ -81,6 +87,7 @@ void SyncProcess::run()
     process.setProcessEnvironment(generateFullEnvironment());
     mDiagnosticInfo += QString("Starting process '") + generateDescription() + QString("'\n");
     process.setStandardInputFile("/dev/null");
+    process.setWorkingDirectory(mWorkingDirectory);
     process.start(generateFullCommand(), generateFullArguments());
 
     mRunning = true;

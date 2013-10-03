@@ -42,6 +42,7 @@ class SyncProcess : public QObject
         void setCommand(const QString& command);
         void setArguments(const QStringList& args);
         void setEnvironment(const QProcessEnvironment& env);
+        void setWorkingDirectory(const QString& dir);
 
         void setCancelRequestSource(bool* source);
 
@@ -65,6 +66,7 @@ class SyncProcess : public QObject
         QString mCommand;
         QStringList mArguments;
         QProcessEnvironment mEnvironment;
+        QString mWorkingDirectory;
 
         /// How often do we poll for status, in msec
         unsigned int mPollInterval;
