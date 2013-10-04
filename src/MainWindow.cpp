@@ -30,6 +30,7 @@
 
 #include <QFileDialog>
 #include <QAbstractEventDispatcher>
+#include <QDebug>
 
 #include <cassert>
 
@@ -959,6 +960,9 @@ void MainWindow::saveIntoDirectory()
         return;
 
     const QString targetPath = QFileDialog::getExistingDirectory(this, "Select target directory");
+    if (targetPath.isEmpty())
+        return; // user canceled
+
     try
     {
         mScanningSession->saveOpenedFilesClosureToDir(targetPath);
@@ -977,4 +981,33 @@ void MainWindow::saveAsRPM()
 {
     if (!fileOpened())
         return;
+
+    const QString targetDir = QFileDialog::getExistingDirectory(this, "Select target directory");
+    if (targetDir.isEmpty())
+        return; // user canceled
+
+    const QSet<QString> closure = mScanningSession->getOpenedFilesClosure();
+    QDir cwd = ScanningSession::getCommonAncestorDirectory(closure);
+
+    SyncProcess scapAsRPM(this);
+    scapAsRPM.setCommand(SCAP_WORKBENCH_LOCAL_SCAP_AS_RPM_PATH);
+    scapAsRPM.setWorkingDirectory(cwd.absolutePath());
+
+    QStringList args;
+    args.append("--rpm-destination"); args.append(targetDir);
+    args.append("--srpm-destination"); args.append(targetDir);
+
+    for (QSet<QString>::const_iterator it = closure.begin(); it != closure.end(); ++it)
+    {
+        args.append(cwd.relativeFilePath(*it));
+    }
+
+    scapAsRPM.setArguments(args);
+
+    scapAsRPM.run();
+    while (scapAsRPM.isRunning())
+    {}
+
+    qDebug() << scapAsRPM.getStdOutContents();
+    qDebug() << scapAsRPM.getStdErrContents();
 }
