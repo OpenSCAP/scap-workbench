@@ -30,7 +30,6 @@
 
 #include <QFileDialog>
 #include <QAbstractEventDispatcher>
-#include <QDebug>
 
 #include <cassert>
 
@@ -987,7 +986,7 @@ void MainWindow::saveAsRPM()
         return; // user canceled
 
     const QSet<QString> closure = mScanningSession->getOpenedFilesClosure();
-    QDir cwd = ScanningSession::getCommonAncestorDirectory(closure);
+    const QDir cwd = ScanningSession::getCommonAncestorDirectory(closure);
 
     SyncProcess scapAsRPM(this);
     scapAsRPM.setCommand(SCAP_WORKBENCH_LOCAL_SCAP_AS_RPM_PATH);
@@ -995,7 +994,6 @@ void MainWindow::saveAsRPM()
 
     QStringList args;
     args.append("--rpm-destination"); args.append(targetDir);
-    args.append("--srpm-destination"); args.append(targetDir);
 
     for (QSet<QString>::const_iterator it = closure.begin(); it != closure.end(); ++it)
     {
