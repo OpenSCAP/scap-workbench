@@ -27,6 +27,7 @@
 #include <QProcess>
 #include <QEventLoop>
 #include <QAbstractEventDispatcher>
+#include <cassert>
 
 class ProcessProgressDialog : public QDialog
 {
@@ -48,11 +49,6 @@ class ProcessProgressDialog : public QDialog
             QTextCursor cursor = mUI.consoleOutput->textCursor();
             cursor.movePosition(QTextCursor::End);
             mUI.consoleOutput->setTextCursor(cursor);
-        }
-
-        void insertStdErrLine(const QString& line)
-        {
-            insertStdOutLine(line);
         }
 
         void notifyDone()
@@ -190,6 +186,7 @@ void SyncProcess::runWithDialog(QWidget* widgetParent, const QString& title, boo
     mDiagnosticInfo = "";
 
     QProcess process(this);
+    process.setProcessChannelMode(QProcess::MergedChannels);
     mDiagnosticInfo += QString("Starting process '") + generateDescription() + QString("'\n");
     startQProcess(process);
 
@@ -327,16 +324,12 @@ QString SyncProcess::generateDescription() const
 
 void SyncProcess::readAllChannelsIntoDialog(QProcess& process, ProcessProgressDialog& dialog)
 {
+    assert(process.processChannelMode() == QProcess::MergedChannels);
     process.setReadChannel(QProcess::StandardOutput);
+
     while (process.canReadLine())
     {
         const QString line = process.readLine();
         dialog.insertStdOutLine(line);
-    }
-    process.setReadChannel(QProcess::StandardError);
-    while (process.canReadLine())
-    {
-        const QString line = process.readLine();
-        dialog.insertStdErrLine(line);
     }
 }
