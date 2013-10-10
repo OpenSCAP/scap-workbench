@@ -22,9 +22,51 @@
 #include "ProcessHelpers.h"
 #include "Exceptions.h"
 
+#include "ui_ProcessProgress.h"
+
 #include <QProcess>
 #include <QEventLoop>
 #include <QAbstractEventDispatcher>
+
+class ProcessProgressDialog : public QDialog
+{
+    public:
+        ProcessProgressDialog(QWidget* parent = 0):
+            QDialog(parent)
+        {
+            mUI.setupUi(this);
+        }
+
+        virtual ~ProcessProgressDialog()
+        {}
+
+        void insertStdOutLine(const QString& line)
+        {
+            // line already contains trailing '\n'
+            mUI.consoleOutput->insertPlainText(line);
+
+            QTextCursor cursor = mUI.consoleOutput->textCursor();
+            cursor.movePosition(QTextCursor::End);
+            mUI.consoleOutput->setTextCursor(cursor);
+        }
+
+        void insertStdErrLine(const QString& line)
+        {
+            insertStdOutLine(line);
+        }
+
+        void notifyDone()
+        {
+            mUI.progressBar->setMinimum(0);
+            mUI.progressBar->setMaximum(1);
+            mUI.progressBar->setValue(1);
+
+            mUI.buttonBox->setStandardButtons(QDialogButtonBox::Ok);
+        }
+
+    private:
+        Ui_ProcessProgressDialog mUI;
+};
 
 SyncProcess::SyncProcess(QObject* parent):
     QObject(parent),
@@ -84,11 +126,8 @@ void SyncProcess::run()
     mDiagnosticInfo = "";
 
     QProcess process(this);
-    process.setProcessEnvironment(generateFullEnvironment());
     mDiagnosticInfo += QString("Starting process '") + generateDescription() + QString("'\n");
-    process.setStandardInputFile("/dev/null");
-    process.setWorkingDirectory(mWorkingDirectory);
-    process.start(generateFullCommand(), generateFullArguments());
+    startQProcess(process);
 
     mRunning = true;
 
@@ -138,6 +177,77 @@ void SyncProcess::run()
     mExitCode = process.exitCode();
 }
 
+void SyncProcess::runWithDialog(QWidget* widgetParent, const QString& title, bool showCancelButton, bool closeAfterFinished)
+{
+    ProcessProgressDialog* dialog = new ProcessProgressDialog(widgetParent);
+    QObject::connect(
+        dialog, SIGNAL(rejected()),
+        this, SLOT(cancel())
+    );
+    dialog->show();
+
+    mDiagnosticInfo = "";
+
+    QProcess process(this);
+    mDiagnosticInfo += QString("Starting process '") + generateDescription() + QString("'\n");
+    startQProcess(process);
+
+    mRunning = true;
+
+    while (!process.waitForFinished(mPollInterval))
+    {
+        // pump the event queue, mainly because the user might want to cancel
+        QAbstractEventDispatcher::instance(thread())->processEvents(QEventLoop::AllEvents);
+
+        readAllChannelsIntoDialog(process, *dialog);
+
+        if (wasCancelRequested())
+        {
+            mDiagnosticInfo += "Cancel was requested! Sending terminate signal to the process...\n";
+
+            // TODO: On Windows we have to kill immediately, terminate() posts WM_CLOSE
+            //       but oscap doesn't have any event loop running.
+            process.terminate();
+            break;
+        }
+    }
+
+    if (wasCancelRequested())
+    {
+        unsigned int termWaited = 0;
+
+        while (!process.waitForFinished(mPollInterval))
+        {
+            QAbstractEventDispatcher::instance(thread())->processEvents(QEventLoop::AllEvents);
+            termWaited += mPollInterval;
+
+            if (termWaited > mTermLimit)
+            {
+                mDiagnosticInfo += QString("Process had to be killed! Didn't terminate after %1 msec of waiting.\n").arg(termWaited);
+                process.kill();
+                break;
+            }
+        }
+    }
+
+    readAllChannelsIntoDialog(process, *dialog);
+
+    mRunning = false;
+
+    mStdOutContents = process.readAllStandardOutput();
+    mStdErrContents = process.readAllStandardError();
+
+    // TODO: We are duplicating data here!
+    mDiagnosticInfo += "stdout:\n===============================\n" + QString(mStdOutContents) + QString("\n");
+    mDiagnosticInfo += "stderr:\n===============================\n" + QString(mStdErrContents) + QString("\n");
+
+    mExitCode = process.exitCode();
+    dialog->notifyDone();
+
+    if (closeAfterFinished)
+        dialog->done(QDialog::Accepted);
+}
+
 void SyncProcess::cancel()
 {
     mLocalCancelRequested = true;
@@ -180,6 +290,15 @@ const QString& SyncProcess::getDiagnosticInfo() const
     return mDiagnosticInfo;
 }
 
+void SyncProcess::startQProcess(QProcess& process)
+{
+    process.setProcessEnvironment(generateFullEnvironment());
+    mDiagnosticInfo += QString("Starting process '") + generateDescription() + QString("'\n");
+    process.setStandardInputFile("/dev/null");
+    process.setWorkingDirectory(mWorkingDirectory);
+    process.start(generateFullCommand(), generateFullArguments());
+}
+
 bool SyncProcess::wasCancelRequested() const
 {
     return mLocalCancelRequested || (mCancelRequestSource && *mCancelRequestSource);
@@ -203,4 +322,20 @@ QProcessEnvironment SyncProcess::generateFullEnvironment() const
 QString SyncProcess::generateDescription() const
 {
     return mCommand + QString(" ") + mArguments.join(" ");
+}
+
+void SyncProcess::readAllChannelsIntoDialog(QProcess& process, ProcessProgressDialog& dialog)
+{
+    process.setReadChannel(QProcess::StandardOutput);
+    while (process.canReadLine())
+    {
+        const QString line = process.readLine();
+        dialog.insertStdOutLine(line);
+    }
+    process.setReadChannel(QProcess::StandardError);
+    while (process.canReadLine())
+    {
+        const QString line = process.readLine();
+        dialog.insertStdErrLine(line);
+    }
 }

@@ -1002,10 +1002,5 @@ void MainWindow::saveAsRPM()
 
     scapAsRPM.setArguments(args);
 
-    scapAsRPM.run();
-    while (scapAsRPM.isRunning())
-    {}
-
-    qDebug() << scapAsRPM.getStdOutContents();
-    qDebug() << scapAsRPM.getStdErrContents();
+    scapAsRPM.runWithDialog(this, "Saving SCAP content as RPM", true);
 }

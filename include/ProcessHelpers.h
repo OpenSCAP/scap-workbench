@@ -28,6 +28,9 @@
 #include <QStringList>
 #include <QProcessEnvironment>
 
+/// This class is never exposed, it is internal only
+class ProcessProgressDialog;
+
 /**
  * @brief Runs a process and pumps event queue of given thread
  */
@@ -47,7 +50,12 @@ class SyncProcess : public QObject
         void setCancelRequestSource(bool* source);
 
         void run();
+        void runWithDialog(QWidget* widgetParent, const QString& title, bool showCancelButton = true, bool closeAfterFinished = false);
+
+    public slots:
         void cancel();
+
+    public:
         bool isRunning() const;
 
         int getExitCode() const;
@@ -56,12 +64,15 @@ class SyncProcess : public QObject
         const QString& getDiagnosticInfo() const;
 
     protected:
+        void startQProcess(QProcess& process);
         bool wasCancelRequested() const;
 
         virtual QString generateFullCommand() const;
         virtual QStringList generateFullArguments() const;
         virtual QProcessEnvironment generateFullEnvironment() const;
         virtual QString generateDescription() const;
+
+        void readAllChannelsIntoDialog(QProcess& process, ProcessProgressDialog& dialog);
 
         QString mCommand;
         QStringList mArguments;
