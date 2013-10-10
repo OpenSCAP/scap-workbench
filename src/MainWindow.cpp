@@ -985,7 +985,16 @@ void MainWindow::saveAsRPM()
     if (targetDir.isEmpty())
         return; // user canceled
 
-    const QSet<QString> closure = mScanningSession->getOpenedFilesClosure();
+    QSet<QString> closure = mScanningSession->getOpenedFilesClosure();
+    // At this point, closure is a set which is implementation ordered.
+    // (we have no control WRT the ordering)
+    // We want to make the XCCDF/SDS/main file appear first because that's
+    // what the 'save as RPM' script will use to deduce the package name
+    closure.remove(mScanningSession->getOpenedFilePath());
+    QList<QString> closureOrdered;
+    closureOrdered.append(mScanningSession->getOpenedFilePath());
+    closureOrdered.append(closure.toList());
+
     const QDir cwd = ScanningSession::getCommonAncestorDirectory(closure);
 
     SyncProcess scapAsRPM(this);
@@ -995,7 +1004,7 @@ void MainWindow::saveAsRPM()
     QStringList args;
     args.append("--rpm-destination"); args.append(targetDir);
 
-    for (QSet<QString>::const_iterator it = closure.begin(); it != closure.end(); ++it)
+    for (QList<QString>::const_iterator it = closureOrdered.begin(); it != closureOrdered.end(); ++it)
     {
         args.append(cwd.relativeFilePath(*it));
     }
