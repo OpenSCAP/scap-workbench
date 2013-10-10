@@ -1002,5 +1002,5 @@ void MainWindow::saveAsRPM()
 
     scapAsRPM.setArguments(args);
 
-    scapAsRPM.runWithDialog(this, "Saving SCAP content as RPM", true);
+    scapAsRPM.runWithDialog(this, "Saving SCAP content as RPM...", true, false);
 }

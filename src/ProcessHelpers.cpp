@@ -184,6 +184,7 @@ void SyncProcess::runWithDialog(QWidget* widgetParent, const QString& title, boo
         dialog, SIGNAL(rejected()),
         this, SLOT(cancel())
     );
+    dialog->setWindowTitle(title);
     dialog->show();
 
     mDiagnosticInfo = "";
