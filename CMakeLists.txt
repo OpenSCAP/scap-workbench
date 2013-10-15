@@ -16,7 +16,8 @@ if(NOT QT_QTWEBKIT_INCLUDE_DIR)
   set(QT_USE_QTWEBKIT 0) # do not use webkit if it was not found
 endif()
 
-find_package(OpenSCAP REQUIRED 0.9.12)
+include("${CMAKE_ROOT}/Modules/FindPkgConfig.cmake")
+pkg_check_modules(OPENSCAP REQUIRED libopenscap>=0.9.12)
 
 file(GLOB scap_workbench_HEADERS "${CMAKE_SOURCE_DIR}/include/*.h")
 qt4_wrap_cpp(scap_workbench_HEADERS_MOC ${scap_workbench_HEADERS})
@@ -29,13 +30,13 @@ file(GLOB scap_workbench_SOURCES "${CMAKE_SOURCE_DIR}/src/*.cpp")
 set(SCAP_WORKBENCH_INCLUDE_DIRS
     ${CMAKE_CURRENT_SOURCE_DIR}/include ${CMAKE_CURRENT_BINARY_DIR}
     ${QT_QTCORE_INCLUDE_DIR} ${QT_QTGUI_INCLUDE_DIR} ${QT_QTXMLPATTERNS_INCLUDE_DIR}
-    ${LIBOPENSCAP_INCLUDE_DIR})
+    ${OPENSCAP_INCLUDE_DIRS})
 
 set(SCAP_WORKBENCH_LINK_LIBRARIES
     ${QT_QTCORE_LIBRARY}
     ${QT_QTGUI_LIBRARY}
     ${QT_QTXMLPATTERNS_LIBRARY}
-    ${LIBOPENSCAP_LIBRARY})
+    ${OPENSCAP_LIBRARIES})
 
 set(SCAP_WORKBENCH_USE_WEBKIT ${QT_USE_QTWEBKIT} CACHE BOOL "Whether we should use Qt WebKit to show reports in workbench directly.")
 if(SCAP_WORKBENCH_USE_WEBKIT)
