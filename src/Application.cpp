@@ -39,11 +39,7 @@ Application::Application(int argc, char** argv):
         // The last argument will hold the path to file that user wants to open.
         // For now we just ignore all other options.
 
-        const QString& fileToOpen = args.last();
-        mMainWindow->openFile(fileToOpen);
-
-        if (mMainWindow->fileOpened())
-            return;
+        mMainWindow->openFile(args.last());
     }
     else
     {
@@ -54,16 +50,12 @@ Application::Application(int argc, char** argv):
         // We silently ignore badly configured default content paths and avoid
         // opening them.
         if (!defaultContent.isEmpty() && QFileInfo(defaultContent).isFile())
-        {
             mMainWindow->openFile(defaultContent);
-
-            if (mMainWindow->fileOpened())
-                return;
-        }
     }
 
     // When all else fails, we just show the open file dialog.
-    mMainWindow->openFileDialogAsync();
+    if (!mMainWindow->fileOpened())
+        mMainWindow->openFileDialogAsync();
 }
 
 Application::~Application()
