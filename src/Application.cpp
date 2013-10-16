@@ -22,6 +22,8 @@
 #include "Application.h"
 #include "MainWindow.h"
 
+#include <QFileInfo>
+
 Application::Application(int argc, char** argv):
     QApplication(argc, argv),
     mMainWindow(new MainWindow())
@@ -34,13 +36,33 @@ Application::Application(int argc, char** argv):
     QStringList args = arguments();
     if (args.length() > 1)
     {
+        // The last argument will hold the path to file that user wants to open.
+        // For now we just ignore all other options.
+
         const QString& fileToOpen = args.last();
         mMainWindow->openFile(fileToOpen);
 
         if (mMainWindow->fileOpened())
             return;
     }
+    else
+    {
+        // No arguments given, lets check if there is any default content to open.
 
+        const QString defaultContent = SCAP_WORKBENCH_DEFAULT_CONTENT;
+
+        // We silently ignore badly configured default content paths and avoid
+        // opening them.
+        if (!defaultContent.isEmpty() && QFileInfo(defaultContent).isFile())
+        {
+            mMainWindow->openFile(defaultContent);
+
+            if (mMainWindow->fileOpened())
+                return;
+        }
+    }
+
+    // When all else fails, we just show the open file dialog.
     mMainWindow->openFileDialogAsync();
 }
 
