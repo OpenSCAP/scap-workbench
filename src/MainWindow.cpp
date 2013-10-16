@@ -257,9 +257,15 @@ void MainWindow::openFileDialog()
 
     while (!fileOpened())
     {
+        QString defaultDirectory = SCAP_WORKBENCH_SCAP_CONTENT_DIRECTORY;
+
+        // can't use the default directory if it doesn't exist
+        if (!QFileInfo(defaultDirectory).isDir())
+            defaultDirectory = "";
+
         const QString path = QFileDialog::getOpenFileName(this,
             "Open Source DataStream or XCCDF file",
-            "",
+            defaultDirectory,
             "Source DataStream, XCCDF or tailoring file (*.xml);;All files (*)"
         );
 

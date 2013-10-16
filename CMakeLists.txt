@@ -19,6 +19,11 @@ endif()
 include("${CMAKE_ROOT}/Modules/FindPkgConfig.cmake")
 pkg_check_modules(OPENSCAP REQUIRED libopenscap>=0.9.12)
 
+set(SCAP_WORKBENCH_DEFAULT_CONTENT "/usr/share/xml/scap/ssg/fedora/ssg-fedora-xccdf.xml" CACHE FILEPATH
+    "Path to XCCDF or SDS that will be opened in case user doesn't specify different content using command line arguments.")
+set(SCAP_WORKBENCH_SCAP_CONTENT_DIRECTORY "/usr/share/xml/scap" CACHE PATH
+    "Directory where SCAP content is *usually* stored. This is the default directory when opening a file via file open dialog.")
+
 file(GLOB scap_workbench_HEADERS "${CMAKE_SOURCE_DIR}/include/*.h")
 qt4_wrap_cpp(scap_workbench_HEADERS_MOC ${scap_workbench_HEADERS})
 
