@@ -72,7 +72,7 @@ MainWindow::MainWindow(QWidget* parent):
         Qt::QueuedConnection
     );
     QObject::connect(
-        mUI.fileCloseButton, SIGNAL(released()),
+        mUI.browseButton, SIGNAL(released()),
         this, SLOT(openFileDialog())
     );
     QObject::connect(
@@ -575,7 +575,7 @@ void MainWindow::refreshProfiles()
 
         if (previouslySelected != QString::Null())
         {
-            int indexCandidate = mUI.profileComboBox->findData(QVariant(previouslySelected));
+            const int indexCandidate = mUI.profileComboBox->findData(QVariant(previouslySelected));
             if (indexCandidate != -1)
                 mUI.profileComboBox->setCurrentIndex(indexCandidate);
         }

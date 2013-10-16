@@ -134,9 +134,9 @@
         </widget>
        </item>
        <item row="0" column="3">
-        <widget class="QPushButton" name="fileCloseButton">
+        <widget class="QPushButton" name="browseButton">
          <property name="text">
-          <string>Close</string>
+          <string>Browse</string>
          </property>
         </widget>
        </item>
