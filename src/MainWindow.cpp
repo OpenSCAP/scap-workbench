@@ -494,8 +494,6 @@ void MainWindow::refreshProfiles()
     if (!fileOpened())
         return;
 
-    mUI.profileComboBox->addItem("(default)", QVariant(QString::Null()));
-
     try
     {
         struct xccdf_policy_model* pmodel = xccdf_session_get_policy_model(mScanningSession->getXCCDFSession());
@@ -579,6 +577,8 @@ void MainWindow::refreshProfiles()
             if (indexCandidate != -1)
                 mUI.profileComboBox->setCurrentIndex(indexCandidate);
         }
+
+        mUI.profileComboBox->addItem("(default)", QVariant(QString::Null()));
     }
     catch (const std::exception& e)
     {
