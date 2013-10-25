@@ -173,13 +173,6 @@ class MainWindow : public QMainWindow
         QAction* mSaveIntoDirAction;
         QAction* mSaveAsRPMAction;
 
-        /// Menu used for the tailor "combo pushbutton"
-        QMenu* mTailorButtonMenu;
-
-        QAction* mTailorAction;
-        QAction* mTailorAndShadowAction;
-        QAction* mEditProfileAction;
-
         /// This is our central point of interaction with openscap
         ScanningSession* mScanningSession;
 
@@ -289,6 +282,15 @@ class MainWindow : public QMainWindow
         void tailorNewID();
         void tailorShadowed();
         void editProfile();
+
+        /**
+         * @brief If current profile has been tailored, it gets edited, else it gets tailored with new ID
+         *
+         * The goal of this negotiation function is to make it easier to use
+         * scap-workbench. It is one less thing to worry about and should be
+         * what users need in 99% of cases.
+         */
+        void customizeProfile();
 
         void saveTailoring();
 
