@@ -24,14 +24,14 @@
     <item>
      <widget class="QWidget" name="scanProperties" native="true">
       <layout class="QGridLayout" name="gridLayout">
-       <item row="4" column="3">
+       <item row="4" column="2">
         <widget class="QPushButton" name="saveTailoringButton">
          <property name="text">
           <string>Save Tailoring</string>
          </property>
         </widget>
        </item>
-       <item row="1" column="3">
+       <item row="1" column="2">
         <widget class="QPushButton" name="saveButton">
          <property name="text">
           <string>Save</string>
@@ -45,16 +45,6 @@
         <widget class="QLabel" name="label_2">
          <property name="text">
           <string>Input file</string>
-         </property>
-        </widget>
-       </item>
-       <item row="7" column="1" colspan="3">
-        <widget class="QLineEdit" name="targetLineEdit">
-         <property name="toolTip">
-          <string>&quot;localhost&quot; scans the local machine, without privilege escalation. Any other string is used for ssh connection and remote scanning.</string>
-         </property>
-         <property name="text">
-          <string>localhost</string>
          </property>
         </widget>
        </item>
@@ -86,7 +76,7 @@
          </property>
         </widget>
        </item>
-       <item row="5" column="3">
+       <item row="5" column="2">
         <widget class="QPushButton" name="customizeProfileButton">
          <property name="toolTip">
           <string>Creates a new profile that inherits selected profile, opens a window to edit the newly created profile.</string>
@@ -103,7 +93,7 @@
          </property>
         </widget>
        </item>
-       <item row="3" column="1" colspan="3">
+       <item row="3" column="1" colspan="2">
         <widget class="QComboBox" name="checklistComboBox"/>
        </item>
        <item row="7" column="0">
@@ -133,25 +123,83 @@
          </property>
         </widget>
        </item>
-       <item row="0" column="3">
+       <item row="0" column="2">
         <widget class="QPushButton" name="browseButton">
          <property name="text">
           <string>Browse</string>
          </property>
         </widget>
        </item>
-       <item row="2" column="0" colspan="4">
+       <item row="6" column="0" colspan="3">
+        <widget class="Line" name="line_2">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="0" colspan="3">
         <widget class="Line" name="line">
          <property name="orientation">
           <enum>Qt::Horizontal</enum>
          </property>
         </widget>
        </item>
-       <item row="6" column="0" colspan="4">
-        <widget class="Line" name="line_2">
-         <property name="orientation">
-          <enum>Qt::Horizontal</enum>
-         </property>
+       <item row="7" column="1" colspan="2">
+        <widget class="QWidget" name="widget_3" native="true">
+         <layout class="QVBoxLayout" name="verticalLayout_4">
+          <property name="margin">
+           <number>0</number>
+          </property>
+          <item>
+           <widget class="QWidget" name="widget_4" native="true">
+            <layout class="QHBoxLayout" name="horizontalLayout_5">
+             <property name="margin">
+              <number>0</number>
+             </property>
+             <item>
+              <widget class="QRadioButton" name="localMachineRadioButton">
+               <property name="text">
+                <string>local machine</string>
+               </property>
+               <property name="checked">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QRadioButton" name="remoteMachineRadioButton">
+               <property name="text">
+                <string>remote machine (over ssh)</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </widget>
+          </item>
+          <item>
+           <widget class="QWidget" name="remoteMachineDetails" native="true">
+            <layout class="QHBoxLayout" name="horizontalLayout_6">
+             <property name="margin">
+              <number>0</number>
+             </property>
+             <item>
+              <widget class="QLabel" name="label_5">
+               <property name="text">
+                <string>ssh://</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLineEdit" name="remoteMachineHost">
+               <property name="toolTip">
+                <string>Use the format commonly accepted by ssh (username@host:port)</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </widget>
+          </item>
+         </layout>
         </widget>
        </item>
       </layout>
@@ -365,5 +413,22 @@
   <widget class="QStatusBar" name="statusBar"/>
  </widget>
  <resources/>
- <connections/>
+ <connections>
+  <connection>
+   <sender>remoteMachineRadioButton</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>remoteMachineDetails</receiver>
+   <slot>setVisible(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>432</x>
+     <y>234</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>321</x>
+     <y>270</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
 </ui>
