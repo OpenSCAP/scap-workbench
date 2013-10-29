@@ -218,6 +218,8 @@ class MainWindow : public QMainWindow
         /// Profile change, we simply change the profile id in the session
         void profileComboboxChanged(int index);
 
+        void refreshSelectedRulesTree();
+
         /**
          * @brief This slot gets triggered by the scanner to notify of a new result
          *

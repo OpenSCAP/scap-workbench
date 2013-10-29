@@ -209,6 +209,20 @@
      <widget class="QWidget" name="widget_2" native="true">
       <layout class="QVBoxLayout" name="verticalLayout_2">
        <item>
+        <widget class="QTreeWidget" name="selectedRulesTree">
+         <property name="font">
+          <font>
+           <pointsize>12</pointsize>
+          </font>
+         </property>
+         <column>
+          <property name="text">
+           <string>Rule</string>
+          </property>
+         </column>
+        </widget>
+       </item>
+       <item>
         <widget class="QTreeWidget" name="ruleResultsTree">
          <property name="font">
           <font>
@@ -232,7 +246,7 @@
          </attribute>
          <column>
           <property name="text">
-           <string>Title</string>
+           <string>Rule</string>
           </property>
          </column>
          <column>

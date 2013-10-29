@@ -139,6 +139,9 @@ MainWindow::MainWindow(QWidget* parent):
         this, SLOT(saveTailoring())
     );
 
+    mUI.selectedRulesTree->show();
+    mUI.ruleResultsTree->hide();
+
     mResultViewer = new ResultViewer(this);
     mResultViewer->hide();
 
@@ -297,6 +300,9 @@ void MainWindow::scanAsync(ScannerMode scannerMode)
     mUI.scanProperties->setEnabled(false);
     mUI.preScanTools->hide();
     mUI.scanTools->show();
+
+    mUI.selectedRulesTree->hide();
+    mUI.ruleResultsTree->show();
 
     struct xccdf_policy* policy = xccdf_session_get_xccdf_policy(mScanningSession->getXCCDFSession());
     if (!policy)
@@ -690,7 +696,15 @@ void MainWindow::profileComboboxChanged(int index)
         mUI.customizeProfileButton->setEnabled(false);
     }
 
+    refreshSelectedRulesTree();
     clearResults();
+}
+
+void MainWindow::refreshSelectedRulesTree()
+{
+    mUI.selectedRulesTree->clear();
+
+    // TODO: Actually fill the rules in...
 }
 
 void MainWindow::scanProgressReport(const QString& rule_id, const QString& result)
@@ -806,6 +820,8 @@ void MainWindow::scanCanceled()
     mUI.postScanTools->hide();
 
     statusBar()->clearMessage();
+    mUI.selectedRulesTree->show();
+    mUI.ruleResultsTree->hide();
 }
 
 void MainWindow::scanFinished()
@@ -821,6 +837,8 @@ void MainWindow::scanFinished()
     cleanupScanThread();
 
     statusBar()->clearMessage();
+    mUI.selectedRulesTree->show();
+    mUI.ruleResultsTree->hide();
 }
 
 void MainWindow::showResults()
@@ -921,6 +939,8 @@ void MainWindow::customizeProfile()
         editProfile();
     else
         tailorNewID();
+
+    // FIXME: When tailoring finishes we want to refreshSelectedRulesTree!
 }
 
 void MainWindow::saveTailoring()
