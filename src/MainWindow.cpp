@@ -138,6 +138,10 @@ MainWindow::MainWindow(QWidget* parent):
     mUI.selectedRulesTree->show();
     mUI.ruleResultsTree->hide();
 
+    // FIXME: This is hidden to avoid people trying to use it when it is still
+    //        not supported in openscap.
+    mUI.offlineRemediateButton->hide();
+
     mResultViewer = new ResultViewer(this);
     mResultViewer->hide();
 
