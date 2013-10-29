@@ -704,7 +704,46 @@ void MainWindow::refreshSelectedRulesTree()
 {
     mUI.selectedRulesTree->clear();
 
-    // TODO: Actually fill the rules in...
+    if (!fileOpened())
+        return;
+
+    struct xccdf_session* session = mScanningSession->getXCCDFSession();
+    struct xccdf_policy* policy = xccdf_session_get_xccdf_policy(session);
+    struct xccdf_select_iterator* sel_it = xccdf_policy_get_selected_rules(policy);
+
+    struct xccdf_benchmark* benchmark = 0;
+    try
+    {
+        benchmark = xccdf_policy_model_get_benchmark(xccdf_session_get_policy_model(mScanningSession->getXCCDFSession()));
+    }
+    catch (const std::exception& e)
+    {
+        // This is not a critical error, just quit
+        // FIXME: We should display some sort of an error indicator though to get bug reports!
+        return;
+    }
+
+    while (xccdf_select_iterator_has_more(sel_it))
+    {
+        struct xccdf_select* sel = xccdf_select_iterator_next(sel_it);
+        struct xccdf_item* item = xccdf_benchmark_get_member(benchmark, XCCDF_ITEM, xccdf_select_get_item(sel));
+
+        if (!item)
+            continue;
+
+        struct oscap_text_iterator* title_it = xccdf_item_get_title(item);
+        char* preferred_title_s = oscap_textlist_get_preferred_plaintext(title_it, NULL);
+        oscap_text_iterator_free(title_it);
+        const QString preferred_title(preferred_title_s);
+        free(preferred_title_s);
+
+        QTreeWidgetItem* treeItem = new QTreeWidgetItem();
+        treeItem->setText(0, preferred_title);
+
+        mUI.selectedRulesTree->addTopLevelItem(treeItem);
+    }
+
+    xccdf_select_iterator_free(sel_it);
 }
 
 void MainWindow::scanProgressReport(const QString& rule_id, const QString& result)

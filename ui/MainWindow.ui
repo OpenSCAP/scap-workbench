@@ -215,9 +215,12 @@
            <pointsize>12</pointsize>
           </font>
          </property>
+         <property name="rootIsDecorated">
+          <bool>false</bool>
+         </property>
          <column>
           <property name="text">
-           <string>Rule</string>
+           <string>Selected Rules</string>
           </property>
          </column>
         </widget>
