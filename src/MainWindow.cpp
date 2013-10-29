@@ -91,11 +91,7 @@ MainWindow::MainWindow(QWidget* parent):
     );
     QObject::connect(
         mUI.scanButton, SIGNAL(released()),
-        this, SLOT(scanAsync())
-    );
-    QObject::connect(
-        mUI.scanAndRemediateButton, SIGNAL(released()),
-        this, SLOT(scanAndRemediateAsync())
+        this, SLOT(scanAsyncAutoMode())
     );
     QObject::connect(
         mUI.offlineRemediateButton, SIGNAL(released()),
@@ -293,6 +289,14 @@ bool MainWindow::fileOpened() const
     return mScanningSession && mScanningSession->fileOpened();
 }
 
+void MainWindow::scanAsyncAutoMode()
+{
+    if (mUI.onlineRemediationCheckBox->checkState() == Qt::Checked)
+        scanAsync(SM_SCAN_ONLINE_REMEDIATION);
+    else
+        scanAsync(SM_SCAN);
+}
+
 void MainWindow::scanAsync(ScannerMode scannerMode)
 {
     assert(fileOpened());
@@ -402,11 +406,6 @@ void MainWindow::scanAsync(ScannerMode scannerMode)
     );
 
     mScanThread->start();
-}
-
-void MainWindow::scanAndRemediateAsync()
-{
-    scanAsync(SM_SCAN_ONLINE_REMEDIATION);
 }
 
 void MainWindow::offlineRemediateAsync()

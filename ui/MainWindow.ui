@@ -310,6 +310,21 @@
               <number>0</number>
              </property>
              <item>
+              <widget class="QCheckBox" name="onlineRemediationCheckBox">
+               <property name="font">
+                <font>
+                 <pointsize>11</pointsize>
+                </font>
+               </property>
+               <property name="toolTip">
+                <string>Checking this enables online remediation of failed checks. Online in the sense of being done as part of the evaluation.</string>
+               </property>
+               <property name="text">
+                <string>Online Remediation</string>
+               </property>
+              </widget>
+             </item>
+             <item>
               <widget class="QPushButton" name="scanButton">
                <property name="font">
                 <font>
@@ -320,20 +335,6 @@
                </property>
                <property name="text">
                 <string>Scan</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QPushButton" name="scanAndRemediateButton">
-               <property name="font">
-                <font>
-                 <pointsize>13</pointsize>
-                 <weight>75</weight>
-                 <bold>true</bold>
-                </font>
-               </property>
-               <property name="text">
-                <string>Scan &amp;&amp; Remediate</string>
                </property>
               </widget>
              </item>

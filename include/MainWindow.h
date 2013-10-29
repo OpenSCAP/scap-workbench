@@ -81,6 +81,11 @@ class MainWindow : public QMainWindow
         bool fileOpened() const;
 
         /**
+         * @brief Automatically determines scanner mode based on checkbox state
+         */
+        void scanAsyncAutoMode();
+
+        /**
          * @brief Starts scanning in a separate thread and returns
          *
          * @see MainWindow::cancelScanAsync()
@@ -91,18 +96,6 @@ class MainWindow : public QMainWindow
          * called again).
          */
         void scanAsync(ScannerMode scannerMode = SM_SCAN);
-
-        /**
-         * @brief Starts scanning and remediation in a separate thread and returns
-         *
-         * @note This is the online remediation.
-         *
-         * The only reason this method has to exist is the complexity of
-         * parameter binding with Qt4.
-         *
-         * @todo Use Qt5 functors and C++0x lambdas instead
-         */
-        void scanAndRemediateAsync();
 
         /**
          * @note This will only work if scan results are still in ResultViewer.
