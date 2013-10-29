@@ -176,6 +176,9 @@ void MainWindow::clearResults()
     mUI.ruleResultsTree->setEnabled(false);
 
     mResultViewer->clear();
+
+    mUI.selectedRulesTree->show();
+    mUI.ruleResultsTree->hide();
 }
 
 void MainWindow::openFile(const QString& path)
@@ -859,8 +862,6 @@ void MainWindow::scanCanceled()
     mUI.postScanTools->hide();
 
     statusBar()->clearMessage();
-    mUI.selectedRulesTree->show();
-    mUI.ruleResultsTree->hide();
 }
 
 void MainWindow::scanFinished()
@@ -876,8 +877,6 @@ void MainWindow::scanFinished()
     cleanupScanThread();
 
     statusBar()->clearMessage();
-    mUI.selectedRulesTree->show();
-    mUI.ruleResultsTree->hide();
 }
 
 void MainWindow::showResults()
