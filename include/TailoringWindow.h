@@ -93,13 +93,18 @@ class TailoringWindow : public QMainWindow
     Q_OBJECT
 
     public:
-        TailoringWindow(struct xccdf_policy* policy, struct xccdf_benchmark* benchmark, QWidget* parent = 0);
+        TailoringWindow(struct xccdf_policy* policy, struct xccdf_benchmark* benchmark, MainWindow* parent = 0);
         virtual ~TailoringWindow();
 
         void setItemSelected(struct xccdf_item* xccdfItem, bool selected);
         void synchronizeTreeItem(QTreeWidgetItem* treeItem, struct xccdf_item* xccdfItem, bool recursive);
 
     protected:
+        /// Reimplemented to refresh selected rules in the parent main window
+        virtual void closeEvent(QCloseEvent * event);
+
+        MainWindow* mParentMainWindow;
+
         /// if > 0, ignore itemChanged signals, these would just excessively add selects and bloat memory
         unsigned int mSynchronizeItemLock;
 

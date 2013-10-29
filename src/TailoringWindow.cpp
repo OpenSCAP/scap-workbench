@@ -21,6 +21,7 @@
 
 #include "TailoringWindow.h"
 #include "Exceptions.h"
+#include "MainWindow.h"
 
 #include <set>
 
@@ -102,8 +103,10 @@ void XCCDFItemSelectUndoCommand::undo()
     mWindow->synchronizeTreeItem(mTreeItem, xccdfItem, false);
 }
 
-TailoringWindow::TailoringWindow(struct xccdf_policy* policy, struct xccdf_benchmark* benchmark, QWidget* parent):
+TailoringWindow::TailoringWindow(struct xccdf_policy* policy, struct xccdf_benchmark* benchmark, MainWindow* parent):
     QMainWindow(parent),
+
+    mParentMainWindow(parent),
 
     mSynchronizeItemLock(0),
 
@@ -315,6 +318,19 @@ void TailoringWindow::synchronizeTreeItem(QTreeWidgetItem* treeItem, struct xccd
     }
 
     --mSynchronizeItemLock;
+}
+
+void TailoringWindow::closeEvent(QCloseEvent * event)
+{
+    QMainWindow::closeEvent(event);
+
+    // TODO: This is the only place where we depend on MainWindow which really sucks
+    //       and makes this code more spaghetti-fied. Ideally MainWindow would handle
+    //       this connection but there are no signals for window closure, the only
+    //       way to react is to reimplement closeEvent... This needs further research.
+
+    if (mParentMainWindow)
+        mParentMainWindow->refreshSelectedRulesTree();
 }
 
 void TailoringWindow::itemSelectionChanged(QTreeWidgetItem* current, QTreeWidgetItem* previous)
