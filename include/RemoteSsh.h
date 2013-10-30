@@ -34,8 +34,14 @@ class SshConnection : public QObject
         SshConnection(QObject* parent);
         ~SshConnection();
 
+        /**
+         * @brief Sets ssh target in the form of username@hostname
+         */
         void setTarget(const QString& target);
         const QString& getTarget() const;
+
+        void setPort(unsigned short port);
+        unsigned short getPort() const;
 
         void setCancelRequestSource(bool* source);
 
@@ -48,6 +54,8 @@ class SshConnection : public QObject
 
     private:
         QString mTarget;
+        unsigned short mPort;
+
         QString mMasterSocket;
         QProcessEnvironment mEnvironment;
 

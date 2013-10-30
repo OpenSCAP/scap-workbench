@@ -46,6 +46,32 @@ OscapScannerRemoteSsh::OscapScannerRemoteSsh():
 OscapScannerRemoteSsh::~OscapScannerRemoteSsh()
 {}
 
+inline void splitTarget(const QString& in, QString& target, short& port)
+{
+    // NB: We dodge a bullet here because the editor will always pass a port
+    //     as the last component. A lot of checking and parsing does not need
+    //     to be done.
+    //
+    //     'in' is in the format of username@hostname:port, the port always
+    //     being there and always being the last component.
+
+    // FIXME: Ideally, this should split from the right side and stop after one split
+    QStringList split = in.split(':');
+
+    const QString portString = split.back();
+    split.removeLast();
+
+    {
+        bool status = false;
+        const short portCandidate = portString.toShort(&status, 10);
+
+        // FIXME: Error reporting?
+        port = status ? portCandidate : 22;
+    }
+
+    target = split.join(":");
+}
+
 void OscapScannerRemoteSsh::setTarget(const QString& target)
 {
     OscapScannerBase::setTarget(target);
@@ -53,7 +79,13 @@ void OscapScannerRemoteSsh::setTarget(const QString& target)
     if (mSshConnection.isConnected())
         mSshConnection.disconnect();
 
-    mSshConnection.setTarget(target);
+    QString cleanTarget;
+    short port;
+
+    splitTarget(target, cleanTarget, port);
+
+    mSshConnection.setTarget(cleanTarget);
+    mSshConnection.setPort(port);
 }
 
 void OscapScannerRemoteSsh::setSession(ScanningSession* session)

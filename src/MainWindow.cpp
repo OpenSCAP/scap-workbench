@@ -336,8 +336,11 @@ void MainWindow::scanAsync(ScannerMode scannerMode)
 
     mScanThread = new QThread(this);
 
+    // We pack the port to the end of target solely for the ease of comparing
+    // targets (which can avoid reconnection and reauthentication).
+    // In the OscapScannerRemoteSsh class the port will be parsed out again...
     const QString target = mUI.localMachineRadioButton->isChecked() ?
-            "localhost" : mUI.remoteMachineHost->text();
+            "localhost" : QString("%1:%2").arg(mUI.remoteMachineHost->text()).arg(mUI.remoteMachinePort->value());
 
     try
     {

@@ -57,6 +57,20 @@ const QString& SshConnection::getTarget() const
     return mTarget;
 }
 
+void SshConnection::setPort(unsigned short port)
+{
+    if (isConnected())
+        throw SshConnectionException(
+            "Can't change port after SSH has already been connected");
+
+    mPort = port;
+}
+
+unsigned short SshConnection::getPort() const
+{
+    return mPort;
+}
+
 void SshConnection::setCancelRequestSource(bool* source)
 {
     if (isConnected())
@@ -102,6 +116,7 @@ void SshConnection::connect()
 
         args.append("-o"); args.append(QString("ControlPath=%1").arg(mMasterSocket));
 
+        args.append("-p"); args.append(QString::number(mPort));
         // TODO: sanitize input?
         args.append(mTarget);
 
