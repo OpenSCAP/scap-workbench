@@ -58,13 +58,6 @@ MainWindow::MainWindow(QWidget* parent):
 
     // we start with localhost which doesn't need remote machine details
     mUI.remoteMachineDetails->hide();
-    // Target has to be in the [USER@]HOSTNAME[:PORT] scheme.
-    QString targetRegExp = "^([a-z][-a-z0-9]*@)?"; // username, optional
-    // [1] http://perldoc.net/Regexp/Common/URI/RFC2396.pm
-    // [2] https://www.ietf.org/rfc/rfc2396.txt
-    targetRegExp += "(?:(?:(?:(?:[a-zA-Z0-9][-a-zA-Z0-9]*)?[a-zA-Z0-9])[.])*(?:[a-zA-Z][-a-zA-Z0-9]*[a-zA-Z0-9]|[a-zA-Z])[.]?)"; // hostname, required
-    targetRegExp += "(:[0-9]+)?"; // port, optional
-    mUI.remoteMachineHost->setValidator(new QRegExpValidator(QRegExp(targetRegExp), this));
 
     QObject::connect(
         this, SIGNAL(showOpenFileDialog()),
