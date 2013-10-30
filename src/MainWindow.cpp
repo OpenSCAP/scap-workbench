@@ -115,7 +115,8 @@ MainWindow::MainWindow(QWidget* parent):
     );
     mSaveMenu = new QMenu(this);
     mSaveMenu->addAction(mSaveIntoDirAction);
-    mSaveMenu->addAction(mSaveAsRPMAction);
+    // FIXME: Intentionally hidden for now until scap-as-rpm gets into regular openscap releases
+    //mSaveMenu->addAction(mSaveAsRPMAction);
     mUI.saveButton->setMenu(mSaveMenu);
 
     QObject::connect(
