@@ -26,6 +26,7 @@
 
 #include <QDialog>
 #include <QTemporaryFile>
+#include <QUrl>
 
 #ifdef SCAP_WORKBENCH_USE_WEBKIT
 #    include <QWebView>
@@ -79,6 +80,21 @@ class ResultViewer : public QDialog
         void saveResults();
         /// Pops up a save dialog for ARF / result datastream
         void saveARF();
+
+        /**
+         * @brief Helper method that follows anchors
+         *
+         * We load HTML from byte arrays and not from files so base URL is missing
+         * completely. That's why we have to handle this with custom code.
+         *
+         * Presently, only pure fragment URLs are supported ("#fragment"), all else
+         * pops up a message box explaining the situation.
+         *
+         * @internal
+         * This can't be guarded with SCAP_WORKBENCH_USE_WEBKIT macro because Qt's
+         * moc would otherwise ignore it.
+         */
+        void webViewLinkClicked(const QUrl& url);
 
     private:
         Ui_ResultViewer mUI;

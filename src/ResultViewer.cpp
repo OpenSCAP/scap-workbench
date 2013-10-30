@@ -23,7 +23,10 @@
 #include "Scanner.h"
 #include <QFileDialog>
 #include <QDesktopServices>
-#include <QUrl>
+#include <QMessageBox>
+#ifdef SCAP_WORKBENCH_USE_WEBKIT
+#   include <QWebFrame>
+#endif
 
 ResultViewer::ResultViewer(QWidget* parent):
     QDialog(parent)
@@ -59,6 +62,13 @@ ResultViewer::ResultViewer(QWidget* parent):
 
 #ifdef SCAP_WORKBENCH_USE_WEBKIT
     mWebView = new QWebView(mUI.webViewContainer);
+    mWebView->page()->setLinkDelegationPolicy(QWebPage::DelegateAllLinks);
+
+    QObject::connect(
+        mWebView, SIGNAL(linkClicked(const QUrl&)),
+        this, SLOT(webViewLinkClicked(const QUrl&))
+    );
+
     mUI.webViewContainer->layout()->addWidget(mWebView);
 #else
     mNoWebKitNotification = new QLabel(mUI.webViewContainer);
@@ -154,4 +164,19 @@ void ResultViewer::saveARF()
     file.open(QIODevice::WriteOnly);
     file.write(mARF);
     file.close();
+}
+
+
+void ResultViewer::webViewLinkClicked(const QUrl& url)
+{
+#ifdef SCAP_WORKBENCH_USE_WEBKIT
+    if (!url.isRelative())
+        QMessageBox::information(this, "External URL handling", "Sorry, but external URLs can't be followed from within scap-workbench.");
+    else if (!url.path().isEmpty())
+        QMessageBox::information(this, "Relative URL handling", "Sorry, but this web viewer will not follow any pages other than what's already loaded (only fragment URLs are allowed).");
+
+    const QString fragment = url.fragment();
+
+    mWebView->page()->currentFrame()->scrollToAnchor(fragment);
+#endif
 }
