@@ -514,7 +514,7 @@ struct xccdf_profile* ScanningSession::tailorCurrentProfile(bool shadowed)
         }
         else
         {
-            QString newId = QString(xccdf_profile_get_id(oldProfile)) + QString("_tailored");
+            const QString newId = QString(xccdf_profile_get_id(oldProfile)) + QString("_tailored");
             xccdf_profile_set_id(newProfile, newId.toUtf8().constData());
         }
 
@@ -524,7 +524,7 @@ struct xccdf_profile* ScanningSession::tailorCurrentProfile(bool shadowed)
             struct oscap_text* oldTitle = oscap_text_iterator_next(titles);
             struct oscap_text* newTitle = oscap_text_clone(oldTitle);
 
-            oscap_text_set_text(newTitle, (QString(oscap_text_get_text(oldTitle)) + QString(" tailored")).toUtf8().constData());
+            oscap_text_set_text(newTitle, (QString(oscap_text_get_text(oldTitle)) + QString(" [TAILORED]")).toUtf8().constData());
             xccdf_profile_add_title(newProfile, newTitle);
         }
     }
