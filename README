@@ -15,7 +15,7 @@ How to run it out of the box
 1) Make sure you have installed all prerequisites
 
   required dependencies:
-    # yum install cmake openssh-clients util-linux openscap-devel qt-devel
+    # yum install cmake gcc-c++ openssh-clients util-linux openscap-devel qt-devel
 
   optional dependencies:
     # yum install qtwebkit-devel
