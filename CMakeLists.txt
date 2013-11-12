@@ -16,8 +16,12 @@ if(NOT QT_QTWEBKIT_INCLUDE_DIR)
   set(QT_USE_QTWEBKIT 0) # do not use webkit if it was not found
 endif()
 
-include("${CMAKE_ROOT}/Modules/FindPkgConfig.cmake")
-pkg_check_modules(OPENSCAP REQUIRED libopenscap>=0.9.12)
+# This conditional is here to avoid checking openscap version if user supplies
+# custom openscap parameters.
+if (NOT DEFINED OPENSCAP_LIBRARIES OR NOT DEFINED OPENSCAP_INCLUDE_DIRS)
+    include("${CMAKE_ROOT}/Modules/FindPkgConfig.cmake")
+    pkg_check_modules(OPENSCAP REQUIRED libopenscap>=0.9.12)
+endif()
 
 set(SCAP_WORKBENCH_DEFAULT_CONTENT "/usr/share/xml/scap/ssg/fedora/ssg-fedora-xccdf.xml" CACHE FILEPATH
     "Path to XCCDF or SDS that will be opened in case user doesn't specify different content using command line arguments.")
