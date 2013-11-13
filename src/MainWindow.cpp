@@ -146,6 +146,7 @@ MainWindow::MainWindow(QWidget* parent):
 
     mScanningSession = new ScanningSession();
 
+    closeFile();
     show();
 }
 
