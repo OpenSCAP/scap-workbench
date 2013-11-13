@@ -132,6 +132,7 @@ MainWindow::MainWindow(QWidget* parent):
 
     mUI.selectedRulesTree->show();
     mUI.ruleResultsTree->hide();
+    mUI.ruleResultsTree->header()->setResizeMode(0, QHeaderView::Stretch);
 
     // FIXME: This is hidden to avoid people trying to use it when it is still
     //        not supported in openscap.
