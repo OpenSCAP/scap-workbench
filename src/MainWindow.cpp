@@ -30,6 +30,7 @@
 
 #include <QFileDialog>
 #include <QAbstractEventDispatcher>
+#include <QMessageBox>
 
 #include <cassert>
 
@@ -238,16 +239,17 @@ void MainWindow::openFile(const QString& path)
 
 void MainWindow::openFileDialog()
 {
-    closeFile();
+    //closeFile();
 
-    while (!fileOpened())
+    QString defaultDirectory = SCAP_WORKBENCH_SCAP_CONTENT_DIRECTORY;
+
+    // can't use the default directory if it doesn't exist
+    if (!QFileInfo(defaultDirectory).isDir())
+        defaultDirectory = "";
+
+    bool opened = false;
+    while (!opened)
     {
-        QString defaultDirectory = SCAP_WORKBENCH_SCAP_CONTENT_DIRECTORY;
-
-        // can't use the default directory if it doesn't exist
-        if (!QFileInfo(defaultDirectory).isDir())
-            defaultDirectory = "";
-
         const QString path = QFileDialog::getOpenFileName(this,
             "Open Source DataStream or XCCDF file",
             defaultDirectory,
@@ -255,12 +257,20 @@ void MainWindow::openFileDialog()
         );
 
         if (path == QString::Null())
-        {
-            // user cancelled the dialog, exit the entire app gracefully
-            if (!close())
-                throw MainWindowException("Failed to close main window!");
+            // user cancelled the dialog, get out of this loop
+            break;
 
-            return;
+        if (fileOpened())
+        {
+            if (QMessageBox::question(this, "Close currently opened file?",
+                "Currently opened file has to be closed before '%1' is opened. Are you sure you want to close it?",
+                QMessageBox::Yes | QMessageBox::No, QMessageBox::No) == QMessageBox::Yes)
+            {
+                closeFile();
+            }
+            else
+                // user cancelled closing current file, we have to abort
+                break;
         }
 
         openFile(path);
@@ -270,10 +280,16 @@ void MainWindow::openFileDialog()
             // Error occured, keep pumping events and don't move on until user
             // dismisses diagnostics dialog.
             while (mDiagnosticsDialog->isVisible())
-            {
                 QAbstractEventDispatcher::instance(0)->processEvents(QEventLoop::AllEvents);
-            }
         }
+        else
+            opened = true;
+    }
+
+    if (!fileOpened())
+    {
+        if (!close())
+            throw MainWindowException("Failed to close main window!");
     }
 }
 
