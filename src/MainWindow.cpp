@@ -263,7 +263,8 @@ void MainWindow::openFileDialog()
         if (fileOpened())
         {
             if (QMessageBox::question(this, "Close currently opened file?",
-                "Currently opened file has to be closed before '%1' is opened. Are you sure you want to close it?",
+                QString("Opened file has to be closed before '%1' is opened instead.\n\n"
+                        "Are you sure you want to close currently opened file?").arg(path),
                 QMessageBox::Yes | QMessageBox::No, QMessageBox::No) == QMessageBox::Yes)
             {
                 closeFile();
