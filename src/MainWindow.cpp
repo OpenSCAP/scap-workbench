@@ -240,7 +240,12 @@ void MainWindow::openFile(const QString& path)
 
 void MainWindow::openFileDialog()
 {
-    //closeFile();
+    // A diagnostic dialog might still be visible from previous failed openFile
+    // that was called because of file passed on the command line.
+    //
+    // Do not continue until user dismisses the diagnostics dialog.
+    while (mDiagnosticsDialog->isVisible())
+        QAbstractEventDispatcher::instance(0)->processEvents(QEventLoop::AllEvents);
 
     QString defaultDirectory = SCAP_WORKBENCH_SCAP_CONTENT_DIRECTORY;
 
