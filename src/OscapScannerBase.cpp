@@ -191,6 +191,11 @@ QStringList OscapScannerBase::buildEvaluationArgs(const QString& inputFile,
         ret.append(profileId);
     }
 
+    // We don't use these results directly but openscap uses them when generating
+    // the HTML report! We get more info in the HTML report if we request OVAL
+    // results!
+    ret.append("--oval-results");
+
     ret.append("--results");
     ret.append(resultFile);
 
@@ -219,6 +224,11 @@ QStringList OscapScannerBase::buildOfflineRemediationArgs(const QString& resultI
     QStringList ret;
     ret.append("xccdf");
     ret.append("remediate");
+
+    // We don't use these results directly but openscap uses them when generating
+    // the HTML report! We get more info in the HTML report if we request OVAL
+    // results!
+    ret.append("--oval-results");
 
     ret.append("--results");
     ret.append(resultFile);
