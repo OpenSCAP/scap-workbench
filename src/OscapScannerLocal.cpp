@@ -22,6 +22,7 @@
 #include "OscapScannerLocal.h"
 #include "ProcessHelpers.h"
 #include "ScanningSession.h"
+#include "TemporaryDir.h"
 
 #include <QThread>
 #include <QAbstractEventDispatcher>
@@ -87,8 +88,14 @@ void OscapScannerLocal::evaluate()
     arfFile.setAutoRemove(true);
     arfFile.open(); arfFile.close();
 
+    // This is mainly for check-engine-results and oval-results, to ensure
+    // we get a full report, including info from these files. openscap's XSLT
+    // uses info in the check engine results if it can find them.
+    TemporaryDir workingDir;
+
     emit infoMessage("Starting the oscap process...");
     QProcess process(this);
+    process.setWorkingDirectory(workingDir.getPath());
 
     QStringList args;
 
