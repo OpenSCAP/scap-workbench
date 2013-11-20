@@ -19,24 +19,31 @@
  *      Martin Preisler <mpreisle@redhat.com>
  */
 
-#ifndef SCAP_WORKBENCH_FORWARD_DECLS_H_
-#define SCAP_WORKBENCH_FORWARD_DECLS_H_
+#ifndef SCAP_WORKBENCH_TEMPORARY_DIR_H_
+#define SCAP_WORKBENCH_TEMPORARY_DIR_H_
 
-#include "Config.h"
+#include "ForwardDecls.h"
+#include <QString>
 
-class Application;
-class DiagnosticsDialog;
-class MainWindow;
-class OscapScannerBase;
-class OscapScannerLocal;
-class OscapScannerRemoteSsh;
-class ResultViewer;
-class ScanningSession;
-class Scanner;
-class SshConnection;
-class SshSyncProcess;
-class SyncProcess;
-class TailoringWindow;
-class TemporaryDir;
+/**
+ * @brief Creates a (LOCAL!) temporary directory and auto destroys it if told so
+ */
+class TemporaryDir
+{
+    public:
+        TemporaryDir();
+        ~TemporaryDir();
+
+        void setAutoRemove(const bool autoRemove);
+        bool getAutoRemove() const;
+
+        const QString& getPath() const;
+
+    private:
+        void ensurePath() const;
+        mutable QString mPath;
+
+        bool mAutoRemove;
+};
 
 #endif
