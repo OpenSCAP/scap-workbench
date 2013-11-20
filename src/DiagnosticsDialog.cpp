@@ -77,8 +77,7 @@ void DiagnosticsDialog::pushMessage(const QString& fullMessage, const bool error
 
     const QString outMessage = QString(stime) + " | " + fullMessage;
 
-    std::ostream& stream = error ? std::cerr : std::cout;
-    stream << outMessage.toUtf8().constData() << std::endl;
+    std::cerr << outMessage.toUtf8().constData() << std::endl;
 
     mUI.messages->append(outMessage + "\n");
 }
