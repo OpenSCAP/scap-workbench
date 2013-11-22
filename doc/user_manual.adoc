@@ -1,0 +1,246 @@
+= scap-workbench User Manual
+:imagesdir: ./user_manual
+:toc:
+
+scap-workbench is a tool that can open XCCDF footnote:[The Extensible
+Configuration Checklist Description Format] or SDS footnote:[Source
+DataStream] files and allows the user to evaluate either local or remote
+machine using the content in the opened file.
+
+image::intro_screenshot.png[align="center"]
+
+== Requirements
+
+=== Build dependencies
+
+* cmake >= 2.6
+* Qt4 (Core, GUI, XmlPatterns)
+* openscap >= 0.9.12
+* cmake-gui [optional]
+* Qt4 (WebKit) [optional]
+
+=== Runtime dependencies (workbench machine)
+
+* setsid
+* nice
+* ssh and scp (if you want remote scanning)
+
+=== Runtime dependencies (evaluated machine)
+
+* oscap >= 0.8.0
+
+== Installation
+
+From package repository (YUM):: # yum install scap-workbench
+From package repository (APT):: # apt-get install scap-workbench
+From source::
+ . $ mkdir build ; cd build
+ . $ cmake ../
+ . $ make
+ . # make install
+
+From source (custom options)::
+ . $ mkdir build ; cd build
+ . $ cmake-gui ../
+ . $ make
+ . # make install
+
+== A typical use case
+
+Let us go over a common use case. If any section is marked (optional) it can be
+skipped if you do not need the features explained in it.
+
+=== Obtain SCAP content
+
+Even before we start the workbench we need to find content to open. Probably
+the best choice right now is scap-security-guide
+footnote:[https://fedorahosted.org/scap-security-guide/].
+
+From the package repository (YUM):: # yum install scap-security-guide
+From the package repository (APT):: # apt-get install scap-security-guide
+From upstream source (not recommended!)::
+ . $ git clone https://git.fedorahosted.org/git/scap-security-guide.git ; cd scap-security-guide
+ . $ make
+
+=== Start scap-workbench
+
+After installation a new application entry for scap-workbench should appear
+in your desktop environments application menu.
+
+[[img-starting-scap-workbench]]
+.scap-workbench application entry in GNOME 3
+image::starting_scap_workbench.png[align="center"]
+
+In case you cannot find any scap-workbench application icon / entry to click,
+press Alt+F2 to bring up the run command dialog (works in Gnome 3 and KDE 4),
+type 'scap-workbench' and confirm.
+
+scap-workbench should start and if you installed scap-security-guide from
+your package repository, workbench will immediately open it without any
+interaction being necessary.
+
+[[img-default-content-opened]]
+.Default content opened in workbench
+image::default_content_opened.png[align="center"]
+
+See <<alternative-contents, alternative contents>> for more content choices.
+
+=== Open different content (optional)
+
+Clicking *Browse* will enable you to change opened content. Keep in mind that
+workbench only supports opening XCCDF and Source DataStream files. Everything
+else will result in an error dialog being shown.
+
+****
+Only one content file can be opened by a single scap-workbench instance.
+Opening a different content file will *DESTROY* all your tailoring changes
+and you will also *LOSE* profile selection.
+****
+
+To prevent workbench from opening default content when it starts you can either
+uninstall it or pass a different path via command line.
+
+ scap-workbench PATH_TO_SCAP_CONTENT
+
+=== Load a ready-made tailoring file (optional)
+
+In case you were given a tailoring file for your specific evaluation use-case,
+you can load by clicking on the *tailoring file combobox* and selecting *(...)*
+option. This will bring up a file open dialog where you can select your
+tailoring file.
+
+****
+Loading a tailoring file will *DESTROY* all your tailoring changes that you
+have done either by customizing profiles or loaded from another tailoring
+file.
+****
+
+[[img-opening-tailoring-file]]
+.Opening a tailoring file
+image::opening_tailoring_file.png[align="center"]
+
+=== Choose a profile
+
+****
+XCCDF profiles are in essence configurations of the content for a particular
+evaluation scenario. XCCDF profiles decide which rules are selected and which
+values they use - e.g.: one profile may enfore password length to be at least 10
+characters, a different one may be more lenient and enfore password length of
+at least 6 characters.
+
+For more details refer to the
+http://scap.nist.gov/specifications/xccdf/index.html[XCCDF specification].
+****
+
+Every SCAP content will have at least one profile - the *(default)* profile
+which is an empty profile that does not change selection of any rules and
+does not affect values passed to any of the checks.
+
+The (default) profile is very unlikely the choice you want to use though,
+so scap-workbench will only choose it by default if there are no other profiles.
+
+Use the *profile combobox* to change which profile will be used for subsequent
+evaluation. When scap-workbench is not evaluating it previews selected rules
+of current profile in the list labeled *Selected Rules*. This list will
+refresh every time you customize a profile or select a different one.
+
+=== Customize the selected profile (optional)
+
+After you have selected the profile suitable for your desired evaluation you
+still may want to make slight alterations to it. Most commonly it will be
+deselecting that one undesirable rule that makes no sense on this particular
+machine.
+
+Make sure your desired profile is selected and click *Customize*.
+
+[[img-customizing-ssg-profile]]
+.Customizing scap-security-guide's "common" profile
+image::customizing_ssg_profile.png[align="center"]
+
+A new modal dialog will be spawned, you cannot interact with the rest of the
+application until you finish your tailoring changes.
+
+In our example case we do not care about minimum and maximum age for passwords
+and do not want the rules failing for our configuration. Let us expand the
+tree until we find the offending rules and uselect both of them.
+
+[[img-tailoring-dialog-opened]]
+.Unselecting minimum and maximum password age rules
+image::tailoring_dialog_opened.png[align="center"]
+
+****
+This tailoring dialog supports undo/redo. If you accidentaly make changes that
+you want to undo, press CTRL+Z or click the *Undo* button.
+
+Keep in mind that the undo history will get lost when you press *Finish tailoring*!
+****
+
+After desired tailoring changes are done, click *Finish tailoring* to get back
+to the previous GUI.
+
+=== Choose the target machine
+
+scap-workbench will scan *local machine* by default. However you can also
+scan remote machines using ssh.
+
+To scan a remote machine, select *remote machine (over ssh)* in the *Target
+combobox*. A pair of input boxes will appear. Input the desired username and
+hostname and select proper port. Make sure the machine is reachable, selected
+user can login over ssh and has enough privileges to evaluate the machine.
+
+****
+The target machine has to have the *oscap* tool of version 0.8.0 or greater
+installed and in $PATH!
+****
+
+[[img-scanning-remote-machine]]
+.Selecting a remote machine for scanning
+image::scanning_remote_machine.png[align="center"]
+
+=== Enable Online Remediation (optional)
+
+****
+Remediation is an automatic attempt to change configuration of the scanned
+machine in a way that fixes a failed rule result. By fixing we mean ensuring
+that the rule would pass in the new configuration.
+
+The success of automatic remediation greatly depends on content quality and
+could result in broken machines if not used carefully!
+****
+
+The *Online Remediation* checkbox will do remediation as part of the evaluation.
+After evaluation is done, *oscap* will go over failed rules and attempt to remedy
+each of them.
+
+The rules that were remedied will show up as *fixed* in the rule result list.
+
+=== Evaluate
+
+Everything is set up now we can start the evaluation. Click the *Scan*
+button to start evaluation. If you selected a remote machine target ssh
+may ask you for a password at this point.
+
+****
+scap-workbench never processes your ssh password in any way. Instead a ssh
+process is spawned which itself spawns the ssh-askpass program which asks
+for the password.
+****
+
+The application now starts the *oscap* tool and waits for it to finish,
+reporting partial results along the way in the rule result list. Keep in mind
+that the tool cannot guess how long will processing of any particular rule
+take. The only thing that is used to estimate progress is the amount of rules
+that have been processed and the amount that is remaining. Please be patient
+and wait for oscap to finish evaluation.
+
+****
+You can cancel the scan at any point by clicking the *Cancel* button.
+****
+
+After you press the *Scan* button all the previous options will be disabled
+and greyed-out. You cannot change them until you press the *Clear* button
+which will drop all results.
+
+=== Alternative SCAP content (optional)
+[[alternative-contents]]TODO TODO TODO
+
