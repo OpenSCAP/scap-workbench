@@ -62,6 +62,11 @@ From upstream source (not recommended!)::
  . $ git clone https://git.fedorahosted.org/git/scap-security-guide.git ; cd scap-security-guide
  . $ make
 
+==== Alternative SCAP content (optional)
+[[alternative-contents]]
+ * http://usgcb.nist.gov/usgcb/rhel_content.html[USGCB for RHEL5] - XCCDF and OVAL, only suitable for RHEL5.
+ * https://fedorahosted.org/sce-community-content/[SCE Community Content] - Uses SCE, only suitable for Fedora.
+
 === Start scap-workbench
 
 After installation a new application entry for scap-workbench should appear
@@ -241,6 +246,48 @@ After you press the *Scan* button all the previous options will be disabled
 and greyed-out. You cannot change them until you press the *Clear* button
 which will drop all results.
 
-=== Alternative SCAP content (optional)
-[[alternative-contents]]TODO TODO TODO
+=== View and Analyze Results
 
+After evaluation finishes you should see two new buttons - Clear and Results.
+
+****
+Pressing Clear will *permanently* destroy scan results! This action cannot
+be undone.
+You can save the results as either ARF or XCCDF to keep them for later
+analysis.
+****
+
+Pressing Results will bring up a new window. In case scap-workbench was compiled
+with WebKit support you should see the HTML report right in the application.
+Otherwise, press *Open HTML report* to open the report using your internet
+browser.
+
+****
+scap-workbench will open the report in the default web browser set in your
+desktop environment. Make sure you have a browser installed.
+
+If nothing happens after pressing the button, check which browser is the default.
+See System Settings -> System Info -> Default Applications in GNOME 3 or
+System Settings -> Default Applications in KDE4.
+
+In case you still can't get scap-workbench to open a browser, simply save the
+report to a HTML file on your hard drive and open it as any different HTML file.
+****
+
+[[img-browsing-results]]
+.Browsing results
+image::browsing_results.png[align="center"]
+
+Your evaluation results can be saved in several formats:
+
+HTML report:: Human readable and convenient, not suitable for machine processing.
+Can be examined by any web browser.
+XCCDF result:: Machine readable file with just the results, not suitable for
+manual processing. Requires a special tool that can parse the format.
+ARF:: Also called result datastream. Packs input content, asset information
+and results into a single machine readable file, not suitable for manual processing.
+Requires a special tool that can parse the format.
+
+If you are unsure which format to choose for result archival you should probably
+choose *XCCDF result*. It is commonly supported and you can easily generate
+an HTML report from it using the *oscap* tool.
