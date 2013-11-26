@@ -24,7 +24,7 @@
 
 #include <QFileInfo>
 
-Application::Application(int argc, char** argv):
+Application::Application(int& argc, char** argv):
     QApplication(argc, argv),
     mMainWindow(new MainWindow())
 {
