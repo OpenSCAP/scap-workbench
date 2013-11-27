@@ -180,9 +180,6 @@
                <property name="toolTip">
                 <string>Use the format commonly accepted by ssh (username@host)</string>
                </property>
-               <property name="placeholderText">
-                <string>username@hostname</string>
-               </property>
               </widget>
              </item>
              <item>

@@ -137,6 +137,11 @@ MainWindow::MainWindow(QWidget* parent):
     //        not supported in openscap.
     mUI.offlineRemediateButton->hide();
 
+#if QT_VERSION >= 0x040700
+    // placeholder text is only supported in Qt 4.7 onwards
+    mUI.remoteMachineHost->setPlaceholderText("username@hostname");
+#endif
+
     mResultViewer = new ResultViewer(this);
     mResultViewer->hide();
 
