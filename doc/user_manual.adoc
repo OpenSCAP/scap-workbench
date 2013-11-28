@@ -7,25 +7,35 @@ Configuration Checklist Description Format] or SDS footnote:[Source
 DataStream] files and allows the user to evaluate either local or remote
 machine using the content in the opened file.
 
+== Feature Highlights
+
 image::intro_screenshot.png[align="center"]
+
+ * XCCDF 1.1 and 1.2 support
+ * Source DataStream 1.2 support
+ * XCCDF 1.2 Tailoring file support
+ * Evaluation of local machine
+ * Evaluation of remote machine (using ssh)
+ * Limited tailoring support - selection and unselection
+ * Saving results as XCCDF 1.1 or 1.2 (depending on input) or ARF 1.1
 
 == Requirements
 
-=== Build dependencies
+=== Build Dependencies
 
-* cmake >= 2.6
-* Qt4 (Core, GUI, XmlPatterns)
-* openscap >= 0.9.12
-* cmake-gui [optional]
-* Qt4 (WebKit) [optional]
+ * cmake >= 2.6
+ * Qt4 (Core, GUI, XmlPatterns)
+ * openscap >= 0.9.12
+ * cmake-gui [optional]
+ * Qt4 (WebKit) [optional]
 
-=== Runtime dependencies (workbench machine)
+=== Runtime Dependencies (workbench machine)
 
 * setsid
 * nice
 * ssh and scp (if you want remote scanning)
 
-=== Runtime dependencies (evaluated machine)
+=== Runtime Dependencies (evaluated machine)
 
 * oscap >= 0.8.0
 
@@ -45,10 +55,10 @@ From source (custom options)::
  . $ make
  . # make install
 
-== A typical use case
+== Typical Use Case
 
 Let us go over a common use case. If any section is marked (optional) it can be
-skipped if you do not need the features explained in it.
+skipped if you do not need the feature explained in it.
 
 === Obtain SCAP content
 
@@ -88,9 +98,7 @@ interaction being necessary.
 .Default content opened in workbench
 image::default_content_opened.png[align="center"]
 
-See <<alternative-contents, alternative contents>> for more content choices.
-
-=== Open different content (optional)
+=== Open Different Content (optional)
 
 Clicking *Browse* will enable you to change opened content. Keep in mind that
 workbench only supports opening XCCDF and Source DataStream files. Everything
@@ -107,10 +115,12 @@ uninstall it or pass a different path via command line.
 
  scap-workbench PATH_TO_SCAP_CONTENT
 
-=== Load a ready-made tailoring file (optional)
+See <<alternative-contents, alternative contents>> for more content choices.
+
+=== Load a Ready-made Tailoring File (optional)
 
 In case you were given a tailoring file for your specific evaluation use-case,
-you can load by clicking on the *tailoring file combobox* and selecting *(...)*
+you can load by clicking on the *Tailoring file combobox* and selecting the *(...)*
 option. This will bring up a file open dialog where you can select your
 tailoring file.
 
@@ -120,11 +130,17 @@ have done either by customizing profiles or loaded from another tailoring
 file.
 ****
 
+****
+Only XCCDF 1.2 supports tailoring officially. The openscap project has an extension
+that allows tailoring files to be used with XCCDF 1.1 so scap-workbench supports
+that as well. The details are out of scope of this document.
+****
+
 [[img-opening-tailoring-file]]
 .Opening a tailoring file
 image::opening_tailoring_file.png[align="center"]
 
-=== Choose a profile
+=== Choose a Profile
 
 ****
 XCCDF profiles are in essence configurations of the content for a particular
@@ -139,17 +155,20 @@ http://scap.nist.gov/specifications/xccdf/index.html[XCCDF specification].
 
 Every SCAP content will have at least one profile - the *(default)* profile
 which is an empty profile that does not change selection of any rules and
-does not affect values passed to any of the checks.
+does not affect values passed to any of the checks. Only rules with the
+selection attribute equal to "true" and all their ancestor Group selection
+attribute also being "true" are evaluated in a (default) profile.
 
 The (default) profile is very unlikely the choice you want to use though,
 so scap-workbench will only choose it by default if there are no other profiles.
+By default the first profile that is not the default profile will be chosen.
 
 Use the *profile combobox* to change which profile will be used for subsequent
 evaluation. When scap-workbench is not evaluating it previews selected rules
 of current profile in the list labeled *Selected Rules*. This list will
 refresh every time you customize a profile or select a different one.
 
-=== Customize the selected profile (optional)
+=== Customize the Selected Profile (optional)
 
 After you have selected the profile suitable for your desired evaluation you
 still may want to make slight alterations to it. Most commonly it will be
@@ -183,7 +202,7 @@ Keep in mind that the undo history will get lost when you press *Finish tailorin
 After desired tailoring changes are done, click *Finish tailoring* to get back
 to the previous GUI.
 
-=== Choose the target machine
+=== Choose the Target Machine
 
 scap-workbench will scan *local machine* by default. However you can also
 scan remote machines using ssh.
@@ -196,6 +215,11 @@ user can login over ssh and has enough privileges to evaluate the machine.
 ****
 The target machine has to have the *oscap* tool of version 0.8.0 or greater
 installed and in $PATH!
+****
+
+****
+Only a Source DataStream can be used to scan a remote machine. Plain XCCDF
+is not supported yet!
 ****
 
 [[img-scanning-remote-machine]]
@@ -234,12 +258,14 @@ for the password.
 The application now starts the *oscap* tool and waits for it to finish,
 reporting partial results along the way in the rule result list. Keep in mind
 that the tool cannot guess how long will processing of any particular rule
-take. The only thing that is used to estimate progress is the amount of rules
-that have been processed and the amount that is remaining. Please be patient
-and wait for oscap to finish evaluation.
+take. Only the amount of rules that have been processed and the amount that
+is remaining are used to estimate progress. Please be patient and wait for
+oscap to finish evaluation.
 
 ****
-You can cancel the scan at any point by clicking the *Cancel* button.
+You can cancel the scan at any point by clicking the *Cancel* button. Canceling
+will only give you partial results in the evaluation progress list, you cannot
+get ARF or XCCDF results if you cancel evaluation!
 ****
 
 After you press the *Scan* button all the previous options will be disabled
@@ -291,3 +317,18 @@ Requires a special tool that can parse the format.
 If you are unsure which format to choose for result archival you should probably
 choose *XCCDF result*. It is commonly supported and you can easily generate
 an HTML report from it using the *oscap* tool.
+
+== Where to Get Help?
+
+You ask for help with the application using
+
+ * #openscap channel on irc.freenode.net
+ * https://lists.fedorahosted.org/mailman/listinfo/scap-workbench[scap-workbench mailing list]
+
+It is recommended to join the https://www.redhat.com/mailman/listinfo/open-scap-list[openscap mailing list]
+as well for SCAP specific discussions.
+
+In case you have found a bug, do not hesitate to https://fedorahosted.org/scap-workbench/newticket[submit it]
+(requires a Fedora FAS account). Make sure you include as many details as possible,
+including your distribution, architecture, openscap, scap-workbench and Qt versions
+and any output scap-workbench writes to stderr.
