@@ -6,3 +6,6 @@ build/
 
 .clang_complete
 CMakeLists.txt.user
+
+# auto-built user_manual.html
+doc/user_manual.html
