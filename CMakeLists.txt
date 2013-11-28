@@ -25,6 +25,16 @@ endif()
 
 # This is optional, only required if user wants documentation rebuilt
 find_program(ASCIIDOCTOR_EXECUTABLE NAMES asciidoctor)
+option(SCAP_WORKBENCH_REBUILD_MANUAL "If enabled, user manual will be rebuilt (requires asciidoctor to be installed)" TRUE)
+if (SCAP_WORKBENCH_REBUILD_MANUAL AND NOT ASCIIDOCTOR_EXECUTABLE)
+    message("asciidoctor has not been found, user manual won't be rebuilt even though SCAP_WORKBENCH_REBUILD_MANUAL has been enabled.")
+endif()
+if (NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/doc/user_manual.html")
+    if (NOT ASCIIDOCTOR_EXECUTABLE)
+        message(FATAL_ERROR "You seem to be using scap-workbench from the repository ('doc/user_manual.html' hasn't been found). Please install asciidoctor to build the manual!")
+    endif()
+    set(SCAP_WORKBENCH_REBUILD_MANUAL TRUE)
+endif()
 # This is optional, only required if user wants to run cppcheck (unlikely)
 find_program(CPPCHECK_EXECUTABLE NAMES cppcheck)
 
@@ -72,19 +82,6 @@ add_executable("scap-workbench"
 
 target_link_libraries("scap-workbench" ${SCAP_WORKBENCH_LINK_LIBRARIES})
 
-if (ASCIIDOCTOR_EXECUTABLE)
-    add_custom_command(
-        OUTPUT doc/user_manual.html
-        COMMAND asciidoctor --destination-dir ${CMAKE_CURRENT_BINARY_DIR}/doc -b html5 -a data-uri user_manual.adoc
-        DEPENDS doc/user_manual.adoc
-        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/doc
-    )
-    add_custom_target(
-        docs
-        DEPENDS doc/user_manual.html
-    )
-endif()
-
 install(TARGETS "scap-workbench"
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 
@@ -95,6 +92,26 @@ install(FILES "scap-workbench.desktop"
     DESTINATION "${CMAKE_INSTALL_DATADIR}/applications")
 install(FILES "share/pixmaps/scap-workbench.png"
     DESTINATION "${CMAKE_INSTALL_DATADIR}/pixmaps")
+
+if (ASCIIDOCTOR_EXECUTABLE)
+    add_custom_command(
+        OUTPUT doc/user_manual.html
+        COMMAND ${ASCIIDOCTOR_EXECUTABLE} --destination-dir ${CMAKE_CURRENT_BINARY_DIR}/doc -b html5 -a data-uri user_manual.adoc
+        COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_BINARY_DIR}/doc/user_manual.html ${CMAKE_CURRENT_SOURCE_DIR}/doc/user_manual.html
+        DEPENDS doc/user_manual.adoc
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/doc
+    )
+    add_custom_target(
+        "docs"
+        DEPENDS doc/user_manual.html
+    )
+    if (SCAP_WORKBENCH_REBUILD_MANUAL)
+        add_dependencies("scap-workbench" "docs")
+    endif()
+endif()
+
+install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/doc/user_manual.html"
+    DESTINATION ${CMAKE_INSTALL_DOCDIR})
 
 if (CPPCHECK_EXECUTABLE)
     set(CPPCHECK_INCL_PARAMS -I /usr/include)
