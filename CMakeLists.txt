@@ -23,6 +23,9 @@ if (NOT DEFINED OPENSCAP_LIBRARIES OR NOT DEFINED OPENSCAP_INCLUDE_DIRS)
     pkg_check_modules(OPENSCAP REQUIRED libopenscap>=0.9.12)
 endif()
 
+# This is optional, only required if user wants documentation rebuilt
+find_program(ASCIIDOCTOR_EXECUTABLE NAMES asciidoctor)
+
 set(SCAP_WORKBENCH_DEFAULT_CONTENT "/usr/share/xml/scap/ssg/fedora/ssg-fedora-xccdf.xml" CACHE FILEPATH
     "Path to XCCDF or SDS that will be opened in case user doesn't specify different content using command line arguments.")
 set(SCAP_WORKBENCH_SCAP_CONTENT_DIRECTORY "/usr/share/xml/scap" CACHE PATH
@@ -66,6 +69,19 @@ add_executable("scap-workbench"
 )
 
 target_link_libraries("scap-workbench" ${SCAP_WORKBENCH_LINK_LIBRARIES})
+
+if (ASCIIDOCTOR_EXECUTABLE)
+    add_custom_command(
+        OUTPUT doc/user_manual.html
+        COMMAND asciidoctor --destination-dir ${CMAKE_CURRENT_BINARY_DIR}/doc -b html5 -a data-uri user_manual.adoc
+        DEPENDS doc/user_manual.adoc
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/doc
+    )
+    add_custom_target(
+        docs
+        DEPENDS doc/user_manual.html
+    )
+endif()
 
 install(TARGETS "scap-workbench"
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
