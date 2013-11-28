@@ -25,6 +25,8 @@ endif()
 
 # This is optional, only required if user wants documentation rebuilt
 find_program(ASCIIDOCTOR_EXECUTABLE NAMES asciidoctor)
+# This is optional, only required if user wants to run cppcheck (unlikely)
+find_program(CPPCHECK_EXECUTABLE NAMES cppcheck)
 
 set(SCAP_WORKBENCH_DEFAULT_CONTENT "/usr/share/xml/scap/ssg/fedora/ssg-fedora-xccdf.xml" CACHE FILEPATH
     "Path to XCCDF or SDS that will be opened in case user doesn't specify different content using command line arguments.")
@@ -93,6 +95,24 @@ install(FILES "scap-workbench.desktop"
     DESTINATION "${CMAKE_INSTALL_DATADIR}/applications")
 install(FILES "share/pixmaps/scap-workbench.png"
     DESTINATION "${CMAKE_INSTALL_DATADIR}/pixmaps")
+
+if (CPPCHECK_EXECUTABLE)
+    set(CPPCHECK_INCL_PARAMS -I /usr/include)
+    foreach(DIR ${SCAP_WORKBENCH_INCLUDE_DIRS})
+        set(CPPCHECK_INCL_PARAMS ${CPPCHECK_INCL_PARAMS} -I ${DIR})
+    endforeach()
+
+    add_custom_command(
+        OUTPUT cppcheck.txt
+        COMMAND ${CPPCHECK_EXECUTABLE} ${CPPCHECK_INCL_PARAMS} --enable=all --force ${scap_workbench_SOURCES} 2> ${CMAKE_CURRENT_BINARY_DIR}/cppcheck.txt
+        DEPENDS ${scap_workbench_SOURCES} ${scap_workbench_HEADERS}
+        VERBATIM
+    )
+    add_custom_target(
+        cppcheck
+        DEPENDS cppcheck.txt
+    )
+endif()
 
 # only CPack should follow
 set(CPACK_CMAKE_GENERATOR "Unix Makefiles")
