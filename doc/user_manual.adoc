@@ -120,7 +120,7 @@ See <<alternative-contents, alternative contents>> for more content choices.
 === Load a Ready-made Tailoring File (optional)
 
 In case you were given a tailoring file for your specific evaluation use-case,
-you can load by clicking on the *Tailoring file combobox* and selecting the *(...)*
+you can load by clicking on the *Tailoring file* combobox and selecting the *(...)*
 option. This will bring up a file open dialog where you can select your
 tailoring file.
 
@@ -145,7 +145,7 @@ image::opening_tailoring_file.png[align="center"]
 ****
 XCCDF profiles are in essence configurations of the content for a particular
 evaluation scenario. XCCDF profiles decide which rules are selected and which
-values they use - e.g.: one profile may enfore password length to be at least 10
+values they use - e.g.: one profile may enforce password length to be at least 10
 characters, a different one may be more lenient and enfore password length of
 at least 6 characters.
 
@@ -160,10 +160,10 @@ selection attribute equal to "true" and all their ancestor Group selection
 attribute also being "true" are evaluated in a (default) profile.
 
 The (default) profile is very unlikely the choice you want to use though,
-so scap-workbench will only choose it by default if there are no other profiles.
+so scap-workbench will only choose it implicitly if there are no other profiles.
 By default the first profile that is not the default profile will be chosen.
 
-Use the *profile combobox* to change which profile will be used for subsequent
+Use the *Profile* combobox to change which profile will be used for subsequent
 evaluation. When scap-workbench is not evaluating it previews selected rules
 of current profile in the list labeled *Selected Rules*. This list will
 refresh every time you customize a profile or select a different one.
@@ -171,7 +171,7 @@ refresh every time you customize a profile or select a different one.
 === Customize the Selected Profile (optional)
 
 After you have selected the profile suitable for your desired evaluation you
-still may want to make slight alterations to it. Most commonly it will be
+still may want to make slight alterations to it. Most commonly it would be
 deselecting that one undesirable rule that makes no sense on this particular
 machine.
 
@@ -186,7 +186,7 @@ application until you finish your tailoring changes.
 
 In our example case we do not care about minimum and maximum age for passwords
 and do not want the rules failing for our configuration. Let us expand the
-tree until we find the offending rules and uselect both of them.
+tree until we find the offending rules and unselect both of them.
 
 [[img-tailoring-dialog-opened]]
 .Unselecting minimum and maximum password age rules
@@ -207,8 +207,8 @@ to the previous GUI.
 scap-workbench will scan *local machine* by default. However you can also
 scan remote machines using ssh.
 
-To scan a remote machine, select *remote machine (over ssh)* in the *Target
-combobox*. A pair of input boxes will appear. Input the desired username and
+To scan a remote machine, select *remote machine (over ssh)* in the *Target*
+combobox. A pair of input boxes will appear. Input the desired username and
 hostname and select proper port. Make sure the machine is reachable, selected
 user can login over ssh and has enough privileges to evaluate the machine.
 
@@ -230,16 +230,16 @@ image::scanning_remote_machine.png[align="center"]
 
 ****
 Remediation is an automatic attempt to change configuration of the scanned
-machine in a way that fixes a failed rule result. By fixing we mean ensuring
-that the rule would pass in the new configuration.
+machine in a way that fixes a failed rule result. By fixing we mean changing
+configuration, ensuring that the rule would pass in the new configuration.
 
 The success of automatic remediation greatly depends on content quality and
 could result in broken machines if not used carefully!
 ****
 
-The *Online Remediation* checkbox will do remediation as part of the evaluation.
-After evaluation is done, *oscap* will go over failed rules and attempt to remedy
-each of them.
+The *Online Remediation* checkbox will do remediation as part of the evaluation
+itself. After evaluation is done, *oscap* will go over failed rules and attempt
+to remedy each of them.
 
 The rules that were remedied will show up as *fixed* in the rule result list.
 
@@ -314,8 +314,8 @@ ARF:: Also called result datastream. Packs input content, asset information
 and results into a single machine readable file, not suitable for manual processing.
 Requires a special tool that can parse the format.
 
-If you are unsure which format to choose for result archival you should probably
-choose *XCCDF result*. It is commonly supported and you can easily generate
+If you are unsure which format to choose for result archiving you can choose
+*Save XCCDF Result*. It is commonly supported and you can easily generate
 an HTML report from it using the *oscap* tool.
 
 == Where to Get Help?
@@ -329,6 +329,6 @@ It is recommended to join the https://www.redhat.com/mailman/listinfo/open-scap-
 as well for SCAP specific discussions.
 
 In case you have found a bug, do not hesitate to https://fedorahosted.org/scap-workbench/newticket[submit it]
-(requires a Fedora FAS account). Make sure you include as many details as possible,
+(requires a Fedora FAS account). Make sure you provide as many details as possible,
 including your distribution, architecture, openscap, scap-workbench and Qt versions
 and any output scap-workbench writes to stderr.
