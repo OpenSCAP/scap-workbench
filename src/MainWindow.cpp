@@ -199,12 +199,12 @@ void MainWindow::openFile(const QString& path)
             while (ds_stream_index_iterator_has_more(streams_it))
             {
                 struct ds_stream_index* stream_idx = ds_stream_index_iterator_next(streams_it);
-                const char* stream_id = ds_stream_index_get_id(stream_idx);
+                const QString stream_id = QString::fromUtf8(ds_stream_index_get_id(stream_idx));
 
                 struct oscap_string_iterator* checklists_it = ds_stream_index_get_checklists(stream_idx);
                 while (oscap_string_iterator_has_more(checklists_it))
                 {
-                    const char* checklist_id = oscap_string_iterator_next(checklists_it);
+                    const QString checklist_id = QString::fromUtf8(oscap_string_iterator_next(checklists_it));
 
                     QStringList data;
                     data.append(stream_id);
@@ -342,7 +342,7 @@ void MainWindow::scanAsync(ScannerMode scannerMode)
     {
         mDiagnosticsDialog->errorMessage(QString(
             "Can't get XCCDF policy from the session. Very likely it failed to load. "
-            "OpenSCAP error message:\n%1").arg(oscap_err_desc()));
+            "OpenSCAP error message:\n%1").arg(QString::fromUtf8(oscap_err_desc())));
 
         mUI.scanProperties->setEnabled(true);
         mUI.preScanTools->show();
@@ -535,7 +535,7 @@ void MainWindow::refreshProfiles()
             while (xccdf_profile_iterator_has_more(profile_it))
             {
                 struct xccdf_profile* profile = xccdf_profile_iterator_next(profile_it);
-                const QString profile_id = QString(xccdf_profile_get_id(profile));
+                const QString profile_id = QString::fromUtf8(xccdf_profile_get_id(profile));
                 oscap_text_iterator* titles = xccdf_profile_get_title(profile);
                 char* preferred_title = oscap_textlist_get_preferred_plaintext(titles, NULL);
                 oscap_text_iterator_free(titles);
@@ -545,7 +545,7 @@ void MainWindow::refreshProfiles()
                 profileCrossMap.insert(
                     std::make_pair(
                         profile_id,
-                        QString(preferred_title)
+                        QString::fromUtf8(preferred_title)
                     )
                 );
 
@@ -559,7 +559,7 @@ void MainWindow::refreshProfiles()
         while (xccdf_profile_iterator_has_more(profile_it))
         {
             struct xccdf_profile* profile = xccdf_profile_iterator_next(profile_it);
-            const QString profile_id = QString(xccdf_profile_get_id(profile));
+            const QString profile_id = QString::fromUtf8(xccdf_profile_get_id(profile));
             oscap_text_iterator* titles = xccdf_profile_get_title(profile);
             char* preferred_title = oscap_textlist_get_preferred_plaintext(titles, NULL);
             oscap_text_iterator_free(titles);
@@ -574,7 +574,7 @@ void MainWindow::refreshProfiles()
                 profileCrossMap.insert(
                     std::make_pair(
                         profile_id,
-                        QString(preferred_title)
+                        QString::fromUtf8(preferred_title)
                     )
                 );
             }
@@ -699,7 +699,7 @@ void MainWindow::tailoringFileComboboxChanged(int index)
         mUI.tailoringFileComboBox->setCurrentIndex(0);
 
         mDiagnosticsDialog->errorMessage(
-            QString("Failed to set up tailoring. Details follow:\n%1").arg(e.what()));
+            QString("Failed to set up tailoring. Details follow:\n%1").arg(QString::fromUtf8(e.what())));
     }
 
     reloadSession();
@@ -799,7 +799,7 @@ void MainWindow::scanProgressReport(const QString& rule_id, const QString& resul
     }
     catch (const std::exception& e)
     {
-        scanErrorMessage(QString("Can't get benchmark from scanning session, details follow:\n%1").arg(e.what()));
+        scanErrorMessage(QString("Can't get benchmark from scanning session, details follow:\n%1").arg(QString::fromUtf8(e.what())));
 
         return;
     }
@@ -926,13 +926,13 @@ void MainWindow::inheritAndEditProfile(bool shadowed)
     catch (const std::exception& e)
     {
         mDiagnosticsDialog->errorMessage(
-            QString("Failed to tailor currently selected profile, details follow:\n%1").arg(e.what()));
+            QString("Failed to tailor currently selected profile, details follow:\n%1").arg(QString::fromUtf8(e.what())));
     }
 
     refreshProfiles();
 
     // select the new profile as current
-    int indexCandidate = mUI.profileComboBox->findData(QVariant(xccdf_profile_get_id(newProfile)));
+    int indexCandidate = mUI.profileComboBox->findData(QVariant(QString::fromUtf8(xccdf_profile_get_id(newProfile))));
     if (indexCandidate != -1)
         mUI.profileComboBox->setCurrentIndex(indexCandidate);
 
@@ -967,7 +967,7 @@ void MainWindow::editProfile()
     catch (const std::exception& e)
     {
         mDiagnosticsDialog->errorMessage(
-            QString("Failed to retrieve XCCDF policy when editing profile, details follow:%1").arg(e.what()));
+            QString("Failed to retrieve XCCDF policy when editing profile, details follow:%1").arg(QString::fromUtf8(e.what())));
         return;
     }
 
@@ -1025,7 +1025,7 @@ void MainWindow::saveTailoring()
         mDiagnosticsDialog->errorMessage(
             QString(
                 "Failed to save tailoring file to path '%1'! Details follow:\n%2"
-            ).arg(path).arg(e.what())
+            ).arg(path).arg(QString::fromUtf8(e.what()))
         );
     }
 }
@@ -1048,7 +1048,7 @@ void MainWindow::saveIntoDirectory()
         mDiagnosticsDialog->errorMessage(
             QString(
                 "Failed to save opened files to path '%1'! Details follow:\n%2"
-            ).arg(targetPath).arg(e.what())
+            ).arg(targetPath).arg(QString::fromUtf8(e.what()))
         );
     }
 }

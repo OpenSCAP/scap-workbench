@@ -90,7 +90,7 @@ void Scanner::evaluateExceptionGuard()
     catch (const std::exception& e)
     {
         emit errorMessage(
-            QString("Exception was thrown while evaluating! Details follow:\n%1").arg(e.what()));
+            QString("Exception was thrown while evaluating! Details follow:\n%1").arg(QString::fromUtf8(e.what())));
         signalCompletion(true);
     }
 }

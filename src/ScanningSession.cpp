@@ -68,7 +68,7 @@ void ScanningSession::openFile(const QString& path)
     mSession = xccdf_session_new(path.toUtf8().constData());
     if (!mSession)
         throw ScanningSessionException(
-            QString("Failed to create session for '%1'. OpenSCAP error message:\n%2").arg(path).arg(oscap_err_desc()));
+            QString("Failed to create session for '%1'. OpenSCAP error message:\n%2").arg(path).arg(QString::fromUtf8(oscap_err_desc())));
 
     mSessionDirty = true;
     mTailoringUserChanges = false;
@@ -372,7 +372,7 @@ void ScanningSession::saveTailoring(const QString& path)
     ) != 1) // 1 is actually success here, big inconsistency in openscap API :(
     {
         throw ScanningSessionException(
-            QString("Exporting tailoring to '%1' failed! Details follow:\n%2").arg(path).arg(oscap_err_desc())
+            QString("Exporting tailoring to '%1' failed! Details follow:\n%2").arg(path).arg(QString::fromUtf8(oscap_err_desc()))
         );
     }
 }
@@ -413,7 +413,7 @@ void ScanningSession::setProfileID(const QString& profileID)
     reloadSession();
 
     if (!xccdf_session_set_profile_id(mSession, profileID.isEmpty() ? NULL : profileID.toUtf8().constData()))
-        throw ScanningSessionException(QString("Failed to set profile ID to '%1'. oscap error: %2").arg(profileID).arg(oscap_err_desc()));
+        throw ScanningSessionException(QString("Failed to set profile ID to '%1'. oscap error: %2").arg(profileID).arg(QString::fromUtf8(oscap_err_desc())));
 }
 
 QString ScanningSession::getProfileID() const
@@ -468,7 +468,7 @@ void ScanningSession::reloadSession(bool forceReload) const
     {
         if (xccdf_session_load(mSession) != 0)
             throw ScanningSessionException(
-                QString("Failed to reload session. OpenSCAP error message:\n%1").arg(oscap_err_desc()));
+                QString("Failed to reload session. OpenSCAP error message:\n%1").arg(QString::fromUtf8(oscap_err_desc())));
 
         struct xccdf_policy_model* policyModel = xccdf_session_get_policy_model(mSession);
 
@@ -514,7 +514,7 @@ struct xccdf_profile* ScanningSession::tailorCurrentProfile(bool shadowed)
         }
         else
         {
-            const QString newId = QString(xccdf_profile_get_id(oldProfile)) + QString("_tailored");
+            const QString newId = QString::fromUtf8(xccdf_profile_get_id(oldProfile)) + QString("_tailored");
             xccdf_profile_set_id(newProfile, newId.toUtf8().constData());
         }
 
@@ -524,7 +524,7 @@ struct xccdf_profile* ScanningSession::tailorCurrentProfile(bool shadowed)
             struct oscap_text* oldTitle = oscap_text_iterator_next(titles);
             struct oscap_text* newTitle = oscap_text_clone(oldTitle);
 
-            oscap_text_set_text(newTitle, (QString(oscap_text_get_text(oldTitle)) + QString(" [TAILORED]")).toUtf8().constData());
+            oscap_text_set_text(newTitle, (QString::fromUtf8(oscap_text_get_text(oldTitle)) + QString(" [TAILORED]")).toUtf8().constData());
             xccdf_profile_add_title(newProfile, newTitle);
         }
     }

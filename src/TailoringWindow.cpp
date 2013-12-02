@@ -51,14 +51,14 @@ void XCCDFItemPropertiesDockWidget::refresh()
     {
         struct oscap_text_iterator* title = xccdf_item_get_title(mXccdfItem);
         char* titleText = oscap_textlist_get_preferred_plaintext(title, NULL);
-        mUI.titleLineEdit->setText(QString(titleText));
+        mUI.titleLineEdit->setText(QString::fromUtf8(titleText));
         free(titleText);
 
-        mUI.idLineEdit->setText(QString(xccdf_item_get_id(mXccdfItem)));
+        mUI.idLineEdit->setText(QString::fromUtf8(xccdf_item_get_id(mXccdfItem)));
 
         struct oscap_text_iterator* description = xccdf_item_get_description(mXccdfItem);
         char* descriptionText = oscap_textlist_get_preferred_plaintext(description, NULL);
-        mUI.descriptionTextEdit->setHtml(QString(descriptionText));
+        mUI.descriptionTextEdit->setHtml(QString::fromUtf8(descriptionText));
         free(descriptionText);
     }
     else
@@ -169,7 +169,7 @@ TailoringWindow::TailoringWindow(struct xccdf_policy* policy, struct xccdf_bench
     synchronizeTreeItem(benchmarkItem, xccdf_benchmark_to_item(mBenchmark), true);
 
     char* profile_title = oscap_textlist_get_preferred_plaintext(xccdf_profile_get_title(mProfile), NULL);
-    setWindowTitle(QString("Tailoring '%1'").arg(profile_title));
+    setWindowTitle(QString("Tailoring '%1'").arg(QString::fromUtf8(profile_title)));
     free(profile_title);
 
     show();
@@ -198,7 +198,7 @@ void TailoringWindow::setItemSelected(struct xccdf_item* xccdfItem, bool selecte
              QString(
                  "Even though xccdf_select was added to both profile and policy "
                  "to make '%1' selected=%2, it remains selected=%3."
-             ).arg(xccdf_item_get_id(xccdfItem)).arg(selected).arg(!selected)
+             ).arg(QString::fromUtf8(xccdf_item_get_id(xccdfItem))).arg(selected).arg(!selected)
         );
 }
 
@@ -208,7 +208,7 @@ void TailoringWindow::synchronizeTreeItem(QTreeWidgetItem* treeItem, struct xccd
 
     struct oscap_text_iterator* title = xccdf_item_get_title(xccdfItem);
     char* titleText = oscap_textlist_get_preferred_plaintext(title, NULL);
-    treeItem->setText(0, QString(titleText));
+    treeItem->setText(0, QString::fromUtf8(titleText));
     free(titleText);
 
     const unsigned int typeColumn = 1;
@@ -234,7 +234,7 @@ void TailoringWindow::synchronizeTreeItem(QTreeWidgetItem* treeItem, struct xccd
             break;
     }
 
-    treeItem->setText(2, QString(xccdf_item_get_id(xccdfItem)));
+    treeItem->setText(2, QString::fromUtf8(xccdf_item_get_id(xccdfItem)));
     treeItem->setData(0, Qt::UserRole, QVariant::fromValue(reinterpret_cast<void*>(xccdfItem)));
 
     xccdf_type_t xccdfItemType = xccdf_item_get_type(xccdfItem);

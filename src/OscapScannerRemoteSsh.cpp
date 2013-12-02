@@ -268,7 +268,7 @@ void OscapScannerRemoteSsh::ensureConnected()
     }
     catch(const SshConnectionException& e)
     {
-        emit errorMessage("Can't connect to remote machine! Exception was: " + QString(e.what()));
+        emit errorMessage("Can't connect to remote machine! Exception was: " + QString::fromUtf8(e.what()));
         mCancelRequested = true;
     }
 }
