@@ -136,7 +136,7 @@ void SshConnection::connect()
     catch (const SyncProcessException& e)
     {
         throw SshConnectionException(
-            QString("Failed to create SSH master socket! Exception was: %1").arg(e.what()));
+            QString("Failed to create SSH master socket! Exception was: %1").arg(QString::fromUtf8(e.what())));
     }
 
     if (mCancelRequestSource && *mCancelRequestSource)
