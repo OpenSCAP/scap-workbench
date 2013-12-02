@@ -514,7 +514,11 @@ struct xccdf_profile* ScanningSession::tailorCurrentProfile(bool shadowed)
         }
         else
         {
-            const QString newId = QString::fromUtf8(xccdf_profile_get_id(oldProfile)) + QString("_tailored");
+            const QString newIdBase = QString::fromUtf8(xccdf_profile_get_id(oldProfile)) + QString("_tailored");
+            QString newId = newIdBase;
+            int suffix = 2;
+            while (xccdf_policy_model_get_policy_by_id(policyModel, newId.toUtf8().constData()) != NULL)
+                newId = QString("%1%2").arg(newIdBase).arg(suffix++);
             xccdf_profile_set_id(newProfile, newId.toUtf8().constData());
         }
 
