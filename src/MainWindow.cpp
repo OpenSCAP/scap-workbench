@@ -765,7 +765,7 @@ void MainWindow::refreshSelectedRulesTree()
         struct oscap_text_iterator* title_it = xccdf_item_get_title(item);
         char* preferred_title_s = oscap_textlist_get_preferred_plaintext(title_it, NULL);
         oscap_text_iterator_free(title_it);
-        const QString preferred_title(preferred_title_s);
+        const QString preferred_title = QString::fromUtf8(preferred_title_s);
         free(preferred_title_s);
 
         QTreeWidgetItem* treeItem = new QTreeWidgetItem();

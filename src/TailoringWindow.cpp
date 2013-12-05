@@ -24,6 +24,46 @@
 #include "MainWindow.h"
 
 #include <set>
+#include <cassert>
+
+ProfilePropertiesDockWidget::ProfilePropertiesDockWidget(TailoringWindow* window, QWidget* parent):
+    QDockWidget(parent),
+
+    mUndoRedoInProgress(false),
+    mWindow(window)
+{
+    mUI.setupUi(this);
+
+    QObject::connect(
+        mUI.title, SIGNAL(textChanged(const QString&)),
+        this, SLOT(profileTitleChanged(const QString&))
+    );
+}
+
+ProfilePropertiesDockWidget::~ProfilePropertiesDockWidget()
+{}
+
+void ProfilePropertiesDockWidget::refresh()
+{
+    if (mUI.id->text() != mWindow->getProfileID())
+        mUI.id->setText(mWindow->getProfileID());
+
+    if (mUI.title->text() != mWindow->getProfileTitle())
+    {
+        // This prevents a new undo command being spawned as a result of refreshing
+        mUndoRedoInProgress = true;
+        mUI.title->setText(mWindow->getProfileTitle());
+        mUndoRedoInProgress = false;
+    }
+}
+
+void ProfilePropertiesDockWidget::profileTitleChanged(const QString& newTitle)
+{
+    if (mUndoRedoInProgress)
+        return;
+
+    mWindow->setProfileTitleWithUndoCommand(newTitle);
+}
 
 XCCDFItemPropertiesDockWidget::XCCDFItemPropertiesDockWidget(QWidget* parent):
     QDockWidget(parent),
@@ -31,8 +71,6 @@ XCCDFItemPropertiesDockWidget::XCCDFItemPropertiesDockWidget(QWidget* parent):
     mXccdfItem(0)
 {
     mUI.setupUi(this);
-
-    refresh();
 }
 
 XCCDFItemPropertiesDockWidget::~XCCDFItemPropertiesDockWidget()
@@ -75,6 +113,41 @@ inline struct xccdf_item* getXccdfItemFromTreeItem(QTreeWidgetItem* treeItem)
     return reinterpret_cast<struct xccdf_item*>(xccdfItem.value<void*>());
 }
 
+ProfileTitleChangeUndoCommand::ProfileTitleChangeUndoCommand(TailoringWindow* window, const QString& oldTitle, const QString& newTitle):
+    mWindow(window),
+    mOldTitle(oldTitle),
+    mNewTitle(newTitle)
+{}
+
+ProfileTitleChangeUndoCommand::~ProfileTitleChangeUndoCommand()
+{}
+
+int ProfileTitleChangeUndoCommand::id() const
+{
+    return 2;
+}
+
+void ProfileTitleChangeUndoCommand::redo()
+{
+    mWindow->setProfileTitle(mNewTitle);
+    mWindow->refreshProfileDockWidget();
+}
+
+void ProfileTitleChangeUndoCommand::undo()
+{
+    mWindow->setProfileTitle(mOldTitle);
+    mWindow->refreshProfileDockWidget();
+}
+
+bool ProfileTitleChangeUndoCommand::mergeWith(const QUndoCommand *other)
+{
+    if (other->id() != id())
+        return false;
+
+    mNewTitle = static_cast<const ProfileTitleChangeUndoCommand*>(other)->mNewTitle;
+    return true;
+}
+
 XCCDFItemSelectUndoCommand::XCCDFItemSelectUndoCommand(TailoringWindow* window, QTreeWidgetItem* item, bool newSelect):
     mWindow(window),
     mTreeItem(item),
@@ -110,6 +183,7 @@ TailoringWindow::TailoringWindow(struct xccdf_policy* policy, struct xccdf_bench
 
     mSynchronizeItemLock(0),
 
+    mProfilePropertiesDockWidget(new ProfilePropertiesDockWidget(this, this)),
     mItemPropertiesDockWidget(new XCCDFItemPropertiesDockWidget(this)),
 
     mPolicy(policy),
@@ -138,6 +212,7 @@ TailoringWindow::TailoringWindow(struct xccdf_policy* policy, struct xccdf_bench
         this, SLOT(close())
     );
 
+    addDockWidget(Qt::RightDockWidgetArea, mProfilePropertiesDockWidget);
     addDockWidget(Qt::RightDockWidgetArea, mItemPropertiesDockWidget);
 
     {
@@ -171,6 +246,9 @@ TailoringWindow::TailoringWindow(struct xccdf_policy* policy, struct xccdf_bench
     char* profile_title = oscap_textlist_get_preferred_plaintext(xccdf_profile_get_title(mProfile), NULL);
     setWindowTitle(QString("Tailoring '%1'").arg(QString::fromUtf8(profile_title)));
     free(profile_title);
+
+    mProfilePropertiesDockWidget->refresh();
+    mItemPropertiesDockWidget->refresh();
 
     show();
 }
@@ -320,6 +398,56 @@ void TailoringWindow::synchronizeTreeItem(QTreeWidgetItem* treeItem, struct xccd
     --mSynchronizeItemLock;
 }
 
+QString TailoringWindow::getProfileID() const
+{
+    return QString::fromUtf8(xccdf_profile_get_id(mProfile));
+}
+
+void TailoringWindow::setProfileTitle(const QString& title)
+{
+    struct oscap_text_iterator* titles = xccdf_profile_get_title(mProfile);
+    struct oscap_text* titleText = 0;
+    while (oscap_text_iterator_has_more(titles))
+    {
+        struct oscap_text* titleCandidate = oscap_text_iterator_next(titles);
+        if (!titleText || strcmp(oscap_text_get_lang(titleCandidate), OSCAP_LANG_DEFAULT) == 0)
+            titleText = titleCandidate;
+    }
+    oscap_text_iterator_free(titles);
+
+    if (titleText)
+    {
+        oscap_text_set_text(titleText, title.toUtf8().constData());
+    }
+    else
+    {
+        // FIXME: we cannot add new title using this API :-(
+        throw TailoringWindowException("Not suitable oscap_text found that we could edit to change profile title.");
+    }
+
+    assert(getProfileTitle() == title);
+}
+
+QString TailoringWindow::getProfileTitle() const
+{
+    struct oscap_text_iterator* titles = xccdf_profile_get_title(mProfile);
+    char *title_s = oscap_textlist_get_preferred_plaintext(titles, NULL);
+    const QString ret = QString::fromUtf8(title_s ? title_s : "");
+    free(title_s);
+
+    return ret;
+}
+
+void TailoringWindow::setProfileTitleWithUndoCommand(const QString& newTitle)
+{
+    mUndoStack.push(new ProfileTitleChangeUndoCommand(this, getProfileTitle(), newTitle));
+}
+
+void TailoringWindow::refreshProfileDockWidget()
+{
+    mProfilePropertiesDockWidget->refresh();
+}
+
 void TailoringWindow::closeEvent(QCloseEvent * event)
 {
     QMainWindow::closeEvent(event);
@@ -330,7 +458,11 @@ void TailoringWindow::closeEvent(QCloseEvent * event)
     //       way to react is to reimplement closeEvent... This needs further research.
 
     if (mParentMainWindow)
+    {
         mParentMainWindow->refreshSelectedRulesTree();
+        mParentMainWindow->refreshProfiles();
+    }
+
 }
 
 void TailoringWindow::itemSelectionChanged(QTreeWidgetItem* current, QTreeWidgetItem* previous)

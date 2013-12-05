@@ -139,12 +139,15 @@ class MainWindow : public QMainWindow
          */
         void reloadSession();
 
+    public: // TailoringWindow calls this
         /**
          * @brief Refreshes items of the profile combobox with data from the session
          *
          * @note This method does attempt to "keep" the previous selection if possible.
          */
         void refreshProfiles();
+
+    private:
 
         /**
          * @brief Destroys the scanning thread and associated data

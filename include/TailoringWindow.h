@@ -35,7 +35,35 @@ extern "C"
 }
 
 #include "ui_TailoringWindow.h"
+#include "ui_ProfilePropertiesDockWidget.h"
 #include "ui_XCCDFItemPropertiesDockWidget.h"
+
+class TailoringWindow;
+
+/**
+ * @brief
+ */
+class ProfilePropertiesDockWidget : public QDockWidget
+{
+    Q_OBJECT
+
+    public:
+        ProfilePropertiesDockWidget(TailoringWindow* window, QWidget* parent = 0);
+        virtual ~ProfilePropertiesDockWidget();
+
+        void refresh();
+
+    protected slots:
+        void profileTitleChanged(const QString& currentTitle);
+
+    protected:
+        bool mUndoRedoInProgress;
+
+        /// UI designed in Qt Designer
+        Ui_ProfilePropertiesDockWidget mUI;
+
+        TailoringWindow* mWindow;
+};
 
 /**
  * @brief Provides reference about currently selected XCCDF item
@@ -57,8 +85,6 @@ class XCCDFItemPropertiesDockWidget : public QDockWidget
 
         struct xccdf_item* mXccdfItem;
 };
-
-class TailoringWindow;
 
 /**
  * @brief Stores info about one selection or deselection of an XCCDF item
@@ -83,6 +109,29 @@ class XCCDFItemSelectUndoCommand : public QUndoCommand
 };
 
 /**
+ * @brief Stores info title change in XCCDF profile
+ */
+class ProfileTitleChangeUndoCommand : public QUndoCommand
+{
+    public:
+        ProfileTitleChangeUndoCommand(TailoringWindow* window, const QString& oldTitle, const QString& newTitle);
+        virtual ~ProfileTitleChangeUndoCommand();
+
+        virtual int id() const;
+
+        virtual void redo();
+        virtual void undo();
+
+        virtual bool mergeWith(const QUndoCommand *other);
+
+    private:
+        TailoringWindow* mWindow;
+
+        QString mOldTitle;
+        QString mNewTitle;
+};
+
+/**
  * @brief Tailors given profile by editing it directly
  *
  * If you want to inherit a profile and tailor that, create a new profile,
@@ -99,6 +148,15 @@ class TailoringWindow : public QMainWindow
         void setItemSelected(struct xccdf_item* xccdfItem, bool selected);
         void synchronizeTreeItem(QTreeWidgetItem* treeItem, struct xccdf_item* xccdfItem, bool recursive);
 
+        QString getProfileID() const;
+
+        void setProfileTitle(const QString& title);
+        QString getProfileTitle() const;
+
+        void setProfileTitleWithUndoCommand(const QString& newTitle);
+
+        void refreshProfileDockWidget();
+
     protected:
         /// Reimplemented to refresh selected rules in the parent main window
         virtual void closeEvent(QCloseEvent * event);
@@ -111,6 +169,7 @@ class TailoringWindow : public QMainWindow
         /// UI designed in Qt Designer
         Ui_TailoringWindow mUI;
 
+        ProfilePropertiesDockWidget* mProfilePropertiesDockWidget;
         XCCDFItemPropertiesDockWidget* mItemPropertiesDockWidget;
 
         struct xccdf_policy* mPolicy;
