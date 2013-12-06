@@ -223,6 +223,8 @@ void MainWindow::openFile(const QString& path)
         }
 
         mUI.tailoringFileComboBox->addItem(QString("(...)"), QVariant(QString::Null()));
+        // we have just loaded the input file fresh, there are no tailoring changes to save
+        mUI.saveTailoringButton->setEnabled(false);
 
         // force load up of the session
         checklistComboboxChanged(0);
@@ -663,6 +665,8 @@ void MainWindow::tailoringFileComboboxChanged(int index)
             if (text == TAILORING_NONE)
             {
                 mScanningSession->resetTailoring();
+                // tailoring has been reset, there are no tailoring changes to save
+                mUI.saveTailoringButton->setEnabled(false);
             }
             else if (text == TAILORING_CUSTOM_FILE)
             {
@@ -674,7 +678,11 @@ void MainWindow::tailoringFileComboboxChanged(int index)
                 if (filePath == QString::Null())
                     mUI.tailoringFileComboBox->setCurrentIndex(0); // user canceled, set to (none)
                 else
+                {
                     mScanningSession->setTailoringFile(filePath);
+                    // tailoring has been loaded from a tailoring file, there are no tailoring changes to save
+                    mUI.saveTailoringButton->setEnabled(false);
+                }
             }
             else
             {
@@ -994,6 +1002,9 @@ void MainWindow::editProfile()
     struct xccdf_benchmark* benchmark = xccdf_policy_model_get_benchmark(policyModel);
 
     new TailoringWindow(policy, benchmark, this);
+    // The tailoring that is going to be done is not part of anything saved on disk.
+    // User might want to save it
+    mUI.saveTailoringButton->setEnabled(true);
 }
 
 void MainWindow::customizeProfile()
