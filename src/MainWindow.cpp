@@ -667,6 +667,17 @@ void MainWindow::tailoringFileComboboxChanged(int index)
         {
             if (text == TAILORING_NONE)
             {
+                if (mUI.saveTailoringButton->isEnabled())
+                {
+                    if (QMessageBox::question(this, "Unsaved tailoring changes!",
+                            "Are you sure you want to reset tailoring and wipe all unsaved tailoring changes?",
+                            QMessageBox::Yes | QMessageBox::No, QMessageBox::No) == QMessageBox::No)
+                    {
+                        mUI.tailoringFileComboBox->setCurrentIndex(mOldTailoringComboBoxIdx); // user canceled, set to previous value
+                        return; // This prevents us from resetting mOldTailoringComboBoxIdx!
+                    }
+                }
+
                 mScanningSession->resetTailoring();
                 // tailoring has been reset, there are no tailoring changes to save
                 markNoUnsavedTailoringChanges();
@@ -685,6 +696,14 @@ void MainWindow::tailoringFileComboboxChanged(int index)
                 }
                 else
                 {
+                    if (QMessageBox::question(this, "Unsaved tailoring changes!",
+                            "Are you sure you want to load a tailoring file and wipe all unsaved tailoring changes?",
+                            QMessageBox::Yes | QMessageBox::No, QMessageBox::No) == QMessageBox::No)
+                    {
+                        mUI.tailoringFileComboBox->setCurrentIndex(mOldTailoringComboBoxIdx); // user canceled, set to previous value
+                        return; // This prevents us from resetting mOldTailoringComboBoxIdx!
+                    }
+
                     mScanningSession->setTailoringFile(filePath);
                     // tailoring has been loaded from a tailoring file, there are no tailoring changes to save
                     markNoUnsavedTailoringChanges();
