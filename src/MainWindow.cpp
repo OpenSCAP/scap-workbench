@@ -43,6 +43,7 @@ extern "C" {
 
 const QString TAILORING_CUSTOM_FILE = "(...)";
 const QString TAILORING_NONE = "(none)";
+const QString TAILORING_UNSAVED = "(unsaved changes)";
 
 MainWindow::MainWindow(QWidget* parent):
     QMainWindow(parent),
@@ -188,7 +189,7 @@ void MainWindow::openFile(const QString& path)
     {
         mScanningSession->openFile(path);
 
-        mUI.tailoringFileComboBox->addItem(QString("(none)"), QVariant(QString::Null()));
+        mUI.tailoringFileComboBox->addItem(QString(TAILORING_NONE), QVariant(QString::Null()));
 
         mUI.openedFileLineEdit->setText(path);
         if (mScanningSession->isSDS())
@@ -222,9 +223,9 @@ void MainWindow::openFile(const QString& path)
             // TODO: Tailoring files inside datastream should be added to tailoring combobox
         }
 
-        mUI.tailoringFileComboBox->addItem(QString("(...)"), QVariant(QString::Null()));
+        mUI.tailoringFileComboBox->addItem(QString(TAILORING_CUSTOM_FILE), QVariant(QString::Null()));
         // we have just loaded the input file fresh, there are no tailoring changes to save
-        mUI.saveTailoringButton->setEnabled(false);
+        markNoUnsavedTailoringChanges();
 
         // force load up of the session
         checklistComboboxChanged(0);
@@ -666,7 +667,7 @@ void MainWindow::tailoringFileComboboxChanged(int index)
             {
                 mScanningSession->resetTailoring();
                 // tailoring has been reset, there are no tailoring changes to save
-                mUI.saveTailoringButton->setEnabled(false);
+                markNoUnsavedTailoringChanges();
             }
             else if (text == TAILORING_CUSTOM_FILE)
             {
@@ -681,8 +682,12 @@ void MainWindow::tailoringFileComboboxChanged(int index)
                 {
                     mScanningSession->setTailoringFile(filePath);
                     // tailoring has been loaded from a tailoring file, there are no tailoring changes to save
-                    mUI.saveTailoringButton->setEnabled(false);
+                    markNoUnsavedTailoringChanges();
                 }
+            }
+            else if (text == TAILORING_UNSAVED)
+            {
+                // NOOP
             }
             else
             {
@@ -1004,7 +1009,7 @@ void MainWindow::editProfile()
     new TailoringWindow(policy, benchmark, this);
     // The tailoring that is going to be done is not part of anything saved on disk.
     // User might want to save it
-    mUI.saveTailoringButton->setEnabled(true);
+    markUnsavedTailoringChanges();
 }
 
 void MainWindow::customizeProfile()
@@ -1100,4 +1105,29 @@ void MainWindow::saveAsRPM()
     scapAsRPM.setArguments(args);
 
     scapAsRPM.runWithDialog(this, "Saving SCAP content as RPM...", true, false);
+}
+
+void MainWindow::markUnsavedTailoringChanges()
+{
+    mUI.saveTailoringButton->setEnabled(true);
+
+    int idx = mUI.tailoringFileComboBox->findText(TAILORING_UNSAVED);
+    if (idx == -1)
+    {
+        mUI.tailoringFileComboBox->addItem(QString(TAILORING_UNSAVED), QVariant(QString::Null()));
+        idx = mUI.tailoringFileComboBox->findText(TAILORING_UNSAVED);
+    }
+
+    mUI.tailoringFileComboBox->setCurrentIndex(idx);
+}
+
+void MainWindow::markNoUnsavedTailoringChanges()
+{
+    mUI.saveTailoringButton->setEnabled(false);
+
+    int idx = mUI.tailoringFileComboBox->findText(TAILORING_UNSAVED);
+    if (idx != -1)
+    {
+        mUI.tailoringFileComboBox->removeItem(idx);
+    }
 }

@@ -298,6 +298,9 @@ class MainWindow : public QMainWindow
 
         void saveIntoDirectory();
         void saveAsRPM();
+
+        void markUnsavedTailoringChanges();
+        void markNoUnsavedTailoringChanges();
 };
 
 #endif
