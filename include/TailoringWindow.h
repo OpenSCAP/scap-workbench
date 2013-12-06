@@ -41,7 +41,7 @@ extern "C"
 class TailoringWindow;
 
 /**
- * @brief
+ * @brief Displays profile properties and allows editing of profile title
  */
 class ProfilePropertiesDockWidget : public QDockWidget
 {
@@ -51,17 +51,22 @@ class ProfilePropertiesDockWidget : public QDockWidget
         ProfilePropertiesDockWidget(TailoringWindow* window, QWidget* parent = 0);
         virtual ~ProfilePropertiesDockWidget();
 
+        /**
+         * @brief Takes profile's current ID and title and sets both QLineEdit widgets accordingly
+         */
         void refresh();
 
     protected slots:
         void profileTitleChanged(const QString& currentTitle);
 
     protected:
+        /// Prevents a redo command being created when actions are undone or redone
         bool mUndoRedoInProgress;
 
         /// UI designed in Qt Designer
         Ui_ProfilePropertiesDockWidget mUI;
 
+        /// Owner TailoringWindow that provides profile for editing/viewing
         TailoringWindow* mWindow;
 };
 
@@ -76,13 +81,23 @@ class XCCDFItemPropertiesDockWidget : public QDockWidget
         XCCDFItemPropertiesDockWidget(QWidget* parent = 0);
         virtual ~XCCDFItemPropertiesDockWidget();
 
+        /**
+         * @brief Changes currently inspected XCCDF item
+         *
+         * @note This method automatically calls refresh to load new data
+         */
         void setXccdfItem(struct xccdf_item* item);
+
+        /**
+         * @brief Loads properties from currently set XCCDF items and sets widgets accordingly
+         */
         void refresh();
 
     protected:
         /// UI designed in Qt Designer
         Ui_XCCDFItemPropertiesDockWidget mUI;
 
+        /// Currently inspected XCCDF item
         struct xccdf_item* mXccdfItem;
 };
 
@@ -145,20 +160,52 @@ class TailoringWindow : public QMainWindow
         TailoringWindow(struct xccdf_policy* policy, struct xccdf_benchmark* benchmark, MainWindow* parent = 0);
         virtual ~TailoringWindow();
 
+        /**
+         * @brief Makes sure that given XCCDF item is selected or deselected in the policy and profile
+         *
+         * This method adds a new select to the policy and profile. This select overrides all
+         * previous selects if any.
+         */
         void setItemSelected(struct xccdf_item* xccdfItem, bool selected);
+
+        /**
+         * @brief Synchronizes given tree item to represent given XCCDF item
+         *
+         * @param recursive If true synchronization is called on children of the tree item and XCCDF item as well
+         */
         void synchronizeTreeItem(QTreeWidgetItem* treeItem, struct xccdf_item* xccdfItem, bool recursive);
 
+        /**
+         * @brief Retrieves ID of profile that is being tailored (in suitable language)
+         */
         QString getProfileID() const;
 
+        /**
+         * @brief Goes through profile title texts and sets one of them to given title
+         *
+         * @see TailoringWindow::setProfileTitleWithUndoCommand
+         */
         void setProfileTitle(const QString& title);
+
+        /**
+         * @brief Retrieves Title of profile that is being tailoring (in suitable language)
+         */
         QString getProfileTitle() const;
 
+        /**
+         * @brief Creates a new undo command that changes title of tailored profile and pushes it onto the undo stack
+         *
+         * @see TailoringWindow::setProfileTitle
+         */
         void setProfileTitleWithUndoCommand(const QString& newTitle);
 
+        /**
+         * @brief Refreshes profile properties dock widget to accurately represent tailored profile
+         */
         void refreshProfileDockWidget();
 
     protected:
-        /// Reimplemented to refresh selected rules in the parent main window
+        /// Reimplemented to refresh profiles and selected rules in the parent main window
         virtual void closeEvent(QCloseEvent * event);
 
         MainWindow* mParentMainWindow;

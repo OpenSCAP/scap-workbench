@@ -462,7 +462,6 @@ void TailoringWindow::closeEvent(QCloseEvent * event)
         mParentMainWindow->refreshSelectedRulesTree();
         mParentMainWindow->refreshProfiles();
     }
-
 }
 
 void TailoringWindow::itemSelectionChanged(QTreeWidgetItem* current, QTreeWidgetItem* previous)
