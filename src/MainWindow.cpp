@@ -53,7 +53,9 @@ MainWindow::MainWindow(QWidget* parent):
     mScanningSession(0),
 
     mScanThread(0),
-    mScanner(0)
+    mScanner(0),
+
+    mOldTailoringComboBoxIdx(0)
 {
     mUI.setupUi(this);
     mUI.progressBar->reset();
@@ -677,7 +679,10 @@ void MainWindow::tailoringFileComboboxChanged(int index)
                 );
 
                 if (filePath == QString::Null())
-                    mUI.tailoringFileComboBox->setCurrentIndex(0); // user canceled, set to (none)
+                {
+                    mUI.tailoringFileComboBox->setCurrentIndex(mOldTailoringComboBoxIdx); // user canceled, set to previous value
+                    return; // This prevents us from resetting mOldTailoringComboBoxIdx!
+                }
                 else
                 {
                     mScanningSession->setTailoringFile(filePath);
@@ -716,6 +721,8 @@ void MainWindow::tailoringFileComboboxChanged(int index)
     }
 
     reloadSession();
+
+    mOldTailoringComboBoxIdx = index;
 }
 
 void MainWindow::profileComboboxChanged(int index)

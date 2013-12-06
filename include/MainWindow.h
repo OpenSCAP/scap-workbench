@@ -183,6 +183,9 @@ class MainWindow : public QMainWindow
          */
         Scanner* mScanner;
 
+        /// Remembers old tailoring combobox ID in case we want to revert to it when user cancels
+        int mOldTailoringComboBoxIdx;
+
     signals:
         /**
          * @brief We signal this to show the dialog
