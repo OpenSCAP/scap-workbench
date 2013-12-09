@@ -41,11 +41,19 @@ extern "C" {
 #include <oscap_error.h>
 }
 
-const QString TAILORING_CUSTOM_FILE = "(...)";
-const QString TAILORING_NONE = "(none)";
+// A dialog to open a tailoring file is displayed after user selects this option
+// from the tailoring combobox.
+const QString TAILORING_CUSTOM_FILE = "(open tailoring file...)";
+// This option signifies that there is no tailoring being done and the plain
+// content file is used, it also resets tailoring when selected.
+const QString TAILORING_NONE = "(no tailoring)";
+// Signifies that tailoring changes have been made and have not been saved
+// to a file (yet?). Selecting it does nothing.
 const QString TAILORING_UNSAVED = "(unsaved changes)";
 
-const QVariant TAILORING_NO_LOADED_FILE_DATA = "(no loaded file)";
+// Magic string that we use to distinguish that we have no loaded tailoring file
+// in the tailoring combobox.
+const QVariant TAILORING_NO_LOADED_FILE_DATA = "&*&()@#$(no loaded file)";
 
 MainWindow::MainWindow(QWidget* parent):
     QMainWindow(parent),
