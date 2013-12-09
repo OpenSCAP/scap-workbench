@@ -185,6 +185,7 @@ class MainWindow : public QMainWindow
 
         /// Remembers old tailoring combobox ID in case we want to revert to it when user cancels
         int mOldTailoringComboBoxIdx;
+        QVariant mLoadedTailoringFileUserData;
 
     signals:
         /**
@@ -304,6 +305,7 @@ class MainWindow : public QMainWindow
 
         void markUnsavedTailoringChanges();
         void markNoUnsavedTailoringChanges();
+        void markLoadedTailoringFile(const QString& filePath);
 };
 
 #endif

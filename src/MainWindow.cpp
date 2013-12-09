@@ -45,6 +45,8 @@ const QString TAILORING_CUSTOM_FILE = "(...)";
 const QString TAILORING_NONE = "(none)";
 const QString TAILORING_UNSAVED = "(unsaved changes)";
 
+const QVariant TAILORING_NO_LOADED_FILE_DATA = "(no loaded file)";
+
 MainWindow::MainWindow(QWidget* parent):
     QMainWindow(parent),
 
@@ -55,7 +57,8 @@ MainWindow::MainWindow(QWidget* parent):
     mScanThread(0),
     mScanner(0),
 
-    mOldTailoringComboBoxIdx(0)
+    mOldTailoringComboBoxIdx(0),
+    mLoadedTailoringFileUserData(TAILORING_NO_LOADED_FILE_DATA)
 {
     mUI.setupUi(this);
     mUI.progressBar->reset();
@@ -659,11 +662,11 @@ void MainWindow::tailoringFileComboboxChanged(int index)
         return;
 
     const QString text = mUI.tailoringFileComboBox->itemText(index);
-    const QString data = mUI.tailoringFileComboBox->itemData(index).toString();
+    const QVariant data = mUI.tailoringFileComboBox->itemData(index);
 
     try
     {
-        if (data == QString::Null()) // special cases first
+        if (data.toString() == QString::Null()) // special cases first
         {
             if (text == TAILORING_NONE)
             {
@@ -684,7 +687,7 @@ void MainWindow::tailoringFileComboboxChanged(int index)
             }
             else if (text == TAILORING_CUSTOM_FILE)
             {
-                QString filePath = QFileDialog::getOpenFileName(
+                const QString filePath = QFileDialog::getOpenFileName(
                     this, "Open custom XCCDF tailoring file", QString(),
                     "XCCDF tailoring file (*.xml)"
                 );
@@ -706,7 +709,7 @@ void MainWindow::tailoringFileComboboxChanged(int index)
 
                     mScanningSession->setTailoringFile(filePath);
                     // tailoring has been loaded from a tailoring file, there are no tailoring changes to save
-                    markNoUnsavedTailoringChanges();
+                    markLoadedTailoringFile(filePath);
                 }
             }
             else if (text == TAILORING_UNSAVED)
@@ -717,12 +720,19 @@ void MainWindow::tailoringFileComboboxChanged(int index)
             {
                 mDiagnosticsDialog->errorMessage(QString(
                     "Can't set scanning session to use tailoring '%1' (from combobox "
-                    "item data). Expected '%2' or '%3'").arg(text).arg(TAILORING_NONE).arg(TAILORING_CUSTOM_FILE));
+                    "item data). Expected '%2', '%3' or '%4'").arg(text, TAILORING_NONE, TAILORING_CUSTOM_FILE, TAILORING_UNSAVED));
             }
         }
         else
         {
-            mScanningSession->setTailoringComponentID(data);
+            if (data == mLoadedTailoringFileUserData)
+            {
+                // NOOP
+            }
+            else
+            {
+                mScanningSession->setTailoringComponentID(data.toString());
+            }
         }
 
         // We intentionally call mScanningSession->reloadSession() instead of MainWindow::reloadSession
@@ -1047,8 +1057,6 @@ void MainWindow::customizeProfile()
         editProfile();
     else
         tailorNewID();
-
-    // FIXME: When tailoring finishes we want to refreshSelectedRulesTree!
 }
 
 void MainWindow::saveTailoring()
@@ -1061,6 +1069,7 @@ void MainWindow::saveTailoring()
     try
     {
         mScanningSession->saveTailoring(path);
+        markLoadedTailoringFile(path);
     }
     catch (const std::exception& e)
     {
@@ -1145,6 +1154,12 @@ void MainWindow::markUnsavedTailoringChanges()
     }
 
     mUI.tailoringFileComboBox->setCurrentIndex(idx);
+
+    idx = mUI.tailoringFileComboBox->findData(mLoadedTailoringFileUserData);
+    if (idx != -1)
+        mUI.tailoringFileComboBox->removeItem(idx);
+
+    mLoadedTailoringFileUserData = TAILORING_NO_LOADED_FILE_DATA;
 }
 
 void MainWindow::markNoUnsavedTailoringChanges()
@@ -1153,7 +1168,18 @@ void MainWindow::markNoUnsavedTailoringChanges()
 
     int idx = mUI.tailoringFileComboBox->findText(TAILORING_UNSAVED);
     if (idx != -1)
-    {
         mUI.tailoringFileComboBox->removeItem(idx);
-    }
+}
+
+void MainWindow::markLoadedTailoringFile(const QString& filePath)
+{
+    markNoUnsavedTailoringChanges();
+
+    int idx = mUI.tailoringFileComboBox->findData(mLoadedTailoringFileUserData);
+    if (idx != -1)
+        mUI.tailoringFileComboBox->removeItem(idx);
+
+    mLoadedTailoringFileUserData = QVariant(filePath);
+    mUI.tailoringFileComboBox->addItem(filePath, mLoadedTailoringFileUserData);
+    mUI.tailoringFileComboBox->setCurrentIndex(mUI.tailoringFileComboBox->findData(mLoadedTailoringFileUserData));
 }
