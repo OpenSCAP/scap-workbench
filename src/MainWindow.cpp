@@ -1184,8 +1184,6 @@ void MainWindow::markNoUnsavedTailoringChanges()
 
 void MainWindow::markLoadedTailoringFile(const QString& filePath)
 {
-    markNoUnsavedTailoringChanges();
-
     int idx = mUI.tailoringFileComboBox->findData(mLoadedTailoringFileUserData);
     if (idx != -1)
         mUI.tailoringFileComboBox->removeItem(idx);
@@ -1193,4 +1191,7 @@ void MainWindow::markLoadedTailoringFile(const QString& filePath)
     mLoadedTailoringFileUserData = QVariant(filePath);
     mUI.tailoringFileComboBox->addItem(filePath, mLoadedTailoringFileUserData);
     mUI.tailoringFileComboBox->setCurrentIndex(mUI.tailoringFileComboBox->findData(mLoadedTailoringFileUserData));
+
+    markNoUnsavedTailoringChanges();
+
 }
