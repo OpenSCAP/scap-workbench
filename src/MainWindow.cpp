@@ -674,9 +674,9 @@ void MainWindow::tailoringFileComboboxChanged(int index)
 
     try
     {
-        if (data.toString() == QString::Null()) // special cases first
+        if (data.toString() == QString::Null()) // Null data means it's an action
         {
-            if (text == TAILORING_NONE)
+            if (text == TAILORING_NONE) // resets tailoring
             {
                 if (mUI.saveTailoringButton->isEnabled())
                 {
@@ -693,7 +693,7 @@ void MainWindow::tailoringFileComboboxChanged(int index)
                 // tailoring has been reset, there are no tailoring changes to save
                 markNoUnsavedTailoringChanges();
             }
-            else if (text == TAILORING_CUSTOM_FILE)
+            else if (text == TAILORING_CUSTOM_FILE) // loads custom file
             {
                 const QString filePath = QFileDialog::getOpenFileName(
                     this, "Open custom XCCDF tailoring file", QString(),
@@ -723,19 +723,22 @@ void MainWindow::tailoringFileComboboxChanged(int index)
             else if (text == TAILORING_UNSAVED)
             {
                 // NOOP
+                return; // Avoid reloading the session
             }
             else
             {
                 mDiagnosticsDialog->errorMessage(QString(
                     "Can't set scanning session to use tailoring '%1' (from combobox "
-                    "item data). Expected '%2', '%3' or '%4'").arg(text, TAILORING_NONE, TAILORING_CUSTOM_FILE, TAILORING_UNSAVED));
+                    "item data). As item QVariant data was QString::Null() "
+                    "'%2', '%3' or '%4' was expected as item text.").arg(text, TAILORING_NONE, TAILORING_CUSTOM_FILE, TAILORING_UNSAVED));
             }
         }
         else
         {
             if (data == mLoadedTailoringFileUserData)
             {
-                // NOOP
+                // User selected the already loaded tailoring file. -> NOOP
+                return; // Avoid reloading the session
             }
             else
             {
