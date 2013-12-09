@@ -94,11 +94,12 @@ install(FILES "share/pixmaps/scap-workbench.png"
     DESTINATION "${CMAKE_INSTALL_DATADIR}/pixmaps")
 
 if (ASCIIDOCTOR_EXECUTABLE)
+    file(GLOB USER_MANUAL_SCREENSHOTS "${CMAKE_CURRENT_SOURCE_DIR}/doc/user_manual/*.png")
     add_custom_command(
         OUTPUT doc/user_manual.html
         COMMAND ${ASCIIDOCTOR_EXECUTABLE} --destination-dir ${CMAKE_CURRENT_BINARY_DIR}/doc -b html5 -a data-uri user_manual.adoc
         COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_BINARY_DIR}/doc/user_manual.html ${CMAKE_CURRENT_SOURCE_DIR}/doc/user_manual.html
-        DEPENDS doc/user_manual.adoc
+        DEPENDS doc/user_manual.adoc ${USER_MANUAL_SCREENSHOTS}
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/doc
     )
     add_custom_target(
