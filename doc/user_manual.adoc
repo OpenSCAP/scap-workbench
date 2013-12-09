@@ -120,7 +120,7 @@ See <<alternative-contents, alternative contents>> for more content choices.
 === Load a Ready-made Tailoring File (optional)
 
 In case you were given a tailoring file for your specific evaluation use-case,
-you can load by clicking on the *Tailoring file* combobox and selecting the *(...)*
+you can load by clicking on the *Tailoring file* combobox and selecting the *(open tailoring file...)*
 option. This will bring up a file open dialog where you can select your
 tailoring file.
 
