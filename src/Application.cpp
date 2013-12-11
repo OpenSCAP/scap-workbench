@@ -28,6 +28,9 @@ Application::Application(int& argc, char** argv):
     QApplication(argc, argv),
     mMainWindow(new MainWindow())
 {
+    setApplicationName("scap-workbench");
+    setApplicationVersion(SCAP_WORKBENCH_VERSION);
+
     QObject::connect(
         this, SIGNAL(lastWindowClosed()),
         this, SLOT(quit())
