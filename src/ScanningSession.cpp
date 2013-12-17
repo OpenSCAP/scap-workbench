@@ -531,15 +531,34 @@ struct xccdf_profile* ScanningSession::tailorCurrentProfile(bool shadowed)
             oscap_text_set_text(newTitle, (QString::fromUtf8(oscap_text_get_text(oldTitle)) + QString(" [TAILORED]")).toUtf8().constData());
             xccdf_profile_add_title(newProfile, newTitle);
         }
+        oscap_text_iterator_free(titles);
+
+        struct oscap_text_iterator* descs = xccdf_profile_get_description(oldProfile);
+        while (oscap_text_iterator_has_more(descs))
+        {
+            struct oscap_text* oldDesc = oscap_text_iterator_next(descs );
+            struct oscap_text* newDesc = oscap_text_clone(oldDesc);
+
+            xccdf_profile_add_description(newProfile, newDesc);
+        }
+        oscap_text_iterator_free(descs);
     }
     else
     {
         xccdf_profile_set_id(newProfile, "xccdf_scap-workbench_profile_default_tailored");
 
-        struct oscap_text* newTitle = oscap_text_new();
-        oscap_text_set_lang(newTitle, OSCAP_LANG_ENGLISH_US);
-        oscap_text_set_text(newTitle, "(default profile) tailored");
-        xccdf_profile_add_title(newProfile, newTitle);
+        {
+            struct oscap_text* newTitle = oscap_text_new();
+            oscap_text_set_lang(newTitle, OSCAP_LANG_ENGLISH_US);
+            oscap_text_set_text(newTitle, "(default profile) tailored");
+            xccdf_profile_add_title(newProfile, newTitle);
+        }
+        {
+            struct oscap_text* newDesc = oscap_text_new();
+            oscap_text_set_lang(newDesc, OSCAP_LANG_ENGLISH_US);
+            oscap_text_set_text(newDesc, "This profile doesn't inherit any other profile.");
+            xccdf_profile_add_description(newProfile, newDesc);
+        }
     }
 
     ensureTailoringExists();

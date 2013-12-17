@@ -38,6 +38,11 @@ ProfilePropertiesDockWidget::ProfilePropertiesDockWidget(TailoringWindow* window
         mUI.title, SIGNAL(textChanged(const QString&)),
         this, SLOT(profileTitleChanged(const QString&))
     );
+
+    QObject::connect(
+        mUI.description, SIGNAL(textChanged()),
+        this, SLOT(profileDescriptionChanged())
+    );
 }
 
 ProfilePropertiesDockWidget::~ProfilePropertiesDockWidget()
@@ -55,6 +60,14 @@ void ProfilePropertiesDockWidget::refresh()
         mUI.title->setText(mWindow->getProfileTitle());
         mUndoRedoInProgress = false;
     }
+
+    if (mUI.description->toPlainText() != mWindow->getProfileDescription())
+    {
+        // This prevents a new undo command being spawned as a result of refreshing
+        mUndoRedoInProgress = true;
+        mUI.description->setPlainText(mWindow->getProfileDescription());
+        mUndoRedoInProgress = false;
+    }
 }
 
 void ProfilePropertiesDockWidget::profileTitleChanged(const QString& newTitle)
@@ -63,6 +76,14 @@ void ProfilePropertiesDockWidget::profileTitleChanged(const QString& newTitle)
         return;
 
     mWindow->setProfileTitleWithUndoCommand(newTitle);
+}
+
+void ProfilePropertiesDockWidget::profileDescriptionChanged()
+{
+    if (mUndoRedoInProgress)
+        return;
+
+    mWindow->setProfileDescriptionWithUndoCommand(mUI.description->toPlainText());
 }
 
 XCCDFItemPropertiesDockWidget::XCCDFItemPropertiesDockWidget(QWidget* parent):
@@ -145,6 +166,40 @@ bool ProfileTitleChangeUndoCommand::mergeWith(const QUndoCommand *other)
         return false;
 
     mNewTitle = static_cast<const ProfileTitleChangeUndoCommand*>(other)->mNewTitle;
+    return true;
+}
+ProfileDescriptionChangeUndoCommand::ProfileDescriptionChangeUndoCommand(TailoringWindow* window, const QString& oldDesc, const QString& newDesc):
+    mWindow(window),
+    mOldDesc(oldDesc),
+    mNewDesc(newDesc)
+{}
+
+ProfileDescriptionChangeUndoCommand::~ProfileDescriptionChangeUndoCommand()
+{}
+
+int ProfileDescriptionChangeUndoCommand::id() const
+{
+    return 3;
+}
+
+void ProfileDescriptionChangeUndoCommand::redo()
+{
+    mWindow->setProfileDescription(mNewDesc);
+    mWindow->refreshProfileDockWidget();
+}
+
+void ProfileDescriptionChangeUndoCommand::undo()
+{
+    mWindow->setProfileDescription(mOldDesc);
+    mWindow->refreshProfileDockWidget();
+}
+
+bool ProfileDescriptionChangeUndoCommand::mergeWith(const QUndoCommand *other)
+{
+    if (other->id() != id())
+        return false;
+
+    mNewDesc = static_cast<const ProfileDescriptionChangeUndoCommand*>(other)->mNewDesc;
     return true;
 }
 
@@ -418,6 +473,7 @@ void TailoringWindow::setProfileTitle(const QString& title)
     if (titleText)
     {
         oscap_text_set_text(titleText, title.toUtf8().constData());
+        oscap_text_set_lang(titleText, OSCAP_LANG_DEFAULT);
     }
     else
     {
@@ -434,6 +490,7 @@ QString TailoringWindow::getProfileTitle() const
     char *title_s = oscap_textlist_get_preferred_plaintext(titles, NULL);
     const QString ret = QString::fromUtf8(title_s ? title_s : "");
     free(title_s);
+    oscap_text_iterator_free(titles);
 
     return ret;
 }
@@ -441,6 +498,49 @@ QString TailoringWindow::getProfileTitle() const
 void TailoringWindow::setProfileTitleWithUndoCommand(const QString& newTitle)
 {
     mUndoStack.push(new ProfileTitleChangeUndoCommand(this, getProfileTitle(), newTitle));
+}
+
+void TailoringWindow::setProfileDescription(const QString& description)
+{
+    struct oscap_text_iterator* descriptions = xccdf_profile_get_description(mProfile);
+    struct oscap_text* descText = 0;
+    while (oscap_text_iterator_has_more(descriptions))
+    {
+        struct oscap_text* descCandidate = oscap_text_iterator_next(descriptions);
+        if (!descText || strcmp(oscap_text_get_lang(descCandidate), OSCAP_LANG_DEFAULT) == 0)
+            descText = descCandidate;
+    }
+    oscap_text_iterator_free(descriptions);
+
+    if (descText)
+    {
+        oscap_text_set_text(descText, description.toUtf8().constData());
+        oscap_text_set_lang(descText, OSCAP_LANG_DEFAULT);
+    }
+    else
+    {
+        // FIXME: we cannot add new title using this API :-(
+        throw TailoringWindowException("Not suitable oscap_text found that we could edit to change profile description.");
+    }
+
+    assert(getProfileDescription() == description);
+}
+
+QString TailoringWindow::getProfileDescription() const
+{
+    struct oscap_text_iterator* descriptions = xccdf_profile_get_description(mProfile);
+    bool hasMore = oscap_text_iterator_has_more(descriptions);
+    char *desc_s = oscap_textlist_get_preferred_plaintext(descriptions, NULL);
+    const QString ret = QString::fromUtf8(desc_s ? desc_s : "");
+    free(desc_s);
+    oscap_text_iterator_free(descriptions);
+
+    return ret;
+}
+
+void TailoringWindow::setProfileDescriptionWithUndoCommand(const QString& newDescription)
+{
+    mUndoStack.push(new ProfileDescriptionChangeUndoCommand(this, getProfileDescription(), newDescription));
 }
 
 void TailoringWindow::refreshProfileDockWidget()

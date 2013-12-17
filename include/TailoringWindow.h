@@ -57,7 +57,8 @@ class ProfilePropertiesDockWidget : public QDockWidget
         void refresh();
 
     protected slots:
-        void profileTitleChanged(const QString& currentTitle);
+        void profileTitleChanged(const QString& newTitle);
+        void profileDescriptionChanged();
 
     protected:
         /// Prevents a redo command being created when actions are undone or redone
@@ -124,7 +125,7 @@ class XCCDFItemSelectUndoCommand : public QUndoCommand
 };
 
 /**
- * @brief Stores info title change in XCCDF profile
+ * @brief Stores XCCDF profile title change undo info
  */
 class ProfileTitleChangeUndoCommand : public QUndoCommand
 {
@@ -146,6 +147,28 @@ class ProfileTitleChangeUndoCommand : public QUndoCommand
         QString mNewTitle;
 };
 
+/**
+ * @brief Stores XCCDF profile description change undo info
+ */
+class ProfileDescriptionChangeUndoCommand : public QUndoCommand
+{
+    public:
+        ProfileDescriptionChangeUndoCommand(TailoringWindow* window, const QString& oldDesc, const QString& newDesc);
+        virtual ~ProfileDescriptionChangeUndoCommand();
+
+        virtual int id() const;
+
+        virtual void redo();
+        virtual void undo();
+
+        virtual bool mergeWith(const QUndoCommand *other);
+
+    private:
+        TailoringWindow* mWindow;
+
+        QString mOldDesc;
+        QString mNewDesc;
+};
 /**
  * @brief Tailors given profile by editing it directly
  *
@@ -188,7 +211,7 @@ class TailoringWindow : public QMainWindow
         void setProfileTitle(const QString& title);
 
         /**
-         * @brief Retrieves Title of profile that is being tailoring (in suitable language)
+         * @brief Retrieves title of profile that is being tailoring (in suitable language)
          */
         QString getProfileTitle() const;
 
@@ -198,6 +221,25 @@ class TailoringWindow : public QMainWindow
          * @see TailoringWindow::setProfileTitle
          */
         void setProfileTitleWithUndoCommand(const QString& newTitle);
+
+        /**
+         * @brief Goes through profile description texts and sets one of them to given title
+         *
+         * @see TailoringWindow::setProfileDescriptionWithUndoCommand
+         */
+        void setProfileDescription(const QString& description);
+
+        /**
+         * @brief Retrieves description of profile that is being tailoring (in suitable language)
+         */
+        QString getProfileDescription() const;
+
+        /**
+         * @brief Creates a new undo command that changes description of tailored profile and pushes it onto the undo stack
+         *
+         * @see TailoringWindow::setProfileDescription
+         */
+        void setProfileDescriptionWithUndoCommand(const QString& newDescription);
 
         /**
          * @brief Refreshes profile properties dock widget to accurately represent tailored profile
