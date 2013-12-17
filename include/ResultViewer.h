@@ -27,6 +27,7 @@
 #include <QDialog>
 #include <QTemporaryFile>
 #include <QUrl>
+#include <QMenu>
 
 #ifdef SCAP_WORKBENCH_USE_WEBKIT
 #    include <QWebView>
@@ -98,6 +99,11 @@ class ResultViewer : public QDialog
 
     private:
         Ui_ResultViewer mUI;
+
+        QAction* mSaveResultsAction;
+        QAction* mSaveARFAction;
+        QAction* mSaveReportAction;
+        QMenu* mSaveMenu;
 
 #ifdef SCAP_WORKBENCH_USE_WEBKIT
         QWebView* mWebView;
