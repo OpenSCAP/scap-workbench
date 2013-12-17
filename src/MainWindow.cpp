@@ -185,8 +185,11 @@ void MainWindow::clearResults()
     mUI.scanProperties->setEnabled(true);
 
     mUI.preScanTools->show();
+    mUI.preScanTools->setEnabled(true);
     mUI.scanTools->hide();
+    mUI.scanTools->setEnabled(false);
     mUI.postScanTools->hide();
+    mUI.postScanTools->setEnabled(false);
 
     mUI.ruleResultsTree->clear();
     mUI.ruleResultsTree->setEnabled(false);
@@ -349,7 +352,9 @@ void MainWindow::scanAsync(ScannerMode scannerMode)
 
     mUI.scanProperties->setEnabled(false);
     mUI.preScanTools->hide();
+    mUI.preScanTools->setEnabled(false);
     mUI.scanTools->show();
+    mUI.scanTools->setEnabled(true);
 
     mUI.selectedRulesTree->hide();
     mUI.ruleResultsTree->show();
@@ -363,7 +368,9 @@ void MainWindow::scanAsync(ScannerMode scannerMode)
 
         mUI.scanProperties->setEnabled(true);
         mUI.preScanTools->show();
+        mUI.preScanTools->setEnabled(true);
         mUI.scanTools->hide();
+        mUI.scanTools->setEnabled(false);
 
         return;
     }
@@ -967,8 +974,11 @@ void MainWindow::scanCanceled()
 
     mUI.scanProperties->setEnabled(true);
     mUI.preScanTools->show();
+    mUI.preScanTools->setEnabled(true);
     mUI.scanTools->hide();
+    mUI.scanTools->setEnabled(false);
     mUI.postScanTools->hide();
+    mUI.postScanTools->setEnabled(false);
 
     statusBar()->clearMessage();
 }
@@ -978,8 +988,11 @@ void MainWindow::scanFinished()
     mResultViewer->loadContent(mScanner);
 
     mUI.preScanTools->hide();
+    mUI.preScanTools->setEnabled(false);
     mUI.scanTools->hide();
+    mUI.scanTools->setEnabled(false);
     mUI.postScanTools->show();
+    mUI.postScanTools->setEnabled(true);
 
     mUI.offlineRemediateButton->setEnabled(mScanner->getScannerMode() == SM_SCAN);
 
