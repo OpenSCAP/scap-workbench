@@ -33,6 +33,7 @@
 #include <QMessageBox>
 
 #include <cassert>
+#include <set>
 
 extern "C" {
 #include <xccdf_policy.h>
@@ -814,6 +815,12 @@ void MainWindow::refreshSelectedRulesTree()
         return;
     }
 
+    std::set<struct xccdf_item*> selectedItems;
+
+    // There has to be at least one selector per selected item in the *policy*!
+    // However the item may still be unselected in the end if its ancestor
+    // group is unselected. Therefore we use xccdf_policy_is_item_selected
+    // instead of xccdf_select_get_selected.
     while (xccdf_select_iterator_has_more(sel_it))
     {
         struct xccdf_select* sel = xccdf_select_iterator_next(sel_it);
@@ -821,6 +828,20 @@ void MainWindow::refreshSelectedRulesTree()
 
         if (!item)
             continue;
+
+        const bool selected = xccdf_policy_is_item_selected(policy, xccdf_select_get_item(sel));
+
+        if (selected)
+            selectedItems.insert(item);
+        //else
+        //    selectedItems.erase(item;) // this can't happen
+    }
+
+    // we filter through a set to avoid duplicates and get a sensible ordering
+    for (std::set<struct xccdf_item*>::const_iterator it = selectedItems.begin();
+         it != selectedItems.end(); ++it)
+    {
+        struct xccdf_item* item = *it;
 
         struct oscap_text_iterator* title_it = xccdf_item_get_title(item);
         char* preferred_title_s = oscap_textlist_get_preferred_plaintext(title_it, NULL);
