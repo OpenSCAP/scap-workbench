@@ -68,8 +68,11 @@
       </item>
       <item>
        <widget class="QPushButton" name="openReportButton">
+        <property name="toolTip">
+         <string>Opens the HTML report in the default browser of your desktop environment</string>
+        </property>
         <property name="text">
-         <string>Open HTML report</string>
+         <string>Open in Browser</string>
         </property>
        </widget>
       </item>
