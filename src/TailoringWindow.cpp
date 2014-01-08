@@ -29,7 +29,7 @@
 ProfilePropertiesDockWidget::ProfilePropertiesDockWidget(TailoringWindow* window, QWidget* parent):
     QDockWidget(parent),
 
-    mUndoRedoInProgress(false),
+    mRefreshInProgress(false),
     mWindow(window)
 {
     mUI.setupUi(this);
@@ -56,23 +56,23 @@ void ProfilePropertiesDockWidget::refresh()
     if (mUI.title->text() != mWindow->getProfileTitle())
     {
         // This prevents a new undo command being spawned as a result of refreshing
-        mUndoRedoInProgress = true;
+        mRefreshInProgress = true;
         mUI.title->setText(mWindow->getProfileTitle());
-        mUndoRedoInProgress = false;
+        mRefreshInProgress = false;
     }
 
     if (mUI.description->toPlainText() != mWindow->getProfileDescription())
     {
         // This prevents a new undo command being spawned as a result of refreshing
-        mUndoRedoInProgress = true;
+        mRefreshInProgress = true;
         mUI.description->setPlainText(mWindow->getProfileDescription());
-        mUndoRedoInProgress = false;
+        mRefreshInProgress = false;
     }
 }
 
 void ProfilePropertiesDockWidget::profileTitleChanged(const QString& newTitle)
 {
-    if (mUndoRedoInProgress)
+    if (mRefreshInProgress)
         return;
 
     mWindow->setProfileTitleWithUndoCommand(newTitle);
@@ -80,7 +80,7 @@ void ProfilePropertiesDockWidget::profileTitleChanged(const QString& newTitle)
 
 void ProfilePropertiesDockWidget::profileDescriptionChanged()
 {
-    if (mUndoRedoInProgress)
+    if (mRefreshInProgress)
         return;
 
     mWindow->setProfileDescriptionWithUndoCommand(mUI.description->toPlainText());

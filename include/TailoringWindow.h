@@ -62,7 +62,7 @@ class ProfilePropertiesDockWidget : public QDockWidget
 
     protected:
         /// Prevents a redo command being created when actions are undone or redone
-        bool mUndoRedoInProgress;
+        bool mRefreshInProgress;
 
         /// UI designed in Qt Designer
         Ui_ProfilePropertiesDockWidget mUI;
