@@ -271,8 +271,10 @@ TailoringWindow::TailoringWindow(struct xccdf_policy* policy, struct xccdf_bench
     addDockWidget(Qt::RightDockWidgetArea, mItemPropertiesDockWidget);
 
     {
-        QAction* undoAction = mUndoStack.createUndoAction(this);
-        QAction* redoAction = mUndoStack.createRedoAction(this);
+        QAction* undoAction = mUndoStack.createUndoAction(this, "Undo");
+        undoAction->setIcon(QIcon::fromTheme("edit-undo"));
+        QAction* redoAction = mUndoStack.createRedoAction(this, "Redo");
+        redoAction->setIcon(QIcon::fromTheme("edit-redo"));
 
         mUI.toolBar->addAction(undoAction);
         mUI.toolBar->addAction(redoAction);
