@@ -799,6 +799,34 @@ void MainWindow::profileComboboxChanged(int index)
     clearResults();
 }
 
+/*
+Unfortunately, xccdf_policy won't let us see its "selected-final" hashmap.
+Instead we have to gather all rules and for each rule ID we check the policy.
+*/
+inline void gatherAllSelectedRules(struct xccdf_policy* policy, struct xccdf_item* current, std::set<struct xccdf_rule*>& result)
+{
+    if (xccdf_item_get_type(current) == XCCDF_RULE)
+    {
+        struct xccdf_rule* rule = xccdf_item_to_rule(current);
+        const bool selected = xccdf_policy_is_item_selected(policy, xccdf_rule_get_id(rule));
+
+        if (selected)
+            result.insert(rule);
+    }
+
+    if (xccdf_item_get_type(current) == XCCDF_BENCHMARK ||
+        xccdf_item_get_type(current) == XCCDF_GROUP)
+    {
+        struct xccdf_item_iterator* it = xccdf_item_get_content(current);
+        while (xccdf_item_iterator_has_more(it))
+        {
+            struct xccdf_item* item = xccdf_item_iterator_next(it);
+            gatherAllSelectedRules(policy, item, result);
+        }
+        xccdf_item_iterator_free(it);
+    }
+}
+
 void MainWindow::refreshSelectedRulesTree()
 {
     mUI.selectedRulesTree->clear();
@@ -822,35 +850,17 @@ void MainWindow::refreshSelectedRulesTree()
         return;
     }
 
-    std::set<struct xccdf_item*> selectedItems;
+    std::set<struct xccdf_rule*> selectedRules;
 
-    // There has to be at least one selector per selected item in the *policy*!
-    // However the item may still be unselected in the end if its ancestor
-    // group is unselected. Therefore we use xccdf_policy_is_item_selected
-    // instead of xccdf_select_get_selected.
-    while (xccdf_select_iterator_has_more(sel_it))
-    {
-        struct xccdf_select* sel = xccdf_select_iterator_next(sel_it);
-        struct xccdf_item* item = xccdf_benchmark_get_member(benchmark, XCCDF_ITEM, xccdf_select_get_item(sel));
-
-        if (!item)
-            continue;
-
-        const bool selected = xccdf_policy_is_item_selected(policy, xccdf_select_get_item(sel));
-
-        if (selected)
-            selectedItems.insert(item);
-        //else
-        //    selectedItems.erase(item;) // this can't happen
-    }
+    gatherAllSelectedRules(policy, xccdf_benchmark_to_item(benchmark), selectedRules);
 
     // we filter through a set to avoid duplicates and get a sensible ordering
-    for (std::set<struct xccdf_item*>::const_iterator it = selectedItems.begin();
-         it != selectedItems.end(); ++it)
+    for (std::set<struct xccdf_rule*>::const_iterator it = selectedRules.begin();
+         it != selectedRules.end(); ++it)
     {
-        struct xccdf_item* item = *it;
+        struct xccdf_rule* rule = *it;
 
-        struct oscap_text_iterator* title_it = xccdf_item_get_title(item);
+        struct oscap_text_iterator* title_it = xccdf_rule_get_title(rule);
         char* preferred_title_s = oscap_textlist_get_preferred_plaintext(title_it, NULL);
         oscap_text_iterator_free(title_it);
         const QString preferred_title = QString::fromUtf8(preferred_title_s);
