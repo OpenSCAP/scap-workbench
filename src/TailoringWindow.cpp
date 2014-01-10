@@ -22,6 +22,7 @@
 #include "TailoringWindow.h"
 #include "Exceptions.h"
 #include "MainWindow.h"
+#include "APIHelpers.h"
 
 #include <set>
 #include <cassert>
@@ -108,17 +109,9 @@ void XCCDFItemPropertiesDockWidget::refresh()
 {
     if (mXccdfItem)
     {
-        struct oscap_text_iterator* title = xccdf_item_get_title(mXccdfItem);
-        char* titleText = oscap_textlist_get_preferred_plaintext(title, NULL);
-        mUI.titleLineEdit->setText(QString::fromUtf8(titleText));
-        free(titleText);
-
+        mUI.titleLineEdit->setText(oscapTextIteratorGetPreferred(xccdf_item_get_title(mXccdfItem)));
         mUI.idLineEdit->setText(QString::fromUtf8(xccdf_item_get_id(mXccdfItem)));
-
-        struct oscap_text_iterator* description = xccdf_item_get_description(mXccdfItem);
-        char* descriptionText = oscap_textlist_get_preferred_plaintext(description, NULL);
-        mUI.descriptionTextEdit->setHtml(QString::fromUtf8(descriptionText));
-        free(descriptionText);
+        mUI.descriptionTextEdit->setHtml(oscapTextIteratorGetPreferred(xccdf_item_get_description(mXccdfItem)));
     }
     else
     {
@@ -309,9 +302,7 @@ TailoringWindow::TailoringWindow(struct xccdf_policy* policy, struct xccdf_bench
 
     mUI.itemsTree->expandAll();
 
-    char* profile_title = oscap_textlist_get_preferred_plaintext(xccdf_profile_get_title(mProfile), NULL);
-    setWindowTitle(QString("Tailoring '%1'").arg(QString::fromUtf8(profile_title)));
-    free(profile_title);
+    setWindowTitle(QString("Tailoring '%1'").arg(oscapTextIteratorGetPreferred(xccdf_profile_get_title(mProfile))));
 
     mProfilePropertiesDockWidget->refresh();
     mItemPropertiesDockWidget->refresh();
@@ -350,10 +341,7 @@ void TailoringWindow::synchronizeTreeItem(QTreeWidgetItem* treeItem, struct xccd
 {
     ++mSynchronizeItemLock;
 
-    struct oscap_text_iterator* title = xccdf_item_get_title(xccdfItem);
-    char* titleText = oscap_textlist_get_preferred_plaintext(title, NULL);
-    treeItem->setText(0, QString::fromUtf8(titleText));
-    free(titleText);
+    treeItem->setText(0, oscapTextIteratorGetPreferred(xccdf_item_get_title(xccdfItem)));
 
     const unsigned int typeColumn = 1;
 
@@ -497,13 +485,7 @@ void TailoringWindow::setProfileTitle(const QString& title)
 
 QString TailoringWindow::getProfileTitle() const
 {
-    struct oscap_text_iterator* titles = xccdf_profile_get_title(mProfile);
-    char *title_s = oscap_textlist_get_preferred_plaintext(titles, NULL);
-    const QString ret = QString::fromUtf8(title_s ? title_s : "");
-    free(title_s);
-    oscap_text_iterator_free(titles);
-
-    return ret;
+    return oscapTextIteratorGetPreferred(xccdf_profile_get_title(mProfile));
 }
 
 void TailoringWindow::setProfileTitleWithUndoCommand(const QString& newTitle)
@@ -539,14 +521,7 @@ void TailoringWindow::setProfileDescription(const QString& description)
 
 QString TailoringWindow::getProfileDescription() const
 {
-    struct oscap_text_iterator* descriptions = xccdf_profile_get_description(mProfile);
-    bool hasMore = oscap_text_iterator_has_more(descriptions);
-    char *desc_s = oscap_textlist_get_preferred_plaintext(descriptions, NULL);
-    const QString ret = QString::fromUtf8(desc_s ? desc_s : "");
-    free(desc_s);
-    oscap_text_iterator_free(descriptions);
-
-    return ret;
+    return oscapTextIteratorGetPreferred(xccdf_profile_get_description(mProfile));
 }
 
 void TailoringWindow::setProfileDescriptionWithUndoCommand(const QString& newDescription)

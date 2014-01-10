@@ -27,6 +27,7 @@
 #include "TailoringWindow.h"
 #include "ScanningSession.h"
 #include "Exceptions.h"
+#include "APIHelpers.h"
 
 #include <QFileDialog>
 #include <QAbstractEventDispatcher>
@@ -584,20 +585,16 @@ void MainWindow::refreshProfiles()
             {
                 struct xccdf_profile* profile = xccdf_profile_iterator_next(profile_it);
                 const QString profile_id = QString::fromUtf8(xccdf_profile_get_id(profile));
-                oscap_text_iterator* titles = xccdf_profile_get_title(profile);
-                char* preferred_title = oscap_textlist_get_preferred_plaintext(titles, NULL);
-                oscap_text_iterator_free(titles);
+                const QString preferredTitle = oscapTextIteratorGetPreferred(xccdf_profile_get_title(profile));
 
                 assert(profileCrossMap.find(profile_id) == profileCrossMap.end());
 
                 profileCrossMap.insert(
                     std::make_pair(
                         profile_id,
-                        QString::fromUtf8(preferred_title)
+                        preferredTitle
                     )
                 );
-
-                free(preferred_title);
             }
             xccdf_profile_iterator_free(profile_it);
         }
@@ -608,9 +605,7 @@ void MainWindow::refreshProfiles()
         {
             struct xccdf_profile* profile = xccdf_profile_iterator_next(profile_it);
             const QString profile_id = QString::fromUtf8(xccdf_profile_get_id(profile));
-            oscap_text_iterator* titles = xccdf_profile_get_title(profile);
-            char* preferred_title = oscap_textlist_get_preferred_plaintext(titles, NULL);
-            oscap_text_iterator_free(titles);
+            const QString preferredTitle = oscapTextIteratorGetPreferred(xccdf_profile_get_title(profile));
 
             if (profileCrossMap.find(profile_id) != profileCrossMap.end())
             {
@@ -622,12 +617,10 @@ void MainWindow::refreshProfiles()
                 profileCrossMap.insert(
                     std::make_pair(
                         profile_id,
-                        QString::fromUtf8(preferred_title)
+                        preferredTitle
                     )
                 );
             }
-
-            free(preferred_title);
         }
         xccdf_profile_iterator_free(profile_it);
 
@@ -882,15 +875,10 @@ void MainWindow::refreshSelectedRulesTree()
          it != selectedRules.end(); ++it)
     {
         struct xccdf_rule* rule = *it;
-
-        struct oscap_text_iterator* title_it = xccdf_rule_get_title(rule);
-        char* preferred_title_s = oscap_textlist_get_preferred_plaintext(title_it, NULL);
-        oscap_text_iterator_free(title_it);
-        const QString preferred_title = QString::fromUtf8(preferred_title_s);
-        free(preferred_title_s);
+        const QString preferredTitle = oscapTextIteratorGetPreferred(xccdf_rule_get_title(rule));
 
         QTreeWidgetItem* treeItem = new QTreeWidgetItem();
-        treeItem->setText(0, preferred_title);
+        treeItem->setText(0, preferredTitle);
 
         mUI.selectedRulesTree->addTopLevelItem(treeItem);
     }
@@ -941,11 +929,7 @@ void MainWindow::scanProgressReport(const QString& rule_id, const QString& resul
     if (mUI.ruleResultsTree->findItems(rule_id, Qt::MatchExactly, 0).empty())
         mUI.progressBar->setValue(mUI.progressBar->value() + 1);
 
-    struct oscap_text_iterator* title_it = xccdf_item_get_title(item);
-    char* preferred_title_s = oscap_textlist_get_preferred_plaintext(title_it, NULL);
-    oscap_text_iterator_free(title_it);
-    const QString preferred_title(preferred_title_s);
-    free(preferred_title_s);
+    const QString preferredTitle = oscapTextIteratorGetPreferred(xccdf_item_get_title(item));
 
     QBrush resultBrush;
     if (result == "processing")
@@ -964,13 +948,13 @@ void MainWindow::scanProgressReport(const QString& rule_id, const QString& resul
     QTreeWidgetItem* treeItem = 0;
 
     QTreeWidgetItem* replacementCandidate = mUI.ruleResultsTree->topLevelItemCount() > 0 ? mUI.ruleResultsTree->topLevelItem(mUI.ruleResultsTree->topLevelItemCount() - 1) : 0;
-    if (replacementCandidate && replacementCandidate->text(0) == preferred_title && replacementCandidate->text(1) == "processing")
+    if (replacementCandidate && replacementCandidate->text(0) == preferredTitle && replacementCandidate->text(1) == "processing")
         treeItem = replacementCandidate;
 
     if (!treeItem)
         treeItem = new QTreeWidgetItem();
 
-    treeItem->setText(0, preferred_title);
+    treeItem->setText(0, preferredTitle);
     treeItem->setText(1, result);
 
     treeItem->setForeground(1, resultBrush);
