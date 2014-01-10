@@ -964,7 +964,10 @@ void MainWindow::scanProgressReport(const QString& rule_id, const QString& resul
     treeItem->setForeground(1, resultBrush);
 
     if (treeItem != replacementCandidate)
+    {
         mUI.ruleResultsTree->addTopLevelItem(treeItem);
+        mUI.ruleResultsTree->scrollToBottom();
+    }
 }
 
 void MainWindow::scanInfoMessage(const QString& message)
