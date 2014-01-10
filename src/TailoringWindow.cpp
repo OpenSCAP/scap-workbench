@@ -304,6 +304,11 @@ TailoringWindow::TailoringWindow(struct xccdf_policy* policy, struct xccdf_bench
     // in the same order when scap-workbench is run multiple times we have to sort
     mUI.itemsTree->sortByColumn(0, Qt::AscendingOrder);
 
+    // let title stretch and take space as the tailoring window grows
+    mUI.itemsTree->header()->setResizeMode(0, QHeaderView::Stretch);
+
+    mUI.itemsTree->expandAll();
+
     char* profile_title = oscap_textlist_get_preferred_plaintext(xccdf_profile_get_title(mProfile), NULL);
     setWindowTitle(QString("Tailoring '%1'").arg(QString::fromUtf8(profile_title)));
     free(profile_title);

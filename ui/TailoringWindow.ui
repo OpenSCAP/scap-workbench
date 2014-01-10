@@ -9,7 +9,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>849</width>
+    <width>1000</width>
     <height>727</height>
    </rect>
   </property>
@@ -21,7 +21,10 @@
     <item>
      <widget class="QTreeWidget" name="itemsTree">
       <attribute name="headerDefaultSectionSize">
-       <number>250</number>
+       <number>150</number>
+      </attribute>
+      <attribute name="headerStretchLastSection">
+       <bool>false</bool>
       </attribute>
       <column>
        <property name="text">
@@ -93,7 +96,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>849</width>
+     <width>1000</width>
      <height>21</height>
     </rect>
    </property>
