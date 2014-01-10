@@ -300,6 +300,10 @@ TailoringWindow::TailoringWindow(struct xccdf_policy* policy, struct xccdf_bench
 
     synchronizeTreeItem(benchmarkItem, xccdf_benchmark_to_item(mBenchmark), true);
 
+    // we cannot rely on any ordering from openscap, to make sure items appear
+    // in the same order when scap-workbench is run multiple times we have to sort
+    mUI.itemsTree->sortByColumn(0, Qt::AscendingOrder);
+
     char* profile_title = oscap_textlist_get_preferred_plaintext(xccdf_profile_get_title(mProfile), NULL);
     setWindowTitle(QString("Tailoring '%1'").arg(QString::fromUtf8(profile_title)));
     free(profile_title);
