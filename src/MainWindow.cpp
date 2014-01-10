@@ -963,11 +963,20 @@ void MainWindow::scanProgressReport(const QString& rule_id, const QString& resul
 
     treeItem->setForeground(1, resultBrush);
 
+    // Highlight currently processed rule
+    QBrush backgroundBrush(Qt::NoBrush);
+    if (result == "processing")
+        backgroundBrush = QBrush(Qt::lightGray);
+    treeItem->setBackground(0, backgroundBrush);
+    treeItem->setBackground(1, backgroundBrush);
+
     if (treeItem != replacementCandidate)
     {
         mUI.ruleResultsTree->addTopLevelItem(treeItem);
-        mUI.ruleResultsTree->scrollToBottom();
     }
+
+    // ensure the updated item is visible
+    mUI.ruleResultsTree->scrollToItem(treeItem);
 }
 
 void MainWindow::scanInfoMessage(const QString& message)
