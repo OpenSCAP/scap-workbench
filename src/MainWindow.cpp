@@ -870,6 +870,8 @@ void MainWindow::refreshSelectedRulesTree()
 
     gatherAllSelectedRules(policy, xccdf_benchmark_to_item(benchmark), selectedRules);
 
+    mUI.selectedRulesTree->setUpdatesEnabled(false);
+
     // we filter through a set to avoid duplicates and get a sensible ordering
     for (std::set<struct xccdf_rule*>::const_iterator it = selectedRules.begin();
          it != selectedRules.end(); ++it)
@@ -884,6 +886,8 @@ void MainWindow::refreshSelectedRulesTree()
 
         mUI.selectedRulesTree->addTopLevelItem(treeItem);
     }
+
+    mUI.selectedRulesTree->setUpdatesEnabled(true);
 
     xccdf_select_iterator_free(sel_it);
 }
