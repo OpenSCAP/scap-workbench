@@ -31,6 +31,7 @@
 #include <QFileDialog>
 #include <QAbstractEventDispatcher>
 #include <QMessageBox>
+#include <QCloseEvent>
 
 #include <cassert>
 #include <set>
@@ -476,8 +477,31 @@ void MainWindow::cancelScanAsync()
 
 void MainWindow::closeEvent(QCloseEvent* event)
 {
+    if (mScanThread)
+    {
+        if (QMessageBox::question(this, "Cancel scan in progress?",
+            "A scan is in progress. Are you sure you want to terminate it and close the application?",
+            QMessageBox::Yes | QMessageBox::No, QMessageBox::No) == QMessageBox::No)
+        {
+            event->ignore();
+            return;
+        }
+    }
+
     if (fileOpened())
         cancelScanAsync();
+
+    if (unsavedTailoringChanges())
+    {
+        if (QMessageBox::question(this, "Unsaved tailoring changes",
+            "There are unsaved tailoring changes, closing scap-workbench will destroy them. "
+            "Are you sure you want to close and discard the changes?",
+            QMessageBox::Yes | QMessageBox::No, QMessageBox::No) == QMessageBox::No)
+        {
+            event->ignore();
+            return;
+        }
+    }
 
     // wait until scanner cancels
     while (mScanThread != 0)
@@ -813,8 +837,7 @@ inline void gatherAllSelectedRules(struct xccdf_policy* policy, struct xccdf_ite
         if (selected)
             result.insert(rule);
     }
-
-    if (xccdf_item_get_type(current) == XCCDF_BENCHMARK ||
+    else if (xccdf_item_get_type(current) == XCCDF_BENCHMARK ||
         xccdf_item_get_type(current) == XCCDF_GROUP)
     {
         struct xccdf_item_iterator* it = xccdf_item_get_content(current);
@@ -1221,14 +1244,14 @@ void MainWindow::markNoUnsavedTailoringChanges()
 {
     mUI.saveTailoringButton->setEnabled(false);
 
-    int idx = mUI.tailoringFileComboBox->findText(TAILORING_UNSAVED);
+    const int idx = mUI.tailoringFileComboBox->findText(TAILORING_UNSAVED);
     if (idx != -1)
         mUI.tailoringFileComboBox->removeItem(idx);
 }
 
 void MainWindow::markLoadedTailoringFile(const QString& filePath)
 {
-    int idx = mUI.tailoringFileComboBox->findData(mLoadedTailoringFileUserData);
+    const int idx = mUI.tailoringFileComboBox->findData(mLoadedTailoringFileUserData);
     if (idx != -1)
         mUI.tailoringFileComboBox->removeItem(idx);
 
@@ -1237,5 +1260,10 @@ void MainWindow::markLoadedTailoringFile(const QString& filePath)
     mUI.tailoringFileComboBox->setCurrentIndex(mUI.tailoringFileComboBox->findData(mLoadedTailoringFileUserData));
 
     markNoUnsavedTailoringChanges();
+}
 
+bool MainWindow::unsavedTailoringChanges() const
+{
+    const int idx = mUI.tailoringFileComboBox->findText(TAILORING_UNSAVED);
+    return mUI.tailoringFileComboBox->currentIndex() == idx;
 }

@@ -306,6 +306,7 @@ class MainWindow : public QMainWindow
         void markUnsavedTailoringChanges();
         void markNoUnsavedTailoringChanges();
         void markLoadedTailoringFile(const QString& filePath);
+        bool unsavedTailoringChanges() const;
 };
 
 #endif
