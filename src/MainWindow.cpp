@@ -876,9 +876,11 @@ void MainWindow::refreshSelectedRulesTree()
     {
         struct xccdf_rule* rule = *it;
         const QString preferredTitle = oscapTextIteratorGetPreferred(xccdf_rule_get_title(rule));
+        const QString preferredDesc = oscapTextIteratorGetPreferred(xccdf_rule_get_description(rule));
 
         QTreeWidgetItem* treeItem = new QTreeWidgetItem();
         treeItem->setText(0, preferredTitle);
+        treeItem->setToolTip(0, preferredDesc);
 
         mUI.selectedRulesTree->addTopLevelItem(treeItem);
     }
@@ -930,6 +932,7 @@ void MainWindow::scanProgressReport(const QString& rule_id, const QString& resul
         mUI.progressBar->setValue(mUI.progressBar->value() + 1);
 
     const QString preferredTitle = oscapTextIteratorGetPreferred(xccdf_item_get_title(item));
+    const QString preferredDesc = oscapTextIteratorGetPreferred(xccdf_item_get_description(item));
 
     QBrush resultBrush;
     if (result == "processing")
@@ -955,6 +958,7 @@ void MainWindow::scanProgressReport(const QString& rule_id, const QString& resul
         treeItem = new QTreeWidgetItem();
 
     treeItem->setText(0, preferredTitle);
+    treeItem->setToolTip(0, preferredDesc);
     treeItem->setText(1, result);
 
     treeItem->setForeground(1, resultBrush);
