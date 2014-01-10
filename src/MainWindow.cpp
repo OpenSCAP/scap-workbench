@@ -972,6 +972,9 @@ void MainWindow::scanProgressReport(const QString& rule_id, const QString& resul
 
     if (treeItem != replacementCandidate)
     {
+        // TODO: This is causing a redraw and is a massive slowdown
+        //       Ideally we would group all items that we want added
+        //       and add them at once, causing only one redraw.
         mUI.ruleResultsTree->addTopLevelItem(treeItem);
     }
 
