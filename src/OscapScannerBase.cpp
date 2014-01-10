@@ -39,7 +39,9 @@ OscapScannerBase::OscapScannerBase():
     mReadingRuleID(true),
     mReadBuffer(""),
     mCancelRequested(false)
-{}
+{
+    mReadBuffer.reserve(256);
+}
 
 OscapScannerBase::~OscapScannerBase()
 {}
@@ -247,28 +249,16 @@ QStringList OscapScannerBase::buildOfflineRemediationArgs(const QString& resultI
     return ret;
 }
 
-bool OscapScannerBase::tryToReadStdOut(QProcess& process)
+bool OscapScannerBase::tryToReadStdOutChar(QProcess& process)
 {
-    process.setReadChannel(QProcess::StandardOutput);
-
-    if (process.bytesAvailable() <= 0)
+    char readChar = '\0';
+    if (!process.getChar(&readChar))
         return false;
-
-    char buffer[1];
-    buffer[0] = '\0';
-
-    if (process.read(buffer, 1) != 1)
-    {
-        emit warningMessage(QString(
-            "Error: Could not read from stdout of running 'oscap' process. "
-            "This is very strange and most likely a bug. "
-            "Read buffer is '%1'.").arg(mReadBuffer));
-    }
 
     if (!mCapabilities.progressReporting())
         return true; // We did read something but it's not in a format we can parse.
 
-    if (buffer[0] == ':')
+    if (readChar == ':')
     {
         mLastRuleID = mReadBuffer;
         if (mReadingRuleID) // sanity check
@@ -285,7 +275,7 @@ bool OscapScannerBase::tryToReadStdOut(QProcess& process)
         mReadBuffer = "";
         mReadingRuleID = false;
     }
-    else if (buffer[0] == '\n')
+    else if (readChar == '\n')
     {
         if (!mReadingRuleID) // sanity check
         {
@@ -303,10 +293,19 @@ bool OscapScannerBase::tryToReadStdOut(QProcess& process)
     }
     else
     {
-        mReadBuffer += buffer[0];
+        // we know for sure that buffer[0] can only contain ASCII characters
+        // (IDs and special keywords regarding rule status)
+        mReadBuffer.append(QChar::fromAscii(readChar));
     }
 
     return true;
+}
+
+void OscapScannerBase::readStdOut(QProcess& process)
+{
+    process.setReadChannel(QProcess::StandardOutput);
+
+    while (tryToReadStdOutChar(process));
 }
 
 void OscapScannerBase::watchStdErr(QProcess& process)

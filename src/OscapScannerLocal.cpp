@@ -140,7 +140,7 @@ void OscapScannerLocal::evaluate()
     while (!process.waitForFinished(pollInterval))
     {
         // read everything new
-        while (tryToReadStdOut(process));
+        readStdOut(process);
         watchStdErr(process);
 
         // pump the event queue, mainly because the user might want to cancel
@@ -189,7 +189,7 @@ void OscapScannerLocal::evaluate()
         else
         {
             // read everything left over
-            while (tryToReadStdOut(process));
+            readStdOut(process);
             watchStdErr(process);
 
             emit infoMessage("The oscap tool has finished. Reading results...");

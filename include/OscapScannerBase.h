@@ -70,9 +70,16 @@ class OscapScannerBase : public Scanner
         /**
          * @brief Tries to read something (at least one character) from stdout
          *
+         * @note ReadChannel must be set properly before calling this method!
          * @returns false when there is nothing to be read, true otherwise
+         * @see readStdOut
          */
-        bool tryToReadStdOut(QProcess& process);
+        bool tryToReadStdOutChar(QProcess& process);
+
+        /**
+         * @brief Reads as much as possible from stdout of given process
+         */
+        void readStdOut(QProcess& process);
         void watchStdErr(QProcess& process);
 
         bool mCancelRequested;
