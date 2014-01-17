@@ -1222,6 +1222,17 @@ void MainWindow::saveAsRPM()
         args.append(cwd.relativeFilePath(*it));
     }
 
+    // Tailoring file is a special case since it may be in memory only.
+    // In case it is memory only we don't want it to cause our common ancestor dir to be /
+    // We export it to a temporary directory and remove it after including it in the RPM
+    if (mScanningSession->hasTailoring())
+    {
+        QFileInfo tailoringFile(mScanningSession->getTailoringFilePath());
+        assert(tailoringFile.exists());
+
+        args.append(tailoringFile.absoluteFilePath());
+    }
+
     scapAsRPM.setArguments(args);
 
     scapAsRPM.runWithDialog(this, "Saving SCAP content as RPM...", true, false);

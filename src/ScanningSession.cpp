@@ -46,6 +46,7 @@ ScanningSession::ScanningSession():
     mSessionDirty(false),
     mTailoringUserChanges(false)
 {
+    mTailoringFile.setFileTemplate(QDir::temp().filePath("tailoring-xccdf.xml"));
     mTailoringFile.setAutoRemove(true);
 }
 

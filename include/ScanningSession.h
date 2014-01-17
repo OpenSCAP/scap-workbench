@@ -74,6 +74,7 @@ class ScanningSession
         /**
          * @brief List of all files (paths) necessary to evaluate content that is currently loaded
          *
+         * @note This does NOT include the tailoring file, has to be handled separately!
          * Returns XCCDF, OVAL, CPEs, anything that is necessary to evaluate.
          */
         QSet<QString> getOpenedFilesClosure() const;
@@ -81,6 +82,7 @@ class ScanningSession
         /**
          * @brief Saves opened file and its dependencies to given directory
          *
+         * @note This method does save the tailoring file if any tailoring has been done
          * @return set of file paths we have saved
          */
         QSet<QString> saveOpenedFilesClosureToDir(const QDir& dir);
