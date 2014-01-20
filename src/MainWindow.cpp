@@ -820,7 +820,8 @@ void MainWindow::profileComboboxChanged(int index)
 Unfortunately, xccdf_policy won't let us see its "selected-final" hashmap.
 Instead we have to gather all rules and for each rule ID we check the policy.
 */
-inline void gatherAllSelectedRules(struct xccdf_policy* policy, struct xccdf_item* current, std::set<struct xccdf_rule*>& result)
+inline void gatherAllSelectedRules(struct xccdf_policy* policy, struct xccdf_item* current,
+    std::vector<struct xccdf_rule*>& result)
 {
     if (xccdf_item_get_type(current) == XCCDF_RULE)
     {
@@ -828,18 +829,26 @@ inline void gatherAllSelectedRules(struct xccdf_policy* policy, struct xccdf_ite
         const bool selected = xccdf_policy_is_item_selected(policy, xccdf_rule_get_id(rule));
 
         if (selected)
-            result.insert(rule);
+            result.push_back(rule);
     }
     else if (xccdf_item_get_type(current) == XCCDF_BENCHMARK ||
         xccdf_item_get_type(current) == XCCDF_GROUP)
     {
+        typedef std::map<QString, struct xccdf_item*> ChildrenMap;
+        ChildrenMap children;
+
         struct xccdf_item_iterator* it = xccdf_item_get_content(current);
         while (xccdf_item_iterator_has_more(it))
         {
             struct xccdf_item* item = xccdf_item_iterator_next(it);
-            gatherAllSelectedRules(policy, item, result);
+            children.insert(std::make_pair(oscapTextIteratorGetPreferred(xccdf_item_get_title(item)), item));
         }
         xccdf_item_iterator_free(it);
+
+        for (ChildrenMap::const_iterator it = children.begin(); it != children.end(); ++it)
+        {
+            gatherAllSelectedRules(policy, it->second, result);
+        }
     }
 }
 
@@ -866,14 +875,14 @@ void MainWindow::refreshSelectedRulesTree()
         return;
     }
 
-    std::set<struct xccdf_rule*> selectedRules;
+    std::vector<struct xccdf_rule*> selectedRules;
 
     gatherAllSelectedRules(policy, xccdf_benchmark_to_item(benchmark), selectedRules);
 
     mUI.selectedRulesTree->setUpdatesEnabled(false);
 
     // we filter through a set to avoid duplicates and get a sensible ordering
-    for (std::set<struct xccdf_rule*>::const_iterator it = selectedRules.begin();
+    for (std::vector<struct xccdf_rule*>::const_iterator it = selectedRules.begin();
          it != selectedRules.end(); ++it)
     {
         struct xccdf_rule* rule = *it;

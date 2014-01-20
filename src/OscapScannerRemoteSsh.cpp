@@ -272,6 +272,7 @@ void OscapScannerRemoteSsh::ensureConnected()
         mCancelRequested = true;
     }
 }
+
 QString OscapScannerRemoteSsh::copyFileOver(const QString& localPath)
 {
     ensureConnected();
