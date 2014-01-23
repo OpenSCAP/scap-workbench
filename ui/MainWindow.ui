@@ -439,7 +439,7 @@
                 </font>
                </property>
                <property name="text">
-                <string>Results</string>
+                <string>Report</string>
                </property>
               </widget>
              </item>
