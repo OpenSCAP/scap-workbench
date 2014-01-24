@@ -224,6 +224,43 @@ void XCCDFItemSelectUndoCommand::undo()
     mWindow->synchronizeTreeItem(mTreeItem, xccdfItem, false);
 }
 
+/**
+ * This only handles changes in selection of just one tree item!
+ */
+void _syncXCCDFItemChildrenDisabledState(QTreeWidgetItem* treeItem, bool enabled)
+{
+    for (int i = 0; i < treeItem->childCount(); ++i)
+    {
+        QTreeWidgetItem* childTreeItem = treeItem->child(i);
+        const bool childEnabled = !childTreeItem->isDisabled();
+
+        if (!enabled && childEnabled)
+        {
+            childTreeItem->setDisabled(true);
+            _syncXCCDFItemChildrenDisabledState(childTreeItem, false);
+        }
+        else if (enabled && !childEnabled)
+        {
+            childTreeItem->setDisabled(false);
+            _syncXCCDFItemChildrenDisabledState(childTreeItem, true);
+        }
+    }
+}
+
+void _refreshXCCDFItemChildrenDisabledState(QTreeWidgetItem* treeItem, bool allAncestorsSelected)
+{
+    bool itemSelected = !(treeItem->flags() & Qt::ItemIsUserCheckable) || treeItem->checkState(0) == Qt::Checked;
+    allAncestorsSelected = allAncestorsSelected && itemSelected;
+
+    for (int i = 0; i < treeItem->childCount(); ++i)
+    {
+        QTreeWidgetItem* childTreeItem = treeItem->child(i);
+        childTreeItem->setDisabled(!allAncestorsSelected);
+
+        _refreshXCCDFItemChildrenDisabledState(childTreeItem, allAncestorsSelected);
+    }
+}
+
 TailoringWindow::TailoringWindow(struct xccdf_policy* policy, struct xccdf_benchmark* benchmark, MainWindow* parent):
     QMainWindow(parent),
 
@@ -292,6 +329,7 @@ TailoringWindow::TailoringWindow(struct xccdf_policy* policy, struct xccdf_bench
     mUI.itemsTree->addTopLevelItem(benchmarkItem);
 
     synchronizeTreeItem(benchmarkItem, xccdf_benchmark_to_item(mBenchmark), true);
+    _refreshXCCDFItemChildrenDisabledState(benchmarkItem, true);
 
     // we cannot rely on any ordering from openscap, to make sure items appear
     // in the same order when scap-workbench is run multiple times we have to sort
@@ -374,9 +412,12 @@ void TailoringWindow::synchronizeTreeItem(QTreeWidgetItem* treeItem, struct xccd
     {
         case XCCDF_RULE:
         case XCCDF_GROUP:
+        {
             treeItem->setCheckState(0,
                     getXccdfItemInternalSelected(mPolicy, xccdfItem) ? Qt::Checked : Qt::Unchecked);
+            _syncXCCDFItemChildrenDisabledState(treeItem, treeItem->checkState(0));
             break;
+        }
         default:
             break;
     }
@@ -561,7 +602,7 @@ void TailoringWindow::itemChanged(QTreeWidgetItem* treeItem, int column)
     if (mSynchronizeItemLock > 0)
         return;
 
-    const bool checkState = treeItem->checkState(0);
+    const bool checkState = treeItem->checkState(0) == Qt::Checked;
 
     struct xccdf_item* xccdfItem = getXccdfItemFromTreeItem(treeItem);
     if (!xccdfItem)
@@ -571,4 +612,6 @@ void TailoringWindow::itemChanged(QTreeWidgetItem* treeItem, int column)
 
     if (checkState != itemCheckState)
         mUndoStack.push(new XCCDFItemSelectUndoCommand(this, treeItem, checkState));
+
+    _syncXCCDFItemChildrenDisabledState(treeItem, checkState);
 }
