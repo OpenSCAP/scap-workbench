@@ -220,7 +220,7 @@ void OscapScannerRemoteSsh::evaluate()
         while (!process.waitForFinished(pollInterval))
         {
             waited += pollInterval;
-            if (waited > 3000) // 3 seconds should be enough for the process to terminate
+            if (waited > 10000) // 10 seconds should be enough for the process to terminate
             {
                 emit warningMessage("The oscap process didn't terminate in time, it will be killed instead.");
                 // if it didn't terminate, we have to kill it at this point

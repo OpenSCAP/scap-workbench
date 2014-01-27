@@ -124,13 +124,13 @@ void OscapScannerLocal::evaluate()
     }
 
 #if SCAP_WORKBENCH_OSCAP_LOCAL_NICENESS != 0
-    args.prepend(SCAP_WORKBENCH_LOCAL_OSCAP_PATH);
+    args.prepend(SCAP_WORKBENCH_LOCAL_OSCAP_WORKBENCH_WRAPPER_PATH);
     args.prepend(QString::number(SCAP_WORKBENCH_OSCAP_LOCAL_NICENESS));
     args.prepend("-n");
 
     process.start(SCAP_WORKBENCH_LOCAL_NICE_PATH, args);
 #else
-    process.start(SCAP_WORKBENCH_LOCAL_OSCAP_PATH, args);
+    process.start(SCAP_WORKBENCH_LOCAL_OSCAP_WORKBENCH_WRAPPER_PATH, args);
 #endif
 
 
@@ -163,7 +163,7 @@ void OscapScannerLocal::evaluate()
         while (!process.waitForFinished(pollInterval))
         {
             waited += pollInterval;
-            if (waited > 3000) // 3 seconds should be enough for the process to terminate
+            if (waited > 10000) // 10 seconds should be enough for the process to terminate
             {
                 emit warningMessage("The oscap process didn't terminate in time, it will be killed instead.");
                 // if it didn't terminate, we have to kill it at this point
