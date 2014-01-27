@@ -202,6 +202,50 @@ Keep in mind that the undo history will get lost when you press *Finish tailorin
 After desired tailoring changes are done, click *Finish tailoring* to get back
 to the previous GUI.
 
+=== Save tailored content (optional)
+
+The content that you carefully tailored can be saved for later deployment.
+
+==== Save just the tailoring file
+
+Click *Save Tailoring* and choose the destination file. Workbench will save just
+tailoring which you can use with the content you opened.
+
+****
+If XCCDF version of the content is lower than 1.2 footnote:[Tailoring is not officially
+supported in XCCDF 1.1.x, the feature has been added in 1.2] workbench will create
+a file that is not compliant to the official specification! openscap and scap-workbench
+support Tailoring in XCCDF 1.1.4 through an extension. Keep in mind that such content
+will work in openscap powered tools but may not work in tools from other vendors!
+****
+
+==== Save all content into a directory
+
+Click *Save content* and choose *Save into a directory*. After selecting the destination
+directory scap-workbench will export both input content and a tailoring file into the
+directory.
+
+==== Save as RPM
+
+Click *Save content* and choose *Save as RPM*. After selecting the destination
+directory scap-workbench will create an RPM in that directory. This RPM will contain
+both input content and a tailoring file.
+
+****
+Please note that the resulting RPM will not be signed! This means that it can be rejected
+for deployment by system management tools like Spacewalk.
+
+If you wish to sign the resulting RPM, make sure you have *rpm-sign* installed,
+the */usr/bin/rpmsign* binary available and GPG as well as related rpmmacros setup.
+footnote:[Please see http://fedoranews.org/tchung/gpg/ for a detailed write-up on how to sign RPMs]
+Then execute:
+
+$ rpm --addsign my-content-1.1.rpm
+
+The resulting package will be signed and ready to use provided that your desired
+system management tool accepts the key you used.
+****
+
 === Choose the Target Machine
 
 scap-workbench will scan *local machine* by default. However you can also
