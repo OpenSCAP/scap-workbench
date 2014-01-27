@@ -183,7 +183,7 @@ QDir ScanningSession::getCommonAncestorDirectory(const QSet<QString>& paths)
     return commonAncestor;
 }
 
-inline void copyOrReplace(const QString& from, const QString& to)
+void ScanningSession::copyOrReplace(const QString& from, const QString& to)
 {
     // QFile::copy does not overwrite, if the target file already exist
     // we have to remove it.

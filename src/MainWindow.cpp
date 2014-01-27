@@ -28,6 +28,7 @@
 #include "ScanningSession.h"
 #include "Exceptions.h"
 #include "APIHelpers.h"
+#include "TemporaryDir.h"
 
 #include <QFileDialog>
 #include <QAbstractEventDispatcher>
@@ -1231,6 +1232,8 @@ void MainWindow::saveAsRPM()
         args.append(cwd.relativeFilePath(*it));
     }
 
+    TemporaryDir tailoringDir;
+
     // Tailoring file is a special case since it may be in memory only.
     // In case it is memory only we don't want it to cause our common ancestor dir to be /
     // We export it to a temporary directory and remove it after including it in the RPM
@@ -1239,7 +1242,12 @@ void MainWindow::saveAsRPM()
         QFileInfo tailoringFile(mScanningSession->getTailoringFilePath());
         assert(tailoringFile.exists());
 
-        args.append(tailoringFile.absoluteFilePath());
+        const QString tailoringFilePath = QString("%1/%2").arg(tailoringDir.getPath(), "tailoring-xccdf.xml");
+
+        ScanningSession::copyOrReplace(tailoringFile.absoluteFilePath(),
+            tailoringFilePath);
+
+        args.append(tailoringFilePath);
     }
 
     scapAsRPM.setArguments(args);

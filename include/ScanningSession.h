@@ -79,6 +79,8 @@ class ScanningSession
          */
         QSet<QString> getOpenedFilesClosure() const;
 
+        static void copyOrReplace(const QString& from, const QString& to);
+
         /**
          * @brief Saves opened file and its dependencies to given directory
          *
