@@ -80,9 +80,31 @@ void SaveAsRPMDialog::slotFinished(int result)
     scapAsRPM.setWorkingDirectory(cwd.absolutePath());
 
     QStringList args;
-    args.append("--pkg-name"); args.append(mUI.packageName->text());
-    args.append("--pkg-version"); args.append(mUI.version->text());
+    if (!mUI.packageName->text().isEmpty())
+    {
+        args.append("--pkg-name");
+        args.append(mUI.packageName->text());
+    }
+    if (!mUI.version->text().isEmpty())
+    {
+        args.append("--pkg-version");
+        args.append(mUI.version->text());
+    }
+    // release is a spinbox, it can't be empty
     args.append("--pkg-release"); args.append(mUI.release->text());
+
+    // summary may contain whitespaces, we need a string that has at least one non-whitespace char
+    if (!mUI.summary->text().trimmed().isEmpty())
+    {
+        args.append("--pkg-summary");
+        args.append(mUI.summary->text());
+    }
+    if (!mUI.license->currentText().isEmpty())
+    {
+        args.append("--pkg-license");
+        args.append(mUI.license->currentText());
+    }
+
     args.append("--rpm-destination"); args.append(targetDir);
 
     for (QList<QString>::const_iterator it = closureOrdered.begin(); it != closureOrdered.end(); ++it)

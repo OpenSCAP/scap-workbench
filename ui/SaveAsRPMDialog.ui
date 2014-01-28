@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>400</width>
-    <height>153</height>
+    <width>632</width>
+    <height>183</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -17,6 +17,9 @@
    <item>
     <widget class="QWidget" name="widget" native="true">
      <layout class="QFormLayout" name="formLayout">
+      <property name="fieldGrowthPolicy">
+       <enum>QFormLayout::ExpandingFieldsGrow</enum>
+      </property>
       <item row="0" column="0">
        <widget class="QLabel" name="label">
         <property name="text">
@@ -56,6 +59,56 @@
         <property name="maximum">
          <number>9999</number>
         </property>
+       </widget>
+      </item>
+      <item row="3" column="0">
+       <widget class="QLabel" name="label_4">
+        <property name="text">
+         <string>Summary</string>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="0">
+       <widget class="QLabel" name="label_5">
+        <property name="text">
+         <string>License</string>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="1">
+       <widget class="QLineEdit" name="summary"/>
+      </item>
+      <item row="4" column="1">
+       <widget class="QComboBox" name="license">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="editable">
+         <bool>true</bool>
+        </property>
+        <item>
+         <property name="text">
+          <string>Unspecified</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Public Domain</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>GPLv2+</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>CC-BY-SA</string>
+         </property>
+        </item>
        </widget>
       </item>
      </layout>
