@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2014 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -19,25 +19,29 @@
  *      Martin Preisler <mpreisle@redhat.com>
  */
 
-#ifndef SCAP_WORKBENCH_FORWARD_DECLS_H_
-#define SCAP_WORKBENCH_FORWARD_DECLS_H_
+#ifndef SCAP_WORKBENCH_SAVE_AS_RPM_DIALOG_H_
+#define SCAP_WORKBENCH_SAVE_AS_RPM_DIALOG_H_
 
-#include "Config.h"
+#include "ForwardDecls.h"
 
-class Application;
-class DiagnosticsDialog;
-class MainWindow;
-class OscapScannerBase;
-class OscapScannerLocal;
-class OscapScannerRemoteSsh;
-class ResultViewer;
-class SaveAsRPMDialog;
-class ScanningSession;
-class Scanner;
-class SshConnection;
-class SshSyncProcess;
-class SyncProcess;
-class TailoringWindow;
-class TemporaryDir;
+#include <QDialog>
+#include "ui_SaveAsRPMDialog.h"
+
+class SaveAsRPMDialog : public QDialog
+{
+    Q_OBJECT
+
+    public:
+        SaveAsRPMDialog(ScanningSession* session, QWidget* parent = 0);
+        virtual ~SaveAsRPMDialog();
+
+    protected slots:
+        void slotFinished(int result);
+
+    private:
+        Ui_SaveAsRPMDialog mUI;
+
+        ScanningSession* mScanningSession;
+};
 
 #endif

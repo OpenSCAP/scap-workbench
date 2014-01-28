@@ -28,7 +28,7 @@
 #include "ScanningSession.h"
 #include "Exceptions.h"
 #include "APIHelpers.h"
-#include "TemporaryDir.h"
+#include "SaveAsRPMDialog.h"
 
 #include <QFileDialog>
 #include <QAbstractEventDispatcher>
@@ -1204,55 +1204,7 @@ void MainWindow::saveAsRPM()
     if (!fileOpened())
         return;
 
-    const QString targetDir = QFileDialog::getExistingDirectory(this, "Select target directory");
-    if (targetDir.isEmpty())
-        return; // user canceled
-
-    QSet<QString> closure = mScanningSession->getOpenedFilesClosure();
-    // At this point, closure is a set which is implementation ordered.
-    // (we have no control WRT the ordering)
-    // We want to make the XCCDF/SDS/main file appear first because that's
-    // what the 'save as RPM' script will use to deduce the package name
-    closure.remove(mScanningSession->getOpenedFilePath());
-    QList<QString> closureOrdered;
-    closureOrdered.append(mScanningSession->getOpenedFilePath());
-    closureOrdered.append(closure.toList());
-
-    const QDir cwd = ScanningSession::getCommonAncestorDirectory(closure);
-
-    SyncProcess scapAsRPM(this);
-    scapAsRPM.setCommand(SCAP_WORKBENCH_LOCAL_SCAP_AS_RPM_PATH);
-    scapAsRPM.setWorkingDirectory(cwd.absolutePath());
-
-    QStringList args;
-    args.append("--rpm-destination"); args.append(targetDir);
-
-    for (QList<QString>::const_iterator it = closureOrdered.begin(); it != closureOrdered.end(); ++it)
-    {
-        args.append(cwd.relativeFilePath(*it));
-    }
-
-    TemporaryDir tailoringDir;
-
-    // Tailoring file is a special case since it may be in memory only.
-    // In case it is memory only we don't want it to cause our common ancestor dir to be /
-    // We export it to a temporary directory and remove it after including it in the RPM
-    if (mScanningSession->hasTailoring())
-    {
-        QFileInfo tailoringFile(mScanningSession->getTailoringFilePath());
-        assert(tailoringFile.exists());
-
-        const QString tailoringFilePath = QString("%1/%2").arg(tailoringDir.getPath(), "tailoring-xccdf.xml");
-
-        ScanningSession::copyOrReplace(tailoringFile.absoluteFilePath(),
-            tailoringFilePath);
-
-        args.append(tailoringFilePath);
-    }
-
-    scapAsRPM.setArguments(args);
-
-    scapAsRPM.runWithDialog(this, "Saving SCAP content as RPM...", true, false);
+    new SaveAsRPMDialog(mScanningSession, this);
 }
 
 void MainWindow::markUnsavedTailoringChanges()
