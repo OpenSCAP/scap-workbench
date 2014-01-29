@@ -124,13 +124,13 @@ void OscapScannerLocal::evaluate()
     }
 
 #if SCAP_WORKBENCH_OSCAP_LOCAL_NICENESS != 0
-    args.prepend(SCAP_WORKBENCH_LOCAL_OSCAP_WORKBENCH_WRAPPER_PATH);
+    args.prepend(getPkexecOscapPath());
     args.prepend(QString::number(SCAP_WORKBENCH_OSCAP_LOCAL_NICENESS));
     args.prepend("-n");
 
     process.start(SCAP_WORKBENCH_LOCAL_NICE_PATH, args);
 #else
-    process.start(SCAP_WORKBENCH_LOCAL_OSCAP_WORKBENCH_WRAPPER_PATH, args);
+    process.start(getPkexecOscapPath(), args);
 #endif
 
 
@@ -190,4 +190,14 @@ void OscapScannerLocal::evaluate()
     }
 
     signalCompletion(mCancelRequested);
+}
+
+QString OscapScannerLocal::getPkexecOscapPath()
+{
+    const QByteArray path = qgetenv("SCAP_WORKBENCH_PKEXEC_OSCAP_PATH");
+
+    if (path.isEmpty())
+        return SCAP_WORKBENCH_LOCAL_PKEXEC_OSCAP_PATH;
+    else
+        return path;
 }
