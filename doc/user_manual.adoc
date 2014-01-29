@@ -362,6 +362,13 @@ If you are unsure which format to choose for result archiving you can choose
 *Save XCCDF Result*. It is commonly supported and you can easily generate
 an HTML report from it using the *oscap* tool.
 
+== Notable shortcuts
+
+Browse :: Alt + B
+Scan :: Alt + S
+Clear after scanning :: Alt + C
+Show report :: Alt + R
+
 == Where to Get Help?
 
 You ask for help with the application using
