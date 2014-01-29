@@ -34,13 +34,13 @@ How to run it out of the box
   (inside the build folder):
     # make install
 
-3a) Run the scanner
+4) Run scap-workbench
 
   spawning open file dialog:
     $ scap-workbench
 
   with an XCCDF file to load:
-    $ scap-workbench /path/to/xccdf-file
+    $ scap-workbench /path/to/xccdf-file.xml
 
   with a source datastream (SDS) to load:
     $ scap-workbench /path/to/sds-file
