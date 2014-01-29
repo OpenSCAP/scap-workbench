@@ -26,12 +26,16 @@ PARENT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 PKEXEC_PATH="pkexec"
 OSCAP_WORKBENCH="$PARENT_DIR/oscap-workbench.sh"
 
+which $PKEXEC_PATH > /dev/null || exit 1
+
 $PKEXEC_PATH --disable-internal-agent $OSCAP_WORKBENCH $uid $gid $@ 2> >(tail -n +2 1>&2)
 EC=$?
 
 # 126 is a special exit code of pkexec when user dismisses the auth dialog
 # 127 means auth can't be established or something in the script failed. We never know.
-if [ $EC -eq 126 ]; then
+# We will retry with 127 because pkexec returns 127 when no polkit auth agent is present.
+# This is common in niche desktop environments.
+if [ $EC -eq 126 ] || [ $EC -eq 127 ]; then
     # in case of dismissed dialog we run without super user rights
     $OSCAP_WORKBENCH $uid $gid $@ 2> >(tail -n +2 1>&2);
     exit $?
