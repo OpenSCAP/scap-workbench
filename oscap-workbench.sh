@@ -83,9 +83,9 @@ popd > /dev/null
 
 chown -R $wrapper_uid:$wrapper_gid "$TEMP_DIR"
 
-[ -f $TEMP_DIR/results-xccdf.xml ] || sudo -u \#$wrapper_uid -g \#$wrapper_gid cp "$TEMP_DIR/results-xccdf.xml" $TARGET_RESULTS_XCCDF
-[ -f $TEMP_DIR/results-arf.xml ] || sudo -u \#$wrapper_uid -g \#$wrapper_gid cp "$TEMP_DIR/results-arf.xml" $TARGET_RESULTS_ARF
-[ -f $TEMP_DIR/report.html ] || sudo -u \#$wrapper_uid -g \#$wrapper_gid cp "$TEMP_DIR/report.html" $TARGET_REPORT
+sudo -u \#$wrapper_uid -g \#$wrapper_gid [ ! -f "$TEMP_DIR/results-xccdf" ] || cp "$TEMP_DIR/results-xccdf.xml" "$TARGET_RESULTS_XCCDF"
+sudo -u \#$wrapper_uid -g \#$wrapper_gid [ ! -f "$TEMP_DIR/results-arf.xml" ] || cp "$TEMP_DIR/results-arf.xml" "$TARGET_RESULTS_ARF"
+sudo -u \#$wrapper_uid -g \#$wrapper_gid [ ! -f "$TEMP_DIR/report.html" ] || cp "$TEMP_DIR/report.html" "$TARGET_REPORT"
 
 rm -r "$TEMP_DIR"
 
