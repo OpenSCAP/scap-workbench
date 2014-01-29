@@ -653,6 +653,7 @@ void MainWindow::refreshProfiles()
 
 void MainWindow::cleanupScanThread()
 {
+    mScanThread->wait();
     mScanThread->deleteLater();
     mScanThread = 0;
 

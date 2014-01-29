@@ -150,6 +150,7 @@ void OscapScannerLocal::evaluate()
         {
             emit infoMessage("Cancelation was requested! Terminating scanning...");
             process.kill();
+            process.waitForFinished(1000);
             break;
         }
     }

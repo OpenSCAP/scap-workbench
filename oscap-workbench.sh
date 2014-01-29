@@ -71,7 +71,6 @@ while kill -0 $PID 2> /dev/null; do
     ret=$?
     if [ 0 -lt $ret -a $ret -lt 128 ]; then
         # If read failed & it was not due to timeout --> parents are gone.
-        echo "KILLL $PID"
         kill -s SIGINT $PID 2> /dev/null
         break
     fi
