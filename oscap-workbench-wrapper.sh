@@ -26,26 +26,14 @@ PARENT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 PKEXEC_PATH="pkexec"
 OSCAP_WORKBENCH="$PARENT_DIR/oscap-workbench.sh"
 
-function pipe_trap()
-{
-    trap "echo 0; exit 1" SIGHUP SIGINT SIGTERM
-
-    while :
-    do
-        # noop keep-alive
-        echo '1'; sleep 1
-    done
-}
-
-(pipe_trap) | { $PKEXEC_PATH --disable-internal-agent $OSCAP_WORKBENCH $uid $gid $@ 2> >(tail -n +2 1>&2); }
+$PKEXEC_PATH --disable-internal-agent $OSCAP_WORKBENCH $uid $gid $@ 2> >(tail -n +2 1>&2)
 EC=$?
 
-EXIT=0
 # 126 is a special exit code of pkexec when user dismisses the auth dialog
-# 127 means auth can't be established
-if [ $EC -eq 126 ] || [ $EC -eq 127 ]; then
+# 127 means auth can't be established or something in the script failed. We never know.
+if [ $EC -eq 126 ]; then
     # in case of dismissed dialog we run without super user rights
-    (pipe_trap) | { $OSCAP_WORKBENCH $uid $gid $@ 2> >(tail -n +2 1>&2); }
+    $OSCAP_WORKBENCH $uid $gid $@ 2> >(tail -n +2 1>&2);
     exit $?
 fi
 

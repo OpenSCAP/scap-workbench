@@ -66,15 +66,15 @@ PID=$!
 RET=1
 
 while kill -0 $PID 2> /dev/null; do
-    # we don't even care what we read, we just read until stdin is closed
-    if ! read dummy; then
+    # check if the stdin is still available but return in one second
+    read -t 1 dummy
+    ret=$?
+    if [ 0 -lt $ret -a $ret -lt 128 ]; then
+        # If read failed & it was not due to timeout --> parents are gone.
         echo "KILLL $PID"
         kill -s SIGINT $PID 2> /dev/null
         break
     fi
-
-    # The protocol sends communication every 1 second
-    sleep 0.5
 done
 
 wait $PID

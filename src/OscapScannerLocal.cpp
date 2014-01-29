@@ -149,34 +149,12 @@ void OscapScannerLocal::evaluate()
         if (mCancelRequested)
         {
             emit infoMessage("Cancelation was requested! Terminating scanning...");
-            // TODO: On Windows we have to kill immediately, terminate() posts WM_CLOSE
-            //       but oscap doesn't have any event loop running.
-            process.terminate();
+            process.kill();
             break;
         }
     }
 
-    if (mCancelRequested)
-    {
-        unsigned int waited = 0;
-        bool killed = false;
-        while (!process.waitForFinished(pollInterval))
-        {
-            waited += pollInterval;
-            if (waited > 10000) // 10 seconds should be enough for the process to terminate
-            {
-                emit warningMessage("The oscap process didn't terminate in time, it will be killed instead.");
-                // if it didn't terminate, we have to kill it at this point
-                process.kill();
-                killed = true;
-                break;
-            }
-        }
-
-        if (!killed)
-            emit infoMessage("Scanning canceled, the oscap tool has been successfuly terminated.");
-    }
-    else
+    if (!mCancelRequested)
     {
         if (process.exitCode() == 1) // error happened
         {
