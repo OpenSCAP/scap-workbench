@@ -364,10 +364,14 @@ an HTML report from it using the *oscap* tool.
 
 == Notable shortcuts
 
+=== Main Window
 Browse :: Alt + B
 Scan :: Alt + S
 Clear after scanning :: Alt + C
 Show report :: Alt + R
+
+=== Evaluation Report
+Open in Browser :: Alt + O
 
 == Where to Get Help?
 

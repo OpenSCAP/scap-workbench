@@ -50,6 +50,9 @@
         <property name="text">
          <string>Save</string>
         </property>
+        <property name="shortcut">
+         <string>Ctrl+S</string>
+        </property>
        </widget>
       </item>
       <item>
@@ -58,7 +61,7 @@
          <string>Opens the HTML report in the default browser of your desktop environment</string>
         </property>
         <property name="text">
-         <string>Open in Browser</string>
+         <string>&amp;Open in Browser</string>
         </property>
        </widget>
       </item>
