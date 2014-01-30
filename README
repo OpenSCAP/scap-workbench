@@ -29,12 +29,12 @@ How to run it out of the box
     $ cmake ../
     $ make
 
-3) Install scap-workbench:
+3) Install scap-workbench: (optional)
 
   (inside the build folder):
     # make install
 
-4) Run scap-workbench
+4a) Run scap-workbench: (if it was installed)
 
   spawning open file dialog:
     $ scap-workbench
@@ -44,3 +44,8 @@ How to run it out of the box
 
   with a source datastream (SDS) to load:
     $ scap-workbench /path/to/sds-file
+
+4b) Run scap-workbench: (straight from build dir, without installation)
+
+  $ cd build/
+  $ bash runwrapper.sh ./scap-workbench
