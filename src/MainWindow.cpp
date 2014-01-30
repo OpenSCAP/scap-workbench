@@ -1255,6 +1255,9 @@ void MainWindow::markLoadedTailoringFile(const QString& filePath)
 
 bool MainWindow::unsavedTailoringChanges() const
 {
+    if (!fileOpened())
+        return false;
+
     const int idx = mUI.tailoringFileComboBox->findText(TAILORING_UNSAVED);
     return mUI.tailoringFileComboBox->currentIndex() == idx;
 }
