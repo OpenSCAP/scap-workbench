@@ -4,7 +4,7 @@
 <policyconfig>
   <action id="scap-workbench-oscap.run">
     <description>Scan Local Machine</description>
-    <message>Authentication is required to scan local machine with root privileges.</message>
+    <message>Authentication is required to scan local machine with root privileges. Click "Cancel" to scan using your current permissions.</message>
     <defaults>
       <allow_any>auth_admin_keep</allow_any>
       <allow_inactive>auth_admin_keep</allow_inactive>
