@@ -124,13 +124,13 @@ void OscapScannerLocal::evaluate()
     }
 
 #if SCAP_WORKBENCH_OSCAP_LOCAL_NICENESS != 0
-    args.prepend(SCAP_WORKBENCH_LOCAL_OSCAP_PATH);
+    args.prepend(getPkexecOscapPath());
     args.prepend(QString::number(SCAP_WORKBENCH_OSCAP_LOCAL_NICENESS));
     args.prepend("-n");
 
     process.start(SCAP_WORKBENCH_LOCAL_NICE_PATH, args);
 #else
-    process.start(SCAP_WORKBENCH_LOCAL_OSCAP_PATH, args);
+    process.start(getPkexecOscapPath(), args);
 #endif
 
 
@@ -149,34 +149,13 @@ void OscapScannerLocal::evaluate()
         if (mCancelRequested)
         {
             emit infoMessage("Cancelation was requested! Terminating scanning...");
-            // TODO: On Windows we have to kill immediately, terminate() posts WM_CLOSE
-            //       but oscap doesn't have any event loop running.
-            process.terminate();
+            process.kill();
+            process.waitForFinished(1000);
             break;
         }
     }
 
-    if (mCancelRequested)
-    {
-        unsigned int waited = 0;
-        bool killed = false;
-        while (!process.waitForFinished(pollInterval))
-        {
-            waited += pollInterval;
-            if (waited > 3000) // 3 seconds should be enough for the process to terminate
-            {
-                emit warningMessage("The oscap process didn't terminate in time, it will be killed instead.");
-                // if it didn't terminate, we have to kill it at this point
-                process.kill();
-                killed = true;
-                break;
-            }
-        }
-
-        if (!killed)
-            emit infoMessage("Scanning canceled, the oscap tool has been successfuly terminated.");
-    }
-    else
+    if (!mCancelRequested)
     {
         if (process.exitCode() == 1) // error happened
         {
@@ -211,4 +190,14 @@ void OscapScannerLocal::evaluate()
     }
 
     signalCompletion(mCancelRequested);
+}
+
+QString OscapScannerLocal::getPkexecOscapPath()
+{
+    const QByteArray path = qgetenv("SCAP_WORKBENCH_PKEXEC_OSCAP_PATH");
+
+    if (path.isEmpty())
+        return SCAP_WORKBENCH_LOCAL_PKEXEC_OSCAP_PATH;
+    else
+        return path;
 }

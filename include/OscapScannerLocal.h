@@ -34,6 +34,10 @@ class OscapScannerLocal : public OscapScannerBase
         virtual ~OscapScannerLocal();
 
         virtual void evaluate();
+
+    private:
+        static QString getPkexecOscapPath();
+
 };
 
 #endif
