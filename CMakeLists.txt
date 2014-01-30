@@ -72,6 +72,7 @@ configure_file("include/Config.h.in" "${CMAKE_CURRENT_BINARY_DIR}/Config.h")
 # It is not trivial to make the resulting file executable :-(
 # People will have to `bash runwrapper.sh ...` in the meantime.
 configure_file("runwrapper.sh.in" "${CMAKE_CURRENT_BINARY_DIR}/runwrapper.sh")
+configure_file("scap-workbench-oscap.policy.in" "${CMAKE_CURRENT_BINARY_DIR}/scap-workbench-oscap.policy")
 
 include_directories(${SCAP_WORKBENCH_INCLUDE_DIRS})
 
@@ -88,11 +89,14 @@ target_link_libraries("scap-workbench" ${SCAP_WORKBENCH_LINK_LIBRARIES})
 install(TARGETS "scap-workbench"
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 
-install(FILES "scap-workbench-oscap.sh"
-    RUNTIME DESTINATION ${CMAKE_INSTALL_LIBEXECDIR})
+install(PROGRAMS "scap-workbench-oscap.sh"
+    DESTINATION ${CMAKE_INSTALL_LIBEXECDIR})
 
-install(FILES "scap-workbench-pkexec-oscap.sh"
-    RUNTIME DESTINATION ${CMAKE_INSTALL_LIBEXECDIR})
+install(PROGRAMS "scap-workbench-pkexec-oscap.sh"
+    DESTINATION ${CMAKE_INSTALL_LIBEXECDIR})
+    
+install(FILES "${CMAKE_CURRENT_BINARY_DIR}/scap-workbench-oscap.policy"
+    DESTINATION "${CMAKE_INSTALL_DATADIR}/polkit-1/actions")
 
 install(FILES "man/scap-workbench.8"
     DESTINATION "${CMAKE_INSTALL_MANDIR}/man8")
