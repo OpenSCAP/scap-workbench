@@ -30,6 +30,9 @@ shift
 wrapper_gid=$1
 shift
 
+real_uid=`id -u`
+real_gid=`id -g`
+
 TEMP_DIR=`mktemp -d`
 
 args=("$@")
@@ -83,9 +86,22 @@ popd > /dev/null
 
 chown -R $wrapper_uid:$wrapper_gid "$TEMP_DIR"
 
-sudo -u \#$wrapper_uid -g \#$wrapper_gid [ ! -f "$TEMP_DIR/results-xccdf.xml" ] || cp "$TEMP_DIR/results-xccdf.xml" "$TARGET_RESULTS_XCCDF"
-sudo -u \#$wrapper_uid -g \#$wrapper_gid [ ! -f "$TEMP_DIR/results-arf.xml" ] || cp "$TEMP_DIR/results-arf.xml" "$TARGET_RESULTS_ARF"
-sudo -u \#$wrapper_uid -g \#$wrapper_gid [ ! -f "$TEMP_DIR/report.html" ] || cp "$TEMP_DIR/report.html" "$TARGET_REPORT"
+function sudo_copy
+{
+    local what=$1
+    local where=$2
+
+    # sudo only required if wrapper_{uid,gid} differs from real_{uid,gid}
+    if [ $wrapper_uid -ne $real_uid ] || [ $wrapper_gid -ne $real_gid ]; then
+        sudo -u \#$wrapper_uid -g \#$wrapper_gid [ ! -f "$what" ] || cp "$what" "$where"
+    else
+        [ ! -f "$what" ] || cp "$what" "$where"
+    fi
+}
+
+sudo_copy "$TEMP_DIR/results-xccdf.xml" $TARGET_RESULTS_XCCDF
+sudo_copy "$TEMP_DIR/results-arf.xml" $TARGET_RESULTS_ARF
+sudo_copy "$TEMP_DIR/report.html" $TARGET_REPORT
 
 rm -r "$TEMP_DIR"
 
