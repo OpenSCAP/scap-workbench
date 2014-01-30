@@ -299,6 +299,10 @@ process is spawned which itself spawns the ssh-askpass program which asks
 for the password.
 ****
 
+If you selected to scan the local machine, workbench will show a dialog
+that allows you to authenticate and scan the machine with superuser rights.
+You can click cancel if you wish to scan using your current permissions.
+
 The application now starts the *oscap* tool and waits for it to finish,
 reporting partial results along the way in the rule result list. Keep in mind
 that the tool cannot guess how long will processing of any particular rule
