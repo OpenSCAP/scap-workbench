@@ -116,6 +116,9 @@ void ResultViewer::loadContent(Scanner* scanner)
     {
         QFileInfo openedFile(session->getOpenedFilePath());
         mInputBaseName = openedFile.baseName();
+
+        if (mInputBaseName.endsWith("-xccdf"))
+            mInputBaseName.chop(QString("-xccdf").length());
     }
 
     mReport.clear();
