@@ -37,6 +37,7 @@
 
 #include <cassert>
 #include <set>
+#include <unistd.h>
 
 extern "C" {
 #include <xccdf_policy.h>
@@ -273,7 +274,10 @@ void MainWindow::openFileDialog()
     //
     // Do not continue until user dismisses the diagnostics dialog.
     while (mDiagnosticsDialog->isVisible())
+    {
         QAbstractEventDispatcher::instance(0)->processEvents(QEventLoop::AllEvents);
+        usleep(100 * 1000);
+    }
 
     QString defaultDirectory = SCAP_WORKBENCH_SCAP_CONTENT_DIRECTORY;
 
