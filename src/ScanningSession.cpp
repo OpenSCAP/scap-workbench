@@ -494,7 +494,7 @@ struct xccdf_profile* ScanningSession::tailorCurrentProfile(bool shadowed)
         return 0;
 
     // create a new profile, inheriting the currently selected profile
-    // or no profile if currently selected profile is the '(default profile)'
+    // or no profile if currently selected profile is the '(default)'
     struct xccdf_policy_model* policyModel = xccdf_session_get_policy_model(mSession);
     if (!policyModel)
         return 0;
@@ -551,7 +551,7 @@ struct xccdf_profile* ScanningSession::tailorCurrentProfile(bool shadowed)
         {
             struct oscap_text* newTitle = oscap_text_new();
             oscap_text_set_lang(newTitle, OSCAP_LANG_ENGLISH_US);
-            oscap_text_set_text(newTitle, "(default profile) tailored");
+            oscap_text_set_text(newTitle, "(default) [TAILORED]");
             xccdf_profile_add_title(newProfile, newTitle);
         }
         {
