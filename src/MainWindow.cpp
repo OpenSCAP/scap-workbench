@@ -738,7 +738,8 @@ void MainWindow::tailoringFileComboboxChanged(int index)
                 }
                 else
                 {
-                    if (QMessageBox::question(this, "Unsaved tailoring changes!",
+                    if (mScanningSession->hasTailoring() &&
+                        QMessageBox::question(this, "Unsaved tailoring changes!",
                             "Are you sure you want to load a tailoring file and wipe all unsaved tailoring changes?",
                             QMessageBox::Yes | QMessageBox::No, QMessageBox::No) == QMessageBox::No)
                     {
