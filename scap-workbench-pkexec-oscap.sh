@@ -26,7 +26,8 @@ PARENT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 PKEXEC_PATH="pkexec"
 SCAP_WORKBENCH_OSCAP="$PARENT_DIR/scap-workbench-oscap.sh"
 
-which $PKEXEC_PATH > /dev/null || exit 1
+# We run unprivileged if pkexec was not found.
+#which $PKEXEC_PATH > /dev/null || exit 1 # fail if pkexec was not found
 
 $PKEXEC_PATH --disable-internal-agent $SCAP_WORKBENCH_OSCAP $uid $gid $@ 2> >(tail -n +2 1>&2)
 EC=$?
