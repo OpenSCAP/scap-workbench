@@ -31,6 +31,12 @@ Application::Application(int& argc, char** argv):
     setApplicationName("scap-workbench");
     setApplicationVersion(SCAP_WORKBENCH_VERSION);
 
+    QString iconPath = qgetenv("SCAP_WORKBENCH_ICON");
+    QIcon icon = QIcon(iconPath.isEmpty() ? SCAP_WORKBENCH_ICON : iconPath);
+
+    setWindowIcon(icon);
+    mMainWindow->setWindowIcon(icon);
+
     QObject::connect(
         this, SIGNAL(lastWindowClosed()),
         this, SLOT(quit())
