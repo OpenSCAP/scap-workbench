@@ -111,6 +111,8 @@ class ResultViewer : public QDialog
         QLabel* mNoWebKitNotification;
 #endif
 
+        QString mInputBaseName;
+
         QByteArray mResults;
         QByteArray mReport;
         /// If user requests to open the file via desktop services

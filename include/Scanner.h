@@ -73,6 +73,7 @@ class Scanner : public QObject
         virtual void setScanThread(QThread* thread);
         virtual void setMainThread(QThread* thread);
         virtual void setSession(ScanningSession* session);
+        ScanningSession* getSession() const;
         virtual void setTarget(const QString& target);
         const QString& getTarget() const;
 

@@ -49,6 +49,11 @@ void Scanner::setSession(ScanningSession* session)
     mSession = session;
 }
 
+ScanningSession* Scanner::getSession() const
+{
+    return mSession;
+}
+
 void Scanner::setTarget(const QString& target)
 {
     // TODO: assert that we are not running

@@ -21,6 +21,8 @@
 
 #include "ResultViewer.h"
 #include "Scanner.h"
+#include "ScanningSession.h"
+
 #include <QFileDialog>
 #include <QDesktopServices>
 #include <QMessageBox>
@@ -97,10 +99,25 @@ void ResultViewer::clear()
 #ifdef SCAP_WORKBENCH_USE_WEBKIT
     mWebView->setContent(QByteArray());
 #endif
+
+    mInputBaseName.clear();
+
+    mResults.clear();
+    mReport.clear();
+    mARF.clear();
 }
 
-void ResultViewer::loadContent(Scanner *scanner)
+void ResultViewer::loadContent(Scanner* scanner)
 {
+    mInputBaseName = "scap";
+
+    ScanningSession* session = scanner->getSession();
+    if (session)
+    {
+        QFileInfo openedFile(session->getOpenedFilePath());
+        mInputBaseName = openedFile.baseName();
+    }
+
     mReport.clear();
     scanner->getReport(mReport);
 
@@ -122,7 +139,7 @@ const QByteArray& ResultViewer::getARF() const
 
 void ResultViewer::saveReport()
 {
-    const QString filename = QFileDialog::getSaveFileName(this, "Save Report (HTML)", QString(), "HTML Report (*.html)");
+    const QString filename = QFileDialog::getSaveFileName(this, "Save Report (HTML)", QString("%1-xccdf.report.html").arg(mInputBaseName), "HTML Report (*.html)");
 
     if (filename == QString::Null())
         return;
@@ -148,7 +165,7 @@ void ResultViewer::openReport()
 
 void ResultViewer::saveResults()
 {
-    const QString filename = QFileDialog::getSaveFileName(this, "Save as XCCDF Results", QString(), "XCCDF Results (*.xml)");
+    const QString filename = QFileDialog::getSaveFileName(this, "Save as XCCDF Results", QString("%1-xccdf.results.xml").arg(mInputBaseName), "XCCDF Results (*.xml)");
 
     if (filename == QString::Null())
         return;
@@ -161,7 +178,7 @@ void ResultViewer::saveResults()
 
 void ResultViewer::saveARF()
 {
-    const QString filename = QFileDialog::getSaveFileName(this, "Save as Result DataStream / ARF", QString(), "Result DataStream / ARF (*.xml)");
+    const QString filename = QFileDialog::getSaveFileName(this, "Save as Result DataStream / ARF", QString("%1-arf.xml").arg(mInputBaseName), "Result DataStream / ARF (*.xml)");
 
     if (filename == QString::Null())
         return;
