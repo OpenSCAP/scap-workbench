@@ -29,6 +29,9 @@
 SshConnection::SshConnection(QObject* parent):
     QObject(parent),
 
+    mTarget(""),
+    mPort(22),
+
     mEnvironment(QProcessEnvironment::systemEnvironment()),
     mConnected(false),
     mCancelRequestSource(0)
