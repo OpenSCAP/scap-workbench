@@ -89,12 +89,11 @@ function chown_copy
     local what=$1
     local where=$2
 
-    # sudo only required if wrapper_{uid,gid} differs from real_{uid,gid}
+    [ ! -f "$what" ] || cp "$what" "$where"
+
+    # chown only required if wrapper_{uid,gid} differs from real_{uid,gid}
     if [ $wrapper_uid -ne $real_uid ] || [ $wrapper_gid -ne $real_gid ]; then
-        [ ! -f "$what" ] || cp "$what" "$where"
         chown $wrapper_uid:$wrapper_gid $where
-    else
-        [ ! -f "$what" ] || cp "$what" "$where"
     fi
 }
 
