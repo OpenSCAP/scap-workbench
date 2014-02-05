@@ -22,6 +22,13 @@
 #include "ForwardDecls.h"
 #include <QApplication>
 
+/**
+ * @brief Central application
+ *
+ * Constructs the MainWindow.
+ * Technically, this class is a singleton because of the qApp global pointer
+ * and the QCoreApplication::instance() static method.
+ */
 class Application : public QApplication
 {
     public:
@@ -29,5 +36,20 @@ class Application : public QApplication
         ~Application();
 
     private:
+        /**
+         * @brief Processes command line arguments and acts accordingly
+         */
+        void processCLI(const QStringList& args);
+
+        /**
+         * @brief Opens the default content if it can be found
+         */
+        void openDefaultContent();
+
+        /**
+         * @brief Opens a file dialog, allowing user to open any content
+         */
+        void browseForContent();
+
         MainWindow* mMainWindow;
 };

@@ -31,8 +31,8 @@ Application::Application(int& argc, char** argv):
     setApplicationName("scap-workbench");
     setApplicationVersion(SCAP_WORKBENCH_VERSION);
 
-    QString iconPath = qgetenv("SCAP_WORKBENCH_ICON");
-    QIcon icon = QIcon(iconPath.isEmpty() ? SCAP_WORKBENCH_ICON : iconPath);
+    const QString iconPath = qgetenv("SCAP_WORKBENCH_ICON");
+    const QIcon icon = QIcon(iconPath.isEmpty() ? SCAP_WORKBENCH_ICON : iconPath);
 
     setWindowIcon(icon);
     mMainWindow->setWindowIcon(icon);
@@ -42,7 +42,22 @@ Application::Application(int& argc, char** argv):
         this, SLOT(quit())
     );
 
-    QStringList args = arguments();
+    processCLI(arguments());
+
+    if (!mMainWindow->fileOpened())
+        openDefaultContent();
+
+    if (!mMainWindow->fileOpened())
+        browseForContent();
+}
+
+Application::~Application()
+{
+    delete mMainWindow;
+}
+
+void Application::processCLI(const QStringList& args)
+{
     if (args.length() > 1)
     {
         // The last argument will hold the path to file that user wants to open.
@@ -50,24 +65,20 @@ Application::Application(int& argc, char** argv):
 
         mMainWindow->openFile(args.last());
     }
-    else
-    {
-        // No arguments given, lets check if there is any default content to open.
-
-        const QString defaultContent = SCAP_WORKBENCH_DEFAULT_CONTENT;
-
-        // We silently ignore badly configured default content paths and avoid
-        // opening them.
-        if (!defaultContent.isEmpty() && QFileInfo(defaultContent).isFile())
-            mMainWindow->openFile(defaultContent);
-    }
-
-    // When all else fails, we just show the open file dialog.
-    if (!mMainWindow->fileOpened())
-        mMainWindow->openFileDialogAsync();
 }
 
-Application::~Application()
+void Application::openDefaultContent()
 {
-    delete mMainWindow;
+    const QString defaultContent = SCAP_WORKBENCH_DEFAULT_CONTENT;
+
+    // We silently ignore badly configured default content paths and avoid
+    // opening them.
+    if (!defaultContent.isEmpty() && QFileInfo(defaultContent).isFile())
+        mMainWindow->openFile(defaultContent);
 }
+
+void Application::browseForContent()
+{
+    mMainWindow->openFileDialogAsync();
+}
+
