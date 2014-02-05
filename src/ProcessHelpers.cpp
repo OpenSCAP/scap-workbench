@@ -173,9 +173,12 @@ void SyncProcess::run()
     mExitCode = process.exitCode();
 }
 
-void SyncProcess::runWithDialog(QWidget* widgetParent, const QString& title, bool showCancelButton, bool closeAfterFinished)
+QDialog* SyncProcess::runWithDialog(QWidget* widgetParent, const QString& title,
+    bool showCancelButton, bool closeAfterFinished, bool modal)
 {
     ProcessProgressDialog* dialog = new ProcessProgressDialog(widgetParent);
+    dialog->setModal(modal);
+
     QObject::connect(
         dialog, SIGNAL(rejected()),
         this, SLOT(cancel())
@@ -244,6 +247,8 @@ void SyncProcess::runWithDialog(QWidget* widgetParent, const QString& title, boo
 
     if (closeAfterFinished)
         dialog->done(QDialog::Accepted);
+
+    return dialog;
 }
 
 void SyncProcess::cancel()

@@ -54,6 +54,12 @@ SaveAsRPMDialog::SaveAsRPMDialog(ScanningSession* session, QWidget* parent):
 SaveAsRPMDialog::~SaveAsRPMDialog()
 {}
 
+void SaveAsRPMDialog::saveSession(ScanningSession* session, QWidget* parent)
+{
+    SaveAsRPMDialog* dialog = new SaveAsRPMDialog(session, parent);
+    dialog->exec();
+}
+
 void SaveAsRPMDialog::slotFinished(int result)
 {
     if (result == QDialog::Rejected)
@@ -132,5 +138,6 @@ void SaveAsRPMDialog::slotFinished(int result)
 
     scapAsRPM.setArguments(args);
 
-    scapAsRPM.runWithDialog(this, "Saving SCAP content as RPM...", true, false);
+    QDialog* dialog = scapAsRPM.runWithDialog(this, "Saving SCAP content as RPM...", true, false);
+    dialog->exec();
 }

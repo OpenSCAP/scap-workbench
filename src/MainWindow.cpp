@@ -1156,7 +1156,7 @@ void MainWindow::saveAsRPM()
     if (!fileOpened())
         return;
 
-    new SaveAsRPMDialog(mScanningSession, this);
+    SaveAsRPMDialog::saveSession(mScanningSession, this);
 }
 
 void MainWindow::markUnsavedTailoringChanges()

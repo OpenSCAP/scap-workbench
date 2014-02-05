@@ -27,6 +27,7 @@
 #include <QString>
 #include <QStringList>
 #include <QProcessEnvironment>
+#include <QDialog>
 
 /// This class is never exposed, it is internal only
 class ProcessProgressDialog;
@@ -50,7 +51,8 @@ class SyncProcess : public QObject
         void setCancelRequestSource(bool* source);
 
         void run();
-        void runWithDialog(QWidget* widgetParent, const QString& title, bool showCancelButton = true, bool closeAfterFinished = false);
+        QDialog* runWithDialog(QWidget* widgetParent, const QString& title,
+            bool showCancelButton = true, bool closeAfterFinished = false, bool modal = true);
 
     public slots:
         void cancel();

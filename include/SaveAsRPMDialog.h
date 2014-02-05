@@ -35,6 +35,8 @@ class SaveAsRPMDialog : public QDialog
         SaveAsRPMDialog(ScanningSession* session, QWidget* parent = 0);
         virtual ~SaveAsRPMDialog();
 
+        static void saveSession(ScanningSession* session, QWidget* parent = 0);
+
     protected slots:
         void slotFinished(int result);
 
