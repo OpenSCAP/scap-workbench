@@ -573,71 +573,18 @@ void MainWindow::refreshProfiles()
 
     try
     {
-        struct xccdf_policy_model* pmodel = xccdf_session_get_policy_model(mScanningSession->getXCCDFSession());
-
-        // We construct a temporary map that maps profile IDs to what we will show
-        // in the combobox. We do this to convey that some profiles are shadowed
-        // (tailored) in the tailoring file.
-
-        std::map<QString, QString> profileCrossMap;
-        struct xccdf_profile_iterator* profile_it;
-
-        struct xccdf_tailoring* tailoring = xccdf_policy_model_get_tailoring(pmodel);
-        if (tailoring)
-        {
-            profile_it = xccdf_tailoring_get_profiles(tailoring);
-            while (xccdf_profile_iterator_has_more(profile_it))
-            {
-                struct xccdf_profile* profile = xccdf_profile_iterator_next(profile_it);
-                const QString profile_id = QString::fromUtf8(xccdf_profile_get_id(profile));
-                const QString preferredTitle = oscapTextIteratorGetPreferred(xccdf_profile_get_title(profile));
-
-                assert(profileCrossMap.find(profile_id) == profileCrossMap.end());
-
-                profileCrossMap.insert(
-                    std::make_pair(
-                        profile_id,
-                        preferredTitle
-                    )
-                );
-            }
-            xccdf_profile_iterator_free(profile_it);
-        }
-
-        struct xccdf_benchmark* benchmark = xccdf_policy_model_get_benchmark(pmodel);
-        profile_it = xccdf_benchmark_get_profiles(benchmark);
-        while (xccdf_profile_iterator_has_more(profile_it))
-        {
-            struct xccdf_profile* profile = xccdf_profile_iterator_next(profile_it);
-            const QString profile_id = QString::fromUtf8(xccdf_profile_get_id(profile));
-            const QString preferredTitle = oscapTextIteratorGetPreferred(xccdf_profile_get_title(profile));
-
-            if (profileCrossMap.find(profile_id) != profileCrossMap.end())
-            {
-                // this profile is being shadowed by the tailoring file
-                profileCrossMap[profile_id] += " (tailored)";
-            }
-            else
-            {
-                profileCrossMap.insert(
-                    std::make_pair(
-                        profile_id,
-                        preferredTitle
-                    )
-                );
-            }
-        }
-        xccdf_profile_iterator_free(profile_it);
+        std::map<QString, struct xccdf_profile*> profiles = mScanningSession->getAvailableProfiles();
 
         // A nice side effect here is that profiles will be sorted by their IDs
         // because of the RB-tree implementation of std::map. I am not sure whether
         // we want that in the final version but it works well for the content
         // I am testing with.
-        for (std::map<QString, QString>::const_iterator it = profileCrossMap.begin();
-             it != profileCrossMap.end();
+        for (std::map<QString, struct xccdf_profile*>::const_iterator it = profiles.begin();
+             it != profiles.end();
              ++it)
         {
-            mUI.profileComboBox->addItem(it->second, QVariant(it->first));
+            const QString profileTitle = oscapTextIteratorGetPreferred(xccdf_profile_get_title(it->second));
+            mUI.profileComboBox->addItem(profileTitle, QVariant(it->first));
         }
 
         if (previouslySelected != QString::Null())

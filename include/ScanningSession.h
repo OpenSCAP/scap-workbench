@@ -23,9 +23,11 @@
 #define SCAP_WORKBENCH_SCANNING_SESSION_H_
 
 #include "ForwardDecls.h"
+
 #include <QTemporaryFile>
 #include <QSet>
 #include <QDir>
+#include <map>
 
 extern "C"
 {
@@ -154,13 +156,39 @@ class ScanningSession
         bool hasTailoring() const;
 
         /**
+         * @brief Returns a map of profile IDs that are available for selection
+         *
+         * IDs are mapped to respective profiles.
+         *
+         * Changing component ID and/or tailoring does invalidate the map. Available
+         * profiles will change if tailoring or benchmark changes.
+         *
+         * @see setProfileID
+         */
+        std::map<QString, struct xccdf_profile*> getAvailableProfiles();
+
+        /**
          * @brief Sets which profile to use for scanning
          *
-         * Will throw an exception if profile selection fails
+         * Will throw an exception if profile selection fails.
+         *
+         * @see getAvailableProfiles
          */
         void setProfileID(const QString& profileID);
+
+        /**
+         * @brief Retrieves currently selected profile for scanning
+         *
+         * @see setProfileID
+         */
         QString getProfileID() const;
 
+        /**
+         * @brief Checks wheter a profile is selected
+         *
+         * (default) profile doesn't count as a profile in this method. This method
+         * checks whether a profile other than (default) profile is selected.
+         */
         bool profileSelected() const;
 
         /**

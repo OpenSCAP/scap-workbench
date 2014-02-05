@@ -406,6 +406,58 @@ bool ScanningSession::hasTailoring() const
     return ret;
 }
 
+std::map<QString, struct xccdf_profile*> ScanningSession::getAvailableProfiles()
+{
+    std::map<QString, struct xccdf_profile*> ret;
+
+    struct xccdf_policy_model* pmodel = xccdf_session_get_policy_model(getXCCDFSession());
+
+    struct xccdf_tailoring* tailoring = xccdf_policy_model_get_tailoring(pmodel);
+    if (tailoring)
+    {
+        struct xccdf_profile_iterator* profile_it = xccdf_tailoring_get_profiles(tailoring);
+        while (xccdf_profile_iterator_has_more(profile_it))
+        {
+            struct xccdf_profile* profile = xccdf_profile_iterator_next(profile_it);
+            const QString profile_id = QString::fromUtf8(xccdf_profile_get_id(profile));
+
+            assert(ret.find(profile_id) == ret.end());
+
+            ret.insert(
+                std::make_pair(
+                    profile_id,
+                    profile
+                )
+            );
+        }
+        xccdf_profile_iterator_free(profile_it);
+    }
+
+    struct xccdf_benchmark* benchmark = xccdf_policy_model_get_benchmark(pmodel);
+    assert(benchmark);
+
+    struct xccdf_profile_iterator* profile_it = xccdf_benchmark_get_profiles(benchmark);
+    while (xccdf_profile_iterator_has_more(profile_it))
+    {
+        struct xccdf_profile* profile = xccdf_profile_iterator_next(profile_it);
+        const QString profile_id = QString::fromUtf8(xccdf_profile_get_id(profile));
+
+        // Only insert the profile if it's not being shadowed by a profile from tailoring
+        if (ret.find(profile_id) == ret.end())
+        {
+            ret.insert(
+                std::make_pair(
+                    profile_id,
+                    profile
+                )
+            );
+        }
+    }
+    xccdf_profile_iterator_free(profile_it);
+
+    return ret;
+}
+
 void ScanningSession::setProfileID(const QString& profileID)
 {
     if (!fileOpened())
