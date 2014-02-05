@@ -51,6 +51,13 @@ class DiagnosticsDialog : public QDialog
          */
         void clear();
 
+        /**
+         * @brief Blocks execution until user hides this dialog
+         *
+         * @param interval Polling interval in msec
+         */
+        void waitUntilHidden(unsigned int interval = 100);
+
     public slots:
         /**
          * @brief Scanner triggers this to show a message about progress

@@ -20,7 +20,11 @@
  */
 
 #include "DiagnosticsDialog.h"
+
+#include <QAbstractEventDispatcher>
+
 #include <iostream>
+#include <unistd.h>
 
 DiagnosticsDialog::DiagnosticsDialog(QWidget* parent):
     QDialog(parent)
@@ -39,6 +43,15 @@ DiagnosticsDialog::~DiagnosticsDialog()
 void DiagnosticsDialog::clear()
 {
     mUI.messages->clear();
+}
+
+void DiagnosticsDialog::waitUntilHidden(unsigned int interval)
+{
+    while (isVisible())
+    {
+        QAbstractEventDispatcher::instance(0)->processEvents(QEventLoop::AllEvents);
+        usleep(interval * 1000);
+    }
 }
 
 void DiagnosticsDialog::infoMessage(const QString& message)

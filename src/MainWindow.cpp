@@ -37,7 +37,6 @@
 
 #include <cassert>
 #include <set>
-#include <unistd.h>
 
 extern "C" {
 #include <xccdf_policy.h>
@@ -272,11 +271,7 @@ void MainWindow::openFileDialog()
     // that was called because of file passed on the command line.
     //
     // Do not continue until user dismisses the diagnostics dialog.
-    while (mDiagnosticsDialog->isVisible())
-    {
-        QAbstractEventDispatcher::instance(0)->processEvents(QEventLoop::AllEvents);
-        usleep(100 * 1000);
-    }
+    mDiagnosticsDialog->waitUntilHidden();
 
     QString defaultDirectory = SCAP_WORKBENCH_SCAP_CONTENT_DIRECTORY;
 
@@ -317,8 +312,7 @@ void MainWindow::openFileDialog()
         {
             // Error occured, keep pumping events and don't move on until user
             // dismisses diagnostics dialog.
-            while (mDiagnosticsDialog->isVisible())
-                QAbstractEventDispatcher::instance(0)->processEvents(QEventLoop::AllEvents);
+            mDiagnosticsDialog->waitUntilHidden();
         }
         else
             opened = true;
