@@ -21,6 +21,11 @@
 
 #include "APIHelpers.h"
 
+extern "C"
+{
+#include <oscap_error.h>
+}
+
 QString oscapTextIteratorGetPreferred(struct oscap_text_iterator* it, const QString& lang)
 {
     char* preferred_s = oscap_textlist_get_preferred_plaintext(it, lang.isEmpty() ? NULL : lang.toUtf8().constData());
@@ -29,4 +34,9 @@ QString oscapTextIteratorGetPreferred(struct oscap_text_iterator* it, const QStr
     free(preferred_s);
 
     return ret;
+}
+
+QString oscapErrDesc()
+{
+    return QString::fromUtf8(oscap_err_desc());
 }

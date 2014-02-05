@@ -38,4 +38,9 @@ extern "C"
  */
 QString oscapTextIteratorGetPreferred(struct oscap_text_iterator* it, const QString& lang = "");
 
+/**
+ * Returns QString containing utf8 contents of oscap_err_desc()
+ */
+QString oscapErrDesc();
+
 #endif

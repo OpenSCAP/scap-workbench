@@ -43,7 +43,6 @@ extern "C" {
 #include <xccdf_policy.h>
 #include <xccdf_session.h>
 #include <scap_ds.h>
-#include <oscap_error.h>
 }
 
 // A dialog to open a tailoring file is displayed after user selects this option
@@ -371,7 +370,7 @@ void MainWindow::scanAsync(ScannerMode scannerMode)
     {
         mDiagnosticsDialog->errorMessage(QString(
             "Can't get XCCDF policy from the session. Very likely it failed to load. "
-            "OpenSCAP error message:\n%1").arg(QString::fromUtf8(oscap_err_desc())));
+            "OpenSCAP error message:\n%1").arg(oscapErrDesc()));
 
         mUI.scanProperties->setEnabled(true);
         mUI.preScanTools->show();

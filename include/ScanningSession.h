@@ -60,6 +60,8 @@ class ScanningSession
 
         /**
          * @brief Closes currently opened file (if any)
+         *
+         * @throws Does not throw exceptions!
          */
         void closeFile();
 
