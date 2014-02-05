@@ -75,7 +75,7 @@ void ScanningSession::openFile(const QString& path)
     mTailoringUserChanges = false;
 
     // set default profile after opening, this ensures that xccdf_policy can be returned
-    setProfileID(QString());
+    setProfile(QString());
 }
 
 void ScanningSession::closeFile()
@@ -458,7 +458,7 @@ std::map<QString, struct xccdf_profile*> ScanningSession::getAvailableProfiles()
     return ret;
 }
 
-void ScanningSession::setProfileID(const QString& profileID)
+void ScanningSession::setProfile(const QString& profileID)
 {
     if (!fileOpened())
         throw ScanningSessionException(QString("File hasn't been opened, can't set profile to '%1'").arg(profileID));
@@ -469,7 +469,7 @@ void ScanningSession::setProfileID(const QString& profileID)
         throw ScanningSessionException(QString("Failed to set profile ID to '%1'. oscap error: %2").arg(profileID).arg(QString::fromUtf8(oscap_err_desc())));
 }
 
-QString ScanningSession::getProfileID() const
+QString ScanningSession::getProfile() const
 {
     if (!fileOpened())
         throw ScanningSessionException(QString("File hasn't been opened, can't get profile ID"));

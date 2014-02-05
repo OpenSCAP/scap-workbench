@@ -163,7 +163,7 @@ class ScanningSession
          * Changing component ID and/or tailoring does invalidate the map. Available
          * profiles will change if tailoring or benchmark changes.
          *
-         * @see setProfileID
+         * @see setProfile
          */
         std::map<QString, struct xccdf_profile*> getAvailableProfiles();
 
@@ -174,14 +174,14 @@ class ScanningSession
          *
          * @see getAvailableProfiles
          */
-        void setProfileID(const QString& profileID);
+        void setProfile(const QString& profileID);
 
         /**
          * @brief Retrieves currently selected profile for scanning
          *
-         * @see setProfileID
+         * @see setProfile
          */
-        QString getProfileID() const;
+        QString getProfile() const;
 
         /**
          * @brief Checks wheter a profile is selected

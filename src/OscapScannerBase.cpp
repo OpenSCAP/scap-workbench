@@ -185,7 +185,7 @@ QStringList OscapScannerBase::buildEvaluationArgs(const QString& inputFile,
         ret.append(tailoringFile);
     }
 
-    const QString profileId = mSession->getProfileID();
+    const QString profileId = mSession->getProfile();
 
     if (!profileId.isEmpty())
     {

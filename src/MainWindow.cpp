@@ -753,7 +753,7 @@ void MainWindow::profileComboboxChanged(int index)
 
     try
     {
-        mScanningSession->setProfileID(profileId);
+        mScanningSession->setProfile(profileId);
 
         mUI.customizeProfileButton->setEnabled(true);
     }
