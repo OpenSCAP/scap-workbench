@@ -30,7 +30,7 @@ QString oscapTextIteratorGetPreferred(struct oscap_text_iterator* it, const QStr
 {
     char* preferred_s = oscap_textlist_get_preferred_plaintext(it, lang.isEmpty() ? NULL : lang.toUtf8().constData());
     oscap_text_iterator_free(it);
-    const QString ret(QString::fromUtf8(preferred_s));
+    const QString ret(preferred_s != NULL ? QString::fromUtf8(preferred_s) : "(none)");
     free(preferred_s);
 
     return ret;
