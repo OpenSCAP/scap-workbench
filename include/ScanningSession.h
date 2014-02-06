@@ -126,6 +126,14 @@ class ScanningSession
         QString getComponentID() const;
 
         /**
+         * @brief Retrieves title of effective benchmark that will be used for evaluation
+         *
+         * In case just an XCCDF file is loaded the title is of the benchmark in that XCCDF file.
+         * In case a SDS is loaded the title of the benchmark in selected datastream and component is returned.
+         */
+        QString getBenchmarkTitle() const;
+
+        /**
          * @brief Removes all tailoring (including the tailoring loaded from a file!)
          *
          * The result scanning session will scan as if only the input file was loaded.

@@ -210,7 +210,9 @@ void MainWindow::openFile(const QString& path)
 
         mUI.tailoringFileComboBox->addItem(QString(TAILORING_NONE), QVariant(QString::Null()));
 
-        mUI.openedFileLineEdit->setText(path);
+        const QFileInfo pathInfo(path);
+        setWindowTitle(QString("%1 - scap-workbench").arg(pathInfo.fileName()));
+
         if (mScanningSession->isSDS())
         {
             struct ds_sds_index* sds_idx = xccdf_session_get_sds_idx(mScanningSession->getXCCDFSession());
@@ -257,8 +259,8 @@ void MainWindow::openFile(const QString& path)
     {
         mScanningSession->closeFile();
 
+        setWindowTitle("scap-workbench");
         mUI.tailoringFileComboBox->clear();
-        mUI.openedFileLineEdit->setText("");
         mUI.checklistComboBox->clear();
 
         mDiagnosticsDialog->errorMessage(e.what());
@@ -525,7 +527,7 @@ void MainWindow::closeFile()
 
     centralWidget()->setEnabled(false);
 
-    mUI.openedFileLineEdit->setText("");
+    setWindowTitle("scap-workbench");
 
     mUI.checklistComboBox->clear();
     mUI.checklistComboBox->hide();
@@ -550,6 +552,7 @@ void MainWindow::reloadSession()
     }
 
     mResultViewer->clear();
+    mUI.titleLabel->setText(mScanningSession->getBenchmarkTitle());
     refreshProfiles();
 }
 

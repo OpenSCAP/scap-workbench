@@ -309,6 +309,17 @@ QString ScanningSession::getComponentID() const
     return xccdf_session_get_component_id(mSession);
 }
 
+QString ScanningSession::getBenchmarkTitle() const
+{
+    if (!fileOpened())
+        return QString::null;
+
+    struct xccdf_policy_model* pmodel = xccdf_session_get_policy_model(mSession);
+    struct xccdf_benchmark* benchmark = xccdf_policy_model_get_benchmark(pmodel);
+
+    return oscapTextIteratorGetPreferred(xccdf_benchmark_get_title(benchmark));
+}
+
 void ScanningSession::resetTailoring()
 {
     if (!fileOpened())
