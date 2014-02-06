@@ -201,7 +201,7 @@
           </font>
          </property>
          <property name="text">
-          <string>TextLabel</string>
+          <string>[Benchmark Title]</string>
          </property>
         </widget>
        </item>
@@ -244,9 +244,20 @@
          <property name="rootIsDecorated">
           <bool>false</bool>
          </property>
+         <attribute name="headerDefaultSectionSize">
+          <number>150</number>
+         </attribute>
+         <attribute name="headerStretchLastSection">
+          <bool>false</bool>
+         </attribute>
          <column>
           <property name="text">
-           <string>Selected Rules</string>
+           <string>Rule</string>
+          </property>
+         </column>
+         <column>
+          <property name="text">
+           <string>Result</string>
           </property>
          </column>
         </widget>

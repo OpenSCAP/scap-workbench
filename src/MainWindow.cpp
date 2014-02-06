@@ -147,6 +147,7 @@ MainWindow::MainWindow(QWidget* parent):
     );
 
     mUI.selectedRulesTree->show();
+    mUI.selectedRulesTree->header()->setResizeMode(0, QHeaderView::Stretch);
     mUI.ruleResultsTree->hide();
     mUI.ruleResultsTree->header()->setResizeMode(0, QHeaderView::Stretch);
 
