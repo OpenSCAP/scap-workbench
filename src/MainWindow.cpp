@@ -85,7 +85,7 @@ MainWindow::MainWindow(QWidget* parent):
         Qt::QueuedConnection
     );
     QObject::connect(
-        mUI.browseButton, SIGNAL(released()),
+        mUI.openButton, SIGNAL(released()),
         this, SLOT(openFileDialog())
     );
     QObject::connect(

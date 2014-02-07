@@ -325,16 +325,16 @@
       </property>
       <layout class="QHBoxLayout" name="horizontalLayout_2">
        <item>
-        <widget class="QPushButton" name="browseButton">
+        <widget class="QPushButton" name="openButton">
          <property name="text">
-          <string>&amp;Browse</string>
+          <string>&amp;Open</string>
          </property>
         </widget>
        </item>
        <item>
         <widget class="QPushButton" name="saveButton">
          <property name="text">
-          <string>Save content</string>
+          <string>Save</string>
          </property>
          <property name="shortcut">
           <string>Ctrl+S</string>
