@@ -209,46 +209,16 @@ void MainWindow::openFile(const QString& path)
     {
         mScanningSession->openFile(path);
 
-        mUI.tailoringFileComboBox->addItem(QString(TAILORING_NONE), QVariant(QString::Null()));
-
         const QFileInfo pathInfo(path);
         setWindowTitle(QString("%1 - scap-workbench").arg(pathInfo.fileName()));
 
-        if (mScanningSession->isSDS())
-        {
-            struct ds_sds_index* sds_idx = xccdf_session_get_sds_idx(mScanningSession->getXCCDFSession());
-
-            struct ds_stream_index_iterator* streams_it = ds_sds_index_get_streams(sds_idx);
-            while (ds_stream_index_iterator_has_more(streams_it))
-            {
-                struct ds_stream_index* stream_idx = ds_stream_index_iterator_next(streams_it);
-                const QString stream_id = QString::fromUtf8(ds_stream_index_get_id(stream_idx));
-
-                struct oscap_string_iterator* checklists_it = ds_stream_index_get_checklists(stream_idx);
-                while (oscap_string_iterator_has_more(checklists_it))
-                {
-                    const QString checklist_id = QString::fromUtf8(oscap_string_iterator_next(checklists_it));
-
-                    QStringList data;
-                    data.append(stream_id);
-                    data.append(checklist_id);
-
-                    mUI.checklistComboBox->addItem(QString("%1 / %2").arg(stream_id).arg(checklist_id), data);
-                }
-                oscap_string_iterator_free(checklists_it);
-            }
-            ds_stream_index_iterator_free(streams_it);
-
-            mUI.checklistComboBox->show();
-            mUI.checklistLabel->show();
-
-            // TODO: Tailoring files inside datastream should be added to tailoring combobox
-        }
+        mUI.tailoringFileComboBox->addItem(QString(TAILORING_NONE), QVariant(QString::Null()));
 
         mUI.tailoringFileComboBox->addItem(QString(TAILORING_CUSTOM_FILE), QVariant(QString::Null()));
         // we have just loaded the input file fresh, there are no tailoring changes to save
         markNoUnsavedTailoringChanges();
 
+        refreshChecklists();
         // force load up of the session
         checklistComboboxChanged(0);
 
@@ -262,7 +232,6 @@ void MainWindow::openFile(const QString& path)
 
         setWindowTitle("scap-workbench");
         mUI.tailoringFileComboBox->clear();
-        mUI.checklistComboBox->clear();
 
         mDiagnosticsDialog->errorMessage(e.what());
     }
@@ -597,6 +566,49 @@ void MainWindow::refreshProfiles()
     {
         mUI.profileComboBox->clear();
         mDiagnosticsDialog->errorMessage(e.what());
+    }
+}
+
+void MainWindow::refreshChecklists()
+{
+    try
+    {
+        mUI.checklistComboBox->clear();
+
+        if (mScanningSession->isSDS())
+        {
+            struct ds_sds_index* sds_idx = xccdf_session_get_sds_idx(mScanningSession->getXCCDFSession());
+
+            struct ds_stream_index_iterator* streams_it = ds_sds_index_get_streams(sds_idx);
+            while (ds_stream_index_iterator_has_more(streams_it))
+            {
+                struct ds_stream_index* stream_idx = ds_stream_index_iterator_next(streams_it);
+                const QString stream_id = QString::fromUtf8(ds_stream_index_get_id(stream_idx));
+
+                struct oscap_string_iterator* checklists_it = ds_stream_index_get_checklists(stream_idx);
+                while (oscap_string_iterator_has_more(checklists_it))
+                {
+                    const QString checklist_id = QString::fromUtf8(oscap_string_iterator_next(checklists_it));
+
+                    QStringList data;
+                    data.append(stream_id);
+                    data.append(checklist_id);
+
+                    mUI.checklistComboBox->addItem(QString("%1 / %2").arg(stream_id).arg(checklist_id), data);
+                }
+                oscap_string_iterator_free(checklists_it);
+            }
+            ds_stream_index_iterator_free(streams_it);
+
+            mUI.checklistComboBox->show();
+            mUI.checklistLabel->show();
+        }
+    }
+    catch (...)
+    {
+        // do not leave the combobox partially filled
+        mUI.checklistComboBox->clear();
+        throw;
     }
 }
 

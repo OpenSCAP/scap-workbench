@@ -148,6 +148,13 @@ class MainWindow : public QMainWindow
         void refreshProfiles();
 
     private:
+        /**
+         * @brief Refreshes the checklists combobox from scratch
+         *
+         * @note Does not keep the previous selection!
+         * @note Throws exceptions!
+         */
+        void refreshChecklists();
 
         /**
          * @brief Destroys the scanning thread and associated data
