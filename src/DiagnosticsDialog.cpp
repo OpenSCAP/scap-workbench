@@ -22,6 +22,8 @@
 #include "DiagnosticsDialog.h"
 
 #include <QAbstractEventDispatcher>
+#include <QApplication>
+#include <QClipboard>
 
 #include <iostream>
 #include <unistd.h>
@@ -30,6 +32,11 @@ DiagnosticsDialog::DiagnosticsDialog(QWidget* parent):
     QDialog(parent)
 {
     mUI.setupUi(this);
+
+    QObject::connect(
+        mUI.clipboardButton, SIGNAL(released()),
+        this, SLOT(copyToClipboard())
+    );
 
     QObject::connect(
         mUI.closeButton, SIGNAL(released()),
@@ -56,12 +63,12 @@ void DiagnosticsDialog::waitUntilHidden(unsigned int interval)
 
 void DiagnosticsDialog::infoMessage(const QString& message)
 {
-    pushMessage("[info] " + message);
+    pushMessage(MS_INFO, message);
 }
 
 void DiagnosticsDialog::warningMessage(const QString& message)
 {
-    pushMessage("[warn] " + message);
+    pushMessage(MS_WARNING, message);
 
     // warning message is important, make sure the diagnostics are shown
     show();
@@ -69,13 +76,13 @@ void DiagnosticsDialog::warningMessage(const QString& message)
 
 void DiagnosticsDialog::errorMessage(const QString& message)
 {
-    pushMessage("[err ] " + message, true);
+    pushMessage(MS_ERROR, message);
 
     // error message is important, make sure the diagnostics are shown
     show();
 }
 
-void DiagnosticsDialog::pushMessage(const QString& fullMessage, const bool error)
+void DiagnosticsDialog::pushMessage(MessageSeverity severity, const QString& fullMessage)
 {
     char stime[11];
     stime[10] = '\0';
@@ -88,9 +95,36 @@ void DiagnosticsDialog::pushMessage(const QString& fullMessage, const bool error
 
     strftime(stime, 10, "%H:%M:%S", timeinfo);
 
-    const QString outMessage = QString(stime) + " | " + fullMessage;
+    QString strSeverity = "unknown";
+    QString bgCol = "transparent";
+    switch (severity)
+    {
+        case MS_INFO:
+            strSeverity = "info   ";
+            break;
+        case MS_WARNING:
+            strSeverity = "warning";
+            bgCol = "#ffff99";
+            break;
+        case MS_ERROR:
+            strSeverity = "error  ";
+            bgCol = "#cc9933";
+            break;
 
-    std::cerr << outMessage.toUtf8().constData() << std::endl;
+        default:
+            break;
+    }
 
-    mUI.messages->append(outMessage + "\n");
+    std::cerr << stime << " | " << strSeverity.toUtf8().constData() << " | " << fullMessage.toUtf8().constData() << std::endl;
+    mUI.messages->append(
+        QString("<table><tr style=\"background: %1\"><td><pre>%2 </pre></td><td><pre>%3 </pre></td><td>%4</td></tr></table>\n")
+            .arg(bgCol, stime, strSeverity, fullMessage)
+    );
+}
+
+void DiagnosticsDialog::copyToClipboard()
+{
+    const QString fullLog = mUI.messages->toPlainText();
+    QClipboard* clipboard = QApplication::clipboard();
+    clipboard->setText(fullLog);
 }

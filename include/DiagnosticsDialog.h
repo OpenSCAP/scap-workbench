@@ -33,6 +33,13 @@ extern "C"
 
 #include "ui_DiagnosticsDialog.h"
 
+enum MessageSeverity
+{
+    MS_INFO,
+    MS_WARNING,
+    MS_ERROR
+};
+
 /**
  * @brief Workbench displays errors and warnings, this dialog groups them
  *
@@ -87,9 +94,15 @@ class DiagnosticsDialog : public QDialog
         void errorMessage(const QString& message);
 
     private:
-        void pushMessage(const QString& fullMessage, const bool error = false);
+        void pushMessage(MessageSeverity severity, const QString& fullMessage);
 
         Ui_DiagnosticsDialog mUI;
+
+    private slots:
+        /**
+         * @brief Copies plain text log to system clipboard, useful for bug reports
+         */
+        void copyToClipboard();
 };
 
 #endif

@@ -81,4 +81,3 @@ void Application::browseForContent()
 {
     mMainWindow->openFileDialogAsync();
 }
-
