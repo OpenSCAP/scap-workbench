@@ -794,21 +794,13 @@ inline void gatherAllSelectedRules(struct xccdf_policy* policy, struct xccdf_ite
     else if (xccdf_item_get_type(current) == XCCDF_BENCHMARK ||
         xccdf_item_get_type(current) == XCCDF_GROUP)
     {
-        typedef std::map<QString, struct xccdf_item*> ChildrenMap;
-        ChildrenMap children;
-
         struct xccdf_item_iterator* it = xccdf_item_get_content(current);
         while (xccdf_item_iterator_has_more(it))
         {
             struct xccdf_item* item = xccdf_item_iterator_next(it);
-            children.insert(std::make_pair(oscapTextIteratorGetPreferred(xccdf_item_get_title(item)), item));
+            gatherAllSelectedRules(policy, item, result);
         }
         xccdf_item_iterator_free(it);
-
-        for (ChildrenMap::const_iterator it = children.begin(); it != children.end(); ++it)
-        {
-            gatherAllSelectedRules(policy, it->second, result);
-        }
     }
 }
 
