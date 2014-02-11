@@ -33,10 +33,20 @@ extern "C"
 
 #include "ui_DiagnosticsDialog.h"
 
+/**
+ * @brief Messages are divided into categories.
+ *
+ * Info is not important and does not make the DiagnosticDialog pop up.
+ * All the other categories cause the dialog to be shown.
+ *
+ * This enum is not used directly but only internally. You are advised
+ * to use the {info,warning,exception,error}Message methods.
+ */
 enum MessageSeverity
 {
     MS_INFO,
     MS_WARNING,
+    MS_EXCEPTION,
     MS_ERROR
 };
 
@@ -92,6 +102,11 @@ class DiagnosticsDialog : public QDialog
          * being shown already.
          */
         void errorMessage(const QString& message);
+
+        /**
+         * @brief Report a caught exception.
+         */
+        void exceptionMessage(const std::exception& e, const QString context = QString::null);
 
     private:
         void pushMessage(MessageSeverity severity, const QString& fullMessage);

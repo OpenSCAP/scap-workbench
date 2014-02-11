@@ -213,7 +213,6 @@ void MainWindow::openFile(const QString& path)
         setWindowTitle(QString("%1 - scap-workbench").arg(pathInfo.fileName()));
 
         mUI.tailoringFileComboBox->addItem(QString(TAILORING_NONE), QVariant(QString::Null()));
-
         mUI.tailoringFileComboBox->addItem(QString(TAILORING_CUSTOM_FILE), QVariant(QString::Null()));
         // we have just loaded the input file fresh, there are no tailoring changes to save
         markNoUnsavedTailoringChanges();
@@ -233,7 +232,7 @@ void MainWindow::openFile(const QString& path)
         setWindowTitle("scap-workbench");
         mUI.tailoringFileComboBox->clear();
 
-        mDiagnosticsDialog->errorMessage(e.what());
+        mDiagnosticsDialog->exceptionMessage(e, "Error while opening file.");
     }
 }
 
@@ -358,7 +357,7 @@ void MainWindow::scanAsync(ScannerMode scannerMode)
     // targets (which can avoid reconnection and reauthentication).
     // In the OscapScannerRemoteSsh class the port will be parsed out again...
     const QString target = mUI.localMachineRadioButton->isChecked() ?
-            "localhost" : QString("%1:%2").arg(mUI.remoteMachineHost->text()).arg(mUI.remoteMachinePort->value());
+        "localhost" : QString("%1:%2").arg(mUI.remoteMachineHost->text()).arg(mUI.remoteMachinePort->value());
 
     try
     {
@@ -416,10 +415,8 @@ void MainWindow::scanAsync(ScannerMode scannerMode)
     }
     catch (const std::exception& e)
     {
-        mDiagnosticsDialog->errorMessage(
-            QString("There was a problem when setting up the scanner. Details follow:\n%1").arg(e.what()));
-
         scanCanceled();
+        mDiagnosticsDialog->exceptionMessage(e, "There was a problem setting up the scanner.");
         return;
     }
 
@@ -492,7 +489,12 @@ void MainWindow::closeFile()
     }
     catch (const std::exception& e)
     {
-        mDiagnosticsDialog->errorMessage(e.what());
+        // Have to reset scanning session to a sane state. This may leak
+        // but is the best we can do right now.
+        delete mScanningSession;
+        mScanningSession = new ScanningSession();
+
+        mDiagnosticsDialog->exceptionMessage(e, "Failed to close file.");
     }
 
     centralWidget()->setEnabled(false);
@@ -518,7 +520,7 @@ void MainWindow::reloadSession()
     }
     catch (const std::exception& e)
     {
-        mDiagnosticsDialog->errorMessage(e.what());
+        mDiagnosticsDialog->exceptionMessage(e);
     }
 
     mResultViewer->clear();
@@ -539,15 +541,12 @@ void MainWindow::refreshProfiles()
 
     try
     {
-        std::map<QString, struct xccdf_profile*> profiles = mScanningSession->getAvailableProfiles();
+        const std::map<QString, struct xccdf_profile*> profiles = mScanningSession->getAvailableProfiles();
 
         // A nice side effect here is that profiles will be sorted by their IDs
-        // because of the RB-tree implementation of std::map. I am not sure whether
-        // we want that in the final version but it works well for the content
-        // I am testing with.
+        // because of the RB-tree implementation of std::map.
         for (std::map<QString, struct xccdf_profile*>::const_iterator it = profiles.begin();
-             it != profiles.end();
-             ++it)
+             it != profiles.end(); ++it)
         {
             const QString profileTitle = oscapTextIteratorGetPreferred(xccdf_profile_get_title(it->second));
             mUI.profileComboBox->addItem(profileTitle, QVariant(it->first));
@@ -560,12 +559,13 @@ void MainWindow::refreshProfiles()
                 mUI.profileComboBox->setCurrentIndex(indexCandidate);
         }
 
+        // Intentionally comes last. Users are more likely to use profiles other than (default)
         mUI.profileComboBox->addItem("(default)", QVariant(QString::Null()));
     }
     catch (const std::exception& e)
     {
         mUI.profileComboBox->clear();
-        mDiagnosticsDialog->errorMessage(e.what());
+        mDiagnosticsDialog->exceptionMessage(e, "Error while refreshing available XCCDF profiles.");
     }
 }
 
@@ -647,7 +647,7 @@ void MainWindow::checklistComboboxChanged(int index)
     }
     catch (const std::exception& e)
     {
-        mDiagnosticsDialog->errorMessage(e.what());
+        mDiagnosticsDialog->exceptionMessage(e);
     }
 }
 
@@ -743,9 +743,7 @@ void MainWindow::tailoringFileComboboxChanged(int index)
         // Something went wrong when setting the tailoring file, lets reset tailoring
         // to the most likely *sane* state to avoid errors when scanning.
         mUI.tailoringFileComboBox->setCurrentIndex(0);
-
-        mDiagnosticsDialog->errorMessage(
-            QString("Failed to set up tailoring. Details follow:\n%1").arg(QString::fromUtf8(e.what())));
+        mDiagnosticsDialog->exceptionMessage(e, "Failed to set up tailoring.");
     }
 
     reloadSession();
@@ -763,16 +761,15 @@ void MainWindow::profileComboboxChanged(int index)
     try
     {
         mScanningSession->setProfile(profileId);
-
         mUI.customizeProfileButton->setEnabled(true);
     }
     catch (std::exception& e)
     {
-        mDiagnosticsDialog->errorMessage(e.what());
-
         // At this point we can't be sure a valid profile is selected.
         // We better disallow tailoring.
         mUI.customizeProfileButton->setEnabled(false);
+
+        mDiagnosticsDialog->exceptionMessage(e, "Failed to select XCCDF profile.");
     }
 
     refreshSelectedRulesTree();
@@ -1031,8 +1028,7 @@ void MainWindow::inheritAndEditProfile(bool shadowed)
     }
     catch (const std::exception& e)
     {
-        mDiagnosticsDialog->errorMessage(
-            QString("Failed to tailor currently selected profile, details follow:\n%1").arg(QString::fromUtf8(e.what())));
+        mDiagnosticsDialog->exceptionMessage(e, "Failed to tailor currently selected profile.");
     }
 
     refreshProfiles();
@@ -1072,8 +1068,7 @@ void MainWindow::editProfile()
     }
     catch (const std::exception& e)
     {
-        mDiagnosticsDialog->errorMessage(
-            QString("Failed to retrieve XCCDF policy when editing profile, details follow:%1").arg(QString::fromUtf8(e.what())));
+        mDiagnosticsDialog->exceptionMessage(e, "Failed to retrieve XCCDF policy when editing profile.");
         return;
     }
 
@@ -1130,11 +1125,9 @@ void MainWindow::saveTailoring()
     }
     catch (const std::exception& e)
     {
-        mDiagnosticsDialog->errorMessage(
-            QString(
-                "Failed to save tailoring file to path '%1'! Details follow:\n%2"
-            ).arg(path).arg(QString::fromUtf8(e.what()))
-        );
+        // Just to be sure user doesn't lose the tailoring.
+        markUnsavedTailoringChanges();
+        mDiagnosticsDialog->exceptionMessage(e, "Failed to save tailoring file.");
     }
 }
 
@@ -1153,11 +1146,7 @@ void MainWindow::saveIntoDirectory()
     }
     catch (const std::exception& e)
     {
-        mDiagnosticsDialog->errorMessage(
-            QString(
-                "Failed to save opened files to path '%1'! Details follow:\n%2"
-            ).arg(targetPath).arg(QString::fromUtf8(e.what()))
-        );
+        mDiagnosticsDialog->exceptionMessage(e, "Failed to save opened files.");
     }
 }
 

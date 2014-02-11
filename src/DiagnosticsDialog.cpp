@@ -82,6 +82,14 @@ void DiagnosticsDialog::errorMessage(const QString& message)
     show();
 }
 
+void DiagnosticsDialog::exceptionMessage(const std::exception& e, const QString context)
+{
+    pushMessage(MS_EXCEPTION, (context.isEmpty() ? "" : context + "\n\n" + QString::fromUtf8(e.what())));
+
+    // error message is important, make sure the diagnostics are shown
+    show();
+}
+
 void DiagnosticsDialog::pushMessage(MessageSeverity severity, const QString& fullMessage)
 {
     char stime[11];
@@ -106,6 +114,10 @@ void DiagnosticsDialog::pushMessage(MessageSeverity severity, const QString& ful
             strSeverity = "warning";
             bgCol = "#ffff99";
             break;
+        case MS_EXCEPTION:
+            strSeverity = "except ";
+            bgCol = "#cc9933";
+            break;
         case MS_ERROR:
             strSeverity = "error  ";
             bgCol = "#cc9933";
@@ -117,8 +129,8 @@ void DiagnosticsDialog::pushMessage(MessageSeverity severity, const QString& ful
 
     std::cerr << stime << " | " << strSeverity.toUtf8().constData() << " | " << fullMessage.toUtf8().constData() << std::endl;
     mUI.messages->append(
-        QString("<table><tr style=\"background: %1\"><td><pre>%2 </pre></td><td><pre>%3 </pre></td><td>%4</td></tr></table>\n")
-            .arg(bgCol, stime, strSeverity, fullMessage)
+        QString("<table><tr><td><pre>%1 </pre></td><td style=\"background: %2\"><pre>%3 </pre></td><td>%4</td></tr></table>\n")
+            .arg(stime, bgCol, strSeverity, fullMessage)
     );
 }
 
