@@ -24,6 +24,9 @@
 #include "MainWindow.h"
 #include "APIHelpers.h"
 
+#include <QMessageBox>
+#include <QCloseEvent>
+
 #include <set>
 #include <cassert>
 
@@ -275,7 +278,8 @@ TailoringWindow::TailoringWindow(struct xccdf_policy* policy, struct xccdf_bench
     mProfile(xccdf_policy_get_profile(policy)),
     mBenchmark(benchmark),
 
-    mUndoStack(this)
+    mUndoStack(this),
+    mChangesConfirmed(false)
 {
     // sanity check
     if (!mPolicy)
@@ -293,7 +297,12 @@ TailoringWindow::TailoringWindow(struct xccdf_policy* policy, struct xccdf_bench
     mUI.setupUi(this);
 
     QObject::connect(
-        mUI.finishButton, SIGNAL(released()),
+        mUI.confirmButton, SIGNAL(released()),
+        this, SLOT(confirmAndClose())
+    );
+
+    QObject::connect(
+        mUI.cancelButton, SIGNAL(released()),
         this, SLOT(close())
     );
 
@@ -575,8 +584,30 @@ void TailoringWindow::refreshProfileDockWidget()
     mProfilePropertiesDockWidget->refresh();
 }
 
+void TailoringWindow::confirmAndClose()
+{
+    mChangesConfirmed = true;
+
+    close();
+}
+
 void TailoringWindow::closeEvent(QCloseEvent * event)
 {
+    if (!mChangesConfirmed)
+    {
+        if (QMessageBox::question(this, "Discard changes?",
+            "Are you sure you want to discard all changes performed in this tailoring window.",
+            QMessageBox::Yes | QMessageBox::No, QMessageBox::No) == QMessageBox::No)
+        {
+            event->ignore();
+            return;
+        }
+
+        // undo everything
+        mUndoStack.setIndex(0);
+        // TODO: Delete the profile if it was created as a tailoring action
+    }
+
     QMainWindow::closeEvent(event);
 
     // TODO: This is the only place where we depend on MainWindow which really sucks

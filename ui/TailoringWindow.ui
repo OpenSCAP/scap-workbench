@@ -49,7 +49,7 @@
        <item>
         <widget class="QLabel" name="label">
          <property name="text">
-          <string>Changes will be saved but Undo / Redo history will be lost if you press 'Finish tailoring'!</string>
+          <string>Undo / Redo history will be lost once this window is closed.</string>
          </property>
          <property name="alignment">
           <set>Qt::AlignCenter</set>
@@ -73,16 +73,26 @@
         </spacer>
        </item>
        <item>
-        <widget class="QPushButton" name="finishButton">
+        <widget class="QPushButton" name="confirmButton">
          <property name="font">
           <font>
-           <pointsize>12</pointsize>
+           <pointsize>10</pointsize>
            <weight>75</weight>
            <bold>true</bold>
           </font>
          </property>
          <property name="text">
-          <string>Finish tailoring</string>
+          <string>Confirm tailoring</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="cancelButton">
+         <property name="toolTip">
+          <string>Closes this window and discard all changes</string>
+         </property>
+         <property name="text">
+          <string>Discard</string>
          </property>
         </widget>
        </item>

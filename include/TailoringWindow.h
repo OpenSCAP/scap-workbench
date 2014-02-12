@@ -246,6 +246,9 @@ class TailoringWindow : public QMainWindow
          */
         void refreshProfileDockWidget();
 
+    public slots:
+        void confirmAndClose();
+
     protected:
         /// Reimplemented to refresh profiles and selected rules in the parent main window
         virtual void closeEvent(QCloseEvent * event);
@@ -266,6 +269,7 @@ class TailoringWindow : public QMainWindow
         struct xccdf_benchmark* mBenchmark;
 
         QUndoStack mUndoStack;
+        bool mChangesConfirmed;
 
     protected slots:
         void itemSelectionChanged(QTreeWidgetItem* current, QTreeWidgetItem* previous);
