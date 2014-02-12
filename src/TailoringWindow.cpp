@@ -264,7 +264,7 @@ void _refreshXCCDFItemChildrenDisabledState(QTreeWidgetItem* treeItem, bool allA
     }
 }
 
-TailoringWindow::TailoringWindow(struct xccdf_policy* policy, struct xccdf_benchmark* benchmark, MainWindow* parent):
+TailoringWindow::TailoringWindow(struct xccdf_policy* policy, struct xccdf_benchmark* benchmark, bool newProfile, MainWindow* parent):
     QMainWindow(parent),
 
     mParentMainWindow(parent),
@@ -279,6 +279,8 @@ TailoringWindow::TailoringWindow(struct xccdf_policy* policy, struct xccdf_bench
     mBenchmark(benchmark),
 
     mUndoStack(this),
+
+    mNewProfile(newProfile),
     mChangesConfirmed(false)
 {
     // sanity check
@@ -617,8 +619,7 @@ void TailoringWindow::closeEvent(QCloseEvent * event)
 
     if (mParentMainWindow)
     {
-        mParentMainWindow->refreshSelectedRulesTree();
-        mParentMainWindow->refreshProfiles();
+        mParentMainWindow->notifyTailoringFinished(mNewProfile, mChangesConfirmed);
     }
 }
 

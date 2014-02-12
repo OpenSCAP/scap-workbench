@@ -25,7 +25,7 @@ image::intro_screenshot.png[align="center"]
 
  * cmake >= 2.6
  * Qt4 (Core, GUI, XmlPatterns)
- * openscap >= 0.9.12
+ * openscap >= 1.0.4
  * cmake-gui [optional]
  * Qt4 (WebKit) [optional]
 

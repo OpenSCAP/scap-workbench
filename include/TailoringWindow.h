@@ -180,7 +180,10 @@ class TailoringWindow : public QMainWindow
     Q_OBJECT
 
     public:
-        TailoringWindow(struct xccdf_policy* policy, struct xccdf_benchmark* benchmark, MainWindow* parent = 0);
+        /**
+         * @param newProfile whether the profile in policy was created solely for tailoring
+         */
+        TailoringWindow(struct xccdf_policy* policy, struct xccdf_benchmark* benchmark, bool newProfile, MainWindow* parent = 0);
         virtual ~TailoringWindow();
 
         /**
@@ -269,6 +272,8 @@ class TailoringWindow : public QMainWindow
         struct xccdf_benchmark* mBenchmark;
 
         QUndoStack mUndoStack;
+
+        bool mNewProfile;
         bool mChangesConfirmed;
 
     protected slots:

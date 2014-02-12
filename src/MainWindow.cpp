@@ -528,6 +528,24 @@ void MainWindow::reloadSession()
     refreshProfiles();
 }
 
+void MainWindow::notifyTailoringFinished(bool newProfile, bool changesConfirmed)
+{
+    if (newProfile && !changesConfirmed)
+    {
+        struct xccdf_session* session = mScanningSession->getXCCDFSession();
+        struct xccdf_policy_model* pmodel = xccdf_session_get_policy_model(session);
+        struct xccdf_tailoring* tailoring = xccdf_policy_model_get_tailoring(pmodel);
+        assert(tailoring != 0);
+
+        struct xccdf_profile* profile = xccdf_tailoring_get_profile_by_id(tailoring, mScanningSession->getProfile().toUtf8().constData());
+        assert(profile != 0);
+        xccdf_tailoring_remove_profile(tailoring, profile);
+    }
+
+    refreshProfiles();
+    refreshSelectedRulesTree();
+}
+
 void MainWindow::refreshProfiles()
 {
     const int previousIndex = mUI.profileComboBox->currentIndex();
@@ -1031,22 +1049,10 @@ void MainWindow::inheritAndEditProfile(bool shadowed)
         mUI.profileComboBox->setCurrentIndex(indexCandidate);
 
     // and edit it
-    editProfile();
+    editProfile(true);
 }
 
-void MainWindow::tailorNewID()
-{
-    // TODO: Use lambdas
-    inheritAndEditProfile(false);
-}
-
-void MainWindow::tailorShadowed()
-{
-    // TODO: Use lambdas
-    inheritAndEditProfile(true);
-}
-
-void MainWindow::editProfile()
+void MainWindow::editProfile(bool newProfile)
 {
     if (!fileOpened())
         return;
@@ -1086,7 +1092,7 @@ void MainWindow::editProfile()
     struct xccdf_policy_model* policyModel = xccdf_session_get_policy_model(session);
     struct xccdf_benchmark* benchmark = xccdf_policy_model_get_benchmark(policyModel);
 
-    new TailoringWindow(policy, benchmark, this);
+    new TailoringWindow(policy, benchmark, newProfile, this);
     // The tailoring that is going to be done is not part of anything saved on disk.
     // User might want to save it
     markUnsavedTailoringChanges();
@@ -1098,9 +1104,9 @@ void MainWindow::customizeProfile()
         return;
 
     if (mScanningSession->isSelectedProfileTailoring())
-        editProfile();
+        editProfile(false);
     else
-        tailorNewID();
+        inheritAndEditProfile(false);
 }
 
 void MainWindow::saveTailoring()

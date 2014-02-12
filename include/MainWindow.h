@@ -140,6 +140,9 @@ class MainWindow : public QMainWindow
         void reloadSession();
 
     public: // TailoringWindow calls this
+        void notifyTailoringFinished(bool newProfile, bool changesConfirmed);
+
+    private:
         /**
          * @brief Refreshes items of the profile combobox with data from the session
          *
@@ -147,7 +150,6 @@ class MainWindow : public QMainWindow
          */
         void refreshProfiles();
 
-    private:
         /**
          * @brief Refreshes the checklists combobox from scratch
          *
@@ -291,10 +293,7 @@ class MainWindow : public QMainWindow
         void showResults();
 
         void inheritAndEditProfile(bool shadowed);
-
-        void tailorNewID();
-        void tailorShadowed();
-        void editProfile();
+        void editProfile(bool newProfile);
 
         /**
          * @brief If current profile has been tailored, it gets edited, else it gets tailored with new ID
