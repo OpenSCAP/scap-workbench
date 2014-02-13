@@ -578,6 +578,9 @@ void MainWindow::refreshProfiles()
         }
 
         // Intentionally comes last. Users are more likely to use profiles other than (default)
+#if (QT_VERSION >= QT_VERSION_CHECK(4, 4, 0))
+        mUI.profileComboBox->insertSeparator(mUI.profileComboBox->count());
+#endif
         mUI.profileComboBox->addItem("(default)", QVariant(QString::Null()));
     }
     catch (const std::exception& e)
