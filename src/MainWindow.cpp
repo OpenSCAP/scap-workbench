@@ -983,28 +983,30 @@ void MainWindow::scanErrorMessage(const QString &message)
 
 void MainWindow::scanCanceled()
 {
-    mUI.cancelButton->setEnabled(true);
-
-    cleanupScanThread();
-    // Essentially, this is done to notify the user that the progress results
-    // are only partial. Yet it could be useful to review them so we don't
-    // clear them completely.
-    mUI.ruleResultsTree->setEnabled(false);
-
-    mUI.scanProperties->setEnabled(true);
-    mUI.preScanTools->show();
-    mUI.preScanTools->setEnabled(true);
-    mUI.scanTools->hide();
-    mUI.scanTools->setEnabled(false);
-    mUI.postScanTools->hide();
-    mUI.postScanTools->setEnabled(false);
-
-    statusBar()->clearMessage();
+    scanEnded(true);
 }
 
 void MainWindow::scanFinished()
 {
-    mResultViewer->loadContent(mScanner);
+    scanEnded(false);
+}
+
+void MainWindow::scanEnded(bool canceled)
+{
+    if (canceled)
+    {
+        mUI.cancelButton->setEnabled(true);
+
+        // Essentially, this is done to notify the user that the progress results
+        // are only partial. Yet it could be useful to review them so we don't
+        // clear them completely.
+        mUI.ruleResultsTree->setEnabled(false);
+    }
+    else
+    {
+        mResultViewer->loadContent(mScanner);
+        mUI.offlineRemediateButton->setEnabled(mScanner->getScannerMode() == SM_SCAN);
+    }
 
     mUI.preScanTools->hide();
     mUI.preScanTools->setEnabled(false);
@@ -1013,10 +1015,9 @@ void MainWindow::scanFinished()
     mUI.postScanTools->show();
     mUI.postScanTools->setEnabled(true);
 
-    mUI.offlineRemediateButton->setEnabled(mScanner->getScannerMode() == SM_SCAN);
+    mUI.showResultsButton->setEnabled(!canceled);
 
     cleanupScanThread();
-
     statusBar()->clearMessage();
 }
 

@@ -285,6 +285,13 @@ class MainWindow : public QMainWindow
         void scanFinished();
 
         /**
+         * @brief Triggered when scanning ends
+         *
+         * @param canceled if true the scanning was canceled, otherwise it finished
+         */
+        void scanEnded(bool canceled);
+
+        /**
          * @brief When triggered, the ResultViewer is shown as a modal dialog
          *
          * Sole application control is passed to ResultViewer until user closes
