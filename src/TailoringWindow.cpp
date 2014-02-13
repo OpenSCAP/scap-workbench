@@ -342,10 +342,6 @@ TailoringWindow::TailoringWindow(struct xccdf_policy* policy, struct xccdf_bench
     synchronizeTreeItem(benchmarkItem, xccdf_benchmark_to_item(mBenchmark), true);
     _refreshXCCDFItemChildrenDisabledState(benchmarkItem, true);
 
-    // we cannot rely on any ordering from openscap, to make sure items appear
-    // in the same order when scap-workbench is run multiple times we have to sort
-    mUI.itemsTree->sortByColumn(0, Qt::AscendingOrder);
-
     // let title stretch and take space as the tailoring window grows
     mUI.itemsTree->header()->setResizeMode(0, QHeaderView::Stretch);
 
@@ -435,7 +431,12 @@ void TailoringWindow::synchronizeTreeItem(QTreeWidgetItem* treeItem, struct xccd
 
     if (recursive)
     {
-        std::set<struct xccdf_item*> itemsToAdd;
+        typedef std::vector<struct xccdf_item*> XCCDFItemVector;
+        typedef std::map<struct xccdf_item*, QTreeWidgetItem*> XCCDFToQtItemMap;
+
+        XCCDFItemVector itemsToAdd;
+        XCCDFToQtItemMap existingItemsMap;
+
         struct xccdf_item_iterator* itemsIt = NULL;
 
         switch (xccdfItemType)
@@ -455,47 +456,52 @@ void TailoringWindow::synchronizeTreeItem(QTreeWidgetItem* treeItem, struct xccd
             while (xccdf_item_iterator_has_more(itemsIt))
             {
                 struct xccdf_item* childItem = xccdf_item_iterator_next(itemsIt);
-                itemsToAdd.insert(childItem);
+                itemsToAdd.push_back(childItem);
             }
             xccdf_item_iterator_free(itemsIt);
         }
 
-        std::set<QTreeWidgetItem*> treeItemsToRemove;
         for (int i = 0; i < treeItem->childCount(); ++i)
         {
             QTreeWidgetItem* childTreeItem = treeItem->child(i);
             struct xccdf_item* childXccdfItem = getXccdfItemFromTreeItem(childTreeItem);
 
-            if (itemsToAdd.find(childXccdfItem) == itemsToAdd.end())
+            if (std::find(itemsToAdd.begin(), itemsToAdd.end(), childXccdfItem) == itemsToAdd.end())
             {
-                treeItemsToRemove.insert(childTreeItem);
+                // this will remove it from the tree as well, see ~QTreeWidgetItem()
+                delete childTreeItem;
             }
             else
             {
-                synchronizeTreeItem(childTreeItem, childXccdfItem, true);
-                itemsToAdd.erase(childXccdfItem);
+                existingItemsMap[childXccdfItem] = childTreeItem;
             }
         }
 
-        for (std::set<QTreeWidgetItem*>::const_iterator it = treeItemsToRemove.begin();
-                it != treeItemsToRemove.end(); ++it)
+        unsigned int idx = 0;
+        for (XCCDFItemVector::const_iterator it = itemsToAdd.begin();
+                it != itemsToAdd.end(); ++it, ++idx)
         {
-            // this will remove it from the tree as well, see ~QTreeWidgetItem()
-            delete *it;
-        }
-
-        for (std::set<struct xccdf_item*>::const_iterator it = itemsToAdd.begin();
-                it != itemsToAdd.end(); ++it)
-        {
-            QTreeWidgetItem* childTreeItem = new QTreeWidgetItem();
-            childTreeItem->setFlags(
-                    Qt::ItemIsSelectable |
-                    Qt::ItemIsUserCheckable |
-                    Qt::ItemIsEnabled);
-            childTreeItem->setCheckState(0, Qt::Checked);
-
-            treeItem->addChild(childTreeItem);
             struct xccdf_item* childXccdfItem = *it;
+            QTreeWidgetItem* childTreeItem = 0;
+
+            XCCDFToQtItemMap::iterator mapIt = existingItemsMap.find(childXccdfItem);
+
+            if (mapIt == existingItemsMap.end())
+            {
+                childTreeItem = new QTreeWidgetItem();
+
+                childTreeItem->setFlags(
+                        Qt::ItemIsSelectable |
+                        Qt::ItemIsUserCheckable |
+                        Qt::ItemIsEnabled);
+                childTreeItem->setCheckState(0, Qt::Checked);
+
+                treeItem->insertChild(idx, childTreeItem);
+            }
+            else
+            {
+                childTreeItem = mapIt->second;
+            }
 
             synchronizeTreeItem(childTreeItem, childXccdfItem, true);
         }
