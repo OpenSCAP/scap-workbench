@@ -308,6 +308,11 @@ TailoringWindow::TailoringWindow(struct xccdf_policy* policy, struct xccdf_bench
         this, SLOT(close())
     );
 
+    QObject::connect(
+        mUI.deleteProfileButton, SIGNAL(released()),
+        this, SLOT(deleteProfileAndDiscard())
+    );
+
     addDockWidget(Qt::RightDockWidgetArea, mProfilePropertiesDockWidget);
     addDockWidget(Qt::RightDockWidgetArea, mItemPropertiesDockWidget);
 
@@ -595,6 +600,14 @@ void TailoringWindow::refreshProfileDockWidget()
 void TailoringWindow::confirmAndClose()
 {
     mChangesConfirmed = true;
+
+    close();
+}
+
+void TailoringWindow::deleteProfileAndDiscard()
+{
+    mChangesConfirmed = false;
+    mNewProfile = true;
 
     close();
 }

@@ -251,6 +251,7 @@ class TailoringWindow : public QMainWindow
 
     public slots:
         void confirmAndClose();
+        void deleteProfileAndDiscard();
 
     protected:
         /// Reimplemented to refresh profiles and selected rules in the parent main window

@@ -92,7 +92,21 @@
           <string>Closes this window and discard all changes</string>
          </property>
          <property name="text">
-          <string>Discard</string>
+          <string>Discard changes</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="Line" name="line">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="deleteProfileButton">
+         <property name="text">
+          <string>Delete profile</string>
          </property>
         </widget>
        </item>
