@@ -262,6 +262,10 @@ fields at their default settings and confirm the dialog.
 Another dialog will pop-up, this time asking for destination directory where scap-workbench
 will create the RPM in.
 
+[[img-tailoring-dialog-opened]]
+.Saving Fedora scap-security-guide content as RPM
+image::save_as_rpm_dialog.png[align="center"]
+
 ****
 The resulting RPM will contain both input content and tailoring file. It will not contain
 any evaluation result files (HTML report, ARF, XCCDF results).
