@@ -58,8 +58,8 @@ From source (custom options)::
 
 == Typical Use Case
 
-Let us go over a common use case. If any section is marked (optional) it can be
-skipped if you do not need the feature explained in it.
+Let us go over a common use case. Any section marked (optional) can be skipped
+if you do not need the feature explained in it.
 
 === Obtain SCAP content
 
