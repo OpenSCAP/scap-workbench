@@ -93,7 +93,8 @@ void OscapScannerRemoteSsh::setSession(ScanningSession* session)
     OscapScannerBase::setSession(session);
 
     if (!mSession->isSDS())
-        throw OscapScannerRemoteSshException("You can only use source datastreams for scanning remotely!");
+        throw OscapScannerRemoteSshException("You can only use source datastreams for scanning remotely! "
+            "Remote scanning using plain XCCDF and OVAL files has not implemented in scap-workbench yet.");
 }
 
 void OscapScannerRemoteSsh::evaluate()
