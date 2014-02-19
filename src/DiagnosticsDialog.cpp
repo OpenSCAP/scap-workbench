@@ -42,6 +42,8 @@ DiagnosticsDialog::DiagnosticsDialog(QWidget* parent):
         mUI.closeButton, SIGNAL(released()),
         this, SLOT(hide())
     );
+
+    dumpVersionInfo();
 }
 
 DiagnosticsDialog::~DiagnosticsDialog()
@@ -132,6 +134,11 @@ void DiagnosticsDialog::pushMessage(MessageSeverity severity, const QString& ful
         QString("<table><tr><td><pre>%1 </pre></td><td style=\"background: %2\"><pre>%3 </pre></td><td>%4</td></tr></table>\n")
             .arg(stime, bgCol, strSeverity, fullMessage)
     );
+}
+
+void DiagnosticsDialog::dumpVersionInfo()
+{
+    infoMessage(QString("scap-workbench %1, using Qt %2 and openscap %3").arg(SCAP_WORKBENCH_VERSION, QT_VERSION_STR, oscap_get_version()));
 }
 
 void DiagnosticsDialog::copyToClipboard()

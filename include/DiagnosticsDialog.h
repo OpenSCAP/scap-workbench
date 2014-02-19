@@ -111,6 +111,11 @@ class DiagnosticsDialog : public QDialog
     private:
         void pushMessage(MessageSeverity severity, const QString& fullMessage);
 
+        /**
+         * @brief Pushes a single info message containing version info
+         */
+        void dumpVersionInfo();
+
         Ui_DiagnosticsDialog mUI;
 
     private slots:
