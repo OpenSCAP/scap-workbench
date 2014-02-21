@@ -65,7 +65,12 @@ void ScanningSession::openFile(const QString& path)
     if (mSession)
         closeFile();
 
-    mSession = xccdf_session_new(path.toUtf8().constData());
+    const QFileInfo pathInfo(path);
+
+    // We have to make sure that we *ALWAYS* open the session by absolute
+    // path. oscap local won't be run from the same directory from where
+    // scap-workbench is run
+    mSession = xccdf_session_new(pathInfo.absoluteFilePath().toUtf8().constData());
     if (!mSession)
         throw ScanningSessionException(
             QString("Failed to create session for '%1'. OpenSCAP error message:\n%2").arg(path).arg(oscapErrDesc()));
