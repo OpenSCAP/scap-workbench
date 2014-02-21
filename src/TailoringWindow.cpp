@@ -28,6 +28,7 @@
 #include <QCloseEvent>
 
 #include <set>
+#include <algorithm>
 #include <cassert>
 
 ProfilePropertiesDockWidget::ProfilePropertiesDockWidget(TailoringWindow* window, QWidget* parent):
