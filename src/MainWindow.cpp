@@ -256,7 +256,7 @@ void MainWindow::openFileDialog()
         const QString path = QFileDialog::getOpenFileName(this,
             "Open Source DataStream or XCCDF file",
             defaultDirectory,
-            "Source DataStream, XCCDF or tailoring file (*.xml);;All files (*)"
+            "Source DataStream or XCCDF file (*.xml);;All files (*)"
         );
 
         if (path == QString::Null())
