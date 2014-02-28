@@ -834,7 +834,6 @@ void MainWindow::refreshSelectedRulesTree()
 
     struct xccdf_session* session = mScanningSession->getXCCDFSession();
     struct xccdf_policy* policy = xccdf_session_get_xccdf_policy(session);
-    struct xccdf_select_iterator* sel_it = xccdf_policy_get_selected_rules(policy);
 
     struct xccdf_benchmark* benchmark = 0;
     try
@@ -870,8 +869,6 @@ void MainWindow::refreshSelectedRulesTree()
     }
 
     mUI.selectedRulesTree->setUpdatesEnabled(true);
-
-    xccdf_select_iterator_free(sel_it);
 }
 
 void MainWindow::scanProgressReport(const QString& rule_id, const QString& result)
