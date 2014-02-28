@@ -146,10 +146,10 @@ MainWindow::MainWindow(QWidget* parent):
         this, SLOT(saveTailoring())
     );
 
-    mUI.selectedRulesTree->show();
-    mUI.selectedRulesTree->header()->setResizeMode(0, QHeaderView::Stretch);
     mUI.ruleResultsTree->hide();
     mUI.ruleResultsTree->header()->setResizeMode(0, QHeaderView::Stretch);
+    mUI.selectedRulesTree->show();
+    mUI.selectedRulesTree->header()->setResizeMode(0, QHeaderView::Stretch);
 
     // FIXME: This is hidden to avoid people trying to use it when it is still
     //        not supported in openscap.
@@ -187,20 +187,20 @@ void MainWindow::clearResults()
 {
     mUI.scanProperties->setEnabled(true);
 
-    mUI.preScanTools->show();
-    mUI.preScanTools->setEnabled(true);
     mUI.scanTools->hide();
     mUI.scanTools->setEnabled(false);
     mUI.postScanTools->hide();
     mUI.postScanTools->setEnabled(false);
+    mUI.preScanTools->show();
+    mUI.preScanTools->setEnabled(true);
 
     mUI.ruleResultsTree->clear();
     mUI.ruleResultsTree->setEnabled(false);
 
     mResultViewer->clear();
 
-    mUI.selectedRulesTree->show();
     mUI.ruleResultsTree->hide();
+    mUI.selectedRulesTree->show();
 }
 
 void MainWindow::openFile(const QString& path)
@@ -349,10 +349,10 @@ void MainWindow::scanAsync(ScannerMode scannerMode)
             "OpenSCAP error message:\n%1").arg(oscapErrDesc()));
 
         mUI.scanProperties->setEnabled(true);
-        mUI.preScanTools->show();
-        mUI.preScanTools->setEnabled(true);
         mUI.scanTools->hide();
         mUI.scanTools->setEnabled(false);
+        mUI.preScanTools->show();
+        mUI.preScanTools->setEnabled(true);
 
         return;
     }
