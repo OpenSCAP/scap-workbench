@@ -228,8 +228,25 @@ class MainWindow : public QMainWindow
         void profileComboboxChanged(int index);
 
     public slots:
-        /// Refreshes the selected rules tree according to current profile
+        /**
+         * @brief Refreshes the selected rules tree according to current profile
+         *
+         * Selected rules tree is just an estimate and may not match the rules
+         * that will be later evaluated by oscap. Only oscap is authoritative
+         * in which rules are evaluated!
+         */
         void refreshSelectedRulesTree();
+
+    private:
+        /**
+         * @brief Retrieves number of currently selected rules
+         *
+         * Do not rely on this number, it is a fairly reliable estimate
+         * but it is still an estimate!
+         *
+         * @see refreshSelectedRulesTree
+         */
+        unsigned int getSelectedRulesCount();
 
     private slots:
 

@@ -321,6 +321,17 @@ void MainWindow::scanAsync(ScannerMode scannerMode)
 
     clearResults();
 
+    if (getSelectedRulesCount() == 0)
+    {
+        if (QMessageBox::question(this, "Scan with no rules selected?",
+                "Chosen profile does not have any rules selected. Are you sure you want to evaluate with no rules selected?",
+                QMessageBox::Yes | QMessageBox::No,
+                QMessageBox::No) == QMessageBox::No)
+        {
+            return;
+        }
+    }
+
     mUI.scanProperties->setEnabled(false);
     mUI.preScanTools->hide();
     mUI.preScanTools->setEnabled(false);
@@ -869,6 +880,11 @@ void MainWindow::refreshSelectedRulesTree()
     }
 
     mUI.selectedRulesTree->setUpdatesEnabled(true);
+}
+
+unsigned int MainWindow::getSelectedRulesCount()
+{
+    return mUI.selectedRulesTree->topLevelItemCount();
 }
 
 void MainWindow::scanProgressReport(const QString& rule_id, const QString& result)
