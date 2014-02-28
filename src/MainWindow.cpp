@@ -632,8 +632,8 @@ void MainWindow::refreshChecklists()
             }
             ds_stream_index_iterator_free(streams_it);
 
-            mUI.checklistComboBox->show();
-            mUI.checklistLabel->show();
+            mUI.checklistComboBox->setVisible(mUI.checklistComboBox->count() > 1);
+            mUI.checklistLabel->setVisible(mUI.checklistComboBox->count() > 1);
         }
     }
     catch (...)
