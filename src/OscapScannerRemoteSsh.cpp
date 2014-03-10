@@ -190,8 +190,17 @@ void OscapScannerRemoteSsh::evaluate()
     const QString sshCmd = args.join(" ");
 
     emit infoMessage("Starting the remote process...");
+
     QProcess process(this);
+
     process.start("ssh", baseArgs + QStringList(QString("cd '%1'; " SCAP_WORKBENCH_REMOTE_OSCAP_PATH " %2").arg(workingDir).arg(sshCmd)));
+    process.waitForStarted();
+
+    if (process.state() != QProcess::Running)
+    {
+        emit errorMessage("Failed to start ssh. Perhaps the executable was not found?");
+        mCancelRequested = true;
+    }
 
     const unsigned int pollInterval = 100;
 

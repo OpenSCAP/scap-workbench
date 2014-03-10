@@ -128,11 +128,19 @@ void OscapScannerLocal::evaluate()
     args.prepend(QString::number(SCAP_WORKBENCH_OSCAP_LOCAL_NICENESS));
     args.prepend("-n");
 
-    process.start(SCAP_WORKBENCH_LOCAL_NICE_PATH, args);
+    const QString program = SCAP_WORKBENCH_LOCAL_NICE_PATH;
 #else
-    process.start(getPkexecOscapPath(), args);
+    const QString program = getPkexecOscapPath();
 #endif
 
+    process.start(program, args);
+    process.waitForStarted();
+
+    if (process.state() != QProcess::Running)
+    {
+        emit errorMessage("Failed to start local scanning process '" + program + "'. Perhaps the executable was not found?");
+        mCancelRequested = true;
+    }
 
     const unsigned int pollInterval = 100;
 

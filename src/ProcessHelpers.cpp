@@ -300,6 +300,10 @@ void SyncProcess::startQProcess(QProcess& process)
     process.setStandardInputFile("/dev/null");
     process.setWorkingDirectory(mWorkingDirectory);
     process.start(generateFullCommand(), generateFullArguments());
+    process.waitForStarted();
+
+    if (process.state() != QProcess::Running)
+        throw SyncProcessException("Starting process '" + generateDescription() + "' failed. The process is not in a running state.");
 }
 
 bool SyncProcess::wasCancelRequested() const
