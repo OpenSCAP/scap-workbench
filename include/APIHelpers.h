@@ -29,6 +29,7 @@
 extern "C"
 {
 #include <xccdf_benchmark.h>
+#include <xccdf_policy.h>
 }
 
 /**
@@ -37,6 +38,20 @@ extern "C"
  * This function frees the iterator itself, it can't be used after this function terminates.
  */
 QString oscapTextIteratorGetPreferred(struct oscap_text_iterator* it, const QString& lang = "");
+
+/**
+ * Get human readable title of the given XCCDF Item. The title is selected based on the given
+ * preferred language and then the the XCCDF Substitution is resolved in accordance with given
+ * XCCDF policy.
+ */
+QString oscapItemGetReadableTitle(struct xccdf_item *item, struct xccdf_policy *policy, const QString& lang = "");
+
+/**
+ * Get human readable description of the given XCCDF Item. The description is selected based
+ * on the given preferred language and then the the XCCDF Substitution is resolved in accordance
+ * with given XCCDF policy.
+ */
+QString oscapItemGetReadableDescription(struct xccdf_item *item, struct xccdf_policy *policy, const QString& lang = "");
 
 /**
  * Returns QString containing utf8 contents of oscap_err_desc()
