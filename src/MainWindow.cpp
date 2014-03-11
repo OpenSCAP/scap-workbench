@@ -646,9 +646,12 @@ void MainWindow::refreshChecklists()
 
 void MainWindow::cleanupScanThread()
 {
-    mScanThread->wait();
-    mScanThread->deleteLater();
-    mScanThread = 0;
+    if (mScanThread != 0)
+    {
+        mScanThread->wait();
+        mScanThread->deleteLater();
+        mScanThread = 0;
+    }
 
     mUI.progressBar->setRange(0, 1);
     mUI.progressBar->reset();
