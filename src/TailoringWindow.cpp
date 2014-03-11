@@ -26,6 +26,7 @@
 
 #include <QMessageBox>
 #include <QCloseEvent>
+#include <QDesktopWidget>
 
 #include <set>
 #include <algorithm>
@@ -358,6 +359,8 @@ TailoringWindow::TailoringWindow(struct xccdf_policy* policy, struct xccdf_bench
     mProfilePropertiesDockWidget->refresh();
     mItemPropertiesDockWidget->refresh();
 
+    // start centered
+    move(QApplication::desktop()->screen()->rect().center() - rect().center());
     show();
 }
 

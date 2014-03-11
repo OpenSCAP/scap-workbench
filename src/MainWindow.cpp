@@ -34,6 +34,7 @@
 #include <QAbstractEventDispatcher>
 #include <QMessageBox>
 #include <QCloseEvent>
+#include <QDesktopWidget>
 
 #include <cassert>
 #include <set>
@@ -169,6 +170,9 @@ MainWindow::MainWindow(QWidget* parent):
     mScanningSession = new ScanningSession();
 
     closeFile();
+
+    // start centered
+    move(QApplication::desktop()->screen()->rect().center() - rect().center());
     show();
 }
 
