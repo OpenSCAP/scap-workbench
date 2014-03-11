@@ -876,12 +876,10 @@ void MainWindow::refreshSelectedRulesTree()
          it != selectedRules.end(); ++it)
     {
         struct xccdf_rule* rule = *it;
-        const QString preferredTitle = oscapTextIteratorGetPreferred(xccdf_rule_get_title(rule));
-        const QString preferredDesc = oscapTextIteratorGetPreferred(xccdf_rule_get_description(rule));
 
         QTreeWidgetItem* treeItem = new QTreeWidgetItem();
-        treeItem->setText(0, preferredTitle);
-        treeItem->setToolTip(0, preferredDesc);
+        treeItem->setText(0, oscapItemGetReadableTitle((struct xccdf_item *)rule, policy));
+        treeItem->setToolTip(0, oscapItemGetReadableDescription((struct xccdf_item *)rule, policy));
 
         mUI.selectedRulesTree->addTopLevelItem(treeItem);
     }
@@ -910,16 +908,20 @@ void MainWindow::scanProgressReport(const QString& rule_id, const QString& resul
     assert(fileOpened());
 
     struct xccdf_benchmark* benchmark = 0;
+    struct xccdf_policy* policy = 0;
     try
     {
         benchmark = xccdf_policy_model_get_benchmark(xccdf_session_get_policy_model(mScanningSession->getXCCDFSession()));
+        policy = xccdf_session_get_xccdf_policy(mScanningSession->getXCCDFSession());
     }
     catch (const std::exception& e)
     {
-        scanErrorMessage(QString("Can't get benchmark from scanning session, details follow:\n%1").arg(QString::fromUtf8(e.what())));
+        scanErrorMessage(QString("Can't get benchmark or policy from scanning session, details follow:\n%1").arg(QString::fromUtf8(e.what())));
 
         return;
     }
+    if (!policy)
+        return;
 
     struct xccdf_item* item = xccdf_benchmark_get_member(benchmark, XCCDF_ITEM, rule_id.toUtf8().constData());
 
@@ -937,8 +939,8 @@ void MainWindow::scanProgressReport(const QString& rule_id, const QString& resul
     if (mUI.ruleResultsTree->findItems(rule_id, Qt::MatchExactly, 0).empty())
         mUI.progressBar->setValue(mUI.progressBar->value() + 1);
 
-    const QString preferredTitle = oscapTextIteratorGetPreferred(xccdf_item_get_title(item));
-    const QString preferredDesc = oscapTextIteratorGetPreferred(xccdf_item_get_description(item));
+    const QString preferredTitle = oscapItemGetReadableTitle(item, policy);
+    const QString preferredDesc = oscapItemGetReadableDescription(item, policy);
 
     QString resultTooltip;
     QBrush resultBrush;
