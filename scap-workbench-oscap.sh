@@ -1,4 +1,4 @@
-#!/usr/bin/bash
+#!/bin/bash
 
 # Copyright 2014 Red Hat Inc., Durham, North Carolina.
 # All Rights Reserved.
