@@ -376,7 +376,7 @@ void MainWindow::scanAsync(ScannerMode scannerMode)
 
     try
     {
-        if (!mScanner || mScanner->getTarget() != target)
+        //if (!mScanner || mScanner->getTarget() != target)
         {
             delete mScanner;
 
