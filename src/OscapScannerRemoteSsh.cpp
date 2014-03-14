@@ -418,7 +418,7 @@ void OscapScannerRemoteSsh::removeRemoteFile(const QString& path, const QString&
     if (proc.getExitCode() != 0)
     {
         emit warningMessage(QString(
-            "Failed to remote remote file %1. "
+            "Failed to remove remote file %1. "
             "Diagnostic info: %2").arg(desc).arg(proc.getDiagnosticInfo()));
 
         mCancelRequested = true;
@@ -439,7 +439,7 @@ void OscapScannerRemoteSsh::removeRemoteDirectory(const QString& path, const QSt
     if (proc.getExitCode() != 0)
     {
         emit warningMessage(QString(
-            "Failed to remote remote directory %1. "
+            "Failed to remove remote directory %1. "
             "Diagnostic info: %2").arg(desc).arg(proc.getDiagnosticInfo()));
 
         mCancelRequested = true;
