@@ -559,6 +559,9 @@ void MainWindow::notifyTailoringFinished(bool newProfile, bool changesConfirmed)
 
     refreshProfiles();
     refreshSelectedRulesTree();
+
+    if (changesConfirmed)
+        markUnsavedTailoringChanges();
 }
 
 void MainWindow::refreshProfiles()
@@ -1167,9 +1170,6 @@ void MainWindow::editProfile(bool newProfile)
     struct xccdf_benchmark* benchmark = xccdf_policy_model_get_benchmark(policyModel);
 
     new TailoringWindow(policy, benchmark, newProfile, this);
-    // The tailoring that is going to be done is not part of anything saved on disk.
-    // User might want to save it
-    markUnsavedTailoringChanges();
 }
 
 void MainWindow::customizeProfile()
