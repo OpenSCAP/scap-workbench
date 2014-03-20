@@ -31,7 +31,7 @@
 #endif
 
 ResultViewer::ResultViewer(QWidget* parent):
-    QDialog(parent)
+    QWidget(parent)
 {
     mUI.setupUi(this);
 
@@ -60,35 +60,6 @@ ResultViewer::ResultViewer(QWidget* parent):
         mUI.openReportButton, SIGNAL(released()),
         this, SLOT(openReport())
     );
-
-    QObject::connect(
-        mUI.closeButton, SIGNAL(released()),
-        this, SLOT(reject())
-    );
-
-    mUI.webViewContainer->setLayout(new QVBoxLayout());
-
-#ifdef SCAP_WORKBENCH_USE_WEBKIT
-    mWebView = new QWebView(mUI.webViewContainer);
-    mWebView->page()->setLinkDelegationPolicy(QWebPage::DelegateAllLinks);
-
-    QObject::connect(
-        mWebView, SIGNAL(linkClicked(const QUrl&)),
-        this, SLOT(webViewLinkClicked(const QUrl&))
-    );
-
-    mUI.webViewContainer->layout()->addWidget(mWebView);
-#else
-    mNoWebKitNotification = new QLabel(mUI.webViewContainer);
-    mNoWebKitNotification->setText(
-        "Workbench was compiled without WebKit support.\n"
-        "Report can't be viewed directly in the application.\n"
-        "Please click \"Open report\" to view it in an external "
-        "application instead.");
-    mNoWebKitNotification->setWordWrap(true);
-    mNoWebKitNotification->setAlignment(Qt::AlignCenter);
-    mUI.webViewContainer->layout()->addWidget(mNoWebKitNotification);
-#endif
 }
 
 ResultViewer::~ResultViewer()
@@ -96,10 +67,6 @@ ResultViewer::~ResultViewer()
 
 void ResultViewer::clear()
 {
-#ifdef SCAP_WORKBENCH_USE_WEBKIT
-    mWebView->setContent(QByteArray());
-#endif
-
     mInputBaseName.clear();
 
     mResults.clear();
@@ -123,10 +90,6 @@ void ResultViewer::loadContent(Scanner* scanner)
 
     mReport.clear();
     scanner->getReport(mReport);
-
-#ifdef SCAP_WORKBENCH_USE_WEBKIT
-    mWebView->setContent(mReport);
-#endif
 
     mResults.clear();
     scanner->getResults(mResults);
@@ -190,19 +153,4 @@ void ResultViewer::saveARF()
     file.open(QIODevice::WriteOnly);
     file.write(mARF);
     file.close();
-}
-
-
-void ResultViewer::webViewLinkClicked(const QUrl& url)
-{
-#ifdef SCAP_WORKBENCH_USE_WEBKIT
-    if (!url.isRelative())
-        QMessageBox::information(this, "External URL handling", "Sorry, but external URLs can't be followed from within scap-workbench.");
-    else if (!url.path().isEmpty())
-        QMessageBox::information(this, "Relative URL handling", "Sorry, but this web viewer will not follow any pages other than what's already loaded (only fragment URLs are allowed).");
-
-    const QString fragment = url.fragment();
-
-    mWebView->page()->currentFrame()->scrollToAnchor(fragment);
-#endif
 }

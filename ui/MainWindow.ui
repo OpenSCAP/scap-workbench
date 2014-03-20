@@ -443,6 +443,22 @@
               </widget>
              </item>
              <item>
+              <spacer name="horizontalSpacer_3">
+               <property name="orientation">
+                <enum>Qt::Horizontal</enum>
+               </property>
+               <property name="sizeType">
+                <enum>QSizePolicy::Minimum</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>20</width>
+                 <height>1</height>
+                </size>
+               </property>
+              </spacer>
+             </item>
+             <item>
               <widget class="QPushButton" name="offlineRemediateButton">
                <property name="enabled">
                 <bool>false</bool>
@@ -464,18 +480,7 @@
               </widget>
              </item>
              <item>
-              <widget class="QPushButton" name="showResultsButton">
-               <property name="font">
-                <font>
-                 <pointsize>13</pointsize>
-                 <weight>50</weight>
-                 <bold>false</bold>
-                </font>
-               </property>
-               <property name="text">
-                <string>&amp;Report</string>
-               </property>
-              </widget>
+              <widget class="ResultViewer" name="resultViewer" native="true"/>
              </item>
             </layout>
            </widget>
@@ -490,6 +495,14 @@
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>ResultViewer</class>
+   <extends>QWidget</extends>
+   <header>ResultViewer.h</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections>
   <connection>

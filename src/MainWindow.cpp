@@ -117,10 +117,6 @@ MainWindow::MainWindow(QWidget* parent):
         mUI.clearButton, SIGNAL(released()),
         this, SLOT(clearResults())
     );
-    QObject::connect(
-        mUI.showResultsButton, SIGNAL(released()),
-        this, SLOT(showResults())
-    );
 
     mSaveIntoDirAction = new QAction("Save into a directory", this);
     QObject::connect(
@@ -161,9 +157,6 @@ MainWindow::MainWindow(QWidget* parent):
     mUI.remoteMachineHost->setPlaceholderText("username@hostname");
 #endif
 
-    mResultViewer = new ResultViewer(this);
-    mResultViewer->hide();
-
     mDiagnosticsDialog = new DiagnosticsDialog(this);
     mDiagnosticsDialog->hide();
 
@@ -183,8 +176,6 @@ MainWindow::~MainWindow()
 
     closeFile();
     delete mScanningSession;
-
-    delete mResultViewer;
 }
 
 void MainWindow::clearResults()
@@ -201,7 +192,7 @@ void MainWindow::clearResults()
     mUI.ruleResultsTree->clear();
     mUI.ruleResultsTree->setEnabled(false);
 
-    mResultViewer->clear();
+    mUI.resultViewer->clear();
 
     mUI.ruleResultsTree->hide();
     mUI.selectedRulesTree->show();
@@ -425,7 +416,7 @@ void MainWindow::scanAsync(ScannerMode scannerMode)
         if (scannerMode == SM_OFFLINE_REMEDIATION)
         {
             // TODO: Allow user to tweak the results to deselect/select rules to remediate, etc...
-            mScanner->setARFForRemediation(mResultViewer->getARF());
+            mScanner->setARFForRemediation(mUI.resultViewer->getARF());
         }
     }
     catch (const std::exception& e)
@@ -538,7 +529,7 @@ void MainWindow::reloadSession()
         mDiagnosticsDialog->exceptionMessage(e);
     }
 
-    mResultViewer->clear();
+    mUI.resultViewer->clear();
     mUI.titleLabel->setText(mScanningSession->getBenchmarkTitle());
     refreshProfiles();
 }
@@ -1080,7 +1071,7 @@ void MainWindow::scanEnded(bool canceled)
     }
     else
     {
-        mResultViewer->loadContent(mScanner);
+        mUI.resultViewer->loadContent(mScanner);
         mUI.offlineRemediateButton->setEnabled(mScanner->getScannerMode() == SM_SCAN);
     }
 
@@ -1091,15 +1082,10 @@ void MainWindow::scanEnded(bool canceled)
     mUI.postScanTools->show();
     mUI.postScanTools->setEnabled(true);
 
-    mUI.showResultsButton->setEnabled(!canceled);
+    mUI.resultViewer->setEnabled(!canceled);
 
     cleanupScanThread();
     statusBar()->clearMessage();
-}
-
-void MainWindow::showResults()
-{
-    mResultViewer->show();
 }
 
 void MainWindow::inheritAndEditProfile(bool shadowed)

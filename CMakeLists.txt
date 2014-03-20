@@ -10,11 +10,6 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/")
 include(GNUInstallDirs)
 
 find_package(Qt4 REQUIRED QtCore QtGui QtXmlPatterns)
-find_package(Qt4 COMPONENTS QtWebKit) # optional
-
-if(NOT QT_QTWEBKIT_INCLUDE_DIR)
-  set(QT_USE_QTWEBKIT 0) # do not use webkit if it was not found
-endif()
 
 # This conditional is here to avoid checking openscap version if user supplies
 # custom openscap parameters.
@@ -61,12 +56,6 @@ set(SCAP_WORKBENCH_LINK_LIBRARIES
     ${QT_QTGUI_LIBRARY}
     ${QT_QTXMLPATTERNS_LIBRARY}
     ${OPENSCAP_LIBRARIES})
-
-set(SCAP_WORKBENCH_USE_WEBKIT ${QT_USE_QTWEBKIT} CACHE BOOL "Whether we should use Qt WebKit to show reports in workbench directly.")
-if(SCAP_WORKBENCH_USE_WEBKIT)
-    list(APPEND SCAP_WORKBENCH_LINK_LIBRARIES ${QT_QTWEBKIT_LIBRARY})
-    list(APPEND SCAP_WORKBENCH_INCLUDE_DIRS ${QT_QTWEBKIT_INCLUDE_DIR})
-endif()
 
 configure_file("include/Config.h.in" "${CMAKE_CURRENT_BINARY_DIR}/Config.h")
 # It is not trivial to make the resulting file executable :-(

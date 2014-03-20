@@ -21,7 +21,7 @@ How to run it out of the box
     # yum install rubygem-asciidoctor
 
   optional dependencies:
-    # yum install polkit qtwebkit-devel
+    # yum install polkit
 
 2) Build scap-workbench:
 

@@ -181,9 +181,6 @@ class MainWindow : public QMainWindow
         /// This is our central point of interaction with openscap
         ScanningSession* mScanningSession;
 
-        /// Qt Dialog that displays results and allows user to save them
-        ResultViewer* mResultViewer;
-
         /// Thread that handles scanning and/or remediating, NULL if none is underway
         QThread* mScanThread;
         /**
@@ -307,14 +304,6 @@ class MainWindow : public QMainWindow
          * @param canceled if true the scanning was canceled, otherwise it finished
          */
         void scanEnded(bool canceled);
-
-        /**
-         * @brief When triggered, the ResultViewer is shown as a modal dialog
-         *
-         * Sole application control is passed to ResultViewer until user closes
-         * it. It is not destroyed upon closing, just hidden.
-         */
-        void showResults();
 
         void inheritAndEditProfile(bool shadowed);
         void editProfile(bool newProfile);
