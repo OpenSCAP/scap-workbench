@@ -378,10 +378,8 @@ Pressing Clear will *permanently* destroy scan results! This action cannot
 be undone.
 ****
 
-Pressing *Report* will bring up a new window called Evaluation Report.
-In case scap-workbench was compiled with WebKit support you should see
-the HTML report right in the application. Otherwise, press *Open in Browser*
-to open the report using your internet browser.
+Pressing *Show Report* will open the HTML report of the evaluation in your
+internet browser.
 
 ****
 scap-workbench will open the report in the default web browser set in your
@@ -395,10 +393,6 @@ In case you still can't get scap-workbench to open a browser, save the
 report to a HTML file on your hard drive and open it manually.
 ****
 
-[[img-browsing-results]]
-.Browsing results
-image::browsing_results.png[align="center"]
-
 Your evaluation results can be saved in several formats:
 
 HTML report:: Human readable and convenient, not suitable for machine processing.
@@ -410,7 +404,7 @@ and results into a single machine readable file, not suitable for manual process
 Requires a special tool that can parse the format.
 
 If you are unsure which format to choose for result archiving you can choose
-*Save XCCDF Result*. It is commonly supported and you can easily generate
+*XCCDF Result*. It is commonly supported and you can easily generate
 an HTML report from it using the *oscap* tool.
 
 ****
