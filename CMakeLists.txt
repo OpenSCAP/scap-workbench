@@ -15,7 +15,7 @@ find_package(Qt4 REQUIRED QtCore QtGui QtXmlPatterns)
 # custom openscap parameters.
 if (NOT DEFINED OPENSCAP_LIBRARIES OR NOT DEFINED OPENSCAP_INCLUDE_DIRS)
     include("${CMAKE_ROOT}/Modules/FindPkgConfig.cmake")
-    pkg_check_modules(OPENSCAP REQUIRED libopenscap>=1.0.5)
+    pkg_check_modules(OPENSCAP REQUIRED libopenscap>=1.0.7)
 endif()
 
 # This is optional, only required if user wants documentation rebuilt
@@ -83,7 +83,7 @@ install(PROGRAMS "scap-workbench-oscap.sh"
 
 install(PROGRAMS "scap-workbench-pkexec-oscap.sh"
     DESTINATION ${CMAKE_INSTALL_LIBEXECDIR})
-    
+
 install(FILES "${CMAKE_CURRENT_BINARY_DIR}/scap-workbench-oscap.policy"
     DESTINATION "${CMAKE_INSTALL_DATADIR}/polkit-1/actions")
 
