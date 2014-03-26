@@ -422,9 +422,7 @@ Browse :: Alt + B
 Scan :: Alt + S
 Clear after scanning :: Alt + C
 Show report :: Alt + R
-
-=== Evaluation Report
-Open in Browser :: Alt + O
+Open evaluation report in browser :: Alt + O
 
 == Where to Get Help?
 
