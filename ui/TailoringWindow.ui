@@ -29,6 +29,9 @@
       <property name="uniformRowHeights">
        <bool>true</bool>
       </property>
+      <attribute name="headerVisible">
+       <bool>false</bool>
+      </attribute>
       <attribute name="headerDefaultSectionSize">
        <number>150</number>
       </attribute>
