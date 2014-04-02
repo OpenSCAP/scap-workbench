@@ -23,6 +23,7 @@
 #include "Exceptions.h"
 #include "MainWindow.h"
 #include "APIHelpers.h"
+#include "Utils.h"
 
 #include <QMessageBox>
 #include <QCloseEvent>
@@ -402,29 +403,27 @@ void TailoringWindow::synchronizeTreeItem(QTreeWidgetItem* treeItem, struct xccd
     switch (xccdf_item_get_type(xccdfItem))
     {
         case XCCDF_BENCHMARK:
-            treeItem->setText(typeColumn, QString("Benchmark"));
-            // benchmark is the root of the tree, it makes no sense to have it collapsed
-            mUI.itemsTree->expandItem(treeItem);
+            treeItem->setIcon(0, getShareIcon("benchmark.png"));
             break;
 
         case XCCDF_GROUP:
-            treeItem->setText(typeColumn, QString("Group"));
+            treeItem->setIcon(0, getShareIcon("group.png"));
             break;
 
         case XCCDF_RULE:
-            treeItem->setText(typeColumn, QString("Rule"));
+            treeItem->setIcon(0, getShareIcon("rule.png"));
             break;
 
         case XCCDF_VALUE:
-            treeItem->setText(typeColumn, QString("Value"));
+            treeItem->setIcon(0, getShareIcon("value.png"));
             break;
 
         default:
-            treeItem->setText(typeColumn, QString("Unknown"));
+            treeItem->setIcon(0, QIcon());
             break;
     }
 
-    treeItem->setText(2, QString::fromUtf8(xccdf_item_get_id(xccdfItem)));
+    treeItem->setText(1, QString::fromUtf8(xccdf_item_get_id(xccdfItem)));
     treeItem->setData(0, Qt::UserRole, QVariant::fromValue(reinterpret_cast<void*>(xccdfItem)));
 
     xccdf_type_t xccdfItemType = xccdf_item_get_type(xccdfItem);

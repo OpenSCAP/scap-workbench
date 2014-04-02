@@ -20,6 +20,15 @@
    <layout class="QVBoxLayout" name="verticalLayout">
     <item>
      <widget class="QTreeWidget" name="itemsTree">
+      <property name="iconSize">
+       <size>
+        <width>22</width>
+        <height>22</height>
+       </size>
+      </property>
+      <property name="uniformRowHeights">
+       <bool>true</bool>
+      </property>
       <attribute name="headerDefaultSectionSize">
        <number>150</number>
       </attribute>
@@ -29,16 +38,6 @@
       <column>
        <property name="text">
         <string>Title</string>
-       </property>
-      </column>
-      <column>
-       <property name="text">
-        <string>Type</string>
-       </property>
-      </column>
-      <column>
-       <property name="text">
-        <string>ID</string>
        </property>
       </column>
      </widget>

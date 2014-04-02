@@ -20,6 +20,7 @@
  */
 
 #include "Utils.h"
+#include <iostream>
 
 QString getSharePath()
 {
@@ -29,7 +30,13 @@ QString getSharePath()
 
 QIcon getShareIcon(const QString& fileName)
 {
-    return QIcon(QString("%1/%2").arg(getSharePath(), fileName));
+    const QString fullPath = QString("%1/%2").arg(getSharePath(), fileName);
+    const QIcon ret(fullPath);
+    if (ret.pixmap(1, 1).isNull())
+    {
+        std::cerr << "Can not create pixmap from icon '" << fullPath.toUtf8().constData() << "'." << std::endl;
+    }
+    return ret;
 }
 
 QIcon getApplicationIcon()

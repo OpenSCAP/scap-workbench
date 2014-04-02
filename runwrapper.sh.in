@@ -20,4 +20,6 @@ s="@CMAKE_SOURCE_DIR@"
 
 export SCAP_WORKBENCH_PKEXEC_OSCAP_PATH=$s/scap-workbench-pkexec-oscap.sh
 export SCAP_WORKBENCH_ICON=$s/share/pixmaps/scap-workbench.png
+export SCAP_WORKBENCH_SHARE=$s/share/scap-workbench
+
 exec "$@"
