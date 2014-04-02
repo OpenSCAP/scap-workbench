@@ -21,6 +21,7 @@
 
 #include "Application.h"
 #include "MainWindow.h"
+#include "Utils.h"
 
 #include <QFileInfo>
 
@@ -31,8 +32,7 @@ Application::Application(int& argc, char** argv):
     setApplicationName("scap-workbench");
     setApplicationVersion(SCAP_WORKBENCH_VERSION);
 
-    const QString iconPath = qgetenv("SCAP_WORKBENCH_ICON");
-    const QIcon icon = QIcon(iconPath.isEmpty() ? SCAP_WORKBENCH_ICON : iconPath);
+    const QIcon icon = getApplicationIcon();
 
     setWindowIcon(icon);
     mMainWindow->setWindowIcon(icon);
