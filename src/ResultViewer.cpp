@@ -26,9 +26,6 @@
 #include <QFileDialog>
 #include <QDesktopServices>
 #include <QMessageBox>
-#ifdef SCAP_WORKBENCH_USE_WEBKIT
-#   include <QWebFrame>
-#endif
 
 ResultViewer::ResultViewer(QWidget* parent):
     QWidget(parent)

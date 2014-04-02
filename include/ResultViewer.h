@@ -28,12 +28,7 @@
 #include <QTemporaryFile>
 #include <QUrl>
 #include <QMenu>
-
-#ifdef SCAP_WORKBENCH_USE_WEBKIT
-#    include <QWebView>
-#else
-#    include <QLabel>
-#endif
+#include <QLabel>
 
 extern "C"
 {

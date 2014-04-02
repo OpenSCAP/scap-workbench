@@ -44,6 +44,4 @@
 #define SCAP_WORKBENCH_LOCAL_MKTEMP "mktemp"
 #define SCAP_WORKBENCH_LOCAL_RM "rm"
 
-#cmakedefine SCAP_WORKBENCH_USE_WEBKIT
-
 #endif
