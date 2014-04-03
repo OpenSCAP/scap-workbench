@@ -104,20 +104,68 @@ XCCDFItemPropertiesDockWidget::XCCDFItemPropertiesDockWidget(QWidget* parent):
 XCCDFItemPropertiesDockWidget::~XCCDFItemPropertiesDockWidget()
 {}
 
-void XCCDFItemPropertiesDockWidget::setXccdfItem(struct xccdf_item* item)
+void XCCDFItemPropertiesDockWidget::setXccdfItem(struct xccdf_item* item, struct xccdf_policy* policy)
 {
     mXccdfItem = item;
+    mXccdfPolicy = policy;
 
     refresh();
 }
 
 void XCCDFItemPropertiesDockWidget::refresh()
 {
+    mUI.valueComboBox->clear();
+    mUI.valueComboBox->setEditText("");
+    mUI.valueComboBox->lineEdit()->setValidator(0);
+    mUI.valueGroupBox->hide();
+
     if (mXccdfItem)
     {
         mUI.titleLineEdit->setText(oscapTextIteratorGetPreferred(xccdf_item_get_title(mXccdfItem)));
         mUI.idLineEdit->setText(QString::fromUtf8(xccdf_item_get_id(mXccdfItem)));
         mUI.descriptionTextEdit->setHtml(oscapTextIteratorGetPreferred(xccdf_item_get_description(mXccdfItem)));
+
+        if (xccdf_item_get_type(mXccdfItem) == XCCDF_VALUE)
+        {
+            struct xccdf_value* value = xccdf_item_to_value(mXccdfItem);
+            xccdf_value_type_t valueType = xccdf_value_get_type(value);
+
+            switch (valueType)
+            {
+                case XCCDF_TYPE_NUMBER:
+                    // XCCDF specification says:
+                    // if element’s @type attribute is “number”, then a tool might choose
+                    // to reject user tailoring input that is not composed of digits.
+                    //
+                    // This implies integers and not decimals.
+                    mUI.valueComboBox->lineEdit()->setValidator(new QIntValidator());
+                    mUI.valueTypeLabel->setText("(number)");
+                    break;
+                case XCCDF_TYPE_STRING:
+                    mUI.valueComboBox->lineEdit()->setValidator(0);
+                    mUI.valueTypeLabel->setText("(string)");
+                    break;
+                case XCCDF_TYPE_BOOLEAN:
+                    // This is my best effort since the specification doesn't say what should be allowed.
+                    const QRegExp regex("true|false|True|False|TRUE|FALSE|1|0|yes|no|Yes|No|YES|NO");
+                    mUI.valueComboBox->lineEdit()->setValidator(new QRegExpValidator(regex));
+                    mUI.valueTypeLabel->setText("(bool)");
+                    break;
+            }
+
+            mUI.valueComboBox->setEditText(QString::fromUtf8(xccdf_policy_get_value_of_item(mXccdfPolicy, mXccdfItem)));
+
+            struct xccdf_value_instance_iterator* it = xccdf_value_get_instances(value);
+            while (xccdf_value_instance_iterator_has_more(it))
+            {
+                struct xccdf_value_instance* instance = xccdf_value_instance_iterator_next(it);
+                mUI.valueComboBox->addItem(QString::fromUtf8(xccdf_value_instance_get_value(instance)));
+            }
+            xccdf_value_instance_iterator_free(it);
+
+            mUI.valueComboBox->insertSeparator(1);
+            mUI.valueGroupBox->show();
+        }
     }
     else
     {
@@ -274,8 +322,8 @@ TailoringWindow::TailoringWindow(struct xccdf_policy* policy, struct xccdf_bench
 
     mSynchronizeItemLock(0),
 
-    mProfilePropertiesDockWidget(new ProfilePropertiesDockWidget(this, this)),
     mItemPropertiesDockWidget(new XCCDFItemPropertiesDockWidget(this)),
+    mProfilePropertiesDockWidget(new ProfilePropertiesDockWidget(this, this)),
 
     mPolicy(policy),
     mProfile(xccdf_policy_get_profile(policy)),
@@ -316,8 +364,8 @@ TailoringWindow::TailoringWindow(struct xccdf_policy* policy, struct xccdf_bench
         this, SLOT(deleteProfileAndDiscard())
     );
 
-    addDockWidget(Qt::RightDockWidgetArea, mProfilePropertiesDockWidget);
     addDockWidget(Qt::RightDockWidgetArea, mItemPropertiesDockWidget);
+    addDockWidget(Qt::RightDockWidgetArea, mProfilePropertiesDockWidget);
 
     {
         QAction* undoAction = mUndoStack.createUndoAction(this, "Undo");
@@ -357,8 +405,8 @@ TailoringWindow::TailoringWindow(struct xccdf_policy* policy, struct xccdf_bench
 
     setWindowTitle(QString("Tailoring '%1'").arg(oscapTextIteratorGetPreferred(xccdf_profile_get_title(mProfile))));
 
-    mProfilePropertiesDockWidget->refresh();
     mItemPropertiesDockWidget->refresh();
+    mProfilePropertiesDockWidget->refresh();
 
     // start centered
     move(QApplication::desktop()->screen()->rect().center() - rect().center());
@@ -668,7 +716,7 @@ void TailoringWindow::closeEvent(QCloseEvent * event)
 void TailoringWindow::itemSelectionChanged(QTreeWidgetItem* current, QTreeWidgetItem* previous)
 {
     struct xccdf_item* item = getXccdfItemFromTreeItem(current);
-    mItemPropertiesDockWidget->setXccdfItem(item);
+    mItemPropertiesDockWidget->setXccdfItem(item, mPolicy);
 }
 
 void TailoringWindow::itemChanged(QTreeWidgetItem* treeItem, int column)

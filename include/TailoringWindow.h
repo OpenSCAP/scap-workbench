@@ -87,7 +87,7 @@ class XCCDFItemPropertiesDockWidget : public QDockWidget
          *
          * @note This method automatically calls refresh to load new data
          */
-        void setXccdfItem(struct xccdf_item* item);
+        void setXccdfItem(struct xccdf_item* item, struct xccdf_policy* policy);
 
         /**
          * @brief Loads properties from currently set XCCDF items and sets widgets accordingly
@@ -100,6 +100,7 @@ class XCCDFItemPropertiesDockWidget : public QDockWidget
 
         /// Currently inspected XCCDF item
         struct xccdf_item* mXccdfItem;
+        struct xccdf_policy* mXccdfPolicy;
 };
 
 /**
@@ -265,8 +266,8 @@ class TailoringWindow : public QMainWindow
         /// UI designed in Qt Designer
         Ui_TailoringWindow mUI;
 
-        ProfilePropertiesDockWidget* mProfilePropertiesDockWidget;
         XCCDFItemPropertiesDockWidget* mItemPropertiesDockWidget;
+        ProfilePropertiesDockWidget* mProfilePropertiesDockWidget;
 
         struct xccdf_policy* mPolicy;
         struct xccdf_profile* mProfile;
