@@ -90,6 +90,8 @@ install(FILES "${CMAKE_CURRENT_BINARY_DIR}/scap-workbench-oscap.policy"
 install(FILES "man/scap-workbench.8"
     DESTINATION "${CMAKE_INSTALL_MANDIR}/man8")
 
+install(DIRECTORY "share/scap-workbench"
+    DESTINATION "${CMAKE_INSTALL_DATADIR}/scap-workbench")
 install(FILES "scap-workbench.desktop"
     DESTINATION "${CMAKE_INSTALL_DATADIR}/applications")
 install(FILES "share/pixmaps/scap-workbench.png"
