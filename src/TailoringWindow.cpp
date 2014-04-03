@@ -114,16 +114,39 @@ void XCCDFItemPropertiesDockWidget::setXccdfItem(struct xccdf_item* item, struct
 
 void XCCDFItemPropertiesDockWidget::refresh()
 {
+    mUI.titleLineEdit->setText("<no item selected>");
+    mUI.idLineEdit->setText("");
+    mUI.typeLineEdit->setText("");
+    mUI.descriptionBrowser->setHtml("");
+
+    mUI.valueGroupBox->hide();
     mUI.valueComboBox->clear();
     mUI.valueComboBox->setEditText("");
     mUI.valueComboBox->lineEdit()->setValidator(0);
-    mUI.valueGroupBox->hide();
 
     if (mXccdfItem)
     {
         mUI.titleLineEdit->setText(oscapTextIteratorGetPreferred(xccdf_item_get_title(mXccdfItem)));
         mUI.idLineEdit->setText(QString::fromUtf8(xccdf_item_get_id(mXccdfItem)));
-        mUI.descriptionTextEdit->setHtml(oscapTextIteratorGetPreferred(xccdf_item_get_description(mXccdfItem)));
+        switch (xccdf_item_get_type(mXccdfItem))
+        {
+            case XCCDF_BENCHMARK:
+                mUI.typeLineEdit->setText("xccdf:Benchmark");
+                break;
+            case XCCDF_GROUP:
+                mUI.typeLineEdit->setText("xccdf:Group");
+                break;
+            case XCCDF_RULE:
+                mUI.typeLineEdit->setText("xccdf:Rule");
+                break;
+            case XCCDF_VALUE:
+                mUI.typeLineEdit->setText("xccdf:Value");
+                break;
+
+            default:
+                break;
+        }
+        mUI.descriptionBrowser->setHtml(oscapTextIteratorGetPreferred(xccdf_item_get_description(mXccdfItem)));
 
         if (xccdf_item_get_type(mXccdfItem) == XCCDF_VALUE)
         {
@@ -167,12 +190,6 @@ void XCCDFItemPropertiesDockWidget::refresh()
             mUI.valueGroupBox->show();
         }
     }
-    else
-    {
-        mUI.titleLineEdit->setText("<no item selected>");
-        mUI.idLineEdit->setText("");
-        mUI.descriptionTextEdit->setHtml("");
-    }
 }
 
 inline struct xccdf_item* getXccdfItemFromTreeItem(QTreeWidgetItem* treeItem)
@@ -215,6 +232,7 @@ bool ProfileTitleChangeUndoCommand::mergeWith(const QUndoCommand *other)
     mNewTitle = static_cast<const ProfileTitleChangeUndoCommand*>(other)->mNewTitle;
     return true;
 }
+
 ProfileDescriptionChangeUndoCommand::ProfileDescriptionChangeUndoCommand(TailoringWindow* window, const QString& oldDesc, const QString& newDesc):
     mWindow(window),
     mOldDesc(oldDesc),
@@ -369,9 +387,9 @@ TailoringWindow::TailoringWindow(struct xccdf_policy* policy, struct xccdf_bench
 
     {
         QAction* undoAction = mUndoStack.createUndoAction(this, "Undo");
-        undoAction->setIcon(QIcon::fromTheme("edit-undo"));
+        undoAction->setIcon(getShareIcon("edit-undo.png"));
         QAction* redoAction = mUndoStack.createRedoAction(this, "Redo");
-        redoAction->setIcon(QIcon::fromTheme("edit-redo"));
+        redoAction->setIcon(getShareIcon("edit-redo.png"));
 
         mUI.toolBar->addAction(undoAction);
         mUI.toolBar->addAction(redoAction);
