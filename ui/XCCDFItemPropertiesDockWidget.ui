@@ -148,6 +148,11 @@
         </item>
         <item row="5" column="0" colspan="2">
          <widget class="QLabel" name="descriptionLabel">
+          <property name="font">
+           <font>
+            <italic>true</italic>
+           </font>
+          </property>
           <property name="text">
            <string>Description</string>
           </property>
@@ -155,6 +160,11 @@
         </item>
         <item row="2" column="0">
          <widget class="QLabel" name="label">
+          <property name="font">
+           <font>
+            <italic>true</italic>
+           </font>
+          </property>
           <property name="styleSheet">
            <string notr="true"/>
           </property>
@@ -193,6 +203,11 @@
         </item>
         <item row="0" column="0">
          <widget class="QLabel" name="titleLabel">
+          <property name="font">
+           <font>
+            <italic>true</italic>
+           </font>
+          </property>
           <property name="styleSheet">
            <string notr="true"/>
           </property>
@@ -212,6 +227,11 @@
         </item>
         <item row="1" column="0">
          <widget class="QLabel" name="idLabel">
+          <property name="font">
+           <font>
+            <italic>true</italic>
+           </font>
+          </property>
           <property name="styleSheet">
            <string notr="true"/>
           </property>

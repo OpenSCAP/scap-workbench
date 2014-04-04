@@ -28,6 +28,9 @@
 #include <QMessageBox>
 #include <QCloseEvent>
 #include <QDesktopWidget>
+#include <QUndoView>
+
+#include <QDebug>
 
 #include <set>
 #include <algorithm>
@@ -93,12 +96,22 @@ void ProfilePropertiesDockWidget::profileDescriptionChanged()
     mWindow->setProfileDescriptionWithUndoCommand(mUI.description->toPlainText());
 }
 
-XCCDFItemPropertiesDockWidget::XCCDFItemPropertiesDockWidget(QWidget* parent):
+XCCDFItemPropertiesDockWidget::XCCDFItemPropertiesDockWidget(TailoringWindow* window, QWidget* parent):
     QDockWidget(parent),
 
-    mXccdfItem(0)
+    mXccdfItem(0),
+    mXccdfPolicy(0),
+
+    mRefreshInProgress(false),
+
+    mWindow(window)
 {
     mUI.setupUi(this);
+
+    QObject::connect(
+        mUI.valueComboBox, SIGNAL(editTextChanged(const QString&)),
+        this, SLOT(valueChanged(const QString&))
+    );
 }
 
 XCCDFItemPropertiesDockWidget::~XCCDFItemPropertiesDockWidget()
@@ -114,6 +127,11 @@ void XCCDFItemPropertiesDockWidget::setXccdfItem(struct xccdf_item* item, struct
 
 void XCCDFItemPropertiesDockWidget::refresh()
 {
+    if (mRefreshInProgress)
+        return;
+
+    mRefreshInProgress = true;
+
     mUI.titleLineEdit->setText("<no item selected>");
     mUI.idLineEdit->setText("");
     mUI.typeLineEdit->setText("");
@@ -176,8 +194,6 @@ void XCCDFItemPropertiesDockWidget::refresh()
                     break;
             }
 
-            mUI.valueComboBox->setEditText(QString::fromUtf8(xccdf_policy_get_value_of_item(mXccdfPolicy, mXccdfItem)));
-
             struct xccdf_value_instance_iterator* it = xccdf_value_get_instances(value);
             while (xccdf_value_instance_iterator_has_more(it))
             {
@@ -186,10 +202,22 @@ void XCCDFItemPropertiesDockWidget::refresh()
             }
             xccdf_value_instance_iterator_free(it);
 
+            mUI.valueComboBox->setEditText(mWindow->getCurrentValueValue(value));
+
             mUI.valueComboBox->insertSeparator(1);
             mUI.valueGroupBox->show();
         }
     }
+
+    mRefreshInProgress = false;
+}
+
+void XCCDFItemPropertiesDockWidget::valueChanged(const QString& newValue)
+{
+    if (mRefreshInProgress)
+        return;
+
+    mWindow->setValueValueWithUndoCommand(xccdf_item_to_value(mXccdfItem), newValue);
 }
 
 inline struct xccdf_item* getXccdfItemFromTreeItem(QTreeWidgetItem* treeItem)
@@ -202,7 +230,9 @@ ProfileTitleChangeUndoCommand::ProfileTitleChangeUndoCommand(TailoringWindow* wi
     mWindow(window),
     mOldTitle(oldTitle),
     mNewTitle(newTitle)
-{}
+{
+    setText(QString("profile title to \"%1\"").arg(newTitle));
+}
 
 ProfileTitleChangeUndoCommand::~ProfileTitleChangeUndoCommand()
 {}
@@ -237,7 +267,13 @@ ProfileDescriptionChangeUndoCommand::ProfileDescriptionChangeUndoCommand(Tailori
     mWindow(window),
     mOldDesc(oldDesc),
     mNewDesc(newDesc)
-{}
+{
+    QString shortDesc = newDesc;
+    shortDesc.truncate(32);
+    shortDesc += "...";
+
+    setText(QString("profile description to \"%1\"").arg(shortDesc));
+}
 
 ProfileDescriptionChangeUndoCommand::~ProfileDescriptionChangeUndoCommand()
 {}
@@ -272,7 +308,10 @@ XCCDFItemSelectUndoCommand::XCCDFItemSelectUndoCommand(TailoringWindow* window, 
     mWindow(window),
     mTreeItem(item),
     mNewSelect(newSelect)
-{}
+{
+    struct xccdf_item* xccdfItem = getXccdfItemFromTreeItem(mTreeItem);
+    setText(QString(mNewSelect ? "select" : "unselect") + QString(" '%1'").arg(QString::fromUtf8(xccdf_item_get_id(xccdfItem))));
+}
 
 XCCDFItemSelectUndoCommand::~XCCDFItemSelectUndoCommand()
 {}
@@ -294,6 +333,56 @@ void XCCDFItemSelectUndoCommand::undo()
     struct xccdf_item* xccdfItem = getXccdfItemFromTreeItem(mTreeItem);
     mWindow->setItemSelected(xccdfItem, !mNewSelect);
     mWindow->synchronizeTreeItem(mTreeItem, xccdfItem, false);
+}
+
+XCCDFValueChangeUndoCommand::XCCDFValueChangeUndoCommand(TailoringWindow* window, struct xccdf_value* xccdfValue, const QString& newValue, const QString& oldValue):
+    mWindow(window),
+    mXccdfValue(xccdfValue),
+
+    mNewValue(newValue),
+    mOldValue(oldValue)
+{
+    refreshText();
+}
+
+XCCDFValueChangeUndoCommand::~XCCDFValueChangeUndoCommand()
+{}
+
+void XCCDFValueChangeUndoCommand::refreshText()
+{
+    setText(QString("set value '%1' to '%2'").arg(xccdf_value_get_id(mXccdfValue)).arg(mNewValue));
+}
+
+int XCCDFValueChangeUndoCommand::id() const
+{
+    return 4;
+}
+
+bool XCCDFValueChangeUndoCommand::mergeWith(const QUndoCommand* other)
+{
+    if (other->id() != id())
+        return false;
+
+    const XCCDFValueChangeUndoCommand* command = static_cast<const XCCDFValueChangeUndoCommand*>(other);
+
+    if (command->mXccdfValue != mXccdfValue)
+        return false;
+
+    mNewValue = command->mNewValue;
+    refreshText();
+    return true;
+}
+
+void XCCDFValueChangeUndoCommand::redo()
+{
+    mWindow->setValueValue(mXccdfValue, mNewValue);
+    mWindow->refreshXccdfItemPropertiesDockWidget();
+}
+
+void XCCDFValueChangeUndoCommand::undo()
+{
+    mWindow->setValueValue(mXccdfValue, mOldValue);
+    mWindow->refreshXccdfItemPropertiesDockWidget();
 }
 
 /**
@@ -342,6 +431,7 @@ TailoringWindow::TailoringWindow(struct xccdf_policy* policy, struct xccdf_bench
 
     mItemPropertiesDockWidget(new XCCDFItemPropertiesDockWidget(this)),
     mProfilePropertiesDockWidget(new ProfilePropertiesDockWidget(this, this)),
+    mUndoViewDockWidget(new QDockWidget(this)),
 
     mPolicy(policy),
     mProfile(xccdf_policy_get_profile(policy)),
@@ -425,6 +515,16 @@ TailoringWindow::TailoringWindow(struct xccdf_policy* policy, struct xccdf_bench
 
     mItemPropertiesDockWidget->refresh();
     mProfilePropertiesDockWidget->refresh();
+
+    {
+        mUndoViewDockWidget->setWindowTitle("Undo History");
+        mUndoViewDockWidget->setWidget(new QUndoView(&mUndoStack, mUndoViewDockWidget));
+        addDockWidget(Qt::RightDockWidgetArea, mUndoViewDockWidget);
+        mUndoViewDockWidget->hide();
+
+        mUI.toolBar->addSeparator();
+        mUI.toolBar->addAction(mUndoViewDockWidget->toggleViewAction());
+    }
 
     // start centered
     move(QApplication::desktop()->screen()->rect().center() - rect().center());
@@ -604,6 +704,32 @@ void TailoringWindow::synchronizeTreeItem(QTreeWidgetItem* treeItem, struct xccd
     --mSynchronizeItemLock;
 }
 
+void TailoringWindow::setValueValue(struct xccdf_value* xccdfValue, const QString& newValue)
+{
+    struct xccdf_setvalue* setvalue = xccdf_setvalue_new();
+    xccdf_setvalue_set_item(setvalue, xccdf_value_get_id(xccdfValue));
+    xccdf_setvalue_set_value(setvalue, newValue.toUtf8().constData());
+
+    xccdf_profile_add_setvalue(mProfile, setvalue);
+
+    assert(getCurrentValueValue(xccdfValue) == newValue);
+}
+
+void TailoringWindow::refreshXccdfItemPropertiesDockWidget()
+{
+    mItemPropertiesDockWidget->refresh();
+}
+
+QString TailoringWindow::getCurrentValueValue(struct xccdf_value* xccdfValue)
+{
+    return QString::fromUtf8(xccdf_policy_get_value_of_item(mPolicy, xccdf_value_to_item(xccdfValue)));
+}
+
+void TailoringWindow::setValueValueWithUndoCommand(struct xccdf_value* xccdfValue, const QString& newValue)
+{
+    mUndoStack.push(new XCCDFValueChangeUndoCommand(this, xccdfValue, newValue, getCurrentValueValue(xccdfValue)));
+}
+
 QString TailoringWindow::getProfileID() const
 {
     return QString::fromUtf8(xccdf_profile_get_id(mProfile));
@@ -746,6 +872,9 @@ void TailoringWindow::itemChanged(QTreeWidgetItem* treeItem, int column)
 
     struct xccdf_item* xccdfItem = getXccdfItemFromTreeItem(treeItem);
     if (!xccdfItem)
+        return;
+
+    if (xccdf_item_get_type(xccdfItem) == XCCDF_VALUE)
         return;
 
     const bool itemCheckState = getXccdfItemInternalSelected(mPolicy, xccdfItem);

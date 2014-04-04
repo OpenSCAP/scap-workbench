@@ -79,7 +79,7 @@ class XCCDFItemPropertiesDockWidget : public QDockWidget
     Q_OBJECT
 
     public:
-        XCCDFItemPropertiesDockWidget(QWidget* parent = 0);
+        XCCDFItemPropertiesDockWidget(TailoringWindow* window, QWidget* parent = 0);
         virtual ~XCCDFItemPropertiesDockWidget();
 
         /**
@@ -94,6 +94,9 @@ class XCCDFItemPropertiesDockWidget : public QDockWidget
          */
         void refresh();
 
+    protected slots:
+        void valueChanged(const QString& newValue);
+
     protected:
         /// UI designed in Qt Designer
         Ui_XCCDFItemPropertiesDockWidget mUI;
@@ -101,6 +104,11 @@ class XCCDFItemPropertiesDockWidget : public QDockWidget
         /// Currently inspected XCCDF item
         struct xccdf_item* mXccdfItem;
         struct xccdf_policy* mXccdfPolicy;
+
+        bool mRefreshInProgress;
+
+        /// Owner TailoringWindow
+        TailoringWindow* mWindow;
 };
 
 /**
@@ -123,6 +131,34 @@ class XCCDFItemSelectUndoCommand : public QUndoCommand
         QTreeWidgetItem* mTreeItem;
         /// selection state after this undo command is "redone" (applied)
         bool mNewSelect;
+};
+
+/**
+ * @brief Stores info about refinement of xccdf:Value's value
+ */
+class XCCDFValueChangeUndoCommand : public QUndoCommand
+{
+    public:
+        XCCDFValueChangeUndoCommand(TailoringWindow* window, struct xccdf_value* xccdfValue, const QString& newValue, const QString& oldValue);
+        virtual ~XCCDFValueChangeUndoCommand();
+
+        void refreshText();
+
+        virtual int id() const;
+
+        virtual bool mergeWith(const QUndoCommand* other);
+
+        virtual void redo();
+        virtual void undo();
+
+    private:
+        TailoringWindow* mWindow;
+
+        struct xccdf_value* mXccdfValue;
+        /// value after this undo command is "redone" (applied)
+        QString mNewValue;
+        /// value after this undo command is "undone"
+        QString mOldValue;
 };
 
 /**
@@ -202,6 +238,12 @@ class TailoringWindow : public QMainWindow
          */
         void synchronizeTreeItem(QTreeWidgetItem* treeItem, struct xccdf_item* xccdfItem, bool recursive);
 
+        void setValueValue(struct xccdf_value* xccdfValue, const QString& newValue);
+        void refreshXccdfItemPropertiesDockWidget();
+
+        QString getCurrentValueValue(struct xccdf_value* xccdfValue);
+        void setValueValueWithUndoCommand(struct xccdf_value* xccdfValue, const QString& newValue);
+
         /**
          * @brief Retrieves ID of profile that is being tailored (in suitable language)
          */
@@ -268,6 +310,7 @@ class TailoringWindow : public QMainWindow
 
         XCCDFItemPropertiesDockWidget* mItemPropertiesDockWidget;
         ProfilePropertiesDockWidget* mProfilePropertiesDockWidget;
+        QDockWidget* mUndoViewDockWidget;
 
         struct xccdf_policy* mPolicy;
         struct xccdf_profile* mProfile;
