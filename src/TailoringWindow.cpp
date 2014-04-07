@@ -506,8 +506,8 @@ TailoringWindow::TailoringWindow(struct xccdf_policy* policy, struct xccdf_bench
     synchronizeTreeItem(benchmarkItem, xccdf_benchmark_to_item(mBenchmark), true);
     _refreshXCCDFItemChildrenDisabledState(benchmarkItem, true);
 
-    // let title stretch and take space as the tailoring window grows
-    mUI.itemsTree->header()->setResizeMode(0, QHeaderView::Stretch);
+    mUI.itemsTree->header()->setResizeMode(0, QHeaderView::ResizeToContents);
+    mUI.itemsTree->header()->setStretchLastSection(false);
 
     mUI.itemsTree->expandAll();
 
