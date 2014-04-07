@@ -196,6 +196,11 @@ void MainWindow::clearResults()
 
     mUI.ruleResultsTree->hide();
     mUI.selectedRulesTree->show();
+
+    statusBar()->clearMessage();
+
+    mUI.progressBar->setRange(0, 1);
+    mUI.progressBar->reset();
 }
 
 void MainWindow::openFile(const QString& path)
@@ -651,8 +656,6 @@ void MainWindow::cleanupScanThread()
         mScanThread = 0;
     }
 
-    mUI.progressBar->setRange(0, 1);
-    mUI.progressBar->reset();
     mUI.progressBar->setEnabled(false);
 }
 
@@ -1085,7 +1088,6 @@ void MainWindow::scanEnded(bool canceled)
     mUI.resultViewer->setEnabled(!canceled);
 
     cleanupScanThread();
-    statusBar()->clearMessage();
 }
 
 void MainWindow::inheritAndEditProfile(bool shadowed)
