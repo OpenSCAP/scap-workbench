@@ -47,6 +47,8 @@ Application::Application(int& argc, char** argv):
     if (!mMainWindow->fileOpened())
         openDefaultContent();
 
+    mMainWindow->show();
+
     if (!mMainWindow->fileOpened())
         browseForContent();
 }

@@ -166,7 +166,6 @@ MainWindow::MainWindow(QWidget* parent):
 
     // start centered
     move(QApplication::desktop()->screen()->rect().center() - rect().center());
-    show();
 }
 
 MainWindow::~MainWindow()
