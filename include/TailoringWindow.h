@@ -312,6 +312,9 @@ class TailoringWindow : public QMainWindow
         ProfilePropertiesDockWidget* mProfilePropertiesDockWidget;
         QDockWidget* mUndoViewDockWidget;
 
+        QLineEdit* mSearchBox;
+        QPushButton* mSearchButton;
+
         struct xccdf_policy* mPolicy;
         struct xccdf_profile* mProfile;
         struct xccdf_benchmark* mBenchmark;
@@ -321,7 +324,11 @@ class TailoringWindow : public QMainWindow
         bool mNewProfile;
         bool mChangesConfirmed;
 
+        unsigned int mSearchSkippedItems;
+        QString mSearchCurrentNeedle;
+
     protected slots:
+        void searchNext();
         void itemSelectionChanged(QTreeWidgetItem* current, QTreeWidgetItem* previous);
         void itemChanged(QTreeWidgetItem* item, int column);
 };

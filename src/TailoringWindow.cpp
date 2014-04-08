@@ -433,6 +433,9 @@ TailoringWindow::TailoringWindow(struct xccdf_policy* policy, struct xccdf_bench
     mProfilePropertiesDockWidget(new ProfilePropertiesDockWidget(this, this)),
     mUndoViewDockWidget(new QDockWidget(this)),
 
+    mSearchBox(new QLineEdit()),
+    mSearchButton(new QPushButton("Search")),
+
     mPolicy(policy),
     mProfile(xccdf_policy_get_profile(policy)),
     mBenchmark(benchmark),
@@ -440,7 +443,10 @@ TailoringWindow::TailoringWindow(struct xccdf_policy* policy, struct xccdf_bench
     mUndoStack(this),
 
     mNewProfile(newProfile),
-    mChangesConfirmed(false)
+    mChangesConfirmed(false),
+
+    mSearchSkippedItems(0),
+    mSearchCurrentNeedle("")
 {
     // sanity check
     if (!mPolicy)
@@ -525,6 +531,16 @@ TailoringWindow::TailoringWindow(struct xccdf_policy* policy, struct xccdf_bench
         mUI.toolBar->addSeparator();
         mUI.toolBar->addAction(mUndoViewDockWidget->toggleViewAction());
     }
+
+    mSearchBox->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Preferred);
+    mUI.toolBar->addSeparator();
+    mUI.toolBar->addWidget(mSearchBox);
+    mUI.toolBar->addWidget(mSearchButton);
+
+    QObject::connect(
+        mSearchButton, SIGNAL(released()),
+        this, SLOT(searchNext())
+    );
 
     // start centered
     move(QApplication::desktop()->screen()->rect().center() - rect().center());
@@ -855,6 +871,26 @@ void TailoringWindow::closeEvent(QCloseEvent * event)
     {
         mParentMainWindow->notifyTailoringFinished(mNewProfile, mChangesConfirmed);
     }
+}
+
+void TailoringWindow::searchNext()
+{
+    const QString& needle = mSearchBox->text();
+
+    if (needle == mSearchCurrentNeedle)
+        ++mSearchSkippedItems;
+    else
+        mSearchSkippedItems = 0;
+
+    mSearchCurrentNeedle = needle;
+
+    // FIXME: We could cache this when skipping to save CPU cycles but it's not worth
+    //        as searching takes miliseconds even for huge XCCDF files.
+    QList<QTreeWidgetItem*> matches = mUI.itemsTree->findItems(mSearchCurrentNeedle, Qt::MatchContains | Qt::MatchRecursive);
+    mSearchSkippedItems = mSearchSkippedItems % matches.size(); // wrap around
+    QTreeWidgetItem* match = matches.at(mSearchSkippedItems);
+
+    mUI.itemsTree->setCurrentItem(match);
 }
 
 void TailoringWindow::itemSelectionChanged(QTreeWidgetItem* current, QTreeWidgetItem* previous)
