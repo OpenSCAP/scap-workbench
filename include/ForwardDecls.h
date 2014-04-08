@@ -30,6 +30,9 @@ class MainWindow;
 class OscapScannerBase;
 class OscapScannerLocal;
 class OscapScannerRemoteSsh;
+class ProfilePropertiesDockWidget;
+class ProfileTitleChangeUndoCommand;
+class ProfileDescriptionChangeUndoCommand;
 class ResultViewer;
 class SaveAsRPMDialog;
 class ScanningSession;
@@ -39,5 +42,8 @@ class SshSyncProcess;
 class SyncProcess;
 class TailoringWindow;
 class TemporaryDir;
+class XCCDFItemPropertiesDockWidget;
+class XCCDFItemSelectUndoCommand;
+class XCCDFValueChangeUndoCommand;
 
 #endif

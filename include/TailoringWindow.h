@@ -25,7 +25,6 @@
 #include "ForwardDecls.h"
 
 #include <QDialog>
-#include <QUndoCommand>
 #include <QUndoStack>
 
 extern "C"
@@ -38,174 +37,6 @@ extern "C"
 #include "ui_ProfilePropertiesDockWidget.h"
 #include "ui_XCCDFItemPropertiesDockWidget.h"
 
-class TailoringWindow;
-
-/**
- * @brief Displays profile properties and allows editing of profile title
- */
-class ProfilePropertiesDockWidget : public QDockWidget
-{
-    Q_OBJECT
-
-    public:
-        ProfilePropertiesDockWidget(TailoringWindow* window, QWidget* parent = 0);
-        virtual ~ProfilePropertiesDockWidget();
-
-        /**
-         * @brief Takes profile's current ID and title and sets both QLineEdit widgets accordingly
-         */
-        void refresh();
-
-    protected slots:
-        void profileTitleChanged(const QString& newTitle);
-        void profileDescriptionChanged();
-
-    protected:
-        /// Prevents a redo command being created when actions are undone or redone
-        bool mRefreshInProgress;
-
-        /// UI designed in Qt Designer
-        Ui_ProfilePropertiesDockWidget mUI;
-
-        /// Owner TailoringWindow that provides profile for editing/viewing
-        TailoringWindow* mWindow;
-};
-
-/**
- * @brief Provides reference about currently selected XCCDF item
- */
-class XCCDFItemPropertiesDockWidget : public QDockWidget
-{
-    Q_OBJECT
-
-    public:
-        XCCDFItemPropertiesDockWidget(TailoringWindow* window, QWidget* parent = 0);
-        virtual ~XCCDFItemPropertiesDockWidget();
-
-        /**
-         * @brief Changes currently inspected XCCDF item
-         *
-         * @note This method automatically calls refresh to load new data
-         */
-        void setXccdfItem(struct xccdf_item* item, struct xccdf_policy* policy);
-
-        /**
-         * @brief Loads properties from currently set XCCDF items and sets widgets accordingly
-         */
-        void refresh();
-
-    protected slots:
-        void valueChanged(const QString& newValue);
-
-    protected:
-        /// UI designed in Qt Designer
-        Ui_XCCDFItemPropertiesDockWidget mUI;
-
-        /// Currently inspected XCCDF item
-        struct xccdf_item* mXccdfItem;
-        struct xccdf_policy* mXccdfPolicy;
-
-        bool mRefreshInProgress;
-
-        /// Owner TailoringWindow
-        TailoringWindow* mWindow;
-};
-
-/**
- * @brief Stores info about one selection or deselection of an XCCDF item
- */
-class XCCDFItemSelectUndoCommand : public QUndoCommand
-{
-    public:
-        XCCDFItemSelectUndoCommand(TailoringWindow* window, QTreeWidgetItem* item, bool newSelect);
-        virtual ~XCCDFItemSelectUndoCommand();
-
-        virtual int id() const;
-
-        virtual void redo();
-        virtual void undo();
-
-    private:
-        TailoringWindow* mWindow;
-
-        QTreeWidgetItem* mTreeItem;
-        /// selection state after this undo command is "redone" (applied)
-        bool mNewSelect;
-};
-
-/**
- * @brief Stores info about refinement of xccdf:Value's value
- */
-class XCCDFValueChangeUndoCommand : public QUndoCommand
-{
-    public:
-        XCCDFValueChangeUndoCommand(TailoringWindow* window, struct xccdf_value* xccdfValue, const QString& newValue, const QString& oldValue);
-        virtual ~XCCDFValueChangeUndoCommand();
-
-        void refreshText();
-
-        virtual int id() const;
-
-        virtual bool mergeWith(const QUndoCommand* other);
-
-        virtual void redo();
-        virtual void undo();
-
-    private:
-        TailoringWindow* mWindow;
-
-        struct xccdf_value* mXccdfValue;
-        /// value after this undo command is "redone" (applied)
-        QString mNewValue;
-        /// value after this undo command is "undone"
-        QString mOldValue;
-};
-
-/**
- * @brief Stores XCCDF profile title change undo info
- */
-class ProfileTitleChangeUndoCommand : public QUndoCommand
-{
-    public:
-        ProfileTitleChangeUndoCommand(TailoringWindow* window, const QString& oldTitle, const QString& newTitle);
-        virtual ~ProfileTitleChangeUndoCommand();
-
-        virtual int id() const;
-
-        virtual void redo();
-        virtual void undo();
-
-        virtual bool mergeWith(const QUndoCommand *other);
-
-    private:
-        TailoringWindow* mWindow;
-
-        QString mOldTitle;
-        QString mNewTitle;
-};
-
-/**
- * @brief Stores XCCDF profile description change undo info
- */
-class ProfileDescriptionChangeUndoCommand : public QUndoCommand
-{
-    public:
-        ProfileDescriptionChangeUndoCommand(TailoringWindow* window, const QString& oldDesc, const QString& newDesc);
-        virtual ~ProfileDescriptionChangeUndoCommand();
-
-        virtual int id() const;
-
-        virtual void redo();
-        virtual void undo();
-
-        virtual bool mergeWith(const QUndoCommand *other);
-
-    private:
-        TailoringWindow* mWindow;
-
-        QString mOldDesc;
-        QString mNewDesc;
-};
 /**
  * @brief Tailors given profile by editing it directly
  *
@@ -217,6 +48,8 @@ class TailoringWindow : public QMainWindow
     Q_OBJECT
 
     public:
+        static struct xccdf_item* getXccdfItemFromTreeItem(QTreeWidgetItem* treeItem);
+
         /**
          * @param newProfile whether the profile in policy was created solely for tailoring
          */
