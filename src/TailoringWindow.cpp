@@ -130,6 +130,19 @@ void XCCDFItemPropertiesDockWidget::refresh()
     if (mRefreshInProgress)
         return;
 
+    if (mXccdfItem && xccdf_item_get_type(mXccdfItem) == XCCDF_VALUE)
+    {
+        struct xccdf_value* value = xccdf_item_to_value(mXccdfItem);
+
+        if (mUI.idLineEdit->text() == xccdf_value_get_id(value) &&
+            mUI.valueComboBox->currentText() == mWindow->getCurrentValueValue(value))
+        {
+            // no need to refresh, user is currently editing
+            // refreshing would lose focus of the combobox, which makes editing hard to use
+            return;
+        }
+    }
+
     mRefreshInProgress = true;
 
     mUI.titleLineEdit->setText("<no item selected>");
