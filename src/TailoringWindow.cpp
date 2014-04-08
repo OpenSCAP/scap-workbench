@@ -179,7 +179,7 @@ void XCCDFItemPropertiesDockWidget::refresh()
                     // to reject user tailoring input that is not composed of digits.
                     //
                     // This implies integers and not decimals.
-                    mUI.valueComboBox->lineEdit()->setValidator(new QIntValidator());
+                    mUI.valueComboBox->lineEdit()->setValidator(new QIntValidator(this));
                     mUI.valueTypeLabel->setText("(number)");
                     break;
                 case XCCDF_TYPE_STRING:
@@ -189,7 +189,7 @@ void XCCDFItemPropertiesDockWidget::refresh()
                 case XCCDF_TYPE_BOOLEAN:
                     // This is my best effort since the specification doesn't say what should be allowed.
                     const QRegExp regex("true|false|True|False|TRUE|FALSE|1|0|yes|no|Yes|No|YES|NO");
-                    mUI.valueComboBox->lineEdit()->setValidator(new QRegExpValidator(regex));
+                    mUI.valueComboBox->lineEdit()->setValidator(new QRegExpValidator(regex, this));
                     mUI.valueTypeLabel->setText("(bool)");
                     break;
             }
