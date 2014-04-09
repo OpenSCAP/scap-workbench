@@ -255,7 +255,10 @@ void MainWindow::openFileDialog()
         const QString path = QFileDialog::getOpenFileName(this,
             "Open Source DataStream or XCCDF file",
             defaultDirectory,
-            "Source DataStream or XCCDF file (*.xml);;All files (*)"
+            "Source DataStream or XCCDF file (*.xml);;All files (*)", 0
+#ifndef SCAP_WORKBENCH_USE_NATIVE_FILE_DIALOGS
+            , QFileDialog::DontUseNativeDialog
+#endif
         );
 
         if (path == QString::Null())
@@ -719,7 +722,10 @@ void MainWindow::tailoringFileComboboxChanged(int index)
             {
                 const QString filePath = QFileDialog::getOpenFileName(
                     this, "Open custom XCCDF tailoring file", QString(),
-                    "XCCDF tailoring file (*.xml)"
+                    "XCCDF tailoring file (*.xml)", 0
+#ifndef SCAP_WORKBENCH_USE_NATIVE_FILE_DIALOGS
+                    , QFileDialog::DontUseNativeDialog
+#endif
                 );
 
                 if (filePath == QString::Null())
@@ -1172,7 +1178,14 @@ void MainWindow::customizeProfile()
 
 void MainWindow::saveTailoring()
 {
-    const QString path = QFileDialog::getSaveFileName(this, "Save Tailoring As", "", "XCCDF Tailoring file (*.xml)");
+    const QString path = QFileDialog::getSaveFileName(this,
+        "Save Tailoring As",
+        "",
+        "XCCDF Tailoring file (*.xml)", 0
+#ifndef SCAP_WORKBENCH_USE_NATIVE_FILE_DIALOGS
+        , QFileDialog::DontUseNativeDialog
+#endif
+    );
 
     if (path.isEmpty())
         return;
@@ -1195,7 +1208,14 @@ void MainWindow::saveIntoDirectory()
     if (!fileOpened())
         return;
 
-    const QString targetPath = QFileDialog::getExistingDirectory(this, "Select target directory");
+    const QString targetPath = QFileDialog::getExistingDirectory(this,
+        "Select target directory",
+        "",
+        QFileDialog::ShowDirsOnly
+#ifndef SCAP_WORKBENCH_USE_NATIVE_FILE_DIALOGS
+        | QFileDialog::DontUseNativeDialog
+#endif
+    );
     if (targetPath.isEmpty())
         return; // user canceled
 

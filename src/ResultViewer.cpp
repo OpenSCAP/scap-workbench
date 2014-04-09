@@ -102,7 +102,14 @@ const QByteArray& ResultViewer::getARF() const
 
 void ResultViewer::saveReport()
 {
-    const QString filename = QFileDialog::getSaveFileName(this, "Save Report (HTML)", QString("%1-xccdf.report.html").arg(mInputBaseName), "HTML Report (*.html)");
+    const QString filename = QFileDialog::getSaveFileName(this,
+        "Save Report (HTML)",
+        QString("%1-xccdf.report.html").arg(mInputBaseName),
+        "HTML Report (*.html)", 0
+#ifndef SCAP_WORKBENCH_USE_NATIVE_FILE_DIALOGS
+        , QFileDialog::DontUseNativeDialog
+#endif
+    );
 
     if (filename == QString::Null())
         return;
@@ -128,7 +135,14 @@ void ResultViewer::openReport()
 
 void ResultViewer::saveResults()
 {
-    const QString filename = QFileDialog::getSaveFileName(this, "Save as XCCDF Results", QString("%1-xccdf.results.xml").arg(mInputBaseName), "XCCDF Results (*.xml)");
+    const QString filename = QFileDialog::getSaveFileName(this,
+        "Save as XCCDF Results",
+        QString("%1-xccdf.results.xml").arg(mInputBaseName),
+        "XCCDF Results (*.xml)", 0
+#ifndef SCAP_WORKBENCH_USE_NATIVE_FILE_DIALOGS
+        , QFileDialog::DontUseNativeDialog
+#endif
+    );
 
     if (filename == QString::Null())
         return;
@@ -141,7 +155,14 @@ void ResultViewer::saveResults()
 
 void ResultViewer::saveARF()
 {
-    const QString filename = QFileDialog::getSaveFileName(this, "Save as Result DataStream / ARF", QString("%1-arf.xml").arg(mInputBaseName), "Result DataStream / ARF (*.xml)");
+    const QString filename = QFileDialog::getSaveFileName(this,
+        "Save as Result DataStream / ARF",
+        QString("%1-arf.xml").arg(mInputBaseName),
+        "Result DataStream / ARF (*.xml)", 0
+#ifndef SCAP_WORKBENCH_USE_NATIVE_FILE_DIALOGS
+        , QFileDialog::DontUseNativeDialog
+#endif
+    );
 
     if (filename == QString::Null())
         return;

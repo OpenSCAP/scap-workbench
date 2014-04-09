@@ -21,6 +21,7 @@ endif()
 # This is optional, only required if user wants documentation rebuilt
 find_program(ASCIIDOCTOR_EXECUTABLE NAMES asciidoctor)
 option(SCAP_WORKBENCH_REBUILD_MANUAL "If enabled, user manual will be rebuilt (requires asciidoctor to be installed)" TRUE)
+option(SCAP_WORKBENCH_USE_NATIVE_FILE_DIALOGS "If enabled, native desktop environment file dialogs are used (disable if you have crashes at startup)" TRUE)
 if (SCAP_WORKBENCH_REBUILD_MANUAL AND NOT ASCIIDOCTOR_EXECUTABLE)
     message("asciidoctor has not been found, user manual won't be rebuilt even though SCAP_WORKBENCH_REBUILD_MANUAL has been enabled.")
 endif()
