@@ -33,6 +33,7 @@
 #include <QDesktopWidget>
 #include <QUndoView>
 
+#include <algorithm>
 #include <cassert>
 
 struct xccdf_item* TailoringWindow::getXccdfItemFromTreeItem(QTreeWidgetItem* treeItem)
