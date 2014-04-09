@@ -112,7 +112,8 @@
            </font>
           </property>
           <property name="styleSheet">
-           <string notr="true">border: 1px solid #000;</string>
+           <string notr="true">border: 1px solid #000;
+background: transparent;</string>
           </property>
           <property name="readOnly">
            <bool>true</bool>
