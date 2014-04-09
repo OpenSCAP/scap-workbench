@@ -91,7 +91,7 @@ install(FILES "man/scap-workbench.8"
     DESTINATION "${CMAKE_INSTALL_MANDIR}/man8")
 
 install(DIRECTORY "share/scap-workbench"
-    DESTINATION "${CMAKE_INSTALL_DATADIR}/scap-workbench")
+    DESTINATION "${CMAKE_INSTALL_DATADIR}")
 install(FILES "scap-workbench.desktop"
     DESTINATION "${CMAKE_INSTALL_DATADIR}/applications")
 install(FILES "share/pixmaps/scap-workbench.png"
