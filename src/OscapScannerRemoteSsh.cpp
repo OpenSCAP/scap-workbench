@@ -46,7 +46,7 @@ OscapScannerRemoteSsh::OscapScannerRemoteSsh():
 OscapScannerRemoteSsh::~OscapScannerRemoteSsh()
 {}
 
-inline void splitTarget(const QString& in, QString& target, short& port)
+void OscapScannerRemoteSsh::splitTarget(const QString& in, QString& target, short& port)
 {
     // NB: We dodge a bullet here because the editor will always pass a port
     //     as the last component. A lot of checking and parsing does not need

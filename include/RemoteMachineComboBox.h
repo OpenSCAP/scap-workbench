@@ -48,6 +48,9 @@ class RemoteMachineComboBox : public QWidget
         void notifyTargetUsed(const QString& target);
         void clearHistory();
 
+    protected slots:
+        void recentMenuActionTriggered(QAction* action);
+
     private:
         void syncFromQSettings();
         void syncToQSettings();

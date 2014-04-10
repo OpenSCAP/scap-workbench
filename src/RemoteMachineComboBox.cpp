@@ -20,6 +20,7 @@
  */
 
 #include "RemoteMachineComboBox.h"
+#include "OscapScannerRemoteSsh.h"
 
 RemoteMachineComboBox::RemoteMachineComboBox(QWidget* parent):
     QWidget(parent)
@@ -34,10 +35,15 @@ RemoteMachineComboBox::RemoteMachineComboBox(QWidget* parent):
     mQSettings = new QSettings(this);
 
     mRecentMenu = new QMenu(this);
+    QObject::connect(
+        mRecentMenu, SIGNAL(triggered(QAction*)),
+        this, SLOT(recentMenuActionTriggered(QAction*))
+    );
     mUI.recent->setMenu(mRecentMenu);
 
     setRecentMachineCount(5);
     syncFromQSettings();
+
 }
 
 RemoteMachineComboBox::~RemoteMachineComboBox()
@@ -90,6 +96,21 @@ void RemoteMachineComboBox::clearHistory()
 
     syncToQSettings();
     syncRecentMenu();
+}
+
+void RemoteMachineComboBox::recentMenuActionTriggered(QAction* action)
+{
+    const QString& target = action->data().toString();
+    if (target.isEmpty())
+        return;
+
+    QString host;
+    short port;
+
+    OscapScannerRemoteSsh::splitTarget(target, host, port);
+
+    mUI.host->setText(host);
+    mUI.port->setValue(port);
 }
 
 void RemoteMachineComboBox::syncFromQSettings()
