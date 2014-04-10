@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2014 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -19,32 +19,28 @@
  *      Martin Preisler <mpreisle@redhat.com>
  */
 
-#ifndef SCAP_WORKBENCH_FORWARD_DECLS_H_
-#define SCAP_WORKBENCH_FORWARD_DECLS_H_
+#ifndef SCAP_WORKBENCH_REMOTE_MACHINE_COMBOBOX_H_
+#define SCAP_WORKBENCH_REMOTE_MACHINE_COMBOBOX_H_
 
-#include "Config.h"
+#include "ForwardDecls.h"
 
-class Application;
-class DiagnosticsDialog;
-class MainWindow;
-class OscapScannerBase;
-class OscapScannerLocal;
-class OscapScannerRemoteSsh;
-class ProfilePropertiesDockWidget;
-class ProfileTitleChangeUndoCommand;
-class ProfileDescriptionChangeUndoCommand;
-class RemoteMachineComboBox;
-class ResultViewer;
-class SaveAsRPMDialog;
-class ScanningSession;
-class Scanner;
-class SshConnection;
-class SshSyncProcess;
-class SyncProcess;
-class TailoringWindow;
-class TemporaryDir;
-class XCCDFItemPropertiesDockWidget;
-class XCCDFItemSelectUndoCommand;
-class XCCDFValueChangeUndoCommand;
+#include <QWidget>
+
+#include "ui_RemoteMachineComboBox.h"
+
+class RemoteMachineComboBox : public QWidget
+{
+    Q_OBJECT
+
+    public:
+        RemoteMachineComboBox(QWidget* parent = 0);
+        virtual ~RemoteMachineComboBox();
+
+        QString getTarget() const;
+
+    protected:
+        /// UI designed in Qt Designer
+        Ui_RemoteMachineComboBox mUI;
+};
 
 #endif

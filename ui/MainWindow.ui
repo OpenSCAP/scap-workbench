@@ -70,50 +70,7 @@
            </widget>
           </item>
           <item>
-           <widget class="QWidget" name="remoteMachineDetails" native="true">
-            <layout class="QHBoxLayout" name="horizontalLayout_6">
-             <property name="margin">
-              <number>0</number>
-             </property>
-             <item>
-              <widget class="QLineEdit" name="remoteMachineHost">
-               <property name="toolTip">
-                <string>Use the format commonly accepted by ssh (username@host)</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QLabel" name="label_6">
-               <property name="font">
-                <font>
-                 <pointsize>12</pointsize>
-                 <weight>75</weight>
-                 <bold>true</bold>
-                </font>
-               </property>
-               <property name="text">
-                <string>:</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QSpinBox" name="remoteMachinePort">
-               <property name="toolTip">
-                <string>Port number</string>
-               </property>
-               <property name="minimum">
-                <number>1</number>
-               </property>
-               <property name="maximum">
-                <number>65535</number>
-               </property>
-               <property name="value">
-                <number>22</number>
-               </property>
-              </widget>
-             </item>
-            </layout>
-           </widget>
+           <widget class="RemoteMachineComboBox" name="remoteMachineDetails" native="true"/>
           </item>
          </layout>
         </widget>
@@ -500,6 +457,12 @@
    <class>ResultViewer</class>
    <extends>QWidget</extends>
    <header>ResultViewer.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>RemoteMachineComboBox</class>
+   <extends>QWidget</extends>
+   <header>RemoteMachineComboBox.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

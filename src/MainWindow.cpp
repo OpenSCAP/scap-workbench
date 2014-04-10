@@ -152,11 +152,6 @@ MainWindow::MainWindow(QWidget* parent):
     //        not supported in openscap.
     mUI.offlineRemediateButton->hide();
 
-#if (QT_VERSION >= QT_VERSION_CHECK(4, 7, 0))
-    // placeholder text is only supported in Qt 4.7 onwards
-    mUI.remoteMachineHost->setPlaceholderText("username@hostname");
-#endif
-
     mDiagnosticsDialog = new DiagnosticsDialog(this);
     mDiagnosticsDialog->hide();
 
@@ -370,7 +365,7 @@ void MainWindow::scanAsync(ScannerMode scannerMode)
     // targets (which can avoid reconnection and reauthentication).
     // In the OscapScannerRemoteSsh class the port will be parsed out again...
     const QString target = mUI.localMachineRadioButton->isChecked() ?
-        "localhost" : QString("%1:%2").arg(mUI.remoteMachineHost->text()).arg(mUI.remoteMachinePort->value());
+        "localhost" : mUI.remoteMachineDetails->getTarget();
 
     try
     {

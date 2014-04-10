@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2014 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -19,32 +19,23 @@
  *      Martin Preisler <mpreisle@redhat.com>
  */
 
-#ifndef SCAP_WORKBENCH_FORWARD_DECLS_H_
-#define SCAP_WORKBENCH_FORWARD_DECLS_H_
+#include "RemoteMachineComboBox.h"
 
-#include "Config.h"
+RemoteMachineComboBox::RemoteMachineComboBox(QWidget* parent):
+    QWidget(parent)
+{
+    mUI.setupUi(this);
 
-class Application;
-class DiagnosticsDialog;
-class MainWindow;
-class OscapScannerBase;
-class OscapScannerLocal;
-class OscapScannerRemoteSsh;
-class ProfilePropertiesDockWidget;
-class ProfileTitleChangeUndoCommand;
-class ProfileDescriptionChangeUndoCommand;
-class RemoteMachineComboBox;
-class ResultViewer;
-class SaveAsRPMDialog;
-class ScanningSession;
-class Scanner;
-class SshConnection;
-class SshSyncProcess;
-class SyncProcess;
-class TailoringWindow;
-class TemporaryDir;
-class XCCDFItemPropertiesDockWidget;
-class XCCDFItemSelectUndoCommand;
-class XCCDFValueChangeUndoCommand;
-
+#if (QT_VERSION >= QT_VERSION_CHECK(4, 7, 0))
+    // placeholder text is only supported in Qt 4.7 onwards
+    mUI.host->setPlaceholderText("username@hostname");
 #endif
+}
+
+RemoteMachineComboBox::~RemoteMachineComboBox()
+{}
+
+QString RemoteMachineComboBox::getTarget() const
+{
+    return QString("%1:%2").arg(mUI.host->text()).arg(mUI.port->value());
+}
