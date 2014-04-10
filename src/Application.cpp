@@ -29,6 +29,9 @@ Application::Application(int& argc, char** argv):
     QApplication(argc, argv),
     mMainWindow(new MainWindow())
 {
+    setOrganizationName("scap-workbench upstream");
+    setOrganizationDomain("http://fedorahosted.org/scap-workbench");
+
     setApplicationName("scap-workbench");
     setApplicationVersion(SCAP_WORKBENCH_VERSION);
 

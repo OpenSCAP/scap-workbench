@@ -48,9 +48,23 @@
     </widget>
    </item>
    <item>
-    <widget class="QToolButton" name="recent">
+    <widget class="QPushButton" name="recent">
+     <property name="font">
+      <font>
+       <pointsize>10</pointsize>
+      </font>
+     </property>
      <property name="text">
-      <string>...</string>
+      <string/>
+     </property>
+     <property name="autoDefault">
+      <bool>false</bool>
+     </property>
+     <property name="default">
+      <bool>false</bool>
+     </property>
+     <property name="flat">
+      <bool>false</bool>
      </property>
     </widget>
    </item>

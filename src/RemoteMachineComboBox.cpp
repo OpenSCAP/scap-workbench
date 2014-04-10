@@ -30,12 +30,111 @@ RemoteMachineComboBox::RemoteMachineComboBox(QWidget* parent):
     // placeholder text is only supported in Qt 4.7 onwards
     mUI.host->setPlaceholderText("username@hostname");
 #endif
+
+    mQSettings = new QSettings(this);
+
+    mRecentMenu = new QMenu(this);
+    mUI.recent->setMenu(mRecentMenu);
+
+    setRecentMachineCount(5);
+    syncFromQSettings();
 }
 
 RemoteMachineComboBox::~RemoteMachineComboBox()
-{}
+{
+    delete mRecentMenu;
+    delete mQSettings;
+}
 
 QString RemoteMachineComboBox::getTarget() const
 {
     return QString("%1:%2").arg(mUI.host->text()).arg(mUI.port->value());
+}
+
+void RemoteMachineComboBox::setRecentMachineCount(unsigned int count)
+{
+    while (mRecentTargets.size() > count)
+        mRecentTargets.removeLast();
+
+    while (mRecentTargets.size() < count)
+        mRecentTargets.append("");
+}
+
+unsigned int RemoteMachineComboBox::getRecentMachineCount() const
+{
+    return mRecentTargets.size();
+}
+
+void RemoteMachineComboBox::notifyTargetUsed(const QString& target)
+{
+    const unsigned int machineCount = getRecentMachineCount();
+
+    // this moves target to the beginning of the list of it was in the list already
+    mRecentTargets.prepend(target);
+    mRecentTargets.removeDuplicates();
+
+    setRecentMachineCount(machineCount);
+
+    syncToQSettings();
+    syncRecentMenu();
+}
+
+void RemoteMachineComboBox::clearHistory()
+{
+    mUI.host->setText("");
+    mUI.port->setValue(22);
+
+    const unsigned int machineCount = getRecentMachineCount();
+    mRecentTargets.clear();
+    setRecentMachineCount(machineCount);
+
+    syncToQSettings();
+    syncRecentMenu();
+}
+
+void RemoteMachineComboBox::syncFromQSettings()
+{
+    QVariant value = mQSettings->value("recent-remote-machines");
+    QStringList list = value.toStringList();
+
+    const unsigned int machineCount = getRecentMachineCount();
+    mRecentTargets = list;
+    setRecentMachineCount(machineCount);
+    syncRecentMenu();
+}
+
+void RemoteMachineComboBox::syncToQSettings()
+{
+    mQSettings->setValue("recent-remote-machines", QVariant(mRecentTargets));
+}
+
+void RemoteMachineComboBox::syncRecentMenu()
+{
+    mRecentMenu->clear();
+
+    bool empty = true;
+    for (QStringList::iterator it = mRecentTargets.begin(); it != mRecentTargets.end(); ++it)
+    {
+        if (it->isEmpty())
+            continue;
+
+        QAction* action = new QAction(*it, mRecentMenu);
+        action->setData(QVariant(*it));
+        mRecentMenu->addAction(action);
+
+        empty = false;
+    }
+
+    if (!empty)
+    {
+        mRecentMenu->addSeparator();
+        QAction* clearHistory = new QAction("Clear History", mRecentMenu);
+        QObject::connect(
+            clearHistory, SIGNAL(triggered()),
+            this, SLOT(clearHistory())
+        );
+        mRecentMenu->addAction(clearHistory);
+    }
+
+    mUI.recent->setEnabled(!empty);
 }

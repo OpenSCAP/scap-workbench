@@ -25,6 +25,9 @@
 #include "ForwardDecls.h"
 
 #include <QWidget>
+#include <QMenu>
+#include <QStringList>
+#include <QSettings>
 
 #include "ui_RemoteMachineComboBox.h"
 
@@ -38,9 +41,26 @@ class RemoteMachineComboBox : public QWidget
 
         QString getTarget() const;
 
-    protected:
+        void setRecentMachineCount(unsigned int count);
+        unsigned int getRecentMachineCount() const;
+
+    public slots:
+        void notifyTargetUsed(const QString& target);
+        void clearHistory();
+
+    private:
+        void syncFromQSettings();
+        void syncToQSettings();
+
+        void syncRecentMenu();
+
         /// UI designed in Qt Designer
         Ui_RemoteMachineComboBox mUI;
+
+        QSettings* mQSettings;
+
+        QStringList mRecentTargets;
+        QMenu* mRecentMenu;
 };
 
 #endif
