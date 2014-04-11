@@ -106,6 +106,10 @@ you to change opened content. Keep in mind that workbench only supports opening
 XCCDF and Source DataStream files. Everything else will result in an error
 dialog being shown.
 
+If your content provider ships both XCCDF and Source DataStream files you are
+better off using Source DataStream. Especially if you want to perform remote
+scans where workbench only supports datastreams so far.
+
 ****
 Only one content file can be opened by a single scap-workbench instance.
 Opening a different content file will *DESTROY* all your tailoring changes
