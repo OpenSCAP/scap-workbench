@@ -44,7 +44,15 @@ Application::Application(int& argc, char** argv):
         this, SIGNAL(lastWindowClosed()),
         this, SLOT(quit())
     );
+}
 
+Application::~Application()
+{
+    delete mMainWindow;
+}
+
+int Application::exec()
+{
     processCLI(arguments());
 
     if (!mMainWindow->fileOpened())
@@ -54,11 +62,8 @@ Application::Application(int& argc, char** argv):
 
     if (!mMainWindow->fileOpened())
         browseForContent();
-}
 
-Application::~Application()
-{
-    delete mMainWindow;
+    return QApplication::exec();
 }
 
 void Application::processCLI(const QStringList& args)

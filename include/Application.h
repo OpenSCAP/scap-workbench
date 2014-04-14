@@ -35,6 +35,8 @@ class Application : public QApplication
         Application(int& argc, char** argv);
         ~Application();
 
+        int exec();
+
     private:
         /**
          * @brief Processes command line arguments and acts accordingly
