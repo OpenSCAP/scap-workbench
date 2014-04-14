@@ -29,7 +29,7 @@ RemoteMachineComboBox::RemoteMachineComboBox(QWidget* parent):
 
 #if (QT_VERSION >= QT_VERSION_CHECK(4, 7, 0))
     // placeholder text is only supported in Qt 4.7 onwards
-    mUI.host->setPlaceholderText("username@hostname");
+    mUI.host->setPlaceholderText(QObject::tr("username@hostname"));
 #endif
 
     mQSettings = new QSettings(this);
@@ -149,7 +149,7 @@ void RemoteMachineComboBox::syncRecentMenu()
     if (!empty)
     {
         mRecentMenu->addSeparator();
-        QAction* clearHistory = new QAction("Clear History", mRecentMenu);
+        QAction* clearHistory = new QAction(QObject::tr("Clear History"), mRecentMenu);
         QObject::connect(
             clearHistory, SIGNAL(triggered()),
             this, SLOT(clearHistory())

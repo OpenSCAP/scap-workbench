@@ -20,6 +20,7 @@
  */
 
 #include "APIHelpers.h"
+#include <QObject>
 
 extern "C"
 {
@@ -31,7 +32,7 @@ QString oscapTextIteratorGetPreferred(struct oscap_text_iterator* it, const QStr
 {
     char* preferred_s = oscap_textlist_get_preferred_plaintext(it, lang.isEmpty() ? NULL : lang.toUtf8().constData());
     oscap_text_iterator_free(it);
-    const QString ret(preferred_s != NULL ? QString::fromUtf8(preferred_s) : "(none)");
+    const QString ret(preferred_s != NULL ? QString::fromUtf8(preferred_s) : QObject::tr("(none)"));
     free(preferred_s);
 
     return ret;
@@ -40,7 +41,7 @@ QString oscapTextIteratorGetPreferred(struct oscap_text_iterator* it, const QStr
 QString oscapItemGetReadableTitle(struct xccdf_item *item, struct xccdf_policy *policy, const QString& lang)
 {
     char* readable_s = xccdf_policy_get_readable_item_title(policy, item, lang.isEmpty() ? NULL : lang.toUtf8().constData());
-    const QString ret(readable_s != NULL ? QString::fromUtf8(readable_s) : "(none)");
+    const QString ret(readable_s != NULL ? QString::fromUtf8(readable_s) : QObject::tr("(none)"));
     free(readable_s);
     return ret;
 }
@@ -48,7 +49,7 @@ QString oscapItemGetReadableTitle(struct xccdf_item *item, struct xccdf_policy *
 QString oscapItemGetReadableDescription(struct xccdf_item *item, struct xccdf_policy *policy, const QString& lang)
 {
     char* readable_s = xccdf_policy_get_readable_item_description(policy, item, lang.isEmpty() ? NULL : lang.toUtf8().constData());
-    const QString ret(readable_s != NULL ? QString::fromUtf8(readable_s) : "(none)");
+    const QString ret(readable_s != NULL ? QString::fromUtf8(readable_s) : QObject::tr("(none)"));
     free(readable_s);
     return ret;
 }

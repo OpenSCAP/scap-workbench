@@ -47,13 +47,13 @@ extern "C" {
 
 // A dialog to open a tailoring file is displayed after user selects this option
 // from the tailoring combobox.
-const QString TAILORING_CUSTOM_FILE = "(open tailoring file...)";
+const QString TAILORING_CUSTOM_FILE = QObject::tr("(open tailoring file...)");
 // This option signifies that there is no tailoring being done and the plain
 // content file is used, it also resets tailoring when selected.
-const QString TAILORING_NONE = "(no tailoring)";
+const QString TAILORING_NONE = QObject::tr("(no tailoring)");
 // Signifies that tailoring changes have been made and have not been saved
 // to a file (yet?). Selecting it does nothing.
-const QString TAILORING_UNSAVED = "(unsaved changes)";
+const QString TAILORING_UNSAVED = QObject::tr("(unsaved changes)");
 
 // Magic string that we use to distinguish that we have no loaded tailoring file
 // in the tailoring combobox.
@@ -118,12 +118,12 @@ MainWindow::MainWindow(QWidget* parent):
         this, SLOT(clearResults())
     );
 
-    mSaveIntoDirAction = new QAction("Save into a directory", this);
+    mSaveIntoDirAction = new QAction(QObject::tr("Save into a directory"), this);
     QObject::connect(
         mSaveIntoDirAction, SIGNAL(triggered()),
         this, SLOT(saveIntoDirectory())
     );
-    mSaveAsRPMAction = new QAction("Save as RPM", this);
+    mSaveAsRPMAction = new QAction(QObject::tr("Save as RPM"), this);
     QObject::connect(
         mSaveAsRPMAction, SIGNAL(triggered()),
         this, SLOT(saveAsRPM())
@@ -204,7 +204,7 @@ void MainWindow::openFile(const QString& path)
         mScanningSession->openFile(path);
 
         const QFileInfo pathInfo(path);
-        setWindowTitle(QString("%1 - scap-workbench").arg(pathInfo.fileName()));
+        setWindowTitle(QObject::tr("%1 - scap-workbench").arg(pathInfo.fileName()));
 
         mUI.tailoringFileComboBox->addItem(QString(TAILORING_NONE), QVariant(QString::Null()));
         mUI.tailoringFileComboBox->addItem(QString(TAILORING_CUSTOM_FILE), QVariant(QString::Null()));
@@ -217,16 +217,16 @@ void MainWindow::openFile(const QString& path)
 
         centralWidget()->setEnabled(true);
 
-        mDiagnosticsDialog->infoMessage(QString("Opened file '%1'.").arg(path));
+        mDiagnosticsDialog->infoMessage(QObject::tr("Opened file '%1'.").arg(path));
     }
     catch (const std::exception& e)
     {
         mScanningSession->closeFile();
 
-        setWindowTitle("scap-workbench");
+        setWindowTitle(QObject::tr("scap-workbench"));
         mUI.tailoringFileComboBox->clear();
 
-        mDiagnosticsDialog->exceptionMessage(e, "Error while opening file.");
+        mDiagnosticsDialog->exceptionMessage(e, QObject::tr("Error while opening file."));
     }
 }
 
@@ -248,9 +248,9 @@ void MainWindow::openFileDialog()
     while (!opened)
     {
         const QString path = QFileDialog::getOpenFileName(this,
-            "Open Source DataStream or XCCDF file",
+            QObject::tr("Open Source DataStream or XCCDF file"),
             defaultDirectory,
-            "Source DataStream or XCCDF file (*.xml);;All files (*)", 0
+            QObject::tr("Source DataStream or XCCDF file (*.xml);;All files (*)"), 0
 #ifndef SCAP_WORKBENCH_USE_NATIVE_FILE_DIALOGS
             , QFileDialog::DontUseNativeDialog
 #endif
@@ -262,9 +262,9 @@ void MainWindow::openFileDialog()
 
         if (fileOpened())
         {
-            if (QMessageBox::question(this, "Close currently opened file?",
-                QString("Opened file has to be closed before '%1' is opened instead.\n\n"
-                        "Are you sure you want to close currently opened file?").arg(path),
+            if (QMessageBox::question(this, QObject::tr("Close currently opened file?"),
+                QObject::tr("Opened file has to be closed before '%1' is opened instead.\n\n"
+                            "Are you sure you want to close currently opened file?").arg(path),
                 QMessageBox::Yes | QMessageBox::No, QMessageBox::No) == QMessageBox::Yes)
             {
                 closeFile();
@@ -320,8 +320,8 @@ void MainWindow::scanAsync(ScannerMode scannerMode)
 
     if (getSelectedRulesCount() == 0)
     {
-        if (QMessageBox::question(this, "Scan with no rules selected?",
-                "Chosen profile does not have any rules selected. Are you sure you want to evaluate with no rules selected?",
+        if (QMessageBox::question(this, QObject::tr("Scan with no rules selected?"),
+                QObject::tr("Chosen profile does not have any rules selected. Are you sure you want to evaluate with no rules selected?"),
                 QMessageBox::Yes | QMessageBox::No,
                 QMessageBox::No) == QMessageBox::No)
         {
@@ -342,8 +342,8 @@ void MainWindow::scanAsync(ScannerMode scannerMode)
     if (!policy)
     {
         mDiagnosticsDialog->errorMessage(QString(
-            "Can't get XCCDF policy from the session. Very likely it failed to load. "
-            "OpenSCAP error message:\n%1").arg(oscapErrDesc()));
+            QObject::tr("Can't get XCCDF policy from the session. Very likely it failed to load. "
+            "OpenSCAP error message:\n%1")).arg(oscapErrDesc()));
 
         mUI.scanProperties->setEnabled(true);
         mUI.scanTools->hide();
@@ -424,7 +424,7 @@ void MainWindow::scanAsync(ScannerMode scannerMode)
     catch (const std::exception& e)
     {
         scanCanceled();
-        mDiagnosticsDialog->exceptionMessage(e, "There was a problem setting up the scanner.");
+        mDiagnosticsDialog->exceptionMessage(e, QObject::tr("There was a problem setting up the scanner."));
         return;
     }
 
@@ -456,8 +456,8 @@ void MainWindow::closeEvent(QCloseEvent* event)
 {
     if (mScanThread)
     {
-        if (QMessageBox::question(this, "Cancel scan in progress?",
-            "A scan is in progress. Are you sure you want to terminate it and close the application?",
+        if (QMessageBox::question(this, QObject::tr("Cancel scan in progress?"),
+            QObject::tr("A scan is in progress. Are you sure you want to terminate it and close the application?"),
             QMessageBox::Yes | QMessageBox::No, QMessageBox::No) == QMessageBox::No)
         {
             event->ignore();
@@ -470,9 +470,9 @@ void MainWindow::closeEvent(QCloseEvent* event)
 
     if (unsavedTailoringChanges())
     {
-        if (QMessageBox::question(this, "Unsaved tailoring changes",
-            "There are unsaved tailoring changes, closing scap-workbench will destroy them. "
-            "Are you sure you want to close and discard the changes?",
+        if (QMessageBox::question(this, QObject::tr("Unsaved tailoring changes"),
+            QObject::tr("There are unsaved tailoring changes, closing scap-workbench will destroy them. "
+            "Are you sure you want to close and discard the changes?"),
             QMessageBox::Yes | QMessageBox::No, QMessageBox::No) == QMessageBox::No)
         {
             event->ignore();
@@ -486,7 +486,7 @@ void MainWindow::closeEvent(QCloseEvent* event)
         QAbstractEventDispatcher::instance(0)->processEvents(QEventLoop::AllEvents);
     }
 
-    mDiagnosticsDialog->infoMessage("Closing the main window...");
+    mDiagnosticsDialog->infoMessage(QObject::tr("Closing the main window..."));
     QMainWindow::closeEvent(event);
 }
 
@@ -503,12 +503,12 @@ void MainWindow::closeFile()
         delete mScanningSession;
         mScanningSession = new ScanningSession();
 
-        mDiagnosticsDialog->exceptionMessage(e, "Failed to close file.");
+        mDiagnosticsDialog->exceptionMessage(e, QObject::tr("Failed to close file."));
     }
 
     centralWidget()->setEnabled(false);
 
-    setWindowTitle("scap-workbench");
+    setWindowTitle(QObject::tr("scap-workbench"));
 
     mUI.checklistComboBox->clear();
     mUI.checklistComboBox->hide();
@@ -593,12 +593,12 @@ void MainWindow::refreshProfiles()
 #if (QT_VERSION >= QT_VERSION_CHECK(4, 4, 0))
         mUI.profileComboBox->insertSeparator(mUI.profileComboBox->count());
 #endif
-        mUI.profileComboBox->addItem("(default)", QVariant(QString::Null()));
+        mUI.profileComboBox->addItem(QObject::tr("(default)"), QVariant(QString::Null()));
     }
     catch (const std::exception& e)
     {
         mUI.profileComboBox->clear();
-        mDiagnosticsDialog->exceptionMessage(e, "Error while refreshing available XCCDF profiles.");
+        mDiagnosticsDialog->exceptionMessage(e, QObject::tr("Error while refreshing available XCCDF profiles."));
     }
 }
 
@@ -693,6 +693,7 @@ void MainWindow::tailoringFileComboboxChanged(int index)
     const QString text = mUI.tailoringFileComboBox->itemText(index);
     const QVariant data = mUI.tailoringFileComboBox->itemData(index);
 
+    bool tailoringLoaded = false;
     try
     {
         if (data.toString() == QString::Null()) // Null data means it's an action
@@ -701,8 +702,8 @@ void MainWindow::tailoringFileComboboxChanged(int index)
             {
                 if (mUI.saveTailoringButton->isEnabled())
                 {
-                    if (QMessageBox::question(this, "Unsaved tailoring changes!",
-                            "Are you sure you want to reset tailoring and wipe all unsaved tailoring changes?",
+                    if (QMessageBox::question(this, QObject::tr("Unsaved tailoring changes!"),
+                            QObject::tr("Are you sure you want to reset tailoring and wipe all unsaved tailoring changes?"),
                             QMessageBox::Yes | QMessageBox::No, QMessageBox::No) == QMessageBox::No)
                     {
                         mUI.tailoringFileComboBox->setCurrentIndex(mOldTailoringComboBoxIdx); // user canceled, set to previous value
@@ -717,8 +718,8 @@ void MainWindow::tailoringFileComboboxChanged(int index)
             else if (text == TAILORING_CUSTOM_FILE) // loads custom file
             {
                 const QString filePath = QFileDialog::getOpenFileName(
-                    this, "Open custom XCCDF tailoring file", QString(),
-                    "XCCDF tailoring file (*.xml)", 0
+                    this, QObject::tr("Open custom XCCDF tailoring file"), QString(),
+                    QObject::tr("XCCDF tailoring file (*.xml)"), 0
 #ifndef SCAP_WORKBENCH_USE_NATIVE_FILE_DIALOGS
                     , QFileDialog::DontUseNativeDialog
 #endif
@@ -732,8 +733,8 @@ void MainWindow::tailoringFileComboboxChanged(int index)
                 else
                 {
                     if (mScanningSession->hasTailoring() &&
-                        QMessageBox::question(this, "Unsaved tailoring changes!",
-                            "Are you sure you want to load a tailoring file and wipe all unsaved tailoring changes?",
+                        QMessageBox::question(this, QObject::tr("Unsaved tailoring changes!"),
+                            QObject::tr("Are you sure you want to load a tailoring file and wipe all unsaved tailoring changes?"),
                             QMessageBox::Yes | QMessageBox::No, QMessageBox::No) == QMessageBox::No)
                     {
                         mUI.tailoringFileComboBox->setCurrentIndex(mOldTailoringComboBoxIdx); // user canceled, set to previous value
@@ -743,6 +744,7 @@ void MainWindow::tailoringFileComboboxChanged(int index)
                     mScanningSession->setTailoringFile(filePath);
                     // tailoring has been loaded from a tailoring file, there are no tailoring changes to save
                     markLoadedTailoringFile(filePath);
+                    tailoringLoaded = true;
                 }
             }
             else if (text == TAILORING_UNSAVED)
@@ -753,9 +755,9 @@ void MainWindow::tailoringFileComboboxChanged(int index)
             else
             {
                 mDiagnosticsDialog->errorMessage(QString(
-                    "Can't set scanning session to use tailoring '%1' (from combobox "
+                    QObject::tr("Can't set scanning session to use tailoring '%1' (from combobox "
                     "item data). As item QVariant data was QString::Null() "
-                    "'%2', '%3' or '%4' was expected as item text.").arg(text, TAILORING_NONE, TAILORING_CUSTOM_FILE, TAILORING_UNSAVED));
+                    "'%2', '%3' or '%4' was expected as item text.")).arg(text, TAILORING_NONE, TAILORING_CUSTOM_FILE, TAILORING_UNSAVED));
             }
         }
         else
@@ -768,6 +770,7 @@ void MainWindow::tailoringFileComboboxChanged(int index)
             else
             {
                 mScanningSession->setTailoringComponentID(data.toString());
+                tailoringLoaded = true;
             }
         }
 
@@ -780,10 +783,14 @@ void MainWindow::tailoringFileComboboxChanged(int index)
         // Something went wrong when setting the tailoring file, lets reset tailoring
         // to the most likely *sane* state to avoid errors when scanning.
         mUI.tailoringFileComboBox->setCurrentIndex(0);
-        mDiagnosticsDialog->exceptionMessage(e, "Failed to set up tailoring.");
+        mDiagnosticsDialog->exceptionMessage(e, QObject::tr("Failed to set up tailoring."));
     }
 
     reloadSession();
+    if (tailoringLoaded)
+    {
+
+    }
 
     mOldTailoringComboBoxIdx = index;
 }
@@ -806,7 +813,7 @@ void MainWindow::profileComboboxChanged(int index)
         // We better disallow tailoring.
         mUI.customizeProfileButton->setEnabled(false);
 
-        mDiagnosticsDialog->exceptionMessage(e, "Failed to select XCCDF profile.");
+        mDiagnosticsDialog->exceptionMessage(e, QObject::tr("Failed to select XCCDF profile."));
     }
 
     refreshSelectedRulesTree();
@@ -914,7 +921,7 @@ void MainWindow::scanProgressReport(const QString& rule_id, const QString& resul
     }
     catch (const std::exception& e)
     {
-        scanErrorMessage(QString("Can't get benchmark or policy from scanning session, details follow:\n%1").arg(QString::fromUtf8(e.what())));
+        scanErrorMessage(QObject::tr("Can't get benchmark or policy from scanning session, details follow:\n%1").arg(QString::fromUtf8(e.what())));
 
         return;
     }
@@ -926,8 +933,8 @@ void MainWindow::scanProgressReport(const QString& rule_id, const QString& resul
     if (!item)
     {
         scanWarningMessage(QString(
-            "Received scanning progress of rule of ID '%1'. "
-            "Rule with such ID hasn't been found in the benchmark!").arg(rule_id));
+            QObject::tr("Received scanning progress of rule of ID '%1'. "
+            "Rule with such ID hasn't been found in the benchmark!")).arg(rule_id));
 
         return;
     }
@@ -945,58 +952,58 @@ void MainWindow::scanProgressReport(const QString& rule_id, const QString& resul
     if (result == "processing")
     {
         resultBrush.setColor(Qt::darkYellow);
-        resultTooltip = "This rule is currently being processed.";
+        resultTooltip = QObject::tr("This rule is currently being processed.");
     }
     else if (result == "pass")
     {
         resultBrush.setColor(Qt::darkGreen);
-        resultTooltip = "The target system or system component satisfied all the conditions of this rule.";
+        resultTooltip = QObject::tr("The target system or system component satisfied all the conditions of this rule.");
     }
     else if (result == "fail")
     {
         resultBrush.setColor(Qt::red);
-        resultTooltip = "The target system or system component did not satisfy every condition of this rule.";
+        resultTooltip = QObject::tr("The target system or system component did not satisfy every condition of this rule.");
     }
     else if (result == "error")
     {
         resultBrush.setColor(Qt::red);
-        resultTooltip = "The checking engine could not complete the evaluation, therefore the status of the target's "
+        resultTooltip = QObject::tr("The checking engine could not complete the evaluation, therefore the status of the target's "
                 "compliance with the rule is not certain. This could happen, for example, if a testing "
-                "tool was run with insufficient privileges and could not gather all of the necessary information.";
+                "tool was run with insufficient privileges and could not gather all of the necessary information.");
     }
     else if (result == "unknown")
     {
         resultBrush.setColor(Qt::darkGray);
-        resultTooltip = "The testing tool encountered some problem and the result is unknown.";
+        resultTooltip = QObject::tr("The testing tool encountered some problem and the result is unknown.");
     }
     else if (result == "notapplicable")
     {
         resultBrush.setColor(Qt::darkGray);
-        resultTooltip = "The rule was not applicable to the target machine of the test. For example, the "
+        resultTooltip = QObject::tr("The rule was not applicable to the target machine of the test. For example, the "
                 "rule might have been specific to a different version of the target OS, or it might "
-                "have been a test against a platform feature that was not installed.";
+                "have been a test against a platform feature that was not installed.");
     }
     else if (result == "notchecked")
     {
         resultBrush.setColor(Qt::darkGray);
-        resultTooltip = "The rule was not evaluated by the checking engine. There were no check elements "
-                "inside the rule or none of the check systems of the check elements were supported.";
+        resultTooltip = QObject::tr("The rule was not evaluated by the checking engine. There were no check elements "
+                "inside the rule or none of the check systems of the check elements were supported.");
     }
     else if (result == "notselected")
     {
         resultBrush.setColor(Qt::darkGray);
-        resultTooltip = "The rule was not selected in the benchmark.";
+        resultTooltip = QObject::tr("The rule was not selected in the benchmark.");
     }
     else if (result == "informational")
     {
         resultBrush.setColor(Qt::darkGray);
-        resultTooltip = "The rule was checked, but the output from the checking engine is simply "
-                "information for auditors or administrators; it is not a compliance category.";
+        resultTooltip = QObject::tr("The rule was checked, but the output from the checking engine is simply "
+                "information for auditors or administrators; it is not a compliance category.");
     }
     else if (result == "fixed")
     {
         resultBrush.setColor(Qt::darkGreen);
-        resultTooltip = "The rule had failed, but was then fixed (most probably using remediation).";
+        resultTooltip = QObject::tr("The rule had failed, but was then fixed (most probably using remediation).");
     }
     else
         resultBrush.setColor(Qt::darkGray);
@@ -1004,7 +1011,7 @@ void MainWindow::scanProgressReport(const QString& rule_id, const QString& resul
     QTreeWidgetItem* treeItem = 0;
 
     QTreeWidgetItem* replacementCandidate = mUI.ruleResultsTree->topLevelItemCount() > 0 ? mUI.ruleResultsTree->topLevelItem(mUI.ruleResultsTree->topLevelItemCount() - 1) : 0;
-    if (replacementCandidate && replacementCandidate->text(0) == preferredTitle && replacementCandidate->text(1) == "processing")
+    if (replacementCandidate && replacementCandidate->text(0) == preferredTitle && replacementCandidate->text(1) == QObject::tr("processing"))
         treeItem = replacementCandidate;
 
     if (!treeItem)
@@ -1104,7 +1111,7 @@ void MainWindow::inheritAndEditProfile(bool shadowed)
     }
     catch (const std::exception& e)
     {
-        mDiagnosticsDialog->exceptionMessage(e, "Failed to tailor currently selected profile.");
+        mDiagnosticsDialog->exceptionMessage(e, QObject::tr("Failed to tailor currently selected profile."));
     }
 
     refreshProfiles();
@@ -1132,7 +1139,7 @@ void MainWindow::editProfile(bool newProfile)
     }
     catch (const std::exception& e)
     {
-        mDiagnosticsDialog->exceptionMessage(e, "Failed to retrieve XCCDF policy when editing profile.");
+        mDiagnosticsDialog->exceptionMessage(e, QObject::tr("Failed to retrieve XCCDF policy when editing profile."));
         return;
     }
 
@@ -1145,8 +1152,7 @@ void MainWindow::editProfile(bool newProfile)
 
     if (!xccdf_profile_get_tailoring(profile))
     {
-        mDiagnosticsDialog->errorMessage(
-            QString(
+        mDiagnosticsDialog->errorMessage(QObject::tr(
                 "Can't edit a profile that isn't a tailoring profile!"
                 "This is most likely a bug, please report it!"
             )
@@ -1175,9 +1181,9 @@ void MainWindow::customizeProfile()
 void MainWindow::saveTailoring()
 {
     const QString path = QFileDialog::getSaveFileName(this,
-        "Save Tailoring As",
+        QObject::tr("Save Tailoring As"),
         "",
-        "XCCDF Tailoring file (*.xml)", 0
+        QObject::tr("XCCDF Tailoring file (*.xml)"), 0
 #ifndef SCAP_WORKBENCH_USE_NATIVE_FILE_DIALOGS
         , QFileDialog::DontUseNativeDialog
 #endif
@@ -1195,7 +1201,7 @@ void MainWindow::saveTailoring()
     {
         // Just to be sure user doesn't lose the tailoring.
         markUnsavedTailoringChanges();
-        mDiagnosticsDialog->exceptionMessage(e, "Failed to save tailoring file.");
+        mDiagnosticsDialog->exceptionMessage(e, QObject::tr("Failed to save tailoring file."));
     }
 }
 
@@ -1205,7 +1211,7 @@ void MainWindow::saveIntoDirectory()
         return;
 
     const QString targetPath = QFileDialog::getExistingDirectory(this,
-        "Select target directory",
+        QObject::tr("Select target directory"),
         "",
         QFileDialog::ShowDirsOnly
 #ifndef SCAP_WORKBENCH_USE_NATIVE_FILE_DIALOGS
@@ -1221,7 +1227,7 @@ void MainWindow::saveIntoDirectory()
     }
     catch (const std::exception& e)
     {
-        mDiagnosticsDialog->exceptionMessage(e, "Failed to save opened files.");
+        mDiagnosticsDialog->exceptionMessage(e, QObject::tr("Failed to save opened files."));
     }
 }
 

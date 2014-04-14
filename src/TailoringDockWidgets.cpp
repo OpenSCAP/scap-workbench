@@ -132,7 +132,7 @@ void XCCDFItemPropertiesDockWidget::refresh()
 
     mRefreshInProgress = true;
 
-    mUI.titleLineEdit->setText("<no item selected>");
+    mUI.titleLineEdit->setText(QObject::tr("<no item selected>"));
     mUI.idLineEdit->setText("");
     mUI.typeLineEdit->setText("");
     mUI.descriptionBrowser->setHtml("");
@@ -149,16 +149,16 @@ void XCCDFItemPropertiesDockWidget::refresh()
         switch (xccdf_item_get_type(mXccdfItem))
         {
             case XCCDF_BENCHMARK:
-                mUI.typeLineEdit->setText("xccdf:Benchmark");
+                mUI.typeLineEdit->setText(QObject::tr("xccdf:Benchmark"));
                 break;
             case XCCDF_GROUP:
-                mUI.typeLineEdit->setText("xccdf:Group");
+                mUI.typeLineEdit->setText(QObject::tr("xccdf:Group"));
                 break;
             case XCCDF_RULE:
-                mUI.typeLineEdit->setText("xccdf:Rule");
+                mUI.typeLineEdit->setText(QObject::tr("xccdf:Rule"));
                 break;
             case XCCDF_VALUE:
-                mUI.typeLineEdit->setText("xccdf:Value");
+                mUI.typeLineEdit->setText(QObject::tr("xccdf:Value"));
                 break;
 
             default:
@@ -180,17 +180,17 @@ void XCCDFItemPropertiesDockWidget::refresh()
                     //
                     // This implies integers and not decimals.
                     mUI.valueComboBox->lineEdit()->setValidator(new QIntValidator(this));
-                    mUI.valueTypeLabel->setText("(number)");
+                    mUI.valueTypeLabel->setText(QObject::tr("(number)"));
                     break;
                 case XCCDF_TYPE_STRING:
                     mUI.valueComboBox->lineEdit()->setValidator(0);
-                    mUI.valueTypeLabel->setText("(string)");
+                    mUI.valueTypeLabel->setText(QObject::tr("(string)"));
                     break;
                 case XCCDF_TYPE_BOOLEAN:
                     // This is my best effort since the specification doesn't say what should be allowed.
                     const QRegExp regex("true|false|True|False|TRUE|FALSE|1|0|yes|no|Yes|No|YES|NO");
                     mUI.valueComboBox->lineEdit()->setValidator(new QRegExpValidator(regex, this));
-                    mUI.valueTypeLabel->setText("(bool)");
+                    mUI.valueTypeLabel->setText(QObject::tr("(bool)"));
                     break;
             }
 

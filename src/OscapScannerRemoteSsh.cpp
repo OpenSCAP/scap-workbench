@@ -107,7 +107,7 @@ void OscapScannerRemoteSsh::evaluate()
         return;
     }
 
-    emit infoMessage("Querying capabilities on remote machine...");
+    emit infoMessage(QObject::tr("Querying capabilities on remote machine..."));
 
     {
         SshSyncProcess proc(mSshConnection, this);
@@ -119,7 +119,7 @@ void OscapScannerRemoteSsh::evaluate()
         if (proc.getExitCode() != 0)
         {
             emit errorMessage(
-                QString("Failed to query capabilities of oscap on local machine.\n"
+                QObject::tr("Failed to query capabilities of oscap on local machine.\n"
                         "Diagnostic info:\n%1").arg(proc.getDiagnosticInfo())
             );
 
@@ -144,7 +144,7 @@ void OscapScannerRemoteSsh::evaluate()
 
     QString diagnosticInfo;
 
-    emit infoMessage("Copying input data to remote target...");
+    emit infoMessage(QObject::tr("Copying input data to remote target..."));
 
     const QString inputFile = copyInputFileOver();
     const QString tailoringFile = mSession->hasTailoring() ?
@@ -189,7 +189,7 @@ void OscapScannerRemoteSsh::evaluate()
 
     const QString sshCmd = args.join(" ");
 
-    emit infoMessage("Starting the remote process...");
+    emit infoMessage(QObject::tr("Starting the remote process..."));
 
     QProcess process(this);
 
@@ -198,13 +198,13 @@ void OscapScannerRemoteSsh::evaluate()
 
     if (process.state() != QProcess::Running)
     {
-        emit errorMessage("Failed to start ssh. Perhaps the executable was not found?");
+        emit errorMessage(QObject::tr("Failed to start ssh. Perhaps the executable was not found?"));
         mCancelRequested = true;
     }
 
     const unsigned int pollInterval = 100;
 
-    emit infoMessage("Processing on the remote machine...");
+    emit infoMessage(QObject::tr("Processing on the remote machine..."));
     while (!process.waitForFinished(pollInterval))
     {
         // read everything new
@@ -216,7 +216,7 @@ void OscapScannerRemoteSsh::evaluate()
 
         if (mCancelRequested)
         {
-            emit infoMessage("Cancelation was requested! Terminating...");
+            emit infoMessage(QObject::tr("Cancelation was requested! Terminating..."));
             // TODO: On Windows we have to kill immediately, terminate() posts WM_CLOSE
             //       but oscap doesn't have any event loop running.
             process.terminate();
@@ -232,7 +232,7 @@ void OscapScannerRemoteSsh::evaluate()
             waited += pollInterval;
             if (waited > 10000) // 10 seconds should be enough for the process to terminate
             {
-                emit warningMessage("The oscap process didn't terminate in time, it will be killed instead.");
+                emit warningMessage(QObject::tr("The oscap process didn't terminate in time, it will be killed instead."));
                 // if it didn't terminate, we have to kill it at this point
                 process.kill();
                 break;
@@ -245,23 +245,23 @@ void OscapScannerRemoteSsh::evaluate()
         readStdOut(process);
         watchStdErr(process);
 
-        mResults = readRemoteFile(resultFile, "XCCDF results").toUtf8();
-        mReport = readRemoteFile(reportFile, "XCCDF report (HTML)").toUtf8();
-        mARF = readRemoteFile(arfFile, "Result DataStream (ARF)").toUtf8();
+        mResults = readRemoteFile(resultFile, QObject::tr("XCCDF results")).toUtf8();
+        mReport = readRemoteFile(reportFile, QObject::tr("XCCDF report (HTML)")).toUtf8();
+        mARF = readRemoteFile(arfFile, QObject::tr("Result DataStream (ARF)")).toUtf8();
     }
 
-    emit infoMessage("Cleaning up...");
+    emit infoMessage(QObject::tr("Cleaning up..."));
 
     // Remove all the temporary remote files
-    removeRemoteFile(inputFile, "input file");
+    removeRemoteFile(inputFile, QObject::tr("input file"));
     if (!tailoringFile.isEmpty())
-        removeRemoteFile(tailoringFile, "tailoring file");
-    removeRemoteFile(resultFile, "XCCDF result file");
-    removeRemoteFile(reportFile, "XCCDF report file");
-    removeRemoteFile(arfFile, "Result DataStream file");
-    removeRemoteDirectory(workingDir, "Temporary Working Directory");
+        removeRemoteFile(tailoringFile, QObject::tr("tailoring file"));
+    removeRemoteFile(resultFile, QObject::tr("XCCDF result file"));
+    removeRemoteFile(reportFile, QObject::tr("XCCDF report file"));
+    removeRemoteFile(arfFile, QObject::tr("Result DataStream file"));
+    removeRemoteDirectory(workingDir, QObject::tr("Temporary Working Directory"));
 
-    emit infoMessage("Processing has been finished!");
+    emit infoMessage(QObject::tr("Processing has been finished!"));
     signalCompletion(mCancelRequested);
 }
 
@@ -272,13 +272,13 @@ void OscapScannerRemoteSsh::ensureConnected()
 
     try
     {
-        emit infoMessage("Establishing connecting to remote target...");
+        emit infoMessage(QObject::tr("Establishing connecting to remote target..."));
         mSshConnection.connect();
-        emit infoMessage("Connection established.");
+        emit infoMessage(QObject::tr("Connection established."));
     }
     catch(const SshConnectionException& e)
     {
-        emit errorMessage("Can't connect to remote machine! Exception was: " + QString::fromUtf8(e.what()));
+        emit errorMessage(QObject::tr("Can't connect to remote machine! Exception was: %1").arg(QString::fromUtf8(e.what())));
         mCancelRequested = true;
     }
 }
@@ -301,8 +301,8 @@ QString OscapScannerRemoteSsh::copyFileOver(const QString& localPath)
         if (proc.getExitCode() != 0)
         {
             emit errorMessage(
-                QString("Failed to copy '%1' over to the remote machine! "
-                        "Diagnostic info:\n%1").arg(localPath).arg(proc.getDiagnosticInfo())
+                QObject::tr("Failed to copy '%1' over to the remote machine! "
+                            "Diagnostic info:\n%1").arg(localPath).arg(proc.getDiagnosticInfo())
             );
 
             mCancelRequested = true;
@@ -348,8 +348,8 @@ QString OscapScannerRemoteSsh::createRemoteTemporaryFile(bool cancelOnFailure)
     if (proc.getExitCode() != 0)
     {
         emit errorMessage(
-            QString("Failed to create a valid temporary file to copy input "
-                    "data to! Diagnostic info: %1").arg(proc.getDiagnosticInfo())
+            QObject::tr("Failed to create a valid temporary file to copy input "
+                        "data to! Diagnostic info: %1").arg(proc.getDiagnosticInfo())
         );
 
         mCancelRequested = true;
@@ -373,8 +373,8 @@ QString OscapScannerRemoteSsh::createRemoteTemporaryDirectory(bool cancelOnFailu
     if (proc.getExitCode() != 0)
     {
         emit errorMessage(
-            QString("Failed to create a valid temporary dir. "
-                    "Diagnostic info: %1").arg(proc.getDiagnosticInfo())
+            QObject::tr("Failed to create a valid temporary dir. "
+                        "Diagnostic info: %1").arg(proc.getDiagnosticInfo())
         );
 
         mCancelRequested = true;
@@ -396,8 +396,8 @@ QString OscapScannerRemoteSsh::readRemoteFile(const QString& path, const QString
     if (proc.getExitCode() != 0)
     {
         emit warningMessage(QString(
-            "Failed to copy back %1. "
-            "You will not be able to save this data! Diagnostic info: %2").arg(desc).arg(proc.getDiagnosticInfo()));
+            QObject::tr("Failed to copy back %1. "
+            "You will not be able to save this data! Diagnostic info: %2")).arg(desc).arg(proc.getDiagnosticInfo()));
 
         mCancelRequested = true;
         signalCompletion(mCancelRequested);
@@ -418,8 +418,8 @@ void OscapScannerRemoteSsh::removeRemoteFile(const QString& path, const QString&
     if (proc.getExitCode() != 0)
     {
         emit warningMessage(QString(
-            "Failed to remove remote file %1. "
-            "Diagnostic info: %2").arg(desc).arg(proc.getDiagnosticInfo()));
+            QObject::tr("Failed to remove remote file %1. "
+            "Diagnostic info: %2")).arg(desc).arg(proc.getDiagnosticInfo()));
 
         mCancelRequested = true;
         signalCompletion(mCancelRequested);
@@ -439,8 +439,8 @@ void OscapScannerRemoteSsh::removeRemoteDirectory(const QString& path, const QSt
     if (proc.getExitCode() != 0)
     {
         emit warningMessage(QString(
-            "Failed to remove remote directory %1. "
-            "Diagnostic info: %2").arg(desc).arg(proc.getDiagnosticInfo()));
+            QObject::tr("Failed to remove remote directory %1. "
+            "Diagnostic info: %2")).arg(desc).arg(proc.getDiagnosticInfo()));
 
         mCancelRequested = true;
         signalCompletion(mCancelRequested);

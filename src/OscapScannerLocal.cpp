@@ -42,7 +42,7 @@ OscapScannerLocal::~OscapScannerLocal()
 
 void OscapScannerLocal::evaluate()
 {
-    emit infoMessage("Querying capabilities...");
+    emit infoMessage(QObject::tr("Querying capabilities..."));
 
     {
         SyncProcess proc(this);
@@ -53,7 +53,7 @@ void OscapScannerLocal::evaluate()
         if (proc.getExitCode() != 0)
         {
             emit errorMessage(
-                QString("Failed to query capabilities of oscap on local machine.\n"
+                QObject::tr("Failed to query capabilities of oscap on local machine.\n"
                     "Diagnostic info:\n%1").arg(proc.getDiagnosticInfo())
             );
 
@@ -73,7 +73,7 @@ void OscapScannerLocal::evaluate()
     }
 
     // TODO: Error handling!
-    emit infoMessage("Creating temporary files...");
+    emit infoMessage(QObject::tr("Creating temporary files..."));
 
     QTemporaryFile resultFile;
     resultFile.setAutoRemove(true);
@@ -93,7 +93,7 @@ void OscapScannerLocal::evaluate()
     // uses info in the check engine results if it can find them.
     TemporaryDir workingDir;
 
-    emit infoMessage("Starting the oscap process...");
+    emit infoMessage(QObject::tr("Starting the oscap process..."));
     QProcess process(this);
     process.setWorkingDirectory(workingDir.getPath());
 
@@ -138,13 +138,13 @@ void OscapScannerLocal::evaluate()
 
     if (process.state() != QProcess::Running)
     {
-        emit errorMessage("Failed to start local scanning process '" + program + "'. Perhaps the executable was not found?");
+        emit errorMessage(QObject::tr("Failed to start local scanning process '%1'. Perhaps the executable was not found?").arg(program));
         mCancelRequested = true;
     }
 
     const unsigned int pollInterval = 100;
 
-    emit infoMessage("Processing...");
+    emit infoMessage(QObject::tr("Processing..."));
     while (!process.waitForFinished(pollInterval))
     {
         // read everything new
@@ -156,7 +156,7 @@ void OscapScannerLocal::evaluate()
 
         if (mCancelRequested)
         {
-            emit infoMessage("Cancelation was requested! Terminating scanning...");
+            emit infoMessage(QObject::tr("Cancelation was requested! Terminating scanning..."));
             process.kill();
             process.waitForFinished(1000);
             break;
@@ -169,7 +169,7 @@ void OscapScannerLocal::evaluate()
         {
             watchStdErr(process);
             // TODO: pass the diagnostics over
-            emit errorMessage("There was an error during evaluation! Exit code of the 'oscap' process was 1.");
+            emit errorMessage(QObject::tr("There was an error during evaluation! Exit code of the 'oscap' process was 1."));
             // mark this run as canceled
             mCancelRequested = true;
         }
@@ -179,7 +179,7 @@ void OscapScannerLocal::evaluate()
             readStdOut(process);
             watchStdErr(process);
 
-            emit infoMessage("The oscap tool has finished. Reading results...");
+            emit infoMessage(QObject::tr("The oscap tool has finished. Reading results..."));
 
             resultFile.open();
             mResults = resultFile.readAll();
@@ -193,7 +193,7 @@ void OscapScannerLocal::evaluate()
             mARF = arfFile.readAll();
             arfFile.close();
 
-            emit infoMessage("Processing has been finished!");
+            emit infoMessage(QObject::tr("Processing has been finished!"));
         }
     }
 

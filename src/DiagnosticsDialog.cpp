@@ -105,29 +105,31 @@ void DiagnosticsDialog::pushMessage(MessageSeverity severity, const QString& ful
 
     strftime(stime, 10, "%H:%M:%S", timeinfo);
 
-    QString strSeverity = "unknown";
+    QString strSeverity = QObject::tr("unknown");
     QString bgCol = "transparent";
     switch (severity)
     {
         case MS_INFO:
-            strSeverity = "info   ";
+            strSeverity = QObject::tr("info");
             break;
         case MS_WARNING:
-            strSeverity = "warning";
+            strSeverity = QObject::tr("warning");
             bgCol = "#ffff99";
             break;
         case MS_EXCEPTION:
-            strSeverity = "except ";
+            strSeverity = QObject::tr("except");
             bgCol = "#cc9933";
             break;
         case MS_ERROR:
-            strSeverity = "error  ";
+            strSeverity = QObject::tr("error");
             bgCol = "#cc9933";
             break;
 
         default:
             break;
     }
+
+    strSeverity = strSeverity.leftJustified(8);
 
     std::cerr << stime << " | " << strSeverity.toUtf8().constData() << " | " << fullMessage.toUtf8().constData() << std::endl;
     mUI.messages->append(

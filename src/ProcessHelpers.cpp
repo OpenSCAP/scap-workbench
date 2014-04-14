@@ -122,7 +122,7 @@ void SyncProcess::run()
     mDiagnosticInfo = "";
 
     QProcess process(this);
-    mDiagnosticInfo += QString("Starting process '") + generateDescription() + QString("'\n");
+    mDiagnosticInfo += QObject::tr("Starting process '%1'\n").arg(generateDescription());
     startQProcess(process);
 
     mRunning = true;
@@ -134,7 +134,7 @@ void SyncProcess::run()
 
         if (wasCancelRequested())
         {
-            mDiagnosticInfo += "Cancel was requested! Sending terminate signal to the process...\n";
+            mDiagnosticInfo += QObject::tr("Cancel was requested! Sending terminate signal to the process...\n");
 
             // TODO: On Windows we have to kill immediately, terminate() posts WM_CLOSE
             //       but oscap doesn't have any event loop running.
@@ -154,7 +154,7 @@ void SyncProcess::run()
 
             if (termWaited > mTermLimit)
             {
-                mDiagnosticInfo += QString("Process had to be killed! Didn't terminate after %1 msec of waiting.\n").arg(termWaited);
+                mDiagnosticInfo += QObject::tr("Process had to be killed! Didn't terminate after %1 msec of waiting.\n").arg(termWaited);
                 process.kill();
                 break;
             }
@@ -190,7 +190,7 @@ QDialog* SyncProcess::runWithDialog(QWidget* widgetParent, const QString& title,
 
     QProcess process(this);
     process.setProcessChannelMode(QProcess::MergedChannels);
-    mDiagnosticInfo += QString("Starting process '") + generateDescription() + QString("'\n");
+    mDiagnosticInfo += QObject::tr("Starting process '%1'\n").arg(generateDescription());
     startQProcess(process);
 
     mRunning = true;
@@ -204,7 +204,7 @@ QDialog* SyncProcess::runWithDialog(QWidget* widgetParent, const QString& title,
 
         if (wasCancelRequested())
         {
-            mDiagnosticInfo += "Cancel was requested! Sending terminate signal to the process...\n";
+            mDiagnosticInfo += QObject::tr("Cancel was requested! Sending terminate signal to the process...\n");
 
             // TODO: On Windows we have to kill immediately, terminate() posts WM_CLOSE
             //       but oscap doesn't have any event loop running.
@@ -224,7 +224,7 @@ QDialog* SyncProcess::runWithDialog(QWidget* widgetParent, const QString& title,
 
             if (termWaited > mTermLimit)
             {
-                mDiagnosticInfo += QString("Process had to be killed! Didn't terminate after %1 msec of waiting.\n").arg(termWaited);
+                mDiagnosticInfo += QObject::tr("Process had to be killed! Didn't terminate after %1 msec of waiting.\n").arg(termWaited);
                 process.kill();
                 break;
             }
@@ -296,7 +296,7 @@ const QString& SyncProcess::getDiagnosticInfo() const
 void SyncProcess::startQProcess(QProcess& process)
 {
     process.setProcessEnvironment(generateFullEnvironment());
-    mDiagnosticInfo += QString("Starting process '") + generateDescription() + QString("'\n");
+    mDiagnosticInfo += QObject::tr("Starting process '%1'\n").arg(generateDescription());
     process.setStandardInputFile("/dev/null");
     process.setWorkingDirectory(mWorkingDirectory);
     process.start(generateFullCommand(), generateFullArguments());

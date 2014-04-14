@@ -139,9 +139,9 @@ TailoringWindow::TailoringWindow(struct xccdf_policy* policy, struct xccdf_bench
     addDockWidget(Qt::RightDockWidgetArea, mProfilePropertiesDockWidget);
 
     {
-        QAction* undoAction = mUndoStack.createUndoAction(this, "Undo");
+        QAction* undoAction = mUndoStack.createUndoAction(this, QObject::tr("Undo"));
         undoAction->setIcon(getShareIcon("edit-undo.png"));
-        QAction* redoAction = mUndoStack.createRedoAction(this, "Redo");
+        QAction* redoAction = mUndoStack.createRedoAction(this, QObject::tr("Redo"));
         redoAction->setIcon(getShareIcon("edit-redo.png"));
 
         mUI.toolBar->addAction(undoAction);
@@ -174,13 +174,13 @@ TailoringWindow::TailoringWindow(struct xccdf_policy* policy, struct xccdf_bench
 
     mUI.itemsTree->expandAll();
 
-    setWindowTitle(QString("Tailoring '%1'").arg(oscapTextIteratorGetPreferred(xccdf_profile_get_title(mProfile))));
+    setWindowTitle(QObject::tr("Tailoring \"%1\"").arg(oscapTextIteratorGetPreferred(xccdf_profile_get_title(mProfile))));
 
     mItemPropertiesDockWidget->refresh();
     mProfilePropertiesDockWidget->refresh();
 
     {
-        mUndoViewDockWidget->setWindowTitle("Undo History");
+        mUndoViewDockWidget->setWindowTitle(QObject::tr("Undo History"));
         mUndoViewDockWidget->setWidget(new QUndoView(&mUndoStack, mUndoViewDockWidget));
         addDockWidget(Qt::RightDockWidgetArea, mUndoViewDockWidget);
         mUndoViewDockWidget->hide();
@@ -504,8 +504,8 @@ void TailoringWindow::closeEvent(QCloseEvent * event)
 {
     if (!mChangesConfirmed)
     {
-        if (QMessageBox::question(this, "Discard changes?",
-            "Are you sure you want to discard all changes performed in this tailoring window.",
+        if (QMessageBox::question(this, QObject::tr("Discard changes?"),
+            QObject::tr("Are you sure you want to discard all changes performed in this tailoring window."),
             QMessageBox::Yes | QMessageBox::No, QMessageBox::No) == QMessageBox::No)
         {
             event->ignore();

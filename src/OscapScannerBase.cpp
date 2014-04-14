@@ -91,7 +91,7 @@ bool OscapScannerBase::checkPrerequisites()
     if (!mCapabilities.baselineSupport())
     {
         emit errorMessage(
-            QString("oscap tool doesn't support basic features required for workbench. "
+            QObject::tr("oscap tool doesn't support basic features required for workbench. "
                 "Please make sure you have openscap 0.8.0 or newer. "
                 "oscap version was detected as '%1'.").arg(mCapabilities.getOpenSCAPVersion())
         );
@@ -102,7 +102,7 @@ bool OscapScannerBase::checkPrerequisites()
     if (mScannerMode == SM_SCAN_ONLINE_REMEDIATION && !mCapabilities.onlineRemediation())
     {
         emit errorMessage(
-            QString("oscap tool doesn't support online remediation. "
+            QObject::tr("oscap tool doesn't support online remediation. "
                 "Please make sure you have openscap 0.9.5 or newer if you want "
                 "to use online remediation. "
                 "oscap version was detected as '%1'.").arg(mCapabilities.getOpenSCAPVersion())
@@ -114,7 +114,7 @@ bool OscapScannerBase::checkPrerequisites()
     if (mScannerMode == SM_OFFLINE_REMEDIATION && !mCapabilities.ARFInput())
     {
         emit errorMessage(
-            QString("oscap tool doesn't support taking ARFs (result datastreams) as input. "
+            QObject::tr("oscap tool doesn't support taking ARFs (result datastreams) as input. "
                 "Please make sure you have openscap <NOT IMPLEMENTED YET> or newer if you want "
                 "to use offline remediation. "
                 "oscap version was detected as '%1'.").arg(mCapabilities.getOpenSCAPVersion())
@@ -126,7 +126,7 @@ bool OscapScannerBase::checkPrerequisites()
     if (mSession->isSDS() && !mCapabilities.sourceDatastreams())
     {
         emit errorMessage(
-            QString("oscap tool doesn't support source datastreams as input. "
+            QObject::tr("oscap tool doesn't support source datastreams as input. "
                 "Please make sure you have openscap 0.9.0 or newer if you want "
                 "to use source datastreams. "
                 "oscap version was detected as '%1'.").arg(mCapabilities.getOpenSCAPVersion())
@@ -138,9 +138,9 @@ bool OscapScannerBase::checkPrerequisites()
     if (mSession->hasTailoring() && !mCapabilities.tailoringSupport())
     {
         emit errorMessage(
-            QString("oscap tool doesn't support XCCDF tailoring but the session uses tailoring. "
+            QObject::tr("oscap tool doesn't support XCCDF tailoring but the session uses tailoring. "
                 "Please make sure you have openscap 0.9.12 or newer on the target machine if you "
-                 "want to use tailoring features of scap-workbench. "
+                "want to use tailoring features of scap-workbench. "
                 "oscap version was detected as '%1'.").arg(mCapabilities.getOpenSCAPVersion())
         );
 
@@ -268,9 +268,9 @@ bool OscapScannerBase::tryToReadStdOutChar(QProcess& process)
         else
         {
             emit warningMessage(QString(
-                "Error when parsing scan progress output from stdout of the 'oscap' process. "
+                QObject::tr("Error when parsing scan progress output from stdout of the 'oscap' process. "
                 "':' encountered while not reading rule ID, newline and/or rule result are missing! "
-                "Read buffer is '%1'.").arg(mReadBuffer));
+                "Read buffer is '%1'.")).arg(mReadBuffer));
         }
         mReadBuffer = "";
         mReadingRuleID = false;
@@ -284,9 +284,9 @@ bool OscapScannerBase::tryToReadStdOutChar(QProcess& process)
         else
         {
             emit warningMessage(QString(
-                "Error when parsing scan progress output from stdout of the 'oscap' process. "
+                QObject::tr("Error when parsing scan progress output from stdout of the 'oscap' process. "
                 "Newline encountered while reading rule ID, rule result and/or ':' are missing! "
-                "Read buffer is '%1'.").arg(mReadBuffer));
+                "Read buffer is '%1'.")).arg(mReadBuffer));
         }
         mReadBuffer = "";
         mReadingRuleID = true;
@@ -322,7 +322,7 @@ void OscapScannerBase::watchStdErr(QProcess& process)
 
     if (!errorMessage.isEmpty())
     {
-        emit warningMessage(QString("The 'oscap' process has written the following content to stderr:\n"
-                                    "%1").arg(errorMessage));
+        emit warningMessage(QObject::tr("The 'oscap' process has written the following content to stderr:\n"
+                                        "%1").arg(errorMessage));
     }
 }

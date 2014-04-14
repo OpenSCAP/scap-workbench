@@ -27,7 +27,7 @@ ProfileTitleChangeUndoCommand::ProfileTitleChangeUndoCommand(TailoringWindow* wi
     mOldTitle(oldTitle),
     mNewTitle(newTitle)
 {
-    setText(QString("profile title to \"%1\"").arg(newTitle));
+    setText(QObject::tr("profile title to \"%1\"").arg(newTitle));
 }
 
 ProfileTitleChangeUndoCommand::~ProfileTitleChangeUndoCommand()
@@ -68,7 +68,7 @@ ProfileDescriptionChangeUndoCommand::ProfileDescriptionChangeUndoCommand(Tailori
     shortDesc.truncate(32);
     shortDesc += "...";
 
-    setText(QString("profile description to \"%1\"").arg(shortDesc));
+    setText(QObject::tr("profile description to \"%1\"").arg(shortDesc));
 }
 
 ProfileDescriptionChangeUndoCommand::~ProfileDescriptionChangeUndoCommand()
@@ -106,7 +106,10 @@ XCCDFItemSelectUndoCommand::XCCDFItemSelectUndoCommand(TailoringWindow* window, 
     mNewSelect(newSelect)
 {
     struct xccdf_item* xccdfItem = TailoringWindow::getXccdfItemFromTreeItem(mTreeItem);
-    setText(QString(mNewSelect ? "select" : "unselect") + QString(" '%1'").arg(QString::fromUtf8(xccdf_item_get_id(xccdfItem))));
+    if (mNewSelect)
+        setText(QObject::tr("select \"%1\"").arg(QString::fromUtf8(xccdf_item_get_id(xccdfItem))));
+    else
+        setText(QObject::tr("unselect \"%1\"").arg(QString::fromUtf8(xccdf_item_get_id(xccdfItem))));
 }
 
 XCCDFItemSelectUndoCommand::~XCCDFItemSelectUndoCommand()
@@ -146,7 +149,7 @@ XCCDFValueChangeUndoCommand::~XCCDFValueChangeUndoCommand()
 
 void XCCDFValueChangeUndoCommand::refreshText()
 {
-    setText(QString("set value '%1' to '%2'").arg(xccdf_value_get_id(mXccdfValue)).arg(mNewValue));
+    setText(QObject::tr("set value '%1' to '%2'").arg(xccdf_value_get_id(mXccdfValue)).arg(mNewValue));
 }
 
 int XCCDFValueChangeUndoCommand::id() const
