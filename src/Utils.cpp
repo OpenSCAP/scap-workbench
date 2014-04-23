@@ -46,3 +46,8 @@ QIcon getApplicationIcon()
 
     return icon;
 }
+
+QString getShareTranslations()
+{
+    return getSharePath() + "/translations";
+}

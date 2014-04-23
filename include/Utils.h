@@ -30,5 +30,6 @@
 QString getSharePath();
 QIcon getShareIcon(const QString& fileName);
 QIcon getApplicationIcon();
+QString getShareTranslations();
 
 #endif

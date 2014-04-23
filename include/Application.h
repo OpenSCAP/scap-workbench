@@ -21,6 +21,7 @@
 
 #include "ForwardDecls.h"
 #include <QApplication>
+#include <QTranslator>
 
 /**
  * @brief Central application
@@ -53,5 +54,6 @@ class Application : public QApplication
          */
         void browseForContent();
 
+        QTranslator mTranslator;
         MainWindow* mMainWindow;
 };

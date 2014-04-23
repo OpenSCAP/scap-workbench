@@ -24,9 +24,12 @@
 #include "Utils.h"
 
 #include <QFileInfo>
+#include <QTranslator>
 
 Application::Application(int& argc, char** argv):
     QApplication(argc, argv),
+
+    mTranslator(),
     mMainWindow(new MainWindow())
 {
     setOrganizationName("scap-workbench upstream");
@@ -35,8 +38,10 @@ Application::Application(int& argc, char** argv):
     setApplicationName("scap-workbench");
     setApplicationVersion(SCAP_WORKBENCH_VERSION);
 
-    const QIcon icon = getApplicationIcon();
+    mTranslator.load(QLocale(), "scap-workbench", "", getShareTranslations());
+    installTranslator(&mTranslator);
 
+    const QIcon icon = getApplicationIcon();
     setWindowIcon(icon);
     mMainWindow->setWindowIcon(icon);
 
