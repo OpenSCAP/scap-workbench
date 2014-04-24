@@ -150,6 +150,9 @@ TailoringWindow::TailoringWindow(struct xccdf_policy* policy, struct xccdf_bench
         mUI.toolBar->addAction(redoAction);
     }
 
+    // Column 1 is for search keywords
+    mUI.itemsTree->setColumnHidden(1, true);
+
     QObject::connect(
         mUI.itemsTree, SIGNAL(currentItemChanged(QTreeWidgetItem*, QTreeWidgetItem*)),
         this, SLOT(itemSelectionChanged(QTreeWidgetItem*, QTreeWidgetItem*))
@@ -249,6 +252,8 @@ void TailoringWindow::synchronizeTreeItem(QTreeWidgetItem* treeItem, struct xccd
 
     const QString title = oscapTextIteratorGetPreferred(xccdf_item_get_title(xccdfItem));
     treeItem->setText(0, title);
+    const QString searchable = QString("%1 %2").arg(title, QString::fromUtf8(xccdf_item_get_id(xccdfItem)));
+    treeItem->setText(1, searchable);
 
     switch (xccdf_item_get_type(xccdfItem))
     {
@@ -606,7 +611,7 @@ void TailoringWindow::searchNext()
     // FIXME: We could cache this when skipping to save CPU cycles but it's not worth
     //        as searching takes miliseconds even for huge XCCDF files.
     // Column 1 is used for search keywords
-    QList<QTreeWidgetItem*> matches = mUI.itemsTree->findItems(mSearchCurrentNeedle, Qt::MatchContains | Qt::MatchRecursive);
+    QList<QTreeWidgetItem*> matches = mUI.itemsTree->findItems(mSearchCurrentNeedle, Qt::MatchContains | Qt::MatchRecursive, 1);
     if (matches.size() > 0)
     {
         mSearchSkippedItems = mSearchSkippedItems % matches.size(); // wrap around
