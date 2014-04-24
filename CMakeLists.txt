@@ -66,12 +66,29 @@ configure_file("scap-workbench-oscap.policy.in" "${CMAKE_CURRENT_BINARY_DIR}/sca
 
 include_directories(${SCAP_WORKBENCH_INCLUDE_DIRS})
 
+# Which languages we want generated
+#set(scap_workbench_LANGUAGES de_DE fr_FR)
+set(scap_workbench_LANGUAGES)
+set(scap_workbench_LANGUAGE_TS_FILES)
+
+foreach(LANGUAGE ${scap_workbench_LANGUAGES})
+    set(TS_FILE "${CMAKE_CURRENT_SOURCE_DIR}/i18n/${LANGUAGE}.ts")
+    set(scap_workbench_LANGUAGE_TS_FILES ${scap_workbench_LANGUAGE_TS_FILES} ${TS_FILE})
+    set_source_files_properties(${TS_FILE} PROPERTIES OUTPUT_LOCATION "${CMAKE_CURRENT_BINARY_DIR}/i18n")
+endforeach()
+
+if(scap_workbench_LANGUAGE_TS_FILES)
+    set(TRANSLATION_SOURCES ${scap_workbench_HEADERS} ${scap_workbench_SOURCES} ${scap_workbench_UIS_HEADERS})
+    qt4_create_translation(qm_files ${TRANSLATION_SOURCES} ${scap_workbench_LANGUAGE_TS_FILES})
+endif()
+
 add_executable("scap-workbench"
     ${scap_workbench_HEADERS}
     ${scap_workbench_SOURCES}
 
     ${scap_workbench_HEADERS_MOC}
     ${scap_workbench_UIS_HEADERS}
+    ${scap_workbench_LANGUAGE_TS_FILES}
 )
 
 target_link_libraries("scap-workbench" ${SCAP_WORKBENCH_LINK_LIBRARIES})
