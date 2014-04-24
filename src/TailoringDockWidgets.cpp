@@ -136,6 +136,10 @@ void XCCDFItemPropertiesDockWidget::refresh()
     mUI.idLineEdit->setText("");
     mUI.typeLineEdit->setText("");
     mUI.descriptionBrowser->setHtml("");
+    mUI.identsBrowser->setHtml("");
+
+    mUI.identsLabel->hide();
+    mUI.identsBrowser->hide();
 
     mUI.valueGroupBox->hide();
     mUI.valueComboBox->clear();
@@ -206,6 +210,33 @@ void XCCDFItemPropertiesDockWidget::refresh()
 
             mUI.valueComboBox->insertSeparator(1);
             mUI.valueGroupBox->show();
+        }
+        else if (xccdf_item_get_type(mXccdfItem) == XCCDF_RULE)
+        {
+            bool empty = true;
+
+            QString html = "";
+            struct xccdf_ident_iterator* idents = xccdf_rule_get_idents(xccdf_item_to_rule(mXccdfItem));
+            while (xccdf_ident_iterator_has_more(idents))
+            {
+                empty = false;
+
+                struct xccdf_ident* ident = xccdf_ident_iterator_next(idents);
+                html += QString("[<i>%1</i>] - <b>%2</b><br />").arg(
+                    QString::fromUtf8(xccdf_ident_get_system(ident)),
+                    QString::fromUtf8(xccdf_ident_get_id(ident))
+                );
+
+            }
+            xccdf_ident_iterator_free(idents);
+
+            if (!empty)
+            {
+                mUI.identsBrowser->setHtml(html);
+
+                mUI.identsLabel->show();
+                mUI.identsBrowser->show();
+            }
         }
     }
 
