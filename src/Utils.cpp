@@ -49,5 +49,5 @@ QIcon getApplicationIcon()
 
 QString getShareTranslations()
 {
-    return getSharePath() + "/translations";
+    return getSharePath() + "/i18n";
 }
