@@ -181,7 +181,6 @@ TailoringWindow::TailoringWindow(struct xccdf_policy* policy, struct xccdf_bench
     mUI.itemsTree->header()->setResizeMode(0, QHeaderView::ResizeToContents);
     mUI.itemsTree->header()->setStretchLastSection(false);
 
-    mUI.itemsTree->expandAll();
     deserializeCollapsedItems();
     syncCollapsedItems();
 
