@@ -252,9 +252,8 @@ void TailoringWindow::synchronizeTreeItem(QTreeWidgetItem* treeItem, struct xccd
 
     const QString title = oscapTextIteratorGetPreferred(xccdf_item_get_title(xccdfItem));
     treeItem->setText(0, title);
-    const QString searchable = QString("%1 %2").arg(title, QString::fromUtf8(xccdf_item_get_id(xccdfItem)));
-    treeItem->setText(1, searchable);
 
+    QString searchable = QString("%1 %2").arg(title, QString::fromUtf8(xccdf_item_get_id(xccdfItem)));
     switch (xccdf_item_get_type(xccdfItem))
     {
         case XCCDF_BENCHMARK:
@@ -267,6 +266,15 @@ void TailoringWindow::synchronizeTreeItem(QTreeWidgetItem* treeItem, struct xccd
 
         case XCCDF_RULE:
             treeItem->setIcon(0, getShareIcon("rule.png"));
+            {
+                struct xccdf_ident_iterator* idents = xccdf_rule_get_idents(xccdf_item_to_rule(xccdfItem));
+                while (xccdf_ident_iterator_has_more(idents))
+                {
+                    struct xccdf_ident* ident = xccdf_ident_iterator_next(idents);
+                    searchable += " " + QString::fromUtf8(xccdf_ident_get_id(ident));
+                }
+                xccdf_ident_iterator_free(idents);
+            }
             break;
 
         case XCCDF_VALUE:
@@ -277,6 +285,8 @@ void TailoringWindow::synchronizeTreeItem(QTreeWidgetItem* treeItem, struct xccd
             treeItem->setIcon(0, QIcon());
             break;
     }
+
+    treeItem->setText(1, searchable);
 
     treeItem->setData(0, Qt::UserRole, QVariant::fromValue(reinterpret_cast<void*>(xccdfItem)));
 
