@@ -102,6 +102,8 @@ QString ScanningSession::getOpenedFilePath() const
     if (!fileOpened())
         return QString::null;
 
+    // we always open the session with absolute file path
+    // therefore this is guaranteed to be absolute
     return xccdf_session_get_filename(mSession);
 }
 

@@ -81,6 +81,13 @@ class MainWindow : public QMainWindow
         bool fileOpened() const;
 
         /**
+         * @brief Retrieves full (absolute) path of opened file
+         *
+         * @note Returns empty string if no file is opened
+         */
+        QString getOpenedFilePath() const;
+
+        /**
          * @brief Automatically determines scanner mode based on checkbox state
          */
         void scanAsyncAutoMode();

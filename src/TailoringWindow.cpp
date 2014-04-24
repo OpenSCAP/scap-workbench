@@ -28,6 +28,7 @@
 #include "APIHelpers.h"
 #include "Utils.h"
 
+#include <QCryptographicHash>
 #include <QMessageBox>
 #include <QCloseEvent>
 #include <QDesktopWidget>
@@ -83,6 +84,7 @@ TailoringWindow::TailoringWindow(struct xccdf_policy* policy, struct xccdf_bench
     QMainWindow(parent),
 
     mParentMainWindow(parent),
+    mQSettings(new QSettings(this)),
 
     mSynchronizeItemLock(0),
 
@@ -152,10 +154,17 @@ TailoringWindow::TailoringWindow(struct xccdf_policy* policy, struct xccdf_bench
         mUI.itemsTree, SIGNAL(currentItemChanged(QTreeWidgetItem*, QTreeWidgetItem*)),
         this, SLOT(itemSelectionChanged(QTreeWidgetItem*, QTreeWidgetItem*))
     );
-
     QObject::connect(
         mUI.itemsTree, SIGNAL(itemChanged(QTreeWidgetItem*, int)),
         this, SLOT(itemChanged(QTreeWidgetItem*, int))
+    );
+    QObject::connect(
+        mUI.itemsTree, SIGNAL(itemExpanded(QTreeWidgetItem*)),
+        this, SLOT(itemExpanded(QTreeWidgetItem*))
+    );
+    QObject::connect(
+        mUI.itemsTree, SIGNAL(itemCollapsed(QTreeWidgetItem*)),
+        this, SLOT(itemCollapsed(QTreeWidgetItem*))
     );
 
     QTreeWidgetItem* benchmarkItem = new QTreeWidgetItem();
@@ -173,6 +182,8 @@ TailoringWindow::TailoringWindow(struct xccdf_policy* policy, struct xccdf_bench
     mUI.itemsTree->header()->setStretchLastSection(false);
 
     mUI.itemsTree->expandAll();
+    deserializeCollapsedItems();
+    syncCollapsedItems();
 
     setWindowTitle(QObject::tr("Tailoring \"%1\"").arg(oscapTextIteratorGetPreferred(xccdf_profile_get_title(mProfile))));
 
@@ -205,7 +216,9 @@ TailoringWindow::TailoringWindow(struct xccdf_policy* policy, struct xccdf_bench
 }
 
 TailoringWindow::~TailoringWindow()
-{}
+{
+    delete mQSettings;
+}
 
 inline bool getXccdfItemInternalSelected(struct xccdf_policy* policy, struct xccdf_item* item)
 {
@@ -515,6 +528,8 @@ void TailoringWindow::closeEvent(QCloseEvent * event)
         // TODO: Delete the profile if it was created as a tailoring action
     }
 
+    serializeCollapsedItems();
+
     QMainWindow::closeEvent(event);
 
     // TODO: This is the only place where we depend on MainWindow which really sucks
@@ -526,6 +541,56 @@ void TailoringWindow::closeEvent(QCloseEvent * event)
     {
         mParentMainWindow->notifyTailoringFinished(mNewProfile, mChangesConfirmed);
     }
+}
+
+QString TailoringWindow::getQSettingsKey() const
+{
+    const QString filePath = mParentMainWindow->getOpenedFilePath();
+    QCryptographicHash hash(QCryptographicHash::Sha1);
+    hash.addData(filePath.toUtf8());
+    return QString("collapsed_items_%1").arg(QString(hash.result().toHex()));
+}
+
+void TailoringWindow::deserializeCollapsedItems()
+{
+    const QStringList list = mQSettings->value(getQSettingsKey()).toStringList();
+    mCollapsedItemIds = QSet<QString>::fromList(list);
+}
+
+void TailoringWindow::serializeCollapsedItems()
+{
+    if (mCollapsedItemIds.isEmpty())
+        mQSettings->remove(getQSettingsKey());
+    else
+        mQSettings->setValue(getQSettingsKey(), QVariant(mCollapsedItemIds.toList()));
+}
+
+void TailoringWindow::syncCollapsedItems()
+{
+    QSet<QString> usedCollapsedItems;
+    syncCollapsedItem(mUI.itemsTree->topLevelItem(0), usedCollapsedItems);
+    // This "cleans" the ids of non-existent ones.
+    // That's useful when the content changes and avoids cruft buildup in the settings files.
+    mCollapsedItemIds = usedCollapsedItems;
+}
+
+void TailoringWindow::syncCollapsedItem(QTreeWidgetItem* item, QSet<QString>& usedCollapsedIds)
+{
+    struct xccdf_item* xccdfItem = getXccdfItemFromTreeItem(item);
+    const QString id = QString::fromUtf8(xccdf_item_get_id(xccdfItem));
+
+    if (mCollapsedItemIds.contains(id))
+    {
+        mUI.itemsTree->collapseItem(item);
+        usedCollapsedIds.insert(id);
+    }
+    else
+    {
+        mUI.itemsTree->expandItem(item);
+    }
+
+    for (int i = 0; i < item->childCount(); ++i)
+        syncCollapsedItem(item->child(i), usedCollapsedIds);
 }
 
 void TailoringWindow::searchNext()
@@ -583,4 +648,18 @@ void TailoringWindow::itemChanged(QTreeWidgetItem* treeItem, int column)
         mUndoStack.push(new XCCDFItemSelectUndoCommand(this, treeItem, checkState));
 
     _syncXCCDFItemChildrenDisabledState(treeItem, checkState);
+}
+
+void TailoringWindow::itemExpanded(QTreeWidgetItem* item)
+{
+    struct xccdf_item* xccdfItem = getXccdfItemFromTreeItem(item);
+    const QString id = QString::fromUtf8(xccdf_item_get_id(xccdfItem));
+    mCollapsedItemIds.remove(id);
+}
+
+void TailoringWindow::itemCollapsed(QTreeWidgetItem* item)
+{
+    struct xccdf_item* xccdfItem = getXccdfItemFromTreeItem(item);
+    const QString id = QString::fromUtf8(xccdf_item_get_id(xccdfItem));
+    mCollapsedItemIds.insert(id);
 }

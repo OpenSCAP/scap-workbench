@@ -66,7 +66,7 @@ class ScanningSession
         void closeFile();
 
         /**
-         * @brief Retrieves path of the opened file
+         * @brief Retrieves full absolute path of the opened file
          */
         QString getOpenedFilePath() const;
 

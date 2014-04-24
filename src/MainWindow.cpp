@@ -303,6 +303,14 @@ bool MainWindow::fileOpened() const
     return mScanningSession && mScanningSession->fileOpened();
 }
 
+QString MainWindow::getOpenedFilePath() const
+{
+    if (fileOpened())
+        return mScanningSession->getOpenedFilePath();
+
+    return "";
+}
+
 void MainWindow::scanAsyncAutoMode()
 {
     if (mUI.onlineRemediationCheckBox->checkState() == Qt::Checked)

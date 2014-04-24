@@ -24,7 +24,8 @@
 
 #include "ForwardDecls.h"
 
-#include <QDialog>
+#include <QMainWindow>
+#include <QSettings>
 #include <QUndoStack>
 
 extern "C"
@@ -129,11 +130,21 @@ class TailoringWindow : public QMainWindow
         void confirmAndClose();
         void deleteProfileAndDiscard();
 
-    protected:
+    private:
         /// Reimplemented to refresh profiles and selected rules in the parent main window
         virtual void closeEvent(QCloseEvent * event);
 
+        QString getQSettingsKey() const;
+        void deserializeCollapsedItems();
+        void serializeCollapsedItems();
+        void syncCollapsedItems();
+        void syncCollapsedItem(QTreeWidgetItem* item, QSet<QString>& usedCollapsedIds);
+
         MainWindow* mParentMainWindow;
+        /// Used to remember manually collapsed items for a particular item
+        QSet<QString> mCollapsedItemIds;
+        /// Used to serialize manually collapsed items between scap-workbench runs
+        QSettings* mQSettings;
 
         /// if > 0, ignore itemChanged signals, these would just excessively add selects and bloat memory
         unsigned int mSynchronizeItemLock;
@@ -160,10 +171,12 @@ class TailoringWindow : public QMainWindow
         unsigned int mSearchSkippedItems;
         QString mSearchCurrentNeedle;
 
-    protected slots:
+    private slots:
         void searchNext();
         void itemSelectionChanged(QTreeWidgetItem* current, QTreeWidgetItem* previous);
         void itemChanged(QTreeWidgetItem* item, int column);
+        void itemExpanded(QTreeWidgetItem* item);
+        void itemCollapsed(QTreeWidgetItem* item);
 };
 
 #endif
