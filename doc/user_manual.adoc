@@ -1,6 +1,8 @@
-= scap-workbench User Manual
+= SCAP workbench User Manual
 :imagesdir: ./user_manual
 :toc:
+
+image::logo.svg[align="center"]
 
 scap-workbench is a tool that can open XCCDF footnote:[The Extensible
 Configuration Checklist Description Format] or SDS footnote:[Source
