@@ -797,7 +797,21 @@ void MainWindow::tailoringFileComboboxChanged(int index)
     reloadSession();
     if (tailoringLoaded)
     {
+        const std::map<QString, struct xccdf_profile*> profiles = mScanningSession->getAvailableProfiles();
 
+        // Select the first tailored profile from the newly loaded tailoring
+        for (std::map<QString, struct xccdf_profile*>::const_iterator it = profiles.begin();
+             it != profiles.end(); ++it)
+        {
+            if (xccdf_profile_get_tailoring(it->second))
+            {
+                const QString profileId = it->first;
+                const int idx = mUI.profileComboBox->findData(QVariant(profileId));
+                if (idx != -1)
+                    mUI.profileComboBox->setCurrentIndex(idx);
+                break;
+            }
+        }
     }
 
     mOldTailoringComboBoxIdx = index;
