@@ -23,9 +23,9 @@
         </ul>
     </description>
     <screenshots>
-        <screenshot type="default" width="1280" height="720">https://fedorahosted.org/scap-workbench/raw-attachment/wiki/AppData/0.8-default.png</screenshot>
-        <screenshot width="1280" height="720">https://fedorahosted.org/scap-workbench/raw-attachment/wiki/AppData/0.8-processing.png</screenshot>
-        <screenshot width="1280" height="720">https://fedorahosted.org/scap-workbench/raw-attachment/wiki/AppData/0.8-tailoring.png</screenshot>
+        <screenshot type="default" width="1280" height="720">https://fedorahosted.org/scap-workbench/raw-attachment/wiki/AppData/1.0-default.png</screenshot>
+        <screenshot width="1280" height="720">https://fedorahosted.org/scap-workbench/raw-attachment/wiki/AppData/1.0-processing.png</screenshot>
+        <screenshot width="1280" height="720">https://fedorahosted.org/scap-workbench/raw-attachment/wiki/AppData/1.0-tailoring.png</screenshot>
     </screenshots>
     <url type="homepage">https://fedorahosted.org/scap-workbench</url>
     <updatecontact>scap-workbench@lists.fedorahosted.org</updatecontact>
