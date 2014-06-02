@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<application>
+    <id type="desktop">scap-workbench.desktop</id>
+    <metadata_license>CC0-1.0</metadata_license>
+    <project_license>GPL-3.0+</project_license>
+    <name>SCAP Workbench</name>
+    <summary>A GUI tool that serves as an SCAP scanner and provides tailoring functionality for SCAP content</summary>
+    <description>
+        <p>
+            The main goal of this application is to lower the initial barrier of using SCAP.
+            Therefore, the scope of very narrow - scap-workbench only scans a single machine and only with XCCDF/SDS (no direct OVAL evaluation).
+            The assumption is that this is enough for users who want to scan a few machines and users with huge amount of machines to scan will just use scap-workbench to test or hand-tune their content before deploying it with more advanced (and harder to use) tools like spacewalk.
+        </p>
+        <p>Feature highlights:</p>
+        <ul>
+            <li>XCCDF 1.1 and 1.2 support</li>
+            <li>Source Data Stream 1.2 support</li>
+            <li>XCCDF 1.2 Tailoring file support</li>
+            <li>Evaluation of local machine</li>
+            <li>Evaluation of remote machine (using ssh)</li>
+            <li>Limited tailoring support - selection and unselection</li>
+            <li>Saving results as XCCDF 1.1 or 1.2 (depending on input) or ARF 1.1</li>
+        </ul>
+    </description>
+    <screenshots>
+        <screenshot type="default" width="1280" height="720">https://fedorahosted.org/scap-workbench/raw-attachment/wiki/AppData/0.8-default.png</screenshot>
+        <screenshot width="1280" height="720">https://fedorahosted.org/scap-workbench/raw-attachment/wiki/AppData/0.8-processing.png</screenshot>
+        <screenshot width="1280" height="720">https://fedorahosted.org/scap-workbench/raw-attachment/wiki/AppData/0.8-tailoring.png</screenshot>
+    </screenshots>
+    <url type="homepage">https://fedorahosted.org/scap-workbench</url>
+    <updatecontact>scap-workbench@lists.fedorahosted.org</updatecontact>
+</application>
