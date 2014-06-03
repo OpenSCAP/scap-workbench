@@ -216,7 +216,7 @@ void OscapScannerRemoteSsh::evaluate()
 
         if (mCancelRequested)
         {
-            emit infoMessage("Cancelation was requested! Terminating...");
+            emit infoMessage("Cancellation was requested! Terminating...");
             // TODO: On Windows we have to kill immediately, terminate() posts WM_CLOSE
             //       but oscap doesn't have any event loop running.
             process.terminate();
