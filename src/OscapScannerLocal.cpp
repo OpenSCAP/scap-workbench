@@ -156,7 +156,7 @@ void OscapScannerLocal::evaluate()
 
         if (mCancelRequested)
         {
-            emit infoMessage(QObject::tr("Cancelation was requested! Terminating scanning..."));
+            emit infoMessage(QObject::tr("Cancellation was requested! Terminating scanning..."));
             process.kill();
             process.waitForFinished(1000);
             break;
