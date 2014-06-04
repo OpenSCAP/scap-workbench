@@ -56,6 +56,25 @@ class XCCDFItemSelectUndoCommand : public QUndoCommand
 };
 
 /**
+ * @brief Stores info about mass selection or deselection (or a mix) of 0+ XCCDF items
+ */
+class MassXCCDFItemSelectUndoCommand : public QUndoCommand
+{
+    public:
+        MassXCCDFItemSelectUndoCommand(TailoringWindow* window, const std::map<QTreeWidgetItem*, bool>& newSelects);
+        virtual ~MassXCCDFItemSelectUndoCommand();
+
+        virtual int id() const;
+
+        virtual void redo();
+        virtual void undo();
+
+    private:
+        TailoringWindow* mWindow;
+        std::map<QTreeWidgetItem*, bool> mNewSelects;
+};
+
+/**
  * @brief Stores info about refinement of xccdf:Value's value
  */
 class XCCDFValueChangeUndoCommand : public QUndoCommand
