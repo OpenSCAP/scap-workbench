@@ -35,6 +35,7 @@ class ProfileTitleChangeUndoCommand;
 class ProfileDescriptionChangeUndoCommand;
 class RemoteMachineComboBox;
 class ResultViewer;
+class RPMOpenHelper;
 class SaveAsRPMDialog;
 class ScanningSession;
 class Scanner;

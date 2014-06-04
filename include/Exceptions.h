@@ -60,4 +60,7 @@ SCAP_WORKBENCH_SIMPLE_EXCEPTION(OscapScannerRemoteSshException,
 SCAP_WORKBENCH_SIMPLE_EXCEPTION(TemporaryDirException,
     "There was a problem with TemporaryDir!\n");
 
+SCAP_WORKBENCH_SIMPLE_EXCEPTION(RPMOpenHelperException,
+    "There was a problem with RPMOpenHelper!\n");
+
 #endif

@@ -29,6 +29,7 @@
 #include "Exceptions.h"
 #include "APIHelpers.h"
 #include "SaveAsRPMDialog.h"
+#include "RPMOpenHelper.h"
 
 #include <QFileDialog>
 #include <QAbstractEventDispatcher>
@@ -64,6 +65,7 @@ MainWindow::MainWindow(QWidget* parent):
 
     mDiagnosticsDialog(0),
 
+    mRPMOpenHelper(0),
     mScanningSession(0),
 
     mScanThread(0),
@@ -201,7 +203,17 @@ void MainWindow::openFile(const QString& path)
 {
     try
     {
-        mScanningSession->openFile(path);
+        QString inputPath = path;
+        QString tailoringPath = "";
+
+        if (path.endsWith(".rpm"))
+        {
+            mRPMOpenHelper = new RPMOpenHelper(path);
+            inputPath = mRPMOpenHelper->getInputPath();
+            tailoringPath = mRPMOpenHelper->getTailoringPath();
+        }
+
+        mScanningSession->openFile(inputPath);
 
         const QFileInfo pathInfo(path);
         setWindowTitle(QObject::tr("%1 - scap-workbench").arg(pathInfo.fileName()));
@@ -212,6 +224,13 @@ void MainWindow::openFile(const QString& path)
         markNoUnsavedTailoringChanges();
 
         refreshChecklists();
+
+        if (!tailoringPath.isEmpty())
+        {
+            mScanningSession->setTailoringFile(tailoringPath);
+            markLoadedTailoringFile(tailoringPath);
+        }
+
         // force load up of the session
         checklistComboboxChanged(0);
 
@@ -513,6 +532,8 @@ void MainWindow::closeFile()
 
         mDiagnosticsDialog->exceptionMessage(e, QObject::tr("Failed to close file."));
     }
+
+    delete mRPMOpenHelper; mRPMOpenHelper = 0;
 
     centralWidget()->setEnabled(false);
 

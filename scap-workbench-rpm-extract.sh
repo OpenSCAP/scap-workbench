@@ -16,11 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-s="@CMAKE_SOURCE_DIR@"
+set -u -o pipefail
 
-export SCAP_WORKBENCH_PKEXEC_OSCAP_PATH=$s/scap-workbench-pkexec-oscap.sh
-export SCAP_WORKBENCH_RPM_EXTRACT_PATH=$s/scap-workbench-rpm-extract.sh
-export SCAP_WORKBENCH_ICON=$s/share/pixmaps/scap-workbench.png
-export SCAP_WORKBENCH_SHARE=$s/share/scap-workbench
-
-exec "$@"
+rpm2cpio $1 | cpio -ivd
+exit $?

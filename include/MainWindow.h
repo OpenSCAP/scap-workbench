@@ -185,6 +185,9 @@ class MainWindow : public QMainWindow
         QAction* mSaveIntoDirAction;
         QAction* mSaveAsRPMAction;
 
+        /// Needed for SCAP RPM opening functionality
+        RPMOpenHelper* mRPMOpenHelper;
+
         /// This is our central point of interaction with openscap
         ScanningSession* mScanningSession;
 

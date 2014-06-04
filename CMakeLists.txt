@@ -102,6 +102,9 @@ install(PROGRAMS "scap-workbench-oscap.sh"
 install(PROGRAMS "scap-workbench-pkexec-oscap.sh"
     DESTINATION ${CMAKE_INSTALL_LIBEXECDIR})
 
+install(PROGRAMS "scap-workbench-rpm-extract.sh"
+    DESTINATION ${CMAKE_INSTALL_LIBEXECDIR})
+
 install(FILES "${CMAKE_CURRENT_BINARY_DIR}/scap-workbench-oscap.policy"
     DESTINATION "${CMAKE_INSTALL_DATADIR}/polkit-1/actions")
 
