@@ -269,7 +269,7 @@ void MainWindow::openFileDialog()
         const QString path = QFileDialog::getOpenFileName(this,
             QObject::tr("Open Source DataStream or XCCDF file"),
             defaultDirectory,
-            QObject::tr("Source DataStream or XCCDF file (*.xml);;All files (*)"), 0
+            QObject::tr("Source DataStream, XCCDF file or SCAP RPM (*.xml *.rpm);;All files (*)"), 0
 #ifndef SCAP_WORKBENCH_USE_NATIVE_FILE_DIALOGS
             , QFileDialog::DontUseNativeDialog
 #endif
