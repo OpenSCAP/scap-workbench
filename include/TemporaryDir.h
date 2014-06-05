@@ -27,6 +27,12 @@
 
 /**
  * @brief Creates a (LOCAL!) temporary directory and auto destroys it if told so
+ *
+ * This structure is lazy, it only creates the temp directory when asked about
+ * its path. Before you query the path the directory won't be created.
+ *
+ * @note Default setting is to auto-remove the directory on destruction.
+ * @internal We should replace this with QTemporaryDir when scap-workbench moves to Qt5
  */
 class TemporaryDir
 {
@@ -34,15 +40,34 @@ class TemporaryDir
         TemporaryDir();
         ~TemporaryDir();
 
+        /**
+         * @brief Changes the auto-remove settings
+         *
+         * If autoRemove is true the structure will recursively remove the entire
+         * temporary directory (that is the default setting). Else it will just
+         * create it and it's up to the user to destroy it.
+         */
         void setAutoRemove(const bool autoRemove);
+
+        /// @see TemporaryDir::setAutoRemove
         bool getAutoRemove() const;
 
+        /**
+         * @brief Returns absolute path of created temporary directory
+         *
+         * @exception TemporaryDirException Failed to create temporary directory (nonzero exit code from mktemp -d)
+         */
         const QString& getPath() const;
 
     private:
+        /**
+         * Ensures that temporary directory has been created and the stored path is valid.
+         */
         void ensurePath() const;
-        mutable QString mPath;
 
+        /// Holds absolute path of the created temporary directory
+        mutable QString mPath;
+        /// @see TemporaryDir::setAutoRemove
         bool mAutoRemove;
 };
 

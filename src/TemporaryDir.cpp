@@ -23,6 +23,9 @@
 #include "ProcessHelpers.h"
 #include "Exceptions.h"
 
+#include <QDir>
+#include <iostream>
+
 TemporaryDir::TemporaryDir():
     mAutoRemove(true)
 {}
@@ -34,7 +37,7 @@ TemporaryDir::~TemporaryDir()
         SyncProcess proc;
         proc.setCommand(SCAP_WORKBENCH_LOCAL_RM);
         QStringList args;
-        args.push_back("-rf"); args.push_back(mPath);
+        args.push_back("-r"); args.push_back(mPath);
         proc.setArguments(args);
         proc.run();
 
@@ -43,7 +46,7 @@ TemporaryDir::~TemporaryDir()
             // We don't throw on destruction! The worst thing that can happen
             // is leftover files which is not a big deal anyway.
 
-            // FIXME: Debug printout?
+            std::cerr << "Failed to remove temporary directory '" << mPath.toUtf8().constData() << "'." << std::endl;
         }
     }
 }
@@ -74,13 +77,20 @@ void TemporaryDir::ensurePath() const
         proc.run();
 
         if (proc.getExitCode() != 0)
-        {
             throw TemporaryDirException(
                 QString("Failed to create temporary directory.\n"
                     "Diagnostic info:\n%1").arg(proc.getDiagnosticInfo())
             );
-        }
 
-        mPath = proc.getStdOutContents().trimmed();
+        const QDir dir(proc.getStdOutContents().trimmed());
+
+        if (!dir.exists())
+            throw TemporaryDirException(
+                QString("Failed to create temporary directory. `mktemp -d` returned with 0 "
+                    "but the directory does not exist!\n"
+                    "Diagnostic info:\n%1").arg(proc.getDiagnosticInfo())
+            );
+
+        mPath = dir.absolutePath();
     }
 }
