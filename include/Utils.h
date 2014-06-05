@@ -41,7 +41,7 @@
  * Avoid using hardcoded paths in the codebase and always use paths relative
  * to the share path.
  *
- * @exception This function is guaranteed to not throw any exceptions.
+ * @exception nothrow This function is guaranteed to not throw any exceptions.
  */
 const QDir& getShareDirectory();
 
@@ -51,7 +51,7 @@ const QDir& getShareDirectory();
  * This function looks for the file in the icon folder in workbench's share path.
  * Using this function to get an icon is preferrable to constructing it manually.
  *
- * @exception This function is guaranteed to not throw any exceptions.
+ * @exception nothrow This function is guaranteed to not throw any exceptions.
  * @note This function will write a warning to stderr in case the icon cannot be loaded.
  */
 QIcon getShareIcon(const QString& fileName);
@@ -59,7 +59,7 @@ QIcon getShareIcon(const QString& fileName);
 /**
  * @brief Retrieves the global application icon
  *
- * @exception This function is guaranteed to not throw any exceptions.
+ * @exception nothrow This function is guaranteed to not throw any exceptions.
  * @note This function will write a warning to stderr in case the icon cannot be loaded.
  */
 const QIcon& getApplicationIcon();
@@ -67,7 +67,7 @@ const QIcon& getApplicationIcon();
 /**
  * @brief Retrieves the QDir representing the directory with translations
  *
- * @exception This function is guaranteed to not throw any exceptions.
+ * @exception nothrow This function is guaranteed to not throw any exceptions.
  */
 const QDir& getShareTranslationDirectory();
 
