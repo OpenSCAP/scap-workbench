@@ -22,32 +22,45 @@
 #include "Utils.h"
 #include <iostream>
 
-QString getSharePath()
+const QDir& getShareDirectory()
 {
-    const QString sharePath = qgetenv("SCAP_WORKBENCH_SHARE");
-    return sharePath.isEmpty() ? SCAP_WORKBENCH_SHARE : sharePath;
+    static const QString installedPath = SCAP_WORKBENCH_SHARE;
+    static const QString overriddenPath = qgetenv("SCAP_WORKBENCH_SHARE");
+    static QDir ret(overriddenPath.isEmpty() ? installedPath : overriddenPath);
+
+    return ret;
 }
 
 QIcon getShareIcon(const QString& fileName)
 {
-    const QString fullPath = QString("%1/%2").arg(getSharePath(), fileName);
+    const QString fullPath = getShareDirectory().absoluteFilePath(fileName);
     const QIcon ret(fullPath);
+
     if (ret.pixmap(1, 1).isNull())
     {
-        std::cerr << "Can not create pixmap from icon '" << fullPath.toUtf8().constData() << "'." << std::endl;
+        std::cerr << "getShareIcon(..): Cannot create pixmap from icon '" << fullPath.toUtf8().constData() << "'." << std::endl;
     }
+
     return ret;
 }
 
-QIcon getApplicationIcon()
+const QIcon& getApplicationIcon()
 {
-    const QString iconPath = qgetenv("SCAP_WORKBENCH_ICON");
-    const QIcon icon = QIcon(iconPath.isEmpty() ? SCAP_WORKBENCH_ICON : iconPath);
+    static const QString installedPath = SCAP_WORKBENCH_ICON;
+    static const QString overriddenPath = qgetenv("SCAP_WORKBENCH_ICON");
+    static const QString& fullPath = overriddenPath.isEmpty() ? installedPath : overriddenPath;
+    static const QIcon ret = QIcon(fullPath);
 
-    return icon;
+    if (ret.pixmap(1, 1).isNull())
+    {
+        std::cerr << "getApplicationIcon(): Cannot create pixmap from icon '" << fullPath.toUtf8().constData() << "'." << std::endl;
+    }
+
+    return ret;
 }
 
-QString getShareTranslations()
+const QDir& getShareTranslationDirectory()
 {
-    return getSharePath() + "/i18n";
+    static const QDir ret(getShareDirectory().absoluteFilePath("i18n"));
+    return ret;
 }
