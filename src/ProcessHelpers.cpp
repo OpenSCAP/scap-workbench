@@ -109,11 +109,17 @@ void SyncProcess::setEnvironment(const QProcessEnvironment& env)
 
 void SyncProcess::setWorkingDirectory(const QString& dir)
 {
+    if (isRunning())
+        throw SyncProcessException("Already running, can't change working directory!");
+
     mWorkingDirectory = dir;
 }
 
 void SyncProcess::setCancelRequestSource(bool* source)
 {
+    // Changing this while running is nasty but should work.
+    // Especially in a synchronized single threaded environment.
+
     mCancelRequestSource = source;
 }
 
@@ -295,6 +301,9 @@ const QString& SyncProcess::getDiagnosticInfo() const
 
 void SyncProcess::startQProcess(QProcess& process)
 {
+    if (mCommand.isEmpty())
+        throw SyncProcessException("Cannot start process '" + generateDescription() + "'. The command member variable is set to '" + mCommand + "'.");
+
     process.setProcessEnvironment(generateFullEnvironment());
     mDiagnosticInfo += QObject::tr("Starting process '%1'\n").arg(generateDescription());
     process.setStandardInputFile("/dev/null");
