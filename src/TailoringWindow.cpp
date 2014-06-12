@@ -460,8 +460,11 @@ void TailoringWindow::deselectAllChildrenItems(QTreeWidgetItem* parent, bool und
                 deselectAllChildrenItems(parent->child(i), false);
             break;
 
-        default:
+        case XCCDF_RULE:
             parent->setCheckState(0, Qt::Unchecked);
+            break;
+
+        default:
             break;
     }
 
