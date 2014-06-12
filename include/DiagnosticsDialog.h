@@ -106,7 +106,7 @@ class DiagnosticsDialog : public QDialog
         /**
          * @brief Report a caught exception.
          */
-        void exceptionMessage(const std::exception& e, const QString context = QString::null);
+        void exceptionMessage(const std::exception& e, const QString& context = "");
 
     private:
         void pushMessage(MessageSeverity severity, const QString& fullMessage);

@@ -84,7 +84,7 @@ void DiagnosticsDialog::errorMessage(const QString& message)
     show();
 }
 
-void DiagnosticsDialog::exceptionMessage(const std::exception& e, const QString context)
+void DiagnosticsDialog::exceptionMessage(const std::exception& e, const QString& context)
 {
     pushMessage(MS_EXCEPTION, (context.isEmpty() ? "" : context + "\n\n" + QString::fromUtf8(e.what())));
 
