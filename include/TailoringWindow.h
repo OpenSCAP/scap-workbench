@@ -78,6 +78,14 @@ class TailoringWindow : public QMainWindow
         QString getCurrentValueValue(struct xccdf_value* xccdfValue);
         void setValueValueWithUndoCommand(struct xccdf_value* xccdfValue, const QString& newValue);
 
+    public slots:
+        /**
+         * @brief Traverses the tree into all selected groups and deselects all their items
+         */
+        void deselectAllChildrenItems(QTreeWidgetItem* parent = 0, bool undoMacro = true);
+
+    public:
+
         /**
          * @brief Retrieves ID of profile that is being tailored (in suitable language)
          */

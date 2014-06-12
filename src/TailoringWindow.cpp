@@ -198,9 +198,24 @@ TailoringWindow::TailoringWindow(struct xccdf_policy* policy, struct xccdf_bench
         addDockWidget(Qt::RightDockWidgetArea, mUndoViewDockWidget);
         mUndoViewDockWidget->hide();
 
-        mUI.toolBar->addSeparator();
         mUI.toolBar->addAction(mUndoViewDockWidget->toggleViewAction());
     }
+
+    mUI.toolBar->addSeparator();
+
+    {
+        QAction* action = new QAction(this);
+        action->setText(QObject::tr("Deselect All"));
+
+        QObject::connect(
+            action, SIGNAL(triggered()),
+            this, SLOT(deselectAllChildrenItems())
+        );
+
+        mUI.toolBar->addAction(action);
+    }
+
+    mUI.toolBar->addSeparator();
 
     mSearchBox->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Preferred);
     mUI.toolBar->addSeparator();
@@ -426,6 +441,32 @@ QString TailoringWindow::getCurrentValueValue(struct xccdf_value* xccdfValue)
 void TailoringWindow::setValueValueWithUndoCommand(struct xccdf_value* xccdfValue, const QString& newValue)
 {
     mUndoStack.push(new XCCDFValueChangeUndoCommand(this, xccdfValue, newValue, getCurrentValueValue(xccdfValue)));
+}
+
+void TailoringWindow::deselectAllChildrenItems(QTreeWidgetItem* parent, bool undoMacro)
+{
+    if (parent == 0)
+        parent = mUI.itemsTree->topLevelItem(0);
+
+    if (undoMacro)
+        mUndoStack.beginMacro("Deselect All");
+
+    struct xccdf_item* xccdfItem = getXccdfItemFromTreeItem(parent);
+    switch (xccdf_item_get_type(xccdfItem))
+    {
+        case XCCDF_BENCHMARK:
+        case XCCDF_GROUP:
+            for (int i = 0; i < parent->childCount(); ++i)
+                deselectAllChildrenItems(parent->child(i), false);
+            break;
+
+        default:
+            parent->setCheckState(0, Qt::Unchecked);
+            break;
+    }
+
+    if (undoMacro)
+        mUndoStack.endMacro();
 }
 
 QString TailoringWindow::getProfileID() const
