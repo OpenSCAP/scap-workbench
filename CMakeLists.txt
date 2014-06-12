@@ -127,7 +127,7 @@ if (CPPCHECK_EXECUTABLE)
 
     add_custom_command(
         OUTPUT cppcheck.txt
-        COMMAND ${CPPCHECK_EXECUTABLE} ${CPPCHECK_INCL_PARAMS} --enable=all --force ${scap_workbench_SOURCES} 2> ${CMAKE_CURRENT_BINARY_DIR}/cppcheck.txt
+        COMMAND ${CPPCHECK_EXECUTABLE} ${CPPCHECK_INCL_PARAMS} --language=c++ --std=c++03 --library=std,qt --enable=all --force --suppress=*:/usr/include/Qt*/* ${scap_workbench_SOURCES} 2> ${CMAKE_CURRENT_BINARY_DIR}/cppcheck.txt
         DEPENDS ${scap_workbench_SOURCES} ${scap_workbench_HEADERS}
         VERBATIM
     )
