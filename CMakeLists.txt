@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 2.6)
 project("scap-workbench")
 set(SCAP_WORKBENCH_VERSION_MAJOR "0")
 set(SCAP_WORKBENCH_VERSION_MINOR "8")
-set(SCAP_WORKBENCH_VERSION_PATCH "9")
+set(SCAP_WORKBENCH_VERSION_PATCH "10")
 set(SCAP_WORKBENCH_VERSION "${SCAP_WORKBENCH_VERSION_MAJOR}.${SCAP_WORKBENCH_VERSION_MINOR}.${SCAP_WORKBENCH_VERSION_PATCH}")
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/")
 
@@ -152,7 +152,7 @@ if (CPPCHECK_EXECUTABLE)
 
     add_custom_command(
         OUTPUT cppcheck.txt
-        COMMAND ${CPPCHECK_EXECUTABLE} ${CPPCHECK_INCL_PARAMS} --enable=all --force ${scap_workbench_SOURCES} 2> ${CMAKE_CURRENT_BINARY_DIR}/cppcheck.txt
+        COMMAND ${CPPCHECK_EXECUTABLE} ${CPPCHECK_INCL_PARAMS} --language=c++ --std=c++03 --library=std,qt --enable=all --force --suppress=*:/usr/include/Qt*/* ${scap_workbench_SOURCES} 2> ${CMAKE_CURRENT_BINARY_DIR}/cppcheck.txt
         DEPENDS ${scap_workbench_SOURCES} ${scap_workbench_HEADERS}
         VERBATIM
     )
