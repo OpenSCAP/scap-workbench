@@ -134,41 +134,6 @@ void XCCDFItemSelectUndoCommand::undo()
     mWindow->synchronizeTreeItem(mTreeItem, xccdfItem, false);
 }
 
-MassXCCDFItemSelectUndoCommand::MassXCCDFItemSelectUndoCommand(TailoringWindow* window, const std::map<QTreeWidgetItem*, bool>& newSelects):
-    mWindow(window),
-    mNewSelects(newSelects)
-{
-    setText(QObject::tr("mass item selection change"));
-}
-
-MassXCCDFItemSelectUndoCommand::~MassXCCDFItemSelectUndoCommand()
-{}
-
-int MassXCCDFItemSelectUndoCommand::id() const
-{
-    return 5;
-}
-
-void MassXCCDFItemSelectUndoCommand::redo()
-{
-    for (std::map<QTreeWidgetItem*, bool>::const_iterator it = mNewSelects.begin(); it != mNewSelects.end(); ++it)
-    {
-        struct xccdf_item* xccdfItem = TailoringWindow::getXccdfItemFromTreeItem(it->first);
-        mWindow->setItemSelected(xccdfItem, it->second);
-        mWindow->synchronizeTreeItem(it->first, xccdfItem, false);
-    }
-}
-
-void MassXCCDFItemSelectUndoCommand::undo()
-{
-    for (std::map<QTreeWidgetItem*, bool>::const_iterator it = mNewSelects.begin(); it != mNewSelects.end(); ++it)
-    {
-        struct xccdf_item* xccdfItem = TailoringWindow::getXccdfItemFromTreeItem(it->first);
-        mWindow->setItemSelected(xccdfItem, !it->second);
-        mWindow->synchronizeTreeItem(it->first, xccdfItem, false);
-    }
-}
-
 XCCDFValueChangeUndoCommand::XCCDFValueChangeUndoCommand(TailoringWindow* window, struct xccdf_value* xccdfValue, const QString& newValue, const QString& oldValue):
     mWindow(window),
     mXccdfValue(xccdfValue),
