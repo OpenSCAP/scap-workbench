@@ -31,6 +31,15 @@ const QDir& getShareDirectory()
     return ret;
 }
 
+const QDir& getDocDirectory()
+{
+    static const QString installedPath = SCAP_WORKBENCH_DOC;
+    static const QString overriddenPath = qgetenv("SCAP_WORKBENCH_DOC");
+    static QDir ret(overriddenPath.isEmpty() ? installedPath : overriddenPath);
+
+    return ret;
+}
+
 QIcon getShareIcon(const QString& fileName)
 {
     const QString fullPath = getShareDirectory().absoluteFilePath(fileName);

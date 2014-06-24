@@ -22,5 +22,6 @@ export SCAP_WORKBENCH_PKEXEC_OSCAP_PATH=$s/scap-workbench-pkexec-oscap.sh
 export SCAP_WORKBENCH_RPM_EXTRACT_PATH=$s/scap-workbench-rpm-extract.sh
 export SCAP_WORKBENCH_ICON=$s/share/pixmaps/scap-workbench.png
 export SCAP_WORKBENCH_SHARE=$s/share/scap-workbench
+export SCAP_WORKBENCH_DOC=$s/doc
 
 exec "$@"

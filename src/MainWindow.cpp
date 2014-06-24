@@ -30,12 +30,14 @@
 #include "APIHelpers.h"
 #include "SaveAsRPMDialog.h"
 #include "RPMOpenHelper.h"
+#include "Utils.h"
 
 #include <QFileDialog>
 #include <QAbstractEventDispatcher>
 #include <QMessageBox>
 #include <QCloseEvent>
 #include <QDesktopWidget>
+#include <QDesktopServices>
 
 #include <cassert>
 #include <set>
@@ -88,7 +90,7 @@ MainWindow::MainWindow(QWidget* parent):
         Qt::QueuedConnection
     );
     QObject::connect(
-        mUI.openButton, SIGNAL(released()),
+        mUI.actionOpen, SIGNAL(triggered()),
         this, SLOT(openFileDialog())
     );
     QObject::connect(
@@ -120,20 +122,14 @@ MainWindow::MainWindow(QWidget* parent):
         this, SLOT(clearResults())
     );
 
-    mSaveIntoDirAction = new QAction(QObject::tr("Save into a directory"), this);
     QObject::connect(
-        mSaveIntoDirAction, SIGNAL(triggered()),
+        mUI.actionSaveIntoDirectory, SIGNAL(triggered()),
         this, SLOT(saveIntoDirectory())
     );
-    mSaveAsRPMAction = new QAction(QObject::tr("Save as RPM"), this);
     QObject::connect(
-        mSaveAsRPMAction, SIGNAL(triggered()),
+        mUI.actionSaveAsRPM, SIGNAL(triggered()),
         this, SLOT(saveAsRPM())
     );
-    mSaveMenu = new QMenu(this);
-    mSaveMenu->addAction(mSaveIntoDirAction);
-    mSaveMenu->addAction(mSaveAsRPMAction);
-    mUI.saveButton->setMenu(mSaveMenu);
 
     QObject::connect(
         mUI.customizeProfileButton, SIGNAL(released()),
@@ -145,6 +141,28 @@ MainWindow::MainWindow(QWidget* parent):
         this, SLOT(saveTailoring())
     );
 
+    QObject::connect(
+        mUI.actionUserManual, SIGNAL(triggered()),
+        this, SLOT(showUserManual())
+    );
+
+    mDiagnosticsDialog = new DiagnosticsDialog(this);
+    mDiagnosticsDialog->hide();
+
+    QObject::connect(
+        mUI.actionShowDiagnostics, SIGNAL(triggered()),
+        mDiagnosticsDialog, SLOT(show())
+    );
+
+    QObject::connect(
+        mUI.actionAbout, SIGNAL(triggered()),
+        this, SLOT(about())
+    );
+    QObject::connect(
+        mUI.actionAboutQt, SIGNAL(triggered()),
+        this, SLOT(aboutQt())
+    );
+
     mUI.ruleResultsTree->hide();
     mUI.ruleResultsTree->header()->setResizeMode(0, QHeaderView::Stretch);
     mUI.selectedRulesTree->show();
@@ -153,9 +171,6 @@ MainWindow::MainWindow(QWidget* parent):
     // FIXME: This is hidden to avoid people trying to use it when it is still
     //        not supported in openscap.
     mUI.offlineRemediateButton->hide();
-
-    mDiagnosticsDialog = new DiagnosticsDialog(this);
-    mDiagnosticsDialog->hide();
 
     mScanningSession = new ScanningSession();
 
@@ -1331,4 +1346,42 @@ bool MainWindow::unsavedTailoringChanges() const
 
     const int idx = mUI.tailoringFileComboBox->findText(TAILORING_UNSAVED);
     return mUI.tailoringFileComboBox->currentIndex() == idx;
+}
+
+void MainWindow::showUserManual()
+{
+    QDesktopServices::openUrl(QUrl::fromLocalFile(getDocDirectory().absoluteFilePath("user_manual.html")));
+}
+
+void MainWindow::about()
+{
+    const QString title = "SCAP Workbench " SCAP_WORKBENCH_VERSION;
+
+    const QString versionInfo = QString("scap-workbench %1, compiled with Qt %2, using openscap %3\n\n").arg(SCAP_WORKBENCH_VERSION, QT_VERSION_STR, oscap_get_version());
+    const QString description = QObject::tr(
+"This application is called SCAP Workbench, the homepage can be found at \
+<http://fedorahosted.org/scap-workbench>\n\n");
+    const QString license = QString(
+"Copyright 2014 Red Hat Inc., Durham, North Carolina.\n\
+All Rights Reserved.\n\
+\n\
+This program is free software: you can redistribute it and/or modify \
+it under the terms of the GNU General Public License as published by \
+the Free Software Foundation, either version 3 of the License, or \
+(at your option) any later version.\n\
+\n\
+This program is distributed in the hope that it will be useful, \
+but WITHOUT ANY WARRANTY; without even the implied warranty of \
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the \
+GNU General Public License for more details.\n\
+\n\
+You should have received a copy of the GNU General Public License \
+along with this program.  If not, see <http://www.gnu.org/licenses/>.\n\n");
+
+    QMessageBox::about(this, title, versionInfo + description + license);
+}
+
+void MainWindow::aboutQt()
+{
+    QMessageBox::aboutQt(this);
 }

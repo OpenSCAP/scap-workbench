@@ -46,6 +46,23 @@
 const QDir& getShareDirectory();
 
 /**
+ * @brief Retrieves QDir representing the doc directory
+ *
+ * For installed scap-workbench the output's path usually looks like this:
+ * "$INSTALL_PREFIX/share/doc/scap-workbench", e.g.: /usr/share/doc/scap-workbench
+ *
+ * If workbench has not been installed and is being run using the runwrapper.sh
+ * script, the path will be different and will point to the data location
+ * in the repository.
+ *
+ * Avoid using hardcoded paths in the codebase and always use paths relative
+ * to the doc path.
+ *
+ * @exception nothrow This function is guaranteed to not throw any exceptions.
+ */
+const QDir& getDocDirectory();
+
+/**
  * @brief Constructs a QIcon from image of given filename
  *
  * This function looks for the file in the icon folder in workbench's share path.

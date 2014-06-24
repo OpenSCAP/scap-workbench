@@ -179,12 +179,6 @@ class MainWindow : public QMainWindow
         /// Gets shown whenever a warning or error is emitted
         DiagnosticsDialog* mDiagnosticsDialog;
 
-        /// Menu used for the tailor "combo pushbutton"
-        QMenu* mSaveMenu;
-
-        QAction* mSaveIntoDirAction;
-        QAction* mSaveAsRPMAction;
-
         /// Needed for SCAP RPM opening functionality
         RPMOpenHelper* mRPMOpenHelper;
 
@@ -256,7 +250,6 @@ class MainWindow : public QMainWindow
         unsigned int getSelectedRulesCount();
 
     private slots:
-
         /**
          * @brief This slot gets triggered by the scanner to notify of a new result
          *
@@ -336,6 +329,29 @@ class MainWindow : public QMainWindow
         void markNoUnsavedTailoringChanges();
         void markLoadedTailoringFile(const QString& filePath);
         bool unsavedTailoringChanges() const;
+
+        /**
+         * @brief Users QDesktopServices to start browser and show user manual in it
+         *
+         * This may not do anything in case user has invalid desktop environment
+         * configuration.
+         */
+        void showUserManual();
+
+        /**
+         * @brief Displays a dialog with information about SCAP Workbench
+         *
+         * This is the customary Help->About dialog. Shows version info,
+         * short description of the application, etc...
+         */
+        void about();
+
+        /**
+         * @brief Displays a dialog with information about Qt version used
+         *
+         * Just a delegate that calls QMessageBox::aboutQt(..)
+         */
+        void aboutQt();
 };
 
 #endif

@@ -140,7 +140,9 @@ void DiagnosticsDialog::pushMessage(MessageSeverity severity, const QString& ful
 
 void DiagnosticsDialog::dumpVersionInfo()
 {
-    infoMessage(QString("scap-workbench %1, using Qt %2 and openscap %3").arg(SCAP_WORKBENCH_VERSION, QT_VERSION_STR, oscap_get_version()));
+    // We display this in Help->About as well but let us dump it as info message
+    // in case workbench crashes before user can work with the GUI.
+    infoMessage(QString("scap-workbench %1, compiled with Qt %2, using openscap %3").arg(SCAP_WORKBENCH_VERSION, QT_VERSION_STR, oscap_get_version()));
 }
 
 void DiagnosticsDialog::copyToClipboard()
