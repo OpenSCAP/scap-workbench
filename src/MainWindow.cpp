@@ -212,6 +212,9 @@ void MainWindow::clearResults()
 
     mUI.progressBar->setRange(0, 1);
     mUI.progressBar->reset();
+
+    mUI.menuSave->setEnabled(true);
+    mUI.actionOpen->setEnabled(true);
 }
 
 void MainWindow::openFile(const QString& path)
@@ -377,6 +380,9 @@ void MainWindow::scanAsync(ScannerMode scannerMode)
     mUI.scanTools->show();
     mUI.scanTools->setEnabled(true);
 
+    mUI.menuSave->setEnabled(false);
+    mUI.actionOpen->setEnabled(false);
+
     mUI.selectedRulesTree->hide();
     mUI.ruleResultsTree->show();
 
@@ -392,6 +398,9 @@ void MainWindow::scanAsync(ScannerMode scannerMode)
         mUI.scanTools->setEnabled(false);
         mUI.preScanTools->show();
         mUI.preScanTools->setEnabled(true);
+
+        mUI.menuSave->setEnabled(true);
+        mUI.actionOpen->setEnabled(true);
 
         return;
     }
@@ -1152,6 +1161,9 @@ void MainWindow::scanEnded(bool canceled)
     mUI.postScanTools->setEnabled(true);
 
     mUI.resultViewer->setEnabled(!canceled);
+
+    mUI.menuSave->setEnabled(true);
+    mUI.actionOpen->setEnabled(true);
 
     cleanupScanThread();
 }

@@ -30,6 +30,8 @@
 ResultViewer::ResultViewer(QWidget* parent):
     QWidget(parent)
 {
+    mReportFile.setFileTemplate(mReportFile.fileTemplate() + ".html");
+
     mUI.setupUi(this);
 
     mSaveResultsAction = new QAction("XCCDF Result file", this);
