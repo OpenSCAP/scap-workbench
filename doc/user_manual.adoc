@@ -29,7 +29,6 @@ image::intro_screenshot.png[align="center"]
  * Qt4 (Core, GUI, XmlPatterns)
  * openscap >= 1.0.9
  * cmake-gui [optional]
- * Qt4 (WebKit) [optional]
 
 === Runtime Dependencies (workbench machine)
 
@@ -103,14 +102,17 @@ image::default_content_opened.png[align="center"]
 
 === Open Different Content (optional)
 
-Clicking *Open* button in the bottom left part of the main window will enable
+Choosing the *Open content* action from the File menu (top of the main window) will enable
 you to change opened content. Keep in mind that workbench only supports opening
-XCCDF and Source DataStream files. Everything else will result in an error
+XCCDF, Source DataStream or SCAP RPM files. Everything else will result in an error
 dialog being shown.
 
 If your content provider ships both XCCDF and Source DataStream files you are
 better off using Source DataStream. Especially if you want to perform remote
 scans where workbench only supports datastreams so far.
+
+SCAP RPM will usually contain a tailoring file, as well as input file in the form of XCCDF
+or Source DataStream.
 
 ****
 Only one content file can be opened by a single scap-workbench instance.
@@ -255,13 +257,13 @@ will work in openscap powered tools but may not work in tools from other vendors
 
 ==== Save all content into a directory
 
-Click *Save* and choose *Save into a directory*. After selecting the destination
+Select *Save As* from the file menu and choose *Save into a directory*. After selecting the destination
 directory scap-workbench will export both input content and a tailoring file into the
 directory.
 
 ==== Save as RPM
 
-Click *Save* and choose *Save as RPM*. A dialog will pop-up asking for details regarding
+Select *Save As* from the file menu and choose *Save as RPM*. A dialog will pop-up asking for details regarding
 the RPM that will be generated. Choose the desired name of the package and leave the other
 fields at their default settings and confirm the dialog.
 
@@ -424,11 +426,9 @@ ARF is however not as commonly supported by SCAP toolchains as are XCCDF result 
 == Notable shortcuts
 
 === Main Window
-Browse :: Alt + B
 Scan :: Alt + S
 Clear after scanning :: Alt + C
-Show report :: Alt + R
-Open evaluation report in browser :: Alt + O
+Show report in browser:: Alt + S
 
 == Where to Get Help?
 
