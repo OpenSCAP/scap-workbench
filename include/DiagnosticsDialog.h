@@ -60,7 +60,7 @@ class DiagnosticsDialog : public QDialog
     Q_OBJECT
 
     public:
-        DiagnosticsDialog(QWidget* parent = 0);
+        explicit DiagnosticsDialog(QWidget* parent = 0);
         virtual ~DiagnosticsDialog();
 
         /**

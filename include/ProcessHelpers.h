@@ -40,7 +40,7 @@ class SyncProcess : public QObject
     Q_OBJECT
 
     public:
-        SyncProcess(QObject* parent = 0);
+        explicit SyncProcess(QObject* parent = 0);
         virtual ~SyncProcess();
 
         void setCommand(const QString& command);

@@ -31,8 +31,8 @@ class SshConnection : public QObject
     Q_OBJECT
 
     public:
-        SshConnection(QObject* parent);
-        ~SshConnection();
+        explicit SshConnection(QObject* parent = 0);
+        virtual ~SshConnection();
 
         /**
          * @brief Sets ssh target in the form of username@hostname
@@ -69,7 +69,7 @@ class SshSyncProcess : public SyncProcess
     Q_OBJECT
 
     public:
-        SshSyncProcess(SshConnection& connection, QObject* parent = 0);
+        explicit SshSyncProcess(SshConnection& connection, QObject* parent = 0);
         virtual ~SshSyncProcess();
 
     protected:
@@ -92,7 +92,7 @@ class ScpSyncProcess : public SyncProcess
     Q_OBJECT
 
     public:
-        ScpSyncProcess(SshConnection& connection, QObject* parent = 0);
+        explicit ScpSyncProcess(SshConnection& connection, QObject* parent = 0);
         virtual ~ScpSyncProcess();
 
         void setDirection(ScpDirection direction);

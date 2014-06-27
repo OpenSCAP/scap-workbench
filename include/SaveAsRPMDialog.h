@@ -39,7 +39,7 @@ class SaveAsRPMDialog : public QDialog
     Q_OBJECT
 
     public:
-        SaveAsRPMDialog(ScanningSession* session, QWidget* parent = 0);
+        explicit SaveAsRPMDialog(ScanningSession* session, QWidget* parent = 0);
         virtual ~SaveAsRPMDialog();
 
         /**
