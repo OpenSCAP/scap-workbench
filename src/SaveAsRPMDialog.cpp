@@ -25,6 +25,7 @@
 #include "ProcessHelpers.h"
 
 #include <QFileDialog>
+#include <QPointer>
 #include <cassert>
 
 SaveAsRPMDialog::SaveAsRPMDialog(ScanningSession* session, QWidget* parent):
@@ -56,8 +57,9 @@ SaveAsRPMDialog::~SaveAsRPMDialog()
 
 void SaveAsRPMDialog::saveSession(ScanningSession* session, QWidget* parent)
 {
-    SaveAsRPMDialog* dialog = new SaveAsRPMDialog(session, parent);
+    QPointer<SaveAsRPMDialog> dialog = new SaveAsRPMDialog(session, parent);
     dialog->exec();
+    delete dialog;
 }
 
 void SaveAsRPMDialog::slotFinished(int result)
@@ -138,6 +140,7 @@ void SaveAsRPMDialog::slotFinished(int result)
 
     scapAsRPM.setArguments(args);
 
-    QDialog* dialog = scapAsRPM.runWithDialog(this, "Saving SCAP content as RPM...", true, false);
+    QPointer<QDialog> dialog = scapAsRPM.runWithDialog(this, "Saving SCAP content as RPM...", true, false);
     dialog->exec();
+    delete dialog;
 }
