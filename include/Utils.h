@@ -66,7 +66,7 @@ const QDir& getDocDirectory();
  * @brief Constructs a QIcon from image of given filename
  *
  * This function looks for the file in the icon folder in workbench's share path.
- * Using this function to get an icon is preferrable to constructing it manually.
+ * Using this function to get an icon is preferable to constructing it manually.
  *
  * @exception nothrow This function is guaranteed to not throw any exceptions.
  * @note This function will write a warning to stderr in case the icon cannot be loaded.

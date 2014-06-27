@@ -75,7 +75,7 @@ class SyncProcess : public QObject
         /**
          * @brief Sets external cancel request source (indirect)
          *
-         * The only reason this exists is to accomodate the interface of OscapScannerBase.
+         * The only reason this exists is to accommodate the interface of OscapScannerBase.
          * We should move to the cancel() slot in the future.
          * @todo Get rid of this non-sense
          */
