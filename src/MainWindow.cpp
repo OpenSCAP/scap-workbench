@@ -392,20 +392,20 @@ void MainWindow::scanAsync(ScannerMode scannerMode)
                 mScanner, SLOT(cancel())
             );
             QObject::connect(
-                mScanner, SIGNAL(progressReport(const QString&, const QString&)),
-                this, SLOT(scanProgressReport(const QString&, const QString&))
+                mScanner, SIGNAL(progressReport(QString,QString)),
+                this, SLOT(scanProgressReport(QString,QString))
             );
             QObject::connect(
-                mScanner, SIGNAL(infoMessage(const QString&)),
-                this, SLOT(scanInfoMessage(const QString&))
+                mScanner, SIGNAL(infoMessage(QString)),
+                this, SLOT(scanInfoMessage(QString))
             );
             QObject::connect(
-                mScanner, SIGNAL(warningMessage(const QString&)),
-                this, SLOT(scanWarningMessage(const QString&))
+                mScanner, SIGNAL(warningMessage(QString)),
+                this, SLOT(scanWarningMessage(QString))
             );
             QObject::connect(
-                mScanner, SIGNAL(errorMessage(const QString&)),
-                this, SLOT(scanErrorMessage(const QString&))
+                mScanner, SIGNAL(errorMessage(QString)),
+                this, SLOT(scanErrorMessage(QString))
             );
             QObject::connect(
                 mScanner, SIGNAL(canceled()),

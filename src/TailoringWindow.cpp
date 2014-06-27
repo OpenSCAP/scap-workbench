@@ -41,8 +41,8 @@ ProfilePropertiesDockWidget::ProfilePropertiesDockWidget(TailoringWindow* window
     mUI.setupUi(this);
 
     QObject::connect(
-        mUI.title, SIGNAL(textChanged(const QString&)),
-        this, SLOT(profileTitleChanged(const QString&))
+        mUI.title, SIGNAL(textChanged(QString)),
+        this, SLOT(profileTitleChanged(QString))
     );
 
     QObject::connect(
@@ -329,13 +329,13 @@ TailoringWindow::TailoringWindow(struct xccdf_policy* policy, struct xccdf_bench
     }
 
     QObject::connect(
-        mUI.itemsTree, SIGNAL(currentItemChanged(QTreeWidgetItem*, QTreeWidgetItem*)),
-        this, SLOT(itemSelectionChanged(QTreeWidgetItem*, QTreeWidgetItem*))
+        mUI.itemsTree, SIGNAL(currentItemChanged(QTreeWidgetItem*,QTreeWidgetItem*)),
+        this, SLOT(itemSelectionChanged(QTreeWidgetItem*,QTreeWidgetItem*))
     );
 
     QObject::connect(
-        mUI.itemsTree, SIGNAL(itemChanged(QTreeWidgetItem*, int)),
-        this, SLOT(itemChanged(QTreeWidgetItem*, int))
+        mUI.itemsTree, SIGNAL(itemChanged(QTreeWidgetItem*,int)),
+        this, SLOT(itemChanged(QTreeWidgetItem*,int))
     );
 
     QTreeWidgetItem* benchmarkItem = new QTreeWidgetItem();
