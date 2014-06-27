@@ -32,8 +32,8 @@ ProfilePropertiesDockWidget::ProfilePropertiesDockWidget(TailoringWindow* window
     mUI.setupUi(this);
 
     QObject::connect(
-        mUI.title, SIGNAL(textChanged(const QString&)),
-        this, SLOT(profileTitleChanged(const QString&))
+        mUI.title, SIGNAL(textChanged(QString)),
+        this, SLOT(profileTitleChanged(QString))
     );
 
     QObject::connect(
@@ -96,8 +96,8 @@ XCCDFItemPropertiesDockWidget::XCCDFItemPropertiesDockWidget(TailoringWindow* wi
     mUI.setupUi(this);
 
     QObject::connect(
-        mUI.valueComboBox, SIGNAL(editTextChanged(const QString&)),
-        this, SLOT(valueChanged(const QString&))
+        mUI.valueComboBox, SIGNAL(editTextChanged(QString)),
+        this, SLOT(valueChanged(QString))
     );
 }
 

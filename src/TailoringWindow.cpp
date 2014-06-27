@@ -286,7 +286,8 @@ void TailoringWindow::synchronizeTreeItem(QTreeWidgetItem* treeItem, struct xccd
                 while (xccdf_ident_iterator_has_more(idents))
                 {
                     struct xccdf_ident* ident = xccdf_ident_iterator_next(idents);
-                    searchable += " " + QString::fromUtf8(xccdf_ident_get_id(ident));
+                    searchable += ' ';
+                    searchable += QString::fromUtf8(xccdf_ident_get_id(ident));
                 }
                 xccdf_ident_iterator_free(idents);
             }
