@@ -230,7 +230,7 @@ image::tailoring_dialog_opened.png[align="center"]
 This tailoring dialog supports undo/redo. If you accidentally make changes
 you want to undo, press CTRL+Z or click the *Undo* button.
 
-The entire undo history can be shown by click on the Undo History button.
+The entire undo history can be shown by clicking on the Undo History button.
 
 Keep in mind that the undo history gets lost when you confirm or discard
 tailoring changes and the window is closed.
@@ -375,7 +375,7 @@ scap-workbench using sudo or as root as a workaround.
 
 The application now starts the *oscap* tool and waits for it to finish,
 reporting partial results along the way in the rule result list. Keep in mind
-that the tool cannot guess how long will processing of any particular rule
+that the tool cannot guess how long processing of any particular rule will
 take. Only the amount of rules that have been processed and the amount that
 is remaining are used to estimate progress. Please be patient and wait for
 oscap to finish evaluation.
@@ -392,7 +392,7 @@ which will clear all results.
 
 === View and Analyze Results
 
-After evaluation finishes you should see two new buttons - Clear and Report.
+After evaluation finishes you should see three new buttons - *Clear*, *Save Results* and *Show Report*.
 
 ****
 Pressing Clear will *permanently* destroy scan results! This action cannot
@@ -407,11 +407,11 @@ scap-workbench will open the report in the default web browser set in your
 desktop environment. Make sure you have a browser installed.
 
 If nothing happens after pressing the button, check which browser is the default.
-See System Settings -> System Info -> Default Applications in GNOME 3 or
-System Settings -> Default Applications in KDE4.
+See *System Settings -> System Info -> Default Applications* in GNOME 3 or
+*System Settings -> Default Applications* in KDE4.
 
-In case you still can't get scap-workbench to open a browser, save the
-report to a HTML file on your hard drive and open it manually.
+In case you still cannot get scap-workbench to open a browser, save the
+report as an HTML file on your hard drive and open it manually.
 ****
 
 Your evaluation results can be saved in several formats:
