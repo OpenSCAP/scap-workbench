@@ -234,6 +234,13 @@ Keep in mind that the undo history gets lost when you confirm or discard
 tailoring changes and the window is closed.
 ****
 
+You can also change variables that will later be used for evaluation. See the
+following example, where we set minimum password length to 14.
+
+[[img-tailoring-set-value]]
+.Set minimum password length to 14
+image::tailoring_set_value.png[align="center"]
+
 After desired tailoring changes are done, click *Confirm changes* to get back
 to the previous GUI. In case you want to undo all changes to the profile, click
 *Discard*. If you want to delete the profile from tailoring, click *Delete profile*.
