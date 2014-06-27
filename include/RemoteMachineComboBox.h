@@ -36,7 +36,7 @@ class RemoteMachineComboBox : public QWidget
     Q_OBJECT
 
     public:
-        RemoteMachineComboBox(QWidget* parent = 0);
+        explicit RemoteMachineComboBox(QWidget* parent = 0);
         virtual ~RemoteMachineComboBox();
 
         QString getTarget() const;

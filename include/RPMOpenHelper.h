@@ -56,7 +56,7 @@
 class RPMOpenHelper
 {
     public:
-        RPMOpenHelper(const QString& path);
+        explicit RPMOpenHelper(const QString& path);
         ~RPMOpenHelper();
 
         const QString& getInputPath() const;

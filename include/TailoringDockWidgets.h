@@ -42,7 +42,7 @@ class ProfilePropertiesDockWidget : public QDockWidget
     Q_OBJECT
 
     public:
-        ProfilePropertiesDockWidget(TailoringWindow* window, QWidget* parent = 0);
+        explicit ProfilePropertiesDockWidget(TailoringWindow* window, QWidget* parent = 0);
         virtual ~ProfilePropertiesDockWidget();
 
         /**
@@ -73,7 +73,7 @@ class XCCDFItemPropertiesDockWidget : public QDockWidget
     Q_OBJECT
 
     public:
-        XCCDFItemPropertiesDockWidget(TailoringWindow* window, QWidget* parent = 0);
+        explicit XCCDFItemPropertiesDockWidget(TailoringWindow* window, QWidget* parent = 0);
         virtual ~XCCDFItemPropertiesDockWidget();
 
         /**
