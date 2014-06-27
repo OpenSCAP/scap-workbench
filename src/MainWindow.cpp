@@ -293,7 +293,7 @@ void MainWindow::openFileDialog()
 #endif
         );
 
-        if (path == QString::Null())
+        if (path.isEmpty())
             // user cancelled the dialog, get out of this loop
             break;
 
@@ -315,7 +315,7 @@ void MainWindow::openFileDialog()
 
         if (!fileOpened())
         {
-            // Error occured, keep pumping events and don't move on until user
+            // Error occurred, keep pumping events and don't move on until user
             // dismisses diagnostics dialog.
             mDiagnosticsDialog->waitUntilHidden();
         }
@@ -436,20 +436,20 @@ void MainWindow::scanAsync(ScannerMode scannerMode)
                 mScanner, SLOT(cancel())
             );
             QObject::connect(
-                mScanner, SIGNAL(progressReport(const QString&, const QString&)),
-                this, SLOT(scanProgressReport(const QString&, const QString&))
+                mScanner, SIGNAL(progressReport(QString,QString)),
+                this, SLOT(scanProgressReport(QString,QString))
             );
             QObject::connect(
-                mScanner, SIGNAL(infoMessage(const QString&)),
-                this, SLOT(scanInfoMessage(const QString&))
+                mScanner, SIGNAL(infoMessage(QString)),
+                this, SLOT(scanInfoMessage(QString))
             );
             QObject::connect(
-                mScanner, SIGNAL(warningMessage(const QString&)),
-                this, SLOT(scanWarningMessage(const QString&))
+                mScanner, SIGNAL(warningMessage(QString)),
+                this, SLOT(scanWarningMessage(QString))
             );
             QObject::connect(
-                mScanner, SIGNAL(errorMessage(const QString&)),
-                this, SLOT(scanErrorMessage(const QString&))
+                mScanner, SIGNAL(errorMessage(QString)),
+                this, SLOT(scanErrorMessage(QString))
             );
             QObject::connect(
                 mScanner, SIGNAL(canceled()),
@@ -749,7 +749,7 @@ void MainWindow::tailoringFileComboboxChanged(int index)
     bool tailoringLoaded = false;
     try
     {
-        if (data.toString() == QString::Null()) // Null data means it's an action
+        if (data.toString().isNull()) // Null data means it's an action
         {
             if (text == TAILORING_NONE) // resets tailoring
             {
@@ -778,7 +778,7 @@ void MainWindow::tailoringFileComboboxChanged(int index)
 #endif
                 );
 
-                if (filePath == QString::Null())
+                if (filePath.isEmpty())
                 {
                     mUI.tailoringFileComboBox->setCurrentIndex(mOldTailoringComboBoxIdx); // user canceled, set to previous value
                     return; // This prevents us from resetting mOldTailoringComboBoxIdx!

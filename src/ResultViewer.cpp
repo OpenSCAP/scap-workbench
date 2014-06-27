@@ -113,7 +113,7 @@ void ResultViewer::saveReport()
 #endif
     );
 
-    if (filename == QString::Null())
+    if (filename.isEmpty())
         return;
 
     QFile file(filename);
@@ -146,7 +146,7 @@ void ResultViewer::saveResults()
 #endif
     );
 
-    if (filename == QString::Null())
+    if (filename.isEmpty())
         return;
 
     QFile file(filename);
@@ -166,7 +166,7 @@ void ResultViewer::saveARF()
 #endif
     );
 
-    if (filename == QString::Null())
+    if (filename.isEmpty())
         return;
 
     QFile file(filename);

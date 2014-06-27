@@ -47,7 +47,7 @@ class ResultViewer : public QWidget
     Q_OBJECT
 
     public:
-        ResultViewer(QWidget* parent = 0);
+        explicit ResultViewer(QWidget* parent = 0);
         virtual ~ResultViewer();
 
         /**

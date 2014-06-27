@@ -194,7 +194,7 @@ class ScanningSession
         QString getProfile() const;
 
         /**
-         * @brief Checks wheter a profile is selected
+         * @brief Checks whether a profile is selected
          *
          * (default) profile doesn't count as a profile in this method. This method
          * checks whether a profile other than (default) profile is selected.

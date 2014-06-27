@@ -154,12 +154,12 @@ TailoringWindow::TailoringWindow(struct xccdf_policy* policy, struct xccdf_bench
     mUI.itemsTree->setColumnHidden(1, true);
 
     QObject::connect(
-        mUI.itemsTree, SIGNAL(currentItemChanged(QTreeWidgetItem*, QTreeWidgetItem*)),
-        this, SLOT(itemSelectionChanged(QTreeWidgetItem*, QTreeWidgetItem*))
+        mUI.itemsTree, SIGNAL(currentItemChanged(QTreeWidgetItem*,QTreeWidgetItem*)),
+        this, SLOT(itemSelectionChanged(QTreeWidgetItem*,QTreeWidgetItem*))
     );
     QObject::connect(
-        mUI.itemsTree, SIGNAL(itemChanged(QTreeWidgetItem*, int)),
-        this, SLOT(itemChanged(QTreeWidgetItem*, int))
+        mUI.itemsTree, SIGNAL(itemChanged(QTreeWidgetItem*,int)),
+        this, SLOT(itemChanged(QTreeWidgetItem*,int))
     );
     QObject::connect(
         mUI.itemsTree, SIGNAL(itemExpanded(QTreeWidgetItem*)),

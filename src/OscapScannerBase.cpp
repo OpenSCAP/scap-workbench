@@ -312,7 +312,7 @@ void OscapScannerBase::watchStdErr(QProcess& process)
 {
     process.setReadChannel(QProcess::StandardError);
 
-    QString errorMessage = QString::Null();
+    QString errorMessage("");
 
     while (process.canReadLine())
     {

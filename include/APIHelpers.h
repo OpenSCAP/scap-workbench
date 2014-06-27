@@ -43,7 +43,7 @@ QString oscapTextIteratorGetPreferred(struct oscap_text_iterator* it, const QStr
 
 /**
  * Get human readable title of the given XCCDF Item. The title is selected based on the given
- * preferred language and then the the XCCDF Substitution is resolved in accordance with given
+ * preferred language and then the XCCDF Substitution is resolved in accordance with given
  * XCCDF policy.
  *
  * @exception nothrow This function is guaranteed to not throw any exceptions.
@@ -52,7 +52,7 @@ QString oscapItemGetReadableTitle(struct xccdf_item *item, struct xccdf_policy *
 
 /**
  * Get human readable description of the given XCCDF Item. The description is selected based
- * on the given preferred language and then the the XCCDF Substitution is resolved in accordance
+ * on the given preferred language and then the XCCDF Substitution is resolved in accordance
  * with given XCCDF policy.
  *
  * @exception nothrow This function is guaranteed to not throw any exceptions.
