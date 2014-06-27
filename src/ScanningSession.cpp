@@ -100,7 +100,7 @@ void ScanningSession::closeFile()
 QString ScanningSession::getOpenedFilePath() const
 {
     if (!fileOpened())
-        return QString::null;
+        return QString("");
 
     return xccdf_session_get_filename(mSession);
 }
@@ -317,7 +317,7 @@ QString ScanningSession::getComponentID() const
 QString ScanningSession::getBenchmarkTitle() const
 {
     if (!fileOpened())
-        return QString::null;
+        return QString("");
 
     struct xccdf_policy_model* pmodel = xccdf_session_get_policy_model(mSession);
     struct xccdf_benchmark* benchmark = xccdf_policy_model_get_benchmark(pmodel);

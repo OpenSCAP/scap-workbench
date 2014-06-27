@@ -50,8 +50,8 @@ void OscapCapabilities::clear()
 
 static bool versionGreaterOrEqual(const QString& a, const QString& b)
 {
-    const QStringList aSplit = a.split(".");
-    const QStringList bSplit = b.split(".");
+    const QStringList aSplit = a.split('.');
+    const QStringList bSplit = b.split('.');
 
     // we only compare versions of the same number of components!
     assert(aSplit.size() == bSplit.size());
@@ -81,12 +81,12 @@ void OscapCapabilities::parse(const QString& mmv)
 {
     clear();
 
-    const QStringList lines = mmv.split("\n");
+    const QStringList lines = mmv.split('\n');
 
     if (lines.size() < 1)
         return; // TODO: Throw exception?
 
-    const QStringList firstLine = lines[0].split(" ", QString::SkipEmptyParts);
+    const QStringList firstLine = lines[0].split(' ', QString::SkipEmptyParts);
     const QString& versionCandidate = firstLine.last();
 
     if (!versionCandidate.contains(QRegExp("^([0-9]+\\.){2,}[0-9]+$")))
@@ -137,7 +137,7 @@ void OscapCapabilities::parse(const QString& mmv)
             // TODO: Warn about unknown version
         }
 
-        if (lines[linePos] == "")
+        if (lines[linePos].isEmpty())
             break; // End of the list
 
         ++linePos;

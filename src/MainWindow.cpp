@@ -257,7 +257,7 @@ void MainWindow::openFileDialog()
             "Source DataStream or XCCDF file (*.xml);;All files (*)"
         );
 
-        if (path == QString::Null())
+        if (path.isEmpty())
             // user cancelled the dialog, get out of this loop
             break;
 
@@ -703,7 +703,7 @@ void MainWindow::tailoringFileComboboxChanged(int index)
 
     try
     {
-        if (data.toString() == QString::Null()) // Null data means it's an action
+        if (data.toString().isNull()) // Null data means it's an action
         {
             if (text == TAILORING_NONE) // resets tailoring
             {
@@ -729,7 +729,7 @@ void MainWindow::tailoringFileComboboxChanged(int index)
                     "XCCDF tailoring file (*.xml)"
                 );
 
-                if (filePath == QString::Null())
+                if (filePath.isEmpty())
                 {
                     mUI.tailoringFileComboBox->setCurrentIndex(mOldTailoringComboBoxIdx); // user canceled, set to previous value
                     return; // This prevents us from resetting mOldTailoringComboBoxIdx!

@@ -106,7 +106,7 @@ void ResultViewer::saveReport()
 {
     const QString filename = QFileDialog::getSaveFileName(this, "Save Report (HTML)", QString("%1-xccdf.report.html").arg(mInputBaseName), "HTML Report (*.html)");
 
-    if (filename == QString::Null())
+    if (filename.isEmpty())
         return;
 
     QFile file(filename);
@@ -132,7 +132,7 @@ void ResultViewer::saveResults()
 {
     const QString filename = QFileDialog::getSaveFileName(this, "Save as XCCDF Results", QString("%1-xccdf.results.xml").arg(mInputBaseName), "XCCDF Results (*.xml)");
 
-    if (filename == QString::Null())
+    if (filename.isEmpty())
         return;
 
     QFile file(filename);
@@ -145,7 +145,7 @@ void ResultViewer::saveARF()
 {
     const QString filename = QFileDialog::getSaveFileName(this, "Save as Result DataStream / ARF", QString("%1-arf.xml").arg(mInputBaseName), "Result DataStream / ARF (*.xml)");
 
-    if (filename == QString::Null())
+    if (filename.isEmpty())
         return;
 
     QFile file(filename);
