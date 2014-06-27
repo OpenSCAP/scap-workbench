@@ -148,7 +148,7 @@ file.
 Only XCCDF 1.2 supports tailoring officially. The openscap project has an extension
 that allows tailoring files to be used with XCCDF 1.1 so scap-workbench supports
 that as well. The details are out of scope of this document but keep in mind that
-tailoring of an XCCDF 1.1 file might not work scanners other than openscap.
+tailoring of an XCCDF 1.1 file might not work with scanners other than openscap.
 ****
 
 [[img-opening-tailoring-file]]
