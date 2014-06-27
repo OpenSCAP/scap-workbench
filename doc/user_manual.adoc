@@ -230,9 +230,15 @@ image::tailoring_dialog_opened.png[align="center"]
 This tailoring dialog supports undo/redo. If you accidentally make changes
 you want to undo, press CTRL+Z or click the *Undo* button.
 
+The entire undo history can be shown by click on the Undo History button.
+
 Keep in mind that the undo history gets lost when you confirm or discard
 tailoring changes and the window is closed.
 ****
+
+[[img-tailoring-undo-history]]
+.Example of Undo History
+image::tailoring_undo_history.png[align="center"]
 
 You can also change variables that will later be used for evaluation. See the
 following example, where we set minimum password length to 14.
