@@ -158,14 +158,14 @@ class Scanner : public QObject
         /**
          * @brief Scanner signals this when non-critical issues happen
          *
-         * Scanning may or may not continue after this is emited.
+         * Scanning may or may not continue after this is emitted.
          */
         void warningMessage(const QString& message);
 
         /**
          * @brief Scanner signals this when critical and/or important issues happen
          *
-         * Scanning may or may not continue after this is emited.
+         * Scanning may or may not continue after this is emitted.
          */
         void errorMessage(const QString& message);
 

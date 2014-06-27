@@ -279,7 +279,7 @@ void MainWindow::openFileDialog()
 
         if (!fileOpened())
         {
-            // Error occured, keep pumping events and don't move on until user
+            // Error occurred, keep pumping events and don't move on until user
             // dismisses diagnostics dialog.
             mDiagnosticsDialog->waitUntilHidden();
         }

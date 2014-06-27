@@ -38,8 +38,6 @@ extern "C"
 #include "ui_ProfilePropertiesDockWidget.h"
 #include "ui_XCCDFItemPropertiesDockWidget.h"
 
-class TailoringWindow;
-
 /**
  * @brief Displays profile properties and allows editing of profile title
  */

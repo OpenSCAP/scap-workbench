@@ -168,7 +168,7 @@ class MainWindow : public QMainWindow
         /// UI designed in Qt Designer
         Ui_MainWindow mUI;
 
-        /// Qt Dialog that displays messages (errors, warnings, infos)
+        /// Qt Dialog that displays messages (errors, warnings, info)
         /// Gets shown whenever a warning or error is emitted
         DiagnosticsDialog* mDiagnosticsDialog;
 
@@ -207,7 +207,7 @@ class MainWindow : public QMainWindow
          *
          * Qt handles thread messaging for us via the slot & signal mechanism.
          * The event loop of MainWindow runs in one thread, the event loop of
-         * the scanner runs in another thread. Both are basically synchronisation
+         * the scanner runs in another thread. Both are basically synchronization
          * queues. This is why we emit this signal instead of calling scanner's
          * methods directly.
          *
