@@ -309,7 +309,7 @@ class MainWindow : public QMainWindow
         void scanEnded(bool canceled);
 
         void inheritAndEditProfile(bool shadowed);
-        void editProfile(bool newProfile);
+        TailoringWindow* editProfile(bool newProfile);
 
         /**
          * @brief If current profile has been tailored, it gets edited, else it gets tailored with new ID

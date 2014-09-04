@@ -553,7 +553,7 @@ void ScanningSession::reloadSession(bool forceReload) const
     }
 }
 
-struct xccdf_profile* ScanningSession::tailorCurrentProfile(bool shadowed)
+struct xccdf_profile* ScanningSession::tailorCurrentProfile(bool shadowed, const QString& newIdBase)
 {
     reloadSession();
 
@@ -582,7 +582,6 @@ struct xccdf_profile* ScanningSession::tailorCurrentProfile(bool shadowed)
         }
         else
         {
-            const QString newIdBase = QString::fromUtf8(xccdf_profile_get_id(oldProfile)) + QString("_tailored");
             QString newId = newIdBase;
             int suffix = 2;
             while (xccdf_policy_model_get_policy_by_id(policyModel, newId.toUtf8().constData()) != NULL)
@@ -641,6 +640,15 @@ struct xccdf_profile* ScanningSession::tailorCurrentProfile(bool shadowed)
 
     mTailoringUserChanges = true;
     return newProfile;
+}
+
+const struct xccdf_version_info* ScanningSession::getXCCDFVersionInfo()
+{
+    struct xccdf_benchmark* benchmark = getXCCDFInputBenchmark();
+    if (!benchmark)
+        return 0;
+
+    return xccdf_benchmark_get_schema_version(benchmark);
 }
 
 struct xccdf_benchmark* ScanningSession::getXCCDFInputBenchmark()

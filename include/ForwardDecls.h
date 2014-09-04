@@ -43,6 +43,7 @@ class SshConnection;
 class SshSyncProcess;
 class SyncProcess;
 class TailoringWindow;
+class TailorProfileDialog;
 class TemporaryDir;
 class XCCDFItemPropertiesDockWidget;
 class XCCDFItemSelectUndoCommand;

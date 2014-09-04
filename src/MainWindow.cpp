@@ -24,6 +24,7 @@
 #include "OscapScannerRemoteSsh.h"
 #include "ResultViewer.h"
 #include "DiagnosticsDialog.h"
+#include "TailorProfileDialog.h"
 #include "TailoringWindow.h"
 #include "ScanningSession.h"
 #include "Exceptions.h"
@@ -1178,11 +1179,24 @@ void MainWindow::inheritAndEditProfile(bool shadowed)
 
     try
     {
-        newProfile = mScanningSession->tailorCurrentProfile(shadowed);
+        const struct xccdf_version_info* versionInfo = mScanningSession->getXCCDFVersionInfo();
+        const QStringList version = QString(xccdf_version_info_get_version(versionInfo)).split(".");
+        // are we dealing with XCCDF 1.2 or greater?
+        const bool xccdf12 = version[0].toInt() > 1 || (version[0].toInt() == 1 && version[1].toInt() >= 2);
+
+        const QString newIdBase = mScanningSession->getProfile().isEmpty() ?
+            "xccdf_scap-workbench_profile_default_tailored" : mScanningSession->getProfile() +"_tailored";
+
+        TailorProfileDialog dialog(newIdBase, xccdf12, this);
+        if (dialog.exec() == QDialog::Rejected)
+            return;
+
+        newProfile = mScanningSession->tailorCurrentProfile(shadowed, dialog.getProfileID());
     }
     catch (const std::exception& e)
     {
         mDiagnosticsDialog->exceptionMessage(e, QObject::tr("Failed to tailor currently selected profile."));
+        return;
     }
 
     refreshProfiles();
@@ -1196,10 +1210,10 @@ void MainWindow::inheritAndEditProfile(bool shadowed)
     editProfile(true);
 }
 
-void MainWindow::editProfile(bool newProfile)
+TailoringWindow* MainWindow::editProfile(bool newProfile)
 {
     if (!fileOpened())
-        return;
+        return 0;
 
     struct xccdf_session* session = 0;
     struct xccdf_policy* policy = 0;
@@ -1211,15 +1225,15 @@ void MainWindow::editProfile(bool newProfile)
     catch (const std::exception& e)
     {
         mDiagnosticsDialog->exceptionMessage(e, QObject::tr("Failed to retrieve XCCDF policy when editing profile."));
-        return;
+        return 0;
     }
 
     if (!policy)
-        return;
+        return 0;
 
     struct xccdf_profile* profile = xccdf_policy_get_profile(policy);
     if (!profile)
-        return;
+        return 0;
 
     if (!xccdf_profile_get_tailoring(profile))
     {
@@ -1229,13 +1243,13 @@ void MainWindow::editProfile(bool newProfile)
             )
         );
 
-        return;
+        return 0;
     }
 
     struct xccdf_policy_model* policyModel = xccdf_session_get_policy_model(session);
     struct xccdf_benchmark* benchmark = xccdf_policy_model_get_benchmark(policyModel);
 
-    new TailoringWindow(policy, benchmark, newProfile, this);
+    return new TailoringWindow(policy, benchmark, newProfile, this);
 }
 
 void MainWindow::customizeProfile()

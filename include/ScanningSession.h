@@ -229,9 +229,12 @@ class ScanningSession
          * @brief Creates a new profile, makes it inherit current profile
          *
          * @param shadowed if true the new profile will have the same ID
+         * @param newIdBase ID of the new profile, only applicable if @a shadowed is false
          * @return created profile (can be passed to TailoringWindow for further tailoring)
          */
-        struct xccdf_profile* tailorCurrentProfile(bool shadowed = false);
+        struct xccdf_profile* tailorCurrentProfile(bool shadowed, const QString& newIdBase);
+
+        const struct xccdf_version_info* getXCCDFVersionInfo();
 
     private:
         struct xccdf_benchmark* getXCCDFInputBenchmark();
