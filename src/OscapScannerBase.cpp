@@ -161,6 +161,11 @@ QStringList OscapScannerBase::buildEvaluationArgs(const QString& inputFile,
     ret.append("xccdf");
     ret.append("eval");
 
+    if (mSkipValid)
+    {
+        ret.append("--skip-valid");
+    }
+
     if (mSession->isSDS())
     {
         const QString datastreamId = mSession->getDatastreamID();
@@ -226,6 +231,11 @@ QStringList OscapScannerBase::buildOfflineRemediationArgs(const QString& resultI
     QStringList ret;
     ret.append("xccdf");
     ret.append("remediate");
+
+    if (mSkipValid)
+    {
+        ret.append("--skip-valid");
+    }
 
     // We don't use these results directly but openscap uses them when generating
     // the HTML report! We get more info in the HTML report if we request OVAL

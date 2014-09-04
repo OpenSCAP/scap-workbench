@@ -463,6 +463,7 @@ void MainWindow::scanAsync(ScannerMode scannerMode)
 
         mScanner->setScanThread(mScanThread);
         mScanner->setMainThread(thread());
+        mScanner->setSkipValid(mUI.actionSkipValidation->isChecked());
         mScanner->setSession(mScanningSession);
         mScanner->setScannerMode(scannerMode);
 
