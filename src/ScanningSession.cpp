@@ -612,7 +612,7 @@ struct xccdf_profile* ScanningSession::tailorCurrentProfile(bool shadowed, const
     }
     else
     {
-        xccdf_profile_set_id(newProfile, "xccdf_scap-workbench_profile_default_tailored");
+        xccdf_profile_set_id(newProfile, newIdBase.toUtf8().constData());
 
         {
             struct oscap_text* newTitle = oscap_text_new();
