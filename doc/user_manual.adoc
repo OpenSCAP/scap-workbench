@@ -211,6 +211,10 @@ machine.
 
 Make sure your desired profile is selected and click *Customize*.
 
+In case the tailoring action will create a new profile you will be presented
+with a dialog that lets you choose an ID for that new profile. Choose the ID
+wisely, you may need it later.
+
 [[img-customizing-ssg-profile]]
 .Customizing scap-security-guide's "common" profile
 image::customizing_ssg_profile.png[align="center"]
