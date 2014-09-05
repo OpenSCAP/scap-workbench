@@ -59,10 +59,10 @@ QString RemoteMachineComboBox::getTarget() const
 
 void RemoteMachineComboBox::setRecentMachineCount(unsigned int count)
 {
-    while (mRecentTargets.size() > count)
+    while (static_cast<unsigned int>(mRecentTargets.size()) > count)
         mRecentTargets.removeLast();
 
-    while (mRecentTargets.size() < count)
+    while (static_cast<unsigned int>(mRecentTargets.size()) < count)
         mRecentTargets.append("");
 }
 
