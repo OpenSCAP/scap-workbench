@@ -49,3 +49,10 @@ How to run it out of the box
 
   $ cd build/
   $ bash runwrapper.sh ./scap-workbench
+
+How to make a tarball
+---------------------
+
+    $ mkdir build; cd build
+    $ cmake ../
+    $ make package_source
