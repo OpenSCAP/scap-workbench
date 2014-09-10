@@ -77,7 +77,7 @@ class XCCDFItemPropertiesDockWidget : public QDockWidget
     Q_OBJECT
 
     public:
-        explicit XCCDFItemPropertiesDockWidget(QWidget* parent = 0);
+        explicit XCCDFItemPropertiesDockWidget(TailoringWindow* window, QWidget* parent = 0);
         virtual ~XCCDFItemPropertiesDockWidget();
 
         /**
@@ -98,6 +98,9 @@ class XCCDFItemPropertiesDockWidget : public QDockWidget
 
         /// Currently inspected XCCDF item
         struct xccdf_item* mXccdfItem;
+
+        /// Owner TailoringWindow that provides title and description for items
+        TailoringWindow* mWindow;
 };
 
 /**
@@ -234,6 +237,20 @@ class TailoringWindow : public QMainWindow
          * @brief Retrieves description of profile that is being tailoring (in suitable language)
          */
         QString getProfileDescription() const;
+
+        /**
+         * @brief Retrieves readable title of given XCCDF item [in HTML]
+         *
+         * @internal This method performs substitution using mPolicy
+         */
+        QString getXCCDFItemTitle(struct xccdf_item* item) const;
+
+        /**
+         * @brief Retrieves readable description of given XCCDF item [in HTML]
+         *
+         * @internal This method performs substitution using mPolicy
+         */
+        QString getXCCDFItemDescription(struct xccdf_item* item) const;
 
         /**
          * @brief Creates a new undo command that changes description of tailored profile and pushes it onto the undo stack

@@ -92,10 +92,11 @@ void ProfilePropertiesDockWidget::profileDescriptionChanged()
     mWindow->setProfileDescriptionWithUndoCommand(mUI.description->toPlainText());
 }
 
-XCCDFItemPropertiesDockWidget::XCCDFItemPropertiesDockWidget(QWidget* parent):
+XCCDFItemPropertiesDockWidget::XCCDFItemPropertiesDockWidget(TailoringWindow* window, QWidget* parent):
     QDockWidget(parent),
 
-    mXccdfItem(0)
+    mXccdfItem(0),
+    mWindow(window)
 {
     mUI.setupUi(this);
 }
@@ -114,9 +115,9 @@ void XCCDFItemPropertiesDockWidget::refresh()
 {
     if (mXccdfItem)
     {
-        mUI.titleLineEdit->setText(oscapTextIteratorGetPreferred(xccdf_item_get_title(mXccdfItem)));
+        mUI.titleLineEdit->setText(mWindow->getXCCDFItemTitle(mXccdfItem));
         mUI.idLineEdit->setText(QString::fromUtf8(xccdf_item_get_id(mXccdfItem)));
-        mUI.descriptionTextEdit->setHtml(oscapTextIteratorGetPreferred(xccdf_item_get_description(mXccdfItem)));
+        mUI.descriptionTextEdit->setHtml(mWindow->getXCCDFItemDescription(mXccdfItem));
     }
     else
     {
@@ -594,6 +595,16 @@ QString TailoringWindow::getProfileDescription() const
 void TailoringWindow::setProfileDescriptionWithUndoCommand(const QString& newDescription)
 {
     mUndoStack.push(new ProfileDescriptionChangeUndoCommand(this, getProfileDescription(), newDescription));
+}
+
+QString TailoringWindow::getXCCDFItemTitle(struct xccdf_item* item) const
+{
+    return oscapItemGetReadableTitle(item, mPolicy);
+}
+
+QString TailoringWindow::getXCCDFItemDescription(struct xccdf_item* item) const
+{
+    return oscapItemGetReadableDescription(item, mPolicy);
 }
 
 void TailoringWindow::refreshProfileDockWidget()
