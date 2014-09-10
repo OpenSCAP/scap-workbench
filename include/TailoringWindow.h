@@ -123,6 +123,20 @@ class TailoringWindow : public QMainWindow
         QString getProfileDescription() const;
 
         /**
+         * @brief Retrieves readable title of given XCCDF item [in HTML]
+         *
+         * @internal This method performs substitution using mPolicy
+         */
+        QString getXCCDFItemTitle(struct xccdf_item* item) const;
+
+        /**
+         * @brief Retrieves readable description of given XCCDF item [in HTML]
+         *
+         * @internal This method performs substitution using mPolicy
+         */
+        QString getXCCDFItemDescription(struct xccdf_item* item) const;
+
+        /**
          * @brief Creates a new undo command that changes description of tailored profile and pushes it onto the undo stack
          *
          * @see TailoringWindow::setProfileDescription

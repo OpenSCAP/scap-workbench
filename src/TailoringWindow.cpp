@@ -550,6 +550,16 @@ void TailoringWindow::setProfileDescriptionWithUndoCommand(const QString& newDes
     mUndoStack.push(new ProfileDescriptionChangeUndoCommand(this, getProfileDescription(), newDescription));
 }
 
+QString TailoringWindow::getXCCDFItemTitle(struct xccdf_item* item) const
+{
+    return oscapItemGetReadableTitle(item, mPolicy);
+}
+
+QString TailoringWindow::getXCCDFItemDescription(struct xccdf_item* item) const
+{
+    return oscapItemGetReadableDescription(item, mPolicy);
+}
+
 void TailoringWindow::refreshProfileDockWidget()
 {
     mProfilePropertiesDockWidget->refresh();

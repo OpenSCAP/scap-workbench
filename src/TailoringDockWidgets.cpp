@@ -148,7 +148,7 @@ void XCCDFItemPropertiesDockWidget::refresh()
 
     if (mXccdfItem)
     {
-        mUI.titleLineEdit->setText(oscapTextIteratorGetPreferred(xccdf_item_get_title(mXccdfItem)));
+        mUI.titleLineEdit->setText(mWindow->getXCCDFItemTitle(mXccdfItem));
         mUI.idLineEdit->setText(QString::fromUtf8(xccdf_item_get_id(mXccdfItem)));
         switch (xccdf_item_get_type(mXccdfItem))
         {
@@ -168,7 +168,7 @@ void XCCDFItemPropertiesDockWidget::refresh()
             default:
                 break;
         }
-        mUI.descriptionBrowser->setHtml(oscapTextIteratorGetPreferred(xccdf_item_get_description(mXccdfItem)));
+        mUI.descriptionBrowser->setHtml(mWindow->getXCCDFItemDescription(mXccdfItem));
 
         if (xccdf_item_get_type(mXccdfItem) == XCCDF_VALUE)
         {

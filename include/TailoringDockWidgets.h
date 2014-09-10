@@ -101,7 +101,7 @@ class XCCDFItemPropertiesDockWidget : public QDockWidget
 
         bool mRefreshInProgress;
 
-        /// Owner TailoringWindow
+        /// Owner TailoringWindow that provides title and description for items
         TailoringWindow* mWindow;
 };
 
