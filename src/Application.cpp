@@ -44,7 +44,9 @@ Application::Application(int& argc, char** argv):
 
     processCLI(arguments());
 
-    if (!mMainWindow->fileOpened())
+    // Only open default content if no command line arguments were given.
+    // The first argument is the application name, it doesn't count.
+    if (!mMainWindow->fileOpened() && arguments().length() < 2)
         openDefaultContent();
 
     if (!mMainWindow->fileOpened())
