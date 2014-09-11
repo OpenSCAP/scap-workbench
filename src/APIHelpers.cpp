@@ -37,19 +37,31 @@ QString oscapTextIteratorGetPreferred(struct oscap_text_iterator* it, const QStr
     return ret;
 }
 
-QString oscapItemGetReadableTitle(struct xccdf_item *item, struct xccdf_policy *policy, const QString& lang)
+QString oscapItemGetReadableTitle(struct xccdf_item* item, struct xccdf_policy* policy, const QString& lang)
 {
-    char* readable_s = xccdf_policy_get_readable_item_title(policy, item, lang.isEmpty() ? NULL : lang.toUtf8().constData());
-    const QString ret(readable_s != NULL ? QString::fromUtf8(readable_s) : "(none)");
-    free(readable_s);
+    struct oscap_text_iterator* title_it = xccdf_item_get_title(item);
+    char* unresolved = oscap_textlist_get_preferred_plaintext(title_it, lang.isEmpty() ? NULL : lang.toUtf8().constData());
+    oscap_text_iterator_free(title_it);
+    if (!unresolved)
+        return "";
+    char* resolved = xccdf_policy_substitute(unresolved, policy);
+    free(unresolved);
+    const QString ret = QString::fromUtf8(resolved);
+    free(resolved);
     return ret;
 }
 
 QString oscapItemGetReadableDescription(struct xccdf_item *item, struct xccdf_policy *policy, const QString& lang)
 {
-    char* readable_s = xccdf_policy_get_readable_item_description(policy, item, lang.isEmpty() ? NULL : lang.toUtf8().constData());
-    const QString ret(readable_s != NULL ? QString::fromUtf8(readable_s) : "(none)");
-    free(readable_s);
+    struct oscap_text_iterator* desc_it = xccdf_item_get_description(item);
+    char* unresolved = oscap_textlist_get_preferred_plaintext(desc_it, lang.isEmpty() ? NULL : lang.toUtf8().constData());
+    oscap_text_iterator_free(desc_it);
+    if (!unresolved)
+        return "";
+    char* resolved = xccdf_policy_substitute(unresolved, policy);
+    free(unresolved);
+    const QString ret = QString::fromUtf8(resolved);
+    free(resolved);
     return ret;
 }
 
