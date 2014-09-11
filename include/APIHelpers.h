@@ -48,7 +48,7 @@ QString oscapTextIteratorGetPreferred(struct oscap_text_iterator* it, const QStr
  *
  * @exception nothrow This function is guaranteed to not throw any exceptions.
  */
-QString oscapItemGetReadableTitle(struct xccdf_item *item, struct xccdf_policy *policy, const QString& lang = "");
+QString oscapItemGetReadableTitle(struct xccdf_item* item, struct xccdf_policy* policy, const QString& lang = "");
 
 /**
  * Get human readable description of the given XCCDF Item. The description is selected based
@@ -57,7 +57,7 @@ QString oscapItemGetReadableTitle(struct xccdf_item *item, struct xccdf_policy *
  *
  * @exception nothrow This function is guaranteed to not throw any exceptions.
  */
-QString oscapItemGetReadableDescription(struct xccdf_item *item, struct xccdf_policy *policy, const QString& lang = "");
+QString oscapItemGetReadableDescription(struct xccdf_item* item, struct xccdf_policy* policy, const QString& lang = "");
 
 /**
  * Returns QString containing utf8 contents of oscap_err_desc()
