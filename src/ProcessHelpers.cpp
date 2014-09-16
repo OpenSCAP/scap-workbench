@@ -301,14 +301,15 @@ const QString& SyncProcess::getDiagnosticInfo() const
 
 void SyncProcess::startQProcess(QProcess& process)
 {
-    if (mCommand.isEmpty())
-        throw SyncProcessException("Cannot start process '" + generateDescription() + "'. The command member variable is set to '" + mCommand + "'.");
+    const QString command = generateFullCommand();
+    if (command.isEmpty())
+        throw SyncProcessException("Cannot start process '" + generateDescription() + "'. The full command is '" + command + "'.");
 
     process.setProcessEnvironment(generateFullEnvironment());
     mDiagnosticInfo += QObject::tr("Starting process '%1'\n").arg(generateDescription());
     process.setStandardInputFile("/dev/null");
     process.setWorkingDirectory(mWorkingDirectory);
-    process.start(generateFullCommand(), generateFullArguments());
+    process.start(command, generateFullArguments());
     process.waitForStarted();
 
     if (process.state() != QProcess::Running)
