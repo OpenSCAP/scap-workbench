@@ -700,11 +700,14 @@ void TailoringWindow::searchNext()
 
         QTreeWidgetItem* match = matches.at(mSearchSkippedItems);
         mUI.itemsTree->setCurrentItem(match);
+
+        mSearchBox->setStyleSheet("");
     }
     else
     {
         mSearchSkippedItems = 0;
         // In case of no match we intentionally do not change selection
+        mSearchBox->setStyleSheet("background: #f66");
     }
 }
 
