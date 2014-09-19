@@ -7,5 +7,4 @@ TryExec=scap-workbench
 Exec=scap-workbench
 Icon=scap-workbench
 Categories=System;
-Keywords=SCAP;XCCDF;OVAL;SDS;compliance;scanner;guideline;guide;
 X-Desktop-File-Install-Version=0.3
