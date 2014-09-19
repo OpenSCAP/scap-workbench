@@ -249,4 +249,7 @@ void XCCDFItemPropertiesDockWidget::valueChanged(const QString& newValue)
         return;
 
     mWindow->setValueValueWithUndoCommand(xccdf_item_to_value(mXccdfItem), newValue);
+    // For the unlikely case of description or title having a <sub> element dependent
+    // on the value we just changed.
+    refresh();
 }
