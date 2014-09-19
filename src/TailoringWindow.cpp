@@ -217,6 +217,15 @@ TailoringWindow::TailoringWindow(struct xccdf_policy* policy, struct xccdf_bench
 
     mUI.toolBar->addSeparator();
 
+    QAction* searchBoxFocusAction = new QAction(QObject::tr("Search"), this);
+    searchBoxFocusAction->setShortcut(QKeySequence::Find);
+    addAction(searchBoxFocusAction);
+
+    QObject::connect(
+        searchBoxFocusAction, SIGNAL(triggered()),
+        mSearchBox, SLOT(setFocus())
+    );
+
     mSearchBox->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Preferred);
     mUI.toolBar->addSeparator();
     mUI.toolBar->addWidget(mSearchBox);
