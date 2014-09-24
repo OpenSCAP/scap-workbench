@@ -41,7 +41,7 @@ Application::Application(int& argc, char** argv):
     mTranslator.load(QLocale(), "scap-workbench", "", getShareTranslationDirectory().absolutePath());
     installTranslator(&mTranslator);
 
-    const QIcon icon = getApplicationIcon();
+    const QIcon& icon = getApplicationIcon();
     setWindowIcon(icon);
     mMainWindow->setWindowIcon(icon);
 
