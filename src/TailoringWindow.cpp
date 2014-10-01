@@ -291,6 +291,7 @@ void TailoringWindow::setItemSelected(struct xccdf_item* xccdfItem, bool selecte
 void TailoringWindow::synchronizeProfileItem()
 {
     mProfileItem->setText(0, oscapTextIteratorGetPreferred(xccdf_profile_get_title(mProfile)));
+    mProfileItem->setIcon(0, getShareIcon("profile.png"));
 }
 
 void TailoringWindow::synchronizeTreeItem(QTreeWidgetItem* treeItem, struct xccdf_item* xccdfItem, bool recursive)
