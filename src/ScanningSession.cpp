@@ -377,7 +377,7 @@ void ScanningSession::saveTailoring(const QString& path)
     {
         // we don't set the absolute path as benchmark ref to avoid revealing directory structure
         QFileInfo fileInfo(getOpenedFilePath());
-        xccdf_tailoring_set_benchmark_ref(mTailoring, fileInfo.fileName().toUtf8().constData());
+        xccdf_tailoring_set_benchmark_ref(mTailoring, fileInfo.absoluteFilePath().toUtf8().constData());
     }
 
     struct xccdf_benchmark* benchmark = getXCCDFInputBenchmark();
