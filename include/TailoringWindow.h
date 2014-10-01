@@ -66,6 +66,11 @@ class TailoringWindow : public QMainWindow
         void setItemSelected(struct xccdf_item* xccdfItem, bool selected);
 
         /**
+         * @brief Synchronizes the profile item with the profile
+         */
+        void synchronizeProfileItem();
+
+        /**
          * @brief Synchronizes given tree item to represent given XCCDF item
          *
          * @param recursive If true synchronization is called on children of the tree item and XCCDF item as well
@@ -173,6 +178,11 @@ class TailoringWindow : public QMainWindow
 
         /// UI designed in Qt Designer
         Ui_TailoringWindow mUI;
+
+        /// The root profile item in the tree (profile isn't an xccdf_item!)
+        QTreeWidgetItem* mProfileItem;
+        /// The root benchmark item in the tree
+        QTreeWidgetItem* mBenchmarkItem;
 
         XCCDFItemPropertiesDockWidget* mItemPropertiesDockWidget;
         ProfilePropertiesDockWidget* mProfilePropertiesDockWidget;

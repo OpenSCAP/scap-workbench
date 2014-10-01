@@ -88,6 +88,9 @@ TailoringWindow::TailoringWindow(struct xccdf_policy* policy, struct xccdf_bench
 
     mSynchronizeItemLock(0),
 
+    mProfileItem(0),
+    mBenchmarkItem(0),
+
     mItemPropertiesDockWidget(new XCCDFItemPropertiesDockWidget(this)),
     mProfilePropertiesDockWidget(new ProfilePropertiesDockWidget(this, this)),
     mUndoViewDockWidget(new QDockWidget(this)),
@@ -170,16 +173,21 @@ TailoringWindow::TailoringWindow(struct xccdf_policy* policy, struct xccdf_bench
         this, SLOT(itemCollapsed(QTreeWidgetItem*))
     );
 
-    QTreeWidgetItem* benchmarkItem = new QTreeWidgetItem();
+    mProfileItem = new QTreeWidgetItem();
+    mUI.itemsTree->addTopLevelItem(mProfileItem);
+    mProfileItem->setExpanded(true);
+
+    synchronizeProfileItem();
+
+    mBenchmarkItem = new QTreeWidgetItem(mProfileItem);
     // benchmark can't be unselected
-    benchmarkItem->setFlags(
+    mBenchmarkItem->setFlags(
         Qt::ItemIsSelectable |
         /*Qt::ItemIsUserCheckable |*/
         Qt::ItemIsEnabled);
-    mUI.itemsTree->addTopLevelItem(benchmarkItem);
 
-    synchronizeTreeItem(benchmarkItem, xccdf_benchmark_to_item(mBenchmark), true);
-    _refreshXCCDFItemChildrenDisabledState(benchmarkItem, true);
+    synchronizeTreeItem(mBenchmarkItem, xccdf_benchmark_to_item(mBenchmark), true);
+    _refreshXCCDFItemChildrenDisabledState(mBenchmarkItem, true);
 
     mUI.itemsTree->header()->setResizeMode(0, QHeaderView::ResizeToContents);
     mUI.itemsTree->header()->setStretchLastSection(false);
@@ -190,7 +198,9 @@ TailoringWindow::TailoringWindow(struct xccdf_policy* policy, struct xccdf_bench
     setWindowTitle(QObject::tr("Tailoring \"%1\"").arg(oscapTextIteratorGetPreferred(xccdf_profile_get_title(mProfile))));
 
     mItemPropertiesDockWidget->refresh();
+    mItemPropertiesDockWidget->hide();
     mProfilePropertiesDockWidget->refresh();
+    mProfilePropertiesDockWidget->hide();
 
     {
         mUndoViewDockWidget->setWindowTitle(QObject::tr("Undo History"));
@@ -276,6 +286,11 @@ void TailoringWindow::setItemSelected(struct xccdf_item* xccdfItem, bool selecte
                  "to make '%1' selected=%2, it remains selected=%3."
              ).arg(QString::fromUtf8(xccdf_item_get_id(xccdfItem))).arg(selected).arg(!selected)
         );
+}
+
+void TailoringWindow::synchronizeProfileItem()
+{
+    mProfileItem->setText(0, oscapTextIteratorGetPreferred(xccdf_profile_get_title(mProfile)));
 }
 
 void TailoringWindow::synchronizeTreeItem(QTreeWidgetItem* treeItem, struct xccdf_item* xccdfItem, bool recursive)
@@ -464,7 +479,7 @@ void TailoringWindow::setValueValueWithUndoCommand(struct xccdf_value* xccdfValu
 void TailoringWindow::deselectAllChildrenItems(QTreeWidgetItem* parent, bool undoMacro)
 {
     if (parent == 0)
-        parent = mUI.itemsTree->topLevelItem(0);
+        parent = mBenchmarkItem;
 
     if (undoMacro)
         mUndoStack.beginMacro("Deselect All");
@@ -519,6 +534,8 @@ void TailoringWindow::setProfileTitle(const QString& title)
     }
 
     assert(getProfileTitle() == title);
+
+    synchronizeProfileItem();
 }
 
 QString TailoringWindow::getProfileTitle() const
@@ -654,7 +671,7 @@ void TailoringWindow::serializeCollapsedItems()
 void TailoringWindow::syncCollapsedItems()
 {
     QSet<QString> usedCollapsedItems;
-    syncCollapsedItem(mUI.itemsTree->topLevelItem(0), usedCollapsedItems);
+    syncCollapsedItem(mBenchmarkItem, usedCollapsedItems);
     // This "cleans" the ids of non-existent ones.
     // That's useful when the content changes and avoids cruft buildup in the settings files.
     mCollapsedItemIds = usedCollapsedItems;
@@ -714,7 +731,18 @@ void TailoringWindow::searchNext()
 void TailoringWindow::itemSelectionChanged(QTreeWidgetItem* current, QTreeWidgetItem* previous)
 {
     struct xccdf_item* item = getXccdfItemFromTreeItem(current);
-    mItemPropertiesDockWidget->setXccdfItem(item, mPolicy);
+    if (item)
+    {
+        mItemPropertiesDockWidget->setXccdfItem(item, mPolicy);
+        mItemPropertiesDockWidget->show();
+        mProfilePropertiesDockWidget->hide();
+    }
+    else
+    {
+        mItemPropertiesDockWidget->setXccdfItem(0, mPolicy);
+        mItemPropertiesDockWidget->hide();
+        mProfilePropertiesDockWidget->show();
+    }
 }
 
 void TailoringWindow::itemChanged(QTreeWidgetItem* treeItem, int column)
@@ -742,6 +770,9 @@ void TailoringWindow::itemChanged(QTreeWidgetItem* treeItem, int column)
 void TailoringWindow::itemExpanded(QTreeWidgetItem* item)
 {
     struct xccdf_item* xccdfItem = getXccdfItemFromTreeItem(item);
+    if (!xccdfItem)
+        return;
+
     const QString id = QString::fromUtf8(xccdf_item_get_id(xccdfItem));
     mCollapsedItemIds.remove(id);
 }
@@ -749,6 +780,9 @@ void TailoringWindow::itemExpanded(QTreeWidgetItem* item)
 void TailoringWindow::itemCollapsed(QTreeWidgetItem* item)
 {
     struct xccdf_item* xccdfItem = getXccdfItemFromTreeItem(item);
+    if (!xccdfItem)
+        return;
+
     const QString id = QString::fromUtf8(xccdf_item_get_id(xccdfItem));
     mCollapsedItemIds.insert(id);
 }
