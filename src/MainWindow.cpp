@@ -236,7 +236,7 @@ void MainWindow::openFile(const QString& path)
 
         // In case openscap autonegotiated opening a tailoring file directly
         if (tailoringPath.isEmpty() && mScanningSession->hasTailoring())
-            tailoringPath = mScanningSession->getTailoringFilePath();
+            tailoringPath = inputPath;
 
         const QFileInfo pathInfo(path);
         setWindowTitle(QObject::tr("%1 - scap-workbench").arg(pathInfo.fileName()));
