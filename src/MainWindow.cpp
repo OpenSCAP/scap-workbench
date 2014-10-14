@@ -138,7 +138,7 @@ MainWindow::MainWindow(QWidget* parent):
     );
 
     QObject::connect(
-        mUI.saveTailoringButton, SIGNAL(released()),
+        mUI.actionSaveTailoring, SIGNAL(triggered()),
         this, SLOT(saveTailoring())
     );
 
@@ -759,7 +759,7 @@ void MainWindow::tailoringFileComboboxChanged(int index)
         {
             if (text == TAILORING_NONE) // resets tailoring
             {
-                if (mUI.saveTailoringButton->isEnabled())
+                if (mUI.actionSaveTailoring->isEnabled())
                 {
                     if (QMessageBox::question(this, QObject::tr("Unsaved tailoring changes!"),
                             QObject::tr("Are you sure you want to reset tailoring and wipe all unsaved tailoring changes?"),
@@ -1330,7 +1330,7 @@ void MainWindow::saveAsRPM()
 
 void MainWindow::markUnsavedTailoringChanges()
 {
-    mUI.saveTailoringButton->setEnabled(true);
+    mUI.actionSaveTailoring->setEnabled(true);
 
     int idx = mUI.tailoringFileComboBox->findText(TAILORING_UNSAVED);
     if (idx == -1)
@@ -1350,7 +1350,7 @@ void MainWindow::markUnsavedTailoringChanges()
 
 void MainWindow::markNoUnsavedTailoringChanges()
 {
-    mUI.saveTailoringButton->setEnabled(false);
+    mUI.actionSaveTailoring->setEnabled(false);
 
     const int idx = mUI.tailoringFileComboBox->findText(TAILORING_UNSAVED);
     if (idx != -1)

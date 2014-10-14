@@ -75,16 +75,6 @@
          </layout>
         </widget>
        </item>
-       <item row="5" column="2">
-        <widget class="QPushButton" name="saveTailoringButton">
-         <property name="text">
-          <string>Save Tailoring</string>
-         </property>
-         <property name="shortcut">
-          <string/>
-         </property>
-        </widget>
-       </item>
        <item row="7" column="0" colspan="3">
         <widget class="Line" name="line_2">
          <property name="orientation">
@@ -139,9 +129,6 @@
        <item row="6" column="1">
         <widget class="QComboBox" name="profileComboBox"/>
        </item>
-       <item row="5" column="1">
-        <widget class="QComboBox" name="tailoringFileComboBox"/>
-       </item>
        <item row="3" column="1" colspan="2">
         <widget class="QLabel" name="titleLabel">
          <property name="sizePolicy">
@@ -181,6 +168,9 @@
           </size>
          </property>
         </spacer>
+       </item>
+       <item row="5" column="1" colspan="2">
+        <widget class="QComboBox" name="tailoringFileComboBox"/>
        </item>
       </layout>
      </widget>
@@ -457,12 +447,14 @@
     </property>
     <widget class="QMenu" name="menuSave">
      <property name="title">
-      <string>Save As ...</string>
+      <string>Save All</string>
      </property>
      <addaction name="actionSaveIntoDirectory"/>
      <addaction name="actionSaveAsRPM"/>
     </widget>
     <addaction name="actionOpen"/>
+    <addaction name="separator"/>
+    <addaction name="actionSaveTailoring"/>
     <addaction name="menuSave"/>
     <addaction name="separator"/>
     <addaction name="actionQuit"/>
@@ -510,12 +502,12 @@
   </action>
   <action name="actionSaveIntoDirectory">
    <property name="text">
-    <string>Save into directory</string>
+    <string>Into a directory</string>
    </property>
   </action>
   <action name="actionSaveAsRPM">
    <property name="text">
-    <string>Save as RPM</string>
+    <string>As RPM</string>
    </property>
   </action>
   <action name="actionAboutQt">
@@ -537,6 +529,14 @@
    </property>
    <property name="toolTip">
     <string>Causes openscap to skip validation of input and output content. This option is discouraged!</string>
+   </property>
+  </action>
+  <action name="actionSaveTailoring">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Save Customization Only</string>
    </property>
   </action>
  </widget>

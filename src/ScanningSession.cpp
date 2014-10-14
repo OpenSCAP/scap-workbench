@@ -379,7 +379,10 @@ void ScanningSession::saveTailoring(const QString& path)
         xccdf_tailoring_set_benchmark_ref(mTailoring, fileInfo.absoluteFilePath().toUtf8().constData());
     }
 
+
     struct xccdf_benchmark* benchmark = getXCCDFInputBenchmark();
+    const struct xccdf_version_info* version_info = xccdf_benchmark_get_schema_version(benchmark);
+    const char* uri = xccdf_version_info_get_namespace_uri(version_info);
     if (xccdf_tailoring_export(
         mTailoring,
         path.toUtf8().constData(),
