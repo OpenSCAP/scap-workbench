@@ -1269,9 +1269,11 @@ void MainWindow::customizeProfile()
 
 void MainWindow::saveTailoring()
 {
+    const QFileInfo openedFile(getOpenedFilePath());
+
     const QString path = QFileDialog::getSaveFileName(this,
         QObject::tr("Save Tailoring As"),
-        "",
+        QString("%1-tailoring.xml").arg(openedFile.baseName()),
         QObject::tr("XCCDF Tailoring file (*.xml)"), 0
 #ifndef SCAP_WORKBENCH_USE_NATIVE_FILE_DIALOGS
         , QFileDialog::DontUseNativeDialog
