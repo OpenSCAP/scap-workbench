@@ -29,7 +29,7 @@ image::intro_screenshot.png[align="center"]
 
  * cmake >= 2.6
  * Qt4 (Core, GUI, XmlPatterns)
- * openscap >= 1.0.9
+ * openscap >= 1.2.0
  * cmake-gui [optional]
 
 === Runtime Dependencies (workbench machine)

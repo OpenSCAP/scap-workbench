@@ -292,7 +292,7 @@ void MainWindow::openFileDialog()
         const QString path = QFileDialog::getOpenFileName(this,
             QObject::tr("Open Source DataStream or XCCDF file"),
             defaultDirectory,
-            QObject::tr("Source DataStream, XCCDF file or SCAP RPM (*.xml *.rpm);;All files (*)"), 0
+            QObject::tr("Source DataStream, XCCDF file or SCAP RPM (*.xml *.xml.bz2 *.rpm);;All files (*)"), 0
 #ifndef SCAP_WORKBENCH_USE_NATIVE_FILE_DIALOGS
             , QFileDialog::DontUseNativeDialog
 #endif
@@ -778,7 +778,7 @@ void MainWindow::tailoringFileComboboxChanged(int index)
             {
                 const QString filePath = QFileDialog::getOpenFileName(
                     this, QObject::tr("Open customization (XCCDF tailoring file)"), QString(),
-                    QObject::tr("XCCDF tailoring file (*.xml)"), 0
+                    QObject::tr("XCCDF tailoring file (*.xml *.xml.bz2)"), 0
 #ifndef SCAP_WORKBENCH_USE_NATIVE_FILE_DIALOGS
                     , QFileDialog::DontUseNativeDialog
 #endif

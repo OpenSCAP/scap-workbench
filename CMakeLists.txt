@@ -15,7 +15,7 @@ find_package(Qt4 REQUIRED QtCore QtGui QtXmlPatterns)
 # custom openscap parameters.
 if (NOT DEFINED OPENSCAP_LIBRARIES OR NOT DEFINED OPENSCAP_INCLUDE_DIRS)
     include("${CMAKE_ROOT}/Modules/FindPkgConfig.cmake")
-    pkg_check_modules(OPENSCAP REQUIRED libopenscap>=1.0.9)
+    pkg_check_modules(OPENSCAP REQUIRED libopenscap>=1.2.0)
 endif()
 
 # This is optional, only required if user wants documentation rebuilt
