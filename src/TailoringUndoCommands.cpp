@@ -56,6 +56,7 @@ bool ProfileTitleChangeUndoCommand::mergeWith(const QUndoCommand *other)
         return false;
 
     mNewTitle = static_cast<const ProfileTitleChangeUndoCommand*>(other)->mNewTitle;
+    refreshText();
     return true;
 }
 
@@ -98,6 +99,7 @@ bool ProfileDescriptionChangeUndoCommand::mergeWith(const QUndoCommand *other)
         return false;
 
     mNewDesc = static_cast<const ProfileDescriptionChangeUndoCommand*>(other)->mNewDesc;
+    refreshText();
     return true;
 }
 
