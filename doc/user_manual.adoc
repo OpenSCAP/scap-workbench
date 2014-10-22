@@ -320,8 +320,10 @@ scan remote machines using ssh.
 
 To scan a remote machine, select *remote machine (over ssh)* in the *Target*
 combobox. A pair of input boxes will appear. Input the desired username and
-hostname and select the port. Make sure the machine is reachable, selected
-user can login over ssh and has enough privileges to evaluate the machine.
+hostname and select the port. Username and hostname should be put into the
+first editbox in the format commonly accepted by ssh - *username@hostname*.
+Make sure the machine is reachable, selected user can login over ssh and has
+enough privileges to evaluate the machine.
 
 ****
 The target machine has to have the *oscap* tool of version 0.8.0 or greater
