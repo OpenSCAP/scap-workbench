@@ -1189,7 +1189,7 @@ void MainWindow::inheritAndEditProfile(bool shadowed)
         const bool xccdf12 = version[0].toInt() > 1 || (version[0].toInt() == 1 && version[1].toInt() >= 2);
 
         const QString newIdBase = mScanningSession->getProfile().isEmpty() ?
-            "xccdf_scap-workbench_profile_default_tailored" : mScanningSession->getProfile() +"_tailored";
+            "xccdf_scap-workbench_profile_default_customized" : mScanningSession->getProfile() +"_customized";
 
         TailorProfileDialog dialog(newIdBase, xccdf12, this);
         if (dialog.exec() == QDialog::Rejected)
@@ -1199,7 +1199,7 @@ void MainWindow::inheritAndEditProfile(bool shadowed)
     }
     catch (const std::exception& e)
     {
-        mDiagnosticsDialog->exceptionMessage(e, QObject::tr("Failed to tailor currently selected profile."));
+        mDiagnosticsDialog->exceptionMessage(e, QObject::tr("Failed to customize currently selected profile."));
         return;
     }
 
