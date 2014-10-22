@@ -20,6 +20,8 @@ image::intro_screenshot.png[align="center"]
  * Evaluation of remote machine (using ssh)
  * Limited tailoring support - selection and unselection
  * Saving results as XCCDF 1.1 or 1.2 (depending on input) or ARF 1.1
+ * Loading content bundle from RPM
+ * Exporting content bundle as RPM or into a folder
 
 == Requirements
 
