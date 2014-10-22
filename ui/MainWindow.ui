@@ -122,7 +122,7 @@
        <item row="5" column="0">
         <widget class="QLabel" name="label_4">
          <property name="text">
-          <string>Tailoring</string>
+          <string>Customization</string>
          </property>
         </widget>
        </item>

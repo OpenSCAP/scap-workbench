@@ -118,15 +118,15 @@ or Source DataStream.
 
 ****
 Only one content file can be opened by a single scap-workbench instance.
-Opening a different content file will *DESTROY* all your tailoring changes
+Opening a different content file will *DESTROY* all your customization changes
 and you will also *LOSE* profile selection.
 
 The one content file however can contain multiple checklists if it is a datastream.
-Changing the checklist will *CHANGE* profile selection and *MAY* make your tailoring
+Changing the checklist will *CHANGE* profile selection and *MAY* make your customization
 unusable / not applicable to the newly selected checklist.
 
 As a general rule, make sure you have the right file and right checklist
-selected before proceeding to tailoring and/or profile selection.
+selected before proceeding to customization and/or profile selection.
 ****
 
 To prevent workbench from opening default content when it starts you can either
@@ -141,17 +141,16 @@ If you pass a path that is invalid or points to a file that is not valid XCCDF o
 workbench will show an error dialog and open default content automatically.
 ****
 
-=== Load a Ready-Made Tailoring File (optional)
+=== Load a Ready-Made Customization (XCCDF tailoring file) (optional)
 
 In case you have prepared or were given a tailoring file for your specific evaluation
-use-case, you can load by clicking on the *Tailoring file* combobox and selecting
-the *(open tailoring file...)* option. This will bring up a file open dialog where
-you can select your tailoring file.
+use-case, you can load by clicking on the *Customization* combobox and selecting
+the *(open customization file...)* option. This will bring up a file open dialog where
+you can select your customization file (XCCDF tailoring file).
 
 ****
-Loading a tailoring file will *DESTROY* all your tailoring changes that you
-have done either by customizing profiles or loaded from another tailoring
-file.
+Loading a customization file will *DESTROY* all your customization changes that you
+have done either by customizing profiles or loaded from another customization file.
 ****
 
 ****
@@ -213,7 +212,7 @@ machine.
 
 Make sure your desired profile is selected and click *Customize*.
 
-In case the tailoring action will create a new profile you will be presented
+In case the *Customize* action will create a new profile you will be presented
 with a dialog that lets you choose an ID for that new profile. Choose the ID
 wisely, you may need it later.
 
@@ -222,7 +221,7 @@ wisely, you may need it later.
 image::customizing_ssg_profile.png[align="center"]
 
 A new modal window will be shown, you cannot interact with the rest of the
-application until you either confirm or discard your tailoring changes.
+application until you either confirm or discard your customization changes.
 
 In our example case we do not care about minimum and maximum age for passwords
 and do not want the rules failing for our configuration. Let us expand the
@@ -233,13 +232,13 @@ tree until we find the offending rules and unselect them both.
 image::tailoring_dialog_opened.png[align="center"]
 
 ****
-This tailoring dialog supports undo/redo. If you accidentally make changes
+This customization dialog supports undo/redo. If you accidentally make changes
 you want to undo, press CTRL+Z or click the *Undo* button.
 
 The entire undo history can be shown by clicking on the Undo History button.
 
 Keep in mind that the undo history gets lost when you confirm or discard
-tailoring changes and the window is closed.
+customization changes and the window is closed.
 ****
 
 [[img-tailoring-undo-history]]
@@ -253,18 +252,19 @@ following example, where we set minimum password length to 14.
 .Set minimum password length to 14
 image::tailoring_set_value.png[align="center"]
 
-After desired tailoring changes are done, click *Confirm changes* to get back
+After desired customization changes are done, click *Confirm changes* to get back
 to the previous GUI. In case you want to undo all changes to the profile, click
-*Discard*. If you want to delete the profile from tailoring, click *Delete profile*.
+*Discard changes*. If you want to delete the profile you created by customizing
+click *Delete profile*.
 
-All of these options will close the tailoring window.
+All of these options will close the customization window.
 
 === Save content (optional)
 
-==== Save just the tailoring file
+==== Save just the customization file
 
-Click *Save Tailoring* and choose the destination file. Workbench will save just
-tailoring which you can use with the content you opened.
+Click *File -> Save Customization Only* and choose the destination file. Workbench
+will save just customization which you can use with the content you opened.
 
 ****
 If XCCDF version of the content is lower than 1.2 footnote:[Tailoring is not officially
@@ -276,13 +276,12 @@ will work in openscap powered tools but may not work in tools from other vendors
 
 ==== Save all content into a directory
 
-Select *Save As* from the file menu and choose *Save into a directory*. After selecting the destination
-directory scap-workbench will export both input content and a tailoring file into the
-directory.
+Select *File -> Save All* and choose *Into a directory*. After selecting the destination
+directory scap-workbench will export both input content and a tailoring file there.
 
 ==== Save as RPM
 
-Select *Save As* from the file menu and choose *Save as RPM*. A dialog will pop-up asking for details regarding
+Select *File -> Save All* and choose *As RPM*. A dialog will pop-up asking for details regarding
 the RPM that will be generated. Choose the desired name of the package and leave the other
 fields at their default settings and confirm the dialog.
 
@@ -450,6 +449,16 @@ ARF is however not as commonly supported by SCAP toolchains as are XCCDF result 
 Scan :: Alt + S
 Clear after scanning :: Alt + C
 Show report in browser:: Alt + S
+
+== Customization vs Tailoring
+
+The XCCDF specification calls the concept of profile customization *tailoring*.
+While this word fits the concept it's generally misunderstood by users. That's why
+workbench will often use words like *Customize* or *Customization file* to
+describe tailoring. *XCCDF tailoring file* is still used for the file format itself.
+
+If you are familiar with XCCDF specification keep in mind that customization is
+the same thing as tailoring.
 
 == Where to Get Help?
 
