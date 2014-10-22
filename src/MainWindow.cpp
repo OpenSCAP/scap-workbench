@@ -51,10 +51,10 @@ extern "C" {
 
 // A dialog to open a tailoring file is displayed after user selects this option
 // from the tailoring combobox.
-const QString TAILORING_CUSTOM_FILE = QObject::tr("(open tailoring file...)");
+const QString TAILORING_CUSTOM_FILE = QObject::tr("(open customization file...)");
 // This option signifies that there is no tailoring being done and the plain
 // content file is used, it also resets tailoring when selected.
-const QString TAILORING_NONE = QObject::tr("(no tailoring)");
+const QString TAILORING_NONE = QObject::tr("(no customization)");
 // Signifies that tailoring changes have been made and have not been saved
 // to a file (yet?). Selecting it does nothing.
 const QString TAILORING_UNSAVED = QObject::tr("(unsaved changes)");
@@ -527,8 +527,8 @@ void MainWindow::closeEvent(QCloseEvent* event)
 
     if (unsavedTailoringChanges())
     {
-        if (QMessageBox::question(this, QObject::tr("Unsaved tailoring changes"),
-            QObject::tr("There are unsaved tailoring changes, closing scap-workbench will destroy them. "
+        if (QMessageBox::question(this, QObject::tr("Unsaved customization changes"),
+            QObject::tr("There are unsaved customization changes, closing scap-workbench will destroy them. "
             "Are you sure you want to close and discard the changes?"),
             QMessageBox::Yes | QMessageBox::No, QMessageBox::No) == QMessageBox::No)
         {
@@ -761,8 +761,8 @@ void MainWindow::tailoringFileComboboxChanged(int index)
             {
                 if (mUI.actionSaveTailoring->isEnabled())
                 {
-                    if (QMessageBox::question(this, QObject::tr("Unsaved tailoring changes!"),
-                            QObject::tr("Are you sure you want to reset tailoring and wipe all unsaved tailoring changes?"),
+                    if (QMessageBox::question(this, QObject::tr("Unsaved customization changes!"),
+                            QObject::tr("Are you sure you want to reset customization and wipe all unsaved changes?"),
                             QMessageBox::Yes | QMessageBox::No, QMessageBox::No) == QMessageBox::No)
                     {
                         mUI.tailoringFileComboBox->setCurrentIndex(mOldTailoringComboBoxIdx); // user canceled, set to previous value
@@ -777,7 +777,7 @@ void MainWindow::tailoringFileComboboxChanged(int index)
             else if (text == TAILORING_CUSTOM_FILE) // loads custom file
             {
                 const QString filePath = QFileDialog::getOpenFileName(
-                    this, QObject::tr("Open custom XCCDF tailoring file"), QString(),
+                    this, QObject::tr("Open customization (XCCDF tailoring file)"), QString(),
                     QObject::tr("XCCDF tailoring file (*.xml)"), 0
 #ifndef SCAP_WORKBENCH_USE_NATIVE_FILE_DIALOGS
                     , QFileDialog::DontUseNativeDialog
@@ -792,8 +792,8 @@ void MainWindow::tailoringFileComboboxChanged(int index)
                 else
                 {
                     if (mScanningSession->hasTailoring() &&
-                        QMessageBox::question(this, QObject::tr("Unsaved tailoring changes!"),
-                            QObject::tr("Are you sure you want to load a tailoring file and wipe all unsaved tailoring changes?"),
+                        QMessageBox::question(this, QObject::tr("Unsaved customization changes!"),
+                            QObject::tr("Are you sure you want to load a customization file and wipe all unsaved changes?"),
                             QMessageBox::Yes | QMessageBox::No, QMessageBox::No) == QMessageBox::No)
                     {
                         mUI.tailoringFileComboBox->setCurrentIndex(mOldTailoringComboBoxIdx); // user canceled, set to previous value
@@ -814,7 +814,7 @@ void MainWindow::tailoringFileComboboxChanged(int index)
             else
             {
                 mDiagnosticsDialog->errorMessage(QString(
-                    QObject::tr("Can't set scanning session to use tailoring '%1' (from combobox "
+                    QObject::tr("Can't set scanning session to use customization '%1' (from combobox "
                     "item data). As item QVariant data was QString::Null() "
                     "'%2', '%3' or '%4' was expected as item text.")).arg(text, TAILORING_NONE, TAILORING_CUSTOM_FILE, TAILORING_UNSAVED));
             }
@@ -1272,7 +1272,7 @@ void MainWindow::saveTailoring()
     const QFileInfo openedFile(getOpenedFilePath());
 
     const QString path = QFileDialog::getSaveFileName(this,
-        QObject::tr("Save Tailoring As"),
+        QObject::tr("Save Customization As"),
         QString("%1-tailoring.xml").arg(openedFile.baseName()),
         QObject::tr("XCCDF Tailoring file (*.xml)"), 0
 #ifndef SCAP_WORKBENCH_USE_NATIVE_FILE_DIALOGS

@@ -382,15 +382,15 @@ void ScanningSession::saveTailoring(const QString& path)
 
     struct xccdf_benchmark* benchmark = getXCCDFInputBenchmark();
     const struct xccdf_version_info* version_info = xccdf_benchmark_get_schema_version(benchmark);
-    const char* uri = xccdf_version_info_get_namespace_uri(version_info);
+
     if (xccdf_tailoring_export(
         mTailoring,
         path.toUtf8().constData(),
-        xccdf_benchmark_get_schema_version(benchmark)
+        version_info
     ) != 1) // 1 is actually success here, big inconsistency in openscap API :(
     {
         throw ScanningSessionException(
-            QString("Exporting tailoring to '%1' failed! Details follow:\n%2").arg(path).arg(oscapErrDesc())
+            QString("Exporting customization to '%1' failed! Details follow:\n%2").arg(path).arg(oscapErrDesc())
         );
     }
 }
@@ -597,7 +597,7 @@ struct xccdf_profile* ScanningSession::tailorCurrentProfile(bool shadowed, const
             struct oscap_text* oldTitle = oscap_text_iterator_next(titles);
             struct oscap_text* newTitle = oscap_text_clone(oldTitle);
 
-            oscap_text_set_text(newTitle, (QString::fromUtf8(oscap_text_get_text(oldTitle)) + QString(" [TAILORED]")).toUtf8().constData());
+            oscap_text_set_text(newTitle, (QString::fromUtf8(oscap_text_get_text(oldTitle)) + QString(" [CUSTOMIZED]")).toUtf8().constData());
             xccdf_profile_add_title(newProfile, newTitle);
         }
         oscap_text_iterator_free(titles);
@@ -619,7 +619,7 @@ struct xccdf_profile* ScanningSession::tailorCurrentProfile(bool shadowed, const
         {
             struct oscap_text* newTitle = oscap_text_new();
             oscap_text_set_lang(newTitle, OSCAP_LANG_ENGLISH_US);
-            oscap_text_set_text(newTitle, "(default) [TAILORED]");
+            oscap_text_set_text(newTitle, "(default) [CUSTOMIZED]");
             xccdf_profile_add_title(newProfile, newTitle);
         }
         {

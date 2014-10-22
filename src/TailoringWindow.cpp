@@ -195,7 +195,7 @@ TailoringWindow::TailoringWindow(struct xccdf_policy* policy, struct xccdf_bench
     deserializeCollapsedItems();
     syncCollapsedItems();
 
-    setWindowTitle(QObject::tr("Tailoring \"%1\"").arg(oscapTextIteratorGetPreferred(xccdf_profile_get_title(mProfile))));
+    setWindowTitle(QObject::tr("Customizing \"%1\"").arg(oscapTextIteratorGetPreferred(xccdf_profile_get_title(mProfile))));
 
     mItemPropertiesDockWidget->refresh();
     mItemPropertiesDockWidget->hide();

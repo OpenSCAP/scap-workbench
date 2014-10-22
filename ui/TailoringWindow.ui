@@ -14,7 +14,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Tailoring '%1'</string>
+   <string>Customizing '%1'</string>
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QVBoxLayout" name="verticalLayout">
@@ -91,7 +91,7 @@
           </font>
          </property>
          <property name="text">
-          <string>Confirm tailoring</string>
+          <string>Confirm changes</string>
          </property>
         </widget>
        </item>
@@ -130,7 +130,7 @@
      <x>0</x>
      <y>0</y>
      <width>960</width>
-     <height>21</height>
+     <height>23</height>
     </rect>
    </property>
   </widget>
