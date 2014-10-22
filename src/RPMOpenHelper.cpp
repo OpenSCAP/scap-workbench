@@ -23,7 +23,6 @@
 #include "ProcessHelpers.h"
 #include "Exceptions.h"
 #include <QDir>
-#include <QDebug>
 
 RPMOpenHelper::RPMOpenHelper(const QString& path)
 {
@@ -39,7 +38,7 @@ RPMOpenHelper::RPMOpenHelper(const QString& path)
 
     proc.run();
 
-    QDir tempDir(mTempDir.getPath());
+    const QDir tempDir(mTempDir.getPath());
 
     if (proc.getExitCode() != 0)
     {
@@ -68,9 +67,9 @@ RPMOpenHelper::RPMOpenHelper(const QString& path)
             // This is required because "tailoring-xccdf.xml" will match both tailoringRE and inputRE!
 
             if (tailoringRE.exactMatch(line))
-                mTailoringPath = tempDir.relativeFilePath(line);
+                mTailoringPath = tempDir.absoluteFilePath(line);
             else if (inputRE.exactMatch(line))
-                mInputPath = tempDir.relativeFilePath(line);
+                mInputPath = tempDir.absoluteFilePath(line);
         }
     }
 }

@@ -27,7 +27,7 @@ ProfileTitleChangeUndoCommand::ProfileTitleChangeUndoCommand(TailoringWindow* wi
     mOldTitle(oldTitle),
     mNewTitle(newTitle)
 {
-    setText(QObject::tr("profile title to \"%1\"").arg(newTitle));
+    refreshText();
 }
 
 ProfileTitleChangeUndoCommand::~ProfileTitleChangeUndoCommand()
@@ -56,7 +56,13 @@ bool ProfileTitleChangeUndoCommand::mergeWith(const QUndoCommand *other)
         return false;
 
     mNewTitle = static_cast<const ProfileTitleChangeUndoCommand*>(other)->mNewTitle;
+    refreshText();
     return true;
+}
+
+void ProfileTitleChangeUndoCommand::refreshText()
+{
+    setText(QObject::tr("profile title to \"%1\"").arg(mNewTitle));
 }
 
 ProfileDescriptionChangeUndoCommand::ProfileDescriptionChangeUndoCommand(TailoringWindow* window, const QString& oldDesc, const QString& newDesc):
@@ -64,11 +70,7 @@ ProfileDescriptionChangeUndoCommand::ProfileDescriptionChangeUndoCommand(Tailori
     mOldDesc(oldDesc),
     mNewDesc(newDesc)
 {
-    QString shortDesc = newDesc;
-    shortDesc.truncate(32);
-    shortDesc += "...";
-
-    setText(QObject::tr("profile description to \"%1\"").arg(shortDesc));
+    refreshText();
 }
 
 ProfileDescriptionChangeUndoCommand::~ProfileDescriptionChangeUndoCommand()
@@ -97,7 +99,17 @@ bool ProfileDescriptionChangeUndoCommand::mergeWith(const QUndoCommand *other)
         return false;
 
     mNewDesc = static_cast<const ProfileDescriptionChangeUndoCommand*>(other)->mNewDesc;
+    refreshText();
     return true;
+}
+
+void ProfileDescriptionChangeUndoCommand::refreshText()
+{
+    QString shortDesc = mNewDesc;
+    shortDesc.truncate(32);
+    shortDesc += "...";
+
+    setText(QObject::tr("profile description to \"%1\"").arg(shortDesc));
 }
 
 XCCDFItemSelectUndoCommand::XCCDFItemSelectUndoCommand(TailoringWindow* window, QTreeWidgetItem* item, bool newSelect):
@@ -105,11 +117,7 @@ XCCDFItemSelectUndoCommand::XCCDFItemSelectUndoCommand(TailoringWindow* window, 
     mTreeItem(item),
     mNewSelect(newSelect)
 {
-    struct xccdf_item* xccdfItem = TailoringWindow::getXccdfItemFromTreeItem(mTreeItem);
-    if (mNewSelect)
-        setText(QObject::tr("select \"%1\"").arg(QString::fromUtf8(xccdf_item_get_id(xccdfItem))));
-    else
-        setText(QObject::tr("unselect \"%1\"").arg(QString::fromUtf8(xccdf_item_get_id(xccdfItem))));
+    refreshText();
 }
 
 XCCDFItemSelectUndoCommand::~XCCDFItemSelectUndoCommand()
@@ -134,6 +142,15 @@ void XCCDFItemSelectUndoCommand::undo()
     mWindow->synchronizeTreeItem(mTreeItem, xccdfItem, false);
 }
 
+void XCCDFItemSelectUndoCommand::refreshText()
+{
+    struct xccdf_item* xccdfItem = TailoringWindow::getXccdfItemFromTreeItem(mTreeItem);
+    if (mNewSelect)
+        setText(QObject::tr("select \"%1\"").arg(QString::fromUtf8(xccdf_item_get_id(xccdfItem))));
+    else
+        setText(QObject::tr("unselect \"%1\"").arg(QString::fromUtf8(xccdf_item_get_id(xccdfItem))));
+}
+
 XCCDFValueChangeUndoCommand::XCCDFValueChangeUndoCommand(TailoringWindow* window, struct xccdf_value* xccdfValue, const QString& newValue, const QString& oldValue):
     mWindow(window),
     mXccdfValue(xccdfValue),
@@ -146,11 +163,6 @@ XCCDFValueChangeUndoCommand::XCCDFValueChangeUndoCommand(TailoringWindow* window
 
 XCCDFValueChangeUndoCommand::~XCCDFValueChangeUndoCommand()
 {}
-
-void XCCDFValueChangeUndoCommand::refreshText()
-{
-    setText(QObject::tr("set value '%1' to '%2'").arg(xccdf_value_get_id(mXccdfValue)).arg(mNewValue));
-}
 
 int XCCDFValueChangeUndoCommand::id() const
 {
@@ -182,4 +194,9 @@ void XCCDFValueChangeUndoCommand::undo()
 {
     mWindow->setValueValue(mXccdfValue, mOldValue);
     mWindow->refreshXccdfItemPropertiesDockWidget();
+}
+
+void XCCDFValueChangeUndoCommand::refreshText()
+{
+    setText(QObject::tr("set value '%1' to '%2'").arg(xccdf_value_get_id(mXccdfValue)).arg(mNewValue));
 }

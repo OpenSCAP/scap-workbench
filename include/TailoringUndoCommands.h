@@ -48,6 +48,8 @@ class XCCDFItemSelectUndoCommand : public QUndoCommand
         virtual void undo();
 
     private:
+        void refreshText();
+
         TailoringWindow* mWindow;
 
         QTreeWidgetItem* mTreeItem;
@@ -64,8 +66,6 @@ class XCCDFValueChangeUndoCommand : public QUndoCommand
         XCCDFValueChangeUndoCommand(TailoringWindow* window, struct xccdf_value* xccdfValue, const QString& newValue, const QString& oldValue);
         virtual ~XCCDFValueChangeUndoCommand();
 
-        void refreshText();
-
         virtual int id() const;
 
         virtual bool mergeWith(const QUndoCommand* other);
@@ -74,6 +74,8 @@ class XCCDFValueChangeUndoCommand : public QUndoCommand
         virtual void undo();
 
     private:
+        void refreshText();
+
         TailoringWindow* mWindow;
 
         struct xccdf_value* mXccdfValue;
@@ -100,6 +102,8 @@ class ProfileTitleChangeUndoCommand : public QUndoCommand
         virtual bool mergeWith(const QUndoCommand *other);
 
     private:
+        void refreshText();
+
         TailoringWindow* mWindow;
 
         QString mOldTitle;
@@ -123,6 +127,8 @@ class ProfileDescriptionChangeUndoCommand : public QUndoCommand
         virtual bool mergeWith(const QUndoCommand *other);
 
     private:
+        void refreshText();
+
         TailoringWindow* mWindow;
 
         QString mOldDesc;
