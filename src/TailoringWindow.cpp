@@ -467,6 +467,11 @@ void TailoringWindow::refreshXccdfItemPropertiesDockWidget()
     mItemPropertiesDockWidget->refresh();
 }
 
+struct xccdf_item* TailoringWindow::getXCCDFItemById(const QString& id) const
+{
+    return xccdf_benchmark_get_item(mBenchmark, id.toUtf8().constData());
+}
+
 QString TailoringWindow::getCurrentValueValue(struct xccdf_value* xccdfValue)
 {
     return QString::fromUtf8(xccdf_policy_get_value_of_item(mPolicy, xccdf_value_to_item(xccdfValue)));

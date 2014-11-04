@@ -245,7 +245,7 @@ void XCCDFItemPropertiesDockWidget::refresh()
             {
                 bool empty = true;
 
-                QString html = "";
+                QString html = "<ul>\n";
                 struct xccdf_check_iterator* checks = xccdf_rule_get_checks(xccdf_item_to_rule(mXccdfItem));
                 while (xccdf_check_iterator_has_more(checks))
                 {
@@ -253,16 +253,25 @@ void XCCDFItemPropertiesDockWidget::refresh()
                     struct xccdf_check_export_iterator* checkExports = xccdf_check_get_exports(check);
                     while (xccdf_check_export_iterator_has_more(checkExports))
                     {
-                        empty = false;
-
                         struct xccdf_check_export* checkExport = xccdf_check_export_iterator_next(checkExports);
-                        const char* valueId = xccdf_check_export_get_value(checkExport);
-                        html += valueId;
-                        html += "<br />";
+                        const QString valueId = QString::fromUtf8(xccdf_check_export_get_value(checkExport));
+                        struct xccdf_item* value = mWindow->getXCCDFItemById(valueId);
+
+                        if (xccdf_item_get_type(value) != XCCDF_VALUE)
+                        {
+                            // TODO: We expected xccdf value but got something else, warn about this?
+                            continue;
+                        }
+
+                        empty = false;
+                        html += QString("<li><a href=\"#%1\">%2 = %3</a></li>\n").arg(
+                                    valueId, mWindow->getXCCDFItemTitle(value),
+                                    mWindow->getCurrentValueValue(xccdf_item_to_value(value)));
                     }
                     xccdf_check_export_iterator_free(checkExports);
                 }
                 xccdf_check_iterator_free(checks);
+                html += "</ul>\n";
 
                 if (!empty)
                 {

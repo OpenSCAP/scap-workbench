@@ -80,6 +80,8 @@ class TailoringWindow : public QMainWindow
         void setValueValue(struct xccdf_value* xccdfValue, const QString& newValue);
         void refreshXccdfItemPropertiesDockWidget();
 
+        struct xccdf_item* getXCCDFItemById(const QString& id) const;
+
         QString getCurrentValueValue(struct xccdf_value* xccdfValue);
         void setValueValueWithUndoCommand(struct xccdf_value* xccdfValue, const QString& newValue);
 
