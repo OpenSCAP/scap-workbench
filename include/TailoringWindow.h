@@ -82,6 +82,8 @@ class TailoringWindow : public QMainWindow
 
         struct xccdf_item* getXCCDFItemById(const QString& id) const;
 
+        void changeSelectionToXCCDFItemById(const QString& id);
+
         QString getCurrentValueValue(struct xccdf_value* xccdfValue);
         void setValueValueWithUndoCommand(struct xccdf_value* xccdfValue, const QString& newValue);
 

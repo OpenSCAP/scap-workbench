@@ -99,6 +99,11 @@ XCCDFItemPropertiesDockWidget::XCCDFItemPropertiesDockWidget(TailoringWindow* wi
         mUI.valueComboBox, SIGNAL(editTextChanged(QString)),
         this, SLOT(valueChanged(QString))
     );
+
+    QObject::connect(
+        mUI.dependsOnValuesBrowser, SIGNAL(anchorClicked(QUrl)),
+        this, SLOT(selectValue(QUrl))
+    );
 }
 
 XCCDFItemPropertiesDockWidget::~XCCDFItemPropertiesDockWidget()
@@ -296,4 +301,10 @@ void XCCDFItemPropertiesDockWidget::valueChanged(const QString& newValue)
     // For the unlikely case of description or title having a <sub> element dependent
     // on the value we just changed.
     refresh();
+}
+
+void XCCDFItemPropertiesDockWidget::selectValue(const QUrl& url)
+{
+    const QString id = url.fragment();
+    mWindow->changeSelectionToXCCDFItemById(id);
 }

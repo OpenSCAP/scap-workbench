@@ -472,6 +472,23 @@ struct xccdf_item* TailoringWindow::getXCCDFItemById(const QString& id) const
     return xccdf_benchmark_get_item(mBenchmark, id.toUtf8().constData());
 }
 
+void TailoringWindow::changeSelectionToXCCDFItemById(const QString& id)
+{
+    QList<QTreeWidgetItem*> matches = mUI.itemsTree->findItems(id, Qt::MatchContains | Qt::MatchRecursive, 1);
+    for (QList<QTreeWidgetItem*>::const_iterator it = matches.constBegin();
+         it != matches.constEnd(); ++it)
+    {
+        struct xccdf_item* item = getXccdfItemFromTreeItem(*it);
+        const QString itemId = QString::fromUtf8(xccdf_item_get_id(item));
+
+        if (id != itemId)
+            continue;
+
+        mUI.itemsTree->setCurrentItem(*it);
+        break;
+    }
+}
+
 QString TailoringWindow::getCurrentValueValue(struct xccdf_value* xccdfValue)
 {
     return QString::fromUtf8(xccdf_policy_get_value_of_item(mPolicy, xccdf_value_to_item(xccdfValue)));
