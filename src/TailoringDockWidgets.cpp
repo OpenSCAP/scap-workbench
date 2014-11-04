@@ -104,6 +104,11 @@ XCCDFItemPropertiesDockWidget::XCCDFItemPropertiesDockWidget(TailoringWindow* wi
         mUI.dependsOnValuesBrowser, SIGNAL(anchorClicked(QUrl)),
         this, SLOT(selectValue(QUrl))
     );
+
+    QObject::connect(
+        mUI.affectsRulesBrowser, SIGNAL(anchorClicked(QUrl)),
+        this, SLOT(selectRule(QUrl))
+    );
 }
 
 XCCDFItemPropertiesDockWidget::~XCCDFItemPropertiesDockWidget()
@@ -327,6 +332,12 @@ void XCCDFItemPropertiesDockWidget::valueChanged(const QString& newValue)
 }
 
 void XCCDFItemPropertiesDockWidget::selectValue(const QUrl& url)
+{
+    const QString id = url.fragment();
+    mWindow->changeSelectionToXCCDFItemById(id);
+}
+
+void XCCDFItemPropertiesDockWidget::selectRule(const QUrl& url)
 {
     const QString id = url.fragment();
     mWindow->changeSelectionToXCCDFItemById(id);
