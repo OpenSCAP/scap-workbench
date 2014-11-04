@@ -33,9 +33,9 @@
        <property name="geometry">
         <rect>
          <x>0</x>
-         <y>-69</y>
-         <width>373</width>
-         <height>488</height>
+         <y>-179</y>
+         <width>381</width>
+         <height>602</height>
         </rect>
        </property>
        <layout class="QGridLayout" name="gridLayout_2">
@@ -74,7 +74,7 @@ background: transparent;</string>
           </property>
          </widget>
         </item>
-        <item row="10" column="0" colspan="2">
+        <item row="12" column="0" colspan="2">
          <widget class="Line" name="line">
           <property name="orientation">
            <enum>Qt::Horizontal</enum>
@@ -308,6 +308,27 @@ background: transparent;</string>
          <widget class="QLabel" name="identsLabel">
           <property name="text">
            <string>Security Identifiers</string>
+          </property>
+         </widget>
+        </item>
+        <item row="11" column="0" colspan="2">
+         <widget class="QTextBrowser" name="dependsOnValuesBrowser">
+          <property name="maximumSize">
+           <size>
+            <width>16777215</width>
+            <height>75</height>
+           </size>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">border: 1px solid #000;
+background: transparent;</string>
+          </property>
+         </widget>
+        </item>
+        <item row="10" column="0" colspan="2">
+         <widget class="QLabel" name="dependsOnValuesLabel">
+          <property name="text">
+           <string>Depends on Values</string>
           </property>
          </widget>
         </item>

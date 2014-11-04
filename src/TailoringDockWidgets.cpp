@@ -140,6 +140,8 @@ void XCCDFItemPropertiesDockWidget::refresh()
 
     mUI.identsLabel->hide();
     mUI.identsBrowser->hide();
+    mUI.dependsOnValuesLabel->hide();
+    mUI.dependsOnValuesBrowser->hide();
 
     mUI.valueGroupBox->hide();
     mUI.valueComboBox->clear();
@@ -213,29 +215,62 @@ void XCCDFItemPropertiesDockWidget::refresh()
         }
         else if (xccdf_item_get_type(mXccdfItem) == XCCDF_RULE)
         {
-            bool empty = true;
-
-            QString html = "";
-            struct xccdf_ident_iterator* idents = xccdf_rule_get_idents(xccdf_item_to_rule(mXccdfItem));
-            while (xccdf_ident_iterator_has_more(idents))
             {
-                empty = false;
+                bool empty = true;
 
-                struct xccdf_ident* ident = xccdf_ident_iterator_next(idents);
-                html += QString("[<i>%1</i>] - <b>%2</b><br />").arg(
-                    QString::fromUtf8(xccdf_ident_get_system(ident)),
-                    QString::fromUtf8(xccdf_ident_get_id(ident))
-                );
+                QString html = "";
+                struct xccdf_ident_iterator* idents = xccdf_rule_get_idents(xccdf_item_to_rule(mXccdfItem));
+                while (xccdf_ident_iterator_has_more(idents))
+                {
+                    empty = false;
 
+                    struct xccdf_ident* ident = xccdf_ident_iterator_next(idents);
+                    html += QString("[<i>%1</i>] - <b>%2</b><br />").arg(
+                        QString::fromUtf8(xccdf_ident_get_system(ident)),
+                        QString::fromUtf8(xccdf_ident_get_id(ident))
+                    );
+
+                }
+                xccdf_ident_iterator_free(idents);
+
+                if (!empty)
+                {
+                    mUI.identsBrowser->setHtml(html);
+
+                    mUI.identsLabel->show();
+                    mUI.identsBrowser->show();
+                }
             }
-            xccdf_ident_iterator_free(idents);
 
-            if (!empty)
             {
-                mUI.identsBrowser->setHtml(html);
+                bool empty = true;
 
-                mUI.identsLabel->show();
-                mUI.identsBrowser->show();
+                QString html = "";
+                struct xccdf_check_iterator* checks = xccdf_rule_get_checks(xccdf_item_to_rule(mXccdfItem));
+                while (xccdf_check_iterator_has_more(checks))
+                {
+                    struct xccdf_check* check = xccdf_check_iterator_next(checks);
+                    struct xccdf_check_export_iterator* checkExports = xccdf_check_get_exports(check);
+                    while (xccdf_check_export_iterator_has_more(checkExports))
+                    {
+                        empty = false;
+
+                        struct xccdf_check_export* checkExport = xccdf_check_export_iterator_next(checkExports);
+                        const char* valueId = xccdf_check_export_get_value(checkExport);
+                        html += valueId;
+                        html += "<br />";
+                    }
+                    xccdf_check_export_iterator_free(checkExports);
+                }
+                xccdf_check_iterator_free(checks);
+
+                if (!empty)
+                {
+                    mUI.dependsOnValuesBrowser->setHtml(html);
+
+                    mUI.dependsOnValuesLabel->show();
+                    mUI.dependsOnValuesBrowser->show();
+                }
             }
         }
     }
