@@ -152,6 +152,8 @@ void XCCDFItemPropertiesDockWidget::refresh()
     mUI.valueComboBox->clear();
     mUI.valueComboBox->setEditText("");
     mUI.valueComboBox->lineEdit()->setValidator(0);
+    mUI.affectsRulesLabel->hide();
+    mUI.affectsRulesBrowser->hide();
 
     if (mXccdfItem)
     {
@@ -217,6 +219,27 @@ void XCCDFItemPropertiesDockWidget::refresh()
 
             mUI.valueComboBox->insertSeparator(1);
             mUI.valueGroupBox->show();
+
+            {
+                bool empty = true;
+                QString html = "<ul>\n";
+
+                const std::vector<xccdf_rule*>& affectedRules = mWindow->getRulesAffectedByValue(value);
+                for (std::vector<xccdf_rule*>::const_iterator it = affectedRules.begin();
+                     it != affectedRules.end(); ++it)
+                {
+                    struct xccdf_rule* rule = *it;
+                    empty = false;
+                    html += QString("<li><a href=\"#%1\">%2</a></li>\n").arg(
+                                xccdf_rule_get_id(rule), mWindow->getXCCDFItemTitle(xccdf_rule_to_item(rule)));
+                }
+                html += "</ul>\n";
+
+                mUI.affectsRulesBrowser->setHtml(empty ? "This value doesn't seem to be affecting any rules!" : html);
+            }
+
+            mUI.affectsRulesLabel->show();
+            mUI.affectsRulesBrowser->show();
         }
         else if (xccdf_item_get_type(mXccdfItem) == XCCDF_RULE)
         {
@@ -249,8 +272,8 @@ void XCCDFItemPropertiesDockWidget::refresh()
 
             {
                 bool empty = true;
-
                 QString html = "<ul>\n";
+
                 struct xccdf_check_iterator* checks = xccdf_rule_get_checks(xccdf_item_to_rule(mXccdfItem));
                 while (xccdf_check_iterator_has_more(checks))
                 {
