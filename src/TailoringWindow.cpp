@@ -110,6 +110,8 @@ TailoringWindow::TailoringWindow(struct xccdf_policy* policy, struct xccdf_bench
     mSearchSkippedItems(0),
     mSearchCurrentNeedle("")
 {
+    generateValueAffectsRulesMap(xccdf_benchmark_to_item(benchmark));
+
     // sanity check
     if (!mPolicy)
         throw TailoringWindowException("TailoringWindow needs a proper policy "
@@ -499,6 +501,17 @@ void TailoringWindow::setValueValueWithUndoCommand(struct xccdf_value* xccdfValu
     mUndoStack.push(new XCCDFValueChangeUndoCommand(this, xccdfValue, newValue, getCurrentValueValue(xccdfValue)));
 }
 
+const std::vector<struct xccdf_rule*>& TailoringWindow::getRulesAffectedByValue(struct xccdf_value* xccdfValue) const
+{
+    static std::vector<struct xccdf_rule*> empty;
+
+    ValueAffectsRulesMap::const_iterator it = mValueAffectsRulesMap.find(xccdfValue);
+    if (it != mValueAffectsRulesMap.end())
+        return it->second;
+
+    return empty;
+}
+
 void TailoringWindow::deselectAllChildrenItems(QTreeWidgetItem* parent, bool undoMacro)
 {
     if (parent == 0)
@@ -717,6 +730,56 @@ void TailoringWindow::syncCollapsedItem(QTreeWidgetItem* item, QSet<QString>& us
 
     for (int i = 0; i < item->childCount(); ++i)
         syncCollapsedItem(item->child(i), usedCollapsedIds);
+}
+
+void TailoringWindow::generateValueAffectsRulesMap(struct xccdf_item* item)
+{
+    struct xccdf_item_iterator* items = 0;
+
+    switch (xccdf_item_get_type(item))
+    {
+        case XCCDF_BENCHMARK:
+            items = xccdf_benchmark_get_content(xccdf_item_to_benchmark(item));
+            break;
+        case XCCDF_GROUP:
+            items = xccdf_group_get_content(xccdf_item_to_group(item));
+            break;
+        case XCCDF_RULE:
+            {
+                struct xccdf_check_iterator* checks = xccdf_rule_get_checks(xccdf_item_to_rule(item));
+                while (xccdf_check_iterator_has_more(checks))
+                {
+                    struct xccdf_check* check = xccdf_check_iterator_next(checks);
+                    struct xccdf_check_export_iterator* checkExports = xccdf_check_get_exports(check);
+                    while (xccdf_check_export_iterator_has_more(checkExports))
+                    {
+                        struct xccdf_check_export* checkExport = xccdf_check_export_iterator_next(checkExports);
+                        const QString valueId = QString::fromUtf8(xccdf_check_export_get_value(checkExport));
+                        struct xccdf_item* value = getXCCDFItemById(valueId);
+
+                        if (xccdf_item_get_type(value) != XCCDF_VALUE)
+                        {
+                            // TODO: We expected xccdf value but got something else, warn about this?
+                            continue;
+                        }
+
+                        mValueAffectsRulesMap[xccdf_item_to_value(value)].push_back(xccdf_item_to_rule(item));
+                    }
+                    xccdf_check_export_iterator_free(checkExports);
+                }
+                xccdf_check_iterator_free(checks);
+            }
+            break;
+    }
+
+    if (items)
+    {
+        while (xccdf_item_iterator_has_more(items))
+        {
+            generateValueAffectsRulesMap(xccdf_item_iterator_next(items));
+        }
+        xccdf_item_iterator_free(items);
+    }
 }
 
 void TailoringWindow::searchNext()

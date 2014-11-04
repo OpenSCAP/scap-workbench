@@ -87,6 +87,8 @@ class TailoringWindow : public QMainWindow
         QString getCurrentValueValue(struct xccdf_value* xccdfValue);
         void setValueValueWithUndoCommand(struct xccdf_value* xccdfValue, const QString& newValue);
 
+        const std::vector<struct xccdf_rule*>& getRulesAffectedByValue(struct xccdf_value* xccdfValue) const;
+
     public slots:
         /**
          * @brief Traverses the tree into all selected groups and deselects all their items
@@ -206,6 +208,11 @@ class TailoringWindow : public QMainWindow
 
         unsigned int mSearchSkippedItems;
         QString mSearchCurrentNeedle;
+
+        void generateValueAffectsRulesMap(struct xccdf_item* item);
+
+        typedef std::map<struct xccdf_value*, std::vector<struct xccdf_rule*> > ValueAffectsRulesMap;
+        ValueAffectsRulesMap mValueAffectsRulesMap;
 
     private slots:
         void searchNext();
