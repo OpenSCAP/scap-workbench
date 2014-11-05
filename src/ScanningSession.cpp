@@ -34,6 +34,7 @@ extern "C" {
 #include <cassert>
 #include <ctime>
 #include <QFileInfo>
+#include <QBuffer>
 #include <QXmlQuery>
 #include <QXmlItem>
 #include <QXmlResultItems>
@@ -113,19 +114,27 @@ inline void getDependencyClosureOfFile(const QString& filePath, QSet<QString>& t
     targetSet.insert(fileInfo.absoluteFilePath()); // insert current file
     QDir parentDir = fileInfo.dir();
 
-    oscap_document_type_t docType;
-    if (oscap_determine_document_type(filePath.toUtf8().constData(), &docType) != 0)
+    struct oscap_source* source = oscap_source_new_from_file(filePath.toUtf8().constData());
+
+    oscap_document_type_t docType = oscap_source_get_scap_type(source);
+
+    if (docType == OSCAP_DOCUMENT_UNKNOWN)
         return;
 
-    QFile file(filePath);
-    if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
+    char* rawBuffer;
+    size_t rawSize;
+    if (oscap_source_get_raw_memory(source, &rawBuffer, &rawSize) != 0)
         throw ScanningSessionException(QString(
-            "Can't open file '%1' when calculating opened files closure.").arg(filePath));
+            "Can't get raw data of file '%1' when calculating opened files closure.").arg(filePath));
+
+    QBuffer buffer;
+    buffer.setData(rawBuffer, rawSize);
+    free(rawBuffer);
 
     if (docType == OSCAP_DOCUMENT_XCCDF)
     {
         QXmlQuery depQuery;
-        depQuery.setFocus(&file);
+        depQuery.setFocus(&buffer);
         depQuery.setQuery("//*[local-name() = 'check-content-ref']/@href");
 
         if (depQuery.isValid())
