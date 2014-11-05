@@ -327,6 +327,9 @@ enough privileges to evaluate the machine.
 ****
 The target machine has to have the *oscap* tool of version 0.8.0 or greater
 installed and in $PATH!
+
+You can achieve that by installing *openscap-scanner* on the target machine.
+If *openscap-scanner* is not available install *openscap-utils* instead.
 ****
 
 ****
