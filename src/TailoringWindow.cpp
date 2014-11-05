@@ -300,7 +300,7 @@ void TailoringWindow::synchronizeTreeItem(QTreeWidgetItem* treeItem, struct xccd
 {
     ++mSynchronizeItemLock;
 
-    const QString title = oscapTextIteratorGetPreferred(xccdf_item_get_title(xccdfItem));
+    const QString title = oscapItemGetReadableTitle(xccdfItem, mPolicy);
     treeItem->setText(0, title);
 
     QString searchable = QString("%1 %2").arg(title, QString::fromUtf8(xccdf_item_get_id(xccdfItem)));

@@ -55,12 +55,11 @@ QString oscapItemGetReadableTitle(struct xccdf_item* item, struct xccdf_policy* 
 QString oscapItemGetReadableDescription(struct xccdf_item *item, struct xccdf_policy *policy, const QString& lang)
 {
     struct oscap_text_iterator* desc_it = xccdf_item_get_description(item);
-    char* unresolved = oscap_textlist_get_preferred_plaintext(desc_it, lang.isEmpty() ? NULL : lang.toUtf8().constData());
+    oscap_text* unresolved = oscap_textlist_get_preferred_text(desc_it, lang.isEmpty() ? NULL : lang.toUtf8().constData());
     oscap_text_iterator_free(desc_it);
     if (!unresolved)
         return "";
-    char* resolved = xccdf_policy_substitute(unresolved, policy);
-    free(unresolved);
+    char* resolved = xccdf_policy_substitute(oscap_text_get_text(unresolved), policy);
     const QString ret = QString::fromUtf8(resolved);
     free(resolved);
     return ret;

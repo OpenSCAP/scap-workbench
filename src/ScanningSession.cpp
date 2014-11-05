@@ -323,8 +323,9 @@ QString ScanningSession::getBenchmarkTitle() const
 
     struct xccdf_policy_model* pmodel = xccdf_session_get_policy_model(mSession);
     struct xccdf_benchmark* benchmark = xccdf_policy_model_get_benchmark(pmodel);
+    struct xccdf_policy* policy= xccdf_session_get_xccdf_policy(mSession);
 
-    return oscapTextIteratorGetPreferred(xccdf_benchmark_get_title(benchmark));
+    return oscapItemGetReadableTitle(xccdf_benchmark_to_item(benchmark), policy);
 }
 
 void ScanningSession::resetTailoring()
