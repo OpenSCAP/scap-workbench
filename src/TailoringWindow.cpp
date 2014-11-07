@@ -786,6 +786,10 @@ void TailoringWindow::searchNext()
 {
     const QString& needle = mSearchBox->text();
 
+    // makes no sense to search for empty strings
+    if (needle.isEmpty())
+        return;
+
     if (needle == mSearchCurrentNeedle)
         ++mSearchSkippedItems;
     else
