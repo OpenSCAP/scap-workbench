@@ -247,7 +247,7 @@ TailoringWindow::TailoringWindow(struct xccdf_policy* policy, struct xccdf_bench
     mUI.toolBar->addWidget(mSearchButton);
 
     QObject::connect(
-        mSearchBox, SIGNAL(editingFinished()),
+        mSearchBox, SIGNAL(returnPressed()),
         this, SLOT(searchNext())
     );
 
