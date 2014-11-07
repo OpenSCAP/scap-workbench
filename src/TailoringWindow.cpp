@@ -817,6 +817,7 @@ void TailoringWindow::searchNext()
 void TailoringWindow::itemSelectionChanged(QTreeWidgetItem* current, QTreeWidgetItem* previous)
 {
     struct xccdf_item* item = getXccdfItemFromTreeItem(current);
+    setUpdatesEnabled(false);
     if (item)
     {
         mItemPropertiesDockWidget->setXccdfItem(item, mPolicy);
@@ -829,6 +830,7 @@ void TailoringWindow::itemSelectionChanged(QTreeWidgetItem* current, QTreeWidget
         mItemPropertiesDockWidget->hide();
         mProfilePropertiesDockWidget->show();
     }
+    setUpdatesEnabled(true);
 }
 
 void TailoringWindow::itemChanged(QTreeWidgetItem* treeItem, int column)
