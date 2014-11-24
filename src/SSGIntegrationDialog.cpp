@@ -48,7 +48,7 @@ const QString& SSGIntegrationDialog::getSelectedSSGFile() const
 
 bool SSGIntegrationDialog::isSSGAvailable()
 {
-    return true;
+    return QDir(SCAP_WORKBENCH_SSG_DIRECTORY).exists();
 }
 
 void SSGIntegrationDialog::variantRequested()
