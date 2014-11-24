@@ -254,6 +254,9 @@ class ScanningSession
         /// (loading new file, setting it to load from datastream, ...)
         /// user changes to the tailoring would be lost if we reloaded.
         bool mTailoringUserChanges;
+
+        QString mUserTailoringFile;
+        QString mUserTailoringCID;
 };
 
 #endif

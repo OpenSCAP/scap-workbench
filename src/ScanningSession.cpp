@@ -348,10 +348,16 @@ void ScanningSession::resetTailoring()
     if (!fileOpened())
         return;
 
-    xccdf_session_set_user_tailoring_cid(mSession, 0);
-    xccdf_session_set_user_tailoring_file(mSession, 0);
-
     mTailoring = 0;
+
+    // nothing to reset if these conditions are met
+    if (!mTailoringUserChanges && mUserTailoringCID.isEmpty() && mUserTailoringFile.isEmpty())
+        return;
+
+    xccdf_session_set_user_tailoring_cid(mSession, 0);
+    mUserTailoringCID = "";
+    xccdf_session_set_user_tailoring_file(mSession, 0);
+    mUserTailoringFile = "";
 
     mSessionDirty = true;
     mTailoringUserChanges = false;
@@ -362,10 +368,16 @@ void ScanningSession::setTailoringFile(const QString& tailoringFile)
     if (!fileOpened())
         return;
 
-    xccdf_session_set_user_tailoring_cid(mSession, 0);
-    xccdf_session_set_user_tailoring_file(mSession, tailoringFile.toUtf8().constData());
-
     mTailoring = 0;
+
+    // nothing to change if these conditions are met
+    if (!mTailoringUserChanges && mUserTailoringCID.isEmpty() && mUserTailoringFile == tailoringFile)
+        return;
+
+    xccdf_session_set_user_tailoring_cid(mSession, 0);
+    mUserTailoringCID = "";
+    xccdf_session_set_user_tailoring_file(mSession, tailoringFile.toUtf8().constData());
+    mUserTailoringFile = tailoringFile;
 
     mSessionDirty = true;
     mTailoringUserChanges = false;
@@ -376,10 +388,16 @@ void ScanningSession::setTailoringComponentID(const QString& componentID)
     if (!fileOpened())
         return;
 
-    xccdf_session_set_user_tailoring_file(mSession, 0);
-    xccdf_session_set_user_tailoring_cid(mSession, componentID.toUtf8().constData());
-
     mTailoring = 0;
+
+    // nothing to change if these conditions are met
+    if (!mTailoringUserChanges && mUserTailoringCID == componentID && mUserTailoringFile.isEmpty())
+        return;
+
+    xccdf_session_set_user_tailoring_file(mSession, 0);
+    mUserTailoringFile = "";
+    xccdf_session_set_user_tailoring_cid(mSession, componentID.toUtf8().constData());
+    mUserTailoringCID = componentID;
 
     mSessionDirty = true;
     mTailoringUserChanges = false;
