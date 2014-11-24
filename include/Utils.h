@@ -72,6 +72,7 @@ const QDir& getDocDirectory();
  * @note This function will write a warning to stderr in case the icon cannot be loaded.
  */
 QIcon getShareIcon(const QString& fileName);
+QPixmap getSharePixmap(const QString& fileName);
 
 /**
  * @brief Retrieves the global application icon

@@ -19,35 +19,40 @@
  *      Martin Preisler <mpreisle@redhat.com>
  */
 
-#ifndef SCAP_WORKBENCH_FORWARD_DECLS_H_
-#define SCAP_WORKBENCH_FORWARD_DECLS_H_
+#ifndef SCAP_WORKBENCH_SSG_INTEGRATION_DIALOG_H_
+#define SCAP_WORKBENCH_SSG_INTEGRATION_DIALOG_H_
 
-#include "Config.h"
+#include "ForwardDecls.h"
 
-class Application;
-class DiagnosticsDialog;
-class MainWindow;
-class OscapScannerBase;
-class OscapScannerLocal;
-class OscapScannerRemoteSsh;
-class ProfilePropertiesDockWidget;
-class ProfileTitleChangeUndoCommand;
-class ProfileDescriptionChangeUndoCommand;
-class RemoteMachineComboBox;
-class ResultViewer;
-class RPMOpenHelper;
-class SaveAsRPMDialog;
-class ScanningSession;
-class Scanner;
-class SshConnection;
-class SshSyncProcess;
-class SyncProcess;
-class SSGIntegrationDialog;
-class TailoringWindow;
-class TailorProfileDialog;
-class TemporaryDir;
-class XCCDFItemPropertiesDockWidget;
-class XCCDFItemSelectUndoCommand;
-class XCCDFValueChangeUndoCommand;
+#include <QDialog>
+
+extern "C"
+{
+#include <xccdf_benchmark.h>
+}
+
+#include "ui_SSGIntegrationDialog.h"
+
+class SSGIntegrationDialog : public QDialog
+{
+    Q_OBJECT
+
+    public:
+        explicit SSGIntegrationDialog(QWidget* parent = 0);
+        virtual ~SSGIntegrationDialog();
+
+        const QString& getSelectedSSGFile() const;
+
+        static bool isSSGAvailable();
+
+    private slots:
+        void variantRequested();
+
+    private:
+        void scrapeSSGVariants();
+
+        Ui_SSGIntegrationDialog mUI;
+        QString mSelectedSSGFile;
+};
 
 #endif

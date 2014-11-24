@@ -53,6 +53,19 @@ QIcon getShareIcon(const QString& fileName)
     return ret;
 }
 
+QPixmap getSharePixmap(const QString& fileName)
+{
+    const QString fullPath = getShareDirectory().absoluteFilePath(fileName);
+    const QPixmap ret(fullPath);
+
+    if (ret.isNull())
+    {
+        std::cerr << "getSharePixmap(..): Cannot create pixmap from '" << fullPath.toUtf8().constData() << "'." << std::endl;
+    }
+
+    return ret;
+}
+
 const QIcon& getApplicationIcon()
 {
     static const QString installedPath = SCAP_WORKBENCH_ICON;

@@ -34,8 +34,8 @@ endif()
 # This is optional, only required if user wants to run cppcheck (unlikely)
 find_program(CPPCHECK_EXECUTABLE NAMES cppcheck)
 
-set(SCAP_WORKBENCH_DEFAULT_CONTENT "/usr/share/xml/scap/ssg/fedora/ssg-fedora-ds.xml" CACHE FILEPATH
-    "Path to XCCDF or SDS that will be opened in case user doesn't specify different content using command line arguments.")
+set(SCAP_WORKBENCH_SSG_DIRECTORY "/usr/share/xml/scap/ssg" CACHE FILEPATH
+    "Path to the base scap-security-guide directory. The directory where 'fedora', 'rhel6', 'rhel7', ... reside.")
 set(SCAP_WORKBENCH_SCAP_CONTENT_DIRECTORY "/usr/share/xml/scap" CACHE PATH
     "Directory where SCAP content is *usually* stored. This is the default directory when opening a file via file open dialog.")
 

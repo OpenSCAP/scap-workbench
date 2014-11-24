@@ -22,6 +22,7 @@
 #include "Application.h"
 #include "MainWindow.h"
 #include "Utils.h"
+#include "SSGIntegrationDialog.h"
 
 #include <QFileInfo>
 #include <QTranslator>
@@ -49,15 +50,14 @@ Application::Application(int& argc, char** argv):
         this, SIGNAL(lastWindowClosed()),
         this, SLOT(quit())
     );
+    mMainWindow->show();
 
     processCLI(arguments());
 
     // Only open default content if no command line arguments were given.
     // The first argument is the application name, it doesn't count.
     if (!mMainWindow->fileOpened() && arguments().length() < 2)
-        openDefaultContent();
-
-    mMainWindow->show();
+        openSSG();
 
     if (!mMainWindow->fileOpened())
         browseForContent();
@@ -79,14 +79,17 @@ void Application::processCLI(const QStringList& args)
     }
 }
 
-void Application::openDefaultContent()
+void Application::openSSG()
 {
-    const QString defaultContent = SCAP_WORKBENCH_DEFAULT_CONTENT;
+    if (!SSGIntegrationDialog::isSSGAvailable())
+        return;
 
-    // We silently ignore badly configured default content paths and avoid
-    // opening them.
-    if (!defaultContent.isEmpty() && QFileInfo(defaultContent).isFile())
-        mMainWindow->openFile(defaultContent);
+    SSGIntegrationDialog* dialog = new SSGIntegrationDialog(mMainWindow);
+    if (dialog->exec() == QDialog::Accepted)
+    {
+        mMainWindow->openFile(dialog->getSelectedSSGFile());
+    }
+    delete dialog;
 }
 
 void Application::browseForContent()

@@ -51,9 +51,9 @@ class Application : public QApplication
         void processCLI(const QStringList& args);
 
         /**
-         * @brief Opens the default content if it can be found
+         * @brief Opens the SSG integration dialog to let user open SSG
          */
-        void openDefaultContent();
+        void openSSG();
 
         /**
          * @brief Opens a file dialog, allowing user to open any content
