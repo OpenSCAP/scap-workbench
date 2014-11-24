@@ -145,7 +145,7 @@
           </font>
          </property>
          <property name="text">
-          <string>[Benchmark Title]</string>
+          <string/>
          </property>
         </widget>
        </item>
