@@ -285,6 +285,9 @@ void ScanningSession::setDatastreamID(const QString& datastreamID)
         throw ScanningSessionException(
             "Can't set datastream ID in scanning session unless opened file is a source datastream");
 
+    if (getDatastreamID() == datastreamID)
+        return;
+
     if (datastreamID.isEmpty())
         xccdf_session_set_datastream_id(mSession, 0);
     else
@@ -299,7 +302,7 @@ QString ScanningSession::getDatastreamID() const
         throw ScanningSessionException(
             "Can't get datastream ID in scanning session unless opened file is a source datastream");
 
-    return xccdf_session_get_datastream_id(mSession);
+    return QString::fromUtf8(xccdf_session_get_datastream_id(mSession));
 }
 
 void ScanningSession::setComponentID(const QString& componentID)
@@ -307,6 +310,9 @@ void ScanningSession::setComponentID(const QString& componentID)
     if (!isSDS())
         throw ScanningSessionException(
             "Can't set datastream ID in scanning session unless opened file is a source datastream");
+
+    if (getComponentID() == componentID)
+        return;
 
     if (componentID.isEmpty())
         xccdf_session_set_component_id(mSession, 0);
@@ -322,7 +328,7 @@ QString ScanningSession::getComponentID() const
         throw ScanningSessionException(
             "Can't get component ID in scanning session unless opened file is a source datastream");
 
-    return xccdf_session_get_component_id(mSession);
+    return QString::fromUtf8(xccdf_session_get_component_id(mSession));
 }
 
 QString ScanningSession::getBenchmarkTitle() const
