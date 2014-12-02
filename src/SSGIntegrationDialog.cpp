@@ -59,7 +59,7 @@ void SSGIntegrationDialog::variantRequested()
     if (!button)
         return;
 
-    const QString variant = button->text();
+    const QString variant = button->property("ssg_variant").toString();
 
     QDir dir(SCAP_WORKBENCH_SSG_DIRECTORY);
     dir.cd(variant);
@@ -76,7 +76,16 @@ void SSGIntegrationDialog::scrapeSSGVariants()
     for (QStringList::const_iterator it = variants.constBegin();
          it != variants.constEnd(); ++it)
     {
-        QPushButton* button = new QPushButton(*it, mUI.variants);
+        QString name = *it;
+
+        // Make the label nicer for known variants
+        if (name.startsWith("rhel")) // use RHEL instead of rhel
+            name = name.toUpper();
+        else if (name.startsWith("fedora")) // use Fedora instead of fedora
+            name[0] = 'F';
+
+        QPushButton* button = new QPushButton(name, mUI.variants);
+        button->setProperty("ssg_variant", QVariant(*it));
         mUI.variants->layout()->addWidget(button);
 
         QObject::connect(
