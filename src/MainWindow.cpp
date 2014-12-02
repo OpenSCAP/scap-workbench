@@ -143,6 +143,11 @@ MainWindow::MainWindow(QWidget* parent):
     );
 
     QObject::connect(
+        mUI.showGuideButton, SIGNAL(released()),
+        this, SLOT(showGuide())
+    );
+
+    QObject::connect(
         mUI.actionUserManual, SIGNAL(triggered()),
         this, SLOT(showUserManual())
     );
@@ -1379,6 +1384,14 @@ bool MainWindow::unsavedTailoringChanges() const
 
     const int idx = mUI.tailoringFileComboBox->findText(TAILORING_UNSAVED);
     return mUI.tailoringFileComboBox->currentIndex() == idx;
+}
+
+void MainWindow::showGuide()
+{
+    if (!fileOpened())
+        return;
+
+    QDesktopServices::openUrl(QUrl::fromLocalFile(mScanningSession->getGuideFilePath()));
 }
 
 void MainWindow::showUserManual()

@@ -330,6 +330,8 @@ class MainWindow : public QMainWindow
         void markLoadedTailoringFile(const QString& filePath);
         bool unsavedTailoringChanges() const;
 
+        void showGuide();
+
         /**
          * @brief Users QDesktopServices to start browser and show user manual in it
          *

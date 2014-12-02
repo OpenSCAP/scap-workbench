@@ -29,6 +29,7 @@ extern "C" {
 #include <xccdf_session.h>
 #include <scap_ds.h>
 #include <oscap.h>
+#include <oscap_error.h>
 }
 
 #include <cassert>
@@ -439,6 +440,37 @@ QString ScanningSession::getTailoringFilePath()
 
     const QString fileName = mTailoringFile.fileName();
     saveTailoring(fileName);
+
+    return fileName;
+}
+
+void ScanningSession::generateGuide(const QString& path)
+{
+    // TODO: This does not deal with multiple datastreams inside one file!
+
+    const QByteArray profileId = getProfile().toUtf8();
+    const char* params[] = {
+        "profile_id",        profileId.constData(),
+        "template",          0,
+        "verbosity",         "",
+        "hide-profile-info", "yes",
+        0
+    };
+
+    if (oscap_apply_xslt(getOpenedFilePath().toUtf8().constData(), "xccdf-guide.xsl", path.toUtf8().constData(), params) == -1)
+        throw ScanningSessionException(QString("ScanningSession::generateGuide failed! oscap_err_desc(): %1.").arg(oscap_err_desc()));
+}
+
+QString ScanningSession::getGuideFilePath()
+{
+    if (mGuideFile.isOpen())
+        mGuideFile.close();
+
+    mGuideFile.open();
+    mGuideFile.close();
+
+    const QString fileName = mGuideFile.fileName();
+    generateGuide(fileName);
 
     return fileName;
 }

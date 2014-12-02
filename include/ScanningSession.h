@@ -158,6 +158,20 @@ class ScanningSession
         QString getTailoringFilePath();
 
         /**
+         * @brief Generates guide and saves it to supplied path
+         */
+        void generateGuide(const QString& path);
+
+        /**
+         * @brief Exports guide to a temporary path and returns the path
+         *
+         * If called multiple times the temporary file is overwritten, at most
+         * one temporary file will be created by this method. The file is destroyed
+         * when ScanningSession is destroyed.
+         */
+        QString getGuideFilePath();
+
+        /**
          * @brief Returns true if tailoring has been created and is valid
          *
          * @note A tailoring with 0 profiles isn't valid, the method will return false in that case
@@ -247,6 +261,8 @@ class ScanningSession
 
         /// Temporary file provides auto deletion and a valid temp file path
         QTemporaryFile mTailoringFile;
+        /// Temporary file provides auto deletion and a valid temp file path
+        QTemporaryFile mGuideFile;
 
         /// If true, the session will be reloaded
         mutable bool mSessionDirty;
