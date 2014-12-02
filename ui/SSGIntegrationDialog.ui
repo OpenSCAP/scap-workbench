@@ -33,6 +33,16 @@
         </property>
        </widget>
       </item>
+      <item>
+       <widget class="QLabel" name="label">
+        <property name="text">
+         <string>SCAP Security Guide was found installed on this machine. Do you want to open it?</string>
+        </property>
+        <property name="margin">
+         <number>5</number>
+        </property>
+       </widget>
+      </item>
      </layout>
     </widget>
    </item>
