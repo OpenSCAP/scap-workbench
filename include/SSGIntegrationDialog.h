@@ -41,6 +41,8 @@ class SSGIntegrationDialog : public QDialog
         explicit SSGIntegrationDialog(QWidget* parent = 0);
         virtual ~SSGIntegrationDialog();
 
+        void setDismissLabel(const QString& label);
+
         const QString& getSelectedSSGFile() const;
 
         static bool isSSGAvailable();

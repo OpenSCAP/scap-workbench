@@ -22,7 +22,6 @@
 #include "Application.h"
 #include "MainWindow.h"
 #include "Utils.h"
-#include "SSGIntegrationDialog.h"
 
 #include <QFileInfo>
 #include <QTranslator>
@@ -81,15 +80,7 @@ void Application::processCLI(const QStringList& args)
 
 void Application::openSSG()
 {
-    if (!SSGIntegrationDialog::isSSGAvailable())
-        return;
-
-    SSGIntegrationDialog* dialog = new SSGIntegrationDialog(mMainWindow);
-    if (dialog->exec() == QDialog::Accepted)
-    {
-        mMainWindow->openFile(dialog->getSelectedSSGFile());
-    }
-    delete dialog;
+    mMainWindow->openSSGDialog(QObject::tr("Open other SCAP Content"));
 }
 
 void Application::browseForContent()

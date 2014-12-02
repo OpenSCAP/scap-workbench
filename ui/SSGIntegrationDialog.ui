@@ -65,9 +65,9 @@
        </spacer>
       </item>
       <item>
-       <widget class="QPushButton" name="openCustomContent">
+       <widget class="QPushButton" name="dismissButton">
         <property name="text">
-         <string>Open other SCAP content</string>
+         <string>Dismiss</string>
         </property>
        </widget>
       </item>

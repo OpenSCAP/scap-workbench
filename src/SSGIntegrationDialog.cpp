@@ -33,13 +33,18 @@ SSGIntegrationDialog::SSGIntegrationDialog(QWidget* parent):
     scrapeSSGVariants();
 
     QObject::connect(
-        mUI.openCustomContent, SIGNAL(released()),
+        mUI.dismissButton, SIGNAL(released()),
         this, SLOT(reject())
     );
 }
 
 SSGIntegrationDialog::~SSGIntegrationDialog()
 {}
+
+void SSGIntegrationDialog::setDismissLabel(const QString& label)
+{
+    mUI.dismissButton->setText(label);
+}
 
 const QString& SSGIntegrationDialog::getSelectedSSGFile() const
 {

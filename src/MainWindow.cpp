@@ -32,6 +32,7 @@
 #include "SaveAsRPMDialog.h"
 #include "RPMOpenHelper.h"
 #include "Utils.h"
+#include "SSGIntegrationDialog.h"
 
 #include <QFileDialog>
 #include <QAbstractEventDispatcher>
@@ -93,6 +94,10 @@ MainWindow::MainWindow(QWidget* parent):
     QObject::connect(
         mUI.actionOpen, SIGNAL(triggered()),
         this, SLOT(openFileDialog())
+    );
+    QObject::connect(
+        mUI.actionOpenSSG, SIGNAL(triggered()),
+        this, SLOT(openSSGDialog())
     );
     QObject::connect(
         mUI.checklistComboBox, SIGNAL(currentIndexChanged(int)),
@@ -338,6 +343,27 @@ void MainWindow::openFileDialog()
         if (!close())
             throw MainWindowException("Failed to close main window!");
     }
+}
+
+void MainWindow::openSSGDialog(const QString& customDismissLabel)
+{
+    if (!SSGIntegrationDialog::isSSGAvailable())
+        return;
+
+    // A diagnostic dialog might still be visible from previous failed openFile
+    // that was called because of file passed on the command line.
+    //
+    // Do not continue until user dismisses the diagnostics dialog.
+    mDiagnosticsDialog->waitUntilHidden();
+
+    SSGIntegrationDialog* dialog = new SSGIntegrationDialog(this);
+    if (!customDismissLabel.isEmpty())
+        dialog->setDismissLabel(customDismissLabel);
+
+    if (dialog->exec() == QDialog::Accepted)
+        openFile(dialog->getSelectedSSGFile());
+
+    delete dialog;
 }
 
 void MainWindow::openFileDialogAsync()

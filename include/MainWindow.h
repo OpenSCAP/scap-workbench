@@ -59,6 +59,8 @@ class MainWindow : public QMainWindow
          */
         void openFile(const QString& path);
 
+        void openSSGDialog(const QString& customDismissLabel = "");
+
         /**
          * @brief Opens a file dialog and makes user select a file or exit the app
          *
