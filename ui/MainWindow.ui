@@ -185,6 +185,16 @@
            <pointsize>12</pointsize>
           </font>
          </property>
+         <property name="styleSheet">
+          <string notr="true"> QTreeView::branch:has-siblings:!adjoins-item {
+         background: transparent;
+ }
+
+ QTreeView::branch:!has-children:!has-siblings:adjoins-item {
+         background: transparent;
+ }
+</string>
+         </property>
          <property name="alternatingRowColors">
           <bool>true</bool>
          </property>
