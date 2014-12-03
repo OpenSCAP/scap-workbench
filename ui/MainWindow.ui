@@ -198,6 +198,9 @@
          <property name="alternatingRowColors">
           <bool>false</bool>
          </property>
+         <property name="verticalScrollMode">
+          <enum>QAbstractItemView::ScrollPerPixel</enum>
+         </property>
          <property name="rootIsDecorated">
           <bool>true</bool>
          </property>
