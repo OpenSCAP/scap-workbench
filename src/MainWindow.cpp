@@ -988,9 +988,17 @@ void MainWindow::refreshSelectedRulesTree()
 
         QTreeWidgetItem* treeItem = new QTreeWidgetItem();
         treeItem->setText(0, oscapItemGetReadableTitle((struct xccdf_item *)rule, policy));
-        treeItem->setToolTip(0, oscapItemGetReadableDescription((struct xccdf_item *)rule, policy));
+
+        QTreeWidgetItem* descriptionItem = new QTreeWidgetItem();
+        descriptionItem->setFlags(Qt::ItemIsEnabled);
+        treeItem->addChild(descriptionItem);
 
         mUI.selectedRulesTree->addTopLevelItem(treeItem);
+
+        QLabel* descriptionWidget = new QLabel(oscapItemGetReadableDescription((struct xccdf_item *)rule, policy), mUI.selectedRulesTree);
+        descriptionWidget->setWordWrap(true);
+        descriptionWidget->setTextFormat(Qt::RichText);
+        mUI.selectedRulesTree->setItemWidget(descriptionItem, 0, descriptionWidget);
     }
 
     mUI.selectedRulesTree->setUpdatesEnabled(true);
