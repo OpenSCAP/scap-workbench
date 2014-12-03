@@ -196,7 +196,7 @@
 </string>
          </property>
          <property name="alternatingRowColors">
-          <bool>true</bool>
+          <bool>false</bool>
          </property>
          <property name="rootIsDecorated">
           <bool>true</bool>
