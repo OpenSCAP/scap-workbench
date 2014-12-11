@@ -151,8 +151,12 @@ void RuleResultsTree::clearResults()
 
 bool RuleResultsTree::hasRuleResult(const QString& ruleID) const
 {
-    // TODO
-    return false;
+    RuleIdToTreeItemMap::const_iterator it = mRuleIdToTreeItemMap.find(ruleID);
+    if (it == mRuleIdToTreeItemMap.end())
+        return false;
+
+    const QTreeWidgetItem* item = it->second;
+    return !item->text(1).isEmpty();
 }
 
 void RuleResultsTree::injectRuleResult(const QString& ruleID, const QString& result)
