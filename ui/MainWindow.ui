@@ -176,90 +176,13 @@
      </widget>
     </item>
     <item>
-     <widget class="QWidget" name="widget_2" native="true">
-      <layout class="QVBoxLayout" name="verticalLayout_2">
-       <item>
-        <widget class="QTreeWidget" name="selectedRulesTree">
-         <property name="font">
-          <font>
-           <pointsize>12</pointsize>
-          </font>
-         </property>
-         <property name="styleSheet">
-          <string notr="true"> QTreeView::branch:has-siblings:!adjoins-item {
-         background: transparent;
- }
-
- QTreeView::branch:!has-children:!has-siblings:adjoins-item {
-         background: transparent;
- }
-</string>
-         </property>
-         <property name="alternatingRowColors">
-          <bool>false</bool>
-         </property>
-         <property name="verticalScrollMode">
-          <enum>QAbstractItemView::ScrollPerPixel</enum>
-         </property>
-         <property name="rootIsDecorated">
-          <bool>true</bool>
-         </property>
-         <attribute name="headerDefaultSectionSize">
-          <number>150</number>
-         </attribute>
-         <attribute name="headerStretchLastSection">
-          <bool>false</bool>
-         </attribute>
-         <column>
-          <property name="text">
-           <string>Rule</string>
-          </property>
-         </column>
-         <column>
-          <property name="text">
-           <string>Result</string>
-          </property>
-         </column>
-        </widget>
-       </item>
-       <item>
-        <widget class="QTreeWidget" name="ruleResultsTree">
-         <property name="font">
-          <font>
-           <pointsize>12</pointsize>
-          </font>
-         </property>
-         <property name="alternatingRowColors">
-          <bool>true</bool>
-         </property>
-         <property name="rootIsDecorated">
-          <bool>false</bool>
-         </property>
-         <property name="uniformRowHeights">
-          <bool>true</bool>
-         </property>
-         <property name="sortingEnabled">
-          <bool>false</bool>
-         </property>
-         <attribute name="headerDefaultSectionSize">
-          <number>150</number>
-         </attribute>
-         <attribute name="headerStretchLastSection">
-          <bool>false</bool>
-         </attribute>
-         <column>
-          <property name="text">
-           <string>Rule</string>
-          </property>
-         </column>
-         <column>
-          <property name="text">
-           <string>Result</string>
-          </property>
-         </column>
-        </widget>
-       </item>
-      </layout>
+     <widget class="RuleResultsTree" name="ruleResultsTree" native="true">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
      </widget>
     </item>
     <item>
@@ -593,6 +516,12 @@
    <class>RemoteMachineComboBox</class>
    <extends>QWidget</extends>
    <header>RemoteMachineComboBox.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>RuleResultsTree</class>
+   <extends>QWidget</extends>
+   <header>RuleResultsTree.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

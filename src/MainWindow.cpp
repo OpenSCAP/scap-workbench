@@ -174,11 +174,6 @@ MainWindow::MainWindow(QWidget* parent):
         this, SLOT(aboutQt())
     );
 
-    mUI.ruleResultsTree->hide();
-    mUI.ruleResultsTree->header()->setResizeMode(0, QHeaderView::Stretch);
-    mUI.selectedRulesTree->show();
-    mUI.selectedRulesTree->header()->setResizeMode(0, QHeaderView::Stretch);
-
     // FIXME: This is hidden to avoid people trying to use it when it is still
     //        not supported in openscap.
     mUI.offlineRemediateButton->hide();
@@ -211,13 +206,9 @@ void MainWindow::clearResults()
     mUI.preScanTools->show();
     mUI.preScanTools->setEnabled(true);
 
-    mUI.ruleResultsTree->clear();
-    mUI.ruleResultsTree->setEnabled(false);
-
     mUI.resultViewer->clear();
-
-    mUI.ruleResultsTree->hide();
-    mUI.selectedRulesTree->show();
+    mUI.ruleResultsTree->clearResults();
+    mUI.ruleResultsTree->setEnabled(true);
 
     statusBar()->clearMessage();
 
@@ -399,7 +390,7 @@ void MainWindow::scanAsync(ScannerMode scannerMode)
 
     clearResults();
 
-    if (getSelectedRulesCount() == 0)
+    if (mUI.ruleResultsTree->getSelectedRulesCount() == 0)
     {
         if (QMessageBox::question(this, QObject::tr("Scan with no rules selected?"),
                 QObject::tr("Chosen profile does not have any rules selected. Are you sure you want to evaluate with no rules selected?"),
@@ -419,8 +410,7 @@ void MainWindow::scanAsync(ScannerMode scannerMode)
     mUI.menuSave->setEnabled(false);
     mUI.actionOpen->setEnabled(false);
 
-    mUI.selectedRulesTree->hide();
-    mUI.ruleResultsTree->show();
+    mUI.ruleResultsTree->prepareForScanning();
 
     struct xccdf_policy* policy = xccdf_session_get_xccdf_policy(mScanningSession->getXCCDFSession());
     if (!policy)
@@ -642,7 +632,7 @@ void MainWindow::notifyTailoringFinished(bool newProfile, bool changesConfirmed)
     }
 
     refreshProfiles();
-    refreshSelectedRulesTree();
+    mUI.ruleResultsTree->refreshSelectedRules(mScanningSession);
 
     if (changesConfirmed)
         markUnsavedTailoringChanges();
@@ -920,93 +910,8 @@ void MainWindow::profileComboboxChanged(int index)
         mDiagnosticsDialog->exceptionMessage(e, QObject::tr("Failed to select XCCDF profile."));
     }
 
-    refreshSelectedRulesTree();
+    mUI.ruleResultsTree->refreshSelectedRules(mScanningSession);
     clearResults();
-}
-
-/*
-Unfortunately, xccdf_policy won't let us see its "selected-final" hashmap.
-Instead we have to gather all rules and for each rule ID we check the policy.
-*/
-inline void gatherAllSelectedRules(struct xccdf_policy* policy, struct xccdf_item* current,
-    std::vector<struct xccdf_rule*>& result)
-{
-    if (xccdf_item_get_type(current) == XCCDF_RULE)
-    {
-        struct xccdf_rule* rule = xccdf_item_to_rule(current);
-        const bool selected = xccdf_policy_is_item_selected(policy, xccdf_rule_get_id(rule));
-
-        if (selected)
-            result.push_back(rule);
-    }
-    else if (xccdf_item_get_type(current) == XCCDF_BENCHMARK ||
-        xccdf_item_get_type(current) == XCCDF_GROUP)
-    {
-        struct xccdf_item_iterator* it = xccdf_item_get_content(current);
-        while (xccdf_item_iterator_has_more(it))
-        {
-            struct xccdf_item* item = xccdf_item_iterator_next(it);
-            gatherAllSelectedRules(policy, item, result);
-        }
-        xccdf_item_iterator_free(it);
-    }
-}
-
-void MainWindow::refreshSelectedRulesTree()
-{
-    mUI.selectedRulesTree->clear();
-
-    if (!fileOpened())
-        return;
-
-    struct xccdf_session* session = mScanningSession->getXCCDFSession();
-    struct xccdf_policy* policy = xccdf_session_get_xccdf_policy(session);
-
-    struct xccdf_benchmark* benchmark = 0;
-    try
-    {
-        benchmark = xccdf_policy_model_get_benchmark(xccdf_session_get_policy_model(mScanningSession->getXCCDFSession()));
-    }
-    catch (const std::exception& e)
-    {
-        // This is not a critical error, just quit
-        // FIXME: We should display some sort of an error indicator though to get bug reports!
-        return;
-    }
-
-    std::vector<struct xccdf_rule*> selectedRules;
-
-    gatherAllSelectedRules(policy, xccdf_benchmark_to_item(benchmark), selectedRules);
-
-    mUI.selectedRulesTree->setUpdatesEnabled(false);
-
-    // we filter through a set to avoid duplicates and get a sensible ordering
-    for (std::vector<struct xccdf_rule*>::const_iterator it = selectedRules.begin();
-         it != selectedRules.end(); ++it)
-    {
-        struct xccdf_rule* rule = *it;
-
-        QTreeWidgetItem* treeItem = new QTreeWidgetItem();
-        treeItem->setText(0, oscapItemGetReadableTitle((struct xccdf_item *)rule, policy));
-
-        QTreeWidgetItem* descriptionItem = new QTreeWidgetItem();
-        descriptionItem->setFlags(Qt::ItemIsEnabled);
-        treeItem->addChild(descriptionItem);
-
-        mUI.selectedRulesTree->addTopLevelItem(treeItem);
-
-        QLabel* descriptionWidget = new QLabel(oscapItemGetReadableDescription((struct xccdf_item *)rule, policy), mUI.selectedRulesTree);
-        descriptionWidget->setWordWrap(true);
-        descriptionWidget->setTextFormat(Qt::RichText);
-        mUI.selectedRulesTree->setItemWidget(descriptionItem, 0, descriptionWidget);
-    }
-
-    mUI.selectedRulesTree->setUpdatesEnabled(true);
-}
-
-unsigned int MainWindow::getSelectedRulesCount()
-{
-    return mUI.selectedRulesTree->topLevelItemCount();
 }
 
 void MainWindow::scanProgressReport(const QString& rule_id, const QString& result)
@@ -1022,137 +927,12 @@ void MainWindow::scanProgressReport(const QString& rule_id, const QString& resul
        optimistic!
     */
 
-    assert(fileOpened());
-
-    struct xccdf_benchmark* benchmark = 0;
-    struct xccdf_policy* policy = 0;
-    try
-    {
-        benchmark = xccdf_policy_model_get_benchmark(xccdf_session_get_policy_model(mScanningSession->getXCCDFSession()));
-        policy = xccdf_session_get_xccdf_policy(mScanningSession->getXCCDFSession());
-    }
-    catch (const std::exception& e)
-    {
-        scanErrorMessage(QObject::tr("Can't get benchmark or policy from scanning session, details follow:\n%1").arg(QString::fromUtf8(e.what())));
-
-        return;
-    }
-    if (!policy)
-        return;
-
-    struct xccdf_item* item = xccdf_benchmark_get_member(benchmark, XCCDF_ITEM, rule_id.toUtf8().constData());
-
-    if (!item)
-    {
-        scanWarningMessage(QString(
-            QObject::tr("Received scanning progress of rule of ID '%1'. "
-            "Rule with such ID hasn't been found in the benchmark!")).arg(rule_id));
-
-        return;
-    }
-
     // Guard ourselves against multi checks, only count each rule result once
     // for progress estimation.
-    if (mUI.ruleResultsTree->findItems(rule_id, Qt::MatchExactly, 0).empty())
+    if (!mUI.ruleResultsTree->hasRuleResult(rule_id))
         mUI.progressBar->setValue(mUI.progressBar->value() + 1);
 
-    const QString preferredTitle = oscapItemGetReadableTitle(item, policy);
-    const QString preferredDesc = oscapItemGetReadableDescription(item, policy);
-
-    QString resultTooltip;
-    QBrush resultBrush;
-    if (result == "processing")
-    {
-        resultBrush.setColor(Qt::darkYellow);
-        resultTooltip = QObject::tr("This rule is currently being processed.");
-    }
-    else if (result == "pass")
-    {
-        resultBrush.setColor(Qt::darkGreen);
-        resultTooltip = QObject::tr("The target system or system component satisfied all the conditions of this rule.");
-    }
-    else if (result == "fail")
-    {
-        resultBrush.setColor(Qt::red);
-        resultTooltip = QObject::tr("The target system or system component did not satisfy every condition of this rule.");
-    }
-    else if (result == "error")
-    {
-        resultBrush.setColor(Qt::red);
-        resultTooltip = QObject::tr("The checking engine could not complete the evaluation, therefore the status of the target's "
-                "compliance with the rule is not certain. This could happen, for example, if a testing "
-                "tool was run with insufficient privileges and could not gather all of the necessary information.");
-    }
-    else if (result == "unknown")
-    {
-        resultBrush.setColor(Qt::darkGray);
-        resultTooltip = QObject::tr("The testing tool encountered some problem and the result is unknown.");
-    }
-    else if (result == "notapplicable")
-    {
-        resultBrush.setColor(Qt::darkGray);
-        resultTooltip = QObject::tr("The rule was not applicable to the target machine of the test. For example, the "
-                "rule might have been specific to a different version of the target OS, or it might "
-                "have been a test against a platform feature that was not installed.");
-    }
-    else if (result == "notchecked")
-    {
-        resultBrush.setColor(Qt::darkGray);
-        resultTooltip = QObject::tr("The rule was not evaluated by the checking engine. There were no check elements "
-                "inside the rule or none of the check systems of the check elements were supported.");
-    }
-    else if (result == "notselected")
-    {
-        resultBrush.setColor(Qt::darkGray);
-        resultTooltip = QObject::tr("The rule was not selected in the benchmark.");
-    }
-    else if (result == "informational")
-    {
-        resultBrush.setColor(Qt::darkGray);
-        resultTooltip = QObject::tr("The rule was checked, but the output from the checking engine is simply "
-                "information for auditors or administrators; it is not a compliance category.");
-    }
-    else if (result == "fixed")
-    {
-        resultBrush.setColor(Qt::darkGreen);
-        resultTooltip = QObject::tr("The rule had failed, but was then fixed (most probably using remediation).");
-    }
-    else
-        resultBrush.setColor(Qt::darkGray);
-
-    QTreeWidgetItem* treeItem = 0;
-
-    QTreeWidgetItem* replacementCandidate = mUI.ruleResultsTree->topLevelItemCount() > 0 ? mUI.ruleResultsTree->topLevelItem(mUI.ruleResultsTree->topLevelItemCount() - 1) : 0;
-    if (replacementCandidate && replacementCandidate->text(0) == preferredTitle && replacementCandidate->text(1) == QObject::tr("processing"))
-        treeItem = replacementCandidate;
-
-    if (!treeItem)
-        treeItem = new QTreeWidgetItem();
-
-    treeItem->setText(0, preferredTitle);
-    treeItem->setToolTip(0, preferredDesc);
-    treeItem->setText(1, result);
-    treeItem->setToolTip(1, resultTooltip);
-
-    treeItem->setForeground(1, resultBrush);
-
-    // Highlight currently processed rule
-    QBrush backgroundBrush(Qt::NoBrush);
-    if (result == "processing")
-        backgroundBrush = QBrush(Qt::lightGray);
-    treeItem->setBackground(0, backgroundBrush);
-    treeItem->setBackground(1, backgroundBrush);
-
-    if (treeItem != replacementCandidate)
-    {
-        // TODO: This is causing a redraw and is a massive slowdown
-        //       Ideally we would group all items that we want added
-        //       and add them at once, causing only one redraw.
-        mUI.ruleResultsTree->addTopLevelItem(treeItem);
-    }
-
-    // ensure the updated item is visible
-    mUI.ruleResultsTree->scrollToItem(treeItem);
+    mUI.ruleResultsTree->injectRuleResult(rule_id, result);
 }
 
 void MainWindow::scanInfoMessage(const QString& message)

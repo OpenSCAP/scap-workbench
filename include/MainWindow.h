@@ -230,16 +230,6 @@ class MainWindow : public QMainWindow
         /// Profile change, we simply change the profile id in the session
         void profileComboboxChanged(int index);
 
-    public slots:
-        /**
-         * @brief Refreshes the selected rules tree according to current profile
-         *
-         * Selected rules tree is just an estimate and may not match the rules
-         * that will be later evaluated by oscap. Only oscap is authoritative
-         * in which rules are evaluated!
-         */
-        void refreshSelectedRulesTree();
-
     private:
         /**
          * @brief Retrieves number of currently selected rules
