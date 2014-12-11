@@ -22,6 +22,7 @@
 #include "RuleResultsTree.h"
 #include "ScanningSession.h"
 #include "APIHelpers.h"
+#include "Exceptions.h"
 
 #include <QLabel>
 
@@ -229,10 +230,11 @@ void RuleResultsTree::injectRuleResult(const QString& ruleID, const QString& res
 
     QTreeWidgetItem* treeItem = mRuleIdToTreeItemMap[ruleID];
     if (!treeItem)
-    {
-        // TODO: warning
-        return;
-    }
+        throw RuleResultsTreeException(
+            QString("Could not find rule of ID '%1'. Result of this rule was '%2' but it can't be reported! "
+                    "This could be a difference between remote and local openscap versions or a bug in "
+                    "workbench.").arg(ruleID, result)
+        );
 
     treeItem->setText(1, result);
     treeItem->setToolTip(1, resultTooltip);

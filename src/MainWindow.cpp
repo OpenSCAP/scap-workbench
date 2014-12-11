@@ -932,7 +932,14 @@ void MainWindow::scanProgressReport(const QString& rule_id, const QString& resul
     if (!mUI.ruleResultsTree->hasRuleResult(rule_id))
         mUI.progressBar->setValue(mUI.progressBar->value() + 1);
 
-    mUI.ruleResultsTree->injectRuleResult(rule_id, result);
+    try
+    {
+        mUI.ruleResultsTree->injectRuleResult(rule_id, result);
+    }
+    catch (const RuleResultsTreeException& e)
+    {
+        scanWarningMessage(e.what());
+    }
 }
 
 void MainWindow::scanInfoMessage(const QString& message)
