@@ -27,28 +27,74 @@
 
 #include "ui_RuleResultsTree.h"
 
+/**
+ * @brief GUI element that shows both currently selected rules and their results
+ *
+ * At first glance it might seem odd that a single widget has these two responsibilities,
+ * but from a UX standapoint it makes sense. It allows for useful features - users can
+ * browse descriptions while scan is underway. The state of expanded/collapsed descriptions
+ * is persisted even after scan finishes.
+ */
 class RuleResultsTree : public QWidget
 {
     Q_OBJECT
 
     public:
-        explicit RuleResultsTree(QWidget *parent = 0);
+        explicit RuleResultsTree(QWidget* parent = 0);
         virtual ~RuleResultsTree();
 
+        /**
+         * @brief Sets the state of the tree to be consistent with rules selected
+         *
+         * @param scanningSession Session from which we will determine which rules are selected
+         */
         void refreshSelectedRules(ScanningSession* scanningSession);
+
+        /**
+         * @brief How many rules does RuleResultTree think are selected?
+         *
+         * Current implementation returns the amount of top-level items in the tree widget.
+         */
         unsigned int getSelectedRulesCount();
 
+        /**
+         * @brief If any results are recorded for any rules, this method purges them - sets them to ""
+         */
         void clearResults();
 
+        /**
+         * @brief Do we have a record of a valid result for given ruleID
+         *
+         * Valid result means something other than empty. Even "fail" rules are valid results
+         * in this context!
+         */
         bool hasRuleResult(const QString& ruleID) const;
+
+        /**
+         * @brief Records given result for given rule ID
+         *
+         * This is called from the MainWindow as results are gathered for more and more rules.
+         *
+         * @note
+         * Passing "" as result clears the previous result, hasRuleResult(ruleID) will return
+         * false after you inject "" result.
+         *
+         * @see RuleResultTree::clearResults
+         */
         void injectRuleResult(const QString& ruleID, const QString& result);
 
+        /**
+         * Reserved method to prepare RuleResultsTree for scanning.
+         *
+         * This may do something useful or fancy in the future. Right now it does nothing.
+         */
         void prepareForScanning();
 
     private:
         Ui_RuleResultsTree mUI;
 
         typedef std::map<QString, QTreeWidgetItem*> RuleIdToTreeItemMap;
+        /// A map to get tree widget items for given rule IDs, refreshSelectedRules changes this
         RuleIdToTreeItemMap mRuleIdToTreeItemMap;
 };
 
