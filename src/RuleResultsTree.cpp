@@ -112,7 +112,7 @@ void RuleResultsTree::refreshSelectedRules(ScanningSession* scanningSession)
         const QString ruleID = QString::fromUtf8(xccdf_rule_get_id(rule));
 
         QTreeWidgetItem* treeItem = new QTreeWidgetItem();
-        treeItem->setText(0, oscapItemGetReadableTitle((struct xccdf_item *)rule, policy));
+        treeItem->setText(0, oscapItemGetReadableTitle(xccdf_rule_to_item(rule), policy));
 
         QTreeWidgetItem* descriptionItem = new QTreeWidgetItem();
         descriptionItem->setFlags(Qt::ItemIsEnabled);
@@ -121,7 +121,7 @@ void RuleResultsTree::refreshSelectedRules(ScanningSession* scanningSession)
         mUI.ruleTree->addTopLevelItem(treeItem);
         mRuleIdToTreeItemMap[ruleID] = treeItem;
 
-        QLabel* descriptionWidget = new QLabel(oscapItemGetReadableDescription((struct xccdf_item *)rule, policy), mUI.ruleTree);
+        QLabel* descriptionWidget = new QLabel(oscapItemGetReadableDescription(xccdf_rule_to_item(rule), policy), mUI.ruleTree);
         descriptionWidget->setWordWrap(true);
         descriptionWidget->setTextFormat(Qt::RichText);
         mUI.ruleTree->setItemWidget(descriptionItem, 0, descriptionWidget);
