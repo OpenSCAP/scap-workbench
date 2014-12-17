@@ -17,7 +17,7 @@ image::intro_screenshot.png[align="center"]
  * Source DataStream 1.2 support
  * XCCDF 1.2 Tailoring file support
  * Evaluation of local machine
- * Evaluation of remote machine (using ssh)
+ * Evaluation of remote machine (using SSH)
  * Limited tailoring support - selection and unselection
  * Saving results as XCCDF 1.1 or 1.2 (depending on input) or ARF 1.1
  * Loading content bundle from RPM
@@ -187,26 +187,26 @@ to avoid confusion. As a contrast, 'default profile' means the profile
 selected by default.
 ****
 
-Every SCAP content will have at least one profile - the *(default)* profile
+All SCAP content has at least one profile - the *(default)* profile
 which is an empty profile that does not change selection of any rules and
 does not affect values passed to any of the checks. Only rules with the
-selection attribute equal to "true" and all their ancestor Group selection
+selection attribute equal to "true" and all their ancestor xccdf:Group selection
 attribute also being "true" are evaluated in a *(default)* profile.
 
-It depends on the content but the *(default)* profile is very unlikely
+It depends on the content, but the *(default)* profile is unlikely to be
 the choice you want. scap-workbench will only choose it implicitly if there
 are no other profiles. The first profile that is not the *(default)* profile
 will be chosen.
 
 Use the *Profile* combobox to change which profile will be used for subsequent
-evaluation. When scap-workbench is not evaluating it previews selected rules
-of current profile. This list will refresh every time you customize a profile
+evaluation. When scap-workbench is not evaluating, it previews selected rules
+of the current profile. This list will refresh every time you customize a profile
 or select a different one.
 
 === Customize the Selected Profile (optional)
 
-After you have selected the profile suitable for your desired evaluation you
-still may want to make slight alterations to it. Most commonly it would be
+After you have selected the profile suitable for your desired evaluation, you
+still may want to make slight alterations to it. Most commonly, it would be
 unselecting that one undesirable rule that makes no sense on this particular
 machine.
 
@@ -223,7 +223,7 @@ image::customizing_ssg_profile.png[align="center"]
 A new modal window will be shown, you cannot interact with the rest of the
 application until you either confirm or discard your customization changes.
 
-In our example case we do not care about minimum and maximum age for passwords
+In the example case, we do not care about minimum and maximum age for passwords
 and do not want the rules failing for our configuration. Let us expand the
 tree until we find the offending rules and unselect them both.
 
@@ -253,9 +253,8 @@ following example, where we set minimum password length to 14.
 image::tailoring_set_value.png[align="center"]
 
 After desired customization changes are done, click *Confirm changes* to get back
-to the previous GUI. In case you want to undo all changes to the profile, click
-*Discard changes*. If you want to delete the profile you created by customizing
-click *Delete profile*.
+to the previous GUI. To undo all of the changes to the profile, click
+*Discard*. If you want to delete the profile from tailoring, click *Delete profile*.
 
 All of these options will close the customization window.
 
@@ -264,7 +263,7 @@ All of these options will close the customization window.
 ==== Save just the customization file
 
 Click *File -> Save Customization Only* and choose the destination file. Workbench
-will save just customization which you can use with the content you opened.
+saves just the customization which you can use with the content you opened.
 
 ****
 If XCCDF version of the content is lower than 1.2 footnote:[Tailoring is not officially
@@ -277,7 +276,7 @@ will work in openscap powered tools but may not work in tools from other vendors
 ==== Save all content into a directory
 
 Select *File -> Save All* and choose *Into a directory*. After selecting the destination
-directory scap-workbench will export both input content and a tailoring file there.
+directory scap-workbench exports both input content and a tailoring file there.
 
 ==== Save as RPM
 
@@ -285,15 +284,15 @@ Select *File -> Save All* and choose *As RPM*. A dialog will pop-up asking for d
 the RPM that will be generated. Choose the desired name of the package and leave the other
 fields at their default settings and confirm the dialog.
 
-Another dialog will pop-up, this time asking for destination directory where scap-workbench
-will create the RPM in.
+Another dialog opens, this time asking for destination directory where scap-workbench
+will create the RPM.
 
 [[img-tailoring-dialog-opened]]
 .Saving Fedora scap-security-guide content as RPM
 image::save_as_rpm_dialog.png[align="center"]
 
 ****
-The resulting RPM will contain both input content and tailoring file. It will not contain
+The resulting RPM contains both the input content and the tailoring file. It will not contain
 any evaluation result files (HTML report, ARF, XCCDF results).
 ****
 
@@ -308,24 +307,24 @@ Then execute:
 
 $ rpm --addsign my-content-1.1.noarch.rpm
 
-The resulting package will be signed and ready to use provided that your desired
+The resulting package is signed and ready to use, provided that your desired
 system management tool accepts the key you used.
 ****
 
 === Choose the Target Machine
 
-scap-workbench will scan *local machine* by default. However you can also
-scan remote machines using ssh.
+scap-workbench will scan *local machine* by default. However, you can also
+scan remote machines using SSH.
 
 To scan a remote machine, select *remote machine (over ssh)* in the *Target*
 combobox. A pair of input boxes will appear. Input the desired username and
 hostname and select the port. Username and hostname should be put into the
 first editbox in the format commonly accepted by ssh - *username@hostname*.
-Make sure the machine is reachable, selected user can login over ssh and has
-enough privileges to evaluate the machine.
+Make sure the machine is reachable, the selected user can log in over SSH, and has
+sufficient privileges to evaluate the machine.
 
 ****
-The target machine has to have the *oscap* tool of version 0.8.0 or greater
+The target machine must have the *oscap* tool of version 0.8.0 or greater
 installed and in $PATH!
 
 You can achieve that by installing *openscap-scanner* on the target machine.
@@ -345,7 +344,7 @@ image::scanning_remote_machine.png[align="center"]
 
 ****
 Remediation is an automatic attempt to change configuration of the scanned
-machine in a way that fixes a failed rule result. By fixing we mean changing
+machine in a way that fixes a failed rule result. By fixing, we mean changing
 configuration, ensuring that the rule would pass in the new configuration.
 
 The success of automatic remediation greatly depends on content quality and
@@ -361,11 +360,11 @@ The rules that were remedied will show up as *fixed* in the rule result list.
 === Evaluate
 
 Everything is set up we can now start the evaluation. Click the *Scan*
-button to proceed. If you selected a remote machine target ssh may ask you
+button to proceed. If you selected a remote machine target, SSH may ask you
 for a password at this point.
 
 ****
-scap-workbench never processes your ssh password in any way. Instead an ssh
+scap-workbench never processes your SSH password in any way. Instead an ssh
 process is spawned which itself spawns the ssh-askpass program which asks
 for the password.
 ****
@@ -375,10 +374,10 @@ that allows you to authenticate and scan the machine with superuser rights.
 You can click *Cancel* if you wish to scan using your current permissions.
 
 ****
-If pkexec is not available or no policykit agent is running the privilege
-escalation dialog will not be shown and scap-workbench will scan using
-your current permission. If you need superuser permissions you can start
-scap-workbench using sudo or as root as a workaround.
+If pkexec is not available or no policykit agent is running, the privilege
+escalation dialog is not shown and scap-workbench will scan using
+your current permissions. If you need superuser permissions, you can start
+scap-workbench using sudo or as root.
 
  $ sudo scap-workbench
 ****
@@ -386,8 +385,8 @@ scap-workbench using sudo or as root as a workaround.
 The application now starts the *oscap* tool and waits for it to finish,
 reporting partial results along the way in the rule result list. Keep in mind
 that the tool cannot guess how long processing of any particular rule will
-take. Only the amount of rules that have been processed and the amount that
-is remaining are used to estimate progress. Please be patient and wait for
+take. Only the number of rules that have been processed and the number that
+remain are used to estimate progress. Please be patient and wait for
 oscap to finish evaluation.
 
 ****
@@ -396,13 +395,13 @@ will only give you partial results in the evaluation progress list, you cannot
 get HTML report, XCCDF results or ARF if you cancel evaluation!
 ****
 
-After you press the *Scan* button all the previous options will be disabled
+After you press the *Scan* button, all the previous options will be disabled
 and greyed-out. You cannot change them until you press the *Clear* button
 which will clear all results.
 
 === View and Analyze Results
 
-After evaluation finishes you should see three new buttons - *Clear*, *Save Results* and *Show Report*.
+After evaluation finishes, you should see three new buttons: *Clear*, *Save Results* and *Show Report*.
 
 ****
 Pressing Clear will *permanently* destroy scan results! This action cannot
@@ -434,16 +433,18 @@ ARF:: Also called result datastream. Packs input content, asset information
 and results into a single machine readable file, not suitable for manual processing.
 Requires a special tool that can parse the format.
 
-If you are unsure which format to choose for result archiving you can choose
-*XCCDF Result*. It is commonly supported and you can easily generate
-an HTML report from it using the *oscap* tool.
+If you are unsure which format to choose for archiving results, *XCCDF Result*
+is commonly supported and HTML reports can be generated from it with
+the *oscap* tool.
 
 ****
-The ARF file is the only format that contains everything the evaluation is generated.
-On top of XCCDF results it contains OVAL results, SCE results (if any),
-asset identification data, ... If you want to keep all generated data choose ARF.
+The ARF file is the only format that contains everything the evaluation has generated.
+On top of XCCDF results, it contains OVAL results, SCE results (if any),
+asset identification data. If you want to keep all of the generated data, choose ARF
+when archiving.
 
-ARF is however not as commonly supported by SCAP toolchains as are XCCDF result files.
+However, ARF files are not as well supported by SCAP toolchains as XCCDF result files are.
+XCCDF result files can be generated from ARF files, this operation is called *ARF splitting*.
 ****
 
 == Notable shortcuts
