@@ -488,7 +488,9 @@ void MainWindow::scanAsync(ScannerMode scannerMode)
         mScanner, SLOT(evaluateExceptionGuard())
     );
 
-    mUI.remoteMachineDetails->notifyTargetUsed(mScanner->getTarget());
+    if (target != "localhost")
+        mUI.remoteMachineDetails->notifyTargetUsed(mScanner->getTarget());
+
     mScanThread->start();
 }
 
