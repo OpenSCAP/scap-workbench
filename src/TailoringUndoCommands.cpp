@@ -145,10 +145,14 @@ void XCCDFItemSelectUndoCommand::undo()
 void XCCDFItemSelectUndoCommand::refreshText()
 {
     struct xccdf_item* xccdfItem = TailoringWindow::getXccdfItemFromTreeItem(mTreeItem);
+    QString title = mWindow->getXCCDFItemTitle(xccdfItem);
+    if (title.isEmpty())
+        title = QString::fromUtf8(xccdf_item_get_id(xccdfItem));
+
     if (mNewSelect)
-        setText(QObject::tr("select \"%1\"").arg(QString::fromUtf8(xccdf_item_get_id(xccdfItem))));
+        setText(QObject::tr("select \"%1\"").arg(title));
     else
-        setText(QObject::tr("unselect \"%1\"").arg(QString::fromUtf8(xccdf_item_get_id(xccdfItem))));
+        setText(QObject::tr("unselect \"%1\"").arg(title));
 }
 
 XCCDFValueChangeUndoCommand::XCCDFValueChangeUndoCommand(TailoringWindow* window, struct xccdf_value* xccdfValue, const QString& newValue, const QString& oldValue):
