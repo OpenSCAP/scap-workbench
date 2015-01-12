@@ -247,7 +247,7 @@
                 </font>
                </property>
                <property name="toolTip">
-                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Attempt to automatically correct issues found by the scan.&lt;/p&gt;&lt;p&gt;Note: Automated remediation may impact system functionality.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Attempts to automatically correct issues identified by the scan.&lt;/p&gt;&lt;p&gt;Note: Automated remediation may impact system functionality.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                </property>
                <property name="text">
                 <string>Remediate</string>
