@@ -123,6 +123,13 @@ class MainWindow : public QMainWindow
          */
         void cancelScanAsync();
 
+        /**
+         * @brief calls setEnable(true)
+         *
+         * @internal Required because of signal slot mechanism binding in TailoringWindow
+         */
+        void enable();
+
     protected:
         /// reimplemented to make sure we cancel any scanning before closing the window
         virtual void closeEvent(QCloseEvent* event);

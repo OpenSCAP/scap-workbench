@@ -33,6 +33,7 @@
 #include <QCloseEvent>
 #include <QDesktopWidget>
 #include <QUndoView>
+#include <QTimer>
 
 #include <algorithm>
 #include <cassert>
@@ -81,7 +82,7 @@ void _refreshXCCDFItemChildrenDisabledState(QTreeWidgetItem* treeItem, bool allA
 }
 
 TailoringWindow::TailoringWindow(struct xccdf_policy* policy, struct xccdf_benchmark* benchmark, bool newProfile, MainWindow* parent):
-    QMainWindow(parent),
+    QMainWindow(),
 
     mParentMainWindow(parent),
     mQSettings(new QSettings(this)),
@@ -679,6 +680,9 @@ void TailoringWindow::closeEvent(QCloseEvent * event)
     if (mParentMainWindow)
     {
         mParentMainWindow->notifyTailoringFinished(mNewProfile, mChangesConfirmed);
+        // calling the slot forces Qt to call it when it enters the MainWindow event loop
+        // the time delay doesn't really matter
+        QTimer::singleShot(0, mParentMainWindow, SLOT(enable()));
     }
 }
 

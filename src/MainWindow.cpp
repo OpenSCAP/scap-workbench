@@ -532,6 +532,11 @@ void MainWindow::cancelScanAsync()
     emit cancelScan();
 }
 
+void MainWindow::enable()
+{
+    setEnabled(true);
+}
+
 void MainWindow::closeEvent(QCloseEvent* event)
 {
     if (mScanThread)
@@ -1091,7 +1096,9 @@ TailoringWindow* MainWindow::editProfile(bool newProfile)
     struct xccdf_policy_model* policyModel = xccdf_session_get_policy_model(session);
     struct xccdf_benchmark* benchmark = xccdf_policy_model_get_benchmark(policyModel);
 
-    return new TailoringWindow(policy, benchmark, newProfile, this);
+    TailoringWindow* ret = new TailoringWindow(policy, benchmark, newProfile, this);
+    setEnabled(false);
+    return ret;
 }
 
 void MainWindow::customizeProfile()

@@ -163,10 +163,11 @@ class TailoringWindow : public QMainWindow
         void confirmAndClose();
         void deleteProfileAndDiscard();
 
-    private:
+    protected:
         /// Reimplemented to refresh profiles and selected rules in the parent main window
-        virtual void closeEvent(QCloseEvent * event);
+        virtual void closeEvent(QCloseEvent* event);
 
+    private:
         QString getQSettingsKey() const;
         void deserializeCollapsedItems();
         void serializeCollapsedItems();
