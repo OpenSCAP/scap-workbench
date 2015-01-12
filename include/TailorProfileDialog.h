@@ -37,9 +37,14 @@ class TailorProfileDialog : public QDialog
 
         QString getProfileID() const;
 
+        static bool isProfileIDValid(const QString& id, bool xccdf12);
+
     private:
         /// UI designed in Qt Designer
         Ui_TailorProfileDialog mUI;
+
+        static const QString XCCDF11ProfileIDRegExp;
+        static const QString XCCDF12ProfileIDRegExp;
 };
 
 #endif

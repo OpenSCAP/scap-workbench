@@ -513,7 +513,9 @@ void MainWindow::scanAsync(ScannerMode scannerMode)
         mScanner, SLOT(evaluateExceptionGuard())
     );
 
-    mUI.remoteMachineDetails->notifyTargetUsed(mScanner->getTarget());
+    if (target != "localhost")
+        mUI.remoteMachineDetails->notifyTargetUsed(mScanner->getTarget());
+
     mScanThread->start();
 }
 
@@ -1020,6 +1022,16 @@ void MainWindow::inheritAndEditProfile(bool shadowed)
         TailorProfileDialog dialog(newIdBase, xccdf12, this);
         if (dialog.exec() == QDialog::Rejected)
             return;
+
+        if (!dialog.isProfileIDValid(dialog.getProfileID(), xccdf12))
+        {
+            // this branch will not be triggered unless user tries to circumvent the lineedit validation
+            QMessageBox::warning(this,
+                 QObject::tr("Invalid profile ID"),
+                 QObject::tr("Cannot create XCCDF profile with an invalid ID '%1'.").arg(dialog.getProfileID())
+            );
+            return;
+        }
 
         newProfile = mScanningSession->tailorCurrentProfile(shadowed, dialog.getProfileID());
     }

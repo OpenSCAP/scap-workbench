@@ -21,22 +21,30 @@
 
 #include "TailorProfileDialog.h"
 
+const QString TailorProfileDialog::XCCDF11ProfileIDRegExp("[a-zA-Z0-9\\-_.]+");
+
+// Regex from XCCDF 1.2 official XSD "xccdf_[^_]+_profile_.+"
+// is unfortunately too permissive.
+//
+// The spec calls for xccdf_N_profile_S where N is reverse DNS-style address
+// and S is NCName.
+//
+// We are more strict than the spec but it keeps the regex simple and the
+// restrictions imposed aren't severe.
+
+const QString TailorProfileDialog::XCCDF12ProfileIDRegExp("xccdf_[a-zA-Z0-9\\-.]+_profile_[a-zA-Z0-9\\-_.]+");
+
 TailorProfileDialog::TailorProfileDialog(const QString& startId, bool xccdf12, QWidget* parent):
     QDialog(parent)
 {
     mUI.setupUi(this);
     mUI.idLineEdit->setText(startId);
 
-    if (xccdf12)
-    {
-        // regex taken from XCCDF 1.2 official XSD
-        mUI.idLineEdit->setValidator(
-            new QRegExpValidator(QRegExp("xccdf_[^_]+_profile_.+"), mUI.idLineEdit));
+    mUI.idLineEdit->setValidator(
+        new QRegExpValidator(QRegExp(xccdf12 ? XCCDF12ProfileIDRegExp : XCCDF11ProfileIDRegExp), mUI.idLineEdit)
+    );
 
-        // TODO: This is definitely not ideal, people can still input invalid text
-        // if they really try hard
-    }
-
+    mUI.xccdf11Warning->setVisible(!xccdf12);
     mUI.xccdf12Warning->setVisible(xccdf12);
 }
 
@@ -46,4 +54,9 @@ TailorProfileDialog::~TailorProfileDialog()
 QString TailorProfileDialog::getProfileID() const
 {
     return mUI.idLineEdit->text();
+}
+
+bool TailorProfileDialog::isProfileIDValid(const QString& id, bool xccdf12)
+{
+    return QRegExp(xccdf12 ? XCCDF12ProfileIDRegExp : XCCDF11ProfileIDRegExp).exactMatch(id);
 }

@@ -73,6 +73,14 @@ unsigned int RemoteMachineComboBox::getRecentMachineCount() const
 
 void RemoteMachineComboBox::notifyTargetUsed(const QString& target)
 {
+    QString host;
+    short port;
+    OscapScannerRemoteSsh::splitTarget(target, host, port);
+
+    // skip invalid suggestions
+    if (host.isEmpty() || port == 0)
+        return;
+
     const unsigned int machineCount = getRecentMachineCount();
 
     // this moves target to the beginning of the list of it was in the list already

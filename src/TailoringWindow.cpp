@@ -655,7 +655,7 @@ void TailoringWindow::closeEvent(QCloseEvent * event)
     if (!mChangesConfirmed)
     {
         if (QMessageBox::question(this, QObject::tr("Discard changes?"),
-            QObject::tr("Are you sure you want to discard all changes performed in this tailoring window."),
+            QObject::tr("Are you sure you want to discard all changes performed in this tailoring window?"),
             QMessageBox::Yes | QMessageBox::No, QMessageBox::No) == QMessageBox::No)
         {
             event->ignore();
