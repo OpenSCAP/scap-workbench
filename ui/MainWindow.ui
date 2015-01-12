@@ -27,7 +27,7 @@
        <item row="6" column="2">
         <widget class="QPushButton" name="customizeProfileButton">
          <property name="toolTip">
-          <string>Creates a new profile that inherits selected profile, opens a window to edit the newly created profile.</string>
+          <string>Duplicates the current profile, and opens a window to customize it.</string>
          </property>
          <property name="text">
           <string>Customize</string>
