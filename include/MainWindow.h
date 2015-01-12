@@ -307,6 +307,8 @@ class MainWindow : public QMainWindow
          */
         void scanEnded(bool canceled);
 
+        void openCustomizationFile();
+
         void inheritAndEditProfile(bool shadowed);
         TailoringWindow* editProfile(bool newProfile);
 

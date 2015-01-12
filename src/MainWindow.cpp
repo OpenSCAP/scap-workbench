@@ -100,6 +100,10 @@ MainWindow::MainWindow(QWidget* parent):
         this, SLOT(openSSGDialog())
     );
     QObject::connect(
+        mUI.actionOpenCustomizationFile, SIGNAL(triggered()),
+        this, SLOT(openCustomizationFile())
+    );
+    QObject::connect(
         mUI.checklistComboBox, SIGNAL(currentIndexChanged(int)),
         this, SLOT(checklistComboboxChanged(int))
     );
@@ -1005,6 +1009,15 @@ void MainWindow::scanEnded(bool canceled)
     mUI.actionOpen->setEnabled(true);
 
     cleanupScanThread();
+}
+
+void MainWindow::openCustomizationFile()
+{
+    int idx = mUI.tailoringFileComboBox->findText(TAILORING_CUSTOM_FILE);
+    if (idx == -1)
+        return;
+
+    mUI.tailoringFileComboBox->setCurrentIndex(idx);
 }
 
 void MainWindow::inheritAndEditProfile(bool shadowed)
