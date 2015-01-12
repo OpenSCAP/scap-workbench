@@ -247,10 +247,10 @@
                 </font>
                </property>
                <property name="toolTip">
-                <string>Checking this enables online remediation of failed checks. Online in the sense of being done as part of the evaluation.</string>
+                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Attempt to automatically correct issues found by the scan.&lt;/p&gt;&lt;p&gt;Note: Automated remediation may impact system functionality.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                </property>
                <property name="text">
-                <string>Online Remediation</string>
+                <string>Remediate</string>
                </property>
               </widget>
              </item>

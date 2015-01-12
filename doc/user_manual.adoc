@@ -351,11 +351,11 @@ The success of automatic remediation greatly depends on content quality and
 could result in broken machines if not used carefully!
 ****
 
-The *Online Remediation* checkbox will do remediation as part of the evaluation
+The *Remediate* checkbox will do remediation as part of the evaluation
 itself. After evaluation is done, *oscap* will go over failed rules and attempt
-to remedy each of them.
+to remediate each of them.
 
-The rules that were remedied will show up as *fixed* in the rule result list.
+The rules that were remediated will show up as *fixed* in the rule result list.
 
 === Evaluate
 
