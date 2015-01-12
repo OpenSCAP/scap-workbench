@@ -316,7 +316,7 @@ system management tool accepts the key you used.
 scap-workbench will scan *local machine* by default. However, you can also
 scan remote machines using SSH.
 
-To scan a remote machine, select *remote machine (over ssh)* in the *Target*
+To scan a remote machine, select *Remote Machine (over SSH)* in the *Target*
 combobox. A pair of input boxes will appear. Input the desired username and
 hostname and select the port. Username and hostname should be put into the
 first editbox in the format commonly accepted by ssh - *username@hostname*.

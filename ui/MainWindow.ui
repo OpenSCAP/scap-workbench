@@ -52,7 +52,7 @@
              <item>
               <widget class="QRadioButton" name="localMachineRadioButton">
                <property name="text">
-                <string>local machine</string>
+                <string>Local Machine</string>
                </property>
                <property name="checked">
                 <bool>true</bool>
@@ -62,7 +62,7 @@
              <item>
               <widget class="QRadioButton" name="remoteMachineRadioButton">
                <property name="text">
-                <string>remote machine (over ssh)</string>
+                <string>Remote Machine (over SSH)</string>
                </property>
               </widget>
              </item>
