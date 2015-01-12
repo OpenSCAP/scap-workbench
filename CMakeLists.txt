@@ -10,6 +10,7 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/")
 include(GNUInstallDirs)
 
 find_package(Qt4 REQUIRED QtCore QtGui QtXmlPatterns)
+include(${QT_USE_FILE})
 
 # This conditional is here to avoid checking openscap version if user supplies
 # custom openscap parameters.
@@ -49,13 +50,11 @@ file(GLOB scap_workbench_SOURCES "${CMAKE_SOURCE_DIR}/src/*.cpp")
 
 set(SCAP_WORKBENCH_INCLUDE_DIRS
     ${CMAKE_CURRENT_SOURCE_DIR}/include ${CMAKE_CURRENT_BINARY_DIR}
-    ${QT_QTCORE_INCLUDE_DIR} ${QT_QTGUI_INCLUDE_DIR} ${QT_QTXMLPATTERNS_INCLUDE_DIR}
+    # Qt4 is handled by ${QT_USE_FILE} above
     ${OPENSCAP_INCLUDE_DIRS})
 
 set(SCAP_WORKBENCH_LINK_LIBRARIES
-    ${QT_QTCORE_LIBRARY}
-    ${QT_QTGUI_LIBRARY}
-    ${QT_QTXMLPATTERNS_LIBRARY}
+    ${QT_LIBRARIES}
     ${OPENSCAP_LIBRARIES})
 
 configure_file("include/Config.h.in" "${CMAKE_CURRENT_BINARY_DIR}/Config.h")
