@@ -202,5 +202,9 @@ void XCCDFValueChangeUndoCommand::undo()
 
 void XCCDFValueChangeUndoCommand::refreshText()
 {
-    setText(QObject::tr("set value '%1' to '%2'").arg(xccdf_value_get_id(mXccdfValue)).arg(mNewValue));
+    QString title = mWindow->getXCCDFItemTitle(xccdf_value_to_item(mXccdfValue));
+    if (title.isEmpty())
+        title = QString::fromUtf8(xccdf_value_get_id(mXccdfValue));
+
+    setText(QObject::tr("set value '%1' to '%2'").arg(title, mNewValue));
 }
