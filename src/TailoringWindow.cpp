@@ -240,7 +240,6 @@ TailoringWindow::TailoringWindow(struct xccdf_policy* policy, struct xccdf_bench
     );
 
     mSearchBox->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Preferred);
-    mUI.toolBar->addSeparator();
     mUI.toolBar->addWidget(mSearchBox);
 
     mSearchButton->setShortcut(QKeySequence::FindNext);
