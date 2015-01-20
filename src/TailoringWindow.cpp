@@ -86,7 +86,7 @@ TailoringWindow::TailoringWindow(struct xccdf_policy* policy, struct xccdf_bench
     QMainWindow(),
 
     mParentMainWindow(parent),
-    mQSettings(new QSettings(this)),
+    mQSettings(parent->getQSettings()),
 
     mSynchronizeItemLock(0),
 

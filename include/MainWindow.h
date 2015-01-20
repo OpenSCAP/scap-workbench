@@ -48,6 +48,11 @@ class MainWindow : public QMainWindow
         explicit MainWindow(QWidget* parent = 0);
         virtual ~MainWindow();
 
+        inline QSettings* getQSettings()
+        {
+            return mQSettings;
+        }
+
     public slots:
         /**
          * @brief Clears everything produced during the scan
@@ -183,6 +188,9 @@ class MainWindow : public QMainWindow
 
         /// UI designed in Qt Designer
         Ui_MainWindow mUI;
+
+        /// QSettings for scap-workbench
+        QSettings* mQSettings;
 
         /// Qt Dialog that displays messages (errors, warnings, info)
         /// Gets shown whenever a warning or error is emitted

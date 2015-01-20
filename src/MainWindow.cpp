@@ -67,6 +67,8 @@ const QVariant TAILORING_NO_LOADED_FILE_DATA = "&*&()@#$(no loaded file)";
 MainWindow::MainWindow(QWidget* parent):
     QMainWindow(parent),
 
+    mQSettings(new QSettings(this)),
+
     mDiagnosticsDialog(0),
 
     mRPMOpenHelper(0),
