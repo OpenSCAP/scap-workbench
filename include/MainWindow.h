@@ -339,6 +339,11 @@ class MainWindow : public QMainWindow
         void markLoadedTailoringFile(const QString& filePath);
         bool unsavedTailoringChanges() const;
 
+    public:
+        QString getDefaultSaveDirectory();
+        void notifySaveActionConfirmed(const QString& path, bool isDir);
+
+    private slots:
         void showGuide();
 
         /**

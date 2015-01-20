@@ -39,7 +39,7 @@ class SaveAsRPMDialog : public QDialog
     Q_OBJECT
 
     private:
-        explicit SaveAsRPMDialog(ScanningSession* session, QWidget* parent = 0);
+        explicit SaveAsRPMDialog(ScanningSession* session, MainWindow* parent);
         virtual ~SaveAsRPMDialog();
 
     public:
@@ -47,14 +47,15 @@ class SaveAsRPMDialog : public QDialog
          * @brief Provides a dialog to the user to save given session
          *
          * @param session Session to save
-         * @param parent Parent Qt widget, usually the main window
+         * @param parent Parent main window
          */
-        static void saveSession(ScanningSession* session, QWidget* parent = 0);
+        static void saveSession(ScanningSession* session, MainWindow* parent);
 
     private slots:
         void slotFinished(int result);
 
     private:
+        MainWindow* mMainWindow;
         Ui_SaveAsRPMDialog mUI;
 
         ScanningSession* mScanningSession;

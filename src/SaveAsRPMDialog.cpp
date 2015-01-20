@@ -20,6 +20,7 @@
  */
 
 #include "SaveAsRPMDialog.h"
+#include "MainWindow.h"
 #include "TemporaryDir.h"
 #include "ScanningSession.h"
 #include "ProcessHelpers.h"
@@ -28,8 +29,9 @@
 #include <QPointer>
 #include <cassert>
 
-SaveAsRPMDialog::SaveAsRPMDialog(ScanningSession* session, QWidget* parent):
+SaveAsRPMDialog::SaveAsRPMDialog(ScanningSession* session, MainWindow* parent):
     QDialog(parent),
+    mMainWindow(parent),
 
     mScanningSession(session)
 {
@@ -55,7 +57,7 @@ SaveAsRPMDialog::SaveAsRPMDialog(ScanningSession* session, QWidget* parent):
 SaveAsRPMDialog::~SaveAsRPMDialog()
 {}
 
-void SaveAsRPMDialog::saveSession(ScanningSession* session, QWidget* parent)
+void SaveAsRPMDialog::saveSession(ScanningSession* session, MainWindow* parent)
 {
     QPointer<SaveAsRPMDialog> dialog = new SaveAsRPMDialog(session, parent);
     dialog->exec();
@@ -67,9 +69,15 @@ void SaveAsRPMDialog::slotFinished(int result)
     if (result == QDialog::Rejected)
         return;
 
-    const QString targetDir = QFileDialog::getExistingDirectory(this, QObject::tr("Select target directory"));
+    const QString targetDir = QFileDialog::getExistingDirectory(
+        this, QObject::tr("Select target directory"),
+        mMainWindow->getDefaultSaveDirectory()
+    );
+
     if (targetDir.isEmpty())
         return; // user canceled
+
+    mMainWindow->notifySaveActionConfirmed(targetDir, true);
 
     QSet<QString> closure = mScanningSession->getOpenedFilesClosure();
     // At this point, closure is a set which is implementation ordered.

@@ -1141,7 +1141,7 @@ void MainWindow::saveTailoring()
 
     const QString path = QFileDialog::getSaveFileName(this,
         QObject::tr("Save Customization As"),
-        QString("%1-tailoring.xml").arg(openedFile.baseName()),
+        QDir(getDefaultSaveDirectory()).absoluteFilePath(QString("%1-tailoring.xml").arg(openedFile.baseName())),
         QObject::tr("XCCDF Tailoring file (*.xml)"), 0
 #ifndef SCAP_WORKBENCH_USE_NATIVE_FILE_DIALOGS
         , QFileDialog::DontUseNativeDialog
@@ -1150,6 +1150,8 @@ void MainWindow::saveTailoring()
 
     if (path.isEmpty())
         return;
+
+    notifySaveActionConfirmed(path, false);
 
     try
     {
@@ -1171,7 +1173,7 @@ void MainWindow::saveIntoDirectory()
 
     const QString targetPath = QFileDialog::getExistingDirectory(this,
         QObject::tr("Select target directory"),
-        "",
+        getDefaultSaveDirectory(),
         QFileDialog::ShowDirsOnly
 #ifndef SCAP_WORKBENCH_USE_NATIVE_FILE_DIALOGS
         | QFileDialog::DontUseNativeDialog
@@ -1179,6 +1181,8 @@ void MainWindow::saveIntoDirectory()
     );
     if (targetPath.isEmpty())
         return; // user canceled
+
+    notifySaveActionConfirmed(targetPath, true);
 
     try
     {
@@ -1247,6 +1251,17 @@ bool MainWindow::unsavedTailoringChanges() const
 
     const int idx = mUI.tailoringFileComboBox->findText(TAILORING_UNSAVED);
     return mUI.tailoringFileComboBox->currentIndex() == idx;
+}
+
+QString MainWindow::getDefaultSaveDirectory()
+{
+    return mQSettings->value("last_save_directory", "").toString();
+}
+
+void MainWindow::notifySaveActionConfirmed(const QString& path, bool isDir)
+{
+    const QString absoluteDirPath = isDir ? path : QFileInfo(path).dir().absolutePath();
+    mQSettings->setValue("last_save_directory", absoluteDirPath);
 }
 
 void MainWindow::showGuide()
