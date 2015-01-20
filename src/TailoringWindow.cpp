@@ -724,7 +724,7 @@ void TailoringWindow::removeOldCollapsedLists()
     for (QStringList::const_iterator it = keys.constBegin(); it != keys.constEnd(); ++it)
     {
         const QString& key = *it;
-        if (key.endsWith("_lastUsed"))
+        if (!key.startsWith("collapsed_items_") || key.endsWith("_lastUsed"))
             continue;
 
         const QString lastUsedKey = key + "_lastUsed";
