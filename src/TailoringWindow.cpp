@@ -34,6 +34,7 @@
 #include <QDesktopWidget>
 #include <QUndoView>
 #include <QTimer>
+#include <QDateTime>
 
 #include <algorithm>
 #include <cassert>
@@ -668,6 +669,7 @@ void TailoringWindow::closeEvent(QCloseEvent * event)
     }
 
     serializeCollapsedItems();
+    removeOldCollapsedLists();
 
     QMainWindow::closeEvent(event);
 
@@ -702,9 +704,42 @@ void TailoringWindow::deserializeCollapsedItems()
 void TailoringWindow::serializeCollapsedItems()
 {
     if (mCollapsedItemIds.isEmpty())
+    {
         mQSettings->remove(getQSettingsKey());
+        mQSettings->remove(getQSettingsKey() + "_lastUsed");
+    }
     else
+    {
         mQSettings->setValue(getQSettingsKey(), QVariant(mCollapsedItemIds.toList()));
+        mQSettings->setValue(getQSettingsKey() + "_lastUsed", QVariant(QDateTime::currentDateTime()));
+    }
+}
+
+void TailoringWindow::removeOldCollapsedLists()
+{
+    const unsigned int maxAgeInDays = 3 * 31; // ~3 months should be enough for everyone :-P
+    const QDateTime currentDateTime = QDateTime::currentDateTime();
+
+    QStringList keys = mQSettings->childKeys();
+    for (QStringList::const_iterator it = keys.constBegin(); it != keys.constEnd(); ++it)
+    {
+        const QString& key = *it;
+        if (key.endsWith("_lastUsed"))
+            continue;
+
+        const QString lastUsedKey = key + "_lastUsed";
+        const QVariant keyDateTimeVariant = mQSettings->value(lastUsedKey);
+        // mercilessly remove if no last used date time is available
+        if (keyDateTimeVariant.isNull())
+            mQSettings->remove(key);
+
+        const QDateTime keyDateTime = keyDateTimeVariant.toDateTime();
+        if (keyDateTime.daysTo(currentDateTime) > maxAgeInDays)
+        {
+            mQSettings->remove(key);
+            mQSettings->remove(lastUsedKey);
+        }
+    }
 }
 
 void TailoringWindow::syncCollapsedItems()

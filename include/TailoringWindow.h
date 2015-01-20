@@ -171,6 +171,10 @@ class TailoringWindow : public QMainWindow
         QString getQSettingsKey() const;
         void deserializeCollapsedItems();
         void serializeCollapsedItems();
+
+        /// Internal usage only, this method assumes serializeCollapsedItems was called recently
+        void removeOldCollapsedLists();
+
         void syncCollapsedItems();
         void syncCollapsedItem(QTreeWidgetItem* item, QSet<QString>& usedCollapsedIds);
 
