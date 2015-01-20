@@ -30,13 +30,15 @@ Application::Application(int& argc, char** argv):
     QApplication(argc, argv),
 
     mTranslator(),
-    mMainWindow(new MainWindow())
+    mMainWindow(0)
 {
     setOrganizationName("scap-workbench upstream");
     setOrganizationDomain("http://fedorahosted.org/scap-workbench");
 
     setApplicationName("scap-workbench");
     setApplicationVersion(SCAP_WORKBENCH_VERSION);
+
+    mMainWindow = new MainWindow();
 
     mTranslator.load(QLocale(), "scap-workbench", "", getShareTranslationDirectory().absolutePath());
     installTranslator(&mTranslator);
