@@ -181,6 +181,9 @@ MainWindow::MainWindow(QWidget* parent):
     // FIXME: This is hidden to avoid people trying to use it when it is still
     //        not supported in openscap.
     mUI.offlineRemediateButton->hide();
+    // FIXME: Hidden because tailoring isn't taken into account, this needs support
+    //        in openscap first.
+    mUI.showGuideButton->hide();
 
     mScanningSession = new ScanningSession();
 
