@@ -201,7 +201,12 @@ MainWindow::~MainWindow()
     mScanner = 0;
 
     closeFile();
+
     delete mScanningSession;
+    mScanningSession = 0;
+
+    delete mQSettings;
+    mQSettings = 0;
 }
 
 void MainWindow::clearResults()
