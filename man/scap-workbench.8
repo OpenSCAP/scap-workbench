@@ -4,7 +4,7 @@
 scap-workbench \- GUI tool for systems compliance evaluation
 
 .SH SYNOPSIS
-\fBscap-workbench\fR [\fIXCCDF_FILE\fR]
+\fBscap-workbench\fR [--skip-valid] [\fIXCCDF_FILE\fR]
 
 .SH DESCRIPTION
 scap-workbench is GUI tool for security compliance checking. Compliance can be
@@ -17,6 +17,11 @@ This tool enables users to:
  * adjust XCCDF scanning profiles \fB(tailoring)\fR
 
 .SH OPTIONS
+.TP
+\fB--skip-valid\fR
+If this option is provided openscap validation will not be performed.
+This is recommended only for advanced users and may cause openscap or scap-workbench
+to crash!
 .TP
 \fBXCCDF_FILE\fR
 If this parameter is provided the scanner will immediately open given XCCDF or
