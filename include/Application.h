@@ -48,7 +48,7 @@ class Application : public QApplication
         /**
          * @brief Processes command line arguments and acts accordingly
          */
-        void processCLI(const QStringList& args);
+        void processCLI(QStringList& args);
 
         /**
          * @brief Opens the SSG integration dialog to let user open SSG
@@ -60,6 +60,7 @@ class Application : public QApplication
          */
         void browseForContent();
 
+        bool mSkipValid;
         /// Needed for QObject::tr(..) to work properly, loaded on app startup
         QTranslator mTranslator;
         MainWindow* mMainWindow;

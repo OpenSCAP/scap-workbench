@@ -44,6 +44,11 @@ class ScanningSession
         ~ScanningSession();
 
         /**
+         * @brief Sets whether openscap validation should be skipped when loading
+         */
+        void setSkipValid(bool skipValid);
+
+        /**
          * @brief Retrieves the internal xccdf_session structure
          *
          * @note Use of this method is discouraged.
@@ -263,6 +268,9 @@ class ScanningSession
         QTemporaryFile mTailoringFile;
         /// Temporary file provides auto deletion and a valid temp file path
         QTemporaryFile mGuideFile;
+
+        /// Whether or not validation should be skipped
+        bool mSkipValid;
 
         /// If true, the session will be reloaded
         mutable bool mSessionDirty;

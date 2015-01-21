@@ -71,6 +71,7 @@ MainWindow::MainWindow(QWidget* parent):
     mDiagnosticsDialog(0),
 
     mRPMOpenHelper(0),
+    mSkipValid(false),
     mScanningSession(0),
 
     mScanThread(0),
@@ -208,6 +209,11 @@ MainWindow::~MainWindow()
     mQSettings = 0;
 }
 
+void MainWindow::setSkipValid(bool skipValid)
+{
+    mSkipValid = skipValid;
+}
+
 void MainWindow::clearResults()
 {
     mUI.scanProperties->setEnabled(true);
@@ -246,6 +252,7 @@ void MainWindow::openFile(const QString& path)
             tailoringPath = mRPMOpenHelper->getTailoringPath();
         }
 
+        mScanningSession->setSkipValid(mSkipValid);
         mScanningSession->openFile(inputPath);
 
         // In case openscap autonegotiated opening a tailoring file directly
@@ -502,7 +509,7 @@ void MainWindow::scanAsync(ScannerMode scannerMode)
 
         mScanner->setScanThread(mScanThread);
         mScanner->setMainThread(thread());
-        mScanner->setSkipValid(mUI.actionSkipValidation->isChecked());
+        mScanner->setSkipValid(mSkipValid);
         mScanner->setSession(mScanningSession);
         mScanner->setScannerMode(scannerMode);
 
@@ -876,6 +883,7 @@ void MainWindow::tailoringFileComboboxChanged(int index)
 
         // We intentionally call mScanningSession->reloadSession() instead of MainWindow::reloadSession
         // because we want to catch exceptions and not have these filtered.
+        mScanningSession->setSkipValid(mSkipValid);
         mScanningSession->reloadSession();
     }
     catch (const std::exception& e)

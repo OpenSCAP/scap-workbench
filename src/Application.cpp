@@ -29,6 +29,7 @@
 Application::Application(int& argc, char** argv):
     QApplication(argc, argv),
 
+    mSkipValid(false),
     mTranslator(),
     mMainWindow(0)
 {
@@ -53,11 +54,14 @@ Application::Application(int& argc, char** argv):
     );
     mMainWindow->show();
 
-    processCLI(arguments());
+    QStringList args = arguments();
+    processCLI(args);
+
+    mMainWindow->setSkipValid(mSkipValid);
 
     // Only open default content if no command line arguments were given.
     // The first argument is the application name, it doesn't count.
-    if (!mMainWindow->fileOpened() && arguments().length() < 2)
+    if (!mMainWindow->fileOpened() && args.length() < 2)
         openSSG();
 
     if (!mMainWindow->fileOpened())
@@ -69,8 +73,14 @@ Application::~Application()
     delete mMainWindow;
 }
 
-void Application::processCLI(const QStringList& args)
+void Application::processCLI(QStringList& args)
 {
+    if (args.contains("--skip-valid"))
+    {
+        mSkipValid = true;
+        args.removeAll("--skip-valid");
+    }
+
     if (args.length() > 1)
     {
         // The last argument will hold the path to file that user wants to open.

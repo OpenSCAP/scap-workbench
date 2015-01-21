@@ -53,6 +53,8 @@ class MainWindow : public QMainWindow
             return mQSettings;
         }
 
+        void setSkipValid(bool skipValid);
+
     public slots:
         /**
          * @brief Clears everything produced during the scan
@@ -199,6 +201,8 @@ class MainWindow : public QMainWindow
         /// Needed for SCAP RPM opening functionality
         RPMOpenHelper* mRPMOpenHelper;
 
+        /// If true, openscap validation is skipped
+        bool mSkipValid;
         /// This is our central point of interaction with openscap
         ScanningSession* mScanningSession;
 

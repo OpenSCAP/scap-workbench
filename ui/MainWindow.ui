@@ -426,14 +426,7 @@
     <addaction name="actionAbout"/>
     <addaction name="actionAboutQt"/>
    </widget>
-   <widget class="QMenu" name="menuOptions">
-    <property name="title">
-     <string>Options</string>
-    </property>
-    <addaction name="actionSkipValidation"/>
-   </widget>
    <addaction name="menuFile"/>
-   <addaction name="menuOptions"/>
    <addaction name="menuHelp"/>
   </widget>
   <action name="actionOpen">
@@ -480,17 +473,6 @@
   <action name="actionShowDiagnostics">
    <property name="text">
     <string>Show Diagnostics</string>
-   </property>
-  </action>
-  <action name="actionSkipValidation">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Skip validation</string>
-   </property>
-   <property name="toolTip">
-    <string>Causes openscap to skip validation of input and output content. This option is discouraged!</string>
    </property>
   </action>
   <action name="actionSaveTailoring">

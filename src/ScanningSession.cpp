@@ -45,6 +45,7 @@ ScanningSession::ScanningSession():
     mSession(0),
     mTailoring(0),
 
+    mSkipValid(false),
     mSessionDirty(false),
     mTailoringUserChanges(false)
 {
@@ -54,6 +55,14 @@ ScanningSession::ScanningSession():
 ScanningSession::~ScanningSession()
 {
     closeFile();
+}
+
+void ScanningSession::setSkipValid(bool skipValid)
+{
+    mSkipValid = skipValid;
+
+    if (mSession)
+        xccdf_session_set_validation(mSession, mSkipValid, false);
 }
 
 struct xccdf_session* ScanningSession::getXCCDFSession() const
@@ -76,6 +85,8 @@ void ScanningSession::openFile(const QString& path)
     if (!mSession)
         throw ScanningSessionException(
             QString("Failed to create session for '%1'. OpenSCAP error message:\n%2").arg(path).arg(oscapErrDesc()));
+
+    xccdf_session_set_validation(mSession, mSkipValid, false);
 
     mSessionDirty = true;
     mTailoringUserChanges = false;
