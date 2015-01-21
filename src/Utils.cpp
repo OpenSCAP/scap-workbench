@@ -21,6 +21,8 @@
 
 #include "Utils.h"
 #include <iostream>
+#include <QDesktopServices>
+#include <QMessageBox>
 
 const QDir& getShareDirectory()
 {
@@ -85,4 +87,14 @@ const QDir& getShareTranslationDirectory()
 {
     static const QDir ret(getShareDirectory().absoluteFilePath("i18n"));
     return ret;
+}
+
+void openUrlGuarded(const QUrl& url)
+{
+    if (!QDesktopServices::openUrl(url))
+        QMessageBox::warning(
+            0, QObject::tr("Failed to open file in web browser!"),
+            QObject::tr("Please check that your default browser is set to something sensible. "
+                        "As a workaround, please open<br/><a href=\"%1\">%1</a><br/>manually.").arg(url.toString())
+        );
 }

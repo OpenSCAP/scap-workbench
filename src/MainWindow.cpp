@@ -39,7 +39,6 @@
 #include <QMessageBox>
 #include <QCloseEvent>
 #include <QDesktopWidget>
-#include <QDesktopServices>
 
 #include <cassert>
 #include <set>
@@ -1274,7 +1273,7 @@ void MainWindow::showGuide()
 
 void MainWindow::showUserManual()
 {
-    QDesktopServices::openUrl(QUrl::fromLocalFile(getDocDirectory().absoluteFilePath("user_manual.html")));
+    openUrlGuarded(QUrl::fromLocalFile(getDocDirectory().absoluteFilePath("user_manual.html")));
 }
 
 void MainWindow::about()

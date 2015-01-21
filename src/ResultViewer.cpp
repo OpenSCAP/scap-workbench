@@ -22,9 +22,9 @@
 #include "ResultViewer.h"
 #include "Scanner.h"
 #include "ScanningSession.h"
+#include "Utils.h"
 
 #include <QFileDialog>
-#include <QDesktopServices>
 #include <QMessageBox>
 
 ResultViewer::ResultViewer(QWidget* parent):
@@ -128,7 +128,7 @@ void ResultViewer::openReport()
     mReportFile.write(mReport);
     mReportFile.flush();
 
-    QDesktopServices::openUrl(QUrl::fromLocalFile(mReportFile.fileName()));
+    openUrlGuarded(QUrl::fromLocalFile(mReportFile.fileName()));
 
     mReportFile.close();
 
