@@ -158,13 +158,14 @@ void SshConnection::disconnect()
 
     {
         QStringList args;
+        args.append(SCAP_WORKBENCH_LOCAL_SSH_PATH);
         args.append("-S"); args.append(mMasterSocket);
 
         args.append("-O"); args.append("exit");
         args.append(mTarget);
 
         SyncProcess proc(this);
-        proc.setCommand(SCAP_WORKBENCH_LOCAL_SSH_PATH);
+        proc.setCommand(SCAP_WORKBENCH_LOCAL_SETSID_PATH);
         proc.setArguments(args);
         proc.setEnvironment(mEnvironment);
         proc.run();
@@ -210,7 +211,7 @@ SshSyncProcess::~SshSyncProcess()
 
 QString SshSyncProcess::generateFullCommand() const
 {
-    return SCAP_WORKBENCH_LOCAL_SSH_PATH;
+    return SCAP_WORKBENCH_LOCAL_SETSID_PATH;
 }
 
 QStringList SshSyncProcess::generateFullArguments() const
@@ -220,6 +221,7 @@ QStringList SshSyncProcess::generateFullArguments() const
 
     QStringList args;
 
+    args.append(SCAP_WORKBENCH_LOCAL_SSH_PATH);
     args.append("-o"); args.append(QString("ControlPath=%1").arg(mSshConnection._getMasterSocket()));
     args.append(mSshConnection.getTarget());
     args.append(SyncProcess::generateFullCommand() + QString(" ") + SyncProcess::generateFullArguments().join(" "));
@@ -291,7 +293,7 @@ const QString& ScpSyncProcess::getRemotePath() const
 
 QString ScpSyncProcess::generateFullCommand() const
 {
-    return "scp";
+    return SCAP_WORKBENCH_LOCAL_SETSID_PATH;
 }
 
 QStringList ScpSyncProcess::generateFullArguments() const
@@ -301,6 +303,7 @@ QStringList ScpSyncProcess::generateFullArguments() const
 
     QStringList args;
 
+    args.append(SCAP_WORKBENCH_LOCAL_SCP_PATH);
     args.append("-o"); args.append(QString("ControlPath=%1").arg(mSshConnection._getMasterSocket()));
 
     if (mScpDirection == SD_LOCAL_TO_REMOTE)
