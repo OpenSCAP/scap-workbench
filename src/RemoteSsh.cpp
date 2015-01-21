@@ -117,6 +117,8 @@ void SshConnection::connect()
         args.append("-f");
         args.append("-N");
 
+        // send keep alive null messages every 60 seconds to make sure the connection stays alive
+        args.append("-o"); args.append(QString("ServerAliveInterval=%1").arg(60));
         args.append("-o"); args.append(QString("ControlPath=%1").arg(mMasterSocket));
 
         args.append("-p"); args.append(QString::number(mPort));
