@@ -27,6 +27,7 @@
 #include <QString>
 #include <QDir>
 #include <QIcon>
+#include <QUrl>
 
 /**
  * @brief Retrieves QDir representing the share directory
@@ -87,5 +88,12 @@ const QIcon& getApplicationIcon();
  * @exception nothrow This function is guaranteed to not throw any exceptions.
  */
 const QDir& getShareTranslationDirectory();
+
+/**
+ * @brief Calls QDesktopServices::openUrl, shows a message box in case of failure
+ *
+ * @param url URL to open
+ */
+void openUrlGuarded(const QUrl& url);
 
 #endif
