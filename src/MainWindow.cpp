@@ -1268,7 +1268,7 @@ void MainWindow::showGuide()
     if (!fileOpened())
         return;
 
-    QDesktopServices::openUrl(QUrl::fromLocalFile(mScanningSession->getGuideFilePath()));
+    openUrlGuarded(QUrl::fromLocalFile(mScanningSession->getGuideFilePath()));
 }
 
 void MainWindow::showUserManual()
