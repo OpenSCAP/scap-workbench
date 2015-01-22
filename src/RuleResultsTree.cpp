@@ -157,7 +157,7 @@ bool RuleResultsTree::hasRuleResult(const QString& ruleID) const
         return false;
 
     const QTreeWidgetItem* item = it->second;
-    return !item->text(1).isEmpty();
+    return !(item->text(1).isEmpty() || item->text(1) == "processing");
 }
 
 void RuleResultsTree::injectRuleResult(const QString& ruleID, const QString& result)

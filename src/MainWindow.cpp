@@ -233,6 +233,7 @@ void MainWindow::clearResults()
 
     mUI.progressBar->setRange(0, 1);
     mUI.progressBar->reset();
+    mUI.progressBar->setValue(0);
 
     mUI.menuSave->setEnabled(true);
     mUI.actionOpen->setEnabled(true);
@@ -453,6 +454,7 @@ void MainWindow::scanAsync(ScannerMode scannerMode)
 
     mUI.progressBar->setRange(0, xccdf_policy_get_selected_rules_count(policy));
     mUI.progressBar->reset();
+    mUI.progressBar->setValue(0);
     mUI.progressBar->setEnabled(true);
     mUI.ruleResultsTree->setEnabled(true);
 
@@ -955,10 +957,13 @@ void MainWindow::scanProgressReport(const QString& rule_id, const QString& resul
        optimistic!
     */
 
-    // Guard ourselves against multi checks, only count each rule result once
-    // for progress estimation.
-    if (!mUI.ruleResultsTree->hasRuleResult(rule_id))
-        mUI.progressBar->setValue(mUI.progressBar->value() + 1);
+    if (result != "processing")
+    {
+        // Guard ourselves against multi checks, only count each rule result once
+        // for progress estimation.
+        if (!mUI.ruleResultsTree->hasRuleResult(rule_id))
+            mUI.progressBar->setValue(mUI.progressBar->value() + 1);
+    }
 
     try
     {
