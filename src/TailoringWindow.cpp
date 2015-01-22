@@ -240,7 +240,7 @@ TailoringWindow::TailoringWindow(struct xccdf_policy* policy, struct xccdf_bench
         mSearchBox, SLOT(setFocus())
     );
 
-    mSearchBox->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Preferred);
+    mSearchBox->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Maximum);
     mUI.toolBar->addWidget(mSearchBox);
 
     mSearchButton->setShortcut(QKeySequence::FindNext);
