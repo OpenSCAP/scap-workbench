@@ -201,6 +201,7 @@ class TailoringWindow : public QMainWindow
 
         QLineEdit* mSearchBox;
         QPushButton* mSearchButton;
+        QLabel* mSearchFeedback;
 
         struct xccdf_policy* mPolicy;
         struct xccdf_profile* mProfile;

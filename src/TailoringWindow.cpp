@@ -99,6 +99,7 @@ TailoringWindow::TailoringWindow(struct xccdf_policy* policy, struct xccdf_bench
 
     mSearchBox(new QLineEdit()),
     mSearchButton(new QPushButton("Search")),
+    mSearchFeedback(new QLabel("")),
 
     mPolicy(policy),
     mProfile(xccdf_policy_get_profile(policy)),
@@ -246,6 +247,7 @@ TailoringWindow::TailoringWindow(struct xccdf_policy* policy, struct xccdf_bench
     mSearchButton->setShortcut(QKeySequence::FindNext);
 
     mUI.toolBar->addWidget(mSearchButton);
+    mUI.toolBar->addWidget(mSearchFeedback);
 
     QObject::connect(
         mSearchBox, SIGNAL(returnPressed()),
@@ -826,7 +828,10 @@ void TailoringWindow::searchNext()
 
     // makes no sense to search for empty strings
     if (needle.isEmpty())
+    {
+        mSearchFeedback->setText("");
         return;
+    }
 
     if (needle == mSearchCurrentNeedle)
         ++mSearchSkippedItems;
@@ -847,12 +852,14 @@ void TailoringWindow::searchNext()
         mUI.itemsTree->setCurrentItem(match);
 
         mSearchBox->setStyleSheet("");
+        mSearchFeedback->setText(QObject::tr("Showing match %1 out of %2 total found.").arg(mSearchSkippedItems + 1).arg(matches.size()));
     }
     else
     {
         mSearchSkippedItems = 0;
         // In case of no match we intentionally do not change selection
         mSearchBox->setStyleSheet("background: #f66");
+        mSearchFeedback->setText(QObject::tr("No matches found."));
     }
 }
 
