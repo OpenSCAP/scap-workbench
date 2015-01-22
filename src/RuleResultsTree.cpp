@@ -37,6 +37,11 @@ RuleResultsTree::RuleResultsTree(QWidget* parent):
     mUI.setupUi(this);
 
     mUI.ruleTree->header()->setResizeMode(0, QHeaderView::Stretch);
+
+    QObject::connect(
+        mUI.ruleTree, SIGNAL(itemExpanded(QTreeWidgetItem*)),
+        this, SLOT(updateDescriptionForItem(QTreeWidgetItem*))
+    );
 }
 
 RuleResultsTree::~RuleResultsTree()
@@ -115,16 +120,11 @@ void RuleResultsTree::refreshSelectedRules(ScanningSession* scanningSession)
         treeItem->setText(0, oscapItemGetReadableTitle(xccdf_rule_to_item(rule), policy));
 
         QTreeWidgetItem* descriptionItem = new QTreeWidgetItem();
-        descriptionItem->setFlags(Qt::ItemIsEnabled);
+        descriptionItem->setData(0, Qt::UserRole, QVariant::fromValue(oscapItemGetReadableDescription(xccdf_rule_to_item(rule), policy)));
         treeItem->addChild(descriptionItem);
 
         mUI.ruleTree->addTopLevelItem(treeItem);
         mRuleIdToTreeItemMap[ruleID] = treeItem;
-
-        QLabel* descriptionWidget = new QLabel(oscapItemGetReadableDescription(xccdf_rule_to_item(rule), policy), mUI.ruleTree);
-        descriptionWidget->setWordWrap(true);
-        descriptionWidget->setTextFormat(Qt::RichText);
-        mUI.ruleTree->setItemWidget(descriptionItem, 0, descriptionWidget);
     }
 
     mUI.ruleTree->setUpdatesEnabled(true);
@@ -256,3 +256,23 @@ void RuleResultsTree::injectRuleResult(const QString& ruleID, const QString& res
 
 void RuleResultsTree::prepareForScanning()
 {}
+
+void RuleResultsTree::updateDescriptionForItem(QTreeWidgetItem* item)
+{
+    if (!item)
+        return;
+
+    QTreeWidgetItem* descriptionItem = item->child(0);
+    if (mUI.ruleTree->itemWidget(descriptionItem, 0))
+        return;
+
+    mUI.ruleTree->setUpdatesEnabled(false);
+
+    const QString description = descriptionItem->data(0, Qt::UserRole).toString();
+    QLabel* descriptionWidget = new QLabel(description, mUI.ruleTree);
+    descriptionWidget->setWordWrap(true);
+    descriptionWidget->setTextFormat(Qt::RichText);
+    mUI.ruleTree->setItemWidget(descriptionItem, 0, descriptionWidget);
+
+    mUI.ruleTree->setUpdatesEnabled(true);
+}

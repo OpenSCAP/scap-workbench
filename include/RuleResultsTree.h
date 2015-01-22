@@ -90,6 +90,9 @@ class RuleResultsTree : public QWidget
          */
         void prepareForScanning();
 
+    private slots:
+        void updateDescriptionForItem(QTreeWidgetItem* item);
+
     private:
         Ui_RuleResultsTree mUI;
 
