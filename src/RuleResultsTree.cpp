@@ -269,9 +269,11 @@ void RuleResultsTree::updateDescriptionForItem(QTreeWidgetItem* item)
     mUI.ruleTree->setUpdatesEnabled(false);
 
     const QString description = descriptionItem->data(0, Qt::UserRole).toString();
-    QLabel* descriptionWidget = new QLabel(description, mUI.ruleTree);
+    QLabel* descriptionWidget = new QLabel(mUI.ruleTree);
+    descriptionWidget->setAlignment(Qt::AlignLeft | Qt::AlignTop);
     descriptionWidget->setWordWrap(true);
     descriptionWidget->setTextFormat(Qt::RichText);
+    descriptionWidget->setText(description);
     mUI.ruleTree->setItemWidget(descriptionItem, 0, descriptionWidget);
 
     mUI.ruleTree->setUpdatesEnabled(true);
