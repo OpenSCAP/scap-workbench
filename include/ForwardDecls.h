@@ -37,6 +37,7 @@ class ProfileDescriptionChangeUndoCommand;
 class RemoteMachineComboBox;
 class ResultViewer;
 class RPMOpenHelper;
+class RuleResultItem;
 class RuleResultsTree;
 class SaveAsRPMDialog;
 class ScanningSession;

@@ -90,15 +90,15 @@ class RuleResultsTree : public QWidget
          */
         void prepareForScanning();
 
-    private slots:
-        void updateDescriptionForItem(QTreeWidgetItem* item);
-
     private:
-        Ui_RuleResultsTree mUI;
+        void clearAllItems();
 
-        typedef std::map<QString, QTreeWidgetItem*> RuleIdToTreeItemMap;
+        Ui_RuleResultsTree mUI;
+        QVBoxLayout* mInternalLayout;
+
+        typedef std::map<QString, RuleResultItem*> RuleIdToWidgetItemMap;
         /// A map to get tree widget items for given rule IDs, refreshSelectedRules changes this
-        RuleIdToTreeItemMap mRuleIdToTreeItemMap;
+        RuleIdToWidgetItemMap mRuleIdToWidgetItemMap;
 };
 
 #endif

@@ -20,6 +20,7 @@
  */
 
 #include "RuleResultsTree.h"
+#include "RuleResultItem.h"
 #include "ScanningSession.h"
 #include "APIHelpers.h"
 #include "Exceptions.h"
@@ -36,12 +37,8 @@ RuleResultsTree::RuleResultsTree(QWidget* parent):
 {
     mUI.setupUi(this);
 
-    mUI.ruleTree->header()->setResizeMode(0, QHeaderView::Stretch);
-
-    QObject::connect(
-        mUI.ruleTree, SIGNAL(itemExpanded(QTreeWidgetItem*)),
-        this, SLOT(updateDescriptionForItem(QTreeWidgetItem*))
-    );
+    mInternalLayout = new QVBoxLayout();
+    mUI.scrollAreaWidgetContents->setLayout(mInternalLayout);
 }
 
 RuleResultsTree::~RuleResultsTree()
@@ -77,9 +74,7 @@ inline void gatherAllSelectedRules(struct xccdf_policy* policy, struct xccdf_ite
 
 void RuleResultsTree::refreshSelectedRules(ScanningSession* scanningSession)
 {
-    // clear all items
-    mUI.ruleTree->clear();
-    mRuleIdToTreeItemMap.clear();
+    clearAllItems();
 
     if (!scanningSession)
         return;
@@ -106,7 +101,7 @@ void RuleResultsTree::refreshSelectedRules(ScanningSession* scanningSession)
 
     gatherAllSelectedRules(policy, xccdf_benchmark_to_item(benchmark), selectedRules);
 
-    mUI.ruleTree->setUpdatesEnabled(false);
+    mUI.scrollArea->setUpdatesEnabled(false);
 
     // we filter through a set to avoid duplicates and get a sensible ordering
     for (std::vector<struct xccdf_rule*>::const_iterator it = selectedRules.begin();
@@ -114,55 +109,50 @@ void RuleResultsTree::refreshSelectedRules(ScanningSession* scanningSession)
     {
         struct xccdf_rule* rule = *it;
 
+        RuleResultItem* item = new RuleResultItem(rule, policy, mUI.scrollArea);
+
         const QString ruleID = QString::fromUtf8(xccdf_rule_get_id(rule));
+        mRuleIdToWidgetItemMap[ruleID] = item;
 
-        QTreeWidgetItem* treeItem = new QTreeWidgetItem();
-        treeItem->setText(0, oscapItemGetReadableTitle(xccdf_rule_to_item(rule), policy));
-
-        QTreeWidgetItem* descriptionItem = new QTreeWidgetItem();
-        descriptionItem->setData(0, Qt::UserRole, QVariant::fromValue(oscapItemGetReadableDescription(xccdf_rule_to_item(rule), policy)));
-        treeItem->addChild(descriptionItem);
-
-        mUI.ruleTree->addTopLevelItem(treeItem);
-        mRuleIdToTreeItemMap[ruleID] = treeItem;
+        mInternalLayout->addWidget(item);
     }
 
-    mUI.ruleTree->setUpdatesEnabled(true);
+    mUI.scrollArea->setUpdatesEnabled(true);
 }
 
 unsigned int RuleResultsTree::getSelectedRulesCount()
 {
-    // assumes that ruleTree is in a refreshed state
-    return mUI.ruleTree->topLevelItemCount();
+    // assumes that we are in a refreshed state
+    return mRuleIdToWidgetItemMap.size();
 }
 
 void RuleResultsTree::clearResults()
 {
-    mUI.ruleTree->setUpdatesEnabled(false);
+    mUI.scrollArea->setUpdatesEnabled(false);
 
-    for (RuleIdToTreeItemMap::iterator it = mRuleIdToTreeItemMap.begin();
-         it != mRuleIdToTreeItemMap.end(); ++it)
+    for (RuleIdToWidgetItemMap::iterator it = mRuleIdToWidgetItemMap.begin();
+         it != mRuleIdToWidgetItemMap.end(); ++it)
     {
         // by injecting empty results we clear the previous ones
         injectRuleResult(it->first, "");
     }
 
-    mUI.ruleTree->setUpdatesEnabled(true);
+    mUI.scrollArea->setUpdatesEnabled(true);
 }
 
 bool RuleResultsTree::hasRuleResult(const QString& ruleID) const
 {
-    RuleIdToTreeItemMap::const_iterator it = mRuleIdToTreeItemMap.find(ruleID);
-    if (it == mRuleIdToTreeItemMap.end())
+    RuleIdToWidgetItemMap::const_iterator it = mRuleIdToWidgetItemMap.find(ruleID);
+    if (it == mRuleIdToWidgetItemMap.end())
         return false;
 
-    const QTreeWidgetItem* item = it->second;
-    return !(item->text(1).isEmpty() || item->text(1) == "processing");
+    const RuleResultItem* item = it->second;
+    return item->hasRuleResult();
 }
 
 void RuleResultsTree::injectRuleResult(const QString& ruleID, const QString& result)
 {
-    QString resultTooltip;
+    /*QString resultTooltip;
     QBrush resultBrush;
     if (result.isEmpty())
     {
@@ -228,13 +218,6 @@ void RuleResultsTree::injectRuleResult(const QString& ruleID, const QString& res
     else
         resultBrush.setColor(Qt::darkGray);
 
-    QTreeWidgetItem* treeItem = mRuleIdToTreeItemMap[ruleID];
-    if (!treeItem)
-        throw RuleResultsTreeException(
-            QString("Could not find rule of ID '%1'. Result of this rule was '%2' but it can't be reported! "
-                    "This could be a difference between remote and local openscap versions or a bug in "
-                    "workbench.").arg(ruleID, result)
-        );
 
     treeItem->setText(1, result);
     treeItem->setToolTip(1, resultTooltip);
@@ -246,35 +229,35 @@ void RuleResultsTree::injectRuleResult(const QString& ruleID, const QString& res
         backgroundBrush = QBrush(Qt::lightGray);
     treeItem->setBackground(0, backgroundBrush);
     treeItem->setBackground(1, backgroundBrush);
+    */
 
+    RuleResultItem* item = mRuleIdToWidgetItemMap[ruleID];
+    if (!item)
+        throw RuleResultsTreeException(
+            QString("Could not find rule of ID '%1'. Result of this rule was '%2' but it can't be reported! "
+                    "This could be a difference between remote and local openscap versions or a bug in "
+                    "workbench.").arg(ruleID, result)
+        );
+
+    item->setRuleResult(result);
+    /*
     if (!result.isEmpty())
     {
         // ensure the updated item is visible
         mUI.ruleTree->scrollToItem(treeItem);
-    }
+    }*/
 }
 
 void RuleResultsTree::prepareForScanning()
 {}
 
-void RuleResultsTree::updateDescriptionForItem(QTreeWidgetItem* item)
+void RuleResultsTree::clearAllItems()
 {
-    if (!item)
-        return;
+    for (RuleIdToWidgetItemMap::const_iterator it = mRuleIdToWidgetItemMap.begin();
+         it != mRuleIdToWidgetItemMap.end(); ++it)
+    {
+        delete it->second;
+    }
 
-    QTreeWidgetItem* descriptionItem = item->child(0);
-    if (mUI.ruleTree->itemWidget(descriptionItem, 0))
-        return;
-
-    mUI.ruleTree->setUpdatesEnabled(false);
-
-    const QString description = descriptionItem->data(0, Qt::UserRole).toString();
-    QLabel* descriptionWidget = new QLabel(mUI.ruleTree);
-    descriptionWidget->setAlignment(Qt::AlignLeft | Qt::AlignTop);
-    descriptionWidget->setWordWrap(true);
-    descriptionWidget->setTextFormat(Qt::RichText);
-    descriptionWidget->setText(description);
-    mUI.ruleTree->setItemWidget(descriptionItem, 0, descriptionWidget);
-
-    mUI.ruleTree->setUpdatesEnabled(true);
+    mRuleIdToWidgetItemMap.clear();
 }
