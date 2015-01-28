@@ -49,6 +49,9 @@
           <height>0</height>
          </size>
         </property>
+        <property name="focusPolicy">
+         <enum>Qt::NoFocus</enum>
+        </property>
         <property name="text">
          <string/>
         </property>
@@ -76,7 +79,7 @@
          </size>
         </property>
         <property name="styleSheet">
-         <string notr="true">text-align: center; font-weight: bold; color: #ffffff; padding: 3px; background: #808080; </string>
+         <string notr="true">text-align: center; font-weight: bold; color: #ffffff; padding: 3px; </string>
         </property>
         <property name="text">
          <string/>
@@ -91,6 +94,10 @@
    </item>
    <item>
     <widget class="QLabel" name="description">
+     <property name="styleSheet">
+      <string notr="true">margin-left: 50px;
+border: 1px solid #ddd;</string>
+     </property>
      <property name="text">
       <string/>
      </property>
