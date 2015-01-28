@@ -101,7 +101,7 @@
    <item>
     <widget class="QLabel" name="description">
      <property name="styleSheet">
-      <string notr="true">margin-left: 50px;
+      <string notr="true">margin-left: 25px;
 border: 1px solid #ddd;</string>
      </property>
      <property name="text">
