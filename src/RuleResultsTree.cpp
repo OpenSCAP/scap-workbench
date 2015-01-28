@@ -38,6 +38,8 @@ RuleResultsTree::RuleResultsTree(QWidget* parent):
     mUI.setupUi(this);
 
     mInternalLayout = new QVBoxLayout();
+    mInternalLayout->setSpacing(0);
+    mInternalLayout->setContentsMargins(4, 4, 4, 4);
     mUI.scrollAreaWidgetContents->setLayout(mInternalLayout);
 }
 
