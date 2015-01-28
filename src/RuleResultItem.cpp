@@ -51,7 +51,7 @@ void RuleResultItem::setRuleResult(const QString& result)
     }
     else if (result == "processing")
     {
-        resultStyleSheet += "background: #808080; ";
+        resultStyleSheet += "background: #c0c0c0; ";
         resultTooltip = QObject::tr("This rule is currently being processed.");
     }
     else if (result == "pass")
@@ -116,7 +116,7 @@ void RuleResultItem::setRuleResult(const QString& result)
 
     // Highlight currently processed rule
     if (result == "processing")
-        mUi.title->setStyleSheet("background: #808080");
+        mUi.title->setStyleSheet("background: #c0c0c0");
     else
         mUi.title->setStyleSheet("");
 }
