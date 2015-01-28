@@ -34,11 +34,11 @@ RuleResultItem::RuleResultItem(struct xccdf_rule* rule, struct xccdf_policy* pol
 
     mUi.showDescriptionCheckBox->setStyleSheet(QString("") + \
         "QCheckBox {\n" +
-        "spacing: 5px;\n" +
+        "spacing: 0px;\n" +
         "}\n" +
 
         "QCheckBox::indicator {\n" +
-        "width: 16px;\n" +
+        "width: 24px;\n" +
         "height: 16px;\n" +
         "}\n" +
 
