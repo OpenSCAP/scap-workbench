@@ -47,7 +47,6 @@ void RuleResultItem::setRuleResult(const QString& result)
 
     if (result.isEmpty())
     {
-        resultStyleSheet += "background: #808080; ";
         resultTooltip = "";
     }
     else if (result == "processing")
@@ -116,12 +115,10 @@ void RuleResultItem::setRuleResult(const QString& result)
     mUi.result->setToolTip(resultTooltip);
 
     // Highlight currently processed rule
-    /*QBrush backgroundBrush(Qt::NoBrush);
     if (result == "processing")
-        backgroundBrush = QBrush(Qt::lightGray);
-    treeItem->setBackground(0, backgroundBrush);
-    treeItem->setBackground(1, backgroundBrush);
-    */
+        mUi.title->setStyleSheet("background: #808080");
+    else
+        mUi.title->setStyleSheet("");
 }
 
 bool RuleResultItem::hasRuleResult() const
