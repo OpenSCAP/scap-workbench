@@ -56,9 +56,9 @@
        </widget>
       </item>
       <item>
-       <widget class="QPushButton" name="result">
+       <widget class="QLabel" name="result">
         <property name="sizePolicy">
-         <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+         <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
           <horstretch>0</horstretch>
           <verstretch>0</verstretch>
          </sizepolicy>
@@ -70,13 +70,13 @@
          </size>
         </property>
         <property name="styleSheet">
-         <string notr="true">background: #808080;
-text-align: center;
-font-weight: bold;
-color: #ffffff;</string>
+         <string notr="true">text-align: center; font-weight: bold; color: #ffffff; padding: 3px; background: #808080; </string>
         </property>
         <property name="text">
          <string/>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
         </property>
        </widget>
       </item>

@@ -42,7 +42,7 @@ RuleResultItem::~RuleResultItem()
 
 void RuleResultItem::setRuleResult(const QString& result)
 {
-    QString resultStyleSheet = "text-align: center; font-weight: bold; color: #ffffff; ";
+    QString resultStyleSheet = "text-align: center; font-weight: bold; color: #ffffff; padding: 3px; ";
     QString resultTooltip;
 
     if (result.isEmpty())
