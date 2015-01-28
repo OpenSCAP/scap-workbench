@@ -21,6 +21,7 @@
 
 #include "RuleResultItem.h"
 #include "APIHelpers.h"
+#include "Utils.h"
 
 RuleResultItem::RuleResultItem(struct xccdf_rule* rule, struct xccdf_policy* policy, QWidget* parent):
     QWidget(parent)
@@ -30,6 +31,25 @@ RuleResultItem::RuleResultItem(struct xccdf_rule* rule, struct xccdf_policy* pol
 
     mUi.title->setText(oscapItemGetReadableTitle(xccdf_rule_to_item(rule), policy));
     mDescriptionHTML = oscapItemGetReadableDescription(xccdf_rule_to_item(rule), policy);
+
+    mUi.showDescriptionCheckBox->setStyleSheet(QString("") + \
+        "QCheckBox {\n" +
+        "spacing: 5px;\n" +
+        "}\n" +
+
+        "QCheckBox::indicator {\n" +
+        "width: 16px;\n" +
+        "height: 16px;\n" +
+        "}\n" +
+
+        "QCheckBox::indicator:unchecked {\n" +
+        "image: url(" + getShareDirectory().absoluteFilePath("collapsed-arrow.png") + ");\n" +
+        "}\n" +
+
+        "QCheckBox::indicator:checked {\n" +
+        "image: url(" + getShareDirectory().absoluteFilePath("expanded-arrow.png") + ");\n" +
+        "}\n"
+    );
 
     QObject::connect(
         mUi.showDescriptionCheckBox, SIGNAL(toggled(bool)),
@@ -128,8 +148,12 @@ bool RuleResultItem::hasRuleResult() const
 
 void RuleResultItem::showDescriptionToggled(bool checked)
 {
+    setUpdatesEnabled(false);
+
     if (checked && mUi.description->text().isEmpty())
         mUi.description->setText(mDescriptionHTML);
 
     mUi.description->setVisible(checked);
+
+    setUpdatesEnabled(true);
 }

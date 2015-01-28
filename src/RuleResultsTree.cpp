@@ -119,6 +119,8 @@ void RuleResultsTree::refreshSelectedRules(ScanningSession* scanningSession)
         mInternalLayout->addWidget(item);
     }
 
+    mInternalLayout->addStretch();
+
     mUI.scrollArea->setUpdatesEnabled(true);
 }
 
@@ -260,6 +262,11 @@ void RuleResultsTree::clearAllItems()
     {
         delete it->second;
     }
+
+    // remove the rest from the layout - spacers
+    QLayoutItem* child;
+    while ((child = mInternalLayout->takeAt(0)) != 0)
+        delete child;
 
     mRuleIdToWidgetItemMap.clear();
 }
