@@ -32,7 +32,7 @@ RuleResultItem::RuleResultItem(struct xccdf_rule* rule, struct xccdf_policy* pol
     mUi.title->setText(oscapItemGetReadableTitle(xccdf_rule_to_item(rule), policy));
     mDescriptionHTML = oscapItemGetReadableDescription(xccdf_rule_to_item(rule), policy);
 
-    mUi.showDescriptionCheckBox->setStyleSheet(QString("") + \
+    mUi.showDescriptionCheckBox->setStyleSheet(QString("") +
         "QCheckBox {\n" +
         "spacing: 0px;\n" +
         "}\n" +
