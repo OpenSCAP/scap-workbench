@@ -231,7 +231,16 @@ void MainWindow::clearResults()
 
     statusBar()->clearMessage();
 
-    mUI.progressBar->setRange(0, 1);
+    if (mScanningSession && mScanningSession->fileOpened())
+    {
+        struct xccdf_policy* policy = mScanningSession != 0 ? xccdf_session_get_xccdf_policy(mScanningSession->getXCCDFSession()) : 0;
+        mUI.progressBar->setRange(0, policy ? xccdf_policy_get_selected_rules_count(policy) : 1);
+    }
+    else
+    {
+        mUI.progressBar->setRange(0, 1);
+    }
+
     mUI.progressBar->reset();
     mUI.progressBar->setValue(0);
 
