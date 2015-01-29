@@ -243,6 +243,7 @@ void MainWindow::clearResults()
 
     mUI.progressBar->reset();
     mUI.progressBar->setValue(0);
+    mUI.progressBar->setEnabled(true);
 
     mUI.menuSave->setEnabled(true);
     mUI.actionOpen->setEnabled(true);
