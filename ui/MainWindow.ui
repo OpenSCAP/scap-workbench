@@ -476,9 +476,6 @@
    </property>
   </action>
   <action name="actionSaveTailoring">
-   <property name="enabled">
-    <bool>false</bool>
-   </property>
    <property name="text">
     <string>Save Customization Only</string>
    </property>

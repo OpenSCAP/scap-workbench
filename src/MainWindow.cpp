@@ -819,7 +819,7 @@ void MainWindow::tailoringFileComboboxChanged(int index)
         {
             if (text == TAILORING_NONE) // resets tailoring
             {
-                if (mUI.actionSaveTailoring->isEnabled())
+                if (unsavedTailoringChanges())
                 {
                     if (QMessageBox::question(this, QObject::tr("Unsaved customization changes!"),
                             QObject::tr("Are you sure you want to reset customization and wipe all unsaved changes?"),
@@ -1178,6 +1178,7 @@ void MainWindow::saveTailoring()
     try
     {
         mScanningSession->saveTailoring(path);
+        markUnsavedTailoringChanges();
         markLoadedTailoringFile(path);
     }
     catch (const std::exception& e)
@@ -1226,8 +1227,6 @@ void MainWindow::saveAsRPM()
 
 void MainWindow::markUnsavedTailoringChanges()
 {
-    mUI.actionSaveTailoring->setEnabled(true);
-
     int idx = mUI.tailoringFileComboBox->findText(TAILORING_UNSAVED);
     if (idx == -1)
     {
@@ -1246,8 +1245,6 @@ void MainWindow::markUnsavedTailoringChanges()
 
 void MainWindow::markNoUnsavedTailoringChanges()
 {
-    mUI.actionSaveTailoring->setEnabled(false);
-
     const int idx = mUI.tailoringFileComboBox->findText(TAILORING_UNSAVED);
     if (idx != -1)
         mUI.tailoringFileComboBox->removeItem(idx);
