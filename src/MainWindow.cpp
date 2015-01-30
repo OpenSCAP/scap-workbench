@@ -833,6 +833,8 @@ void MainWindow::tailoringFileComboboxChanged(int index)
                 mScanningSession->resetTailoring();
                 // tailoring has been reset, there are no tailoring changes to save
                 markNoUnsavedTailoringChanges();
+                // and the previously loaded tailoring file has to be removed from the combobox
+                markRemoveLoadedTailoringFile();
             }
             else if (text == TAILORING_CUSTOM_FILE) // loads custom file
             {
@@ -1250,11 +1252,16 @@ void MainWindow::markNoUnsavedTailoringChanges()
         mUI.tailoringFileComboBox->removeItem(idx);
 }
 
-void MainWindow::markLoadedTailoringFile(const QString& filePath)
+void MainWindow::markRemoveLoadedTailoringFile()
 {
     const int idx = mUI.tailoringFileComboBox->findData(mLoadedTailoringFileUserData);
     if (idx != -1)
         mUI.tailoringFileComboBox->removeItem(idx);
+}
+
+void MainWindow::markLoadedTailoringFile(const QString& filePath)
+{
+    markRemoveLoadedTailoringFile();
 
     mLoadedTailoringFileUserData = QVariant(filePath);
     mUI.tailoringFileComboBox->addItem(filePath, mLoadedTailoringFileUserData);
