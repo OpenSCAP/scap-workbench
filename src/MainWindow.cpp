@@ -78,7 +78,9 @@ MainWindow::MainWindow(QWidget* parent):
     mScanner(0),
 
     mOldTailoringComboBoxIdx(0),
-    mLoadedTailoringFileUserData(TAILORING_NO_LOADED_FILE_DATA)
+    mLoadedTailoringFileUserData(TAILORING_NO_LOADED_FILE_DATA),
+
+    mIgnoreProfileComboBox(false)
 {
     mUI.setupUi(this);
     mUI.progressBar->reset();
@@ -683,6 +685,8 @@ void MainWindow::refreshProfiles()
     const QString previouslySelected = previousIndex == -1 ?
         QString::Null() : mUI.profileComboBox->itemData(previousIndex).toString();
 
+    mIgnoreProfileComboBox = true;
+
     mUI.profileComboBox->clear();
 
     if (!fileOpened())
@@ -719,6 +723,9 @@ void MainWindow::refreshProfiles()
         mUI.profileComboBox->clear();
         mDiagnosticsDialog->exceptionMessage(e, QObject::tr("Error while refreshing available XCCDF profiles."));
     }
+
+    mIgnoreProfileComboBox = false;
+    profileComboboxChanged(mUI.profileComboBox->currentIndex());
 }
 
 void MainWindow::refreshChecklists()
@@ -933,6 +940,9 @@ void MainWindow::tailoringFileComboboxChanged(int index)
 
 void MainWindow::profileComboboxChanged(int index)
 {
+    if (mIgnoreProfileComboBox)
+        return;
+
     if (!fileOpened())
         return;
 

@@ -218,6 +218,9 @@ class MainWindow : public QMainWindow
         int mOldTailoringComboBoxIdx;
         QVariant mLoadedTailoringFileUserData;
 
+        /// If true, the profile combobox change signal is ignored, this avoids unnecessary profile refreshes
+        bool mIgnoreProfileComboBox;
+
     signals:
         /**
          * @brief We signal this to show the dialog
