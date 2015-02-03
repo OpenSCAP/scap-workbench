@@ -467,7 +467,10 @@ void TailoringWindow::deselectAllChildrenItems(QTreeWidgetItem* parent, bool und
         parent = mUI.itemsTree->topLevelItem(0);
 
     if (undoMacro)
+    {
         mUndoStack.beginMacro("Deselect All");
+        mUndoStack.push(new MacroProgressUndoCommand(false));
+    }
 
     struct xccdf_item* xccdfItem = getXccdfItemFromTreeItem(parent);
     switch (xccdf_item_get_type(xccdfItem))
@@ -487,7 +490,10 @@ void TailoringWindow::deselectAllChildrenItems(QTreeWidgetItem* parent, bool und
     }
 
     if (undoMacro)
+    {
+        mUndoStack.push(new MacroProgressUndoCommand(true));
         mUndoStack.endMacro();
+    }
 }
 
 QString TailoringWindow::getProfileID() const

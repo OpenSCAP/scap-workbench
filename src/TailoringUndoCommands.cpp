@@ -200,3 +200,31 @@ void XCCDFValueChangeUndoCommand::refreshText()
 {
     setText(QObject::tr("set value '%1' to '%2'").arg(xccdf_value_get_id(mXccdfValue)).arg(mNewValue));
 }
+
+MacroProgressUndoCommand::MacroProgressUndoCommand(bool end):
+    mEnd(end)
+{}
+
+MacroProgressUndoCommand::~MacroProgressUndoCommand()
+{}
+
+int MacroProgressUndoCommand::id() const
+{
+    return 5;
+}
+
+void MacroProgressUndoCommand::redo()
+{
+    if (mEnd)
+        QApplication::restoreOverrideCursor();
+    else
+        QApplication::setOverrideCursor(Qt::WaitCursor);
+}
+
+void MacroProgressUndoCommand::undo()
+{
+    if (mEnd)
+        QApplication::setOverrideCursor(Qt::WaitCursor);
+    else
+        QApplication::restoreOverrideCursor();
+}
