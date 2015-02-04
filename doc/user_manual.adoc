@@ -1,4 +1,4 @@
-= SCAP workbench User Manual
+= SCAP Workbench User Manual
 :imagesdir: ./user_manual
 :toc:
 
