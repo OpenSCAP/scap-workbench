@@ -18,7 +18,7 @@ image::intro_screenshot.png[align="center"]
  * XCCDF 1.2 Tailoring file support
  * Evaluation of local machine
  * Evaluation of remote machine (using SSH)
- * Limited tailoring support - selection and unselection
+ * Limited tailoring support - selection, unselection and set value
  * Saving results as XCCDF 1.1 or 1.2 (depending on input) or ARF 1.1
  * Loading content bundle from RPM
  * Exporting content bundle as RPM or into a folder
@@ -70,6 +70,9 @@ Even before we start the workbench we need to find content to open. Probably
 the best choice right now is scap-security-guide
 footnote:[https://fedorahosted.org/scap-security-guide/].
 
+It is possible that scap-security-guide has already been installed on your
+system as a dependency of scap-workbench. If it isn't, install it:
+
 From the package repository (YUM):: # yum install scap-security-guide
 From the package repository (APT):: # apt-get install scap-security-guide
 From upstream source (for advanced users or content developers)::
@@ -95,19 +98,27 @@ press Alt+F2 to bring up the run command dialog (works in Gnome 3 and KDE 4),
 type 'scap-workbench' and confirm.
 
 scap-workbench should start and if you installed scap-security-guide from
-your package repository, workbench will immediately open it without any
-interaction being necessary.
+your package repository, workbench will immediately open a dialog letting you
+choose which SSG variant you want to open.
+
+[[img-ssg-integration]]
+.SSG integration dialog
+image::ssg_integration.png[align="center"]
+
+For the remainder of this guide let us assume that you chose Fedora. All the
+instructions are similar on other variants.
 
 [[img-default-content-opened]]
-.Default content opened in workbench
+.Fedora SSG content opened in workbench
 image::default_content_opened.png[align="center"]
 
 === Open Different Content (optional)
 
-Choosing the *Open content* action from the File menu (top of the main window) will enable
+Clicking Open Other content in the SSG integration dialog or choosing the *Open Other content*
+action from the File menu (top of the main window) will enable
 you to change opened content. Keep in mind that workbench only supports opening
-XCCDF, Source DataStream or SCAP RPM files. Everything else will result in an error
-dialog being shown.
+XCCDF, Source DataStream, SCAP RPM files or their bzip2 variants. Everything else will
+result in an error dialog being shown.
 
 If your content provider ships both XCCDF and Source DataStream files you are
 better off using Source DataStream. Especially if you want to perform remote
@@ -463,6 +474,13 @@ describe tailoring. *XCCDF tailoring file* is still used for the file format its
 
 If you are familiar with XCCDF specification keep in mind that customization is
 the same thing as tailoring.
+
+== Options for advanced users
+
+Passing *--skip-valid* on the command line will disable all validation.
+Both while opening the files and when scanning. This option is discouraged and
+should only be used by content creators and/or people who really know what they
+are doing.
 
 == Where to Get Help?
 
