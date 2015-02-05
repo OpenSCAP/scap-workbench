@@ -389,7 +389,21 @@ void MainWindow::openSSGDialog(const QString& customDismissLabel)
     if (dialog->exec() == QDialog::Accepted)
     {
         if (fileOpened())
-            closeFile();
+        {
+            if (QMessageBox::question(this, QObject::tr("Close currently opened file?"),
+                QObject::tr("Opened file has to be closed before '%1' is opened instead.\n\n"
+                            "Are you sure you want to close currently opened file?").arg(dialog->getSelectedSSGFile()),
+                QMessageBox::Yes | QMessageBox::No, QMessageBox::No) == QMessageBox::Yes)
+            {
+                closeFile();
+            }
+            else
+            {
+                // user cancelled closing current file, we have to abort
+                delete dialog;
+                return;
+            }
+        }
 
         openFile(dialog->getSelectedSSGFile());
     }
