@@ -436,10 +436,7 @@ Open evaluation report in browser :: Alt + O
 You ask for help with the application using
 
  * #openscap channel on irc.freenode.net
- * https://lists.fedorahosted.org/mailman/listinfo/scap-workbench[scap-workbench mailing list]
-
-It is recommended to join the https://www.redhat.com/mailman/listinfo/open-scap-list[openscap mailing list]
-as well for SCAP specific discussions.
+ * https://www.redhat.com/mailman/listinfo/open-scap-list[openscap mailing list]
 
 In case you have found a bug, do not hesitate to https://fedorahosted.org/scap-workbench/newticket[submit it]
 (requires a Fedora FAS account). Make sure you provide as many details as possible,

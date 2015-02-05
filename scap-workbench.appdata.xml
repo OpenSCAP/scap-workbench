@@ -28,5 +28,5 @@
         <screenshot width="1280" height="720">https://fedorahosted.org/scap-workbench/raw-attachment/wiki/AppData/0.8-tailoring.png</screenshot>
     </screenshots>
     <url type="homepage">https://fedorahosted.org/scap-workbench</url>
-    <updatecontact>scap-workbench@lists.fedorahosted.org</updatecontact>
+    <updatecontact>open-scap-list@redhat.com</updatecontact>
 </application>
