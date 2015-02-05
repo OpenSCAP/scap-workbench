@@ -387,7 +387,12 @@ void MainWindow::openSSGDialog(const QString& customDismissLabel)
         dialog->setDismissLabel(customDismissLabel);
 
     if (dialog->exec() == QDialog::Accepted)
+    {
+        if (fileOpened())
+            closeFile();
+
         openFile(dialog->getSelectedSSGFile());
+    }
 
     delete dialog;
 }
