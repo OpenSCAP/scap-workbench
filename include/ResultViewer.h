@@ -90,7 +90,7 @@ class ResultViewer : public QWidget
         QByteArray mResults;
         QByteArray mReport;
         /// If user requests to open the file via desktop services
-        QTemporaryFile mReportFile;
+        QTemporaryFile* mReportFile;
         QByteArray mARF;
 };
 

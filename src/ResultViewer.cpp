@@ -28,10 +28,10 @@
 #include <QMessageBox>
 
 ResultViewer::ResultViewer(QWidget* parent):
-    QWidget(parent)
-{
-    mReportFile.setFileTemplate(mReportFile.fileTemplate() + ".html");
+    QWidget(parent),
 
+    mReportFile(0)
+{
     mUI.setupUi(this);
 
     mSaveResultsAction = new QAction("XCCDF Result file", this);
@@ -62,7 +62,10 @@ ResultViewer::ResultViewer(QWidget* parent):
 }
 
 ResultViewer::~ResultViewer()
-{}
+{
+    delete mReportFile;
+    mReportFile = 0;
+}
 
 void ResultViewer::clear()
 {
@@ -124,15 +127,22 @@ void ResultViewer::saveReport()
 
 void ResultViewer::openReport()
 {
-    mReportFile.open();
-    mReportFile.write(mReport);
-    mReportFile.flush();
+    if (mReportFile)
+    {
+        delete mReportFile;
+        mReportFile = 0;
+    }
 
-    openUrlGuarded(QUrl::fromLocalFile(mReportFile.fileName()));
+    mReportFile = new QTemporaryFile();
+    mReportFile->setFileTemplate(mReportFile->fileTemplate() + ".html");
+    mReportFile->open();
+    mReportFile->write(mReport);
+    mReportFile->flush();
+    mReportFile->close();
 
-    mReportFile.close();
+    openUrlGuarded(QUrl::fromLocalFile(mReportFile->fileName()));
 
-    // the temporary file will be destroyed when scap-workbench closes
+    // the temporary file will be destroyed when scap-workbench closes or after another one is requested
 }
 
 void ResultViewer::saveResults()
