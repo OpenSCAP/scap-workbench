@@ -237,10 +237,12 @@ void MainWindow::clearResults()
     {
         struct xccdf_policy* policy = mScanningSession != 0 ? xccdf_session_get_xccdf_policy(mScanningSession->getXCCDFSession()) : 0;
         mUI.progressBar->setRange(0, policy ? xccdf_policy_get_selected_rules_count(policy) : 1);
+        mUI.progressBar->setTextVisible(true);
     }
     else
     {
         mUI.progressBar->setRange(0, 1);
+        mUI.progressBar->setTextVisible(false);
     }
 
     mUI.progressBar->reset();
@@ -468,6 +470,7 @@ void MainWindow::scanAsync(ScannerMode scannerMode)
     mUI.progressBar->reset();
     mUI.progressBar->setValue(0);
     mUI.progressBar->setEnabled(true);
+    mUI.progressBar->setTextVisible(true);
     mUI.ruleResultsTree->setEnabled(true);
 
     mScanThread = new QThread(this);
