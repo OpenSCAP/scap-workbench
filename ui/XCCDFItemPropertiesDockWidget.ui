@@ -332,13 +332,6 @@ background: transparent;</string>
           </property>
          </widget>
         </item>
-        <item row="12" column="0">
-         <widget class="QLabel" name="affectsRulesLabel">
-          <property name="text">
-           <string>Affects Rules</string>
-          </property>
-         </widget>
-        </item>
         <item row="13" column="0" colspan="2">
          <widget class="QTextBrowser" name="affectsRulesBrowser">
           <property name="maximumSize">
@@ -350,6 +343,13 @@ background: transparent;</string>
           <property name="styleSheet">
            <string notr="true">border: 1px solid #000;
 background: transparent;</string>
+          </property>
+         </widget>
+        </item>
+        <item row="12" column="0" colspan="2">
+         <widget class="QLabel" name="affectsRulesLabel">
+          <property name="text">
+           <string>Affects Rules</string>
           </property>
          </widget>
         </item>
