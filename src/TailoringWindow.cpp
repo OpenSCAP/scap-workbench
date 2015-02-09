@@ -247,6 +247,7 @@ TailoringWindow::TailoringWindow(struct xccdf_policy* policy, struct xccdf_bench
     mSearchButton->setShortcut(QKeySequence::FindNext);
 
     mUI.toolBar->addWidget(mSearchButton);
+    mSearchFeedback->setMargin(5);
     mUI.toolBar->addWidget(mSearchFeedback);
 
     QObject::connect(
