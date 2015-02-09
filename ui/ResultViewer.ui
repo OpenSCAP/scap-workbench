@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>315</width>
-    <height>24</height>
+    <height>31</height>
    </rect>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
@@ -32,6 +32,9 @@
          <font>
           <pointsize>13</pointsize>
          </font>
+        </property>
+        <property name="toolTip">
+         <string>Saves results of this evaluation.</string>
         </property>
         <property name="text">
          <string>Save Results</string>

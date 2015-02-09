@@ -51,6 +51,9 @@
              </property>
              <item>
               <widget class="QRadioButton" name="localMachineRadioButton">
+               <property name="toolTip">
+                <string>Selecting the Local Machine target will cause workbench to evaluate the same machine that it is running on.</string>
+               </property>
                <property name="text">
                 <string>Local Machine</string>
                </property>
@@ -61,6 +64,9 @@
              </item>
              <item>
               <widget class="QRadioButton" name="remoteMachineRadioButton">
+               <property name="toolTip">
+                <string>The Remote Machine target enables workbench to scan any remote machine that can be accessed using SSH.</string>
+               </property>
                <property name="text">
                 <string>Remote Machine (over SSH)</string>
                </property>
@@ -124,7 +130,11 @@
         </widget>
        </item>
        <item row="6" column="1">
-        <widget class="QComboBox" name="profileComboBox"/>
+        <widget class="QComboBox" name="profileComboBox">
+         <property name="toolTip">
+          <string>Determines which XCCDF profile will be used for evaluation. Listed profiles come from the input content and customization file.</string>
+         </property>
+        </widget>
        </item>
        <item row="3" column="1" colspan="2">
         <widget class="QLabel" name="titleLabel">
@@ -140,6 +150,9 @@
            <weight>75</weight>
            <bold>true</bold>
           </font>
+         </property>
+         <property name="toolTip">
+          <string>TItle of the XCCDF Benchmark</string>
          </property>
          <property name="text">
           <string/>
@@ -167,7 +180,11 @@
         </spacer>
        </item>
        <item row="5" column="1" colspan="2">
-        <widget class="QComboBox" name="tailoringFileComboBox"/>
+        <widget class="QComboBox" name="tailoringFileComboBox">
+         <property name="toolTip">
+          <string>Allows to select, load or reset a customization. Customization is called XCCDF Tailoring in the specification.</string>
+         </property>
+        </widget>
        </item>
       </layout>
      </widget>
@@ -260,6 +277,9 @@
                  <bold>true</bold>
                 </font>
                </property>
+               <property name="toolTip">
+                <string>Starts the evaluation.</string>
+               </property>
                <property name="text">
                 <string>&amp;Scan</string>
                </property>
@@ -295,6 +315,9 @@
                  <weight>75</weight>
                  <bold>true</bold>
                 </font>
+               </property>
+               <property name="toolTip">
+                <string>Cancels the evaluation. Partial results may be lost.</string>
                </property>
                <property name="text">
                 <string>Cancel</string>
@@ -332,6 +355,9 @@
                 <font>
                  <pointsize>13</pointsize>
                 </font>
+               </property>
+               <property name="toolTip">
+                <string>Causes workbench to forget all collected evaluation results and prepares it for another scan.</string>
                </property>
                <property name="text">
                 <string>&amp;Clear</string>

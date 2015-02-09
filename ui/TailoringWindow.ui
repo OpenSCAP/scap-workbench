@@ -90,6 +90,9 @@
            <bold>true</bold>
           </font>
          </property>
+         <property name="toolTip">
+          <string>Confirms customization, returns to the main window.</string>
+         </property>
          <property name="text">
           <string>Confirm changes</string>
          </property>
@@ -98,7 +101,7 @@
        <item>
         <widget class="QPushButton" name="cancelButton">
          <property name="toolTip">
-          <string>Closes this window and discard all changes</string>
+          <string>Closes this window and discards all changes.</string>
          </property>
          <property name="text">
           <string>Discard changes</string>
@@ -114,6 +117,9 @@
        </item>
        <item>
         <widget class="QPushButton" name="deleteProfileButton">
+         <property name="toolTip">
+          <string>Closes this window, discards any changes and deletes the profile that was being customized.</string>
+         </property>
          <property name="text">
           <string>Delete profile</string>
          </property>
