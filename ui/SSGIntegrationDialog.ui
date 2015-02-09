@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>640</width>
-    <height>141</height>
+    <width>528</width>
+    <height>373</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -31,12 +31,21 @@
         <property name="alignment">
          <set>Qt::AlignCenter</set>
         </property>
+        <property name="wordWrap">
+         <bool>true</bool>
+        </property>
        </widget>
       </item>
       <item>
        <widget class="QLabel" name="label">
         <property name="text">
-         <string>SCAP Security Guide was found installed on this machine. Do you want to open it?</string>
+         <string>SCAP Security Guide was found installed on this machine. Select one of the default guides or a custom guide to open.</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+        <property name="wordWrap">
+         <bool>true</bool>
         </property>
         <property name="margin">
          <number>5</number>
