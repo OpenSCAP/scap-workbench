@@ -81,7 +81,7 @@
          <enum>Qt::NoContextMenu</enum>
         </property>
         <property name="styleSheet">
-         <string notr="true">text-align: left; border: 0; </string>
+         <string notr="true">text-align: left; border: 0; padding-left: 5px; </string>
         </property>
         <property name="text">
          <string>Title</string>

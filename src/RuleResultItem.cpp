@@ -64,7 +64,7 @@ void RuleResultItem::setRuleResult(const QString& result)
 {
     QString resultStyleSheet = "text-align: center; font-weight: bold; color: #ffffff; padding: 3px; ";
     QString resultTooltip;
-    QString titleStyleSheet = "text-align: left; border: 0; ";
+    QString titleStyleSheet = "text-align: left; border: 0; padding-left: 5px; ";
 
     if (result.isEmpty())
     {
