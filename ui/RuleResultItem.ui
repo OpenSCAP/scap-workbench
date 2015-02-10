@@ -64,9 +64,24 @@
        </widget>
       </item>
       <item>
-       <widget class="QLabel" name="title">
+       <widget class="QPushButton" name="title">
+        <property name="cursor">
+         <cursorShape>PointingHandCursor</cursorShape>
+        </property>
+        <property name="focusPolicy">
+         <enum>Qt::NoFocus</enum>
+        </property>
+        <property name="contextMenuPolicy">
+         <enum>Qt::NoContextMenu</enum>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">text-align: left; border: 0; </string>
+        </property>
         <property name="text">
-         <string>XCCDF Item Title</string>
+         <string>Title</string>
+        </property>
+        <property name="flat">
+         <bool>true</bool>
         </property>
        </widget>
       </item>
@@ -124,5 +139,22 @@ border: 1px solid #ddd;</string>
   </layout>
  </widget>
  <resources/>
- <connections/>
+ <connections>
+  <connection>
+   <sender>title</sender>
+   <signal>clicked()</signal>
+   <receiver>showDescriptionCheckBox</receiver>
+   <slot>toggle()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>52</x>
+     <y>10</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>8</x>
+     <y>15</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
 </ui>

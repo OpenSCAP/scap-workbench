@@ -64,7 +64,7 @@ void RuleResultItem::setRuleResult(const QString& result)
 {
     QString resultStyleSheet = "text-align: center; font-weight: bold; color: #ffffff; padding: 3px; ";
     QString resultTooltip;
-    QString titleStyleSheet = "";
+    QString titleStyleSheet = "text-align: left; border: 0; ";
 
     if (result.isEmpty())
     {
@@ -74,7 +74,7 @@ void RuleResultItem::setRuleResult(const QString& result)
     {
         resultStyleSheet += "background: #c0c0c0; ";
         resultTooltip = QObject::tr("This rule is currently being processed.");
-        titleStyleSheet = "background: #c0c0c0";
+        titleStyleSheet += "background: #c0c0c0";
     }
     else if (result == "pass")
     {
@@ -85,7 +85,7 @@ void RuleResultItem::setRuleResult(const QString& result)
     {
         resultStyleSheet += "background: #d9534f; ";
         resultTooltip = QObject::tr("The target system or system component did not satisfy every condition of this rule.");
-        titleStyleSheet = "color: #d9534f";
+        titleStyleSheet += "color: #d9534f";
     }
     else if (result == "error")
     {
@@ -93,7 +93,7 @@ void RuleResultItem::setRuleResult(const QString& result)
         resultTooltip = QObject::tr("The checking engine could not complete the evaluation, therefore the status of the target's "
                 "compliance with the rule is not certain. This could happen, for example, if a testing "
                 "tool was run with insufficient privileges and could not gather all of the necessary information.");
-        titleStyleSheet = "color: #d9534f";
+        titleStyleSheet += "color: #d9534f";
     }
     else if (result == "unknown")
     {
