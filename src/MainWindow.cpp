@@ -235,9 +235,10 @@ void MainWindow::clearResults()
 
     if (mScanningSession && mScanningSession->fileOpened())
     {
-        struct xccdf_policy* policy = mScanningSession != 0 ? xccdf_session_get_xccdf_policy(mScanningSession->getXCCDFSession()) : 0;
-        mUI.progressBar->setRange(0, policy ? xccdf_policy_get_selected_rules_count(policy) : 1);
-        mUI.progressBar->setTextVisible(true);
+        struct xccdf_policy* policy = xccdf_session_get_xccdf_policy(mScanningSession->getXCCDFSession());
+        const int selected_rules = policy ? xccdf_policy_get_selected_rules_count(policy) : 0;
+        mUI.progressBar->setRange(0, std::max(1, selected_rules));
+        mUI.progressBar->setTextVisible(selected_rules > 0);
     }
     else
     {
@@ -485,11 +486,12 @@ void MainWindow::scanAsync(ScannerMode scannerMode)
         return;
     }
 
-    mUI.progressBar->setRange(0, xccdf_policy_get_selected_rules_count(policy));
+    const int selected_rules = xccdf_policy_get_selected_rules_count(policy);
+    mUI.progressBar->setRange(0, std::max(1, selected_rules));
     mUI.progressBar->reset();
     mUI.progressBar->setValue(0);
     mUI.progressBar->setEnabled(true);
-    mUI.progressBar->setTextVisible(true);
+    mUI.progressBar->setTextVisible(selected_rules > 0);
     mUI.ruleResultsTree->setEnabled(true);
 
     mScanThread = new QThread(this);
@@ -1058,6 +1060,7 @@ void MainWindow::scanEnded(bool canceled)
     }
     else
     {
+        mUI.progressBar->setValue(mUI.progressBar->maximum());
         mUI.resultViewer->loadContent(mScanner);
         mUI.offlineRemediateButton->setEnabled(mScanner->getScannerMode() == SM_SCAN);
     }
