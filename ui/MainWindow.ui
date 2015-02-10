@@ -134,6 +134,9 @@
          <property name="toolTip">
           <string>Determines which XCCDF profile will be used for evaluation. Listed profiles come from the input content and customization file.</string>
          </property>
+         <property name="maxVisibleItems">
+          <number>15</number>
+         </property>
         </widget>
        </item>
        <item row="3" column="1" colspan="2">
@@ -543,12 +546,12 @@
    <slot>setVisible(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>432</x>
-     <y>234</y>
+     <x>781</x>
+     <y>200</y>
     </hint>
     <hint type="destinationlabel">
-     <x>321</x>
-     <y>270</y>
+     <x>437</x>
+     <y>216</y>
     </hint>
    </hints>
   </connection>
