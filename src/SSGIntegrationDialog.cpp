@@ -53,7 +53,7 @@ const QString& SSGIntegrationDialog::getSelectedSSGFile() const
 
 bool SSGIntegrationDialog::isSSGAvailable()
 {
-    return QDir(SCAP_WORKBENCH_SSG_DIRECTORY).exists();
+    return getSSGDirectory().exists();
 }
 
 void SSGIntegrationDialog::variantRequested()
@@ -66,7 +66,7 @@ void SSGIntegrationDialog::variantRequested()
 
     const QString variant = button->property("ssg_variant").toString();
 
-    QDir dir(SCAP_WORKBENCH_SSG_DIRECTORY);
+    QDir dir(getSSGDirectory());
     dir.cd(variant);
 
     mSelectedSSGFile = dir.absoluteFilePath(QString("ssg-%1-ds.xml").arg(variant));
@@ -75,7 +75,7 @@ void SSGIntegrationDialog::variantRequested()
 
 void SSGIntegrationDialog::scrapeSSGVariants()
 {
-    const QDir dir(SCAP_WORKBENCH_SSG_DIRECTORY);
+    const QDir& dir = getSSGDirectory();
     const QStringList variants = dir.entryList(QDir::Dirs | QDir::NoDotAndDotDot);
 
     for (QStringList::const_iterator it = variants.constBegin();

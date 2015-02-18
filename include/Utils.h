@@ -64,6 +64,19 @@ const QDir& getShareDirectory();
 const QDir& getDocDirectory();
 
 /**
+ * @brief Retrieves QDir representing the SSG directory
+ *
+ * For installed scap-workbench the output's path usually looks like this:
+ * "/$INSTALL_PREFIX/share/xml/scap/ssg", e.g.: /usr/share/xml/scap/ssg
+ *
+ * Avoid using hardcoded paths in the codebase and always use paths relative
+ * to the doc path.
+ *
+ * @exception nothrow This function is guaranteed to not throw any exceptions.
+ */
+const QDir& getSSGDirectory();
+
+/**
  * @brief Constructs a QIcon from image of given filename
  *
  * This function looks for the file in the icon folder in workbench's share path.
