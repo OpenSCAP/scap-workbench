@@ -692,9 +692,13 @@ void TailoringWindow::closeEvent(QCloseEvent * event)
     if (mParentMainWindow)
     {
         mParentMainWindow->notifyTailoringFinished(mNewProfile, mChangesConfirmed);
+#ifndef _WIN32
+        // enabling main window like this on Windows causes workbench to hang
+
         // calling the slot forces Qt to call it when it enters the MainWindow event loop
         // the time delay doesn't really matter
         QTimer::singleShot(0, mParentMainWindow, SLOT(enable()));
+#endif
     }
 }
 

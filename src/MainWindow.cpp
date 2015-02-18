@@ -1179,7 +1179,10 @@ TailoringWindow* MainWindow::editProfile(bool newProfile)
     struct xccdf_benchmark* benchmark = xccdf_policy_model_get_benchmark(policyModel);
 
     TailoringWindow* ret = new TailoringWindow(policy, benchmark, newProfile, this);
+#ifndef _WIN32
+    // disabling MainWindow on Windows causes workbench to hang
     setEnabled(false);
+#endif
     return ret;
 }
 
