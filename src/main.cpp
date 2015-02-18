@@ -21,8 +21,19 @@
 
 #include "Application.h"
 
+#ifdef _WIN32
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+#endif
+
 int main(int argc, char** argv)
 {
+#ifdef _WIN32
+    // Free the console window if it has been spawned.
+    // Leaves everything intact if started from the command line.
+    FreeConsole();
+#endif
+
     Application app(argc, argv);
     return app.exec();
 }
