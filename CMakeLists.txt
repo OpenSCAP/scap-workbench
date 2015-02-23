@@ -34,6 +34,10 @@ find_program(SCP_EXECUTABLE NAMES scp) # required for remote scan, if missing re
 if (SCP_EXECUTABLE)
     set(SCAP_WORKBENCH_LOCAL_SCP_FOUND 1)
 endif()
+find_program(SETSID_EXECUTABLE NAMES setsid) # optional for remote scan, makes sure ssh always spawns GUI dialog
+if (SETSID_EXECUTABLE)
+    set(SCAP_WORKBENCH_LOCAL_SETSID_FOUND 1)
+endif()
 
 # Save as RPM tools, optional but required for saving content as RPM
 find_program(SCAP_AS_RPM_EXECUTABLE NAMES scap-as-rpm)
