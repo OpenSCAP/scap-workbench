@@ -19,8 +19,17 @@ if (NOT DEFINED OPENSCAP_LIBRARIES OR NOT DEFINED OPENSCAP_INCLUDE_DIRS)
     pkg_check_modules(OPENSCAP REQUIRED libopenscap>=1.2.0)
 endif()
 
+# Local scanning tools
+find_program(NICE_EXECUTABLE NAMES nice) # fully optional, local scan still available when missing
+if (NICE_EXECUTABLE)
+    set(SCAP_WORKBENCH_LOCAL_NICE_FOUND 1)
+endif()
+
 # Save as RPM tools, optional but required for saving content as RPM
 find_program(SCAP_AS_RPM_EXECUTABLE NAMES scap-as-rpm)
+if (SCAP_AS_RPM_EXECUTABLE)
+    set(SCAP_WORKBENCH_LOCAL_SCAP_AS_RPM_FOUND 1)
+endif()
 
 # This is optional, only required if user wants documentation rebuilt
 find_program(ASCIIDOCTOR_EXECUTABLE NAMES asciidoctor)

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2013-2015 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -41,8 +41,10 @@
 #define SCAP_WORKBENCH_LOCAL_SSH_PATH "ssh"
 #define SCAP_WORKBENCH_LOCAL_SCP_PATH "scp"
 #define SCAP_WORKBENCH_LOCAL_SETSID_PATH "setsid"
-#define SCAP_WORKBENCH_LOCAL_NICE_PATH "nice"
+#cmakedefine SCAP_WORKBENCH_LOCAL_NICE_FOUND
+#define SCAP_WORKBENCH_LOCAL_NICE_PATH "@NICE_EXECUTABLE@"
 #define SCAP_WORKBENCH_LOCAL_OSCAP_NICENESS 10
+#cmakedefine SCAP_WORKBENCH_LOCAL_SCAP_AS_RPM_FOUND
 #define SCAP_WORKBENCH_LOCAL_SCAP_AS_RPM_PATH "@SCAP_AS_RPM_EXECUTABLE@"
 #define SCAP_WORKBENCH_LOCAL_MKTEMP "mktemp"
 #define SCAP_WORKBENCH_LOCAL_RM "rm"
