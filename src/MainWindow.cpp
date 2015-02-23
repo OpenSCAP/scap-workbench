@@ -140,10 +140,17 @@ MainWindow::MainWindow(QWidget* parent):
         mUI.actionSaveIntoDirectory, SIGNAL(triggered()),
         this, SLOT(saveIntoDirectory())
     );
-    QObject::connect(
-        mUI.actionSaveAsRPM, SIGNAL(triggered()),
-        this, SLOT(saveAsRPM())
-    );
+    if (QString(SCAP_WORKBENCH_LOCAL_SCAP_AS_RPM_PATH).isEmpty())
+    {
+        mUI.actionSaveAsRPM->setVisible(false);
+    }
+    else
+    {
+        QObject::connect(
+            mUI.actionSaveAsRPM, SIGNAL(triggered()),
+            this, SLOT(saveAsRPM())
+        );
+    }
 
     QObject::connect(
         mUI.customizeProfileButton, SIGNAL(released()),

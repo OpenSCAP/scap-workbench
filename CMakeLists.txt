@@ -19,6 +19,9 @@ if (NOT DEFINED OPENSCAP_LIBRARIES OR NOT DEFINED OPENSCAP_INCLUDE_DIRS)
     pkg_check_modules(OPENSCAP REQUIRED libopenscap>=1.2.0)
 endif()
 
+# Save as RPM tools, optional but required for saving content as RPM
+find_program(SCAP_AS_RPM_EXECUTABLE NAMES scap-as-rpm)
+
 # This is optional, only required if user wants documentation rebuilt
 find_program(ASCIIDOCTOR_EXECUTABLE NAMES asciidoctor)
 option(SCAP_WORKBENCH_REBUILD_MANUAL "If enabled, user manual will be rebuilt (requires asciidoctor to be installed)" TRUE)
