@@ -25,6 +25,16 @@ if (NICE_EXECUTABLE)
     set(SCAP_WORKBENCH_LOCAL_NICE_FOUND 1)
 endif()
 
+# Remote scanning tools
+find_program(SSH_EXECUTABLE NAMES ssh) # required for remote scan, if missing remote scan is not available
+if (SSH_EXECUTABLE)
+    set(SCAP_WORKBENCH_LOCAL_SSH_FOUND 1)
+endif()
+find_program(SCP_EXECUTABLE NAMES scp) # required for remote scan, if missing remote scan is not available
+if (SCP_EXECUTABLE)
+    set(SCAP_WORKBENCH_LOCAL_SCP_FOUND 1)
+endif()
+
 # Save as RPM tools, optional but required for saving content as RPM
 find_program(SCAP_AS_RPM_EXECUTABLE NAMES scap-as-rpm)
 if (SCAP_AS_RPM_EXECUTABLE)
