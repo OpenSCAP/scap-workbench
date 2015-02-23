@@ -153,7 +153,8 @@ MainWindow::MainWindow(QWidget* parent):
             this, SLOT(saveAsRPM())
         );
 #else
-        mUI.actionSaveAsRPM->setVisible(false);
+        mUI.actionSaveAsRPM->setEnabled(false);
+        mUI.actionSaveAsRPM->setToolTip("SCAP Workbench was compiled without Save as RPM support");
 #endif
 
     QObject::connect(
