@@ -32,6 +32,8 @@ SshConnection::SshConnection(QObject* parent):
     mTarget(""),
     mPort(22),
 
+    mSocketDir(0),
+
     mEnvironment(QProcessEnvironment::systemEnvironment()),
     mConnected(false),
     mCancelRequestSource(0)
@@ -91,14 +93,14 @@ void SshConnection::connect()
 
     try
     {
-        SyncProcess proc(this);
-        proc.setCommand("mktemp");
-        proc.setArguments(QStringList("-d"));
-        proc.setEnvironment(mEnvironment);
-        proc.setCancelRequestSource(mCancelRequestSource);
-        proc.run();
+        if (mSocketDir)
+        {
+            delete mSocketDir;
+            mSocketDir = 0;
+        }
 
-        mMasterSocket = proc.getStdOutContents().trimmed() + "/ssh_socket";
+        mSocketDir = new TemporaryDir();
+        mMasterSocket = mSocketDir->getPath() + "/ssh_socket";
     }
     catch (const SyncProcessException& e)
     {
@@ -184,14 +186,10 @@ void SshConnection::disconnect()
     }
 
     // delete the parent temporary directory we created
-    QFileInfo socketFile(mMasterSocket);
-    QDir socketDir = socketFile.dir();
-
-    if (!socketDir.rmdir(socketDir.absolutePath()))
+    if (mSocketDir)
     {
-        throw SshConnectionException(
-            QString("Failed to remove temporary directory hosting the ssh "
-                    "connection socket."));
+        delete mSocketDir;
+        mSocketDir = 0;
     }
 
     mConnected = false;
