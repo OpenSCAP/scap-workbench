@@ -26,6 +26,32 @@
 #include <QDir>
 #include <iostream>
 
+static bool recursiveRemoveDir(const QString& dirName)
+{
+    // Adapted code from:
+    // http://john.nachtimwald.com/2010/06/08/qt-remove-directory-and-its-contents/
+
+    bool result = true;
+    QDir dir(dirName);
+
+    if (dir.exists(dirName))
+    {
+        Q_FOREACH(QFileInfo info, dir.entryInfoList(QDir::NoDotAndDotDot | QDir::System | QDir::Hidden  | QDir::AllDirs | QDir::Files, QDir::DirsFirst))
+        {
+            if (info.isDir())
+                result = recursiveRemoveDir(info.absoluteFilePath());
+            else
+                result = QFile::remove(info.absoluteFilePath());
+
+            if (!result)
+                return result;
+        }
+        result = dir.rmdir(dirName);
+    }
+
+    return result;
+}
+
 TemporaryDir::TemporaryDir():
     mAutoRemove(true)
 {}
@@ -34,14 +60,7 @@ TemporaryDir::~TemporaryDir()
 {
     if (!mPath.isEmpty() && mAutoRemove)
     {
-        SyncProcess proc;
-        proc.setCommand(SCAP_WORKBENCH_LOCAL_RM);
-        QStringList args;
-        args.push_back("-r"); args.push_back(mPath);
-        proc.setArguments(args);
-        proc.run();
-
-        if (proc.getExitCode() != 0)
+        if (!recursiveRemoveDir(mPath))
         {
             // We don't throw on destruction! The worst thing that can happen
             // is leftover files which is not a big deal anyway.
