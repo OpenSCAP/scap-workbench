@@ -86,28 +86,62 @@ const QString& TemporaryDir::getPath() const
     return mPath;
 }
 
+// nextRand adapted from from QTemporaryDir from Qt5, licensed under LGPL2.1+
+
+// Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
+// Contact: http://www.qt-project.org/legal
+//
+// GNU Lesser General Public License Usage
+// Alternatively, this file may be used under the terms of the GNU Lesser
+// General Public License version 2.1 or version 3 as published by the Free
+// Software Foundation and appearing in the file LICENSE.LGPLv21 and
+// LICENSE.LGPLv3 included in the packaging of this file. Please review the
+// following information to ensure the GNU Lesser General Public License
+// requirements will be met: https://www.gnu.org/licenses/lgpl.html and
+// http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
+//
+// In addition, as a special exception, Digia gives you certain additional
+// rights. These rights are described in the Digia Qt LGPL Exception
+// version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
+
+static int nextRand(int& v)
+{
+    int r = v % 62;
+    v /= 62;
+    if (v < 62)
+        v = qrand();
+    return r;
+}
+
 void TemporaryDir::ensurePath() const
 {
+    static const char letters[] = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+
     if (mPath.isEmpty())
     {
-        SyncProcess proc;
-        proc.setCommand(SCAP_WORKBENCH_LOCAL_MKTEMP);
-        proc.setArguments(QStringList("-d"));
-        proc.run();
+        QString dirName;
+        while (true)
+        {
+            dirName = "";
 
-        if (proc.getExitCode() != 0)
-            throw TemporaryDirException(
-                QString("Failed to create temporary directory.\n"
-                    "Diagnostic info:\n%1").arg(proc.getDiagnosticInfo())
-            );
+            int v = qrand();
+            dirName += letters[nextRand(v)];
+            dirName += letters[nextRand(v)];
+            dirName += letters[nextRand(v)];
+            dirName += letters[nextRand(v)];
+            dirName += letters[nextRand(v)];
+            dirName += letters[nextRand(v)];
 
-        const QDir dir(proc.getStdOutContents().trimmed());
+            if (QDir::temp().mkdir(dirName))
+                break;
+        }
+
+        const QDir dir(QDir::temp().absoluteFilePath(dirName));
 
         if (!dir.exists())
             throw TemporaryDirException(
-                QString("Failed to create temporary directory. `mktemp -d` returned with 0 "
-                    "but the directory does not exist!\n"
-                    "Diagnostic info:\n%1").arg(proc.getDiagnosticInfo())
+                QString("Failed to create temporary directory. mkdir succeeded "
+                    "but the directory does not exist!")
             );
 
         mPath = dir.absolutePath();
