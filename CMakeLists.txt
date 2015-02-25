@@ -30,10 +30,6 @@ find_program(SSH_EXECUTABLE NAMES ssh) # required for remote scan, if missing re
 if (SSH_EXECUTABLE)
     set(SCAP_WORKBENCH_LOCAL_SSH_FOUND 1)
 endif()
-find_program(SCP_EXECUTABLE NAMES scp) # required for remote scan, if missing remote scan is not available
-if (SCP_EXECUTABLE)
-    set(SCAP_WORKBENCH_LOCAL_SCP_FOUND 1)
-endif()
 find_program(SETSID_EXECUTABLE NAMES setsid) # optional for remote scan, makes sure ssh always spawns GUI dialog
 if (SETSID_EXECUTABLE)
     set(SCAP_WORKBENCH_LOCAL_SETSID_FOUND 1)

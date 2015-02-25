@@ -112,6 +112,9 @@ class SyncProcess : public QObject
     public:
         bool isRunning() const;
 
+        void setStdInFile(const QString& path);
+        const QString& getStdInFile() const;
+
         int getExitCode() const;
         const QString& getStdOutContents() const;
         const QString& getStdErrContents() const;
@@ -145,6 +148,7 @@ class SyncProcess : public QObject
         /// Was cancellation requested locally (cancel() slot)
         bool mLocalCancelRequested;
 
+        QString mStdInFile;
         int mExitCode;
         QString mStdOutContents;
         QString mStdErrContents;

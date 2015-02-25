@@ -267,6 +267,19 @@ bool SyncProcess::isRunning() const
     return mRunning;
 }
 
+void SyncProcess::setStdInFile(const QString& path)
+{
+    if (isRunning())
+        throw SyncProcessException("Can't set stdin file when the process is running!");
+
+    mStdInFile = path;
+}
+
+const QString& SyncProcess::getStdInFile() const
+{
+    return mStdInFile;
+}
+
 int SyncProcess::getExitCode() const
 {
     if (isRunning())
@@ -304,6 +317,9 @@ void SyncProcess::startQProcess(QProcess& process)
     const QString command = generateFullCommand();
     if (command.isEmpty())
         throw SyncProcessException("Cannot start process '" + generateDescription() + "'. The full command is '" + command + "'.");
+
+    if (!mStdInFile.isEmpty())
+        process.setStandardInputFile(mStdInFile);
 
     process.setProcessEnvironment(generateFullEnvironment());
     mDiagnosticInfo += QObject::tr("Starting process '%1'\n").arg(generateDescription());

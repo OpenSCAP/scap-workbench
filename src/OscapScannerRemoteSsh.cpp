@@ -290,12 +290,11 @@ QString OscapScannerRemoteSsh::copyFileOver(const QString& localPath)
     QString ret = createRemoteTemporaryFile();
 
     {
-        ScpSyncProcess proc(mSshConnection, this);
-        proc.setDirection(SD_LOCAL_TO_REMOTE);
-        proc.setLocalPath(localPath);
-        proc.setRemotePath(ret);
+        SshSyncProcess proc(mSshConnection, this);
+        proc.setStdInFile(localPath);
+        proc.setCommand("tee");
+        proc.setArguments(QStringList(ret));
         proc.setCancelRequestSource(&mCancelRequested);
-
         proc.run();
 
         if (proc.getExitCode() != 0)
