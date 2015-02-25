@@ -302,7 +302,7 @@ QString OscapScannerRemoteSsh::copyFileOver(const QString& localPath)
         {
             emit errorMessage(
                 QObject::tr("Failed to copy '%1' over to the remote machine! "
-                            "Diagnostic info:\n%1").arg(localPath).arg(proc.getDiagnosticInfo())
+                            "Diagnostic info:\n%2").arg(localPath).arg(proc.getDiagnosticInfo())
             );
 
             mCancelRequested = true;
