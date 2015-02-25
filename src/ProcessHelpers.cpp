@@ -307,7 +307,6 @@ void SyncProcess::startQProcess(QProcess& process)
 
     process.setProcessEnvironment(generateFullEnvironment());
     mDiagnosticInfo += QObject::tr("Starting process '%1'\n").arg(generateDescription());
-    process.setStandardInputFile("/dev/null");
     process.setWorkingDirectory(mWorkingDirectory);
     process.start(command, generateFullArguments());
     process.waitForStarted();
