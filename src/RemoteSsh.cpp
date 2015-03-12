@@ -115,8 +115,10 @@ void SshConnection::connect()
     {
         QStringList args;
 #ifdef SCAP_WORKBENCH_LOCAL_SETSID_FOUND
+        args.append("-w"); // for setsid
         args.append(SCAP_WORKBENCH_LOCAL_SSH_PATH);
 #endif
+
         args.append("-M");
         args.append("-f");
         args.append("-N");
@@ -167,8 +169,10 @@ void SshConnection::disconnect()
     {
         QStringList args;
 #ifdef SCAP_WORKBENCH_LOCAL_SETSID_FOUND
+        args.append("-w"); // for setsid
         args.append(SCAP_WORKBENCH_LOCAL_SSH_PATH);
 #endif
+
         args.append("-S"); args.append(mMasterSocket);
 
         args.append("-O"); args.append("exit");
@@ -234,10 +238,11 @@ QStringList SshSyncProcess::generateFullArguments() const
         mSshConnection.connect();
 
     QStringList args;
-
 #ifdef SCAP_WORKBENCH_LOCAL_SETSID_FOUND
+    args.append("-w"); // for setsid
     args.append(SCAP_WORKBENCH_LOCAL_SSH_PATH);
 #endif
+
     args.append("-o"); args.append(QString("ControlPath=%1").arg(mSshConnection._getMasterSocket()));
     args.append(mSshConnection.getTarget());
     args.append(SyncProcess::generateFullCommand() + QString(" ") + SyncProcess::generateFullArguments().join(" "));
