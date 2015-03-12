@@ -112,6 +112,8 @@ void SshConnection::connect()
     try
     {
         QStringList args;
+        args.append("-w"); // for setsid
+
         args.append(SCAP_WORKBENCH_LOCAL_SSH_PATH);
         args.append("-M");
         args.append("-f");
@@ -158,6 +160,8 @@ void SshConnection::disconnect()
 
     {
         QStringList args;
+        args.append("-w"); // for setsid
+
         args.append(SCAP_WORKBENCH_LOCAL_SSH_PATH);
         args.append("-S"); args.append(mMasterSocket);
 
@@ -220,6 +224,7 @@ QStringList SshSyncProcess::generateFullArguments() const
         mSshConnection.connect();
 
     QStringList args;
+    args.append("-w"); // for setsid
 
     args.append(SCAP_WORKBENCH_LOCAL_SSH_PATH);
     args.append("-o"); args.append(QString("ControlPath=%1").arg(mSshConnection._getMasterSocket()));
@@ -302,6 +307,7 @@ QStringList ScpSyncProcess::generateFullArguments() const
         mSshConnection.connect();
 
     QStringList args;
+    args.append("-w"); // for setsid
 
     args.append(SCAP_WORKBENCH_LOCAL_SCP_PATH);
     args.append("-o"); args.append(QString("ControlPath=%1").arg(mSshConnection._getMasterSocket()));
