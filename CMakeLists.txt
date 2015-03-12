@@ -20,6 +20,8 @@ if (NOT DEFINED OPENSCAP_LIBRARIES OR NOT DEFINED OPENSCAP_INCLUDE_DIRS)
 endif()
 
 # Local scanning tools
+option(SCAP_WORKBENCH_LOCAL_SCAN_ENABLED "If enabled, scanning of local machine is possible from workbench. Else the option is disabled in the GUI." TRUE)
+
 find_program(NICE_EXECUTABLE NAMES nice) # fully optional, local scan still available when missing
 if (NICE_EXECUTABLE)
     set(SCAP_WORKBENCH_LOCAL_NICE_FOUND 1)

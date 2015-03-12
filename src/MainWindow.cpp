@@ -119,13 +119,34 @@ MainWindow::MainWindow(QWidget* parent):
         mUI.profileComboBox, SIGNAL(currentIndexChanged(int)),
         this, SLOT(profileComboboxChanged(int))
     );
-#ifdef SCAP_WORKBENCH_LOCAL_SSH_FOUND
-#else
+#ifndef SCAP_WORKBENCH_LOCAL_SCAN_ENABLED
+    mUI.localMachineRadioButton->setEnabled(false);
+    mUI.localMachineRadioButton->setToolTip(
+        QObject::tr("SCAP Workbench was compiled without local scanning support")
+    );
+#endif
+
+#ifndef SCAP_WORKBENCH_LOCAL_SSH_FOUND
     mUI.remoteMachineRadioButton->setEnabled(false);
     mUI.remoteMachineRadioButton->setToolTip(
         QObject::tr("SCAP Workbench was compiled without remote scanning support")
     );
+
+# ifndef SCAP_WORKBENCH_LOCAL_SCAN_ENABLED
+    mUI.remoteMachineRadioButton->setChecked(true);
+# endif
 #endif
+
+#ifndef SCAP_WORKBENCH_LOCAL_SCAN_ENABLED
+# ifndef SCAP_WORKBENCH_LOCAL_SSH_FOUND
+    // no scanning is possible, not remote, not local
+    mUI.scanButton->setEnabled(false);
+    mUI.scanButton->setToolTip(
+        QObject::tr("SCAP Workbench was compiled without local and remote scanning support. Only tailoring is possible.")
+    );
+# endif
+#endif
+
     QObject::connect(
         mUI.scanButton, SIGNAL(released()),
         this, SLOT(scanAsyncAutoMode())
