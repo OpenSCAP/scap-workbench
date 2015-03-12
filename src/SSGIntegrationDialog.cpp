@@ -66,8 +66,7 @@ void SSGIntegrationDialog::variantRequested()
 
     const QString variant = button->property("ssg_variant").toString();
 
-    QDir dir(getSSGDirectory());
-    dir.cd(variant);
+    const QDir& dir(getSSGDirectory());
 
     mSelectedSSGFile = dir.absoluteFilePath(QString("ssg-%1-ds.xml").arg(variant));
     accept();
@@ -76,21 +75,29 @@ void SSGIntegrationDialog::variantRequested()
 void SSGIntegrationDialog::scrapeSSGVariants()
 {
     const QDir& dir = getSSGDirectory();
-    const QStringList variants = dir.entryList(QDir::Dirs | QDir::NoDotAndDotDot);
+    const QStringList variants = dir.entryList(QDir::Files | QDir::NoDotAndDotDot);
 
     for (QStringList::const_iterator it = variants.constBegin();
          it != variants.constEnd(); ++it)
     {
         QString name = *it;
 
-        // Make the label nicer for known variants
-        if (name.startsWith("rhel")) // use RHEL instead of rhel
-            name = name.toUpper();
-        else if (name.startsWith("fedora")) // use Fedora instead of fedora
-            name[0] = 'F';
+        if (!name.startsWith("ssg-") || !name.endsWith("-ds.xml") || name.length() < 12)
+            continue; // TODO: Warn?
 
-        QPushButton* button = new QPushButton(name, mUI.variants);
-        button->setProperty("ssg_variant", QVariant(*it));
+        name.remove(0, 4); // remove prefix "ssg-"
+        name.chop(7); // remove suffix "-ds.xml"
+
+        QString label = name;
+
+        // Make the label nicer for known variants
+        if (label.startsWith("rhel")) // use RHEL instead of rhel
+            label = name.toUpper();
+        else if (label.startsWith("fedora")) // use Fedora instead of fedora
+            label[0] = 'F';
+
+        QPushButton* button = new QPushButton(label, mUI.variants);
+        button->setProperty("ssg_variant", QVariant(name));
         mUI.variants->layout()->addWidget(button);
 
         QObject::connect(
