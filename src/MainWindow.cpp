@@ -124,6 +124,10 @@ MainWindow::MainWindow(QWidget* parent):
     mUI.localMachineRadioButton->setToolTip(
         QObject::tr("SCAP Workbench was compiled without local scanning support")
     );
+    mUI.localMachineRadioButton->setChecked(false);
+# ifdef SCAP_WORKBENCH_LOCAL_SSH_FOUND
+    mUI.remoteMachineRadioButton->setChecked(true);
+# endif
 #endif
 
 #ifndef SCAP_WORKBENCH_LOCAL_SSH_FOUND
@@ -131,10 +135,6 @@ MainWindow::MainWindow(QWidget* parent):
     mUI.remoteMachineRadioButton->setToolTip(
         QObject::tr("SCAP Workbench was compiled without remote scanning support")
     );
-
-# ifndef SCAP_WORKBENCH_LOCAL_SCAN_ENABLED
-    mUI.remoteMachineRadioButton->setChecked(true);
-# endif
 #endif
 
 #ifndef SCAP_WORKBENCH_LOCAL_SCAN_ENABLED
