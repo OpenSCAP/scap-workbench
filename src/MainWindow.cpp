@@ -309,7 +309,7 @@ void MainWindow::openFile(const QString& path)
             tailoringPath = inputPath;
 
         const QFileInfo pathInfo(path);
-        setWindowTitle(QObject::tr("%1 - scap-workbench").arg(pathInfo.fileName()));
+        setWindowTitle(QObject::tr("%1 - SCAP Workbench").arg(pathInfo.fileName()));
 
         mUI.tailoringFileComboBox->addItem(QString(TAILORING_NONE), QVariant(QString::Null()));
         mUI.tailoringFileComboBox->addItem(QString(TAILORING_CUSTOM_FILE), QVariant(QString::Null()));
@@ -335,7 +335,7 @@ void MainWindow::openFile(const QString& path)
     {
         mScanningSession->closeFile();
 
-        setWindowTitle(QObject::tr("scap-workbench"));
+        setWindowTitle(QObject::tr("SCAP Workbench"));
         mUI.tailoringFileComboBox->clear();
 
         mDiagnosticsDialog->exceptionMessage(e, QObject::tr("Error while opening file."));
@@ -647,7 +647,7 @@ void MainWindow::closeEvent(QCloseEvent* event)
     if (unsavedTailoringChanges())
     {
         if (QMessageBox::question(this, QObject::tr("Unsaved customization changes"),
-            QObject::tr("There are unsaved customization changes, closing scap-workbench will destroy them. "
+            QObject::tr("There are unsaved customization changes, closing SCAP Workbench will destroy them. "
             "Are you sure you want to close and discard the changes?"),
             QMessageBox::Yes | QMessageBox::No, QMessageBox::No) == QMessageBox::No)
         {
@@ -686,7 +686,7 @@ void MainWindow::closeFile()
 
     centralWidget()->setEnabled(false);
 
-    setWindowTitle(QObject::tr("scap-workbench"));
+    setWindowTitle(QObject::tr("SCAP Workbench"));
 
     mUI.checklistComboBox->clear();
     mUI.checklistComboBox->hide();
@@ -1378,7 +1378,7 @@ void MainWindow::about()
 {
     const QString title = "SCAP Workbench " SCAP_WORKBENCH_VERSION;
 
-    const QString versionInfo = QString("scap-workbench %1, compiled with Qt %2, using openscap %3\n\n").arg(SCAP_WORKBENCH_VERSION, QT_VERSION_STR, oscap_get_version());
+    const QString versionInfo = QString("SCAP Workbench %1, compiled with Qt %2, using OpenSCAP %3\n\n").arg(SCAP_WORKBENCH_VERSION, QT_VERSION_STR, oscap_get_version());
     const QString description = QObject::tr(
 "This application is called SCAP Workbench, the homepage can be found at \
 <http://fedorahosted.org/scap-workbench>\n\n");

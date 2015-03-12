@@ -4,7 +4,7 @@
 
 image::logo.svg[align="center"]
 
-scap-workbench is a tool that can open XCCDF footnote:[The Extensible
+SCAP Workbench is a tool that can open XCCDF footnote:[The Extensible
 Configuration Checklist Description Format] or SDS footnote:[Source
 DataStream] files and allows the user to evaluate either local or remote
 machine using the content in the opened file.
@@ -84,20 +84,20 @@ From upstream source (for advanced users or content developers)::
  * http://usgcb.nist.gov/usgcb/rhel_content.html[USGCB for RHEL5] - XCCDF and OVAL, only suitable for RHEL5.
  * https://fedorahosted.org/sce-community-content/[SCE Community Content] - Uses SCE, only suitable for Fedora.
 
-=== Start scap-workbench
+=== Start SCAP Workbench
 
-After installation a new application entry for scap-workbench should appear
+After installation a new application entry for SCAP Workbench should appear
 in your desktop environments application menu.
 
 [[img-starting-scap-workbench]]
-.scap-workbench application entry in GNOME 3
+.SCAP Workbench application entry in GNOME 3
 image::starting_scap_workbench.png[align="center"]
 
-In case you cannot find any scap-workbench application icon / entry to click,
+In case you cannot find any SCAP Workbench application icon / entry to click,
 press Alt+F2 to bring up the run command dialog (works in Gnome 3 and KDE 4),
 type 'scap-workbench' and confirm.
 
-scap-workbench should start and if you installed scap-security-guide from
+SCAP Workbench should start and if you installed scap-security-guide from
 your package repository, workbench will immediately open a dialog letting you
 choose which SSG variant you want to open.
 
@@ -128,7 +128,7 @@ SCAP RPM will usually contain a tailoring file, as well as input file in the for
 or Source DataStream.
 
 ****
-Only one content file can be opened by a single scap-workbench instance.
+Only one content file can be opened by a single SCAP Workbench instance.
 Opening a different content file will *DESTROY* all your customization changes
 and you will also *LOSE* profile selection.
 
@@ -165,8 +165,8 @@ have done either by customizing profiles or loaded from another customization fi
 ****
 
 ****
-Only XCCDF 1.2 supports tailoring officially. The openscap project has an extension
-that allows tailoring files to be used with XCCDF 1.1 so scap-workbench supports
+Only XCCDF 1.2 supports tailoring officially. The OpenSCAP project has an extension
+that allows tailoring files to be used with XCCDF 1.1 so SCAP Workbench supports
 that as well. The details are out of scope of this document but keep in mind that
 tailoring of an XCCDF 1.1 file might not work with scanners other than openscap.
 ****
@@ -205,12 +205,12 @@ selection attribute equal to "true" and all their ancestor xccdf:Group selection
 attribute also being "true" are evaluated in a *(default)* profile.
 
 It depends on the content, but the *(default)* profile is unlikely to be
-the choice you want. scap-workbench will only choose it implicitly if there
+the choice you want. SCAP Workbench will only choose it implicitly if there
 are no other profiles. The first profile that is not the *(default)* profile
 will be chosen.
 
 Use the *Profile* combobox to change which profile will be used for subsequent
-evaluation. When scap-workbench is not evaluating, it previews selected rules
+evaluation. When SCAP Workbench is not evaluating, it previews selected rules
 of the current profile. This list will refresh every time you customize a profile
 or select a different one.
 
@@ -279,7 +279,7 @@ saves just the customization which you can use with the content you opened.
 ****
 If XCCDF version of the content is lower than 1.2 footnote:[Tailoring is not officially
 supported in XCCDF 1.1.x, the feature has been added in 1.2] workbench will create
-a file that is not compliant to the official specification! openscap and scap-workbench
+a file that is not compliant to the official specification! OpenSCAP and SCAP Workbench
 support tailoring in XCCDF 1.1.4 through an extension. Keep in mind that such content
 will work in openscap powered tools but may not work in tools from other vendors!
 ****
@@ -287,7 +287,7 @@ will work in openscap powered tools but may not work in tools from other vendors
 ==== Save all content into a directory
 
 Select *File -> Save All* and choose *Into a directory*. After selecting the destination
-directory scap-workbench exports both input content and a tailoring file there.
+directory SCAP Workbench exports both input content and a tailoring file there.
 
 ==== Save as RPM
 
@@ -295,7 +295,7 @@ Select *File -> Save All* and choose *As RPM*. A dialog will pop-up asking for d
 the RPM that will be generated. Choose the desired name of the package and leave the other
 fields at their default settings and confirm the dialog.
 
-Another dialog opens, this time asking for destination directory where scap-workbench
+Another dialog opens, this time asking for destination directory where SCAP Workbench
 will create the RPM.
 
 [[img-tailoring-dialog-opened]]
@@ -324,7 +324,7 @@ system management tool accepts the key you used.
 
 === Choose the Target Machine
 
-scap-workbench will scan *local machine* by default. However, you can also
+SCAP Workbench will scan *local machine* by default. However, you can also
 scan remote machines using SSH.
 
 To scan a remote machine, select *Remote Machine (over SSH)* in the *Target*
@@ -375,7 +375,7 @@ button to proceed. If you selected a remote machine target, SSH may ask you
 for a password at this point.
 
 ****
-scap-workbench never processes your SSH password in any way. Instead an ssh
+SCAP Workbench never processes your SSH password in any way. Instead an ssh
 process is spawned which itself spawns the ssh-askpass program which asks
 for the password.
 ****
@@ -386,9 +386,9 @@ You can click *Cancel* if you wish to scan using your current permissions.
 
 ****
 If pkexec is not available or no policykit agent is running, the privilege
-escalation dialog is not shown and scap-workbench will scan using
+escalation dialog is not shown and SCAP Workbench will scan using
 your current permissions. If you need superuser permissions, you can start
-scap-workbench using sudo or as root.
+SCAP Workbench using sudo or as root.
 
  $ sudo scap-workbench
 ****
@@ -423,14 +423,14 @@ Pressing *Show Report* will open the HTML report of the evaluation in your
 internet browser.
 
 ****
-scap-workbench will open the report in the default web browser set in your
+SCAP Workbench will open the report in the default web browser set in your
 desktop environment. Make sure you have a browser installed.
 
 If nothing happens after pressing the button, check which browser is the default.
 See *System Settings -> System Info -> Default Applications* in GNOME 3 or
 *System Settings -> Default Applications* in KDE4.
 
-In case you still cannot get scap-workbench to open a browser, save the
+In case you still cannot get SCAP Workbench to open a browser, save the
 report as an HTML file on your hard drive and open it manually.
 ****
 
@@ -491,5 +491,5 @@ You ask for help with the application using
 
 In case you have found a bug, do not hesitate to https://fedorahosted.org/scap-workbench/newticket[submit it]
 (requires a Fedora FAS account). Make sure you provide as many details as possible,
-including your distribution, architecture, openscap, scap-workbench and Qt versions
+including your distribution, architecture, OpenSCAP, SCAP Workbench and Qt versions
 and any output scap-workbench writes to stderr.

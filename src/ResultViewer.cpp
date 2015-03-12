@@ -142,7 +142,7 @@ void ResultViewer::openReport()
 
     openUrlGuarded(QUrl::fromLocalFile(mReportFile->fileName()));
 
-    // the temporary file will be destroyed when scap-workbench closes or after another one is requested
+    // the temporary file will be destroyed when SCAP Workbench closes or after another one is requested
 }
 
 void ResultViewer::saveResults()

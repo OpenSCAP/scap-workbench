@@ -33,10 +33,10 @@ Application::Application(int& argc, char** argv):
     mTranslator(),
     mMainWindow(0)
 {
-    setOrganizationName("scap-workbench upstream");
+    setOrganizationName("SCAP Workbench upstream");
     setOrganizationDomain("http://fedorahosted.org/scap-workbench");
 
-    setApplicationName("scap-workbench");
+    setApplicationName("SCAP Workbench");
     setApplicationVersion(SCAP_WORKBENCH_VERSION);
 
     mMainWindow = new MainWindow();

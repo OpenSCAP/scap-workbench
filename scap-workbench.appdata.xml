@@ -8,7 +8,7 @@
     <description>
         <p>
             The main goal of this application is to lower the initial barrier of using SCAP.
-            Therefore, the scope of very narrow - scap-workbench only scans a single machine and only with XCCDF/SDS (no direct OVAL evaluation).
+            Therefore, the scope of very narrow - SCAP Workbench only scans a single machine and only with XCCDF/SDS (no direct OVAL evaluation).
             The assumption is that this is enough for users who want to scan a few machines and users with huge amount of machines to scan will just use scap-workbench to test or hand-tune their content before deploying it with more advanced (and harder to use) tools like spacewalk.
         </p>
         <p>Feature highlights:</p>

@@ -32,21 +32,21 @@ optional dependencies:
 yum install polkit
 ```
 
-2) Build scap-workbench:
+2) Build SCAP Workbench:
 ```bash
 mkdir build; cd build
 cmake ../
 make
 ```
 
-3) Install scap-workbench: (optional)
+3) Install SCAP Workbench: (optional)
 
 (inside the build folder):
 ```bash
 make install
 ```
 
-4a) Run scap-workbench: (if it was installed)
+4a) Run SCAP Workbench: (if it was installed)
 
 spawning open file dialog:
 ```bash
@@ -63,7 +63,7 @@ with a source datastream (SDS) to load:
 scap-workbench /path/to/sds-file
 ```
 
-4b) Run scap-workbench: (straight from build dir, without installation)
+4b) Run SCAP Workbench: (straight from build dir, without installation)
 
 ```bash
 cd build/
@@ -73,7 +73,7 @@ bash runwrapper.sh ./scap-workbench
 What now?
 ---------
 
-You should have a built scap-workbench executable by now. Please refer to the user manual for documentation on how to use it.
+You should have a built SCAP Workbench executable by now. Please refer to the user manual for documentation on how to use it.
 
 There are 3 ways to get the user manual:
 

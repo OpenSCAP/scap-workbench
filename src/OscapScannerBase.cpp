@@ -140,7 +140,7 @@ bool OscapScannerBase::checkPrerequisites()
         emit errorMessage(
             QObject::tr("oscap tool doesn't support XCCDF tailoring but the session uses tailoring. "
                 "Please make sure you have openscap 0.9.12 or newer on the target machine if you "
-                "want to use tailoring features of scap-workbench. "
+                "want to use tailoring features of SCAP Workbench. "
                 "oscap version was detected as '%1'.").arg(mCapabilities.getOpenSCAPVersion())
         );
 

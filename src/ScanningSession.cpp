@@ -80,7 +80,7 @@ void ScanningSession::openFile(const QString& path)
 
     // We have to make sure that we *ALWAYS* open the session by absolute
     // path. oscap local won't be run from the same directory from where
-    // scap-workbench is run
+    // SCAP Workbench is run
     mSession = xccdf_session_new(pathInfo.absoluteFilePath().toUtf8().constData());
     if (!mSession)
         throw ScanningSessionException(
