@@ -128,6 +128,11 @@ install(PROGRAMS "scap-workbench-pkexec-oscap.sh"
 install(PROGRAMS "scap-workbench-rpm-extract.sh"
     DESTINATION ${CMAKE_INSTALL_LIBEXECDIR})
 
+if (APPLE)
+    install(PROGRAMS "scap-workbench-osx-ssh-askpass.sh"
+        DESTINATION ${CMAKE_INSTALL_LIBEXECDIR})
+endif()
+
 install(FILES "${CMAKE_CURRENT_BINARY_DIR}/scap-workbench-oscap.policy"
     DESTINATION "${CMAKE_INSTALL_DATADIR}/polkit-1/actions")
 
