@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Copyright 2014 Red Hat Inc., Durham, North Carolina.
+# Copyright 2015 Red Hat Inc., Durham, North Carolina.
 # All Rights Reserved.
 #
 # This program is free software: you can redistribute it and/or modify
@@ -23,5 +23,10 @@ export SCAP_WORKBENCH_RPM_EXTRACT_PATH=$s/scap-workbench-rpm-extract.sh
 export SCAP_WORKBENCH_ICON=$s/share/pixmaps/scap-workbench.png
 export SCAP_WORKBENCH_SHARE=$s/share/scap-workbench
 export SCAP_WORKBENCH_DOC=$s/doc
+
+if [[ "`uname`" == "Darwin" ]]; then
+    # MacOS X doesn't have ssh-askpass so we have to provide our own
+    export SSH_ASKPASS=$s/scap-workbench-osx-ssh-askpass.sh
+fi
 
 exec "$@"
