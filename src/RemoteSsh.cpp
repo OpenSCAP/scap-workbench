@@ -119,14 +119,13 @@ void SshConnection::connect()
         args.append(SCAP_WORKBENCH_LOCAL_SSH_PATH);
 #endif
 
-        args.append("-M");
-        args.append("-f");
-        args.append("-N");
+        args.append("-M"); // place ssh client into "master" mode for connection sharing
+        args.append("-f"); // requests ssh to go to background before command execution
+        args.append("-N"); // do not execute a remote command (yet)
 
         // send keep alive null messages every 60 seconds to make sure the connection stays alive
         args.append("-o"); args.append(QString("ServerAliveInterval=%1").arg(60));
         args.append("-o"); args.append(QString("ControlPath=%1").arg(mMasterSocket));
-
         args.append("-p"); args.append(QString::number(mPort));
         // TODO: sanitize input?
         args.append(mTarget);
@@ -174,7 +173,7 @@ void SshConnection::disconnect()
 #endif
 
         args.append("-S"); args.append(mMasterSocket);
-
+        args.append("-p"); args.append(QString::number(mPort));
         args.append("-O"); args.append("exit");
         args.append(mTarget);
 
@@ -244,6 +243,7 @@ QStringList SshSyncProcess::generateFullArguments() const
 #endif
 
     args.append("-o"); args.append(QString("ControlPath=%1").arg(mSshConnection._getMasterSocket()));
+    args.append("-p"); args.append(QString::number(mSshConnection.getPort()));
     args.append(mSshConnection.getTarget());
     args.append(SyncProcess::generateFullCommand() + QString(" ") + SyncProcess::generateFullArguments().join(" "));
 
