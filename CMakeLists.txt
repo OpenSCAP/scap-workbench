@@ -129,6 +129,16 @@ set(MACOSX_BUNDLE_ICON_FILE AppIcon)
 
 target_link_libraries("scap-workbench" ${SCAP_WORKBENCH_LINK_LIBRARIES})
 
+if (APPLE)
+    if (SETSID_EXECUTABLE_FOUND)
+        add_custom_command(TARGET "scap-workbench" POST_BUILD
+            COMMAND cp "${SETSID_EXECUTABLE}" "scap-workbench.app/Contents/MacOS/")
+    endif()
+
+    add_custom_command(TARGET "scap-workbench" POST_BUILD
+        COMMAND cp "${CMAKE_SOURCE_DIR}/scap-workbench-osx-ssh-askpass.sh" "scap-workbench.app/Contents/MacOS/")
+endif()
+
 install(TARGETS "scap-workbench"
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
     BUNDLE DESTINATION .
