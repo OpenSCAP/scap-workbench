@@ -105,7 +105,12 @@ if(scap_workbench_LANGUAGE_TS_FILES)
     qt4_create_translation(qm_files ${TRANSLATION_SOURCES} ${scap_workbench_LANGUAGE_TS_FILES})
 endif()
 
-add_executable("scap-workbench"
+if(APPLE)
+    set(scap_workbench_SOURCES ${scap_workbench_SOURCES} AppIcon.icns)
+    set_source_files_properties(AppIcon.icns PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
+endif()
+
+add_executable("scap-workbench" MACOSX_BUNDLE
     ${scap_workbench_HEADERS}
     ${scap_workbench_SOURCES}
 
@@ -114,10 +119,20 @@ add_executable("scap-workbench"
     ${scap_workbench_LANGUAGE_TS_FILES}
 )
 
+set(MACOSX_BUNDLE_BUNDLE_NAME "SCAP Workbench")
+set(MACOSX_BUNDLE_BUNDLE_VERSION "${SCAP_WORKBENCH_VERSION}")
+set(MACOSX_BUNDLE_LONG_VERSION_STRING "${SCAP_WORKBENCH_VERSION}")
+set(MACOSX_BUNDLE_SHORT_VERSION_STRING "${SCAP_WORKBENCH_VERSION}")
+set(MACOSX_BUNDLE_COPYRIGHT "Copyright (c) 2015 Red Hat, Inc.")
+set(MACOSX_BUNDLE_GUI_IDENTIFIER "org.open-scap.scap-workbench")
+set(MACOSX_BUNDLE_ICON_FILE AppIcon)
+
 target_link_libraries("scap-workbench" ${SCAP_WORKBENCH_LINK_LIBRARIES})
 
 install(TARGETS "scap-workbench"
-    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+    BUNDLE DESTINATION .
+)
 
 install(PROGRAMS "scap-workbench-oscap.sh"
     DESTINATION ${CMAKE_INSTALL_LIBEXECDIR})
