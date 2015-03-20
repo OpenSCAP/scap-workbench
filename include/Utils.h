@@ -110,4 +110,9 @@ const QDir& getShareTranslationDirectory();
  */
 void openUrlGuarded(const QUrl& url);
 
+/**
+ * @brief Retrieves path to setsid
+ */
+const QString& getSetSidPath();
+
 #endif

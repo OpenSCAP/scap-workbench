@@ -54,6 +54,12 @@ inline QDir _generateSSGDir()
     dir.cd("content");
     return dir;
 }
+
+inline QString _generateSetSidPath()
+{
+    QDir dir(QCoreApplication::applicationDirPath());
+    return dir.absoluteFilePath("setsid");
+}
 #endif
 
 const QDir& getShareDirectory()
@@ -159,4 +165,15 @@ void openUrlGuarded(const QUrl& url)
             QObject::tr("Please check that your default browser is set to something sensible. "
                         "As a workaround, please open<br/><a href=\"%1\">%1</a><br/>manually.").arg(url.toString())
         );
+}
+
+const QString& getSetSidPath()
+{
+#if defined(__APPLE__)
+    static QString ret(_generateSetSidPath());
+    return ret;
+#else
+    static QString ret(SCAP_WORKBENCH_LOCAL_SETSID_PATH);
+    return ret;
+#endif
 }

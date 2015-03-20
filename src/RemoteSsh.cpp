@@ -22,6 +22,7 @@
 #include "RemoteSsh.h"
 #include "ProcessHelpers.h"
 #include "Exceptions.h"
+#include "Utils.h"
 
 #include <QFileInfo>
 #include <QDir>
@@ -132,7 +133,7 @@ void SshConnection::connect()
 
         SyncProcess proc(this);
 #ifdef SCAP_WORKBENCH_LOCAL_SETSID_FOUND
-        proc.setCommand(SCAP_WORKBENCH_LOCAL_SETSID_PATH);
+        proc.setCommand(getSetSidPath());
 #else
         proc.setCommand(SCAP_WORKBENCH_LOCAL_SSH_PATH);
 #endif
@@ -179,7 +180,7 @@ void SshConnection::disconnect()
 
         SyncProcess proc(this);
 #ifdef SCAP_WORKBENCH_LOCAL_SETSID_FOUND
-        proc.setCommand(SCAP_WORKBENCH_LOCAL_SETSID_PATH);
+        proc.setCommand(getSetSidPath());
 #else
         proc.setCommand(SCAP_WORKBENCH_LOCAL_SSH_PATH);
 #endif
@@ -225,7 +226,7 @@ SshSyncProcess::~SshSyncProcess()
 QString SshSyncProcess::generateFullCommand() const
 {
 #ifdef SCAP_WORKBENCH_LOCAL_SETSID_FOUND
-    return SCAP_WORKBENCH_LOCAL_SETSID_PATH;
+    return getSetSidPath();
 #else
     return SCAP_WORKBENCH_LOCAL_SSH_PATH;
 #endif
