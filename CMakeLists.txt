@@ -130,7 +130,7 @@ set(MACOSX_BUNDLE_ICON_FILE AppIcon)
 target_link_libraries("scap-workbench" ${SCAP_WORKBENCH_LINK_LIBRARIES})
 
 if (APPLE)
-    if (SETSID_EXECUTABLE_FOUND)
+    if (SETSID_EXECUTABLE)
         add_custom_command(TARGET "scap-workbench" POST_BUILD
             COMMAND cp "${SETSID_EXECUTABLE}" "scap-workbench.app/Contents/MacOS/"
             COMMENT "Copying ${SETSID_EXECUTABLE} to application bundle")
