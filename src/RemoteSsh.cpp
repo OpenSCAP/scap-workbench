@@ -26,6 +26,7 @@
 
 #include <QFileInfo>
 #include <QDir>
+#include <QCoreApplication>
 
 SshConnection::SshConnection(QObject* parent):
     QObject(parent),
@@ -41,6 +42,11 @@ SshConnection::SshConnection(QObject* parent):
 {
     mEnvironment.remove("SSH_TTY");
     mEnvironment.insert("DISPLAY", ":0");
+
+#if defined(__APPLE__)
+    static const QDir dir(QCoreApplication::applicationDirPath());
+    mEnvironment.insert("SSH_ASKPASS", dir.absoluteFilePath("scap-workbench-osx-ssh-askpass.sh"));
+#endif
 }
 
 SshConnection::~SshConnection()
