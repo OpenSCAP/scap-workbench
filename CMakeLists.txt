@@ -132,11 +132,21 @@ target_link_libraries("scap-workbench" ${SCAP_WORKBENCH_LINK_LIBRARIES})
 if (APPLE)
     if (SETSID_EXECUTABLE_FOUND)
         add_custom_command(TARGET "scap-workbench" POST_BUILD
-            COMMAND cp "${SETSID_EXECUTABLE}" "scap-workbench.app/Contents/MacOS/")
+            COMMAND cp "${SETSID_EXECUTABLE}" "scap-workbench.app/Contents/MacOS/"
+            COMMENT "Copying ${SETSID_EXECUTABLE} to application bundle")
     endif()
 
     add_custom_command(TARGET "scap-workbench" POST_BUILD
-        COMMAND cp "${CMAKE_SOURCE_DIR}/scap-workbench-osx-ssh-askpass.sh" "scap-workbench.app/Contents/MacOS/")
+        COMMAND cp "${CMAKE_SOURCE_DIR}/scap-workbench-osx-ssh-askpass.sh" "scap-workbench.app/Contents/MacOS/"
+        COMMENT "Copying scap-workbench-osx-ssh-askpass.sh to application bundle")
+
+    add_custom_command(TARGET "scap-workbench" POST_BUILD
+        COMMAND cp -r "${CMAKE_SOURCE_DIR}/share" "scap-workbench.app/Contents/Resources/"
+        COMMENT "Copying the share folder to application bundle")
+
+    add_custom_command(TARGET "scap-workbench" POST_BUILD
+        COMMAND cp -r "${CMAKE_SOURCE_DIR}/doc" "scap-workbench.app/Contents/Resources/"
+        COMMENT "Copying the doc folder to application bundle")
 endif()
 
 install(TARGETS "scap-workbench"

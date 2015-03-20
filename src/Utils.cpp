@@ -23,32 +23,79 @@
 #include <iostream>
 #include <QDesktopServices>
 #include <QMessageBox>
+#include <QCoreApplication>
+
+#if defined(__APPLE__)
+inline QDir _generateShareDir()
+{
+    QDir dir(QCoreApplication::applicationDirPath());
+    dir.cdUp();
+    dir.cd("Resources");
+    dir.cd("share");
+    dir.cd("scap-workbench");
+    return dir;
+}
+
+inline QDir _generateDocDir()
+{
+    QDir dir(QCoreApplication::applicationDirPath());
+    dir.cdUp();
+    dir.cd("Resources");
+    dir.cd("doc");
+    return dir;
+}
+
+inline QDir _generateSSGDir()
+{
+    QDir dir(QCoreApplication::applicationDirPath());
+    dir.cdUp();
+    dir.cd("Resources");
+    dir.cd("ssg");
+    dir.cd("content");
+    return dir;
+}
+#endif
 
 const QDir& getShareDirectory()
 {
+#if defined(__APPLE__)
+    static QDir ret(_generateShareDir());
+    return ret;
+#else
     static const QString installedPath = SCAP_WORKBENCH_SHARE;
     static const QString overriddenPath = qgetenv("SCAP_WORKBENCH_SHARE");
     static QDir ret(overriddenPath.isEmpty() ? installedPath : overriddenPath);
 
     return ret;
+#endif
 }
 
 const QDir& getDocDirectory()
 {
+#if defined(__APPLE__)
+    static QDir ret(_generateDocDir());
+    return ret;
+#else
     static const QString installedPath = SCAP_WORKBENCH_DOC;
     static const QString overriddenPath = qgetenv("SCAP_WORKBENCH_DOC");
     static QDir ret(overriddenPath.isEmpty() ? installedPath : overriddenPath);
 
     return ret;
+#endif
 }
 
 const QDir& getSSGDirectory()
 {
+#if defined(__APPLE__)
+    static QDir ret(_generateSSGDir());
+    return ret;
+#else
     static const QString installedPath = SCAP_WORKBENCH_SSG_DIRECTORY;
     static const QString overriddenPath = qgetenv("SCAP_WORKBENCH_SSG_DIRECTORY");
     static QDir ret(overriddenPath.isEmpty() ? installedPath : overriddenPath);
 
     return ret;
+#endif
 }
 
 QIcon getShareIcon(const QString& fileName)
@@ -79,9 +126,15 @@ QPixmap getSharePixmap(const QString& fileName)
 
 const QIcon& getApplicationIcon()
 {
+#if defined(__APPLE__)
+    static const QDir& shareDir = getShareDirectory();
+    static const QString fullPath = shareDir.absoluteFilePath("pixmaps/scap-workbench.png");
+#else
     static const QString installedPath = SCAP_WORKBENCH_ICON;
     static const QString overriddenPath = qgetenv("SCAP_WORKBENCH_ICON");
     static const QString& fullPath = overriddenPath.isEmpty() ? installedPath : overriddenPath;
+#endif
+
     static const QIcon ret = QIcon(fullPath);
 
     if (ret.pixmap(1, 1).isNull())
