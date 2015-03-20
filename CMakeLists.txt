@@ -147,6 +147,8 @@ if (APPLE)
     add_custom_command(TARGET "scap-workbench" POST_BUILD
         COMMAND cp -r "${CMAKE_SOURCE_DIR}/doc" "scap-workbench.app/Contents/Resources/"
         COMMENT "Copying the doc folder to application bundle")
+
+    configure_file("osx-create-dmg.sh.in" "${CMAKE_CURRENT_BINARY_DIR}/osx-create-dmg.sh" @ONLY)
 endif()
 
 install(TARGETS "scap-workbench"
