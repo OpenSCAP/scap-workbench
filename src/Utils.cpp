@@ -55,6 +55,16 @@ inline QDir _generateSSGDir()
     return dir;
 }
 
+inline QString _generateApplicationIconPath()
+{
+    QDir dir(QCoreApplication::applicationDirPath());
+    dir.cdUp();
+    dir.cd("Resources");
+    dir.cd("share");
+    dir.cd("pixmaps");
+    return dir.absoluteFilePath("scap-workbench.png");
+}
+
 inline QString _generateSetSidPath()
 {
     QDir dir(QCoreApplication::applicationDirPath());
@@ -133,8 +143,7 @@ QPixmap getSharePixmap(const QString& fileName)
 const QIcon& getApplicationIcon()
 {
 #if defined(__APPLE__)
-    static const QDir& shareDir = getShareDirectory();
-    static const QString fullPath = shareDir.absoluteFilePath("pixmaps/scap-workbench.png");
+    static const QString fullPath = _generateApplicationIconPath();
 #else
     static const QString installedPath = SCAP_WORKBENCH_ICON;
     static const QString overriddenPath = qgetenv("SCAP_WORKBENCH_ICON");
