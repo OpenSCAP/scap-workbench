@@ -70,11 +70,42 @@ inline QString _generateSetSidPath()
     QDir dir(QCoreApplication::applicationDirPath());
     return dir.absoluteFilePath("setsid");
 }
+#elif defined(_WIN32)
+inline QDir _generateShareDir()
+{
+    QDir dir(QCoreApplication::applicationDirPath());
+    dir.cd("share");
+    dir.cd("scap-workbench");
+    return dir;
+}
+
+inline QDir _generateDocDir()
+{
+    QDir dir(QCoreApplication::applicationDirPath());
+    dir.cd("doc");
+    return dir;
+}
+
+inline QDir _generateSSGDir()
+{
+    QDir dir(QCoreApplication::applicationDirPath());
+    dir.cd("ssg");
+    dir.cd("content");
+    return dir;
+}
+
+inline QString _generateApplicationIconPath()
+{
+    QDir dir(QCoreApplication::applicationDirPath());
+    dir.cd("share");
+    dir.cd("pixmaps");
+    return dir.absoluteFilePath("scap-workbench.png");
+}
 #endif
 
 const QDir& getShareDirectory()
 {
-#if defined(__APPLE__)
+#if defined(__APPLE__) || defined(_WIN32)
     static QDir ret(_generateShareDir());
     return ret;
 #else
@@ -88,7 +119,7 @@ const QDir& getShareDirectory()
 
 const QDir& getDocDirectory()
 {
-#if defined(__APPLE__)
+#if defined(__APPLE__) || defined(_WIN32)
     static QDir ret(_generateDocDir());
     return ret;
 #else
@@ -102,7 +133,7 @@ const QDir& getDocDirectory()
 
 const QDir& getSSGDirectory()
 {
-#if defined(__APPLE__)
+#if defined(__APPLE__) || defined(_WIN32)
     static QDir ret(_generateSSGDir());
     return ret;
 #else
@@ -142,7 +173,7 @@ QPixmap getSharePixmap(const QString& fileName)
 
 const QIcon& getApplicationIcon()
 {
-#if defined(__APPLE__)
+#if defined(__APPLE__) || defined(_WIN32)
     static const QString fullPath = _generateApplicationIconPath();
 #else
     static const QString installedPath = SCAP_WORKBENCH_ICON;

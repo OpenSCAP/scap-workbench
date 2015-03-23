@@ -1,0 +1,25 @@
+1 ICON "@CMAKE_SOURCE_DIR@/AppIcon.ico"
+1 VERSIONINFO
+FILEVERSION     @SCAP_WORKBENCH_VERSION_MAJOR@,@SCAP_WORKBENCH_VERSION_MINOR@,@SCAP_WORKBENCH_VERSION_PATCH@,0
+PRODUCTVERSION  @SCAP_WORKBENCH_VERSION_MAJOR@,@SCAP_WORKBENCH_VERSION_MINOR@,@SCAP_WORKBENCH_VERSION_PATCH@,0
+BEGIN
+  BLOCK "StringFileInfo"
+  BEGIN
+    BLOCK "040904E4"
+    BEGIN
+      VALUE "CompanyName", "OpenSCAP"
+      VALUE "FileDescription", "SCAP Workbench"
+      VALUE "FileVersion", "@SCAP_WORKBENCH_VERSION@"
+      VALUE "InternalName", "scap-workbench"
+      VALUE "LegalCopyright", "2013-2015 Red Hat, Inc."
+      VALUE "OriginalFilename", "scap-workbench.exe"
+      VALUE "ProductName", "SCAP Workbench"
+      VALUE "ProductVersion", "@SCAP_WORKBENCH_VERSION@"
+    END
+  END
+
+  BLOCK "VarFileInfo"
+  BEGIN
+    VALUE "Translation", 0x409, 1252
+  END
+END

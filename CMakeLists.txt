@@ -86,6 +86,9 @@ configure_file("include/Config.h.in" "${CMAKE_CURRENT_BINARY_DIR}/Config.h")
 # People will have to `bash runwrapper.sh ...` in the meantime.
 configure_file("runwrapper.sh.in" "${CMAKE_CURRENT_BINARY_DIR}/runwrapper.sh")
 configure_file("scap-workbench-oscap.policy.in" "${CMAKE_CURRENT_BINARY_DIR}/scap-workbench-oscap.policy")
+if (WIN32)
+    configure_file("win32-resource.rc.in" "${CMAKE_CURRENT_BINARY_DIR}/win32-resource.rc")
+endif()
 
 include_directories(${SCAP_WORKBENCH_INCLUDE_DIRS})
 
@@ -100,14 +103,17 @@ foreach(LANGUAGE ${scap_workbench_LANGUAGES})
     set_source_files_properties(${TS_FILE} PROPERTIES OUTPUT_LOCATION "${CMAKE_CURRENT_BINARY_DIR}/i18n")
 endforeach()
 
-if(scap_workbench_LANGUAGE_TS_FILES)
+if (scap_workbench_LANGUAGE_TS_FILES)
     set(TRANSLATION_SOURCES ${scap_workbench_HEADERS} ${scap_workbench_SOURCES} ${scap_workbench_UIS_HEADERS})
     qt4_create_translation(qm_files ${TRANSLATION_SOURCES} ${scap_workbench_LANGUAGE_TS_FILES})
 endif()
 
-if(APPLE)
+if (APPLE)
     set(scap_workbench_SOURCES ${scap_workbench_SOURCES} AppIcon.icns)
     set_source_files_properties(AppIcon.icns PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
+endif()
+if (WIN32)
+    set(scap_workbench_SOURCES ${scap_workbench_SOURCES} ${CMAKE_BINARY_DIR}/win32-resource.rc)
 endif()
 
 add_executable("scap-workbench" MACOSX_BUNDLE
@@ -149,6 +155,23 @@ if (APPLE)
         COMMENT "Copying the doc folder to application bundle")
 
     configure_file("osx-create-dmg.sh.in" "${CMAKE_CURRENT_BINARY_DIR}/osx-create-dmg.sh" @ONLY)
+endif()
+
+if (WIN32)
+    add_custom_command(TARGET "scap-workbench" POST_BUILD
+        COMMAND mkdir -p "scap-workbench/"
+        COMMENT "Creating the application folder")
+    add_custom_command(TARGET "scap-workbench" POST_BUILD
+        COMMAND cp "scap-workbench.exe" "scap-workbench/"
+        COMMENT "Copying scap-workbench.exe to application folder")
+
+    add_custom_command(TARGET "scap-workbench" POST_BUILD
+        COMMAND cp -r "${CMAKE_SOURCE_DIR}/share" "scap-workbench/"
+        COMMENT "Copying the share folder to application folder")
+
+    add_custom_command(TARGET "scap-workbench" POST_BUILD
+        COMMAND cp -r "${CMAKE_SOURCE_DIR}/doc" "scap-workbench/"
+        COMMENT "Copying the doc folder to application folder")
 endif()
 
 install(TARGETS "scap-workbench"
