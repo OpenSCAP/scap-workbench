@@ -88,6 +88,7 @@ configure_file("runwrapper.sh.in" "${CMAKE_CURRENT_BINARY_DIR}/runwrapper.sh")
 configure_file("scap-workbench-oscap.policy.in" "${CMAKE_CURRENT_BINARY_DIR}/scap-workbench-oscap.policy")
 if (WIN32)
     configure_file("win32-resource.rc.in" "${CMAKE_CURRENT_BINARY_DIR}/win32-resource.rc")
+    configure_file("scap-workbench.wxs.in" "${CMAKE_CURRENT_BINARY_DIR}/scap-workbench.wxs")
 endif()
 
 include_directories(${SCAP_WORKBENCH_INCLUDE_DIRS})
