@@ -112,6 +112,7 @@ echo '
            set background picture of viewOptions to file ".background:'${DMG_BACKGROUND_IMG_BASENAME}'"
            set position of item "'${APP_NAME}'.app" of container window to {160, 225}
            set position of item "Applications" of container window to {360, 225}
+           set position of item "COPYING" of container window to {460, 275}
            close
            open
            update without registering applications
