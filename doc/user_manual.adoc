@@ -263,6 +263,9 @@ following example, where we set minimum password length to 14.
 .Set minimum password length to 14
 image::tailoring_set_value.png[align="center"]
 
+Changes to the values are applied immediately as you change the combobox or
+editbox.
+
 After desired customization changes are done, click *Confirm changes* to get back
 to the previous GUI. To undo all of the changes to the profile, click
 *Discard*. If you want to delete the profile from tailoring, click *Delete profile*.
