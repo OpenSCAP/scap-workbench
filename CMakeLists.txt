@@ -9,8 +9,10 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/")
 
 include(GNUInstallDirs)
 
-find_package(Qt4 REQUIRED QtCore QtGui QtXmlPatterns)
-include(${QT_USE_FILE})
+find_package(Qt5Widgets REQUIRED)
+find_package(Qt5XmlPatterns REQUIRED)
+
+add_definitions(-DQT_DISABLE_DEPRECATED_BEFORE=0)
 
 # This conditional is here to avoid checking openscap version if user supplies
 # custom openscap parameters.
@@ -99,10 +101,10 @@ set(SCAP_WORKBENCH_SCAP_CONTENT_DIRECTORY "/usr/share/xml/scap" CACHE PATH
     "Directory where SCAP content is *usually* stored. This is the default directory when opening a file via file open dialog.")
 
 file(GLOB scap_workbench_HEADERS "${CMAKE_SOURCE_DIR}/include/*.h")
-qt4_wrap_cpp(scap_workbench_HEADERS_MOC ${scap_workbench_HEADERS})
+qt5_wrap_cpp(scap_workbench_HEADERS_MOC ${scap_workbench_HEADERS})
 
 file(GLOB scap_workbench_UIS "${CMAKE_SOURCE_DIR}/ui/*.ui")
-qt4_wrap_ui(scap_workbench_UIS_HEADERS ${scap_workbench_UIS})
+qt5_wrap_ui(scap_workbench_UIS_HEADERS ${scap_workbench_UIS})
 
 file(GLOB scap_workbench_SOURCES "${CMAKE_SOURCE_DIR}/src/*.cpp")
 
@@ -112,7 +114,7 @@ set(SCAP_WORKBENCH_INCLUDE_DIRS
     ${OPENSCAP_INCLUDE_DIRS})
 
 set(SCAP_WORKBENCH_LINK_LIBRARIES
-    ${QT_LIBRARIES}
+    Qt5::Widgets Qt5::XmlPatterns
     ${OPENSCAP_LIBRARIES})
 
 configure_file("include/Config.h.in" "${CMAKE_CURRENT_BINARY_DIR}/Config.h")
@@ -140,7 +142,7 @@ endforeach()
 
 if (scap_workbench_LANGUAGE_TS_FILES)
     set(TRANSLATION_SOURCES ${scap_workbench_HEADERS} ${scap_workbench_SOURCES} ${scap_workbench_UIS_HEADERS})
-    qt4_create_translation(qm_files ${TRANSLATION_SOURCES} ${scap_workbench_LANGUAGE_TS_FILES})
+    qt5_create_translation(qm_files ${TRANSLATION_SOURCES} ${scap_workbench_LANGUAGE_TS_FILES})
 endif()
 
 if (APPLE)
