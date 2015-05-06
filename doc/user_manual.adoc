@@ -463,7 +463,7 @@ You ask for help with the application using
  * #openscap channel on irc.freenode.net
  * https://www.redhat.com/mailman/listinfo/open-scap-list[openscap mailing list]
 
-In case you have found a bug, do not hesitate to https://fedorahosted.org/scap-workbench/newticket[submit it]
-(requires a Fedora FAS account). Make sure you provide as many details as possible,
+In case you have found a bug, do not hesitate to https://github.com/OpenSCAP/scap-workbench/issues[submit it]
+(requires a GitHub account). Make sure you provide as many details as possible,
 including your distribution, architecture, openscap, scap-workbench and Qt versions
 and any output scap-workbench writes to stderr.
