@@ -46,6 +46,9 @@ SshConnection::SshConnection(QObject* parent):
 #if defined(__APPLE__)
     static const QDir dir(QCoreApplication::applicationDirPath());
     mEnvironment.insert("SSH_ASKPASS", dir.absoluteFilePath("scap-workbench-osx-ssh-askpass.sh"));
+#elif defined(WIN32)
+    static const QDir dir(QCoreApplication::applicationDirPath());
+    mEnvironment.insert("SSH_ASKPASS", dir.absoluteFilePath("win-ssh-askpass.exe"));
 #endif
 }
 
