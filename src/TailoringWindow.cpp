@@ -302,17 +302,17 @@ TailoringWindow::TailoringWindow(struct xccdf_policy* policy, struct xccdf_bench
     mUI.setupUi(this);
 
     QObject::connect(
-        mUI.confirmButton, SIGNAL(released()),
+        mUI.confirmButton, SIGNAL(clicked()),
         this, SLOT(confirmAndClose())
     );
 
     QObject::connect(
-        mUI.cancelButton, SIGNAL(released()),
+        mUI.cancelButton, SIGNAL(clicked()),
         this, SLOT(close())
     );
 
     QObject::connect(
-        mUI.deleteProfileButton, SIGNAL(released()),
+        mUI.deleteProfileButton, SIGNAL(clicked()),
         this, SLOT(deleteProfileAndDiscard())
     );
 

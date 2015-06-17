@@ -34,12 +34,12 @@ DiagnosticsDialog::DiagnosticsDialog(QWidget* parent):
     mUI.setupUi(this);
 
     QObject::connect(
-        mUI.clipboardButton, SIGNAL(released()),
+        mUI.clipboardButton, SIGNAL(clicked()),
         this, SLOT(copyToClipboard())
     );
 
     QObject::connect(
-        mUI.closeButton, SIGNAL(released()),
+        mUI.closeButton, SIGNAL(clicked()),
         this, SLOT(hide())
     );
 
