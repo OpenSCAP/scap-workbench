@@ -125,7 +125,9 @@ void SshConnection::connect()
     {
         QStringList args;
 #ifdef SCAP_WORKBENCH_LOCAL_SETSID_FOUND
-        args.append("-w"); // for setsid
+#   ifdef SCAP_WORKBENCH_LOCAL_SETSID_SUPPORTS_WAIT
+        args.append("--wait");
+#   endif
         args.append(SCAP_WORKBENCH_LOCAL_SSH_PATH);
 #endif
 
@@ -178,7 +180,9 @@ void SshConnection::disconnect()
     {
         QStringList args;
 #ifdef SCAP_WORKBENCH_LOCAL_SETSID_FOUND
-        args.append("-w"); // for setsid
+#   ifdef SCAP_WORKBENCH_LOCAL_SETSID_SUPPORTS_WAIT
+        args.append("--wait");
+#   endif
         args.append(SCAP_WORKBENCH_LOCAL_SSH_PATH);
 #endif
 
@@ -248,7 +252,9 @@ QStringList SshSyncProcess::generateFullArguments() const
 
     QStringList args;
 #ifdef SCAP_WORKBENCH_LOCAL_SETSID_FOUND
-    args.append("-w"); // for setsid
+#   ifdef SCAP_WORKBENCH_LOCAL_SETSID_SUPPORTS_WAIT
+        args.append("--wait");
+#   endif
     args.append(SCAP_WORKBENCH_LOCAL_SSH_PATH);
 #endif
 
