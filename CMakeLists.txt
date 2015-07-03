@@ -37,6 +37,16 @@ endif()
 find_program(SETSID_EXECUTABLE NAMES setsid) # optional for remote scan, makes sure ssh always spawns GUI dialog
 if (SETSID_EXECUTABLE)
     set(SCAP_WORKBENCH_LOCAL_SETSID_FOUND 1)
+    execute_process(
+        COMMAND ${SETSID_EXECUTABLE} --wait ${CMAKE_COMMAND} -E sleep 0
+        ERROR_QUIET # suppress help message of setsid in case it doesn't support --wait
+        RESULT_VARIABLE SETSID_EXECUTABLE_WAIT_EC
+    )
+    if (${SETSID_EXECUTABLE_WAIT_EC} EQUAL 0)
+        set(SCAP_WORKBENCH_LOCAL_SETSID_SUPPORTS_WAIT 1)
+    else()
+        set(SCAP_WORKBENCH_LOCAL_SETSID_SUPPORTS_WAIT 0)
+    endif()
 endif()
 
 # Save as RPM tools, optional but required for saving content as RPM
