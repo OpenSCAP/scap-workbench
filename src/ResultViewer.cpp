@@ -56,7 +56,7 @@ ResultViewer::ResultViewer(QWidget* parent):
     mUI.saveButton->setMenu(mSaveMenu);
 
     QObject::connect(
-        mUI.openReportButton, SIGNAL(released()),
+        mUI.openReportButton, SIGNAL(clicked()),
         this, SLOT(openReport())
     );
 }

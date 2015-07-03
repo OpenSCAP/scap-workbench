@@ -106,19 +106,19 @@ MainWindow::MainWindow(QWidget* parent):
         this, SLOT(profileComboboxChanged(int))
     );
     QObject::connect(
-        mUI.scanButton, SIGNAL(released()),
+        mUI.scanButton, SIGNAL(clicked()),
         this, SLOT(scanAsyncAutoMode())
     );
     QObject::connect(
-        mUI.offlineRemediateButton, SIGNAL(released()),
+        mUI.offlineRemediateButton, SIGNAL(clicked()),
         this, SLOT(offlineRemediateAsync())
     );
     QObject::connect(
-        mUI.cancelButton, SIGNAL(released()),
+        mUI.cancelButton, SIGNAL(clicked()),
         this, SLOT(cancelScanAsync())
     );
     QObject::connect(
-        mUI.clearButton, SIGNAL(released()),
+        mUI.clearButton, SIGNAL(clicked()),
         this, SLOT(clearResults())
     );
 
@@ -132,12 +132,12 @@ MainWindow::MainWindow(QWidget* parent):
     );
 
     QObject::connect(
-        mUI.customizeProfileButton, SIGNAL(released()),
+        mUI.customizeProfileButton, SIGNAL(clicked()),
         this, SLOT(customizeProfile())
     );
 
     QObject::connect(
-        mUI.saveTailoringButton, SIGNAL(released()),
+        mUI.saveTailoringButton, SIGNAL(clicked()),
         this, SLOT(saveTailoring())
     );
 

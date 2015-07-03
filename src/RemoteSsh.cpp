@@ -112,8 +112,6 @@ void SshConnection::connect()
     try
     {
         QStringList args;
-        args.append("-w"); // for setsid
-
         args.append(SCAP_WORKBENCH_LOCAL_SSH_PATH);
         args.append("-M"); // place ssh client into "master" mode for connection sharing
         args.append("-f"); // requests ssh to go to background before command execution
@@ -159,8 +157,6 @@ void SshConnection::disconnect()
 
     {
         QStringList args;
-        args.append("-w"); // for setsid
-
         args.append(SCAP_WORKBENCH_LOCAL_SSH_PATH);
         args.append("-S"); args.append(mMasterSocket);
         args.append("-p"); args.append(QString::number(mPort));
@@ -223,7 +219,6 @@ QStringList SshSyncProcess::generateFullArguments() const
         mSshConnection.connect();
 
     QStringList args;
-    args.append("-w"); // for setsid
 
     args.append(SCAP_WORKBENCH_LOCAL_SSH_PATH);
     args.append("-o"); args.append(QString("ControlPath=%1").arg(mSshConnection._getMasterSocket()));
@@ -307,7 +302,6 @@ QStringList ScpSyncProcess::generateFullArguments() const
         mSshConnection.connect();
 
     QStringList args;
-    args.append("-w"); // for setsid
 
     args.append(SCAP_WORKBENCH_LOCAL_SCP_PATH);
     args.append("-o"); args.append(QString("ControlPath=%1").arg(mSshConnection._getMasterSocket()));
