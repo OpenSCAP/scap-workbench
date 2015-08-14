@@ -93,8 +93,19 @@ void SSGIntegrationDialog::scrapeSSGVariants()
         // Make the label nicer for known variants
         if (label.startsWith("rhel")) // use RHEL instead of rhel
             label = name.toUpper();
-        else if (label.startsWith("fedora")) // use Fedora instead of fedora
-            label[0] = 'F';
+
+        else if (label.startsWith("centos")) // use CentOS instead of centos
+            label.replace(0, 6, "CentOS");
+
+        else if (label.startsWith("jre")) // use JRE instead of jre
+            label.replace(0, 3, "JRE");
+
+        else if (label.startsWith("sl")) // use SL instead of sl
+            label.replace(0, 2, "SL");
+
+        else
+            label[0] = label[0].toUpper(); // Capitalize first letter
+        }
 
         QPushButton* button = new QPushButton(label, mUI.variants);
         button->setProperty("ssg_variant", QVariant(name));
