@@ -105,11 +105,10 @@ void SSGIntegrationDialog::scrapeSSGVariants()
 
         else
             label[0] = label[0].toUpper(); // Capitalize first letter
-        }
 
-        QPushButton* button = new QPushButton(label, mUI.variants);
+        QPushButton* button = new QPushButton(label, mUI.content);
         button->setProperty("ssg_variant", QVariant(name));
-        mUI.variants->layout()->addWidget(button);
+        mUI.variantsLayout->addWidget(button);
 
         QObject::connect(
             button, SIGNAL(released()),
