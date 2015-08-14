@@ -19,55 +19,55 @@ How to run it out of the box
 
 required dependencies:
 ```bash
-yum install cmake gcc-c++ openssh-clients util-linux openscap-devel qt-devel
+# yum install cmake gcc-c++ openssh-clients util-linux openscap-devel qt-devel
 ```
 
 required dependencies (only for the git repo, not required for released tarballs):
 ```bash
-yum install rubygem-asciidoctor
+# yum install rubygem-asciidoctor
 ```
 
 optional dependencies:
 ```bash
-yum install polkit
+# yum install polkit
 ```
 
 2) Build SCAP Workbench:
 ```bash
-mkdir build; cd build
-cmake ../
-make
+$ mkdir build; cd build
+$ cmake ../
+$ make
 ```
 
 3) Install SCAP Workbench: (optional)
 
 (inside the build folder):
 ```bash
-make install
+# make install
 ```
 
 4a) Run SCAP Workbench: (if it was installed)
 
 spawning open file dialog:
 ```bash
-scap-workbench
+$ scap-workbench
 ```
 
 with an XCCDF file to load:
 ```bash
-scap-workbench /path/to/xccdf-file.xml
+$ scap-workbench /path/to/xccdf-file.xml
 ```
 
 with a source datastream (SDS) to load:
 ```bash
-scap-workbench /path/to/sds-file
+$ scap-workbench /path/to/sds-file
 ```
 
 4b) Run SCAP Workbench: (straight from build dir, without installation)
 
 ```bash
-cd build/
-bash runwrapper.sh ./scap-workbench
+$ cd build/
+$ bash runwrapper.sh ./scap-workbench
 ```
 
 What now?
@@ -84,7 +84,7 @@ There are 3 ways to get the user manual:
 How to make a tarball
 ---------------------
 ```bash
-mkdir build; cd build
-cmake ../
-make package_source
+$ mkdir build; cd build
+$ cmake ../
+$ make package_source
 ```
