@@ -92,11 +92,13 @@ void SSGIntegrationDialog::scrapeSSGVariants()
 
         bool favorite = false;
         // Make the label nicer for known variants
-        if (label.startsWith("rhel")) { // use RHEL instead of rhel
+        if (label.startsWith("rhel"))
+        {
+            // use RHEL instead of rhel
             label = name.toUpper();
             favorite = true;
-
-        } else if (label.startsWith("centos")) // use CentOS instead of centos
+        }
+        else if (label.startsWith("centos")) // use CentOS instead of centos
             label.replace(0, 6, "CentOS");
 
         else if (label.startsWith("jre")) // use JRE instead of jre
@@ -111,11 +113,10 @@ void SSGIntegrationDialog::scrapeSSGVariants()
         QPushButton* button = new QPushButton(label, mUI.content);
         button->setProperty("ssg_variant", QVariant(name));
 
-        if (favorite) {
+        if (favorite)
             mUI.variantsLayout->insertWidget(1, button); // insert button before text and divider
-        } else {
+        else
             mUI.variantsLayout->addWidget(button);
-        }
 
         QObject::connect(
             button, SIGNAL(released()),
