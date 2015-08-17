@@ -18,5 +18,5 @@
 
 set -u -o pipefail
 
-rpm2cpio $1 | cpio -ivd
+rpm2cpio "$1" | cpio -ivd
 exit $?
