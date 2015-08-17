@@ -77,6 +77,7 @@ void SSGIntegrationDialog::scrapeSSGVariants()
     const QDir& dir = getSSGDirectory();
     const QStringList variants = dir.entryList(QDir::Files | QDir::NoDotAndDotDot);
 
+    int lastFavoriteIndex = 1;
     for (QStringList::const_iterator it = variants.constBegin();
          it != variants.constEnd(); ++it)
     {
@@ -114,7 +115,7 @@ void SSGIntegrationDialog::scrapeSSGVariants()
         button->setProperty("ssg_variant", QVariant(name));
 
         if (favorite)
-            mUI.variantsLayout->insertWidget(1, button); // insert button before text and divider
+            mUI.variantsLayout->insertWidget(lastFavoriteIndex++, button); // insert button before text and divider
         else
             mUI.variantsLayout->addWidget(button);
 
