@@ -110,6 +110,9 @@ void SSGIntegrationDialog::scrapeSSGVariants()
 
         else
             label[0] = label[0].toUpper(); // Capitalize first letter
+        
+        if (label.startsWith("Fedora"))
+            favorite = true;
 
         QPushButton* button = new QPushButton(label, mUI.content);
         button->setProperty("ssg_variant", QVariant(name));
