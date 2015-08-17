@@ -27,6 +27,7 @@ Scanner::Scanner():
     mScanThread(0),
     mMainThread(0),
     mSkipValid(false),
+    mFetchRemoteResources(false),
     mSession(0),
     mTarget("")
 {}
@@ -52,6 +53,16 @@ void Scanner::setSkipValid(bool skip)
 bool Scanner::getSkipValid() const
 {
     return mSkipValid;
+}
+
+void Scanner::setFetchRemoteResources(bool fetch)
+{
+    mFetchRemoteResources = fetch;
+}
+
+bool Scanner::getFetchRemoteResources() const
+{
+    return mFetchRemoteResources;
 }
 
 void Scanner::setSession(ScanningSession* session)

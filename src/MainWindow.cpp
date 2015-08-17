@@ -535,6 +535,7 @@ void MainWindow::scanAsync(ScannerMode scannerMode)
     const QString target = mUI.localMachineRadioButton->isChecked() ?
         "localhost" : mUI.remoteMachineDetails->getTarget();
 
+    bool fetchRemoteResources = mUI.fetchRemoteResourcesCheckbox->isChecked();
     try
     {
         //if (!mScanner || mScanner->getTarget() != target)
@@ -581,6 +582,7 @@ void MainWindow::scanAsync(ScannerMode scannerMode)
         mScanner->setScanThread(mScanThread);
         mScanner->setMainThread(thread());
         mScanner->setSkipValid(mSkipValid);
+        mScanner->setFetchRemoteResources(fetchRemoteResources);
         mScanner->setSession(mScanningSession);
         mScanner->setScannerMode(scannerMode);
 
