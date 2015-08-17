@@ -45,15 +45,15 @@ for i in $(seq 0 `expr $# - 1`); do
 
     case "${args[i]}" in
     ("--results")
-        TARGET_RESULTS_XCCDF=${args[j]}
+        TARGET_RESULTS_XCCDF="${args[j]}"
         args[j]="$TEMP_DIR/results-xccdf.xml"
       ;;
     ("--results-arf")
-        TARGET_RESULTS_ARF=${args[j]}
+        TARGET_RESULTS_ARF="${args[j]}"
         args[j]="$TEMP_DIR/results-arf.xml"
       ;;
     ("--report")
-        TARGET_REPORT=${args[j]}
+        TARGET_REPORT="${args[j]}"
         args[j]="$TEMP_DIR/report.html"
       ;;
     *)
@@ -64,7 +64,7 @@ done
 LOCAL_OSCAP="oscap"
 
 pushd "$TEMP_DIR" > /dev/null
-$LOCAL_OSCAP ${args[@]} &
+$LOCAL_OSCAP "${args[@]}" &
 PID=$!
 RET=1
 
@@ -86,8 +86,8 @@ popd > /dev/null
 
 function chown_copy
 {
-    local what=$1
-    local where=$2
+    local what="$1"
+    local where="$2"
 
     [ ! -f "$what" ] || cp "$what" "$where"
 
@@ -97,9 +97,9 @@ function chown_copy
     fi
 }
 
-chown_copy "$TEMP_DIR/results-xccdf.xml" $TARGET_RESULTS_XCCDF
-chown_copy "$TEMP_DIR/results-arf.xml" $TARGET_RESULTS_ARF
-chown_copy "$TEMP_DIR/report.html" $TARGET_REPORT
+chown_copy "$TEMP_DIR/results-xccdf.xml" "$TARGET_RESULTS_XCCDF"
+chown_copy "$TEMP_DIR/results-arf.xml" "$TARGET_RESULTS_ARF"
+chown_copy "$TEMP_DIR/report.html" "$TARGET_REPORT"
 
 rm -r "$TEMP_DIR"
 
