@@ -65,14 +65,14 @@ class OscapScannerBase : public Scanner
         /// Last downloading file
         QString mLastDownloadingFile;
 
-        enum Reading_state{
-          READING_PREFIX,
-          READING_RULE_RESULT,
-          READING_DOWNLOAD_FILE,
-          READING_DOWNLOAD_FILE_STATUS
+        enum ReadingState{
+          RS_READING_PREFIX,
+          RS_READING_RULE_RESULT,
+          RS_READING_DOWNLOAD_FILE,
+          RS_READING_DOWNLOAD_FILE_STATUS
         };
 
-        Reading_state mReadingState;
+        ReadingState mReadingState;
 
         /// We keep filling this buffer until we reach : or \n
         QString mReadBuffer;

@@ -37,7 +37,7 @@ OscapScannerBase::OscapScannerBase():
 
     mLastRuleID(""),
     mLastDownloadingFile(""),
-    mReadingState(READING_PREFIX),
+    mReadingState(RS_READING_PREFIX),
     mReadBuffer(""),
     mCancelRequested(false)
 {
@@ -81,7 +81,7 @@ void OscapScannerBase::signalCompletion(bool canceled)
 
     mLastRuleID = "";
     mLastDownloadingFile = "";
-    mReadingState = READING_PREFIX;
+    mReadingState = RS_READING_PREFIX;
     mReadBuffer = "";
 
     // reset the cancel flag now that we have finished XOR canceled
@@ -279,21 +279,21 @@ bool OscapScannerBase::tryToReadStdOutChar(QProcess& process)
     {
         switch (mReadingState)
         {
-            case READING_PREFIX:
+            case RS_READING_PREFIX:
                 if (mReadBuffer=="Downloading")
                 {
-                     mReadingState = READING_DOWNLOAD_FILE;
+                     mReadingState = RS_READING_DOWNLOAD_FILE;
                 }
                 else
                 {
                     mLastRuleID = mReadBuffer;
                     emit progressReport(mLastRuleID, "processing");
-                    mReadingState = READING_RULE_RESULT;
+                    mReadingState = RS_READING_RULE_RESULT;
                 }
                 mReadBuffer = "";
                 break;
 
-            case READING_RULE_RESULT:
+            case RS_READING_RULE_RESULT:
               emit warningMessage(QString(
                   QObject::tr("Error when parsing scan progress output from stdout of the 'oscap' process. "
                   "':' encountered while not reading rule ID, newline and/or rule result are missing! "
@@ -307,18 +307,18 @@ bool OscapScannerBase::tryToReadStdOutChar(QProcess& process)
     {
         switch(mReadingState) {
 
-          case READING_PREFIX:
+          case RS_READING_PREFIX:
               emit warningMessage(QString(
                   QObject::tr("Error when parsing scan progress output from stdout of the 'oscap' process. "
                   "Newline encountered while reading rule ID, rule result and/or ':' are missing! "
                   "Read buffer is '%1'.")).arg(mReadBuffer));
               break;
 
-          case READING_RULE_RESULT:
+          case RS_READING_RULE_RESULT:
                 emit progressReport(mLastRuleID, mReadBuffer);
                 break;
 
-          case READING_DOWNLOAD_FILE_STATUS:
+          case RS_READING_DOWNLOAD_FILE_STATUS:
              QString downloadStatus = mReadBuffer.mid(1);
              if (downloadStatus == "ok") 
              {
@@ -329,10 +329,10 @@ bool OscapScannerBase::tryToReadStdOutChar(QProcess& process)
              break;
 
         }
-        mReadingState = READING_PREFIX;
+        mReadingState = RS_READING_PREFIX;
         mReadBuffer = "";
     }
-    else if ( (readChar == '.') && (mReadingState == READING_DOWNLOAD_FILE) && (mReadBuffer.endsWith(" .."))) {
+    else if ( (readChar == '.') && (mReadingState == RS_READING_DOWNLOAD_FILE) && (mReadBuffer.endsWith(" .."))) {
         int urlLen = mReadBuffer.length();
         urlLen -= 1; // without first space
         urlLen -= 3; // without "progress dots"
@@ -341,7 +341,7 @@ bool OscapScannerBase::tryToReadStdOutChar(QProcess& process)
         emit infoMessage(QString("Downloading of \"%1\"...").arg(mLastDownloadingFile));
         
         mReadBuffer = "";
-        mReadingState = READING_DOWNLOAD_FILE_STATUS;
+        mReadingState = RS_READING_DOWNLOAD_FILE_STATUS;
     }
     else
     {
