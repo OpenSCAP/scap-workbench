@@ -324,7 +324,7 @@ bool OscapScannerBase::tryToReadStdOutChar(QProcess& process)
              {
                  emit infoMessage(QString("Downloading of \"%1\" finished: %2").arg(mLastDownloadingFile).arg(downloadStatus));
              } else {
-                 emit warningMessage(QString("Downloading of \"%1\" finished: %2").arg(mLastDownloadingFile).arg(downloadStatus));
+                 emit warningMessage(QString("Failed to download \"%1\"!").arg(mLastDownloadingFile));
              }
              break;
 
