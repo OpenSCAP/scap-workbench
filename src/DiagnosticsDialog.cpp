@@ -131,7 +131,7 @@ void DiagnosticsDialog::pushMessage(MessageSeverity severity, const QString& ful
 
     std::cerr << stime << " | " << strSeverity.toUtf8().constData() << " | " << fullMessage.toUtf8().constData() << std::endl;
     mUI.messages->append(
-        QString("<table><tr><td><pre>%1 </pre></td><td style=\"background: %2\"><pre>%3 </pre></td><td>%4</td></tr></table>\n")
+        QString("<table><tr><td style=\"padding:5px 0px 0px 5px\"><pre>%1 </pre></td><td style=\"background: %2; padding:5px\"><pre>%3 </pre></td><td>%4</td></tr></table>\n")
             .arg(stime, bgCol, strSeverity, fullMessage)
     );
 }
