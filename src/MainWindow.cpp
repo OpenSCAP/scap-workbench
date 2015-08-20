@@ -373,7 +373,7 @@ void MainWindow::openFileDialog()
 
         if (fileOpened())
         {
-            if (openNewFileQuestionDialog(path) == QMessageBox::Yes)
+            if (openNewFileQuestionDialog(mScanningSession->getOpenedFilePath()) == QMessageBox::Yes)
                 closeFile();
             else
                 // user cancelled closing current file, we have to abort
@@ -418,7 +418,7 @@ void MainWindow::openSSGDialog(const QString& customDismissLabel)
     {
         if (fileOpened())
         {
-            if (openNewFileQuestionDialog(dialog->getSelectedSSGFile()) == QMessageBox::Yes)
+            if (openNewFileQuestionDialog(mScanningSession->getOpenedFilePath()) == QMessageBox::Yes)
             {
                 closeFile();
             }
@@ -1398,10 +1398,12 @@ void MainWindow::aboutQt()
     QMessageBox::aboutQt(this);
 }
 
-
-QMessageBox::StandardButton MainWindow::openNewFileQuestionDialog(const QString& newFilepath) {
-    return QMessageBox::question(this, QObject::tr("Close currently opened file?"),
-                               QObject::tr("Opened file has to be closed before '%1' is opened instead.\n\n"
-                                           "Are you sure you want to close currently opened file?").arg(newFilepath),
-                               QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
+QMessageBox::StandardButton MainWindow::openNewFileQuestionDialog(const QString& oldFilepath)
+{
+    return QMessageBox::question(this,
+          QObject::tr("Close currently opened file?"),
+          QObject::tr("Opened file '%1' has to be closed before opening another file.\n\n"
+          "Do you want to proceed?").arg(oldFilepath),
+          QMessageBox::Yes | QMessageBox::No, QMessageBox::No
+    );
 }

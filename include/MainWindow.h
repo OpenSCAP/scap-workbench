@@ -269,7 +269,7 @@ class MainWindow : public QMainWindow
          *
          * @return user answer
          */
-        QMessageBox::StandardButton openNewFileQuestionDialog(const QString& newFilepath);
+        QMessageBox::StandardButton openNewFileQuestionDialog(const QString& oldFilepath);
 
     private slots:
         /**
