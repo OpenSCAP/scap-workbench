@@ -168,7 +168,8 @@ QStringList OscapScannerBase::buildEvaluationArgs(const QString& inputFile,
         ret.append("--skip-valid");
     }
     
-    if (mFetchRemoteResources) {
+    if (mFetchRemoteResources)
+    {
         ret.append("--fetch-remote-resources");
     }
 
@@ -195,7 +196,6 @@ QStringList OscapScannerBase::buildEvaluationArgs(const QString& inputFile,
         ret.append("--tailoring-file");
         ret.append(tailoringFile);
     }
-    //
 
     const QString profileId = mSession->getProfile();
 
@@ -305,7 +305,8 @@ bool OscapScannerBase::tryToReadStdOutChar(QProcess& process)
     }
     else if (readChar == '\n')
     {
-        switch(mReadingState) {
+        switch(mReadingState)
+        {
 
           case RS_READING_PREFIX:
               emit warningMessage(QString(
@@ -321,18 +322,17 @@ bool OscapScannerBase::tryToReadStdOutChar(QProcess& process)
           case RS_READING_DOWNLOAD_FILE_STATUS:
              QString downloadStatus = mReadBuffer.mid(1);
              if (downloadStatus == "ok") 
-             {
                  emit infoMessage(QString("Downloading of \"%1\" finished: %2").arg(mLastDownloadingFile).arg(downloadStatus));
-             } else {
+             else
                  emit warningMessage(QString("Failed to download \"%1\"!").arg(mLastDownloadingFile));
-             }
              break;
 
         }
         mReadingState = RS_READING_PREFIX;
         mReadBuffer = "";
     }
-    else if ( (readChar == '.') && (mReadingState == RS_READING_DOWNLOAD_FILE) && (mReadBuffer.endsWith(" .."))) {
+    else if ( (readChar == '.') && (mReadingState == RS_READING_DOWNLOAD_FILE) && (mReadBuffer.endsWith(" ..")))
+    {
         int urlLen = mReadBuffer.length();
         urlLen -= 1; // without first space
         urlLen -= 3; // without "progress dots"

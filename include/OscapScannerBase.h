@@ -65,11 +65,12 @@ class OscapScannerBase : public Scanner
         /// Last downloading file
         QString mLastDownloadingFile;
 
-        enum ReadingState{
-          RS_READING_PREFIX,
-          RS_READING_RULE_RESULT,
-          RS_READING_DOWNLOAD_FILE,
-          RS_READING_DOWNLOAD_FILE_STATUS
+        enum ReadingState
+        {
+            RS_READING_PREFIX,
+            RS_READING_RULE_RESULT,
+            RS_READING_DOWNLOAD_FILE,
+            RS_READING_DOWNLOAD_FILE_STATUS
         };
 
         ReadingState mReadingState;
