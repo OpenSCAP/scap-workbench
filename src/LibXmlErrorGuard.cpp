@@ -56,6 +56,7 @@ void LibXmlErrorGuard::libxmlErrorCallback(QString* message, const char* format,
     }
     catch(...)
     {
-        ; // Possible exceptions aren't safe in C callback
+        // It's corner case, but some exceptions like std::bad_alloc can occur
+        // Exceptions aren't safe in C callback, so we rather catch them.
     }
 }
