@@ -39,7 +39,7 @@ const QString& LibXmlErrorGuard::getMessage() const
    return errorMessage;
 }
 
-bool LibXmlErrorGuard::isEmpty()
+bool LibXmlErrorGuard::isEmpty() const
 {
     return errorMessage.isEmpty();
 }

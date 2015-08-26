@@ -39,7 +39,7 @@ public:
     ~LibXmlErrorGuard();
 
     const QString& getMessage() const;
-    bool isEmpty();
+    bool isEmpty() const;
 private:
     static void libxmlErrorCallback(QString* message, const char* format, ...);
     QString errorMessage;
