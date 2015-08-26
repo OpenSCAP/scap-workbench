@@ -63,36 +63,37 @@ void DiagnosticsDialog::waitUntilHidden(unsigned int interval)
     }
 }
 
-void DiagnosticsDialog::infoMessage(const QString& message)
+void DiagnosticsDialog::infoMessage(const QString& message, MessageFormat format)
 {
-    pushMessage(MS_INFO, message);
+    pushMessage(MS_INFO, message, format);
 }
 
-void DiagnosticsDialog::warningMessage(const QString& message)
+void DiagnosticsDialog::warningMessage(const QString& message, MessageFormat format)
 {
-    pushMessage(MS_WARNING, message);
+    pushMessage(MS_WARNING, message, format);
 
     // warning message is important, make sure the diagnostics are shown
     show();
 }
 
-void DiagnosticsDialog::errorMessage(const QString& message)
+void DiagnosticsDialog::errorMessage(const QString& message, MessageFormat format)
 {
-    pushMessage(MS_ERROR, message);
+    pushMessage(MS_ERROR, message, format);
 
     // error message is important, make sure the diagnostics are shown
     show();
 }
 
-void DiagnosticsDialog::exceptionMessage(const std::exception& e, const QString& context)
+void DiagnosticsDialog::exceptionMessage(const std::exception& e, const QString& context, MessageFormat format)
 {
-    pushMessage(MS_EXCEPTION, (context.isEmpty() ? "" : context + "\n\n" + QString::fromUtf8(e.what())));
+    pushMessage(MS_EXCEPTION, (context.isEmpty() ? "" : context + "\n\n" + QString::fromUtf8(e.what())), format);
 
     // error message is important, make sure the diagnostics are shown
     show();
 }
 
-void DiagnosticsDialog::pushMessage(MessageSeverity severity, const QString& fullMessage)
+
+void DiagnosticsDialog::pushMessage(MessageSeverity severity, const QString& fullMessage, MessageFormat format)
 {
     char stime[11];
     stime[10] = '\0';
@@ -132,9 +133,21 @@ void DiagnosticsDialog::pushMessage(MessageSeverity severity, const QString& ful
     strSeverity = strSeverity.leftJustified(8);
 
     std::cerr << stime << " | " << strSeverity.toUtf8().constData() << " | " << fullMessage.toUtf8().constData() << std::endl;
+   
+    QString outputMessage = fullMessage;
+    if (format & MF_XML)
+    {
+        outputMessage = Qt::escape(outputMessage);
+    }
+    
+    if (format & MF_PREFORMATTED)
+    {
+        outputMessage = QString("<pre>%1</pre>").arg(outputMessage);
+    }
+    
     mUI.messages->append(
         QString("<table><tr><td style=\"padding:5px 0px 0px 5px\"><pre>%1 </pre></td><td style=\"background: %2; padding:5px\"><pre>%3 </pre></td><td>%4</td></tr></table>\n")
-            .arg(stime, bgCol, strSeverity, fullMessage)
+            .arg(stime, bgCol, strSeverity, outputMessage)
     );
 }
 
