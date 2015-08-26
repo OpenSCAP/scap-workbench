@@ -23,6 +23,7 @@
 #include "ResultViewer.h"
 #include "Exceptions.h"
 #include "APIHelpers.h"
+#include "LibXmlErrorGuard.h"
 
 extern "C" {
 #include <xccdf_policy.h>
@@ -613,9 +614,17 @@ void ScanningSession::reloadSession(bool forceReload) const
 
     if (mSessionDirty || forceReload)
     {
+        LibXmlErrorGuard xmlError;
         if (xccdf_session_load(mSession) != 0)
-            throw ScanningSessionException(
-                QString("Failed to reload session. OpenSCAP error message:\n%1").arg(oscapErrDesc()));
+        {      
+            QString exceptionText = QString("Failed to reload session. OpenSCAP error message:\n%1").arg(oscapErrDesc());
+            if (!xmlError.isEmpty())
+            {
+                exceptionText.append("\n");
+                exceptionText.append(xmlError.getMessage());
+            }
+            throw ScanningSessionException(exceptionText);
+        }
 
         struct xccdf_policy_model* policyModel = xccdf_session_get_policy_model(mSession);
 
