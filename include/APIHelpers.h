@@ -66,4 +66,11 @@ QString oscapItemGetReadableDescription(struct xccdf_item* item, struct xccdf_po
  */
 QString oscapErrDesc();
 
+/**
+ * Returns QString containing utf8 contents of oscap_err_get_full_error()
+ *
+ * @exception nothrow This function is guaranteed to not throw any exceptions.
+ */
+QString oscapErrGetFullError();
+
 #endif
