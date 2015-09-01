@@ -163,8 +163,8 @@ void SyncProcess::run()
 
     mRunning = false;
 
-    mStdOutContents = process.readAllStandardOutput();
-    mStdErrContents = process.readAllStandardError();
+    mStdOutContents = QString::fromUtf8(process.readAllStandardOutput());
+    mStdErrContents = QString::fromUtf8(process.readAllStandardError());
 
     // TODO: We are duplicating data here!
     mDiagnosticInfo += "stdout:\n===============================\n" + QString(mStdOutContents) + QString("\n");
