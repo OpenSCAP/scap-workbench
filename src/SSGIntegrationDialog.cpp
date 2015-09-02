@@ -77,6 +77,7 @@ void SSGIntegrationDialog::scrapeSSGVariants()
     const QDir& dir = getSSGDirectory();
     const QStringList variants = dir.entryList(QDir::Files | QDir::NoDotAndDotDot);
 
+    int lastFavoriteIndex = 1;
     for (QStringList::const_iterator it = variants.constBegin();
          it != variants.constEnd(); ++it)
     {
@@ -90,15 +91,36 @@ void SSGIntegrationDialog::scrapeSSGVariants()
 
         QString label = name;
 
+        bool favorite = false;
         // Make the label nicer for known variants
-        if (label.startsWith("rhel")) // use RHEL instead of rhel
+        if (label.startsWith("rhel"))
+        {
+            // use RHEL instead of rhel
             label = name.toUpper();
-        else if (label.startsWith("fedora")) // use Fedora instead of fedora
-            label[0] = 'F';
+            favorite = true;
+        }
+        else if (label.startsWith("centos")) // use CentOS instead of centos
+            label.replace(0, 6, "CentOS");
 
-        QPushButton* button = new QPushButton(label, mUI.variants);
+        else if (label.startsWith("jre")) // use JRE instead of jre
+            label.replace(0, 3, "JRE");
+
+        else if (label.startsWith("sl")) // use SL instead of sl
+            label.replace(0, 2, "SL");
+
+        else
+            label[0] = label[0].toUpper(); // Capitalize first letter
+        
+        if (label.startsWith("Fedora"))
+            favorite = true;
+
+        QPushButton* button = new QPushButton(label, mUI.content);
         button->setProperty("ssg_variant", QVariant(name));
-        mUI.variants->layout()->addWidget(button);
+
+        if (favorite)
+            mUI.variantsLayout->insertWidget(lastFavoriteIndex++, button); // insert button before text and divider
+        else
+            mUI.variantsLayout->addWidget(button);
 
         QObject::connect(
             button, SIGNAL(released()),

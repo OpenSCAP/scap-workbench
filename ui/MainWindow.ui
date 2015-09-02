@@ -40,13 +40,31 @@
        <item row="8" column="1" colspan="2">
         <widget class="QWidget" name="widget_3" native="true">
          <layout class="QVBoxLayout" name="verticalLayout_4">
-          <property name="margin">
+          <property name="leftMargin">
+           <number>0</number>
+          </property>
+          <property name="topMargin">
+           <number>0</number>
+          </property>
+          <property name="rightMargin">
+           <number>0</number>
+          </property>
+          <property name="bottomMargin">
            <number>0</number>
           </property>
           <item>
            <widget class="QWidget" name="widget_4" native="true">
             <layout class="QHBoxLayout" name="horizontalLayout_5">
-             <property name="margin">
+             <property name="leftMargin">
+              <number>0</number>
+             </property>
+             <property name="topMargin">
+              <number>0</number>
+             </property>
+             <property name="rightMargin">
+              <number>0</number>
+             </property>
+             <property name="bottomMargin">
               <number>0</number>
              </property>
              <item>
@@ -227,13 +245,31 @@
        <item>
         <widget class="QWidget" name="widget_5" native="true">
          <layout class="QVBoxLayout" name="verticalLayout_3">
-          <property name="margin">
+          <property name="leftMargin">
+           <number>0</number>
+          </property>
+          <property name="topMargin">
+           <number>0</number>
+          </property>
+          <property name="rightMargin">
+           <number>0</number>
+          </property>
+          <property name="bottomMargin">
            <number>0</number>
           </property>
           <item>
            <widget class="QWidget" name="preScanTools" native="true">
             <layout class="QHBoxLayout" name="horizontalLayout">
-             <property name="margin">
+             <property name="leftMargin">
+              <number>0</number>
+             </property>
+             <property name="topMargin">
+              <number>0</number>
+             </property>
+             <property name="rightMargin">
+              <number>0</number>
+             </property>
+             <property name="bottomMargin">
               <number>0</number>
              </property>
              <item>
@@ -255,6 +291,21 @@
                 </size>
                </property>
               </spacer>
+             </item>
+             <item>
+              <widget class="QCheckBox" name="fetchRemoteResourcesCheckbox">
+               <property name="font">
+                <font>
+                 <pointsize>11</pointsize>
+                </font>
+               </property>
+               <property name="toolTip">
+                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Allow download of&amp;nbsp;remote OVAL content referenced from&amp;nbsp;XCCDF by&amp;nbsp;check-content-ref/@href.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               </property>
+               <property name="text">
+                <string>Fetch remote resources</string>
+               </property>
+              </widget>
              </item>
              <item>
               <widget class="QCheckBox" name="onlineRemediationCheckBox">
@@ -294,7 +345,16 @@
           <item>
            <widget class="QWidget" name="scanTools" native="true">
             <layout class="QHBoxLayout" name="horizontalLayout_4">
-             <property name="margin">
+             <property name="leftMargin">
+              <number>0</number>
+             </property>
+             <property name="topMargin">
+              <number>0</number>
+             </property>
+             <property name="rightMargin">
+              <number>0</number>
+             </property>
+             <property name="bottomMargin">
               <number>0</number>
              </property>
              <item>
@@ -336,7 +396,16 @@
           <item>
            <widget class="QWidget" name="postScanTools" native="true">
             <layout class="QHBoxLayout" name="horizontalLayout_3">
-             <property name="margin">
+             <property name="leftMargin">
+              <number>0</number>
+             </property>
+             <property name="topMargin">
+              <number>0</number>
+             </property>
+             <property name="rightMargin">
+              <number>0</number>
+             </property>
+             <property name="bottomMargin">
               <number>0</number>
              </property>
              <item>
@@ -409,7 +478,7 @@
      <x>0</x>
      <y>0</y>
      <width>800</width>
-     <height>27</height>
+     <height>23</height>
     </rect>
    </property>
    <property name="font">

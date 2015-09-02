@@ -62,8 +62,19 @@ class OscapScannerBase : public Scanner
 
         /// Last read rule id
         QString mLastRuleID;
-        /// If true we are in the rule ID reading phase, if false we are reading rule result
-        bool mReadingRuleID;
+        /// Last downloading file
+        QString mLastDownloadingFile;
+
+        enum ReadingState
+        {
+            RS_READING_PREFIX,
+            RS_READING_RULE_RESULT,
+            RS_READING_DOWNLOAD_FILE,
+            RS_READING_DOWNLOAD_FILE_STATUS
+        };
+
+        ReadingState mReadingState;
+
         /// We keep filling this buffer until we reach : or \n
         QString mReadBuffer;
 

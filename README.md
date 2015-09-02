@@ -18,56 +18,56 @@ How to run it out of the box
 1) Make sure you have installed all prerequisites
 
 required dependencies:
-```bash
-yum install cmake gcc-c++ openssh-clients util-linux openscap-devel qt-devel
+```console
+# yum install cmake gcc-c++ openssh-clients util-linux openscap-devel qt-devel
 ```
 
 required dependencies (only for the git repo, not required for released tarballs):
-```bash
-yum install rubygem-asciidoctor
+```console
+# yum install rubygem-asciidoctor
 ```
 
 optional dependencies:
-```bash
-yum install polkit
+```console
+# yum install polkit
 ```
 
 2) Build SCAP Workbench:
-```bash
-mkdir build; cd build
-cmake ../
-make
+```console
+$ mkdir build; cd build
+$ cmake ../
+$ make
 ```
 
 3) Install SCAP Workbench: (optional)
 
 (inside the build folder):
-```bash
-make install
+```console
+# make install
 ```
 
 4a) Run SCAP Workbench: (if it was installed)
 
 spawning open file dialog:
-```bash
-scap-workbench
+```console
+$ scap-workbench
 ```
 
 with an XCCDF file to load:
-```bash
-scap-workbench /path/to/xccdf-file.xml
+```console
+$ scap-workbench /path/to/xccdf-file.xml
 ```
 
 with a source datastream (SDS) to load:
-```bash
-scap-workbench /path/to/sds-file
+```console
+$ scap-workbench /path/to/sds-file
 ```
 
 4b) Run SCAP Workbench: (straight from build dir, without installation)
 
-```bash
-cd build/
-bash runwrapper.sh ./scap-workbench
+```console
+$ cd build/
+$ bash runwrapper.sh ./scap-workbench
 ```
 
 What now?
@@ -83,8 +83,8 @@ There are 3 ways to get the user manual:
 
 How to make a tarball
 ---------------------
-```bash
-mkdir build; cd build
-cmake ../
-make package_source
+```console
+$ mkdir build; cd build
+$ cmake ../
+$ make package_source
 ```

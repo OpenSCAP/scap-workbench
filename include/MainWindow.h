@@ -28,6 +28,7 @@
 #include <QMainWindow>
 #include <QThread>
 #include <QMenu>
+#include <QMessageBox>
 
 extern "C"
 {
@@ -262,6 +263,13 @@ class MainWindow : public QMainWindow
          * @see refreshSelectedRulesTree
          */
         unsigned int getSelectedRulesCount();
+
+        /**
+         * @brief Ask user to proceed with closing old file due to openning of new one
+         *
+         * @return user answer
+         */
+        QMessageBox::StandardButton openNewFileQuestionDialog(const QString& oldFilepath);
 
     private slots:
         /**
