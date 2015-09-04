@@ -70,3 +70,11 @@ QString oscapErrDesc()
 {
     return QString::fromUtf8(oscap_err_desc());
 }
+
+QString oscapErrGetFullError()
+{
+    char* fullErrorCstr = oscap_err_get_full_error();
+    QString fullError = QString::fromUtf8(fullErrorCstr);
+    free(fullErrorCstr);
+    return fullError;
+}

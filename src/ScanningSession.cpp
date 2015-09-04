@@ -615,7 +615,7 @@ void ScanningSession::reloadSession(bool forceReload) const
     {
         if (xccdf_session_load(mSession) != 0)
             throw ScanningSessionException(
-                QString("Failed to reload session. OpenSCAP error message:\n%1").arg(oscapErrDesc()));
+                QString("Failed to reload session. OpenSCAP error message:\n%1").arg(oscapErrGetFullError()));
 
         struct xccdf_policy_model* policyModel = xccdf_session_get_policy_model(mSession);
 

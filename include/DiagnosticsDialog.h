@@ -51,6 +51,17 @@ enum MessageSeverity
 };
 
 /**
+ * @brief MessageFormat can be any subset of this flags
+ */
+enum MessageFormat
+{
+    MF_STANDARD = 0x01,
+    MF_PREFORMATTED = 0x02, // Preserve whitespaces to output
+    MF_XML = 0x04, // Replace xml metacharacters with xml entities
+    MF_PREFORMATTED_XML = MF_PREFORMATTED | MF_XML,
+};
+
+/**
  * @brief Workbench displays errors and warnings, this dialog groups them
  *
  * This is a final class and is not supposed to be inherited.
@@ -85,7 +96,7 @@ class DiagnosticsDialog : public QDialog
          * The diagnostics dialog will not open when just these messages are
          * received.
          */
-        void infoMessage(const QString& message);
+        void infoMessage(const QString& message, MessageFormat format = MF_STANDARD);
 
         /**
          * @brief Scanner triggers this to show a warning message
@@ -93,7 +104,7 @@ class DiagnosticsDialog : public QDialog
          * A warning message will open the diagnostics dialog if it isn't
          * being shown already.
          */
-        void warningMessage(const QString& message);
+        void warningMessage(const QString& message, MessageFormat format = MF_STANDARD);
 
         /**
          * @brief Scanner triggers this to show an error message
@@ -101,15 +112,15 @@ class DiagnosticsDialog : public QDialog
          * An error message will open the diagnostics dialog if it isn't
          * being shown already.
          */
-        void errorMessage(const QString& message);
+        void errorMessage(const QString& message, MessageFormat format = MF_STANDARD);
 
         /**
          * @brief Report a caught exception.
          */
-        void exceptionMessage(const std::exception& e, const QString& context = "");
+        void exceptionMessage(const std::exception& e, const QString& context = "", MessageFormat format = MF_STANDARD);
 
     private:
-        void pushMessage(MessageSeverity severity, const QString& fullMessage);
+        void pushMessage(MessageSeverity severity, const QString& fullMessage, MessageFormat format = MF_STANDARD);
 
         /**
          * @brief Pushes a single info message containing version info

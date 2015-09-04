@@ -337,7 +337,7 @@ void MainWindow::openFile(const QString& path)
         setWindowTitle(QObject::tr("SCAP Workbench"));
         mUI.tailoringFileComboBox->clear();
 
-        mDiagnosticsDialog->exceptionMessage(e, QObject::tr("Error while opening file."));
+        mDiagnosticsDialog->exceptionMessage(e, QObject::tr("Error while opening file."), MF_PREFORMATTED_XML);
     }
 }
 
