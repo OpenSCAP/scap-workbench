@@ -26,6 +26,7 @@ Scanner::Scanner():
     mScannerMode(SM_SCAN),
     mScanThread(0),
     mMainThread(0),
+    mDryRun(false),
     mSkipValid(false),
     mFetchRemoteResources(false),
     mSession(0),
@@ -43,6 +44,11 @@ void Scanner::setScanThread(QThread* thread)
 void Scanner::setMainThread(QThread* thread)
 {
     mMainThread = thread;
+}
+
+void Scanner::setDryRun(bool dryRun)
+{
+    mDryRun = dryRun;
 }
 
 void Scanner::setSkipValid(bool skip)

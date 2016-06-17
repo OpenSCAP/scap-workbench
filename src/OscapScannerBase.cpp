@@ -157,7 +157,8 @@ QStringList OscapScannerBase::buildEvaluationArgs(const QString& inputFile,
         const QString& resultFile,
         const QString& reportFile,
         const QString& arfFile,
-        bool onlineRemediation) const
+        bool onlineRemediation,
+        bool ignoreCapabilities) const
 {
     QStringList ret;
     ret.append("xccdf");
@@ -167,7 +168,7 @@ QStringList OscapScannerBase::buildEvaluationArgs(const QString& inputFile,
     {
         ret.append("--skip-valid");
     }
-    
+
     if (mFetchRemoteResources)
     {
         ret.append("--fetch-remote-resources");
@@ -219,10 +220,10 @@ QStringList OscapScannerBase::buildEvaluationArgs(const QString& inputFile,
     ret.append("--report");
     ret.append(reportFile);
 
-    if (mCapabilities.progressReporting())
+    if (ignoreCapabilities || mCapabilities.progressReporting())
         ret.append("--progress");
 
-    if (onlineRemediation && mCapabilities.onlineRemediation())
+    if (onlineRemediation && (ignoreCapabilities || mCapabilities.onlineRemediation()))
         ret.append("--remediate");
 
     ret.append(inputFile);
@@ -233,7 +234,8 @@ QStringList OscapScannerBase::buildEvaluationArgs(const QString& inputFile,
 QStringList OscapScannerBase::buildOfflineRemediationArgs(const QString& resultInputFile,
         const QString& resultFile,
         const QString& reportFile,
-        const QString& arfFile) const
+        const QString& arfFile,
+        bool ignoreCapabilities) const
 {
     QStringList ret;
     ret.append("xccdf");
@@ -258,7 +260,7 @@ QStringList OscapScannerBase::buildOfflineRemediationArgs(const QString& resultI
     ret.append("--report");
     ret.append(reportFile);
 
-    if (mCapabilities.progressReporting())
+    if (ignoreCapabilities || mCapabilities.progressReporting())
         ret.append("--progress");
 
     ret.append(resultInputFile);

@@ -297,9 +297,6 @@ void ScanningSession::setDatastreamID(const QString& datastreamID)
         throw ScanningSessionException(
             "Can't set datastream ID in scanning session unless opened file is a source datastream");
 
-    if (getDatastreamID() == datastreamID)
-        return;
-
     if (datastreamID.isEmpty())
         xccdf_session_set_datastream_id(mSession, 0);
     else
@@ -322,9 +319,6 @@ void ScanningSession::setComponentID(const QString& componentID)
     if (!isSDS())
         throw ScanningSessionException(
             "Can't set datastream ID in scanning session unless opened file is a source datastream");
-
-    if (getComponentID() == componentID)
-        return;
 
     if (componentID.isEmpty())
         xccdf_session_set_component_id(mSession, 0);
@@ -615,7 +609,7 @@ void ScanningSession::reloadSession(bool forceReload) const
     {
         if (xccdf_session_load(mSession) != 0)
             throw ScanningSessionException(
-                QString("Failed to reload session. OpenSCAP error message:\n%1").arg(oscapErrDesc()));
+                QString("Failed to reload session. OpenSCAP error message:\n%1").arg(oscapErrGetFullError()));
 
         struct xccdf_policy_model* policyModel = xccdf_session_get_policy_model(mSession);
 
