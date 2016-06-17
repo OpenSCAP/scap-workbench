@@ -25,6 +25,7 @@
 #include "Config.h"
 
 class Application;
+class CommandLineArgsDialog;
 class DiagnosticsDialog;
 class MacroProgressUndoCommand;
 class MainWindow;

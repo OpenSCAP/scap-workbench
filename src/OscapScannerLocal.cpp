@@ -40,8 +40,52 @@ OscapScannerLocal::OscapScannerLocal():
 OscapScannerLocal::~OscapScannerLocal()
 {}
 
+QStringList OscapScannerLocal::getCommandLineArgs() const
+{
+    QStringList args("oscap");
+
+    if (mScannerMode == SM_OFFLINE_REMEDIATION)
+    {
+        QTemporaryFile inputARFFile;
+        inputARFFile.setAutoRemove(true);
+        inputARFFile.open();
+        inputARFFile.write(getARFForRemediation());
+        inputARFFile.close();
+
+        args += buildOfflineRemediationArgs(inputARFFile.fileName(),
+            "/tmp/xccdf-results.xml",
+            "/tmp/report.html",
+            "/tmp/arf.xml",
+            // ignore capabilities because of dry-run
+            true
+        );
+    }
+    else
+    {
+        args += buildEvaluationArgs(mSession->getOpenedFilePath(),
+            mSession->hasTailoring() ? mSession->getTailoringFilePath() : QString(),
+            "/tmp/xccdf-results.xml",
+            "/tmp/report.html",
+            "/tmp/arf.xml",
+            mScannerMode == SM_SCAN_ONLINE_REMEDIATION,
+            // ignore capabilities because of dry-run
+            true
+        );
+    }
+
+    args.removeOne("--progress");
+
+    return args;
+}
+
 void OscapScannerLocal::evaluate()
 {
+    if (mDryRun)
+    {
+        signalCompletion(mCancelRequested);
+        return;
+    }
+
     emit infoMessage(QObject::tr("Querying capabilities..."));
 
     {

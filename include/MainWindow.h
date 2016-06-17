@@ -199,6 +199,10 @@ class MainWindow : public QMainWindow
         /// Gets shown whenever a warning or error is emitted
         DiagnosticsDialog* mDiagnosticsDialog;
 
+        /// Qt Dialog that shows command line arguments used for evaluation
+        /// This is shown when user checks the "dry run" checkbox
+        CommandLineArgsDialog* mCommandLineArgsDialog;
+
         /// Needed for SCAP RPM opening functionality
         RPMOpenHelper* mRPMOpenHelper;
 

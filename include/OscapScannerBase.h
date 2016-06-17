@@ -54,11 +54,13 @@ class OscapScannerBase : public Scanner
                                         const QString& resultFile,
                                         const QString& reportFile,
                                         const QString& arfFile,
-                                        bool onlineRemediation) const;
+                                        bool onlineRemediation,
+                                        bool ignoreCapabilities = false) const;
         QStringList buildOfflineRemediationArgs(const QString& resultInputFile,
                                                 const QString& resultFile,
                                                 const QString& reportFile,
-                                                const QString& arfFile) const;
+                                                const QString& arfFile,
+                                                bool ignoreCapabilities = false) const;
 
         /// Last read rule id
         QString mLastRuleID;

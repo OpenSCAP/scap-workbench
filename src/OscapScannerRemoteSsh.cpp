@@ -97,8 +97,54 @@ void OscapScannerRemoteSsh::setSession(ScanningSession* session)
             "Remote scanning using plain XCCDF and OVAL files has not been implemented in SCAP Workbench yet.");
 }
 
+QStringList OscapScannerRemoteSsh::getCommandLineArgs() const
+{
+    QStringList args("oscap-ssh");
+    args.append(mSshConnection.getTarget());
+    args.append(QString::number(mSshConnection.getPort()));
+
+    if (mScannerMode == SM_OFFLINE_REMEDIATION)
+    {
+        QTemporaryFile inputARFFile;
+        inputARFFile.setAutoRemove(true);
+        inputARFFile.open();
+        inputARFFile.write(getARFForRemediation());
+        inputARFFile.close();
+
+        args += buildOfflineRemediationArgs(inputARFFile.fileName(),
+            "/tmp/xccdf-results.xml",
+            "/tmp/report.html",
+            "/tmp/arf.xml",
+            // ignore capabilities because of dry-run
+            true
+        );
+    }
+    else
+    {
+        args += buildEvaluationArgs(mSession->getOpenedFilePath(),
+            mSession->hasTailoring() ? mSession->getTailoringFilePath() : QString(),
+            "/tmp/xccdf-results.xml",
+            "/tmp/report.html",
+            "/tmp/arf.xml",
+            mScannerMode == SM_SCAN_ONLINE_REMEDIATION,
+            // ignore capabilities because of dry-run
+            true
+        );
+    }
+
+    args.removeOne("--progress");
+
+    return args;
+}
+
 void OscapScannerRemoteSsh::evaluate()
 {
+    if (mDryRun)
+    {
+        signalCompletion(mCancelRequested);
+        return;
+    }
+
     ensureConnected();
 
     if (mCancelRequested)

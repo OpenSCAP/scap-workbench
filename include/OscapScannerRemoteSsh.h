@@ -39,6 +39,7 @@ class OscapScannerRemoteSsh : public OscapScannerBase
         virtual void setTarget(const QString& target);
         virtual void setSession(ScanningSession* session);
 
+        virtual QStringList getCommandLineArgs() const;
         virtual void evaluate();
 
     private:

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2016 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -19,26 +19,30 @@
  *      Martin Preisler <mpreisle@redhat.com>
  */
 
-#ifndef SCAP_WORKBENCH_OSCAP_SCANNER_LOCAL_H_
-#define SCAP_WORKBENCH_OSCAP_SCANNER_LOCAL_H_
+#ifndef SCAP_WORKBENCH_COMMAND_LINE_ARGS_DIALOG_H_
+#define SCAP_WORKBENCH_COMMAND_LINE_ARGS_DIALOG_H_
 
 #include "ForwardDecls.h"
-#include "OscapScannerBase.h"
 
-class OscapScannerLocal : public OscapScannerBase
+#include <QDialog>
+
+#include "ui_CommandLineArgsDialog.h"
+
+class CommandLineArgsDialog : public QDialog
 {
     Q_OBJECT
 
     public:
-        OscapScannerLocal();
-        virtual ~OscapScannerLocal();
+        explicit CommandLineArgsDialog(QWidget* parent = 0);
+        virtual ~CommandLineArgsDialog();
 
-        virtual QStringList getCommandLineArgs() const;
-        virtual void evaluate();
+        void setArgs(const QStringList& args);
+
+    private slots:
+        void copyToClipboard();
 
     private:
-        static QString getPkexecOscapPath();
-
+        Ui_CommandLineArgsDialog mUI;
 };
 
 #endif

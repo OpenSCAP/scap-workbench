@@ -24,6 +24,7 @@
 #include "OscapScannerRemoteSsh.h"
 #include "ResultViewer.h"
 #include "DiagnosticsDialog.h"
+#include "CommandLineArgsDialog.h"
 #include "TailorProfileDialog.h"
 #include "TailoringWindow.h"
 #include "ScanningSession.h"
@@ -68,6 +69,7 @@ MainWindow::MainWindow(QWidget* parent):
     mQSettings(new QSettings(this)),
 
     mDiagnosticsDialog(0),
+    mCommandLineArgsDialog(0),
 
     mRPMOpenHelper(0),
     mSkipValid(false),
@@ -199,6 +201,9 @@ MainWindow::MainWindow(QWidget* parent):
 
     mDiagnosticsDialog = new DiagnosticsDialog(this);
     mDiagnosticsDialog->hide();
+
+    mCommandLineArgsDialog = new CommandLineArgsDialog(this);
+    mCommandLineArgsDialog->hide();
 
     QObject::connect(
         mUI.actionShowDiagnostics, SIGNAL(triggered()),
@@ -591,6 +596,14 @@ void MainWindow::scanAsync(ScannerMode scannerMode)
     }
 
     mScanner->moveToThread(mScanThread);
+
+    mScanner->setDryRun(mUI.dryRunCheckBox->isChecked());
+    if (mUI.dryRunCheckBox->isChecked())
+    {
+        const QStringList args = mScanner->getCommandLineArgs();
+        mCommandLineArgsDialog->setArgs(args);
+        mCommandLineArgsDialog->show();
+    }
 
     QObject::connect(
         mScanThread, SIGNAL(started()),

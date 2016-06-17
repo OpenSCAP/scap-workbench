@@ -72,6 +72,7 @@ class Scanner : public QObject
 
         virtual void setScanThread(QThread* thread);
         virtual void setMainThread(QThread* thread);
+        virtual void setDryRun(bool dryRun);
         virtual void setSkipValid(bool skip);
         bool getSkipValid() const;
         virtual void setFetchRemoteResources(bool fetch);
@@ -110,6 +111,8 @@ class Scanner : public QObject
 
         virtual void setARFForRemediation(const QByteArray& results);
         const QByteArray& getARFForRemediation() const;
+
+        virtual QStringList getCommandLineArgs() const = 0;
 
     public slots:
         /**
@@ -192,6 +195,9 @@ class Scanner : public QObject
         QThread* mScanThread;
         /// Thread that is running the main window event queue
         QThread* mMainThread;
+
+        /// If true no evaluation will take place
+        bool mDryRun;
 
         /// If true openscap will skip validation when interpreting the content
         bool mSkipValid;
