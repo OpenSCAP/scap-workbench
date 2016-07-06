@@ -258,6 +258,11 @@
              </item>
              <item>
               <widget class="QCheckBox" name="dryRunCheckBox">
+               <property name="font">
+                <font>
+                 <pointsize>11</pointsize>
+                </font>
+               </property>
                <property name="toolTip">
                 <string>When checked no action is performed after pressing Scan, a dialog with the used command-line arguments is shown instead.</string>
                </property>
