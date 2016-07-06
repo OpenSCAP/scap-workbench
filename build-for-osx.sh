@@ -1,6 +1,6 @@
 mkdir -p build-osx/
 pushd build-osx/
-cmake -D SCAP_WORKBENCH_LOCAL_SCAN_ENABLED=false -D SCAP_WORKBENCH_SSG_DIRECTORY="@executable_path/../Resources/ssg" -D SCAP_WORKBENCH_SCAP_CONTENT_DIRECTORY="~/" ../
+cmake -D SCAP_WORKBENCH_LOCAL_SCAN_ENABLED=false -D SCAP_AS_RPM_EXECUTABLE="" ../
 make -j 4
 mkdir -p ./scap-workbench.app/Contents/Frameworks/
 cp /usr/local/lib/libpcre.1.dylib ./scap-workbench.app/Contents/Frameworks/
