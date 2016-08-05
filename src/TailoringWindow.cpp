@@ -862,7 +862,28 @@ void TailoringWindow::searchNext()
         mSearchSkippedItems = mSearchSkippedItems % matches.size(); // wrap around
 
         QTreeWidgetItem* match = matches.at(mSearchSkippedItems);
-        mUI.itemsTree->setCurrentItem(match);
+
+        if (!match->isDisabled())
+            mUI.itemsTree->setCurrentItem(match);
+        else
+        {
+            // We cannot use setCurrentItem() on disabled items
+            // so we will use a workaround
+
+            QTreeWidgetItem * dummyItem = mUI.itemsTree->currentItem();
+
+            // Setting of "new" current item cause removing selection
+            // from rest of items
+            mUI.itemsTree->setCurrentItem(dummyItem);
+
+            // and we will remove selection from current item, too.
+            dummyItem->setSelected(false);
+
+            // Emulate setting of "currentItem"
+            match->setSelected(true);
+            mUI.itemsTree->scrollToItem(match);
+            emit itemSelectionChanged(match, NULL);
+        }
 
         mSearchBox->setStyleSheet("");
         mSearchFeedback->setText(QObject::tr("Showing match %1 out of %2 total found.").arg(mSearchSkippedItems + 1).arg(matches.size()));
