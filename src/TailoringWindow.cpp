@@ -732,7 +732,7 @@ void TailoringWindow::serializeCollapsedItems()
 
 void TailoringWindow::removeOldCollapsedLists()
 {
-    const unsigned int maxAgeInDays = 3 * 31; // ~3 months should be enough for everyone :-P
+    const int maxAgeInDays = 3 * 31; // ~3 months should be enough for everyone :-P
     const QDateTime currentDateTime = QDateTime::currentDateTime();
 
     QStringList keys = mQSettings->childKeys();
