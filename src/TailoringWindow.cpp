@@ -794,9 +794,11 @@ void TailoringWindow::generateValueAffectsRulesMap(struct xccdf_item* item)
         case XCCDF_BENCHMARK:
             items = xccdf_benchmark_get_content(xccdf_item_to_benchmark(item));
             break;
+
         case XCCDF_GROUP:
             items = xccdf_group_get_content(xccdf_item_to_group(item));
             break;
+
         case XCCDF_RULE:
             {
                 struct xccdf_check_iterator* checks = xccdf_rule_get_checks(xccdf_item_to_rule(item));
@@ -822,6 +824,10 @@ void TailoringWindow::generateValueAffectsRulesMap(struct xccdf_item* item)
                 }
                 xccdf_check_iterator_free(checks);
             }
+            break;
+
+        default:
+            // noop
             break;
     }
 
