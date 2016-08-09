@@ -282,53 +282,60 @@ bool OscapScannerBase::tryToReadStdOutChar(QProcess& process)
         switch (mReadingState)
         {
             case RS_READING_PREFIX:
-                if (mReadBuffer=="Downloading")
                 {
-                     mReadingState = RS_READING_DOWNLOAD_FILE;
+                    if (mReadBuffer=="Downloading")
+                    {
+                         mReadingState = RS_READING_DOWNLOAD_FILE;
+                    }
+                    else
+                    {
+                        mLastRuleID = mReadBuffer;
+                        emit progressReport(mLastRuleID, "processing");
+                        mReadingState = RS_READING_RULE_RESULT;
+                    }
+                    mReadBuffer = "";
                 }
-                else
-                {
-                    mLastRuleID = mReadBuffer;
-                    emit progressReport(mLastRuleID, "processing");
-                    mReadingState = RS_READING_RULE_RESULT;
-                }
-                mReadBuffer = "";
                 break;
 
             case RS_READING_RULE_RESULT:
-              emit warningMessage(QString(
-                  QObject::tr("Error when parsing scan progress output from stdout of the 'oscap' process. "
-                  "':' encountered while not reading rule ID, newline and/or rule result are missing! "
-                  "Read buffer is '%1'.")).arg(mReadBuffer));
-              mReadBuffer = "";
-              break;
+                {
+                    emit warningMessage(QString(
+                                QObject::tr("Error when parsing scan progress output from stdout of the 'oscap' process. "
+                                    "':' encountered while not reading rule ID, newline and/or rule result are missing! "
+                                    "Read buffer is '%1'.")).arg(mReadBuffer));
+                    mReadBuffer = "";
+                }
+                break;
 
+            default:
+                // noop
+                break;
         }
     }
     else if (readChar == '\n')
     {
         switch(mReadingState)
         {
+            case RS_READING_PREFIX:
+                emit warningMessage(QString(
+                            QObject::tr("Error when parsing scan progress output from stdout of the 'oscap' process. "
+                                "Newline encountered while reading rule ID, rule result and/or ':' are missing! "
+                                "Read buffer is '%1'.")).arg(mReadBuffer));
+                break;
 
-          case RS_READING_PREFIX:
-              emit warningMessage(QString(
-                  QObject::tr("Error when parsing scan progress output from stdout of the 'oscap' process. "
-                  "Newline encountered while reading rule ID, rule result and/or ':' are missing! "
-                  "Read buffer is '%1'.")).arg(mReadBuffer));
-              break;
-
-          case RS_READING_RULE_RESULT:
+            case RS_READING_RULE_RESULT:
                 emit progressReport(mLastRuleID, mReadBuffer);
                 break;
 
-          case RS_READING_DOWNLOAD_FILE_STATUS:
-             QString downloadStatus = mReadBuffer.mid(1);
-             if (downloadStatus == "ok") 
-                 emit infoMessage(QString("Downloading of \"%1\" finished: %2").arg(mLastDownloadingFile).arg(downloadStatus));
-             else
-                 emit warningMessage(QString("Failed to download \"%1\"!").arg(mLastDownloadingFile));
-             break;
-
+            case RS_READING_DOWNLOAD_FILE_STATUS:
+                {
+                    QString downloadStatus = mReadBuffer.mid(1);
+                    if (downloadStatus == "ok")
+                        emit infoMessage(QString("Downloading of \"%1\" finished: %2").arg(mLastDownloadingFile).arg(downloadStatus));
+                    else
+                        emit warningMessage(QString("Failed to download \"%1\"!").arg(mLastDownloadingFile));
+                }
+                break;
         }
         mReadingState = RS_READING_PREFIX;
         mReadBuffer = "";
@@ -339,9 +346,9 @@ bool OscapScannerBase::tryToReadStdOutChar(QProcess& process)
         urlLen -= 1; // without first space
         urlLen -= 3; // without "progress dots"
         mLastDownloadingFile = mReadBuffer.mid(1, urlLen);
-        
+
         emit infoMessage(QString("Downloading of \"%1\"...").arg(mLastDownloadingFile));
-        
+
         mReadBuffer = "";
         mReadingState = RS_READING_DOWNLOAD_FILE_STATUS;
     }
