@@ -732,7 +732,7 @@ void TailoringWindow::serializeCollapsedItems()
 
 void TailoringWindow::removeOldCollapsedLists()
 {
-    const unsigned int maxAgeInDays = 3 * 31; // ~3 months should be enough for everyone :-P
+    const int maxAgeInDays = 3 * 31; // ~3 months should be enough for everyone :-P
     const QDateTime currentDateTime = QDateTime::currentDateTime();
 
     QStringList keys = mQSettings->childKeys();
@@ -794,9 +794,11 @@ void TailoringWindow::generateValueAffectsRulesMap(struct xccdf_item* item)
         case XCCDF_BENCHMARK:
             items = xccdf_benchmark_get_content(xccdf_item_to_benchmark(item));
             break;
+
         case XCCDF_GROUP:
             items = xccdf_group_get_content(xccdf_item_to_group(item));
             break;
+
         case XCCDF_RULE:
             {
                 struct xccdf_check_iterator* checks = xccdf_rule_get_checks(xccdf_item_to_rule(item));
@@ -822,6 +824,10 @@ void TailoringWindow::generateValueAffectsRulesMap(struct xccdf_item* item)
                 }
                 xccdf_check_iterator_free(checks);
             }
+            break;
+
+        default:
+            // noop
             break;
     }
 
@@ -862,7 +868,28 @@ void TailoringWindow::searchNext()
         mSearchSkippedItems = mSearchSkippedItems % matches.size(); // wrap around
 
         QTreeWidgetItem* match = matches.at(mSearchSkippedItems);
-        mUI.itemsTree->setCurrentItem(match);
+
+        if (!match->isDisabled())
+            mUI.itemsTree->setCurrentItem(match);
+        else
+        {
+            // We cannot use setCurrentItem() on disabled items
+            // so we will use a workaround
+
+            QTreeWidgetItem * dummyItem = mUI.itemsTree->currentItem();
+
+            // Setting of "new" current item cause removing selection
+            // from rest of items
+            mUI.itemsTree->setCurrentItem(dummyItem);
+
+            // and we will remove selection from current item, too.
+            dummyItem->setSelected(false);
+
+            // Emulate setting of "currentItem"
+            match->setSelected(true);
+            mUI.itemsTree->scrollToItem(match);
+            emit itemSelectionChanged(match, NULL);
+        }
 
         mSearchBox->setStyleSheet("");
         mSearchFeedback->setText(QObject::tr("Showing match %1 out of %2 total found.").arg(mSearchSkippedItems + 1).arg(matches.size()));
