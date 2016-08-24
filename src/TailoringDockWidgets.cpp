@@ -212,17 +212,28 @@ void XCCDFItemPropertiesDockWidget::refresh()
                     break;
             }
 
-            struct xccdf_value_instance_iterator* it = xccdf_value_get_instances(value);
-            while (xccdf_value_instance_iterator_has_more(it))
+            bool prohibitChanges = xccdf_value_get_prohibit_changes(value);
+            mUI.valueGroupBox->setDisabled(prohibitChanges);
+
+            if (prohibitChanges)
             {
-                struct xccdf_value_instance* instance = xccdf_value_instance_iterator_next(it);
-                mUI.valueComboBox->addItem(QString::fromUtf8(xccdf_value_instance_get_value(instance)));
+                mUI.valueComboBox->setEditText("(changes prohibited)");
             }
-            xccdf_value_instance_iterator_free(it);
+            else
+            {
+                struct xccdf_value_instance_iterator* it = xccdf_value_get_instances(value);
+                while (xccdf_value_instance_iterator_has_more(it))
+                {
+                    struct xccdf_value_instance* instance = xccdf_value_instance_iterator_next(it);
+                    mUI.valueComboBox->addItem(QString::fromUtf8(xccdf_value_instance_get_value(instance)));
+                }
+                xccdf_value_instance_iterator_free(it);
 
-            mUI.valueComboBox->setEditText(mWindow->getCurrentValueValue(value));
+                mUI.valueComboBox->setEditText(mWindow->getCurrentValueValue(value));
 
-            mUI.valueComboBox->insertSeparator(1);
+                mUI.valueComboBox->insertSeparator(1);
+            }
+
             mUI.valueGroupBox->show();
 
             {
