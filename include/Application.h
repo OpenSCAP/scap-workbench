@@ -60,6 +60,21 @@ class Application : public QApplication
          */
         void browseForContent();
 
+        /**
+         * @brief Prints version of SCAP Workbench
+         */
+        void printVersion();
+
+        /**
+         * @brief Prints help of SCAP Workbench
+         */
+        void printHelp();
+
+        /**
+         * @brief Whether the application should quit
+         */
+        bool shouldQuit;
+
         bool mSkipValid;
         /// Needed for QObject::tr(..) to work properly, loaded on app startup
         QTranslator mTranslator;

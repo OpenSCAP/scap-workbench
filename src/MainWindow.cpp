@@ -90,6 +90,14 @@ MainWindow::MainWindow(QWidget* parent):
     mUI.remoteMachineDetails->hide();
 
     QObject::connect(
+        this, SIGNAL(closeMainWindow()),
+        this, SLOT(close()),
+        // Queued to prevent closing the MainWindow before event loop is
+        // entered. Without this the application wouldn't quit gracefully.
+        Qt::QueuedConnection
+    );
+
+    QObject::connect(
         this, SIGNAL(showOpenFileDialog()),
         this, SLOT(openFileDialog()),
         // Queued to prevent opening a blocking dialog before event loop is
@@ -439,6 +447,11 @@ void MainWindow::openSSGDialog(const QString& customDismissLabel)
     }
 
     delete dialog;
+}
+
+void MainWindow::closeMainWindowAsync()
+{
+    emit closeMainWindow();
 }
 
 void MainWindow::openFileDialogAsync()

@@ -26,10 +26,13 @@
 #include <QFileInfo>
 #include <QTranslator>
 
+#include <iostream>
+
 Application::Application(int& argc, char** argv):
     QApplication(argc, argv),
 
     mSkipValid(false),
+    shouldQuit(false),
     mTranslator(),
     mMainWindow(0)
 {
@@ -59,11 +62,16 @@ Application::Application(int& argc, char** argv):
     QStringList args = arguments();
     processCLI(args);
 
+    if (shouldQuit)
+    {
+        mMainWindow->closeMainWindowAsync();
+        return;
+    }
+
     mMainWindow->setSkipValid(mSkipValid);
 
-    // Only open default content if no command line arguments were given.
-    // The first argument is the application name, it doesn't count.
-    if (!mMainWindow->fileOpened() && args.length() < 2)
+    // Only open default content if no file to open was given.
+    if (!mMainWindow->fileOpened())
         openSSG();
 
     if (!mMainWindow->fileOpened())
@@ -77,6 +85,20 @@ Application::~Application()
 
 void Application::processCLI(QStringList& args)
 {
+    if (args.contains("-V") || args.contains("--version"))
+    {
+        printVersion();
+        shouldQuit = true;
+        return;
+    }
+
+    if (args.contains("-h") || args.contains("--help"))
+    {
+        printHelp();
+        shouldQuit = true;
+        return;
+    }
+
     if (args.contains("--skip-valid"))
     {
         mSkipValid = true;
@@ -85,9 +107,18 @@ void Application::processCLI(QStringList& args)
 
     if (args.length() > 1)
     {
-        // The last argument will hold the path to file that user wants to open.
-        // For now we just ignore all other options.
+        QStringList unknownOptions = args.filter(QRegExp("^-{1,2}.*"));
 
+        if (!unknownOptions.isEmpty())
+        {
+            QString unknownOption = QString("Unknown option '%1'\n").arg(unknownOptions.first());
+            std::cout << unknownOption.toUtf8().constData();
+            printHelp();
+            shouldQuit = true;
+            return;
+        }
+
+        // For now we just ignore all other arguments.
         mMainWindow->openFile(args.last());
     }
 }
@@ -100,4 +131,24 @@ void Application::openSSG()
 void Application::browseForContent()
 {
     mMainWindow->openFileDialogAsync();
+}
+
+void Application::printVersion()
+{
+    const QString versionInfo = QString("SCAP Workbench %1\n").arg(SCAP_WORKBENCH_VERSION);
+    std::cout << versionInfo.toUtf8().constData();
+}
+
+void Application::printHelp()
+{
+    const QString help = QString(
+            "Usage: ./scap-workbench [options] [file]\n"
+            "\nOptions:\n"
+            "   -h, --help\r\t\t\t\t Displays this help.\n"
+            "   -V, --version\r\t\t\t\t Displays version information.\n"
+            "   --skip-valid\r\t\t\t\t Skips OpenSCAP validation.\n"
+            "\nArguments:\n"
+            "   file\r\t\t\t\t A file to load, can be an XCCDF or SDS file.\n");
+
+    std::cout << help.toUtf8().constData();
 }
