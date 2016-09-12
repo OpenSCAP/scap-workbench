@@ -25,6 +25,7 @@
 
 #include <QFileInfo>
 #include <QTranslator>
+#include <QCommandLineParser>
 
 Application::Application(int& argc, char** argv):
     QApplication(argc, argv),
@@ -54,11 +55,12 @@ Application::Application(int& argc, char** argv):
         this, SIGNAL(lastWindowClosed()),
         this, SLOT(quit())
     );
-    mMainWindow->show();
 
     QStringList args = arguments();
     processCLI(args);
 
+    // Showing the window before processing command line arguments causes crashes occasionally
+    mMainWindow->show();
     mMainWindow->setSkipValid(mSkipValid);
 
     // Only open default content if no command line arguments were given.
@@ -77,19 +79,29 @@ Application::~Application()
 
 void Application::processCLI(QStringList& args)
 {
-    if (args.contains("--skip-valid"))
+    QCommandLineParser parser;
+
+    parser.addHelpOption();
+    parser.addVersionOption();
+
+    QCommandLineOption skipValid("skip-valid", "Skips OpenSCAP validation.");
+    parser.addOption(skipValid);
+
+    parser.addPositionalArgument("file", "A file to load, can be an XCCDF or SDS file.", "[file]");
+    parser.process(args);
+
+    if (parser.isSet(skipValid))
     {
         mSkipValid = true;
-        args.removeAll("--skip-valid");
     }
 
-    if (args.length() > 1)
-    {
-        // The last argument will hold the path to file that user wants to open.
-        // For now we just ignore all other options.
+    QStringList posArguments = parser.positionalArguments();
+    if (posArguments.isEmpty())
+        return;
 
-        mMainWindow->openFile(args.last());
-    }
+    mMainWindow->openFile(posArguments.first());
+
+    // We ignore all other positional arguments suplied, if any
 }
 
 void Application::openSSG()
