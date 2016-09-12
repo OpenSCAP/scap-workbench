@@ -25,6 +25,7 @@
 
 #include <QFileInfo>
 #include <QTranslator>
+#include <QCommandLineParser>
 
 #include <iostream>
 
@@ -56,7 +57,6 @@ Application::Application(int& argc, char** argv):
         this, SIGNAL(lastWindowClosed()),
         this, SLOT(quit())
     );
-    mMainWindow->show();
 
     QStringList args = arguments();
     processCLI(args);
@@ -66,6 +66,9 @@ Application::Application(int& argc, char** argv):
         mMainWindow->closeMainWindowAsync();
         return;
     }
+
+    // Showing the window before processing command line arguments causes crashes occasionally
+    mMainWindow->show();
 
     // Only open default content if no file to open was given.
     if (!mMainWindow->fileOpened())
@@ -80,68 +83,43 @@ Application::~Application()
 
 void Application::processCLI(QStringList& args)
 {
-    if (args.contains("-V") || args.contains("--version"))
-    {
-        printVersion();
-        mShouldQuit = true;
-        return;
-    }
+    QCommandLineParser parser;
 
-    if (args.contains("-h") || args.contains("--help"))
-    {
-        printHelp();
-        mShouldQuit = true;
-        return;
-    }
+    parser.addHelpOption();
+    parser.addVersionOption();
 
-    if (args.contains("--skip-valid"))
+    QCommandLineOption skipValid("skip-valid", "Skips OpenSCAP validation.");
+    parser.addOption(skipValid);
+
+    QCommandLineOption tailoring("tailoring", "Opens the given tailoring file after "
+                                              "the given XCCDF or SDS file is loaded.",
+                                 "ssg-tailoring.xml");
+    parser.addOption(tailoring);
+
+    parser.addPositionalArgument("file", "A file to load; can be either an XCCDF or SDS file.", "[file]");
+    parser.process(args);
+
+    if (parser.isSet(skipValid))
     {
         mMainWindow->setSkipValid(true);
-        args.removeAll("--skip-valid");
     }
 
-    QString tailoringFile("");
-
-    if (args.contains("--tailoring"))
-    {
-        const int index = args.indexOf("--tailoring");
-        if (index + 1 >= args.length())
-        {
-            std::cout << "--tailoring should be followed by the tailoring file path" << std::endl;
-            printHelp();
-            mShouldQuit = true;
+    QStringList posArguments = parser.positionalArguments();
+    if (posArguments.isEmpty()) {
+        if (parser.isSet(tailoring)) {
+            std::cout << "Tailoring file was provided via --tailoring, but no SCAP "
+                      << "input was provided. Ignoring the tailoring file."
+                      << std::endl;
         }
-        else
-        {
-            tailoringFile = args.at(index + 1);
-            args.removeAt(index + 1);
-            args.removeAt(index);
-        }
+        return;
     }
 
-    if (args.length() > 1)
-    {
-        QStringList unknownOptions = args.filter(QRegExp("^-{1,2}.*"));
+    mMainWindow->openFile(posArguments.first());
 
-        if (!unknownOptions.isEmpty())
-        {
-            QString unknownOption = QString("Unknown option '%1'\n").arg(unknownOptions.first());
-            std::cout << unknownOption.toUtf8().constData();
-            printHelp();
-            mShouldQuit = true;
-            return;
-        }
+    if (parser.isSet(tailoring))
+        mMainWindow->openTailoringFile(parser.value(tailoring));
 
-        // For now we just ignore all other arguments.
-        mMainWindow->openFile(args.last());
-
-        if (!tailoringFile.isEmpty())
-            mMainWindow->openTailoringFile(tailoringFile);
-    }
-    else if (!tailoringFile.isEmpty())
-    {
-        std::cout << "Tailoring file was provided via --tailoring but no SCAP input was provided. Ignoring the tailoring file." << std::endl;
-    }
+    // We ignore all other positional arguments suplied, if any
 }
 
 void Application::openSSG()
