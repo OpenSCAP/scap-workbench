@@ -86,6 +86,14 @@ class MainWindow : public QMainWindow
         void openFileDialogAsync();
 
         /**
+         * @brief Queues the MainWindow to be closed later when in the event loop
+         *
+         * This avoids the window closing before the event loop is entered.
+         * @see MainWindow::closeMainWindow
+         */
+        void closeMainWindowAsync();
+
+        /**
          * @brief Checks whether a file is currently opened
          */
         bool fileOpened() const;
@@ -234,6 +242,14 @@ class MainWindow : public QMainWindow
          * before it even starts.
          */
         void showOpenFileDialog();
+
+        /**
+         * @brief We signal this to close the MainWindow
+         *
+         * This is to make sure we close the MainWindow during the event loop, not
+         * before it even starts.
+         */
+        void closeMainWindow();
 
         /**
          * @brief This is signaled when scanning is canceled

@@ -31,6 +31,7 @@ Application::Application(int& argc, char** argv):
     QApplication(argc, argv),
 
     mSkipValid(false),
+    shouldQuit(false),
     mTranslator(),
     mMainWindow(0)
 {
@@ -61,11 +62,17 @@ Application::Application(int& argc, char** argv):
 
     // Showing the window before processing command line arguments causes crashes occasionally
     mMainWindow->show();
+
+    if (shouldQuit)
+    {
+        mMainWindow->closeMainWindowAsync();
+        return;
+    }
+
     mMainWindow->setSkipValid(mSkipValid);
 
-    // Only open default content if no command line arguments were given.
-    // The first argument is the application name, it doesn't count.
-    if (!mMainWindow->fileOpened() && args.length() < 2)
+    // Only open default content if no file to open was given.
+    if (!mMainWindow->fileOpened())
         openSSG();
 
     if (!mMainWindow->fileOpened())
@@ -100,8 +107,6 @@ void Application::processCLI(QStringList& args)
         return;
 
     mMainWindow->openFile(posArguments.first());
-
-    // We ignore all other positional arguments suplied, if any
 }
 
 void Application::openSSG()
