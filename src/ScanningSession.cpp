@@ -590,6 +590,7 @@ struct xccdf_profile* ScanningSession::tailorCurrentProfile(bool shadowed, const
             struct oscap_text* newTitle = oscap_text_clone(oldTitle);
 
             oscap_text_set_text(newTitle, (QString::fromUtf8(oscap_text_get_text(oldTitle)) + QString(" [TAILORED]")).toUtf8().constData());
+            oscap_text_set_overrides(newTitle, true);
             xccdf_profile_add_title(newProfile, newTitle);
         }
         oscap_text_iterator_free(titles);
@@ -600,6 +601,7 @@ struct xccdf_profile* ScanningSession::tailorCurrentProfile(bool shadowed, const
             struct oscap_text* oldDesc = oscap_text_iterator_next(descs );
             struct oscap_text* newDesc = oscap_text_clone(oldDesc);
 
+            oscap_text_set_overrides(newDesc, true);
             xccdf_profile_add_description(newProfile, newDesc);
         }
         oscap_text_iterator_free(descs);
@@ -612,6 +614,7 @@ struct xccdf_profile* ScanningSession::tailorCurrentProfile(bool shadowed, const
             struct oscap_text* newTitle = oscap_text_new();
             oscap_text_set_lang(newTitle, OSCAP_LANG_ENGLISH_US);
             oscap_text_set_text(newTitle, "(default) [TAILORED]");
+            oscap_text_set_overrides(newTitle, true);
             xccdf_profile_add_title(newProfile, newTitle);
         }
         {
