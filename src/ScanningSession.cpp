@@ -443,6 +443,11 @@ QString ScanningSession::getTailoringFilePath()
     return fileName;
 }
 
+QString ScanningSession::getUserTailoringFilePath()
+{
+    return mUserTailoringFile;
+}
+
 void ScanningSession::generateGuide(const QString& path)
 {
     // TODO: This does not deal with multiple datastreams inside one file!

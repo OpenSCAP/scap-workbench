@@ -163,6 +163,11 @@ class ScanningSession
         QString getTailoringFilePath();
 
         /**
+         * @brief Returns the path of the original tailoring file provided by user
+         */
+        QString getUserTailoringFilePath();
+
+        /**
          * @brief Generates guide and saves it to supplied path
          */
         void generateGuide(const QString& path);
