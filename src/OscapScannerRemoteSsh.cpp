@@ -122,7 +122,7 @@ QStringList OscapScannerRemoteSsh::getCommandLineArgs() const
     else
     {
         args += buildEvaluationArgs(mSession->getOpenedFilePath(),
-            mSession->hasTailoring() ? mSession->getTailoringFilePath() : QString(),
+            mSession->getUserTailoringFilePath(),
             "/tmp/xccdf-results.xml",
             "/tmp/report.html",
             "/tmp/arf.xml",

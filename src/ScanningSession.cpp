@@ -368,11 +368,11 @@ void ScanningSession::setTailoringFile(const QString& tailoringFile)
     if (!fileOpened())
         return;
 
-    mTailoring = 0;
-
     // nothing to change if these conditions are met
     if (!mTailoringUserChanges && mUserTailoringCID.isEmpty() && mUserTailoringFile == tailoringFile)
         return;
+
+    mTailoring = 0;
 
     xccdf_session_set_user_tailoring_cid(mSession, 0);
     mUserTailoringCID = "";
@@ -388,11 +388,11 @@ void ScanningSession::setTailoringComponentID(const QString& componentID)
     if (!fileOpened())
         return;
 
-    mTailoring = 0;
-
     // nothing to change if these conditions are met
     if (!mTailoringUserChanges && mUserTailoringCID == componentID && mUserTailoringFile.isEmpty())
         return;
+
+    mTailoring = 0;
 
     xccdf_session_set_user_tailoring_file(mSession, 0);
     mUserTailoringFile = "";
@@ -403,7 +403,7 @@ void ScanningSession::setTailoringComponentID(const QString& componentID)
     mTailoringUserChanges = false;
 }
 
-void ScanningSession::saveTailoring(const QString& path)
+void ScanningSession::saveTailoring(const QString& path, bool userFile)
 {
     ensureTailoringExists();
 
@@ -427,6 +427,10 @@ void ScanningSession::saveTailoring(const QString& path)
             QString("Exporting customization to '%1' failed! Details follow:\n%2").arg(path).arg(oscapErrDesc())
         );
     }
+
+    // Keep path if it's a user provided path
+    if (userFile)
+        mUserTailoringFile = path;
 }
 
 QString ScanningSession::getTailoringFilePath()
@@ -438,9 +442,20 @@ QString ScanningSession::getTailoringFilePath()
     mTailoringFile.close();
 
     const QString fileName = mTailoringFile.fileName();
-    saveTailoring(fileName);
+    saveTailoring(fileName, false);
 
     return fileName;
+}
+
+QString ScanningSession::getUserTailoringFilePath()
+{
+    if (hasTailoring())
+    {
+        if (!mUserTailoringFile.isEmpty())
+            return mUserTailoringFile;
+        return getTailoringFilePath();
+    }
+    return QString();
 }
 
 void ScanningSession::generateGuide(const QString& path)

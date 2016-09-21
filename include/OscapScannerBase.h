@@ -48,7 +48,7 @@ class OscapScannerBase : public Scanner
         virtual void signalCompletion(bool canceled);
 
         bool checkPrerequisites();
-
+        QString surroundQuote(const QString& input)const;
         QStringList buildEvaluationArgs(const QString& inputFile,
                                         const QString& tailoringFile,
                                         const QString& resultFile,

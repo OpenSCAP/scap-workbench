@@ -149,8 +149,13 @@ class ScanningSession
 
         /**
          * @brief Saves tailoring to given file path
+         *
+         * @param userFile if true, the path will be kept as a user provided
+         * path for the current tailoring file
+         *
+         * @see getUserTailoringFilePath
          */
-        void saveTailoring(const QString& path);
+        void saveTailoring(const QString& path, bool userFile);
 
         /**
          * @brief Exports tailoring file to a temporary path and returns the path
@@ -161,6 +166,17 @@ class ScanningSession
          * and exported.
          */
         QString getTailoringFilePath();
+
+        /**
+         * @brief Returns the path of tailoring file most suitable for user presentation
+         *
+         * @par
+         * This method returns the most friendly path for the user.
+         * If a tailoring file has been loaded or saved by user, its path will be returned.
+         * If a profile has been tailored but not saved yet, a temporary path is returned.
+         * If there is no tailoring, an empty string is returned.
+         */
+        QString getUserTailoringFilePath();
 
         /**
          * @brief Generates guide and saves it to supplied path
