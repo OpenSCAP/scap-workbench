@@ -449,7 +449,13 @@ QString ScanningSession::getTailoringFilePath()
 
 QString ScanningSession::getUserTailoringFilePath()
 {
-    return mUserTailoringFile;
+    if (hasTailoring())
+    {
+        if (!mUserTailoringFile.isEmpty())
+            return mUserTailoringFile;
+        return getTailoringFilePath();
+    }
+    return QString();
 }
 
 void ScanningSession::generateGuide(const QString& path)

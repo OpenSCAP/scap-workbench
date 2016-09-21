@@ -168,7 +168,13 @@ class ScanningSession
         QString getTailoringFilePath();
 
         /**
-         * @brief Returns the path of the tailoring file loaded or saved by user
+         * @brief Returns the path of tailoring file most suitable for user presentation
+         *
+         * @par
+         * This method returns the most friendly path for the user.
+         * If a tailoring file has been loaded or saved by user, its path will be returned.
+         * If a profile has been tailored but not saved yet, a temporary path is returned.
+         * If there is no tailoring, an empty string is returned.
          */
         QString getUserTailoringFilePath();
 
