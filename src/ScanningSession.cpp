@@ -368,11 +368,11 @@ void ScanningSession::setTailoringFile(const QString& tailoringFile)
     if (!fileOpened())
         return;
 
-    mTailoring = 0;
-
     // nothing to change if these conditions are met
     if (!mTailoringUserChanges && mUserTailoringCID.isEmpty() && mUserTailoringFile == tailoringFile)
         return;
+
+    mTailoring = 0;
 
     xccdf_session_set_user_tailoring_cid(mSession, 0);
     mUserTailoringCID = "";
@@ -388,11 +388,11 @@ void ScanningSession::setTailoringComponentID(const QString& componentID)
     if (!fileOpened())
         return;
 
-    mTailoring = 0;
-
     // nothing to change if these conditions are met
     if (!mTailoringUserChanges && mUserTailoringCID == componentID && mUserTailoringFile.isEmpty())
         return;
+
+    mTailoring = 0;
 
     xccdf_session_set_user_tailoring_file(mSession, 0);
     mUserTailoringFile = "";
