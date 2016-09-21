@@ -152,6 +152,14 @@ bool OscapScannerBase::checkPrerequisites()
     return true;
 }
 
+QString OscapScannerBase::surroundQuote(const QString& input) const
+{
+    if (input.contains(" "))
+        return QString("\""+input+"\"");
+
+    return input;
+}
+
 QStringList OscapScannerBase::buildEvaluationArgs(const QString& inputFile,
         const QString& tailoringFile,
         const QString& resultFile,
@@ -195,7 +203,10 @@ QStringList OscapScannerBase::buildEvaluationArgs(const QString& inputFile,
     if (!tailoringFile.isEmpty())
     {
         ret.append("--tailoring-file");
-        ret.append(tailoringFile);
+        if (mDryRun)
+            ret.append(surroundQuote(tailoringFile));
+        else
+            ret.append(tailoringFile);
     }
 
     const QString profileId = mSession->getProfile();
@@ -212,13 +223,22 @@ QStringList OscapScannerBase::buildEvaluationArgs(const QString& inputFile,
     ret.append("--oval-results");
 
     ret.append("--results");
-    ret.append(resultFile);
+    if (mDryRun)
+        ret.append(surroundQuote(resultFile));
+    else
+        ret.append(resultFile);
 
     ret.append("--results-arf");
-    ret.append(arfFile);
+    if (mDryRun)
+        ret.append(surroundQuote(arfFile));
+    else
+        ret.append(arfFile);
 
     ret.append("--report");
-    ret.append(reportFile);
+    if (mDryRun)
+        ret.append(surroundQuote(reportFile));
+    else
+        ret.append(reportFile);
 
     if (ignoreCapabilities || mCapabilities.progressReporting())
         ret.append("--progress");
@@ -226,7 +246,10 @@ QStringList OscapScannerBase::buildEvaluationArgs(const QString& inputFile,
     if (onlineRemediation && (ignoreCapabilities || mCapabilities.onlineRemediation()))
         ret.append("--remediate");
 
-    ret.append(inputFile);
+    if (mDryRun)
+        ret.append(surroundQuote(inputFile));
+    else
+        ret.append(inputFile);
 
     return ret;
 }
