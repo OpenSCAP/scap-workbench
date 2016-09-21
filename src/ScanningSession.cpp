@@ -427,6 +427,8 @@ void ScanningSession::saveTailoring(const QString& path)
             QString("Exporting customization to '%1' failed! Details follow:\n%2").arg(path).arg(oscapErrDesc())
         );
     }
+
+    mUserTailoringFile = path;
 }
 
 QString ScanningSession::getTailoringFilePath()
