@@ -403,7 +403,7 @@ void ScanningSession::setTailoringComponentID(const QString& componentID)
     mTailoringUserChanges = false;
 }
 
-void ScanningSession::saveTailoring(const QString& path)
+void ScanningSession::saveTailoring(const QString& path, bool userFile)
 {
     ensureTailoringExists();
 
@@ -428,7 +428,9 @@ void ScanningSession::saveTailoring(const QString& path)
         );
     }
 
-    mUserTailoringFile = path;
+    // Keep path if it's a user provided path
+    if (userFile)
+        mUserTailoringFile = path;
 }
 
 QString ScanningSession::getTailoringFilePath()
@@ -440,7 +442,7 @@ QString ScanningSession::getTailoringFilePath()
     mTailoringFile.close();
 
     const QString fileName = mTailoringFile.fileName();
-    saveTailoring(fileName);
+    saveTailoring(fileName, false);
 
     return fileName;
 }

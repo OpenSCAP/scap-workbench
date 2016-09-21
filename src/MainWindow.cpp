@@ -1269,7 +1269,7 @@ void MainWindow::saveTailoring()
 
     try
     {
-        mScanningSession->saveTailoring(path);
+        mScanningSession->saveTailoring(path, true);
         markUnsavedTailoringChanges();
         markLoadedTailoringFile(path);
     }

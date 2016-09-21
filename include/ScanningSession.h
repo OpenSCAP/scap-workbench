@@ -149,8 +149,13 @@ class ScanningSession
 
         /**
          * @brief Saves tailoring to given file path
+         *
+         * @param userFile if true, the path will be kept as a user provided
+         * path for the current tailoring file
+         *
+         * @see getUserTailoringFilePath
          */
-        void saveTailoring(const QString& path);
+        void saveTailoring(const QString& path, bool userFile);
 
         /**
          * @brief Exports tailoring file to a temporary path and returns the path
@@ -163,7 +168,7 @@ class ScanningSession
         QString getTailoringFilePath();
 
         /**
-         * @brief Returns the path of the original tailoring file provided by user
+         * @brief Returns the path of the tailoring file loaded or saved by user
          */
         QString getUserTailoringFilePath();
 
