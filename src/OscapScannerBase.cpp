@@ -396,17 +396,27 @@ void OscapScannerBase::watchStdErr(QProcess& process)
 {
     process.setReadChannel(QProcess::StandardError);
 
-    QString errorMessage("");
+    QString stdErrOutput("");
 
+    // As readStdOut() is greedy and will continue reading for as long as there is output for it,
+    // by the time we come to handle sdterr output there may be multiple warning and/or error messages.
     while (process.canReadLine())
     {
         // Trailing \n is returned by QProcess::readLine
-        errorMessage += process.readLine();
-    }
+        stdErrOutput = process.readLine();
 
-    if (!errorMessage.isEmpty())
-    {
-        emit warningMessage(QObject::tr("The 'oscap' process has written the following content to stderr:\n"
-                                        "%1").arg(errorMessage));
+        if (!stdErrOutput.isEmpty())
+        {
+            if (stdErrOutput.contains("WARNING: "))
+            {
+                emit warningMessage(QObject::tr("%1").arg(stdErrOutput.remove("WARNING: ")));
+            }
+            else
+            {
+                emit errorMessage(QObject::tr("The 'oscap' process has written the following content to stderr:\n"
+                                            "%1").arg(stdErrOutput));
+            }
+        }
+
     }
 }
