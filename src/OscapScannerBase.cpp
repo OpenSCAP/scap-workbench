@@ -409,7 +409,7 @@ void OscapScannerBase::watchStdErr(QProcess& process)
         {
             if (stdErrOutput.contains("WARNING: "))
             {
-                QString guiMessage = guiFriendlyMessage(stdErrOutput.remove("WARNING: "));
+                QString guiMessage = guiFriendlyMessage(stdErrOutput);
                 emit warningMessage(QObject::tr(guiMessage.toUtf8().constData()));
             }
             else
@@ -427,7 +427,10 @@ QString OscapScannerBase::guiFriendlyMessage(const QString& cliMessage)
 {
     QString guiMessage = cliMessage;
 
+    // Remove "WARNING:" prefix and trailing \n
+    guiMessage.remove(QRegExp("(WARNING: )|\n"));
+
     if (cliMessage.contains("--fetch-remote-resource"))
-        guiMessage = QString("Remote resources might be necessary for this profile to work properly. Please select \"Fetch remote resources\" for complete scan.\n");
+        guiMessage = QString("Remote resources might be necessary for this profile to work properly. Please select \"Fetch remote resources\" for complete scan");
     return guiMessage;
 }
