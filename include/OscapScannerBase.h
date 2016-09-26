@@ -95,6 +95,11 @@ class OscapScannerBase : public Scanner
         void readStdOut(QProcess& process);
         void watchStdErr(QProcess& process);
 
+        /**
+         * @brief Converts OpenSCAP CLI messages to SCAP Workbench GUI messages.
+         */
+        QString guiFriendlyMessage(const QString& cliMessage);
+
         bool mCancelRequested;
 
         OscapCapabilities mCapabilities;
