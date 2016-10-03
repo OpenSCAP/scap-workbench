@@ -74,8 +74,6 @@ Application::Application(int& argc, char** argv):
     if (!mMainWindow->fileOpened())
         openSSG();
 
-    if (!mMainWindow->fileOpened())
-        browseForContent();
 }
 
 Application::~Application()
@@ -125,7 +123,7 @@ void Application::processCLI(QStringList& args)
 
 void Application::openSSG()
 {
-    mMainWindow->openSSGDialog(QObject::tr("Open other SCAP Content"));
+    mMainWindow->openSSGDialog(QObject::tr("Close SCAP Workbench"));
 }
 
 void Application::browseForContent()
