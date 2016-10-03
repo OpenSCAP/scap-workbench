@@ -27,6 +27,7 @@
 SSGIntegrationDialog::SSGIntegrationDialog(QWidget* parent):
     QDialog(parent)
 {
+    loadOtherContent = false;
     mUI.setupUi(this);
     mUI.ssgLogo->setPixmap(getSharePixmap("ssg_logo.png"));
 
@@ -56,6 +57,11 @@ const QString& SSGIntegrationDialog::getSelectedSSGFile() const
     return mSelectedSSGFile;
 }
 
+bool SSGIntegrationDialog::loadOtherContentSelected()
+{
+    return loadOtherContent;
+}
+
 bool SSGIntegrationDialog::isSSGAvailable()
 {
     return getSSGDirectory().exists();
@@ -70,9 +76,16 @@ void SSGIntegrationDialog::loadContent()
     if (variant.isEmpty())
         return;
 
-    const QDir& dir(getSSGDirectory());
+    if (!variant.compare("other-scap-content"))
+    {
+        loadOtherContent = true;
+    }
+    else
+    {
+        const QDir& dir(getSSGDirectory());
 
-    mSelectedSSGFile = dir.absoluteFilePath(QString("ssg-%1-ds.xml").arg(variant));
+        mSelectedSSGFile = dir.absoluteFilePath(QString("ssg-%1-ds.xml").arg(variant));
+    }
     accept();
 }
 
@@ -126,6 +139,9 @@ void SSGIntegrationDialog::scrapeSSGVariants()
             cBox->addItem(label, QVariant(name));
 
     }
+    cBox->insertSeparator(cBox->count());
+    cBox->addItem(QString("Other SCAP Content"), QVariant(QString("other-scap-content")));
+
     cBox->insertSeparator(lastFavoriteIndex);
     cBox->setCurrentIndex(0);
 }

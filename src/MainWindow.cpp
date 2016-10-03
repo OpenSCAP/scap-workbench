@@ -442,8 +442,10 @@ void MainWindow::openSSGDialog(const QString& customDismissLabel)
                 return;
             }
         }
-
-        openFile(dialog->getSelectedSSGFile());
+        if (dialog->loadOtherContentSelected())
+           openFileDialogAsync();
+        else
+            openFile(dialog->getSelectedSSGFile());
     }
 
     delete dialog;

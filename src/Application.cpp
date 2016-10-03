@@ -125,7 +125,7 @@ void Application::processCLI(QStringList& args)
 
 void Application::openSSG()
 {
-    mMainWindow->openSSGDialog(QObject::tr("Open other SCAP Content"));
+    mMainWindow->openSSGDialog(QObject::tr("Close SCAP Workbench"));
 }
 
 void Application::browseForContent()

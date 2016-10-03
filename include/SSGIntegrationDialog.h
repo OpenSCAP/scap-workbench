@@ -44,6 +44,7 @@ class SSGIntegrationDialog : public QDialog
         void setDismissLabel(const QString& label);
 
         const QString& getSelectedSSGFile() const;
+        bool loadOtherContentSelected();
 
         static bool isSSGAvailable();
 
@@ -55,6 +56,7 @@ class SSGIntegrationDialog : public QDialog
 
         Ui_SSGIntegrationDialog mUI;
         QString mSelectedSSGFile;
+        bool loadOtherContent;
 };
 
 #endif
