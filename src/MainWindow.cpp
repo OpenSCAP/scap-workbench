@@ -429,23 +429,36 @@ void MainWindow::openSSGDialog(const QString& customDismissLabel)
 
     if (dialog->exec() == QDialog::Accepted)
     {
-        if (fileOpened())
-        {
-            if (openNewFileQuestionDialog(mScanningSession->getOpenedFilePath()) == QMessageBox::Yes)
-            {
-                closeFile();
-            }
-            else
-            {
-                // user cancelled closing current file, we have to abort
-                delete dialog;
-                return;
-            }
-        }
         if (dialog->loadOtherContentSelected())
-           openFileDialogAsync();
+        {
+            // don't worry about open files, the openFileDialog will ask if
+            // user wants to close any open file
+            openFileDialogAsync();
+        }
         else
+        {
+
+            if (fileOpened())
+            {
+                if (openNewFileQuestionDialog(mScanningSession->getOpenedFilePath()) == QMessageBox::Yes)
+                {
+                    closeFile();
+                }
+                else
+                {
+                    // user cancelled closing current file, we have to abort
+                    delete dialog;
+                    return;
+                }
+            }
             openFile(dialog->getSelectedSSGFile());
+        }
+    }
+    else
+    {
+        // User dissmissed SSGIntegrationDialog
+        if (!fileOpened())
+            closeMainWindowAsync();
     }
 
     delete dialog;

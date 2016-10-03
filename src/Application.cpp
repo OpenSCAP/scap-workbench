@@ -74,8 +74,6 @@ Application::Application(int& argc, char** argv):
     if (!mMainWindow->fileOpened())
         openSSG();
 
-    if (!mMainWindow->fileOpened())
-        browseForContent();
 }
 
 Application::~Application()
