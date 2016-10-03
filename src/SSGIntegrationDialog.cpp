@@ -36,6 +36,11 @@ SSGIntegrationDialog::SSGIntegrationDialog(QWidget* parent):
         mUI.dismissButton, SIGNAL(released()),
         this, SLOT(reject())
     );
+
+    QObject::connect(
+        mUI.loadButton, SIGNAL(released()),
+        this, SLOT(loadContent())
+    );
 }
 
 SSGIntegrationDialog::~SSGIntegrationDialog()
@@ -56,15 +61,14 @@ bool SSGIntegrationDialog::isSSGAvailable()
     return getSSGDirectory().exists();
 }
 
-void SSGIntegrationDialog::variantRequested()
+void SSGIntegrationDialog::loadContent()
 {
-    QObject* sender = QObject::sender();
-    QPushButton* button = dynamic_cast<QPushButton*>(sender);
+    QComboBox* cBox = mUI.contentComboBox;
 
-    if (!button)
+    const QString variant = cBox->itemData(cBox->currentIndex()).toString();
+
+    if (variant.isEmpty())
         return;
-
-    const QString variant = button->property("ssg_variant").toString();
 
     const QDir& dir(getSSGDirectory());
 
@@ -76,8 +80,9 @@ void SSGIntegrationDialog::scrapeSSGVariants()
 {
     const QDir& dir = getSSGDirectory();
     const QStringList variants = dir.entryList(QDir::Files | QDir::NoDotAndDotDot);
+    QComboBox* cBox = mUI.contentComboBox;
 
-    int lastFavoriteIndex = 1;
+    int lastFavoriteIndex = 0;
     for (QStringList::const_iterator it = variants.constBegin();
          it != variants.constEnd(); ++it)
     {
@@ -110,21 +115,17 @@ void SSGIntegrationDialog::scrapeSSGVariants()
 
         else
             label[0] = label[0].toUpper(); // Capitalize first letter
-        
+
         if (label.startsWith("Fedora"))
             favorite = true;
 
-        QPushButton* button = new QPushButton(label, mUI.content);
-        button->setProperty("ssg_variant", QVariant(name));
-
         if (favorite)
-            mUI.variantsLayout->insertWidget(lastFavoriteIndex++, button); // insert button before text and divider
-        else
-            mUI.variantsLayout->addWidget(button);
+            cBox->insertItem(lastFavoriteIndex++, label, QVariant(name));
 
-        QObject::connect(
-            button, SIGNAL(released()),
-            this, SLOT(variantRequested())
-        );
+        else
+            cBox->addItem(label, QVariant(name));
+
     }
+    cBox->insertSeparator(lastFavoriteIndex);
+    cBox->setCurrentIndex(0);
 }

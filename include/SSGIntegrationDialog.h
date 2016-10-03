@@ -48,7 +48,7 @@ class SSGIntegrationDialog : public QDialog
         static bool isSSGAvailable();
 
     private slots:
-        void variantRequested();
+        void loadContent();
 
     private:
         void scrapeSSGVariants();
