@@ -36,6 +36,13 @@ class RuleResultItem : public QWidget
         void setRuleResult(const QString& result);
         bool hasRuleResult() const;
 
+        void setRuleResultChecked(bool checked);
+
+        bool isChecked();
+
+    signals:
+        void ruleResultDescriptionToggled(bool checked);
+
     private slots:
         void showDescriptionToggled(bool checked);
 

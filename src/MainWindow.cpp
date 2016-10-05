@@ -51,10 +51,10 @@ extern "C" {
 
 // A dialog to open a tailoring file is displayed after user selects this option
 // from the tailoring combobox.
-const QString TAILORING_CUSTOM_FILE = QObject::tr("(open customization file...)");
+const QString TAILORING_CUSTOM_FILE = QObject::tr("Select customization file...");
 // This option signifies that there is no tailoring being done and the plain
 // content file is used, it also resets tailoring when selected.
-const QString TAILORING_NONE = QObject::tr("(no customization)");
+const QString TAILORING_NONE = QObject::tr("None selected");
 // Signifies that tailoring changes have been made and have not been saved
 // to a file (yet?). Selecting it does nothing.
 const QString TAILORING_UNSAVED = QObject::tr("(unsaved changes)");
@@ -81,13 +81,20 @@ MainWindow::MainWindow(QWidget* parent):
     mOldTailoringComboBoxIdx(0),
     mLoadedTailoringFileUserData(TAILORING_NO_LOADED_FILE_DATA),
 
-    mIgnoreProfileComboBox(false)
+    mIgnoreProfileComboBox(false),
+
+    mRuleResultsExpanded(false)
 {
     mUI.setupUi(this);
     mUI.progressBar->reset();
 
     // we start with localhost which doesn't need remote machine details
     mUI.remoteMachineDetails->hide();
+
+    QObject::connect(
+        mUI.expandRulesButton, SIGNAL(clicked()),
+        this, SLOT(toggleRuleResultsExpanded())
+    );
 
     QObject::connect(
         this, SIGNAL(closeMainWindow()),
@@ -746,6 +753,7 @@ void MainWindow::reloadSession()
 
     mUI.resultViewer->clear();
     mUI.titleLabel->setText(mScanningSession->getBenchmarkTitle());
+    toggleRuleResultsExpanded(false);
     refreshProfiles();
 }
 
@@ -1055,6 +1063,41 @@ void MainWindow::profileComboboxChanged(int index)
 
     mUI.ruleResultsTree->refreshSelectedRules(mScanningSession);
     clearResults();
+}
+
+void MainWindow::toggleRuleResultsExpanded()
+{
+    mRuleResultsExpanded = !mRuleResultsExpanded;
+
+    setRuleResultsExpanded(mRuleResultsExpanded);
+}
+
+void MainWindow::toggleRuleResultsExpanded(bool checked)
+{
+    mRuleResultsExpanded = checked;
+
+    setRuleResultsExpanded(mRuleResultsExpanded);
+}
+
+void MainWindow::setRuleResultsExpanded(bool checked)
+{
+    mUI.ruleResultsTree->toggleAllRuleResultDescription(checked);
+    setActionToggleRuleResultsText(checked);
+
+}
+
+void MainWindow::allRuleResultsExpanded(bool checked)
+{
+    mRuleResultsExpanded = checked;
+    setActionToggleRuleResultsText(checked);
+}
+
+void MainWindow::setActionToggleRuleResultsText(bool checked)
+{
+    if(checked)
+        mUI.expandRulesButton->setText(QString("Collapse all"));
+    else
+        mUI.expandRulesButton->setText(QString("Expand all"));
 }
 
 void MainWindow::scanProgressReport(const QString& rule_id, const QString& result)
