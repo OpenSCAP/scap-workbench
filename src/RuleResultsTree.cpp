@@ -176,6 +176,20 @@ void RuleResultsTree::injectRuleResult(const QString& ruleID, const QString& res
 void RuleResultsTree::prepareForScanning()
 {}
 
+void RuleResultsTree::toggleAllRuleResultDescription(bool checked)
+{
+    mUI.scrollArea->setUpdatesEnabled(false);
+
+    for (RuleIdToWidgetItemMap::iterator it = mRuleIdToWidgetItemMap.begin();
+         it != mRuleIdToWidgetItemMap.end(); ++it)
+    {
+        RuleResultItem* item = it->second;
+        item->setRuleResultChecked(checked);
+    }
+
+    mUI.scrollArea->setUpdatesEnabled(true);
+}
+
 void RuleResultsTree::clearAllItems()
 {
     for (RuleIdToWidgetItemMap::const_iterator it = mRuleIdToWidgetItemMap.begin();

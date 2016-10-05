@@ -404,6 +404,21 @@ class MainWindow : public QMainWindow
          * Just a delegate that calls QMessageBox::aboutQt(..)
          */
         void aboutQt();
+
+        /**
+         * @brief Toggles all rule results description state
+         *
+         * Toogles exhibition of description of all rules between collapsed/expanded
+         */
+        void toggleRuleResultsExpanded();
+        void toggleRuleResultsExpanded(bool checked);
+
+
+    private:
+        void setRuleResultsExpanded(bool checked);
+        void setActionToggleRuleResultsText(bool checked);
+
+        bool mRuleResultsExpanded;
 };
 
 #endif

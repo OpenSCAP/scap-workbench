@@ -90,6 +90,11 @@ class RuleResultsTree : public QWidget
          */
         void prepareForScanning();
 
+        /**
+         * @brief Toggles expanded/collapsed state of RuleResults
+         */
+        void toggleAllRuleResultDescription(bool checked);
+
     private:
         void clearAllItems();
 
