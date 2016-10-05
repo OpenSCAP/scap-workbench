@@ -1086,6 +1086,12 @@ void MainWindow::setRuleResultsExpanded(bool checked)
 
 }
 
+void MainWindow::allRuleResultsExpanded(bool checked)
+{
+    mRuleResultsExpanded = checked;
+    setActionToggleRuleResultsText(checked);
+}
+
 void MainWindow::setActionToggleRuleResultsText(bool checked)
 {
     if(checked)

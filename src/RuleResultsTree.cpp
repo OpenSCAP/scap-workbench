@@ -113,6 +113,11 @@ void RuleResultsTree::refreshSelectedRules(ScanningSession* scanningSession)
 
         RuleResultItem* item = new RuleResultItem(rule, policy, mUI.scrollArea);
 
+        QObject::connect(
+            item, SIGNAL(ruleResultDescriptionToggled(bool)),
+            this, SLOT(checkRuleResultsExpanded(bool))
+        );
+
         const QString ruleID = QString::fromUtf8(xccdf_rule_get_id(rule));
         mRuleIdToWidgetItemMap[ruleID] = item;
 
@@ -188,6 +193,30 @@ void RuleResultsTree::toggleAllRuleResultDescription(bool checked)
     }
 
     mUI.scrollArea->setUpdatesEnabled(true);
+}
+
+void RuleResultsTree::checkRuleResultsExpanded(bool lastAction)
+{
+    RuleResultItem* item;
+
+    mUI.scrollArea->setUpdatesEnabled(false);
+
+    RuleIdToWidgetItemMap::iterator it = mRuleIdToWidgetItemMap.begin();
+    while (it != mRuleIdToWidgetItemMap.end())
+    {
+        item = it->second;
+        if (lastAction == item->isChecked())
+            ++it;
+        else
+        {
+            mUI.scrollArea->setUpdatesEnabled(true);
+            return;
+        }
+    }
+    emit allRuleResultsExpanded(lastAction);
+
+    mUI.scrollArea->setUpdatesEnabled(true);
+
 }
 
 void RuleResultsTree::clearAllItems()

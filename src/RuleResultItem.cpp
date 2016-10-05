@@ -156,6 +156,8 @@ void RuleResultItem::showDescriptionToggled(bool checked)
     mUi.description->setVisible(checked);
 
     setUpdatesEnabled(true);
+
+    emit ruleResultDescriptionToggled(checked);
 }
 
 void RuleResultItem::setRuleResultChecked(bool checked)
@@ -169,4 +171,9 @@ void RuleResultItem::setRuleResultChecked(bool checked)
     mUi.description->setVisible(checked);
 
     setUpdatesEnabled(true);
+}
+
+bool RuleResultItem::isChecked()
+{
+    return mUi.showDescriptionCheckBox->isChecked();
 }

@@ -413,6 +413,17 @@ class MainWindow : public QMainWindow
         void toggleRuleResultsExpanded();
         void toggleRuleResultsExpanded(bool checked);
 
+    public slots:
+        /**
+         * @brief Changes state of Expand all/Collapse all button according to boolean received
+         *
+         * @param checked If true, sets actionToggleRuleResults push button to "Collapse all",
+         * if false, sets actionToggleRuleResults to "Expand all"
+         *
+         * @note This function does not toggles the RuleResults, just updates state of MainWindow
+         * according to current RuleResults state
+         */
+        void allRuleResultsExpanded(bool checked);
 
     private:
         void setRuleResultsExpanded(bool checked);

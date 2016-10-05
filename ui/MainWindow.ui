@@ -683,16 +683,6 @@
    <signal>allRuleResultsExpanded(bool)</signal>
    <receiver>MainWindow</receiver>
    <slot>allRuleResultsExpanded(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>20</x>
-     <y>20</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>20</x>
-     <y>20</y>
-    </hint>
-   </hints>
   </connection>
  </connections>
 </ui>

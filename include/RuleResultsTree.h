@@ -95,6 +95,24 @@ class RuleResultsTree : public QWidget
          */
         void toggleAllRuleResultDescription(bool checked);
 
+    public slots:
+        /**
+         * @brief Checks if all RuleResults are expanded or collapsed
+         *
+         * If all RuleResults are expanded or collapsed allRuleResultsExpanded signal
+         * is emitted.
+         */
+        void checkRuleResultsExpanded(bool lastAction);
+
+    signals:
+        /**
+         * @brief This is signaled when all RuleResults are either expanded or collapsed
+         *
+         * We signal this when a RuleResult has been expanded or collapse by user click
+         * and as a result all RuleResults are now expanded or collapsed.
+         */
+        void allRuleResultsExpanded(bool checked);
+
     private:
         void clearAllItems();
 
