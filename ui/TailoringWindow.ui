@@ -18,6 +18,9 @@
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QVBoxLayout" name="verticalLayout">
+    <property name="topMargin">
+     <number>0</number>
+    </property>
     <item>
      <widget class="QTreeWidget" name="itemsTree">
       <property name="horizontalScrollBarPolicy">
@@ -69,6 +72,16 @@
      <widget class="QWidget" name="widget" native="true">
       <layout class="QHBoxLayout" name="horizontalLayout">
        <item>
+        <widget class="QPushButton" name="deleteProfileButton">
+         <property name="toolTip">
+          <string>Closes this window, discards any changes and deletes the profile that was being customized.</string>
+         </property>
+         <property name="text">
+          <string>Delete profile</string>
+         </property>
+        </widget>
+       </item>
+       <item>
         <spacer name="horizontalSpacer">
          <property name="orientation">
           <enum>Qt::Horizontal</enum>
@@ -80,6 +93,16 @@
           </size>
          </property>
         </spacer>
+       </item>
+       <item>
+        <widget class="QPushButton" name="cancelButton">
+         <property name="toolTip">
+          <string>Closes this window and discards all changes.</string>
+         </property>
+         <property name="text">
+          <string>Cancel</string>
+         </property>
+        </widget>
        </item>
        <item>
         <widget class="QPushButton" name="confirmButton">
@@ -94,17 +117,7 @@
           <string>Confirms customization, returns to the main window.</string>
          </property>
          <property name="text">
-          <string>Confirm changes</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QPushButton" name="cancelButton">
-         <property name="toolTip">
-          <string>Closes this window and discards all changes.</string>
-         </property>
-         <property name="text">
-          <string>Discard changes</string>
+          <string>OK</string>
          </property>
         </widget>
        </item>
@@ -112,16 +125,6 @@
         <widget class="Line" name="line">
          <property name="orientation">
           <enum>Qt::Vertical</enum>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QPushButton" name="deleteProfileButton">
-         <property name="toolTip">
-          <string>Closes this window, discards any changes and deletes the profile that was being customized.</string>
-         </property>
-         <property name="text">
-          <string>Delete profile</string>
          </property>
         </widget>
        </item>
