@@ -49,7 +49,7 @@ class RemoteMachineComboBox : public QWidget
         void clearHistory();
 
     protected slots:
-        void recentMenuActionTriggered(QAction* action);
+        void updateHostPort(int index);
 
     private:
         void syncFromQSettings();
@@ -63,7 +63,7 @@ class RemoteMachineComboBox : public QWidget
         QSettings* mQSettings;
 
         QStringList mRecentTargets;
-        QMenu* mRecentMenu;
+        QComboBox *mRecentComboBox;
 };
 
 #endif

@@ -34,17 +34,17 @@ ResultViewer::ResultViewer(QWidget* parent):
 {
     mUI.setupUi(this);
 
-    mSaveResultsAction = new QAction("XCCDF Result file", this);
+    mSaveResultsAction = new QAction("&XCCDF Result file", this);
     QObject::connect(
         mSaveResultsAction, SIGNAL(triggered()),
         this, SLOT(saveResults())
     );
-    mSaveARFAction = new QAction("ARF", this);
+    mSaveARFAction = new QAction("&ARF", this);
     QObject::connect(
         mSaveARFAction, SIGNAL(triggered()),
         this, SLOT(saveARF())
     );
-    mSaveReportAction = new QAction("HTML Report", this);
+    mSaveReportAction = new QAction("&HTML Report", this);
     QObject::connect(
         mSaveReportAction, SIGNAL(triggered()),
         this, SLOT(saveReport())

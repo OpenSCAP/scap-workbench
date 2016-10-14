@@ -34,7 +34,7 @@
          </font>
         </property>
         <property name="toolTip">
-         <string>Saves results of this evaluation.</string>
+         <string>Saves results of this evaluation. (Ctrl+S)</string>
         </property>
         <property name="text">
          <string>Save Results</string>

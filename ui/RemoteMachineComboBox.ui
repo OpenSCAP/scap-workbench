@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>437</width>
-    <height>24</height>
+    <width>553</width>
+    <height>29</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -18,24 +18,52 @@
     <number>0</number>
    </property>
    <item>
+    <widget class="QLabel" name="label_7">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="minimumSize">
+      <size>
+       <width>105</width>
+       <height>27</height>
+      </size>
+     </property>
+     <property name="font">
+      <font>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="text">
+      <string>User and host</string>
+     </property>
+    </widget>
+   </item>
+   <item>
     <widget class="QLineEdit" name="host"/>
    </item>
    <item>
     <widget class="QLabel" name="label_6">
      <property name="font">
       <font>
-       <pointsize>12</pointsize>
+       <pointsize>10</pointsize>
        <weight>75</weight>
        <bold>true</bold>
       </font>
      </property>
      <property name="text">
-      <string>:</string>
+      <string>Port</string>
      </property>
     </widget>
    </item>
    <item>
     <widget class="QSpinBox" name="port">
+     <property name="buttonSymbols">
+      <enum>QAbstractSpinBox::UpDownArrows</enum>
+     </property>
      <property name="minimum">
       <number>1</number>
      </property>
@@ -48,23 +76,21 @@
     </widget>
    </item>
    <item>
-    <widget class="QPushButton" name="recent">
-     <property name="font">
-      <font>
-       <pointsize>10</pointsize>
-      </font>
+    <widget class="QComboBox" name="recentComboBox">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
      </property>
-     <property name="text">
-      <string/>
+     <property name="maximumSize">
+      <size>
+       <width>200</width>
+       <height>27</height>
+      </size>
      </property>
-     <property name="autoDefault">
-      <bool>false</bool>
-     </property>
-     <property name="default">
-      <bool>false</bool>
-     </property>
-     <property name="flat">
-      <bool>false</bool>
+     <property name="toolTip">
+      <string>List of recent hosts.</string>
      </property>
     </widget>
    </item>
