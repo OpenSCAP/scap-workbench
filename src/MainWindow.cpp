@@ -1455,26 +1455,26 @@ void MainWindow::about()
 {
     const QString title = "SCAP Workbench " SCAP_WORKBENCH_VERSION;
 
-    const QString versionInfo = QString("SCAP Workbench %1, compiled with Qt %2, using OpenSCAP %3\n\n").arg(SCAP_WORKBENCH_VERSION, QT_VERSION_STR, oscap_get_version());
+    const QString versionInfo = QString("<p>SCAP Workbench %1, compiled with Qt %2, using OpenSCAP %3</p>").arg(SCAP_WORKBENCH_VERSION, QT_VERSION_STR, oscap_get_version());
     const QString description = QObject::tr(
-"This application is called SCAP Workbench, the homepage can be found at \
-<http://fedorahosted.org/scap-workbench>\n\n");
+"<p>This application is called SCAP Workbench, the homepage can be found at \
+<a href='http://fedorahosted.org/scap-workbench'>http://fedorahosted.org/scap-workbench</a></p>");
     const QString license = QString(
-"Copyright 2014 Red Hat Inc., Durham, North Carolina.\n\
-All Rights Reserved.\n\
-\n\
-This program is free software: you can redistribute it and/or modify \
+"<p>Copyright 2014 Red Hat Inc., Durham, North Carolina.<br/>\
+All Rights Reserved.</p>\
+\
+<p>This program is free software: you can redistribute it and/or modify \
 it under the terms of the GNU General Public License as published by \
 the Free Software Foundation, either version 3 of the License, or \
-(at your option) any later version.\n\
-\n\
-This program is distributed in the hope that it will be useful, \
+(at your option) any later version.</p>\
+\
+<p>This program is distributed in the hope that it will be useful, \
 but WITHOUT ANY WARRANTY; without even the implied warranty of \
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the \
-GNU General Public License for more details.\n\
-\n\
-You should have received a copy of the GNU General Public License \
-along with this program.  If not, see <http://www.gnu.org/licenses/>.\n\n");
+GNU General Public License for more details.</p>\
+\
+<p>You should have received a copy of the GNU General Public License \
+along with this program.  If not, see <a href='http://www.gnu.org/licenses/'>http://www.gnu.org/licenses/</a>.</p>");
 
     QMessageBox::about(this, title, versionInfo + description + license);
 }
