@@ -666,16 +666,17 @@ void TailoringWindow::closeEvent(QCloseEvent * event)
     {
         QMessageBox msgBox(this);
         msgBox.setIcon(QMessageBox::Question);
-        msgBox.setWindowTitle("Confirm discard of changes?");
         msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
         if (mNewProfile)
         {
+            msgBox.setWindowTitle("Confirm delete profile?");
             msgBox.setText(QObject::tr("Are you sure you want to discard all changes performed in this tailoring window and delete the profile?"));
             msgBox.button(QMessageBox::Yes)->setText(QObject::tr("Delete profile"));
             msgBox.button(QMessageBox::No)->setText(QObject::tr("Don't delete profile"));
         }
         else
         {
+            msgBox.setWindowTitle("Confirm discard of changes?");
             msgBox.setText(QObject::tr("Are you sure you want to discard all changes performed in this tailoring window?"));
             msgBox.button(QMessageBox::Yes)->setText(QObject::tr("Discard"));
             msgBox.button(QMessageBox::No)->setText(QObject::tr("Don't discard"));
