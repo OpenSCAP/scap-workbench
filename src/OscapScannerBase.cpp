@@ -329,6 +329,11 @@ bool OscapScannerBase::tryToReadStdOutChar(QProcess& process)
                     mReadBuffer = "";
                 }
                 break;
+            case RS_READING_DOWNLOAD_FILE:
+                {
+                    mReadBuffer.append(QChar::fromAscii(readChar));
+                }
+                break;
 
             default:
                 // noop
