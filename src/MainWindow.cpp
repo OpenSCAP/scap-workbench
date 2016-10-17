@@ -1458,7 +1458,7 @@ void MainWindow::about()
     const QString versionInfo = QString("<p>SCAP Workbench %1, compiled with Qt %2, using OpenSCAP %3</p>").arg(SCAP_WORKBENCH_VERSION, QT_VERSION_STR, oscap_get_version());
     const QString description = QObject::tr(
 "<p>This application is called SCAP Workbench, the homepage can be found at \
-<a href='http://fedorahosted.org/scap-workbench'>http://fedorahosted.org/scap-workbench</a></p>");
+<a href='https://www.open-scap.org/tools/scap-workbench/'>https://www.open-scap.org/tools/scap-workbench/</a></p>");
     const QString license = QString(
 "<p>Copyright 2014 Red Hat Inc., Durham, North Carolina.<br/>\
 All Rights Reserved.</p>\
