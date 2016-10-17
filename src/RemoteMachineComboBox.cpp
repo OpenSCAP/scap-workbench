@@ -34,12 +34,11 @@ RemoteMachineComboBox::RemoteMachineComboBox(QWidget* parent):
 
     mQSettings = new QSettings(this);
 
-    mRecentMenu = new QMenu(this);
+    mRecentComboBox = mUI.recentComboBox;
     QObject::connect(
-        mRecentMenu, SIGNAL(triggered(QAction*)),
-        this, SLOT(recentMenuActionTriggered(QAction*))
+        mRecentComboBox, SIGNAL(currentIndexChanged(int)),
+        this, SLOT(updateHostPort(int))
     );
-    mUI.recent->setMenu(mRecentMenu);
 
     setRecentMachineCount(5);
     syncFromQSettings();
@@ -48,7 +47,6 @@ RemoteMachineComboBox::RemoteMachineComboBox(QWidget* parent):
 
 RemoteMachineComboBox::~RemoteMachineComboBox()
 {
-    delete mRecentMenu;
     delete mQSettings;
 }
 
@@ -106,21 +104,6 @@ void RemoteMachineComboBox::clearHistory()
     syncRecentMenu();
 }
 
-void RemoteMachineComboBox::recentMenuActionTriggered(QAction* action)
-{
-    const QString& target = action->data().toString();
-    if (target.isEmpty())
-        return;
-
-    QString host;
-    short port;
-
-    OscapScannerRemoteSsh::splitTarget(target, host, port);
-
-    mUI.host->setText(host);
-    mUI.port->setValue(port);
-}
-
 void RemoteMachineComboBox::syncFromQSettings()
 {
     QVariant value = mQSettings->value("recent-remote-machines");
@@ -139,7 +122,9 @@ void RemoteMachineComboBox::syncToQSettings()
 
 void RemoteMachineComboBox::syncRecentMenu()
 {
-    mRecentMenu->clear();
+    mRecentComboBox->clear();
+
+    mRecentComboBox->addItem(QString("Recent"));
 
     bool empty = true;
     for (QStringList::iterator it = mRecentTargets.begin(); it != mRecentTargets.end(); ++it)
@@ -147,23 +132,46 @@ void RemoteMachineComboBox::syncRecentMenu()
         if (it->isEmpty())
             continue;
 
-        QAction* action = new QAction(*it, mRecentMenu);
-        action->setData(QVariant(*it));
-        mRecentMenu->addAction(action);
+        mRecentComboBox->addItem(*it, QVariant(*it));
 
         empty = false;
     }
 
     if (!empty)
     {
-        mRecentMenu->addSeparator();
-        QAction* clearHistory = new QAction(QObject::tr("Clear History"), mRecentMenu);
-        QObject::connect(
-            clearHistory, SIGNAL(triggered()),
-            this, SLOT(clearHistory())
-        );
-        mRecentMenu->addAction(clearHistory);
+        mRecentComboBox->insertSeparator(mRecentComboBox->count());
+        QString clear = QString("Clear History");
+        mRecentComboBox->addItem(clear, QVariant(clear));
     }
 
-    mUI.recent->setEnabled(!empty);
+    mRecentComboBox->setEnabled(!empty);
+}
+
+void RemoteMachineComboBox::updateHostPort(int index)
+{
+    const QVariant data = mRecentComboBox->itemData(index);
+    const QString& target = data.toString();
+
+    if (target.isEmpty())
+    {
+        mUI.host->setText("");
+        mUI.port->setValue(22);
+        return;
+    }
+
+    if (!target.compare("Clear History"))
+    {
+        clearHistory();
+        return;
+    }
+
+
+    QString host;
+    short port;
+
+    OscapScannerRemoteSsh::splitTarget(target, host, port);
+
+    mUI.host->setText(host);
+    mUI.port->setValue(port);
+
 }
