@@ -800,7 +800,14 @@ void MainWindow::refreshProfiles()
         for (std::map<QString, struct xccdf_profile*>::const_iterator it = profiles.begin();
              it != profiles.end(); ++it)
         {
-            const QString profileTitle = oscapTextIteratorGetPreferred(xccdf_profile_get_title(it->second));
+            QString profileTitle = oscapTextIteratorGetPreferred(xccdf_profile_get_title(it->second));
+
+            struct xccdf_policy_model* policyModel = xccdf_session_get_policy_model(mScanningSession->getXCCDFSession());
+            struct xccdf_policy* policy = xccdf_policy_new(policyModel, it->second);
+            int selectedRulesCount = xccdf_policy_get_selected_rules_count(policy);
+            xccdf_policy_free(policy);
+
+            profileTitle = profileTitle +" ("+ QString::number(selectedRulesCount) + ")";
             mUI.profileComboBox->addItem(profileTitle, QVariant(it->first));
         }
 
@@ -815,7 +822,8 @@ void MainWindow::refreshProfiles()
 #if (QT_VERSION >= QT_VERSION_CHECK(4, 4, 0))
         mUI.profileComboBox->insertSeparator(mUI.profileComboBox->count());
 #endif
-        mUI.profileComboBox->addItem(QObject::tr("(default)"), QVariant(QString::Null()));
+        // In workbench, there is always a default profile with no rules selected
+        mUI.profileComboBox->addItem(QObject::tr("(default) (0)"), QVariant(QString::Null()));
     }
     catch (const std::exception& e)
     {
