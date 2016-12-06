@@ -628,17 +628,20 @@ void MainWindow::refreshProfiles()
     try
     {
         const std::map<QString, struct xccdf_profile*> profiles = mScanningSession->getAvailableProfiles();
+        struct xccdf_policy_model* policyModel = xccdf_session_get_policy_model(mScanningSession->getXCCDFSession());
+        struct xccdf_policy* policy;
+        int selectedRulesCount;
+        QString profileTitle;
 
         // A nice side effect here is that profiles will be sorted by their IDs
         // because of the RB-tree implementation of std::map.
         for (std::map<QString, struct xccdf_profile*>::const_iterator it = profiles.begin();
              it != profiles.end(); ++it)
         {
-            QString profileTitle = oscapTextIteratorGetPreferred(xccdf_profile_get_title(it->second));
+            profileTitle = oscapTextIteratorGetPreferred(xccdf_profile_get_title(it->second));
 
-            struct xccdf_policy_model* policyModel = xccdf_session_get_policy_model(mScanningSession->getXCCDFSession());
-            struct xccdf_policy* policy = xccdf_policy_new(policyModel, it->second);
-            int selectedRulesCount = xccdf_policy_get_selected_rules_count(policy);
+            policy = xccdf_policy_new(policyModel, it->second);
+            selectedRulesCount = xccdf_policy_get_selected_rules_count(policy);
             xccdf_policy_free(policy);
 
             profileTitle = profileTitle +" ("+ QString::number(selectedRulesCount) + ")";
@@ -652,12 +655,18 @@ void MainWindow::refreshProfiles()
                 mUI.profileComboBox->setCurrentIndex(indexCandidate);
         }
 
+        policy = xccdf_policy_new(policyModel, NULL);
+        selectedRulesCount = xccdf_policy_get_selected_rules_count(policy);
+        xccdf_policy_free(policy);
+
+        profileTitle = QObject::tr("(default)");
+        profileTitle = profileTitle + " ("+ QString::number(selectedRulesCount) + ")";
+
         // Intentionally comes last. Users are more likely to use profiles other than (default)
 #if (QT_VERSION >= QT_VERSION_CHECK(4, 4, 0))
         mUI.profileComboBox->insertSeparator(mUI.profileComboBox->count());
 #endif
-        // In workbench, there is always a default profile with no rules selected
-        mUI.profileComboBox->addItem(QObject::tr("(default) (0)"), QVariant(QString::Null()));
+        mUI.profileComboBox->addItem(profileTitle, QVariant(QString::Null()));
     }
     catch (const std::exception& e)
     {
