@@ -19,6 +19,12 @@ if (NOT DEFINED OPENSCAP_LIBRARIES OR NOT DEFINED OPENSCAP_INCLUDE_DIRS)
     pkg_check_modules(OPENSCAP REQUIRED libopenscap>=1.2.0)
 endif()
 
+# Gather info about openscap version
+string(REPLACE "." ";" OPENSCAP_VERSION_LIST ${OPENSCAP_VERSION})
+list(GET OPENSCAP_VERSION_LIST 0 OPENSCAP_VERSION_MAJOR)
+list(GET OPENSCAP_VERSION_LIST 1 OPENSCAP_VERSION_MINOR)
+list(GET OPENSCAP_VERSION_LIST 2 OPENSCAP_VERSION_PATCH)
+
 # Local scanning tools
 option(SCAP_WORKBENCH_LOCAL_SCAN_ENABLED "If enabled, scanning of local machine is possible from workbench. Else the option is disabled in the GUI." TRUE)
 
