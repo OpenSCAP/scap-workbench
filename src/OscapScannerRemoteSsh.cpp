@@ -112,7 +112,7 @@ void OscapScannerRemoteSsh::evaluate()
     {
         SshSyncProcess proc(mSshConnection, this);
         proc.setCommand(SCAP_WORKBENCH_REMOTE_OSCAP_PATH);
-        proc.setArguments(QStringList("--v"));
+        proc.setArguments(QStringList("-V"));
         proc.setCancelRequestSource(&mCancelRequested);
         proc.run();
 

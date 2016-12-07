@@ -47,7 +47,7 @@ void OscapScannerLocal::evaluate()
     {
         SyncProcess proc(this);
         proc.setCommand(SCAP_WORKBENCH_LOCAL_OSCAP_PATH);
-        proc.setArguments(QStringList("--v"));
+        proc.setArguments(QStringList("-V"));
         proc.run();
 
         if (proc.getExitCode() != 0)
