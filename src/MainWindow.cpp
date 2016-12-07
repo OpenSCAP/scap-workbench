@@ -1155,6 +1155,12 @@ void MainWindow::scanCanceled()
 void MainWindow::scanFinished()
 {
     scanEnded(false);
+
+    // Clean results if the scan is a dry run
+    // User will see the CommandLineArgsDialog and then the MainWindow
+    // ready for a new scan, or dry run
+    if (mUI.dryRunCheckBox->isChecked())
+        clearResults();
 }
 
 void MainWindow::scanEnded(bool canceled)
