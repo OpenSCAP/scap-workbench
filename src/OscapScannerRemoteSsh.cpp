@@ -107,10 +107,28 @@ void OscapScannerRemoteSsh::evaluate()
         return;
     }
 
-    emit infoMessage(QObject::tr("Querying capabilities on remote machine..."));
-
     {
         SshSyncProcess proc(mSshConnection, this);
+        emit infoMessage(QObject::tr("Checking if oscap is available on remote machine..."));
+
+        proc.setCommand(QString("hash"));
+        proc.setArguments(QStringList(SCAP_WORKBENCH_REMOTE_OSCAP_PATH));
+        proc.setCancelRequestSource(&mCancelRequested);
+        proc.run();
+
+        if (proc.getExitCode() != 0)
+        {
+            emit errorMessage(
+                QObject::tr("Failed to locate oscap on remote machine. "
+                        "Please, check that openscap-scanner is installed on remote machine.")
+            );
+
+            mCancelRequested = true;
+            signalCompletion(mCancelRequested);
+            return;
+        }
+
+        emit infoMessage(QObject::tr("Querying capabilities on remote machine..."));
         proc.setCommand(SCAP_WORKBENCH_REMOTE_OSCAP_PATH);
         proc.setArguments(QStringList("--v"));
         proc.setCancelRequestSource(&mCancelRequested);
