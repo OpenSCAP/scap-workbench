@@ -119,7 +119,7 @@ void OscapScannerRemoteSsh::evaluate()
         if (proc.getExitCode() != 0)
         {
             emit errorMessage(
-                QObject::tr("Failed to query capabilities of oscap on local machine.\n"
+                QObject::tr("Failed to query capabilities of oscap on remote machine.\n"
                         "Diagnostic info:\n%1").arg(proc.getDiagnosticInfo())
             );
 
