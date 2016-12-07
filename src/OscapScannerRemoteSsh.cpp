@@ -120,7 +120,7 @@ void OscapScannerRemoteSsh::evaluate()
         {
             emit errorMessage(
                 QObject::tr("Failed to locate oscap on remote machine. "
-                        "Please, check that openscap-scanner is installed on remote machine.")
+                        "Please, check that openscap-scanner is installed on the remote machine.")
             );
 
             mCancelRequested = true;
