@@ -111,8 +111,8 @@ void OscapScannerRemoteSsh::evaluate()
         SshSyncProcess proc(mSshConnection, this);
         emit infoMessage(QObject::tr("Checking if oscap is available on remote machine..."));
 
-        proc.setCommand(QString("hash"));
-        proc.setArguments(QStringList(SCAP_WORKBENCH_REMOTE_OSCAP_PATH));
+        proc.setCommand(QString("command"));
+        proc.setArguments(QStringList() << "-v" << SCAP_WORKBENCH_REMOTE_OSCAP_PATH);
         proc.setCancelRequestSource(&mCancelRequested);
         proc.run();
 
