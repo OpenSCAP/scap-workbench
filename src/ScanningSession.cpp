@@ -368,11 +368,11 @@ void ScanningSession::setTailoringFile(const QString& tailoringFile)
     if (!fileOpened())
         return;
 
-    mTailoring = 0;
-
     // nothing to change if these conditions are met
     if (!mTailoringUserChanges && mUserTailoringCID.isEmpty() && mUserTailoringFile == tailoringFile)
         return;
+
+    mTailoring = 0;
 
     xccdf_session_set_user_tailoring_cid(mSession, 0);
     mUserTailoringCID = "";
@@ -388,11 +388,11 @@ void ScanningSession::setTailoringComponentID(const QString& componentID)
     if (!fileOpened())
         return;
 
-    mTailoring = 0;
-
     // nothing to change if these conditions are met
     if (!mTailoringUserChanges && mUserTailoringCID == componentID && mUserTailoringFile.isEmpty())
         return;
+
+    mTailoring = 0;
 
     xccdf_session_set_user_tailoring_file(mSession, 0);
     mUserTailoringFile = "";
@@ -403,7 +403,7 @@ void ScanningSession::setTailoringComponentID(const QString& componentID)
     mTailoringUserChanges = false;
 }
 
-void ScanningSession::saveTailoring(const QString& path)
+void ScanningSession::saveTailoring(const QString& path, bool userFile)
 {
     ensureTailoringExists();
 
@@ -427,6 +427,10 @@ void ScanningSession::saveTailoring(const QString& path)
             QString("Exporting customization to '%1' failed! Details follow:\n%2").arg(path).arg(oscapErrDesc())
         );
     }
+
+    // Keep path if it's a user provided path
+    if (userFile)
+        mUserTailoringFile = path;
 }
 
 QString ScanningSession::getTailoringFilePath()
@@ -438,9 +442,20 @@ QString ScanningSession::getTailoringFilePath()
     mTailoringFile.close();
 
     const QString fileName = mTailoringFile.fileName();
-    saveTailoring(fileName);
+    saveTailoring(fileName, false);
 
     return fileName;
+}
+
+QString ScanningSession::getUserTailoringFilePath()
+{
+    if (hasTailoring())
+    {
+        if (!mUserTailoringFile.isEmpty())
+            return mUserTailoringFile;
+        return getTailoringFilePath();
+    }
+    return QString();
 }
 
 void ScanningSession::generateGuide(const QString& path)
@@ -663,6 +678,7 @@ struct xccdf_profile* ScanningSession::tailorCurrentProfile(bool shadowed, const
             struct oscap_text* newTitle = oscap_text_clone(oldTitle);
 
             oscap_text_set_text(newTitle, (QString::fromUtf8(oscap_text_get_text(oldTitle)) + QString(" [CUSTOMIZED]")).toUtf8().constData());
+            oscap_text_set_overrides(newTitle, true);
             xccdf_profile_add_title(newProfile, newTitle);
         }
         oscap_text_iterator_free(titles);
@@ -673,6 +689,7 @@ struct xccdf_profile* ScanningSession::tailorCurrentProfile(bool shadowed, const
             struct oscap_text* oldDesc = oscap_text_iterator_next(descs );
             struct oscap_text* newDesc = oscap_text_clone(oldDesc);
 
+            oscap_text_set_overrides(newDesc, true);
             xccdf_profile_add_description(newProfile, newDesc);
         }
         oscap_text_iterator_free(descs);
@@ -685,6 +702,7 @@ struct xccdf_profile* ScanningSession::tailorCurrentProfile(bool shadowed, const
             struct oscap_text* newTitle = oscap_text_new();
             oscap_text_set_lang(newTitle, OSCAP_LANG_ENGLISH_US);
             oscap_text_set_text(newTitle, "(default) [CUSTOMIZED]");
+            oscap_text_set_overrides(newTitle, true);
             xccdf_profile_add_title(newProfile, newTitle);
         }
         {

@@ -48,7 +48,7 @@ class OscapScannerBase : public Scanner
         virtual void signalCompletion(bool canceled);
 
         bool checkPrerequisites();
-
+        QString surroundQuote(const QString& input)const;
         QStringList buildEvaluationArgs(const QString& inputFile,
                                         const QString& tailoringFile,
                                         const QString& resultFile,
@@ -94,6 +94,11 @@ class OscapScannerBase : public Scanner
          */
         void readStdOut(QProcess& process);
         void watchStdErr(QProcess& process);
+
+        /**
+         * @brief Converts OpenSCAP CLI messages to SCAP Workbench GUI messages.
+         */
+        QString guiFriendlyMessage(const QString& cliMessage);
 
         bool mCancelRequested;
 

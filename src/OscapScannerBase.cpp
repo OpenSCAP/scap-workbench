@@ -152,6 +152,14 @@ bool OscapScannerBase::checkPrerequisites()
     return true;
 }
 
+QString OscapScannerBase::surroundQuote(const QString& input) const
+{
+    if (input.contains(" "))
+        return QString("\""+input+"\"");
+
+    return input;
+}
+
 QStringList OscapScannerBase::buildEvaluationArgs(const QString& inputFile,
         const QString& tailoringFile,
         const QString& resultFile,
@@ -195,7 +203,10 @@ QStringList OscapScannerBase::buildEvaluationArgs(const QString& inputFile,
     if (!tailoringFile.isEmpty())
     {
         ret.append("--tailoring-file");
-        ret.append(tailoringFile);
+        if (mDryRun)
+            ret.append(surroundQuote(tailoringFile));
+        else
+            ret.append(tailoringFile);
     }
 
     const QString profileId = mSession->getProfile();
@@ -212,13 +223,22 @@ QStringList OscapScannerBase::buildEvaluationArgs(const QString& inputFile,
     ret.append("--oval-results");
 
     ret.append("--results");
-    ret.append(resultFile);
+    if (mDryRun)
+        ret.append(surroundQuote(resultFile));
+    else
+        ret.append(resultFile);
 
     ret.append("--results-arf");
-    ret.append(arfFile);
+    if (mDryRun)
+        ret.append(surroundQuote(arfFile));
+    else
+        ret.append(arfFile);
 
     ret.append("--report");
-    ret.append(reportFile);
+    if (mDryRun)
+        ret.append(surroundQuote(reportFile));
+    else
+        ret.append(reportFile);
 
     if (ignoreCapabilities || mCapabilities.progressReporting())
         ret.append("--progress");
@@ -226,7 +246,10 @@ QStringList OscapScannerBase::buildEvaluationArgs(const QString& inputFile,
     if (onlineRemediation && (ignoreCapabilities || mCapabilities.onlineRemediation()))
         ret.append("--remediate");
 
-    ret.append(inputFile);
+    if (mDryRun)
+        ret.append(surroundQuote(inputFile));
+    else
+        ret.append(inputFile);
 
     return ret;
 }
@@ -306,6 +329,11 @@ bool OscapScannerBase::tryToReadStdOutChar(QProcess& process)
                     mReadBuffer = "";
                 }
                 break;
+            case RS_READING_DOWNLOAD_FILE:
+                {
+                    mReadBuffer.append(QChar::fromAscii(readChar));
+                }
+                break;
 
             default:
                 // noop
@@ -373,17 +401,41 @@ void OscapScannerBase::watchStdErr(QProcess& process)
 {
     process.setReadChannel(QProcess::StandardError);
 
-    QString errorMessage("");
+    QString stdErrOutput("");
 
+    // As readStdOut() is greedy and will continue reading for as long as there is output for it,
+    // by the time we come to handle sdterr output there may be multiple warning and/or error messages.
     while (process.canReadLine())
     {
         // Trailing \n is returned by QProcess::readLine
-        errorMessage += process.readLine();
+        stdErrOutput = process.readLine();
+
+        if (!stdErrOutput.isEmpty())
+        {
+            if (stdErrOutput.contains("WARNING: "))
+            {
+                QString guiMessage = guiFriendlyMessage(stdErrOutput);
+                emit warningMessage(QObject::tr(guiMessage.toUtf8().constData()));
+            }
+            else
+            {
+                emit errorMessage(QObject::tr("The 'oscap' process has written the following content to stderr:\n"
+                                            "%1").arg(stdErrOutput));
+            }
+        }
+
     }
 
-    if (!errorMessage.isEmpty())
-    {
-        emit warningMessage(QObject::tr("The 'oscap' process has written the following content to stderr:\n"
-                                        "%1").arg(errorMessage));
-    }
+}
+
+QString OscapScannerBase::guiFriendlyMessage(const QString& cliMessage)
+{
+    QString guiMessage = cliMessage;
+
+    // Remove "WARNING:" prefix and trailing \n
+    guiMessage.remove(QRegExp("(WARNING: )|\n"));
+
+    if (cliMessage.contains("--fetch-remote-resource"))
+        guiMessage = QString("Remote resources might be necessary for this profile to work properly. Please select \"Fetch remote resources\" for complete scan");
+    return guiMessage;
 }

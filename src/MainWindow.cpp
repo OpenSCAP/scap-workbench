@@ -51,10 +51,10 @@ extern "C" {
 
 // A dialog to open a tailoring file is displayed after user selects this option
 // from the tailoring combobox.
-const QString TAILORING_CUSTOM_FILE = QObject::tr("(open customization file...)");
+const QString TAILORING_CUSTOM_FILE = QObject::tr("Select customization file...");
 // This option signifies that there is no tailoring being done and the plain
 // content file is used, it also resets tailoring when selected.
-const QString TAILORING_NONE = QObject::tr("(no customization)");
+const QString TAILORING_NONE = QObject::tr("None selected");
 // Signifies that tailoring changes have been made and have not been saved
 // to a file (yet?). Selecting it does nothing.
 const QString TAILORING_UNSAVED = QObject::tr("(unsaved changes)");
@@ -81,13 +81,20 @@ MainWindow::MainWindow(QWidget* parent):
     mOldTailoringComboBoxIdx(0),
     mLoadedTailoringFileUserData(TAILORING_NO_LOADED_FILE_DATA),
 
-    mIgnoreProfileComboBox(false)
+    mIgnoreProfileComboBox(false),
+
+    mRuleResultsExpanded(false)
 {
     mUI.setupUi(this);
     mUI.progressBar->reset();
 
     // we start with localhost which doesn't need remote machine details
     mUI.remoteMachineDetails->hide();
+
+    QObject::connect(
+        mUI.expandRulesButton, SIGNAL(clicked()),
+        this, SLOT(toggleRuleResultsExpanded())
+    );
 
     QObject::connect(
         this, SIGNAL(closeMainWindow()),
@@ -429,21 +436,36 @@ void MainWindow::openSSGDialog(const QString& customDismissLabel)
 
     if (dialog->exec() == QDialog::Accepted)
     {
-        if (fileOpened())
+        if (dialog->loadOtherContentSelected())
         {
-            if (openNewFileQuestionDialog(mScanningSession->getOpenedFilePath()) == QMessageBox::Yes)
-            {
-                closeFile();
-            }
-            else
-            {
-                // user cancelled closing current file, we have to abort
-                delete dialog;
-                return;
-            }
+            // don't worry about open files, the openFileDialog will ask if
+            // user wants to close any open file
+            openFileDialogAsync();
         }
+        else
+        {
 
-        openFile(dialog->getSelectedSSGFile());
+            if (fileOpened())
+            {
+                if (openNewFileQuestionDialog(mScanningSession->getOpenedFilePath()) == QMessageBox::Yes)
+                {
+                    closeFile();
+                }
+                else
+                {
+                    // user cancelled closing current file, we have to abort
+                    delete dialog;
+                    return;
+                }
+            }
+            openFile(dialog->getSelectedSSGFile());
+        }
+    }
+    else
+    {
+        // User dissmissed SSGIntegrationDialog
+        if (!fileOpened())
+            closeMainWindowAsync();
     }
 
     delete dialog;
@@ -731,6 +753,7 @@ void MainWindow::reloadSession()
 
     mUI.resultViewer->clear();
     mUI.titleLabel->setText(mScanningSession->getBenchmarkTitle());
+    toggleRuleResultsExpanded(false);
     refreshProfiles();
 }
 
@@ -1042,6 +1065,41 @@ void MainWindow::profileComboboxChanged(int index)
     clearResults();
 }
 
+void MainWindow::toggleRuleResultsExpanded()
+{
+    mRuleResultsExpanded = !mRuleResultsExpanded;
+
+    setRuleResultsExpanded(mRuleResultsExpanded);
+}
+
+void MainWindow::toggleRuleResultsExpanded(bool checked)
+{
+    mRuleResultsExpanded = checked;
+
+    setRuleResultsExpanded(mRuleResultsExpanded);
+}
+
+void MainWindow::setRuleResultsExpanded(bool checked)
+{
+    mUI.ruleResultsTree->toggleAllRuleResultDescription(checked);
+    setActionToggleRuleResultsText(checked);
+
+}
+
+void MainWindow::allRuleResultsExpanded(bool checked)
+{
+    mRuleResultsExpanded = checked;
+    setActionToggleRuleResultsText(checked);
+}
+
+void MainWindow::setActionToggleRuleResultsText(bool checked)
+{
+    if(checked)
+        mUI.expandRulesButton->setText(QString("Collapse all"));
+    else
+        mUI.expandRulesButton->setText(QString("Expand all"));
+}
+
 void MainWindow::scanProgressReport(const QString& rule_id, const QString& result)
 {
     /* It is quite hard to accurately estimate completion of SCAP scans.
@@ -1097,6 +1155,12 @@ void MainWindow::scanCanceled()
 void MainWindow::scanFinished()
 {
     scanEnded(false);
+
+    // Clean results if the scan is a dry run
+    // User will see the CommandLineArgsDialog and then the MainWindow
+    // ready for a new scan, or dry run
+    if (mUI.dryRunCheckBox->isChecked())
+        clearResults();
 }
 
 void MainWindow::scanEnded(bool canceled)
@@ -1269,7 +1333,7 @@ void MainWindow::saveTailoring()
 
     try
     {
-        mScanningSession->saveTailoring(path);
+        mScanningSession->saveTailoring(path, true);
         markUnsavedTailoringChanges();
         markLoadedTailoringFile(path);
     }
@@ -1397,26 +1461,26 @@ void MainWindow::about()
 {
     const QString title = "SCAP Workbench " SCAP_WORKBENCH_VERSION;
 
-    const QString versionInfo = QString("SCAP Workbench %1, compiled with Qt %2, using OpenSCAP %3\n\n").arg(SCAP_WORKBENCH_VERSION, QT_VERSION_STR, oscap_get_version());
+    const QString versionInfo = QString("<p>SCAP Workbench %1, compiled with Qt %2, using OpenSCAP %3</p>").arg(SCAP_WORKBENCH_VERSION, QT_VERSION_STR, oscap_get_version());
     const QString description = QObject::tr(
-"This application is called SCAP Workbench, the homepage can be found at \
-<http://fedorahosted.org/scap-workbench>\n\n");
+"<p>This application is called SCAP Workbench, the homepage can be found at \
+<a href='https://www.open-scap.org/tools/scap-workbench/'>https://www.open-scap.org/tools/scap-workbench/</a></p>");
     const QString license = QString(
-"Copyright 2014 Red Hat Inc., Durham, North Carolina.\n\
-All Rights Reserved.\n\
-\n\
-This program is free software: you can redistribute it and/or modify \
+"<p>Copyright 2014 Red Hat Inc., Durham, North Carolina.<br/>\
+All Rights Reserved.</p>\
+\
+<p>This program is free software: you can redistribute it and/or modify \
 it under the terms of the GNU General Public License as published by \
 the Free Software Foundation, either version 3 of the License, or \
-(at your option) any later version.\n\
-\n\
-This program is distributed in the hope that it will be useful, \
+(at your option) any later version.</p>\
+\
+<p>This program is distributed in the hope that it will be useful, \
 but WITHOUT ANY WARRANTY; without even the implied warranty of \
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the \
-GNU General Public License for more details.\n\
-\n\
-You should have received a copy of the GNU General Public License \
-along with this program.  If not, see <http://www.gnu.org/licenses/>.\n\n");
+GNU General Public License for more details.</p>\
+\
+<p>You should have received a copy of the GNU General Public License \
+along with this program.  If not, see <a href='http://www.gnu.org/licenses/'>http://www.gnu.org/licenses/</a>.</p>");
 
     QMessageBox::about(this, title, versionInfo + description + license);
 }

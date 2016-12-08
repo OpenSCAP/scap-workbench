@@ -44,17 +44,19 @@ class SSGIntegrationDialog : public QDialog
         void setDismissLabel(const QString& label);
 
         const QString& getSelectedSSGFile() const;
+        bool loadOtherContentSelected();
 
         static bool isSSGAvailable();
 
     private slots:
-        void variantRequested();
+        void loadContent();
 
     private:
         void scrapeSSGVariants();
 
         Ui_SSGIntegrationDialog mUI;
         QString mSelectedSSGFile;
+        bool loadOtherContent;
 };
 
 #endif

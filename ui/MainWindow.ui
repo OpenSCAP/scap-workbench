@@ -10,7 +10,7 @@
     <x>0</x>
     <y>0</y>
     <width>800</width>
-    <height>650</height>
+    <height>850</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -37,50 +37,6 @@
          </property>
         </widget>
        </item>
-       <item row="8" column="1" colspan="2">
-        <widget class="QWidget" name="widget_3" native="true">
-         <layout class="QVBoxLayout" name="verticalLayout_4">
-          <property name="margin">
-           <number>0</number>
-          </property>
-          <item>
-           <widget class="QWidget" name="widget_4" native="true">
-            <layout class="QHBoxLayout" name="horizontalLayout_5">
-             <property name="margin">
-              <number>0</number>
-             </property>
-             <item>
-              <widget class="QRadioButton" name="localMachineRadioButton">
-               <property name="toolTip">
-                <string>Selecting the Local Machine target will cause workbench to evaluate the same machine that it is running on.</string>
-               </property>
-               <property name="text">
-                <string>Local Machine</string>
-               </property>
-               <property name="checked">
-                <bool>true</bool>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QRadioButton" name="remoteMachineRadioButton">
-               <property name="toolTip">
-                <string>The Remote Machine target enables workbench to scan any remote machine that can be accessed using SSH.</string>
-               </property>
-               <property name="text">
-                <string>Remote Machine (over SSH)</string>
-               </property>
-              </widget>
-             </item>
-            </layout>
-           </widget>
-          </item>
-          <item>
-           <widget class="RemoteMachineComboBox" name="remoteMachineDetails" native="true"/>
-          </item>
-         </layout>
-        </widget>
-       </item>
        <item row="7" column="0" colspan="3">
         <widget class="Line" name="line_2">
          <property name="orientation">
@@ -100,6 +56,12 @@
        </item>
        <item row="6" column="0">
         <widget class="QLabel" name="label_3">
+         <property name="font">
+          <font>
+           <weight>75</weight>
+           <bold>true</bold>
+          </font>
+         </property>
          <property name="text">
           <string>Profile</string>
          </property>
@@ -107,13 +69,25 @@
        </item>
        <item row="2" column="0">
         <widget class="QLabel" name="checklistLabel">
+         <property name="font">
+          <font>
+           <weight>75</weight>
+           <bold>true</bold>
+          </font>
+         </property>
          <property name="text">
           <string>Checklist</string>
          </property>
         </widget>
        </item>
-       <item row="8" column="0">
+       <item row="10" column="0">
         <widget class="QLabel" name="label">
+         <property name="font">
+          <font>
+           <weight>75</weight>
+           <bold>true</bold>
+          </font>
+         </property>
          <property name="text">
           <string>Target</string>
          </property>
@@ -124,6 +98,12 @@
        </item>
        <item row="5" column="0">
         <widget class="QLabel" name="label_4">
+         <property name="font">
+          <font>
+           <weight>75</weight>
+           <bold>true</bold>
+          </font>
+         </property>
          <property name="text">
           <string>Customization</string>
          </property>
@@ -164,6 +144,12 @@
        </item>
        <item row="3" column="0">
         <widget class="QLabel" name="label_5">
+         <property name="font">
+          <font>
+           <weight>75</weight>
+           <bold>true</bold>
+          </font>
+         </property>
          <property name="text">
           <string>Title</string>
          </property>
@@ -189,31 +175,126 @@
          </property>
         </widget>
        </item>
+       <item row="10" column="1" colspan="2">
+        <widget class="QWidget" name="widget_4" native="true">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <layout class="QHBoxLayout" name="horizontalLayout_5">
+          <property name="margin">
+           <number>0</number>
+          </property>
+          <item>
+           <widget class="QRadioButton" name="localMachineRadioButton">
+            <property name="toolTip">
+             <string>Selecting the Local Machine target will cause workbench to evaluate the same machine that it is running on.</string>
+            </property>
+            <property name="text">
+             <string>Local Machine</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QRadioButton" name="remoteMachineRadioButton">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="toolTip">
+             <string>The Remote Machine target enables workbench to scan any remote machine that can be accessed using SSH.</string>
+            </property>
+            <property name="text">
+             <string>Remote Machine (over SSH)</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item row="11" column="0" colspan="3">
+        <widget class="RemoteMachineComboBox" name="remoteMachineDetails" native="true"/>
+       </item>
       </layout>
      </widget>
     </item>
     <item>
-     <widget class="RuleResultsTree" name="ruleResultsTree" native="true">
-      <property name="sizePolicy">
-       <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
-        <horstretch>0</horstretch>
-        <verstretch>0</verstretch>
-       </sizepolicy>
+     <layout class="QVBoxLayout" name="ruleResults">
+      <property name="leftMargin">
+       <number>9</number>
       </property>
-     </widget>
-    </item>
-    <item>
-     <widget class="QProgressBar" name="progressBar">
-      <property name="maximum">
-       <number>1</number>
+      <property name="rightMargin">
+       <number>9</number>
       </property>
-      <property name="value">
-       <number>0</number>
-      </property>
-      <property name="format">
-       <string>%p% (%v results, %m rules selected)</string>
-      </property>
-     </widget>
+      <item>
+       <layout class="QHBoxLayout" name="horizontalLayout_6">
+        <item>
+         <widget class="QLabel" name="label_2">
+          <property name="font">
+           <font>
+            <weight>75</weight>
+            <bold>true</bold>
+           </font>
+          </property>
+          <property name="text">
+           <string>Rules</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <spacer name="horizontalSpacer_5">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>40</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item>
+         <widget class="QPushButton" name="expandRulesButton">
+          <property name="text">
+           <string>Expand All</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <widget class="RuleResultsTree" name="ruleResultsTree" native="true">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <zorder>scanProperties</zorder>
+       </widget>
+      </item>
+      <item>
+       <widget class="QProgressBar" name="progressBar">
+        <property name="maximum">
+         <number>1</number>
+        </property>
+        <property name="value">
+         <number>0</number>
+        </property>
+        <property name="format">
+         <string>%p% (%v results, %m rules selected)</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
     </item>
     <item>
      <widget class="QWidget" name="widget" native="true">
@@ -305,7 +386,7 @@
               <widget class="QPushButton" name="scanButton">
                <property name="font">
                 <font>
-                 <pointsize>13</pointsize>
+                 <pointsize>18</pointsize>
                  <weight>75</weight>
                  <bold>true</bold>
                 </font>
@@ -439,7 +520,7 @@
      <x>0</x>
      <y>0</y>
      <width>800</width>
-     <height>30</height>
+     <height>27</height>
     </rect>
    </property>
    <property name="font">
@@ -456,7 +537,7 @@
     </property>
     <widget class="QMenu" name="menuSave">
      <property name="title">
-      <string>Save All</string>
+      <string>Save &amp;All</string>
      </property>
      <addaction name="actionSaveIntoDirectory"/>
      <addaction name="actionSaveAsRPM"/>
@@ -513,12 +594,12 @@
   </action>
   <action name="actionSaveIntoDirectory">
    <property name="text">
-    <string>Into a directory</string>
+    <string>Into a &amp;directory</string>
    </property>
   </action>
   <action name="actionSaveAsRPM">
    <property name="text">
-    <string>As RPM</string>
+    <string>As &amp;RPM</string>
    </property>
   </action>
   <action name="actionAboutQt">
@@ -533,12 +614,12 @@
   </action>
   <action name="actionSaveTailoring">
    <property name="text">
-    <string>Save Customization Only</string>
+    <string>Save Customization O&amp;nly</string>
    </property>
   </action>
   <action name="actionOpenSSG">
    <property name="text">
-    <string>Open &amp;SCAP Security Guide</string>
+    <string>Open content from &amp;SCAP Security Guide</string>
    </property>
   </action>
   <action name="actionOpenCustomizationFile">
@@ -598,6 +679,22 @@
     <hint type="destinationlabel">
      <x>399</x>
      <y>324</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>ruleResultsTree</sender>
+   <signal>allRuleResultsExpanded(bool)</signal>
+   <receiver>MainWindow</receiver>
+   <slot>allRuleResultsExpanded(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>20</x>
+     <y>20</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>20</x>
+     <y>20</y>
     </hint>
    </hints>
   </connection>

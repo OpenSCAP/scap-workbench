@@ -27,6 +27,7 @@
 SSGIntegrationDialog::SSGIntegrationDialog(QWidget* parent):
     QDialog(parent)
 {
+    loadOtherContent = false;
     mUI.setupUi(this);
     mUI.ssgLogo->setPixmap(getSharePixmap("ssg_logo.png"));
 
@@ -35,6 +36,11 @@ SSGIntegrationDialog::SSGIntegrationDialog(QWidget* parent):
     QObject::connect(
         mUI.dismissButton, SIGNAL(released()),
         this, SLOT(reject())
+    );
+
+    QObject::connect(
+        mUI.loadButton, SIGNAL(released()),
+        this, SLOT(loadContent())
     );
 }
 
@@ -51,24 +57,35 @@ const QString& SSGIntegrationDialog::getSelectedSSGFile() const
     return mSelectedSSGFile;
 }
 
+bool SSGIntegrationDialog::loadOtherContentSelected()
+{
+    return loadOtherContent;
+}
+
 bool SSGIntegrationDialog::isSSGAvailable()
 {
     return getSSGDirectory().exists();
 }
 
-void SSGIntegrationDialog::variantRequested()
+void SSGIntegrationDialog::loadContent()
 {
-    QObject* sender = QObject::sender();
-    QPushButton* button = dynamic_cast<QPushButton*>(sender);
+    QComboBox* cBox = mUI.contentComboBox;
 
-    if (!button)
+    const QString variant = cBox->itemData(cBox->currentIndex()).toString();
+
+    if (variant.isEmpty())
         return;
 
-    const QString variant = button->property("ssg_variant").toString();
+    if (!variant.compare("other-scap-content"))
+    {
+        loadOtherContent = true;
+    }
+    else
+    {
+        const QDir& dir(getSSGDirectory());
 
-    const QDir& dir(getSSGDirectory());
-
-    mSelectedSSGFile = dir.absoluteFilePath(QString("ssg-%1-ds.xml").arg(variant));
+        mSelectedSSGFile = dir.absoluteFilePath(QString("ssg-%1-ds.xml").arg(variant));
+    }
     accept();
 }
 
@@ -76,8 +93,9 @@ void SSGIntegrationDialog::scrapeSSGVariants()
 {
     const QDir& dir = getSSGDirectory();
     const QStringList variants = dir.entryList(QDir::Files | QDir::NoDotAndDotDot);
+    QComboBox* cBox = mUI.contentComboBox;
 
-    int lastFavoriteIndex = 1;
+    int lastFavoriteIndex = 0;
     for (QStringList::const_iterator it = variants.constBegin();
          it != variants.constEnd(); ++it)
     {
@@ -110,21 +128,20 @@ void SSGIntegrationDialog::scrapeSSGVariants()
 
         else
             label[0] = label[0].toUpper(); // Capitalize first letter
-        
+
         if (label.startsWith("Fedora"))
             favorite = true;
 
-        QPushButton* button = new QPushButton(label, mUI.content);
-        button->setProperty("ssg_variant", QVariant(name));
-
         if (favorite)
-            mUI.variantsLayout->insertWidget(lastFavoriteIndex++, button); // insert button before text and divider
-        else
-            mUI.variantsLayout->addWidget(button);
+            cBox->insertItem(lastFavoriteIndex++, label, QVariant(name));
 
-        QObject::connect(
-            button, SIGNAL(released()),
-            this, SLOT(variantRequested())
-        );
+        else
+            cBox->addItem(label, QVariant(name));
+
     }
+    cBox->insertSeparator(cBox->count());
+    cBox->addItem(QString("Other SCAP Content"), QVariant(QString("other-scap-content")));
+
+    cBox->insertSeparator(lastFavoriteIndex);
+    cBox->setCurrentIndex(0);
 }

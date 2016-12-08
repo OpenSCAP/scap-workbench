@@ -156,4 +156,24 @@ void RuleResultItem::showDescriptionToggled(bool checked)
     mUi.description->setVisible(checked);
 
     setUpdatesEnabled(true);
+
+    emit ruleResultDescriptionToggled(checked);
+}
+
+void RuleResultItem::setRuleResultChecked(bool checked)
+{
+    setUpdatesEnabled(false);
+
+    mUi.showDescriptionCheckBox->setChecked(checked);
+
+    if (checked && mUi.description->text().isEmpty())
+        mUi.description->setText(mDescriptionHTML);
+    mUi.description->setVisible(checked);
+
+    setUpdatesEnabled(true);
+}
+
+bool RuleResultItem::isChecked()
+{
+    return mUi.showDescriptionCheckBox->isChecked();
 }
