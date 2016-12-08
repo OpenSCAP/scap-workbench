@@ -16,7 +16,7 @@ include(${QT_USE_FILE})
 # custom openscap parameters.
 if (NOT DEFINED OPENSCAP_LIBRARIES OR NOT DEFINED OPENSCAP_INCLUDE_DIRS)
     include("${CMAKE_ROOT}/Modules/FindPkgConfig.cmake")
-    pkg_check_modules(OPENSCAP REQUIRED libopenscap>=1.2.0)
+    pkg_check_modules(OPENSCAP REQUIRED libopenscap>=1.2.11)
 endif()
 
 # Local scanning tools
