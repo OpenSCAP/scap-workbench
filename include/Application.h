@@ -70,10 +70,8 @@ class Application : public QApplication
          */
         void printHelp();
 
-        /**
-         * @brief Whether the application should quit
-         */
-        bool shouldQuit;
+        /// Whether the application should quit
+        bool mShouldQuit;
 
         bool mSkipValid;
         /// Needed for QObject::tr(..) to work properly, loaded on app startup

@@ -31,8 +31,8 @@
 Application::Application(int& argc, char** argv):
     QApplication(argc, argv),
 
+    mShouldQuit(false),
     mSkipValid(false),
-    shouldQuit(false),
     mTranslator(),
     mMainWindow(0)
 {
@@ -62,7 +62,7 @@ Application::Application(int& argc, char** argv):
     QStringList args = arguments();
     processCLI(args);
 
-    if (shouldQuit)
+    if (mShouldQuit)
     {
         mMainWindow->closeMainWindowAsync();
         return;
@@ -86,14 +86,14 @@ void Application::processCLI(QStringList& args)
     if (args.contains("-V") || args.contains("--version"))
     {
         printVersion();
-        shouldQuit = true;
+        mShouldQuit = true;
         return;
     }
 
     if (args.contains("-h") || args.contains("--help"))
     {
         printHelp();
-        shouldQuit = true;
+        mShouldQuit = true;
         return;
     }
 
@@ -112,7 +112,7 @@ void Application::processCLI(QStringList& args)
             QString unknownOption = QString("Unknown option '%1'\n").arg(unknownOptions.first());
             std::cout << unknownOption.toUtf8().constData();
             printHelp();
-            shouldQuit = true;
+            mShouldQuit = true;
             return;
         }
 
