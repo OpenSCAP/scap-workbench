@@ -68,18 +68,18 @@ if you do not need the feature explained in it.
 
 Even before we start the workbench we need to find content to open. Probably
 the best choice right now is scap-security-guide
-footnote:[https://fedorahosted.org/scap-security-guide/].
+footnote:[https://www.open-scap.org/security-policies/scap-security-guide/].
 
 From the package repository (YUM):: # yum install scap-security-guide
 From the package repository (APT):: # apt-get install scap-security-guide
 From upstream source (for advanced users or content developers)::
- . $ git clone https://git.fedorahosted.org/git/scap-security-guide.git ; cd scap-security-guide
+ . $ git clone https://github.com/OpenSCAP/scap-security-guide.git ; cd scap-security-guide
  . $ make
 
 ==== Alternative SCAP content (optional)
 [[alternative-contents]]
  * http://usgcb.nist.gov/usgcb/rhel_content.html[USGCB for RHEL5] - XCCDF and OVAL, only suitable for RHEL5.
- * https://fedorahosted.org/sce-community-content/[SCE Community Content] - Uses SCE, only suitable for Fedora.
+ * https://github.com/OpenSCAP/sce-community-content[SCE Community Content] - Uses SCE, only suitable for Fedora.
 
 === Start scap-workbench
 
