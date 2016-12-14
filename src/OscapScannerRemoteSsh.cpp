@@ -130,7 +130,7 @@ void OscapScannerRemoteSsh::evaluate()
 
         emit infoMessage(QObject::tr("Querying capabilities on remote machine..."));
         proc.setCommand(SCAP_WORKBENCH_REMOTE_OSCAP_PATH);
-        proc.setArguments(QStringList("--v"));
+        proc.setArguments(QStringList("-V"));
         proc.setCancelRequestSource(&mCancelRequested);
         proc.run();
 
