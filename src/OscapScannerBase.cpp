@@ -345,10 +345,26 @@ bool OscapScannerBase::tryToReadStdOutChar(QProcess& process)
         switch(mReadingState)
         {
             case RS_READING_PREFIX:
-                emit warningMessage(QString(
-                            QObject::tr("Error when parsing scan progress output from stdout of the 'oscap' process. "
-                                "Newline encountered while reading rule ID, rule result and/or ':' are missing! "
-                                "Read buffer is '%1'.")).arg(mReadBuffer));
+                // If we found a '\n' while reading prefix, we might have received an error or
+                // warning message through stdout.
+                if (mReadBuffer.contains("--fetch-remote-resources"))
+                {
+                    // If message is about --fetch-remote-resources, emit a nice warning.
+                    // This is needed for workbench to be able to handle messages from machines
+                    // running older versions of openscap.
+                    // From openscap version 1.2.11, this message is sent through stderr
+                    // and therefore is handled accordingly by workbench.
+                    emit warningMessage(guiFriendlyMessage(mReadBuffer));
+                }
+                else
+                {
+                    // No other error or warning messages are expected through stdout,
+                    // so it is likely that a parsing error occured.
+                    emit warningMessage(QString(
+                                QObject::tr("Error when parsing scan progress output from stdout of the 'oscap' process. "
+                                    "Newline encountered while reading rule ID, rule result and/or ':' are missing! "
+                                    "Read buffer is '%1'.")).arg(mReadBuffer));
+                }
                 break;
 
             case RS_READING_RULE_RESULT:
