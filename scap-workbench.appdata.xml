@@ -27,6 +27,6 @@
         <screenshot width="1280" height="720">https://fedorahosted.org/scap-workbench/raw-attachment/wiki/AppData/1.0-processing.png</screenshot>
         <screenshot width="1280" height="720">https://fedorahosted.org/scap-workbench/raw-attachment/wiki/AppData/1.0-tailoring.png</screenshot>
     </screenshots>
-    <url type="homepage">https://fedorahosted.org/scap-workbench</url>
+    <url type="homepage">https://www.open-scap.org/tools/scap-workbench</url>
     <updatecontact>open-scap-list@redhat.com</updatecontact>
 </application>

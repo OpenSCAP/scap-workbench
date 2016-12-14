@@ -37,7 +37,7 @@ Application::Application(int& argc, char** argv):
     mMainWindow(0)
 {
     setOrganizationName("SCAP Workbench upstream");
-    setOrganizationDomain("http://fedorahosted.org/scap-workbench");
+    setOrganizationDomain("https://www.open-scap.org/tools/scap-workbench");
 
     setApplicationName("SCAP Workbench");
     setApplicationVersion(SCAP_WORKBENCH_VERSION);
