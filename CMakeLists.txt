@@ -17,7 +17,14 @@ include(${QT_USE_FILE})
 if (NOT DEFINED OPENSCAP_LIBRARIES OR NOT DEFINED OPENSCAP_INCLUDE_DIRS)
     include("${CMAKE_ROOT}/Modules/FindPkgConfig.cmake")
     pkg_check_modules(OPENSCAP REQUIRED libopenscap>=1.0.9)
+
+# Gather info about openscap version
+string(REPLACE "." ";" OPENSCAP_VERSION_LIST ${OPENSCAP_VERSION})
+list(GET OPENSCAP_VERSION_LIST 0 OPENSCAP_VERSION_MAJOR)
+list(GET OPENSCAP_VERSION_LIST 1 OPENSCAP_VERSION_MINOR)
+list(GET OPENSCAP_VERSION_LIST 2 OPENSCAP_VERSION_PATCH)
 endif()
+
 
 # This is optional, only required if user wants documentation rebuilt
 find_program(ASCIIDOCTOR_EXECUTABLE NAMES asciidoctor)
