@@ -628,13 +628,23 @@ void MainWindow::refreshProfiles()
     try
     {
         const std::map<QString, struct xccdf_profile*> profiles = mScanningSession->getAvailableProfiles();
+        struct xccdf_policy_model* policyModel = xccdf_session_get_policy_model(mScanningSession->getXCCDFSession());
+        struct xccdf_policy* policy;
+        int selectedRulesCount;
+        QString profileTitle;
 
         // A nice side effect here is that profiles will be sorted by their IDs
         // because of the RB-tree implementation of std::map.
         for (std::map<QString, struct xccdf_profile*>::const_iterator it = profiles.begin();
              it != profiles.end(); ++it)
         {
-            const QString profileTitle = oscapTextIteratorGetPreferred(xccdf_profile_get_title(it->second));
+            profileTitle = oscapTextIteratorGetPreferred(xccdf_profile_get_title(it->second));
+
+            policy = xccdf_policy_new(policyModel, it->second);
+            selectedRulesCount = xccdf_policy_get_selected_rules_count(policy);
+            xccdf_policy_free(policy);
+
+            profileTitle = profileTitle +" ("+ QString::number(selectedRulesCount) + ")";
             mUI.profileComboBox->addItem(profileTitle, QVariant(it->first));
         }
 
@@ -645,11 +655,20 @@ void MainWindow::refreshProfiles()
                 mUI.profileComboBox->setCurrentIndex(indexCandidate);
         }
 
+        profileTitle = QObject::tr("(default)");
+#if (QT_VERSION_CHECK(OPENSCAP_VERSION_MAJOR, OPENSCAP_VERSION_MINOR, OPENSCAP_VERSION_PATCH) >= QT_VERSION_CHECK(1, 2, 11))
+        policy = xccdf_policy_new(policyModel, NULL);
+        selectedRulesCount = xccdf_policy_get_selected_rules_count(policy);
+        xccdf_policy_free(policy);
+
+        profileTitle = profileTitle + " ("+ QString::number(selectedRulesCount) + ")";
+#endif
+
         // Intentionally comes last. Users are more likely to use profiles other than (default)
 #if (QT_VERSION >= QT_VERSION_CHECK(4, 4, 0))
         mUI.profileComboBox->insertSeparator(mUI.profileComboBox->count());
 #endif
-        mUI.profileComboBox->addItem(QObject::tr("(default)"), QVariant(QString::Null()));
+        mUI.profileComboBox->addItem(profileTitle, QVariant(QString::Null()));
     }
     catch (const std::exception& e)
     {
