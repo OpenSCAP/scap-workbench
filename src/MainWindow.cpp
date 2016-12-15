@@ -655,12 +655,14 @@ void MainWindow::refreshProfiles()
                 mUI.profileComboBox->setCurrentIndex(indexCandidate);
         }
 
+        profileTitle = QObject::tr("(default)");
+#if (QT_VERSION_CHECK(OPENSCAP_VERSION_MAJOR, OPENSCAP_VERSION_MINOR, OPENSCAP_VERSION_PATCH) >= QT_VERSION_CHECK(1, 2, 11))
         policy = xccdf_policy_new(policyModel, NULL);
         selectedRulesCount = xccdf_policy_get_selected_rules_count(policy);
         xccdf_policy_free(policy);
 
-        profileTitle = QObject::tr("(default)");
         profileTitle = profileTitle + " ("+ QString::number(selectedRulesCount) + ")";
+#endif
 
         // Intentionally comes last. Users are more likely to use profiles other than (default)
 #if (QT_VERSION >= QT_VERSION_CHECK(4, 4, 0))
