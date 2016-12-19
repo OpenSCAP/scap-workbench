@@ -20,10 +20,20 @@ if (NOT DEFINED OPENSCAP_LIBRARIES OR NOT DEFINED OPENSCAP_INCLUDE_DIRS)
 endif()
 
 # Gather info about openscap version
-string(REPLACE "." ";" OPENSCAP_VERSION_LIST ${OPENSCAP_VERSION})
-list(GET OPENSCAP_VERSION_LIST 0 OPENSCAP_VERSION_MAJOR)
-list(GET OPENSCAP_VERSION_LIST 1 OPENSCAP_VERSION_MINOR)
-list(GET OPENSCAP_VERSION_LIST 2 OPENSCAP_VERSION_PATCH)
+if (DEFINED OPENSCAP_VERSION)
+    # pkg_check_modules() defines the string OPENSCAP_VERSION, lets use it
+    string(REPLACE "." ";" OPENSCAP_VERSION_LIST ${OPENSCAP_VERSION})
+    list(GET OPENSCAP_VERSION_LIST 0 OPENSCAP_VERSION_MAJOR)
+    list(GET OPENSCAP_VERSION_LIST 1 OPENSCAP_VERSION_MINOR)
+    list(GET OPENSCAP_VERSION_LIST 2 OPENSCAP_VERSION_PATCH)
+else()
+    # If OPENSCAP_VERSION is not defined, user has specified its own OpenSCAP library to use
+    # So, zero out the version info as there is no easy way to know which version the library is
+    set(OPENSCAP_VERSION "0.0.0")
+    set(OPENSCAP_VERSION_MAJOR 0)
+    set(OPENSCAP_VERSION_MINOR 0)
+    set(OPENSCAP_VERSION_PATCH 0)
+endif()
 
 # Local scanning tools
 option(SCAP_WORKBENCH_LOCAL_SCAN_ENABLED "If enabled, scanning of local machine is possible from workbench. Else the option is disabled in the GUI." TRUE)
