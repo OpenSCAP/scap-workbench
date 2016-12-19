@@ -214,7 +214,7 @@ install(FILES "scap-workbench.appdata.xml"
 if (ASCIIDOCTOR_EXECUTABLE)
     file(GLOB USER_MANUAL_SCREENSHOTS "${CMAKE_CURRENT_SOURCE_DIR}/doc/user_manual/*.png")
     add_custom_command(
-        OUTPUT doc/user_manual.html
+        OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/doc/user_manual.html
         COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_BINARY_DIR}/doc
         COMMAND ${ASCIIDOCTOR_EXECUTABLE} --destination-dir ${CMAKE_CURRENT_BINARY_DIR}/doc -b html5 -a data-uri user_manual.adoc
         COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_BINARY_DIR}/doc/user_manual.html ${CMAKE_CURRENT_SOURCE_DIR}/doc/user_manual.html
@@ -223,7 +223,7 @@ if (ASCIIDOCTOR_EXECUTABLE)
     )
     add_custom_target(
         "docs"
-        DEPENDS doc/user_manual.html
+        DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/doc/user_manual.html
     )
     if (SCAP_WORKBENCH_REBUILD_MANUAL)
         add_dependencies("scap-workbench" "docs")
