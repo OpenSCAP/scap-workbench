@@ -152,6 +152,7 @@ add_executable("scap-workbench" MACOSX_BUNDLE
     ${scap_workbench_LANGUAGE_TS_FILES}
 )
 
+set_target_properties("scap-workbench" PROPERTIES MACOSX_BUNDLE_INFO_PLIST MacOSXBundleInfo.plist.in)
 set(MACOSX_BUNDLE_BUNDLE_NAME "SCAP Workbench")
 set(MACOSX_BUNDLE_BUNDLE_VERSION "${SCAP_WORKBENCH_VERSION}")
 set(MACOSX_BUNDLE_LONG_VERSION_STRING "${SCAP_WORKBENCH_VERSION}")
