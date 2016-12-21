@@ -278,7 +278,6 @@
           <verstretch>0</verstretch>
          </sizepolicy>
         </property>
-        <zorder>scanProperties</zorder>
        </widget>
       </item>
       <item>
@@ -339,11 +338,6 @@
              </item>
              <item>
               <widget class="QCheckBox" name="dryRunCheckBox">
-               <property name="font">
-                <font>
-                 <pointsize>11</pointsize>
-                </font>
-               </property>
                <property name="toolTip">
                 <string>When checked no action is performed after pressing Scan, a dialog with the used command-line arguments is shown instead.</string>
                </property>
@@ -354,11 +348,6 @@
              </item>
              <item>
               <widget class="QCheckBox" name="fetchRemoteResourcesCheckbox">
-               <property name="font">
-                <font>
-                 <pointsize>11</pointsize>
-                </font>
-               </property>
                <property name="toolTip">
                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Allow download of&amp;nbsp;remote OVAL content referenced from&amp;nbsp;XCCDF by&amp;nbsp;check-content-ref/@href.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                </property>
@@ -369,11 +358,6 @@
              </item>
              <item>
               <widget class="QCheckBox" name="onlineRemediationCheckBox">
-               <property name="font">
-                <font>
-                 <pointsize>11</pointsize>
-                </font>
-               </property>
                <property name="toolTip">
                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Attempts to automatically correct issues identified by the scan.&lt;/p&gt;&lt;p&gt;Note: Automated remediation may impact system functionality.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                </property>
