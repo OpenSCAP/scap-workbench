@@ -114,7 +114,7 @@ image::default_content_opened.png[align="center"]
 
 === Open Different Content (optional)
 
-Clicking Open Other content in the SSG integration dialog or choosing the *Open Other content*
+Selecting *Other SCAP content* in the SSG integration dialog or choosing the *Open Other content*
 action from the File menu (top of the main window) will enable
 you to change opened content. Keep in mind that workbench only supports opening
 XCCDF, Source DataStream, SCAP RPM files or their bzip2 variants. Everything else will
@@ -156,7 +156,7 @@ workbench will show an error dialog and open default content automatically.
 
 In case you have prepared or were given a tailoring file for your specific evaluation
 use-case, you can load by clicking on the *Customization* combobox and selecting
-the *(open customization file...)* option. This will bring up a file open dialog where
+the *Select customization file...* option. This will bring up a file open dialog where
 you can select your customization file (XCCDF tailoring file).
 
 ****
@@ -266,9 +266,9 @@ image::tailoring_set_value.png[align="center"]
 Changes to the values are applied immediately as you change the combobox or
 editbox.
 
-After desired customization changes are done, click *Confirm changes* to get back
+After desired customization changes are done, click *OK* to get back
 to the previous GUI. To undo all of the changes to the profile, click
-*Discard*. If you want to delete the profile from tailoring, click *Delete profile*.
+*Cancel*. If you want to delete the profile from tailoring, click *Delete profile*.
 
 All of these options will close the customization window.
 
