@@ -331,6 +331,8 @@ bool OscapScannerBase::tryToReadStdOutChar(QProcess& process)
                 break;
             case RS_READING_DOWNLOAD_FILE:
                 {
+                    // When fetching remote content, openscap will inform scap-workbench about
+                    // resources being downloaded. Keep any colon found in URL of file being downloaded.
                     mReadBuffer.append(QChar::fromAscii(readChar));
                 }
                 break;
