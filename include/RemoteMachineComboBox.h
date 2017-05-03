@@ -28,6 +28,7 @@
 #include <QMenu>
 #include <QStringList>
 #include <QSettings>
+#include <QComboBox>
 
 #include "ui_RemoteMachineComboBox.h"
 
