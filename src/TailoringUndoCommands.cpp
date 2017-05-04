@@ -132,14 +132,12 @@ void XCCDFItemSelectUndoCommand::redo()
 {
     struct xccdf_item* xccdfItem = TailoringWindow::getXccdfItemFromTreeItem(mTreeItem);
     mWindow->setItemSelected(xccdfItem, mNewSelect);
-    mWindow->synchronizeTreeItem(mTreeItem, xccdfItem, false);
 }
 
 void XCCDFItemSelectUndoCommand::undo()
 {
     struct xccdf_item* xccdfItem = TailoringWindow::getXccdfItemFromTreeItem(mTreeItem);
     mWindow->setItemSelected(xccdfItem, !mNewSelect);
-    mWindow->synchronizeTreeItem(mTreeItem, xccdfItem, false);
 }
 
 void XCCDFItemSelectUndoCommand::refreshText()

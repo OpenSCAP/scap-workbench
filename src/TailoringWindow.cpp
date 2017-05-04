@@ -35,6 +35,7 @@
 #include <QUndoView>
 #include <QTimer>
 #include <QDateTime>
+#include <QStack>
 
 #include <algorithm>
 #include <cassert>
@@ -43,43 +44,6 @@ struct xccdf_item* TailoringWindow::getXccdfItemFromTreeItem(QTreeWidgetItem* tr
 {
     QVariant xccdfItem = treeItem->data(0, Qt::UserRole);
     return reinterpret_cast<struct xccdf_item*>(xccdfItem.value<void*>());
-}
-
-/**
- * This only handles changes in selection of just one tree item!
- */
-void _syncXCCDFItemChildrenDisabledState(QTreeWidgetItem* treeItem, bool enabled)
-{
-    for (int i = 0; i < treeItem->childCount(); ++i)
-    {
-        QTreeWidgetItem* childTreeItem = treeItem->child(i);
-        const bool childEnabled = !childTreeItem->isDisabled();
-
-        if (!enabled && childEnabled)
-        {
-            childTreeItem->setDisabled(true);
-            _syncXCCDFItemChildrenDisabledState(childTreeItem, false);
-        }
-        else if (enabled && !childEnabled)
-        {
-            childTreeItem->setDisabled(false);
-            _syncXCCDFItemChildrenDisabledState(childTreeItem, true);
-        }
-    }
-}
-
-void _refreshXCCDFItemChildrenDisabledState(QTreeWidgetItem* treeItem, bool allAncestorsSelected)
-{
-    bool itemSelected = !(treeItem->flags() & Qt::ItemIsUserCheckable) || treeItem->checkState(0) == Qt::Checked;
-    allAncestorsSelected = allAncestorsSelected && itemSelected;
-
-    for (int i = 0; i < treeItem->childCount(); ++i)
-    {
-        QTreeWidgetItem* childTreeItem = treeItem->child(i);
-        childTreeItem->setDisabled(!allAncestorsSelected);
-
-        _refreshXCCDFItemChildrenDisabledState(childTreeItem, allAncestorsSelected);
-    }
 }
 
 TailoringWindow::TailoringWindow(struct xccdf_policy* policy, struct xccdf_benchmark* benchmark, bool newProfile, MainWindow* parent):
@@ -157,6 +121,7 @@ TailoringWindow::TailoringWindow(struct xccdf_policy* policy, struct xccdf_bench
         mUI.toolBar->addAction(undoAction);
         mUI.toolBar->addAction(redoAction);
     }
+    QObject::connect(&mUndoStack, SIGNAL(indexChanged(int)), this, SLOT(synchronizeTreeItem()));
 
     // Column 1 is for search keywords
     mUI.itemsTree->setColumnHidden(1, true);
@@ -191,8 +156,8 @@ TailoringWindow::TailoringWindow(struct xccdf_policy* policy, struct xccdf_bench
         /*Qt::ItemIsUserCheckable |*/
         Qt::ItemIsEnabled);
 
-    synchronizeTreeItem(mBenchmarkItem, xccdf_benchmark_to_item(mBenchmark), true);
-    _refreshXCCDFItemChildrenDisabledState(mBenchmarkItem, true);
+    createTreeItem(mBenchmarkItem, xccdf_benchmark_to_item(mBenchmark));
+    synchronizeTreeItem();
 
     mUI.itemsTree->header()->setResizeMode(0, QHeaderView::ResizeToContents);
     mUI.itemsTree->header()->setStretchLastSection(false);
@@ -300,158 +265,65 @@ void TailoringWindow::synchronizeProfileItem()
     mProfileItem->setIcon(0, getShareIcon("profile.png"));
 }
 
-void TailoringWindow::synchronizeTreeItem(QTreeWidgetItem* treeItem, struct xccdf_item* xccdfItem, bool recursive)
+void TailoringWindow::synchronizeTreeItem()
+{
+    synchronizeTreeItemSelections(mBenchmarkItem);
+}
+
+void TailoringWindow::synchronizeTreeItemSelections(QTreeWidgetItem* treeItem)
 {
     ++mSynchronizeItemLock;
 
-    const QString title = oscapItemGetReadableTitle(xccdfItem, mPolicy);
-    treeItem->setText(0, title);
-
-    QString searchable = QString("%1 %2").arg(title, QString::fromUtf8(xccdf_item_get_id(xccdfItem)));
-    switch (xccdf_item_get_type(xccdfItem))
-    {
-        case XCCDF_BENCHMARK:
-            treeItem->setIcon(0, getShareIcon("benchmark.png"));
-            break;
-
-        case XCCDF_GROUP:
-            treeItem->setIcon(0, getShareIcon("group.png"));
-            break;
-
-        case XCCDF_RULE:
-            treeItem->setIcon(0, getShareIcon("rule.png"));
-            {
-                struct xccdf_ident_iterator* idents = xccdf_rule_get_idents(xccdf_item_to_rule(xccdfItem));
-                while (xccdf_ident_iterator_has_more(idents))
-                {
-                    struct xccdf_ident* ident = xccdf_ident_iterator_next(idents);
-                    searchable += ' ';
-                    searchable += QString::fromUtf8(xccdf_ident_get_id(ident));
-                }
-                xccdf_ident_iterator_free(idents);
-            }
-            break;
-
-        case XCCDF_VALUE:
-            treeItem->setIcon(0, getShareIcon("value.png"));
-            break;
-
-        default:
-            treeItem->setIcon(0, QIcon());
-            break;
-    }
-
-    treeItem->setText(1, searchable);
-
-    treeItem->setData(0, Qt::UserRole, QVariant::fromValue(reinterpret_cast<void*>(xccdfItem)));
-
+    struct xccdf_item* xccdfItem = getXccdfItemFromTreeItem(treeItem);
     xccdf_type_t xccdfItemType = xccdf_item_get_type(xccdfItem);
     switch (xccdfItemType)
     {
-        case XCCDF_RULE:
+        case XCCDF_BENCHMARK:
+            for (int i = 0; i < treeItem->childCount(); ++i)
+                synchronizeTreeItemSelections(treeItem->child(i));
+            break;
         case XCCDF_GROUP:
         {
-            treeItem->setFlags(treeItem->flags() | Qt::ItemIsUserCheckable);
+            int selectableChildren = 0;
+            int checkedChildren = 0;
+            int partiallyCheckedChildren = 0;
+            for (int i = 0; i < treeItem->childCount(); ++i)
+            {
+                QTreeWidgetItem* child = treeItem->child(i);
+                synchronizeTreeItemSelections(child);
+                selectableChildren += child->flags() & Qt::ItemIsUserCheckable ? 1 : 0;
+                checkedChildren += child->checkState(0) == Qt::Checked ? 1 : 0;
+                partiallyCheckedChildren += child->checkState(0) == Qt::PartiallyChecked ? 1 : 0;
+            }
+
+            if (selectableChildren > 0)
+            {
+                bool groupCurrentState = getXccdfItemInternalSelected(mPolicy, xccdfItem);
+                bool groupNewCheckState = (checkedChildren + partiallyCheckedChildren) > 0;
+                if (groupCurrentState != groupNewCheckState)
+                    setItemSelected(xccdfItem, groupNewCheckState);
+
+                if (groupNewCheckState)
+                {
+                    if (selectableChildren > checkedChildren)
+                        treeItem->setCheckState(0, Qt::PartiallyChecked);
+                    else
+                        treeItem->setCheckState(0, Qt::Checked);
+                }
+                else
+                {
+                    treeItem->setCheckState(0, Qt::Unchecked);
+                }
+                break;
+            }
+            //fall through
+        }
+        case XCCDF_RULE:
             treeItem->setCheckState(0,
                     getXccdfItemInternalSelected(mPolicy, xccdfItem) ? Qt::Checked : Qt::Unchecked);
-            _syncXCCDFItemChildrenDisabledState(treeItem, treeItem->checkState(0));
             break;
-        }
-        case XCCDF_VALUE:
-            treeItem->setFlags(treeItem->flags() & ~Qt::ItemIsUserCheckable);
         default:
             break;
-    }
-
-    if (recursive)
-    {
-        typedef std::vector<struct xccdf_item*> XCCDFItemVector;
-        typedef std::map<struct xccdf_item*, QTreeWidgetItem*> XCCDFToQtItemMap;
-
-        XCCDFItemVector itemsToAdd;
-        XCCDFToQtItemMap existingItemsMap;
-
-        // valuesIt contains Values
-        struct xccdf_value_iterator* valuesIt = NULL;
-        // itemsIt contains Rules and Groups
-        struct xccdf_item_iterator* itemsIt = NULL;
-
-        switch (xccdfItemType)
-        {
-            case XCCDF_GROUP:
-                valuesIt = xccdf_group_get_values(xccdf_item_to_group(xccdfItem));
-                itemsIt = xccdf_group_get_content(xccdf_item_to_group(xccdfItem));
-                break;
-            case XCCDF_BENCHMARK:
-                valuesIt = xccdf_benchmark_get_values(xccdf_item_to_benchmark(xccdfItem));
-                itemsIt = xccdf_benchmark_get_content(xccdf_item_to_benchmark(xccdfItem));
-                break;
-            default:
-                break;
-        }
-
-        if (valuesIt != NULL)
-        {
-            while (xccdf_value_iterator_has_more(valuesIt))
-            {
-                struct xccdf_value* childItem = xccdf_value_iterator_next(valuesIt);
-                itemsToAdd.push_back(xccdf_value_to_item(childItem));
-            }
-            xccdf_value_iterator_free(valuesIt);
-        }
-
-        if (itemsIt != NULL)
-        {
-            while (xccdf_item_iterator_has_more(itemsIt))
-            {
-                struct xccdf_item* childItem = xccdf_item_iterator_next(itemsIt);
-                itemsToAdd.push_back(childItem);
-            }
-            xccdf_item_iterator_free(itemsIt);
-        }
-
-        for (int i = 0; i < treeItem->childCount(); ++i)
-        {
-            QTreeWidgetItem* childTreeItem = treeItem->child(i);
-            struct xccdf_item* childXccdfItem = getXccdfItemFromTreeItem(childTreeItem);
-
-            if (std::find(itemsToAdd.begin(), itemsToAdd.end(), childXccdfItem) == itemsToAdd.end())
-            {
-                // this will remove it from the tree as well, see ~QTreeWidgetItem()
-                delete childTreeItem;
-            }
-            else
-            {
-                existingItemsMap[childXccdfItem] = childTreeItem;
-            }
-        }
-
-        unsigned int idx = 0;
-        for (XCCDFItemVector::const_iterator it = itemsToAdd.begin();
-                it != itemsToAdd.end(); ++it, ++idx)
-        {
-            struct xccdf_item* childXccdfItem = *it;
-            QTreeWidgetItem* childTreeItem = 0;
-
-            XCCDFToQtItemMap::iterator mapIt = existingItemsMap.find(childXccdfItem);
-
-            if (mapIt == existingItemsMap.end())
-            {
-                childTreeItem = new QTreeWidgetItem();
-
-                childTreeItem->setFlags(
-                        Qt::ItemIsSelectable |
-                        Qt::ItemIsEnabled);
-
-                treeItem->insertChild(idx, childTreeItem);
-            }
-            else
-            {
-                childTreeItem = mapIt->second;
-            }
-
-            synchronizeTreeItem(childTreeItem, childXccdfItem, true);
-        }
     }
 
     --mSynchronizeItemLock;
@@ -532,14 +404,24 @@ void TailoringWindow::deselectAllChildrenItems(QTreeWidgetItem* parent, bool und
     {
         case XCCDF_BENCHMARK:
         case XCCDF_GROUP:
-            for (int i = 0; i < parent->childCount(); ++i)
-                deselectAllChildrenItems(parent->child(i), false);
-            break;
-
+        {
+            bool emptyGroup = true;
+            for (int i = 0; i < parent->childCount(); ++i) {
+                QTreeWidgetItem* child = parent->child(i);
+                if (child->flags() & Qt::ItemIsUserCheckable)
+                {
+                    deselectAllChildrenItems(child, undoMacro);
+                    emptyGroup = false;
+                }
+            }
+            if (!emptyGroup)
+                break;
+            //fall through
+        }
         case XCCDF_RULE:
-            parent->setCheckState(0, Qt::Unchecked);
+            if (parent->checkState(0) == Qt::Checked)
+                parent->setCheckState(0, Qt::Unchecked);
             break;
-
         default:
             break;
     }
@@ -805,6 +687,128 @@ void TailoringWindow::syncCollapsedItem(QTreeWidgetItem* item, QSet<QString>& us
         syncCollapsedItem(item->child(i), usedCollapsedIds);
 }
 
+void TailoringWindow::createTreeItem(QTreeWidgetItem* treeItem, struct xccdf_item* xccdfItem)
+{
+    ++mSynchronizeItemLock;
+
+    const QString title = oscapItemGetReadableTitle(xccdfItem, mPolicy);
+    treeItem->setText(0, title);
+
+    QString searchable = QString("%1 %2").arg(title, QString::fromUtf8(xccdf_item_get_id(xccdfItem)));
+    switch (xccdf_item_get_type(xccdfItem))
+    {
+        case XCCDF_BENCHMARK:
+            treeItem->setIcon(0, getShareIcon("benchmark.png"));
+            break;
+
+        case XCCDF_GROUP:
+            treeItem->setIcon(0, getShareIcon("group.png"));
+            break;
+
+        case XCCDF_RULE:
+            treeItem->setIcon(0, getShareIcon("rule.png"));
+            {
+                struct xccdf_ident_iterator* idents = xccdf_rule_get_idents(xccdf_item_to_rule(xccdfItem));
+                while (xccdf_ident_iterator_has_more(idents))
+                {
+                    struct xccdf_ident* ident = xccdf_ident_iterator_next(idents);
+                    searchable += ' ';
+                    searchable += QString::fromUtf8(xccdf_ident_get_id(ident));
+                }
+                xccdf_ident_iterator_free(idents);
+            }
+            break;
+
+        case XCCDF_VALUE:
+            treeItem->setIcon(0, getShareIcon("value.png"));
+            break;
+
+        default:
+            treeItem->setIcon(0, QIcon());
+            break;
+    }
+
+    treeItem->setText(1, searchable);
+    treeItem->setData(0, Qt::UserRole, QVariant::fromValue(reinterpret_cast<void*>(xccdfItem)));
+
+    xccdf_type_t xccdfItemType = xccdf_item_get_type(xccdfItem);
+    switch (xccdfItemType)
+    {
+        case XCCDF_RULE:
+        case XCCDF_GROUP:
+            treeItem->setFlags(treeItem->flags() | Qt::ItemIsUserCheckable);
+            break;
+        case XCCDF_VALUE:
+            treeItem->setFlags(treeItem->flags() & ~Qt::ItemIsUserCheckable);
+            break;
+        default:
+            break;
+    }
+
+    typedef std::vector<struct xccdf_item*> XCCDFItemVector;
+
+    XCCDFItemVector itemsToAdd;
+
+    // valuesIt contains Values
+    struct xccdf_value_iterator* valuesIt = NULL;
+    // itemsIt contains Rules and Groups
+    struct xccdf_item_iterator* itemsIt = NULL;
+
+    switch (xccdfItemType)
+    {
+        case XCCDF_GROUP:
+            valuesIt = xccdf_group_get_values(xccdf_item_to_group(xccdfItem));
+            itemsIt = xccdf_group_get_content(xccdf_item_to_group(xccdfItem));
+            break;
+        case XCCDF_BENCHMARK:
+            valuesIt = xccdf_benchmark_get_values(xccdf_item_to_benchmark(xccdfItem));
+            itemsIt = xccdf_benchmark_get_content(xccdf_item_to_benchmark(xccdfItem));
+            break;
+        default:
+            break;
+    }
+
+    if (valuesIt != NULL)
+    {
+        while (xccdf_value_iterator_has_more(valuesIt))
+        {
+            struct xccdf_value* childItem = xccdf_value_iterator_next(valuesIt);
+            itemsToAdd.push_back(xccdf_value_to_item(childItem));
+        }
+        xccdf_value_iterator_free(valuesIt);
+    }
+
+    if (itemsIt != NULL)
+    {
+        while (xccdf_item_iterator_has_more(itemsIt))
+        {
+            struct xccdf_item* childItem = xccdf_item_iterator_next(itemsIt);
+            itemsToAdd.push_back(childItem);
+        }
+        xccdf_item_iterator_free(itemsIt);
+    }
+
+    unsigned int idx = 0;
+    for (XCCDFItemVector::const_iterator it = itemsToAdd.begin();
+            it != itemsToAdd.end(); ++it, ++idx)
+    {
+        struct xccdf_item* childXccdfItem = *it;
+        QTreeWidgetItem* childTreeItem = 0;
+
+        childTreeItem = new QTreeWidgetItem();
+
+        childTreeItem->setFlags(
+                Qt::ItemIsSelectable |
+                Qt::ItemIsEnabled);
+
+        treeItem->insertChild(idx, childTreeItem);
+
+        createTreeItem(childTreeItem, childXccdfItem);
+    }
+
+    --mSynchronizeItemLock;
+}
+
 void TailoringWindow::generateValueAffectsRulesMap(struct xccdf_item* item)
 {
     struct xccdf_item_iterator* items = 0;
@@ -947,8 +951,6 @@ void TailoringWindow::itemChanged(QTreeWidgetItem* treeItem, int column)
     if (mSynchronizeItemLock > 0)
         return;
 
-    const bool checkState = treeItem->checkState(0) == Qt::Checked;
-
     struct xccdf_item* xccdfItem = getXccdfItemFromTreeItem(treeItem);
     if (!xccdfItem)
         return;
@@ -956,12 +958,35 @@ void TailoringWindow::itemChanged(QTreeWidgetItem* treeItem, int column)
     if (xccdf_item_get_type(xccdfItem) == XCCDF_VALUE)
         return;
 
-    const bool itemCheckState = getXccdfItemInternalSelected(mPolicy, xccdfItem);
+    const bool checkState = treeItem->checkState(0) == Qt::Checked;
 
-    if (checkState != itemCheckState)
+    if (xccdf_item_get_type(xccdfItem) == XCCDF_BENCHMARK || xccdf_item_get_type(xccdfItem) == XCCDF_GROUP)
+    {
+        mUndoStack.beginMacro(checkState ? "Group activation" : "Group deactivation");
+
+        QStack<QTreeWidgetItem*> stack;
+        stack.push(treeItem);
+        while (!stack.isEmpty())
+        {
+            QTreeWidgetItem* curr = stack.pop();
+            bool currCheckState = curr->checkState(0) == Qt::Checked;
+            if (treeItem == curr || ((curr->flags() & Qt::ItemIsUserCheckable) && currCheckState != checkState))
+            {
+                mUndoStack.push(new XCCDFItemSelectUndoCommand(this, curr, checkState));
+            }
+
+            for (int i = 0; i < curr->childCount(); ++i)
+                stack.push(curr->child(i));
+        }
+
+        mUndoStack.endMacro();
+    }
+    else
+    {
         mUndoStack.push(new XCCDFItemSelectUndoCommand(this, treeItem, checkState));
+    }
 
-    _syncXCCDFItemChildrenDisabledState(treeItem, checkState);
+
 }
 
 void TailoringWindow::itemExpanded(QTreeWidgetItem* item)
