@@ -31,11 +31,9 @@ extern "C"
 
 QString oscapTextIteratorGetPreferred(struct oscap_text_iterator* it, const QString& lang)
 {
-    char* preferred_s = oscap_textlist_get_preferred_plaintext(it, lang.isEmpty() ? NULL : lang.toUtf8().constData());
+    oscap_text* preferred_s = oscap_textlist_get_preferred_text(it, lang.isEmpty() ? NULL : lang.toUtf8().constData());
     oscap_text_iterator_free(it);
-    const QString ret(preferred_s != NULL ? QString::fromUtf8(preferred_s) : QObject::tr("(none)"));
-    free(preferred_s);
-
+    const QString ret = QString::fromUtf8(oscap_text_get_text(preferred_s));
     return ret;
 }
 
