@@ -62,7 +62,9 @@ void ProfilePropertiesDockWidget::refresh()
     {
         // This prevents a new undo command being spawned as a result of refreshing
         mRefreshInProgress = true;
-        mUI.description->setPlainText(mWindow->getProfileDescription());
+        QString str = mWindow->getProfileDescription();
+        str.replace("<html:", "<");
+        mUI.description->setHtml(str);
         mRefreshInProgress = false;
     }
 }
