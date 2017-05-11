@@ -70,13 +70,6 @@ class TailoringWindow : public QMainWindow
          */
         void synchronizeProfileItem();
 
-        /**
-         * @brief Synchronizes given tree item to represent given XCCDF item
-         *
-         * @param recursive If true synchronization is called on children of the tree item and XCCDF item as well
-         */
-        void synchronizeTreeItem(QTreeWidgetItem* treeItem, struct xccdf_item* xccdfItem, bool recursive);
-
         void setValueValue(struct xccdf_value* xccdfValue, const QString& newValue);
         void refreshXccdfItemPropertiesDockWidget();
 
@@ -178,6 +171,9 @@ class TailoringWindow : public QMainWindow
         void syncCollapsedItems();
         void syncCollapsedItem(QTreeWidgetItem* item, QSet<QString>& usedCollapsedIds);
 
+        void createTreeItem(QTreeWidgetItem* treeItem, struct xccdf_item* xccdfItem);
+        void synchronizeTreeItemSelections(QTreeWidgetItem *treeItem);
+
         MainWindow* mParentMainWindow;
         /// Used to remember manually collapsed items for a particular item
         QSet<QString> mCollapsedItemIds;
@@ -222,6 +218,7 @@ class TailoringWindow : public QMainWindow
 
     private slots:
         void searchNext();
+        void synchronizeTreeItem();
         void itemSelectionChanged(QTreeWidgetItem* current, QTreeWidgetItem* previous);
         void itemChanged(QTreeWidgetItem* item, int column);
         void itemExpanded(QTreeWidgetItem* item);
