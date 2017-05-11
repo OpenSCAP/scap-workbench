@@ -267,7 +267,12 @@ void TailoringWindow::synchronizeProfileItem()
 
 void TailoringWindow::synchronizeTreeItem()
 {
+    // If QTreeWidget remains visible during the sync, it'll recalculate its geometry for each checked
+    // row. Configuring "visible" as false seems to be the only way to avoid entering the "if" in
+    // https://github.com/qt/qt/blob/4.8/src/gui/itemviews/qabstractitemview.cpp#L3190
+    mUI.itemsTree->setVisible(false);
     synchronizeTreeItemSelections(mBenchmarkItem);
+    mUI.itemsTree->setVisible(true);
 }
 
 void TailoringWindow::synchronizeTreeItemSelections(QTreeWidgetItem* treeItem)
