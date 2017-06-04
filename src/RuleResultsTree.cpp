@@ -41,6 +41,8 @@ RuleResultsTree::RuleResultsTree(QWidget* parent):
     mInternalLayout->setSpacing(0);
     mInternalLayout->setContentsMargins(4, 4, 4, 4);
     mUI.scrollAreaWidgetContents->setLayout(mInternalLayout);
+
+    setFocusProxy(mUI.scrollArea);
 }
 
 RuleResultsTree::~RuleResultsTree()
