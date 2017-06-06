@@ -26,6 +26,7 @@ RemoteMachineComboBox::RemoteMachineComboBox(QWidget* parent):
     QWidget(parent)
 {
     mUI.setupUi(this);
+    setFocusProxy(mUI.host);
 
 #if (QT_VERSION >= QT_VERSION_CHECK(4, 7, 0))
     // placeholder text is only supported in Qt 4.7 onwards

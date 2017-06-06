@@ -220,7 +220,11 @@
         </widget>
        </item>
        <item row="11" column="0" colspan="3">
-        <widget class="RemoteMachineComboBox" name="remoteMachineDetails" native="true"/>
+        <widget class="RemoteMachineComboBox" name="remoteMachineDetails" native="true">
+         <property name="focusPolicy">
+          <enum>Qt::TabFocus</enum>
+         </property>
+        </widget>
        </item>
       </layout>
      </widget>
@@ -277,6 +281,9 @@
           <horstretch>0</horstretch>
           <verstretch>0</verstretch>
          </sizepolicy>
+        </property>
+        <property name="focusPolicy">
+         <enum>Qt::TabFocus</enum>
         </property>
        </widget>
       </item>
@@ -632,6 +639,25 @@
    <container>1</container>
   </customwidget>
  </customwidgets>
+ <tabstops>
+  <tabstop>checklistComboBox</tabstop>
+  <tabstop>tailoringFileComboBox</tabstop>
+  <tabstop>profileComboBox</tabstop>
+  <tabstop>customizeProfileButton</tabstop>
+  <tabstop>localMachineRadioButton</tabstop>
+  <tabstop>remoteMachineRadioButton</tabstop>
+  <tabstop>remoteMachineDetails</tabstop>
+  <tabstop>expandRulesButton</tabstop>
+  <tabstop>ruleResultsTree</tabstop>
+  <tabstop>showGuideButton</tabstop>
+  <tabstop>dryRunCheckBox</tabstop>
+  <tabstop>fetchRemoteResourcesCheckbox</tabstop>
+  <tabstop>onlineRemediationCheckBox</tabstop>
+  <tabstop>scanButton</tabstop>
+  <tabstop>cancelButton</tabstop>
+  <tabstop>clearButton</tabstop>
+  <tabstop>offlineRemediateButton</tabstop>
+ </tabstops>
  <resources/>
  <connections>
   <connection>
