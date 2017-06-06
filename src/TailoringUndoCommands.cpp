@@ -148,9 +148,9 @@ void XCCDFItemSelectUndoCommand::refreshText()
         title = QString::fromUtf8(xccdf_item_get_id(xccdfItem));
 
     if (mNewSelect)
-        setText(QObject::tr("select \"%1\"").arg(title));
+        setText(QObject::tr("Select Rule \"%1\"").arg(title));
     else
-        setText(QObject::tr("unselect \"%1\"").arg(title));
+        setText(QObject::tr("Deselect Rule \"%1\"").arg(title));
 }
 
 XCCDFValueChangeUndoCommand::XCCDFValueChangeUndoCommand(TailoringWindow* window, struct xccdf_value* xccdfValue, const QString& newValue, const QString& oldValue):

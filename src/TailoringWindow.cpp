@@ -40,10 +40,6 @@
 #include <algorithm>
 #include <cassert>
 
-const QString DESELECT_ALL("Deselect All");
-const QString GROUP_ACTIVATION("Group activation");
-const QString GROUP_DEACTIVATION("Group deactivation");
-
 struct xccdf_item* TailoringWindow::getXccdfItemFromTreeItem(QTreeWidgetItem* treeItem)
 {
     QVariant xccdfItem = treeItem->data(0, Qt::UserRole);
@@ -276,8 +272,9 @@ void TailoringWindow::synchronizeTreeItem()
     synchronizeTreeItemSelections(mBenchmarkItem);
     mUI.itemsTree->setVisible(true);
     
+    // Enables/disables "Deselect All action based on weather the top level rules/groups are checked"
     bool anySelected = false;
-    for(int i = 0; i < mBenchmarkItem->childCount(); ++i)
+    for (int i = 0; i < mBenchmarkItem->childCount(); ++i)
     {
         anySelected |= mBenchmarkItem->child(i)->checkState(0) != Qt::Unchecked;
     }
@@ -426,7 +423,7 @@ const std::vector<struct xccdf_rule*>& TailoringWindow::getRulesAffectedByValue(
 
 void TailoringWindow::deselectAllChildrenItems()
 {
-    createSelectionMacro(mBenchmarkItem, false, DESELECT_ALL);
+    createSelectionMacro(mBenchmarkItem, false, QObject::tr("Deselect All"));
 }
 
 QString TailoringWindow::getProfileID() const
@@ -956,10 +953,15 @@ void TailoringWindow::itemChanged(QTreeWidgetItem* treeItem, int column)
 
     const bool checkState = treeItem->checkState(0) == Qt::Checked;
 
-    if (xccdf_item_get_type(xccdfItem) == XCCDF_BENCHMARK || xccdf_item_get_type(xccdfItem) == XCCDF_GROUP)
-        createSelectionMacro(treeItem, checkState, checkState ? GROUP_ACTIVATION : GROUP_DEACTIVATION);
+    if (xccdf_item_get_type(xccdfItem) == XCCDF_GROUP)
+    {
+        const QString title = oscapItemGetReadableTitle(xccdfItem, mPolicy);
+        createSelectionMacro(treeItem, checkState, checkState ? QObject::tr("Select Group \"%1\"").arg(title) : QObject::tr("Deselect Group \"%1\"").arg(title));
+    }
     else
+    {
         mUndoStack.push(new XCCDFItemSelectUndoCommand(this, treeItem, checkState));
+    }
 }
 
 void TailoringWindow::itemExpanded(QTreeWidgetItem* item)
