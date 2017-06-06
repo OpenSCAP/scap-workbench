@@ -40,6 +40,10 @@
 #include <algorithm>
 #include <cassert>
 
+const QString DESELECT_ALL("Deselect All");
+const QString GROUP_ACTIVATION("Group activation");
+const QString GROUP_DEACTIVATION("Group deactivation");
+
 struct xccdf_item* TailoringWindow::getXccdfItemFromTreeItem(QTreeWidgetItem* treeItem)
 {
     QVariant xccdfItem = treeItem->data(0, Qt::UserRole);
@@ -75,7 +79,10 @@ TailoringWindow::TailoringWindow(struct xccdf_policy* policy, struct xccdf_bench
     mChangesConfirmed(false),
 
     mSearchSkippedItems(0),
-    mSearchCurrentNeedle("")
+    mSearchCurrentNeedle(""),
+    
+    
+    mDeselectAllAction(new QAction(this))
 {
     generateValueAffectsRulesMap(xccdf_benchmark_to_item(benchmark));
 
@@ -183,17 +190,12 @@ TailoringWindow::TailoringWindow(struct xccdf_policy* policy, struct xccdf_bench
 
     mUI.toolBar->addSeparator();
 
-    {
-        QAction* action = new QAction(this);
-        action->setText(QObject::tr("Deselect All"));
-
-        QObject::connect(
-            action, SIGNAL(triggered()),
-            this, SLOT(deselectAllChildrenItems())
-        );
-
-        mUI.toolBar->addAction(action);
-    }
+    mDeselectAllAction->setText(QObject::tr("Deselect All"));
+    QObject::connect(
+        mDeselectAllAction, SIGNAL(triggered()),
+        this, SLOT(deselectAllChildrenItems())
+    );
+    mUI.toolBar->addAction(mDeselectAllAction);
 
     mUI.toolBar->addSeparator();
 
@@ -273,6 +275,13 @@ void TailoringWindow::synchronizeTreeItem()
     mUI.itemsTree->setVisible(false);
     synchronizeTreeItemSelections(mBenchmarkItem);
     mUI.itemsTree->setVisible(true);
+    
+    bool anySelected = false;
+    for(int i = 0; i < mBenchmarkItem->childCount(); ++i)
+    {
+        anySelected |= mBenchmarkItem->child(i)->checkState(0) != Qt::Unchecked;
+    }
+    mDeselectAllAction->setEnabled(anySelected);
 }
 
 void TailoringWindow::synchronizeTreeItemSelections(QTreeWidgetItem* treeItem)
@@ -334,6 +343,28 @@ void TailoringWindow::synchronizeTreeItemSelections(QTreeWidgetItem* treeItem)
     --mSynchronizeItemLock;
 }
 
+void TailoringWindow::createSelectionMacro(QTreeWidgetItem* treeItem, bool checkState, const QString& commandName)
+{
+    mUndoStack.beginMacro(commandName);
+
+    QStack<QTreeWidgetItem*> stack;
+    stack.push(treeItem);
+    while (!stack.isEmpty())
+    {
+        QTreeWidgetItem* curr = stack.pop();
+        bool currCheckState = curr->checkState(0) == Qt::Checked;
+        if ((curr->flags() & Qt::ItemIsUserCheckable) && (treeItem == curr || currCheckState != checkState))
+        {
+            mUndoStack.push(new XCCDFItemSelectUndoCommand(this, curr, checkState));
+        }
+
+        for (int i = 0; i < curr->childCount(); ++i)
+            stack.push(curr->child(i));
+    }
+
+    mUndoStack.endMacro();
+}
+
 void TailoringWindow::setValueValue(struct xccdf_value* xccdfValue, const QString& newValue)
 {
     struct xccdf_setvalue* setvalue = xccdf_setvalue_new();
@@ -393,49 +424,9 @@ const std::vector<struct xccdf_rule*>& TailoringWindow::getRulesAffectedByValue(
     return empty;
 }
 
-void TailoringWindow::deselectAllChildrenItems(QTreeWidgetItem* parent, bool undoMacro)
+void TailoringWindow::deselectAllChildrenItems()
 {
-    if (parent == 0)
-        parent = mBenchmarkItem;
-
-    if (undoMacro)
-    {
-        mUndoStack.beginMacro("Deselect All");
-        mUndoStack.push(new MacroProgressUndoCommand(false));
-    }
-
-    struct xccdf_item* xccdfItem = getXccdfItemFromTreeItem(parent);
-    switch (xccdf_item_get_type(xccdfItem))
-    {
-        case XCCDF_BENCHMARK:
-        case XCCDF_GROUP:
-        {
-            bool emptyGroup = true;
-            for (int i = 0; i < parent->childCount(); ++i) {
-                QTreeWidgetItem* child = parent->child(i);
-                if (child->flags() & Qt::ItemIsUserCheckable)
-                {
-                    deselectAllChildrenItems(child, undoMacro);
-                    emptyGroup = false;
-                }
-            }
-            if (!emptyGroup)
-                break;
-            //fall through
-        }
-        case XCCDF_RULE:
-            if (parent->checkState(0) == Qt::Checked)
-                parent->setCheckState(0, Qt::Unchecked);
-            break;
-        default:
-            break;
-    }
-
-    if (undoMacro)
-    {
-        mUndoStack.push(new MacroProgressUndoCommand(true));
-        mUndoStack.endMacro();
-    }
+    createSelectionMacro(mBenchmarkItem, false, DESELECT_ALL);
 }
 
 QString TailoringWindow::getProfileID() const
@@ -966,32 +957,9 @@ void TailoringWindow::itemChanged(QTreeWidgetItem* treeItem, int column)
     const bool checkState = treeItem->checkState(0) == Qt::Checked;
 
     if (xccdf_item_get_type(xccdfItem) == XCCDF_BENCHMARK || xccdf_item_get_type(xccdfItem) == XCCDF_GROUP)
-    {
-        mUndoStack.beginMacro(checkState ? "Group activation" : "Group deactivation");
-
-        QStack<QTreeWidgetItem*> stack;
-        stack.push(treeItem);
-        while (!stack.isEmpty())
-        {
-            QTreeWidgetItem* curr = stack.pop();
-            bool currCheckState = curr->checkState(0) == Qt::Checked;
-            if (treeItem == curr || ((curr->flags() & Qt::ItemIsUserCheckable) && currCheckState != checkState))
-            {
-                mUndoStack.push(new XCCDFItemSelectUndoCommand(this, curr, checkState));
-            }
-
-            for (int i = 0; i < curr->childCount(); ++i)
-                stack.push(curr->child(i));
-        }
-
-        mUndoStack.endMacro();
-    }
+        createSelectionMacro(treeItem, checkState, checkState ? GROUP_ACTIVATION : GROUP_DEACTIVATION);
     else
-    {
         mUndoStack.push(new XCCDFItemSelectUndoCommand(this, treeItem, checkState));
-    }
-
-
 }
 
 void TailoringWindow::itemExpanded(QTreeWidgetItem* item)
