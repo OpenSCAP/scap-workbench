@@ -24,6 +24,7 @@
 
 #include "ForwardDecls.h"
 #include <QDialog>
+#include <QPushButton>
 
 #include "ui_TailorProfileDialog.h"
 
@@ -37,11 +38,13 @@ class TailorProfileDialog : public QDialog
 
         QString getProfileID() const;
 
-        static bool isProfileIDValid(const QString& id, bool xccdf12);
+    private slots:
+        void onIdLineEditChanged(const QString& newText);
 
     private:
         /// UI designed in Qt Designer
         Ui_TailorProfileDialog mUI;
+        QRegExp mRegexp;
 
         static const QString XCCDF11ProfileIDRegExp;
         static const QString XCCDF12ProfileIDRegExp;

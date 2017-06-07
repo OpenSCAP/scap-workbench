@@ -1251,16 +1251,6 @@ void MainWindow::inheritAndEditProfile(bool shadowed)
         if (dialog.exec() == QDialog::Rejected)
             return;
 
-        if (!dialog.isProfileIDValid(dialog.getProfileID(), xccdf12))
-        {
-            // this branch will not be triggered unless user tries to circumvent the lineedit validation
-            QMessageBox::warning(this,
-                 QObject::tr("Invalid profile ID"),
-                 QObject::tr("Cannot create XCCDF profile with an invalid ID '%1'.").arg(dialog.getProfileID())
-            );
-            return;
-        }
-
         newProfile = mScanningSession->tailorCurrentProfile(shadowed, dialog.getProfileID());
     }
     catch (const std::exception& e)
