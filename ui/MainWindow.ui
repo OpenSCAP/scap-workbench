@@ -222,7 +222,7 @@
        <item row="11" column="0" colspan="3">
         <widget class="RemoteMachineComboBox" name="remoteMachineDetails" native="true">
          <property name="focusPolicy">
-          <enum>Qt::TabFocus</enum>
+          <enum>Qt::StrongFocus</enum>
          </property>
         </widget>
        </item>
