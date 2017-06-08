@@ -27,7 +27,6 @@
 class Application;
 class CommandLineArgsDialog;
 class DiagnosticsDialog;
-class MacroProgressUndoCommand;
 class MainWindow;
 class OscapCapabilities;
 class OscapScannerBase;
