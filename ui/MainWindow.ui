@@ -2,6 +2,9 @@
 <ui version="4.0">
  <class>MainWindow</class>
  <widget class="QMainWindow" name="MainWindow">
+  <property name="styleSheet">
+   <string notr="true">dialogbuttonbox-buttons-have-icons: 0;</string>
+  </property>
   <property name="enabled">
    <bool>true</bool>
   </property>
