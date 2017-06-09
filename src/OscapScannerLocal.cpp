@@ -187,7 +187,7 @@ void OscapScannerLocal::evaluate()
         mCancelRequested = true;
     }
 
-    const unsigned int pollInterval = 100;
+    unsigned int pollInterval = 100;
 
     emit infoMessage(QObject::tr("Processing..."));
     while (!process.waitForFinished(pollInterval))
@@ -201,10 +201,9 @@ void OscapScannerLocal::evaluate()
 
         if (mCancelRequested)
         {
+            pollInterval = 1000;
             emit infoMessage(QObject::tr("Cancellation was requested! Terminating scanning..."));
             process.kill();
-            process.waitForFinished(1000);
-            break;
         }
     }
 
@@ -240,6 +239,10 @@ void OscapScannerLocal::evaluate()
 
             emit infoMessage(QObject::tr("Processing has been finished!"));
         }
+    }
+    else
+    {
+        emit infoMessage(QObject::tr("Scanning cancelled!"));
     }
 
     signalCompletion(mCancelRequested);
