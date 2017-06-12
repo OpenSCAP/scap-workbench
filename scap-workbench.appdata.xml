@@ -23,9 +23,9 @@
         </ul>
     </description>
     <screenshots>
-        <screenshot type="default" width="1280" height="720">https://fedorahosted.org/scap-workbench/raw-attachment/wiki/AppData/1.0-default.png</screenshot>
-        <screenshot width="1280" height="720">https://fedorahosted.org/scap-workbench/raw-attachment/wiki/AppData/1.0-processing.png</screenshot>
-        <screenshot width="1280" height="720">https://fedorahosted.org/scap-workbench/raw-attachment/wiki/AppData/1.0-tailoring.png</screenshot>
+        <screenshot type="default" width="1280" height="720">https://github.com/OpenSCAP/scap-workbench/raw/v1-1/doc/user_manual/default_content_opened.png</screenshot>
+        <screenshot width="1280" height="720">https://github.com/OpenSCAP/scap-workbench/raw/v1-1/doc/user_manual/intro_screenshot.png</screenshot>
+        <screenshot width="1280" height="720">https://github.com/OpenSCAP/scap-workbench/raw/v1-1/doc/user_manual/tailoring_undo_history.png</screenshot>
     </screenshots>
     <url type="homepage">https://www.open-scap.org/tools/scap-workbench</url>
     <updatecontact>open-scap-list@redhat.com</updatecontact>
