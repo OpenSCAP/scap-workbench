@@ -204,5 +204,5 @@ void XCCDFValueChangeUndoCommand::refreshText()
     if (title.isEmpty())
         title = QString::fromUtf8(xccdf_value_get_id(mXccdfValue));
 
-    setText(QObject::tr("set value '%1' to '%2'").arg(title, mNewValue));
+    setText(QObject::tr("Set Value '%1' to '%2'").arg(title, mNewValue));
 }
