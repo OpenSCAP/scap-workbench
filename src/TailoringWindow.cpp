@@ -230,7 +230,6 @@ TailoringWindow::TailoringWindow(struct xccdf_policy* policy, struct xccdf_bench
 
 TailoringWindow::~TailoringWindow()
 {
-    delete mQSettings;
 }
 
 inline bool getXccdfItemInternalSelected(struct xccdf_policy* policy, struct xccdf_item* item)
