@@ -664,6 +664,9 @@ void TailoringWindow::syncCollapsedItem(QTreeWidgetItem* item, QSet<QString>& us
 {
     struct xccdf_item* xccdfItem = getXccdfItemFromTreeItem(item);
     const QString id = QString::fromUtf8(xccdf_item_get_id(xccdfItem));
+    
+    for (int i = 0; i < item->childCount(); ++i)
+        syncCollapsedItem(item->child(i), usedCollapsedIds);
 
     if (mCollapsedItemIds.contains(id))
     {
@@ -674,9 +677,6 @@ void TailoringWindow::syncCollapsedItem(QTreeWidgetItem* item, QSet<QString>& us
     {
         mUI.itemsTree->expandItem(item);
     }
-
-    for (int i = 0; i < item->childCount(); ++i)
-        syncCollapsedItem(item->child(i), usedCollapsedIds);
 }
 
 void TailoringWindow::createTreeItem(QTreeWidgetItem* treeItem, struct xccdf_item* xccdfItem)
