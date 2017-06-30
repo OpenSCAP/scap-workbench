@@ -32,7 +32,6 @@ Application::Application(int& argc, char** argv):
     QApplication(argc, argv),
 
     mShouldQuit(false),
-    mSkipValid(false),
     mTranslator(),
     mMainWindow(0)
 {
@@ -68,8 +67,6 @@ Application::Application(int& argc, char** argv):
         return;
     }
 
-    mMainWindow->setSkipValid(mSkipValid);
-
     // Only open default content if no file to open was given.
     if (!mMainWindow->fileOpened())
         openSSG();
@@ -99,7 +96,7 @@ void Application::processCLI(QStringList& args)
 
     if (args.contains("--skip-valid"))
     {
-        mSkipValid = true;
+        mMainWindow->setSkipValid(true);
         args.removeAll("--skip-valid");
     }
 
