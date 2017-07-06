@@ -272,6 +272,12 @@ to the previous GUI. To undo all of the changes to the profile, click
 
 All of these options will close the customization window.
 
+=== Create new Profile from scratch (optional)
+
+To create a new Profile from scratch select the *(default)* profile and click *Customize*.
+Profiles created this way will not inherit any other profiles and will instead be
+"standalone".
+
 === Save content (optional)
 
 ==== Save just the customization file
