@@ -278,6 +278,9 @@ To create a new Profile from scratch select the *(default)* profile and click *C
 Profiles created this way will not inherit any other profiles and will instead be
 "standalone".
 
+Keep in mind that this won't enable you to create new XCCDF rules or OVAL checks.
+The new profile can only contain checks already in the benchmark.
+
 === Save content (optional)
 
 ==== Save just the customization file
