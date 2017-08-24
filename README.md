@@ -10,7 +10,7 @@ SCAP Workbench is a GUI tool that provides scanning, tailoring
 and validation functionality for SCAP content. It uses openscap library
 to access SCAP functionalities.
 
-Homepage of the project is https://fedorahosted.org/scap-workbench/
+Homepage of the project is https://www.open-scap.org/tools/scap-workbench/
 
 How to run it out of the box
 ----------------------------
@@ -79,7 +79,7 @@ There are 3 ways to get the user manual:
 
  * Click `Help -> User Manual` in the application
  * Open `/usr/share/doc/scap-workbench/user_manual.html` (installed system-wide) or `doc/user_manual.html` (from the tarball) in your browser
- * Open or download [user manual from the website](https://fedorahosted.org/scap-workbench/raw-attachment/wiki/UserManual/user_manual.html)
+ * Open or download [user manual from the website](https://static.open-scap.org/scap-workbench-1.1/)
 
 How to make a tarball
 ---------------------
