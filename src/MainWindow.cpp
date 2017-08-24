@@ -471,6 +471,17 @@ void MainWindow::openSSGDialog(const QString& customDismissLabel)
     delete dialog;
 }
 
+void MainWindow::openTailoringFile(const QString& path)
+{
+    if (!fileOpened())
+        throw MainWindowException("Can't load a tailoring file, SCAP input hasn't been loaded yet.");
+
+    mScanningSession->setTailoringFile(path);
+    markLoadedTailoringFile(path);
+    reloadSession();
+    refreshTailoringProfiles();
+}
+
 void MainWindow::closeMainWindowAsync()
 {
     emit closeMainWindow();
@@ -1042,21 +1053,7 @@ void MainWindow::tailoringFileComboboxChanged(int index)
     reloadSession();
     if (tailoringLoaded)
     {
-        const std::map<QString, struct xccdf_profile*> profiles = mScanningSession->getAvailableProfiles();
-
-        // Select the first tailored profile from the newly loaded tailoring
-        for (std::map<QString, struct xccdf_profile*>::const_iterator it = profiles.begin();
-             it != profiles.end(); ++it)
-        {
-            if (xccdf_profile_get_tailoring(it->second))
-            {
-                const QString profileId = it->first;
-                const int idx = mUI.profileComboBox->findData(QVariant(profileId));
-                if (idx != -1)
-                    mUI.profileComboBox->setCurrentIndex(idx);
-                break;
-            }
-        }
+        refreshTailoringProfiles();
     }
 
     mOldTailoringComboBoxIdx = index;
@@ -1088,6 +1085,25 @@ void MainWindow::profileComboboxChanged(int index)
 
     mUI.ruleResultsTree->refreshSelectedRules(mScanningSession);
     clearResults();
+}
+
+void MainWindow::refreshTailoringProfiles()
+{
+    const std::map<QString, struct xccdf_profile*> profiles = mScanningSession->getAvailableProfiles();
+
+    // Select the first tailored profile from the newly loaded tailoring
+    for (std::map<QString, struct xccdf_profile*>::const_iterator it = profiles.begin();
+         it != profiles.end(); ++it)
+    {
+        if (xccdf_profile_get_tailoring(it->second))
+        {
+            const QString profileId = it->first;
+            const int idx = mUI.profileComboBox->findData(QVariant(profileId));
+            if (idx != -1)
+                mUI.profileComboBox->setCurrentIndex(idx);
+            break;
+        }
+    }
 }
 
 void MainWindow::toggleRuleResultsExpanded()

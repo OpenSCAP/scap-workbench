@@ -69,6 +69,8 @@ class MainWindow : public QMainWindow
 
         void openSSGDialog(const QString& customDismissLabel = "");
 
+        void openTailoringFile(const QString& path);
+
         /**
          * @brief Opens a file dialog and makes user select a file or exit the app
          *
@@ -274,6 +276,11 @@ class MainWindow : public QMainWindow
         void profileComboboxChanged(int index);
 
     private:
+        /**
+         * @brief Refreshes the list of tailoring profiles and loads the first tailored one
+         */
+        void refreshTailoringProfiles();
+
         /**
          * @brief Retrieves number of currently selected rules
          *
