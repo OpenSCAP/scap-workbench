@@ -73,7 +73,7 @@ unsigned int RemoteMachineComboBox::getRecentMachineCount() const
 void RemoteMachineComboBox::notifyTargetUsed(const QString& target)
 {
     QString host;
-    short port;
+    unsigned short port;
     OscapScannerRemoteSsh::splitTarget(target, host, port);
 
     // skip invalid suggestions
@@ -171,7 +171,7 @@ void RemoteMachineComboBox::updateHostPort(int index)
 
 
     QString host;
-    short port;
+    unsigned short port;
 
     OscapScannerRemoteSsh::splitTarget(target, host, port);
 
