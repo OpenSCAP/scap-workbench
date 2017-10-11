@@ -42,8 +42,6 @@
 #include <QMenu>
 
 #include <cassert>
-#include <fcntl.h>
-#include <unistd.h>
 #include <set>
 
 extern "C" {
@@ -254,12 +252,12 @@ MainWindow::MainWindow(QWidget* parent):
     QAction* mGenBashRemediation = new QAction("&bash", this);
     QObject::connect(
         mGenBashRemediation, SIGNAL(triggered()),
-        this, SLOT(genBash())
+        this, SLOT(generateBashRemediationRole())
     );
     QAction* mGenAnsibleRemediation = new QAction("&ansible", this);
     QObject::connect(
         mGenAnsibleRemediation, SIGNAL(triggered()),
-        this, SLOT(genAnsible())
+        this, SLOT(generateAnsibleRemediationRole())
     );
     QMenu* mGenMenu = new QMenu(this);
     mGenMenu->addAction(mGenBashRemediation);
@@ -1552,8 +1550,8 @@ QMessageBox::StandardButton MainWindow::openNewFileQuestionDialog(const QString&
     );
 }
 
-// TODO: Reuse code between genBash and genAnsible
-void MainWindow::genBash()
+// TODO: Reuse code between generateBashRemediationRole and generateAnsibleRemediationRole
+void MainWindow::generateBashRemediationRole()
 {
     const QString filename = QFileDialog::getSaveFileName(this,
         QObject::tr("Save as bash script"),
@@ -1567,15 +1565,15 @@ void MainWindow::genBash()
     if (filename.isEmpty())
         return;
 
-    int output_fd = open(filename.toUtf8(), O_CREAT|O_TRUNC|O_NOFOLLOW|O_WRONLY, 0700);
+    QFile output_file(filename);
+    output_file.open(QIODevice::WriteOnly);
     struct xccdf_session * session = mScanningSession->getXCCDFSession();
     struct xccdf_policy *policy = xccdf_session_get_xccdf_policy(session);
-    xccdf_policy_generate_fix(policy, NULL, "urn:xccdf:fix:script:sh", output_fd);
-    // TODO: close is not found, although it is defined in <unistd.h>
-    // close(output_fd);
+    xccdf_policy_generate_fix(policy, NULL, "urn:xccdf:fix:script:sh", output_file.handle());
+    output_file.close();
 }
 
-void MainWindow::genAnsible()
+void MainWindow::generateAnsibleRemediationRole()
 {
     const QString filename = QFileDialog::getSaveFileName(this,
         QObject::tr("Save as Ansible playbook"),
@@ -1589,10 +1587,10 @@ void MainWindow::genAnsible()
     if (filename.isEmpty())
         return;
 
-    int output_fd = open(filename.toUtf8(), O_CREAT|O_TRUNC|O_NOFOLLOW|O_WRONLY, 0700);
+    QFile output_file(filename);
+    output_file.open(QIODevice::WriteOnly);
     struct xccdf_session * session = mScanningSession->getXCCDFSession();
     struct xccdf_policy *policy = xccdf_session_get_xccdf_policy(session);
-    xccdf_policy_generate_fix(policy, NULL, "urn:xccdf:fix:script:ansible", output_fd);
-    // TODO: close is not found, although it is defined in <unistd.h>
-    // close(output_fd);
+    xccdf_policy_generate_fix(policy, NULL, "urn:xccdf:fix:script:ansible", output_file.handle());
+    output_file.close();
 }

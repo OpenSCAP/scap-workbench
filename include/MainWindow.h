@@ -421,9 +421,9 @@ class MainWindow : public QMainWindow
         void toggleRuleResultsExpanded(bool checked);
 
         /// Pops up a save dialog for a bash remediation
-        void genBash();
+        void generateBashRemediationRole();
         /// Pops up a save dialog for an ansible remediation
-        void genAnsible();
+        void generateAnsibleRemediationRole();
 
     public slots:
         /**
