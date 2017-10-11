@@ -39,8 +39,11 @@
 #include <QAbstractEventDispatcher>
 #include <QCloseEvent>
 #include <QDesktopWidget>
+#include <QMenu>
 
 #include <cassert>
+#include <fcntl.h>
+#include <unistd.h>
 #include <set>
 
 extern "C" {
@@ -247,6 +250,23 @@ MainWindow::MainWindow(QWidget* parent):
 
     // start centered
     move(QApplication::desktop()->screen()->rect().center() - rect().center());
+
+    QAction* mGenBashRemediation = new QAction("&bash", this);
+    QObject::connect(
+        mGenBashRemediation, SIGNAL(triggered()),
+        this, SLOT(genBash())
+    );
+    QAction* mGenAnsibleRemediation = new QAction("&ansible", this);
+    QObject::connect(
+        mGenAnsibleRemediation, SIGNAL(triggered()),
+        this, SLOT(genAnsible())
+    );
+    QMenu* mGenMenu = new QMenu(this);
+    mGenMenu->addAction(mGenBashRemediation);
+    mGenMenu->addAction(mGenAnsibleRemediation);
+    // mGenMenu->addAction(mGenPuppetRemediation);
+    // mGenMenu->addAction(mGenAnacondaRemediation);
+    mUI.genRemediationButton->setMenu(mGenMenu);
 }
 
 MainWindow::~MainWindow()
@@ -1530,4 +1550,49 @@ QMessageBox::StandardButton MainWindow::openNewFileQuestionDialog(const QString&
           "Do you want to proceed?").arg(oldFilepath),
           QMessageBox::Yes | QMessageBox::No, QMessageBox::No
     );
+}
+
+// TODO: Reuse code between genBash and genAnsible
+void MainWindow::genBash()
+{
+    const QString filename = QFileDialog::getSaveFileName(this,
+        QObject::tr("Save as bash script"),
+        QObject::tr("remediate-profile.sh"),
+        QObject::tr("bash scripts (*.sh)"), 0
+#ifndef SCAP_WORKBENCH_USE_NATIVE_FILE_DIALOGS
+        , QFileDialog::DontUseNativeDialog
+#endif
+    );
+
+    if (filename.isEmpty())
+        return;
+
+    int output_fd = open(filename.toUtf8(), O_CREAT|O_TRUNC|O_NOFOLLOW|O_WRONLY, 0700);
+    struct xccdf_session * session = mScanningSession->getXCCDFSession();
+    struct xccdf_policy *policy = xccdf_session_get_xccdf_policy(session);
+    xccdf_policy_generate_fix(policy, NULL, "urn:xccdf:fix:script:sh", output_fd);
+    // TODO: close is not found, although it is defined in <unistd.h>
+    // close(output_fd);
+}
+
+void MainWindow::genAnsible()
+{
+    const QString filename = QFileDialog::getSaveFileName(this,
+        QObject::tr("Save as Ansible playbook"),
+        QObject::tr("remediate-profile.yml"),
+        QObject::tr("ansible playbooks (*.yml)"), 0
+#ifndef SCAP_WORKBENCH_USE_NATIVE_FILE_DIALOGS
+        , QFileDialog::DontUseNativeDialog
+#endif
+    );
+
+    if (filename.isEmpty())
+        return;
+
+    int output_fd = open(filename.toUtf8(), O_CREAT|O_TRUNC|O_NOFOLLOW|O_WRONLY, 0700);
+    struct xccdf_session * session = mScanningSession->getXCCDFSession();
+    struct xccdf_policy *policy = xccdf_session_get_xccdf_policy(session);
+    xccdf_policy_generate_fix(policy, NULL, "urn:xccdf:fix:script:ansible", output_fd);
+    // TODO: close is not found, although it is defined in <unistd.h>
+    // close(output_fd);
 }

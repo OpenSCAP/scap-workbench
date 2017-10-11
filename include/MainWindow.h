@@ -420,6 +420,11 @@ class MainWindow : public QMainWindow
         void toggleRuleResultsExpanded();
         void toggleRuleResultsExpanded(bool checked);
 
+        /// Pops up a save dialog for a bash remediation
+        void genBash();
+        /// Pops up a save dialog for an ansible remediation
+        void genAnsible();
+
     public slots:
         /**
          * @brief Changes state of Expand all/Collapse all button according to boolean received
