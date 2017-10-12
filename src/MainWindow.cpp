@@ -34,6 +34,7 @@
 #include "RPMOpenHelper.h"
 #include "Utils.h"
 #include "SSGIntegrationDialog.h"
+#include "RemediationRoleSaver.h"
 
 #include <QFileDialog>
 #include <QAbstractEventDispatcher>
@@ -249,22 +250,23 @@ MainWindow::MainWindow(QWidget* parent):
     // start centered
     move(QApplication::desktop()->screen()->rect().center() - rect().center());
 
-    QAction* mGenBashRemediation = new QAction("&bash", this);
+    QAction* genBashRemediation = new QAction("&bash", this);
     QObject::connect(
-        mGenBashRemediation, SIGNAL(triggered()),
+        genBashRemediation, SIGNAL(triggered()),
         this, SLOT(generateBashRemediationRole())
     );
-    QAction* mGenAnsibleRemediation = new QAction("&ansible", this);
+    QAction* genAnsibleRemediation = new QAction("&ansible", this);
     QObject::connect(
-        mGenAnsibleRemediation, SIGNAL(triggered()),
+        genAnsibleRemediation, SIGNAL(triggered()),
         this, SLOT(generateAnsibleRemediationRole())
     );
-    QMenu* mGenMenu = new QMenu(this);
-    mGenMenu->addAction(mGenBashRemediation);
-    mGenMenu->addAction(mGenAnsibleRemediation);
-    // mGenMenu->addAction(mGenPuppetRemediation);
-    // mGenMenu->addAction(mGenAnacondaRemediation);
-    mUI.genRemediationButton->setMenu(mGenMenu);
+
+    QMenu* remediationButtonMenu = new QMenu(this);
+    remediationButtonMenu->addAction(genBashRemediation);
+    remediationButtonMenu->addAction(genAnsibleRemediation);
+    // remediationButtonMenu->addAction(mGenPuppetRemediation);
+    // remediationButtonMenu->addAction(mGenAnacondaRemediation);
+    mUI.genRemediationButton->setMenu(remediationButtonMenu);
 }
 
 MainWindow::~MainWindow()
@@ -1553,44 +1555,12 @@ QMessageBox::StandardButton MainWindow::openNewFileQuestionDialog(const QString&
 // TODO: Reuse code between generateBashRemediationRole and generateAnsibleRemediationRole
 void MainWindow::generateBashRemediationRole()
 {
-    const QString filename = QFileDialog::getSaveFileName(this,
-        QObject::tr("Save as bash script"),
-        QObject::tr("remediate-profile.sh"),
-        QObject::tr("bash scripts (*.sh)"), 0
-#ifndef SCAP_WORKBENCH_USE_NATIVE_FILE_DIALOGS
-        , QFileDialog::DontUseNativeDialog
-#endif
-    );
-
-    if (filename.isEmpty())
-        return;
-
-    QFile output_file(filename);
-    output_file.open(QIODevice::WriteOnly);
-    struct xccdf_session * session = mScanningSession->getXCCDFSession();
-    struct xccdf_policy *policy = xccdf_session_get_xccdf_policy(session);
-    xccdf_policy_generate_fix(policy, NULL, "urn:xccdf:fix:script:sh", output_file.handle());
-    output_file.close();
+    BashRemediationSaver saver(this, mScanningSession);
+    saver.SelectFilenameAndSaveRole();
 }
 
 void MainWindow::generateAnsibleRemediationRole()
 {
-    const QString filename = QFileDialog::getSaveFileName(this,
-        QObject::tr("Save as Ansible playbook"),
-        QObject::tr("remediate-profile.yml"),
-        QObject::tr("ansible playbooks (*.yml)"), 0
-#ifndef SCAP_WORKBENCH_USE_NATIVE_FILE_DIALOGS
-        , QFileDialog::DontUseNativeDialog
-#endif
-    );
-
-    if (filename.isEmpty())
-        return;
-
-    QFile output_file(filename);
-    output_file.open(QIODevice::WriteOnly);
-    struct xccdf_session * session = mScanningSession->getXCCDFSession();
-    struct xccdf_policy *policy = xccdf_session_get_xccdf_policy(session);
-    xccdf_policy_generate_fix(policy, NULL, "urn:xccdf:fix:script:ansible", output_file.handle());
-    output_file.close();
+    AnsibleRemediationSaver saver(this, mScanningSession);
+    saver.SelectFilenameAndSaveRole();
 }

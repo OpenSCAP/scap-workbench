@@ -360,10 +360,10 @@
              <item>
               <widget class="QPushButton" name="genRemediationButton">
                <property name="toolTip">
-                <string>Generate remediations of all possible failiures that the selected profile can cover.</string>
+                <string>Generate remediation role that contains fix for every single rule the in the profile. Note that not every rule implements a fix.</string>
                </property>
                <property name="text">
-                <string>Get profile remediations</string>
+                <string>Generate remediation role</string>
                </property>
               </widget>
              </item>
