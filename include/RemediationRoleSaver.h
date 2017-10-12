@@ -1,3 +1,24 @@
+/*
+ * Copyright 2013 Red Hat Inc., Durham, North Carolina.
+ * All Rights Reserved.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * Authors:
+ *      Martin Preisler <mpreisle@redhat.com>
+ */
+
 #ifndef SCAP_WORKBENCH_REMEDIATION_ROLE_SAVER_H_
 #define SCAP_WORKBENCH_REMEDIATION_ROLE_SAVER_H_
 
@@ -19,7 +40,7 @@ extern "C"
 class RemediationSaverBase
 {
     public:
-	RemediationSaverBase(QWidget* parentWindow, ScanningSession* session): mParentWindow(parentWindow), mScanningSession(session) {}
+    RemediationSaverBase(QWidget* parentWindow, ScanningSession* session): mParentWindow(parentWindow), mScanningSession(session) {}
         void SelectFilenameAndSaveRole();
 
     protected:
@@ -40,26 +61,14 @@ class RemediationSaverBase
 class BashRemediationSaver : public RemediationSaverBase
 {
     public:
-	BashRemediationSaver(QWidget* parentWindow, ScanningSession* session):RemediationSaverBase(parentWindow, session)
-	{
-	    mSaveMessage = QObject::tr("Save remediation role as a bash script");
-	    mFiletypeExtension = "sh";
-	    mFiletypeTemplate = QObject::tr("bash script (*.%1)");
-	    mFixTemplate = QObject::tr("urn:xccdf:fix:script:sh");
-        }
+        BashRemediationSaver(QWidget* parentWindow, ScanningSession* session);
 };
 
 
 class AnsibleRemediationSaver : public RemediationSaverBase
 {
     public:
-	AnsibleRemediationSaver(QWidget* parentWindow, ScanningSession* session):RemediationSaverBase(parentWindow, session)
-	{
-	    mSaveMessage = QObject::tr("Save remediation role as an ansible playbook");
-	    mFiletypeExtension = "yml";
-	    mFiletypeTemplate = QObject::tr("ansible playbook (*.%1)");
-	    mFixTemplate = QObject::tr("urn:xccdf:fix:script:ansible");
-        }
+        AnsibleRemediationSaver(QWidget* parentWindow, ScanningSession* session);
 };
 
 #endif // SCAP_WORKBENCH_REMEDIATION_ROLE_SAVER_H_
