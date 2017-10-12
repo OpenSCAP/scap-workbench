@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2017 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -16,7 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  * Authors:
- *      Martin Preisler <mpreisle@redhat.com>
+ *      Matej Tyc <matyc@redhat.com>
  */
 
 #ifndef SCAP_WORKBENCH_REMEDIATION_ROLE_SAVER_H_
@@ -40,8 +40,9 @@ extern "C"
 class RemediationSaverBase
 {
     public:
-    RemediationSaverBase(QWidget* parentWindow, ScanningSession* session): mParentWindow(parentWindow), mScanningSession(session) {}
-        void SelectFilenameAndSaveRole();
+        RemediationSaverBase(QWidget* parentWindow, ScanningSession* session):
+            mParentWindow(parentWindow), mScanningSession(session) {}
+        void selectFilenameAndSaveRole();
 
     protected:
         const ScanningSession* mScanningSession;
@@ -53,8 +54,8 @@ class RemediationSaverBase
         QString mFixTemplate;
 
     private:
-        int SaveToFile(const QString& filename);
-        QString guessFilenameStem();
+        int saveToFile(const QString& filename);
+        QString guessFilenameStem() const;
 };
 
 

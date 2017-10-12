@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 Red Hat Inc., Durham, North Carolina.
+ * Copyright 2017 Red Hat Inc., Durham, North Carolina.
  * All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -16,12 +16,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  * Authors:
- *      Martin Preisler <mpreisle@redhat.com>
+ *      Matej Tyc <matyc@redhat.com>
  */
 
 #include "RemediationRoleSaver.h"
 
-void RemediationSaverBase::SelectFilenameAndSaveRole()
+void RemediationSaverBase::selectFilenameAndSaveRole()
 {
     const QString filename = QFileDialog::getSaveFileName(mParentWindow,
         mSaveMessage.toUtf8(),
@@ -35,7 +35,7 @@ void RemediationSaverBase::SelectFilenameAndSaveRole()
     if (filename.isEmpty())
         return;
 
-    int result = SaveToFile(filename);
+    const int result = saveToFile(filename);
     if (result == 0)
     {
         // TODO: if OK
@@ -46,7 +46,7 @@ void RemediationSaverBase::SelectFilenameAndSaveRole()
     }
 }
 
-int RemediationSaverBase::SaveToFile(const QString& filename)
+int RemediationSaverBase::saveToFile(const QString& filename)
 {
     QFile outputFile(filename);
     outputFile.open(QIODevice::WriteOnly);
@@ -57,7 +57,7 @@ int RemediationSaverBase::SaveToFile(const QString& filename)
     return result;
 }
 
-QString RemediationSaverBase::guessFilenameStem()
+QString RemediationSaverBase::guessFilenameStem() const
 {
     // TODO: Add guess that uses benchmark and profile names
     return QString("remediation");

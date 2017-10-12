@@ -1552,15 +1552,14 @@ QMessageBox::StandardButton MainWindow::openNewFileQuestionDialog(const QString&
     );
 }
 
-// TODO: Reuse code between generateBashRemediationRole and generateAnsibleRemediationRole
 void MainWindow::generateBashRemediationRole()
 {
     BashRemediationSaver saver(this, mScanningSession);
-    saver.SelectFilenameAndSaveRole();
+    saver.selectFilenameAndSaveRole();
 }
 
 void MainWindow::generateAnsibleRemediationRole()
 {
     AnsibleRemediationSaver saver(this, mScanningSession);
-    saver.SelectFilenameAndSaveRole();
+    saver.selectFilenameAndSaveRole();
 }
