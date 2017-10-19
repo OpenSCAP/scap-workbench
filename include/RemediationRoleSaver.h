@@ -45,7 +45,7 @@ class RemediationSaverBase
         QString mFixTemplate;
 
     private:
-        int saveToFile(const QString& filename);
+        void saveToFile(const QString& filename);
         QString guessFilenameStem() const;
 };
 

@@ -62,7 +62,7 @@ void RemediationSaverBase::selectFilenameAndSaveRole()
     }
 }
 
-int RemediationSaverBase::saveToFile(const QString& filename)
+void RemediationSaverBase::saveToFile(const QString& filename)
 {
     QFile outputFile(filename);
     outputFile.open(QIODevice::WriteOnly);
@@ -77,7 +77,6 @@ int RemediationSaverBase::saveToFile(const QString& filename)
             err = "Unknown error";
         throw std::runtime_error(err);
     }
-    return result;
 }
 
 QString RemediationSaverBase::guessFilenameStem() const
