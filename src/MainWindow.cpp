@@ -34,11 +34,13 @@
 #include "RPMOpenHelper.h"
 #include "Utils.h"
 #include "SSGIntegrationDialog.h"
+#include "RemediationRoleSaver.h"
 
 #include <QFileDialog>
 #include <QAbstractEventDispatcher>
 #include <QCloseEvent>
 #include <QDesktopWidget>
+#include <QMenu>
 
 #include <cassert>
 #include <set>
@@ -247,6 +249,28 @@ MainWindow::MainWindow(QWidget* parent):
 
     // start centered
     move(QApplication::desktop()->screen()->rect().center() - rect().center());
+
+    QAction* genBashRemediation = new QAction("&bash", this);
+    QObject::connect(
+        genBashRemediation, SIGNAL(triggered()),
+        this, SLOT(generateBashRemediationRole())
+    );
+    QAction* genAnsibleRemediation = new QAction("&ansible", this);
+    QObject::connect(
+        genAnsibleRemediation, SIGNAL(triggered()),
+        this, SLOT(generateAnsibleRemediationRole())
+    );
+    QAction* genPuppetRemediation = new QAction("&puppet", this);
+    QObject::connect(
+        genPuppetRemediation, SIGNAL(triggered()),
+        this, SLOT(generatePuppetRemediationRole())
+    );
+
+    QMenu* remediationButtonMenu = new QMenu(this);
+    remediationButtonMenu->addAction(genBashRemediation);
+    remediationButtonMenu->addAction(genAnsibleRemediation);
+    remediationButtonMenu->addAction(genPuppetRemediation);
+    mUI.genRemediationButton->setMenu(remediationButtonMenu);
 }
 
 MainWindow::~MainWindow()
@@ -1530,4 +1554,22 @@ QMessageBox::StandardButton MainWindow::openNewFileQuestionDialog(const QString&
           "Do you want to proceed?").arg(oldFilepath),
           QMessageBox::Yes | QMessageBox::No, QMessageBox::No
     );
+}
+
+void MainWindow::generateBashRemediationRole()
+{
+    BashRemediationSaver saver(this, mScanningSession);
+    saver.selectFilenameAndSaveRole();
+}
+
+void MainWindow::generateAnsibleRemediationRole()
+{
+    AnsibleRemediationSaver saver(this, mScanningSession);
+    saver.selectFilenameAndSaveRole();
+}
+
+void MainWindow::generatePuppetRemediationRole()
+{
+    PuppetRemediationSaver saver(this, mScanningSession);
+    saver.selectFilenameAndSaveRole();
 }
