@@ -19,7 +19,23 @@
  *      Matej Tyc <matyc@redhat.com>
  */
 
+#include <stdexcept>
+#include <iostream>
+
+#include <QFile>
+
+extern "C"
+{
+#include <oscap_error.h>
+#include <xccdf_benchmark.h>
+#include <xccdf_policy.h>
+#include <xccdf_session.h>
+}
+
 #include "RemediationRoleSaver.h"
+
+RemediationSaverBase::RemediationSaverBase(QWidget* parentWindow, ScanningSession* session):
+    mParentWindow(parentWindow), mScanningSession(session) {}
 
 void RemediationSaverBase::selectFilenameAndSaveRole()
 {
@@ -35,14 +51,14 @@ void RemediationSaverBase::selectFilenameAndSaveRole()
     if (filename.isEmpty())
         return;
 
-    const int result = saveToFile(filename);
-    if (result == 0)
-    {
-        // TODO: if OK
+    try {
+        saveToFile(filename);
+        // TODO: if OK - inform the user
     }
-    else
+    catch (std::exception& exc)
     {
-        // TODO: if not OK
+        // TODO: if not OK - show error message
+        std::cerr << QObject::tr("Error saving remediation role: %1\n").arg(exc.what()).toUtf8().constData();
     }
 }
 
@@ -54,6 +70,13 @@ int RemediationSaverBase::saveToFile(const QString& filename)
     struct xccdf_policy* policy = xccdf_session_get_xccdf_policy(session);
     int result = xccdf_policy_generate_fix(policy, NULL, mFixTemplate.toUtf8(), outputFile.handle());
     outputFile.close();
+    if (result != 0)
+    {
+        const char* err = oscap_err_desc();
+        if (err == NULL)
+            err = "Unknown error";
+        throw std::runtime_error(err);
+    }
     return result;
 }
 
@@ -79,4 +102,13 @@ AnsibleRemediationSaver::AnsibleRemediationSaver(QWidget* parentWindow, Scanning
     mFiletypeExtension = "yml";
     mFiletypeTemplate = QObject::tr("ansible playbook (*.%1)");
     mFixTemplate = QObject::tr("urn:xccdf:fix:script:ansible");
+}
+
+
+PuppetRemediationSaver::PuppetRemediationSaver(QWidget* parentWindow, ScanningSession* session):RemediationSaverBase(parentWindow, session)
+{
+    mSaveMessage = QObject::tr("Save remediation role as a puppet manifest");
+    mFiletypeExtension = "pp";
+    mFiletypeTemplate = QObject::tr("puppet manifest (*.%1)");
+    mFixTemplate = QObject::tr("urn:xccdf:fix:script:puppet");
 }

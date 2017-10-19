@@ -260,12 +260,16 @@ MainWindow::MainWindow(QWidget* parent):
         genAnsibleRemediation, SIGNAL(triggered()),
         this, SLOT(generateAnsibleRemediationRole())
     );
+    QAction* genPuppetRemediation = new QAction("&puppet", this);
+    QObject::connect(
+        genPuppetRemediation, SIGNAL(triggered()),
+        this, SLOT(generatePuppetRemediationRole())
+    );
 
     QMenu* remediationButtonMenu = new QMenu(this);
     remediationButtonMenu->addAction(genBashRemediation);
     remediationButtonMenu->addAction(genAnsibleRemediation);
-    // remediationButtonMenu->addAction(mGenPuppetRemediation);
-    // remediationButtonMenu->addAction(mGenAnacondaRemediation);
+    remediationButtonMenu->addAction(genPuppetRemediation);
     mUI.genRemediationButton->setMenu(remediationButtonMenu);
 }
 
@@ -1561,5 +1565,11 @@ void MainWindow::generateBashRemediationRole()
 void MainWindow::generateAnsibleRemediationRole()
 {
     AnsibleRemediationSaver saver(this, mScanningSession);
+    saver.selectFilenameAndSaveRole();
+}
+
+void MainWindow::generatePuppetRemediationRole()
+{
+    PuppetRemediationSaver saver(this, mScanningSession);
     saver.selectFilenameAndSaveRole();
 }

@@ -26,22 +26,13 @@
 #include "ScanningSession.h"
 
 #include <QString>
-#include <QFile>
 #include <QFileDialog>
-
-extern "C"
-{
-#include <xccdf_benchmark.h>
-#include <xccdf_policy.h>
-#include <xccdf_session.h>
-}
 
 
 class RemediationSaverBase
 {
     public:
-        RemediationSaverBase(QWidget* parentWindow, ScanningSession* session):
-            mParentWindow(parentWindow), mScanningSession(session) {}
+        RemediationSaverBase(QWidget* parentWindow, ScanningSession* session);
         void selectFilenameAndSaveRole();
 
     protected:
@@ -71,5 +62,12 @@ class AnsibleRemediationSaver : public RemediationSaverBase
     public:
         AnsibleRemediationSaver(QWidget* parentWindow, ScanningSession* session);
 };
+
+class PuppetRemediationSaver : public RemediationSaverBase
+{
+    public:
+        PuppetRemediationSaver(QWidget* parentWindow, ScanningSession* session);
+};
+
 
 #endif // SCAP_WORKBENCH_REMEDIATION_ROLE_SAVER_H_

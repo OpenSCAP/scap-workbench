@@ -424,6 +424,8 @@ class MainWindow : public QMainWindow
         void generateBashRemediationRole();
         /// Pops up a save dialog for an ansible remediation (based just on the currently selected profile)
         void generateAnsibleRemediationRole();
+        /// Pops up a save dialog for an puppet remediation (based just on the currently selected profile)
+        void generatePuppetRemediationRole();
 
     public slots:
         /**
