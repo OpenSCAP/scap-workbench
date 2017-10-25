@@ -35,6 +35,7 @@
 #include "Utils.h"
 #include "SSGIntegrationDialog.h"
 #include "RemediationRoleSaver.h"
+#include "RemediationRoleSaver.cpp"
 
 #include <QFileDialog>
 #include <QAbstractEventDispatcher>
@@ -1558,18 +1559,18 @@ QMessageBox::StandardButton MainWindow::openNewFileQuestionDialog(const QString&
 
 void MainWindow::generateBashRemediationRole()
 {
-    BashRemediationSaver saver(this, mScanningSession);
+    BashProfileRemediationSaver saver(this, mScanningSession);
     saver.selectFilenameAndSaveRole();
 }
 
 void MainWindow::generateAnsibleRemediationRole()
 {
-    AnsibleRemediationSaver saver(this, mScanningSession);
+    AnsibleProfileRemediationSaver saver(this, mScanningSession);
     saver.selectFilenameAndSaveRole();
 }
 
 void MainWindow::generatePuppetRemediationRole()
 {
-    PuppetRemediationSaver saver(this, mScanningSession);
+    PuppetProfileRemediationSaver saver(this, mScanningSession);
     saver.selectFilenameAndSaveRole();
 }

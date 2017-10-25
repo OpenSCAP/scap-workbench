@@ -34,10 +34,15 @@ extern "C"
 
 #include "RemediationRoleSaver.h"
 
-RemediationSaverBase::RemediationSaverBase(QWidget* parentWindow, ScanningSession* session):
-    mParentWindow(parentWindow), mScanningSession(session) {}
 
-void RemediationSaverBase::selectFilenameAndSaveRole()
+template <QString* saveMessage, QString* filetypeExtension, QString* filetypeTemplate, QString* fixType>
+RemediationSaverBase<saveMessage, filetypeExtension, filetypeTemplate, fixType>::RemediationSaverBase(QWidget* parentWindow):
+    mParentWindow(parentWindow), mSaveMessage(*saveMessage), mFiletypeExtension(*filetypeExtension), mFiletypeTemplate(*filetypeTemplate), mFixType(*fixType)
+{}
+
+
+template <QString* saveMessage, QString* filetypeExtension, QString* filetypeTemplate, QString* fixType>
+void RemediationSaverBase<saveMessage, filetypeExtension, filetypeTemplate, fixType>::selectFilenameAndSaveRole()
 {
     const QString filename = QFileDialog::getSaveFileName(mParentWindow,
         mSaveMessage.toUtf8(),
@@ -53,22 +58,54 @@ void RemediationSaverBase::selectFilenameAndSaveRole()
 
     try {
         saveToFile(filename);
-        // TODO: if OK - inform the user
+        saveFileOK(filename);
     }
     catch (std::exception& exc)
     {
-        // TODO: if not OK - show error message
-        std::cerr << QObject::tr("Error saving remediation role: %1\n").arg(exc.what()).toUtf8().constData();
+        saveFileError(filename, QString::fromUtf8(exc.what()));
     }
 }
 
-void RemediationSaverBase::saveToFile(const QString& filename)
+
+template <QString* saveMessage, QString* filetypeExtension, QString* filetypeTemplate, QString* fixType>
+void RemediationSaverBase<saveMessage, filetypeExtension, filetypeTemplate, fixType>::saveFileOK(const QString& filename)
+{
+    // TODO: if OK - inform the user
+}
+
+
+template <QString* saveMessage, QString* filetypeExtension, QString* filetypeTemplate, QString* fixType>
+void RemediationSaverBase<saveMessage, filetypeExtension, filetypeTemplate, fixType>::saveFileError(const QString& filename, const QString& error_msg)
+{
+    // TODO: if not OK - show error message
+    std::cerr << QObject::tr("Error saving remediation role: %1\n").arg(error_msg).toUtf8().constData();
+}
+
+
+template <QString* saveMessage, QString* filetypeExtension, QString* filetypeTemplate, QString* fixType>
+QString RemediationSaverBase<saveMessage, filetypeExtension, filetypeTemplate, fixType>::guessFilenameStem() const
+{
+    // TODO: Add guess that uses benchmark and profile names
+    return QString("remediation");
+}
+
+
+template <QString* saveMessage, QString* filetypeExtension, QString* filetypeTemplate, QString* fixType>
+ProfileBasedRemediationSaver<saveMessage, filetypeExtension, filetypeTemplate, fixType>::ProfileBasedRemediationSaver(QWidget* parentWindow, ScanningSession* session):
+    RemediationSaverBase<saveMessage, filetypeExtension, filetypeTemplate, fixType>(parentWindow), mScanningSession(session)
+{}
+
+
+template <QString* saveMessage, QString* filetypeExtension, QString* filetypeTemplate, QString* fixType>
+void ProfileBasedRemediationSaver<saveMessage, filetypeExtension, filetypeTemplate, fixType>::saveToFile(const QString& filename)
 {
     QFile outputFile(filename);
     outputFile.open(QIODevice::WriteOnly);
     struct xccdf_session* session = mScanningSession->getXCCDFSession();
     struct xccdf_policy* policy = xccdf_session_get_xccdf_policy(session);
-    int result = xccdf_policy_generate_fix(policy, NULL, mFixTemplate.toUtf8(), outputFile.handle());
+    QString role_template("urn:xccdf:fix:script:%1");
+    role_template = role_template.arg(RemediationSaverBase<saveMessage, filetypeExtension, filetypeTemplate, fixType>::mFixType);
+    int result = xccdf_policy_generate_fix(policy, NULL, RemediationSaverBase<saveMessage, filetypeExtension, filetypeTemplate, fixType>::mFixType.toUtf8(), outputFile.handle());
     outputFile.close();
     if (result != 0)
     {
@@ -79,35 +116,15 @@ void RemediationSaverBase::saveToFile(const QString& filename)
     }
 }
 
-QString RemediationSaverBase::guessFilenameStem() const
+
+template <QString* saveMessage, QString* filetypeExtension, QString* filetypeTemplate, QString* fixType>
+ResultBasedRemediationSaver<saveMessage, filetypeExtension, filetypeTemplate, fixType>::ResultBasedRemediationSaver(QWidget* parentWindow, OscapScannerLocal* scanner):
+    RemediationSaverBase<saveMessage, filetypeExtension, filetypeTemplate, fixType>(parentWindow), mScanner(scanner)
+{}
+
+
+template <QString* saveMessage, QString* filetypeExtension, QString* filetypeTemplate, QString* fixType>
+void ResultBasedRemediationSaver<saveMessage, filetypeExtension, filetypeTemplate, fixType>::saveToFile(const QString& filename)
 {
-    // TODO: Add guess that uses benchmark and profile names
-    return QString("remediation");
-}
-
-
-BashRemediationSaver::BashRemediationSaver(QWidget* parentWindow, ScanningSession* session):RemediationSaverBase(parentWindow, session)
-{
-    mSaveMessage = QObject::tr("Save remediation role as a bash script");
-    mFiletypeExtension = "sh";
-    mFiletypeTemplate = QObject::tr("bash script (*.%1)");
-    mFixTemplate = QObject::tr("urn:xccdf:fix:script:sh");
-}
-
-
-AnsibleRemediationSaver::AnsibleRemediationSaver(QWidget* parentWindow, ScanningSession* session):RemediationSaverBase(parentWindow, session)
-{
-    mSaveMessage = QObject::tr("Save remediation role as an ansible playbook");
-    mFiletypeExtension = "yml";
-    mFiletypeTemplate = QObject::tr("ansible playbook (*.%1)");
-    mFixTemplate = QObject::tr("urn:xccdf:fix:script:ansible");
-}
-
-
-PuppetRemediationSaver::PuppetRemediationSaver(QWidget* parentWindow, ScanningSession* session):RemediationSaverBase(parentWindow, session)
-{
-    mSaveMessage = QObject::tr("Save remediation role as a puppet manifest");
-    mFiletypeExtension = "pp";
-    mFiletypeTemplate = QObject::tr("puppet manifest (*.%1)");
-    mFixTemplate = QObject::tr("urn:xccdf:fix:script:puppet");
+    mScanner->createRemediationRoleAfterEvaluate(RemediationSaverBase<saveMessage, filetypeExtension, filetypeTemplate, fixType>::mFixType, filename);
 }

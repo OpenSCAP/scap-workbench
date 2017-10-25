@@ -22,52 +22,88 @@
 #ifndef SCAP_WORKBENCH_REMEDIATION_ROLE_SAVER_H_
 #define SCAP_WORKBENCH_REMEDIATION_ROLE_SAVER_H_
 
-#include "ForwardDecls.h"
-#include "ScanningSession.h"
-
 #include <QString>
 #include <QFileDialog>
 
+#include "ScanningSession.h"
+#include "OscapScannerLocal.h"
 
+
+/// Base for all remediation generators
+template <QString* saveMessage, QString* filetypeExtension, QString* filetypeTemplate, QString* fixType>
 class RemediationSaverBase
 {
     public:
-        RemediationSaverBase(QWidget* parentWindow, ScanningSession* session);
+        RemediationSaverBase(QWidget* parentWindow);
         void selectFilenameAndSaveRole();
 
     protected:
-        const ScanningSession* mScanningSession;
+        void saveFileError(const QString& filename, const QString& error_msg);
+        void saveFileOK(const QString& filename);
+
         QWidget* mParentWindow;
 
         QString mSaveMessage;
         QString mFiletypeExtension;
         QString mFiletypeTemplate;
-        QString mFixTemplate;
+        QString mFixType;
 
     private:
-        void saveToFile(const QString& filename);
+        virtual void saveToFile(const QString& filename) = 0;
         QString guessFilenameStem() const;
 };
 
 
-class BashRemediationSaver : public RemediationSaverBase
+/// Base for all profile-based remediation generators
+template <QString* saveMessage, QString* filetypeExtension, QString* filetypeTemplate, QString* fixType>
+class ProfileBasedRemediationSaver : public RemediationSaverBase<saveMessage, filetypeExtension, filetypeTemplate, fixType>
 {
     public:
-        BashRemediationSaver(QWidget* parentWindow, ScanningSession* session);
+        ProfileBasedRemediationSaver(QWidget* parentWindow, ScanningSession* session);
+
+    private:
+        virtual void saveToFile(const QString& filename) override;
+        const ScanningSession* mScanningSession;
 };
 
 
-class AnsibleRemediationSaver : public RemediationSaverBase
+/// Base for all result-based remediation generators
+template <QString* saveMessage, QString* filetypeExtension, QString* filetypeTemplate, QString* fixType>
+class ResultBasedRemediationSaver : public RemediationSaverBase<saveMessage, filetypeExtension, filetypeTemplate, fixType>
 {
     public:
-        AnsibleRemediationSaver(QWidget* parentWindow, ScanningSession* session);
+        ResultBasedRemediationSaver(QWidget* parentWindow, OscapScannerLocal* scanner);
+
+    private:
+        virtual void saveToFile(const QString& filename) override;
+        OscapScannerLocal* mScanner;
 };
 
-class PuppetRemediationSaver : public RemediationSaverBase
-{
-    public:
-        PuppetRemediationSaver(QWidget* parentWindow, ScanningSession* session);
-};
+
+static QString bashSaveMessage = QObject::tr("Save remediation role as a bash script");
+static QString bashFiletypeExtension = "sh";
+static QString bashFiletypeTemplate = QObject::tr("bash script (*.%1)");
+static QString bashFixTemplate = QString("sh");
+static QString bashFixType = QString("bash");
+
+static QString ansibleSaveMessage = QObject::tr("Save remediation role as an ansible playbook");
+static QString ansibleFiletypeExtension = "yml";
+static QString ansibleFiletypeTemplate = QObject::tr("ansible playbook (*.%1)");
+static QString ansibleFixType = QString("ansible");
+
+static QString puppetSaveMessage = QObject::tr("Save remediation role as a puppet manifest");
+static QString puppetFiletypeExtension = "pp";
+static QString puppetFiletypeTemplate = QObject::tr("puppet manifest (*.%1)");
+static QString puppetFixType = QString("puppet");
+
+
+typedef ProfileBasedRemediationSaver<&bashSaveMessage, &bashFiletypeExtension, &bashFiletypeTemplate, &bashFixTemplate> BashProfileRemediationSaver;
+typedef ProfileBasedRemediationSaver<&ansibleSaveMessage, &ansibleFiletypeExtension, &ansibleFiletypeTemplate, &ansibleFixType> AnsibleProfileRemediationSaver;
+typedef ProfileBasedRemediationSaver<&puppetSaveMessage, &puppetFiletypeExtension, &puppetFiletypeTemplate, &puppetFixType> PuppetProfileRemediationSaver;
+
+typedef ResultBasedRemediationSaver<&bashSaveMessage, &bashFiletypeExtension, &bashFiletypeTemplate, &bashFixType> BashResultRemediationSaver;
+typedef ResultBasedRemediationSaver<&ansibleSaveMessage, &ansibleFiletypeExtension, &ansibleFiletypeTemplate, &ansibleFixType> AnsibleResultRemediationSaver;
+typedef ResultBasedRemediationSaver<&puppetSaveMessage, &puppetFiletypeExtension, &puppetFiletypeTemplate, &puppetFixType> PuppetResultRemediationSaver;
 
 
 #endif // SCAP_WORKBENCH_REMEDIATION_ROLE_SAVER_H_
