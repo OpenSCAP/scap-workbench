@@ -44,6 +44,10 @@ class OscapScannerBase : public Scanner
         virtual void getReport(QByteArray& destination);
         virtual void getARF(QByteArray& destination);
 
+        static QStringList createRemediationRole(const QString& arfFile,
+                                                 const QString& fix_type,
+                                                 const QString& scriptFile);
+
     protected:
         virtual void signalCompletion(bool canceled);
 

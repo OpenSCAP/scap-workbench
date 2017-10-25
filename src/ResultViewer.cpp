@@ -21,8 +21,12 @@
 
 #include "ResultViewer.h"
 #include "Scanner.h"
+#include "OscapScannerBase.h"
+#include "OscapScannerLocal.h"
 #include "ScanningSession.h"
 #include "Utils.h"
+#include "RemediationRoleSaver.h"
+#include "RemediationRoleSaver.cpp"
 
 #include <QFileDialog>
 #include <QMessageBox>
@@ -30,7 +34,7 @@
 ResultViewer::ResultViewer(QWidget* parent):
     QWidget(parent),
 
-    mReportFile(0)
+    mReportFile(0), mCurrentLocalScanner(NULL)
 {
     mUI.setupUi(this);
 
@@ -54,6 +58,28 @@ ResultViewer::ResultViewer(QWidget* parent):
     mSaveMenu->addAction(mSaveARFAction);
     mSaveMenu->addAction(mSaveReportAction);
     mUI.saveButton->setMenu(mSaveMenu);
+
+    // TODO: Are the menu and actions neccessary as class atributes?
+    QAction* mGenBashRemediation = new QAction("&bash", this);
+    QObject::connect(
+        mGenBashRemediation, SIGNAL(triggered()),
+        this, SLOT(generateBashRemediationRole())
+    );
+    QAction* mGenAnsibleRemediation = new QAction("&ansible", this);
+    QObject::connect(
+        mGenAnsibleRemediation, SIGNAL(triggered()),
+        this, SLOT(generateAnsibleRemediationRole())
+    );
+    QAction* mGenPuppetRemediation = new QAction("&puppet", this);
+    QObject::connect(
+        mGenPuppetRemediation, SIGNAL(triggered()),
+        this, SLOT(generatePuppetRemediationRole())
+    );
+    QMenu* genMenu = new QMenu(this);
+    genMenu->addAction(mGenBashRemediation);
+    genMenu->addAction(mGenAnsibleRemediation);
+    genMenu->addAction(mGenPuppetRemediation);
+    mUI.genRemediationButton->setMenu(genMenu);
 
     QObject::connect(
         mUI.openReportButton, SIGNAL(clicked()),
@@ -98,6 +124,11 @@ void ResultViewer::loadContent(Scanner* scanner)
 
     mARF.clear();
     scanner->getARF(mARF);
+
+    mCurrentLocalScanner = NULL;
+    if (scanner->getTarget() == QString("localhost"))
+        // If the target is localhost, we are dealing with OscapScannerLocal
+        mCurrentLocalScanner = (OscapScannerLocal*)scanner;
 }
 
 const QByteArray& ResultViewer::getARF() const
@@ -143,6 +174,26 @@ void ResultViewer::openReport()
     openUrlGuarded(QUrl::fromLocalFile(mReportFile->fileName()));
 
     // the temporary file will be destroyed when SCAP Workbench closes or after another one is requested
+}
+
+
+void ResultViewer::generateBashRemediationRole()
+{
+    // TODO: Other scanners may be used.
+    BashResultRemediationSaver remediation(this, mCurrentLocalScanner);
+    remediation.selectFilenameAndSaveRole();
+}
+
+void ResultViewer::generateAnsibleRemediationRole()
+{
+    AnsibleResultRemediationSaver remediation(this, mCurrentLocalScanner);
+    remediation.selectFilenameAndSaveRole();
+}
+
+void ResultViewer::generatePuppetRemediationRole()
+{
+    PuppetResultRemediationSaver remediation(this, mCurrentLocalScanner);
+    remediation.selectFilenameAndSaveRole();
 }
 
 void ResultViewer::saveResults()

@@ -24,58 +24,52 @@
 #include "ScanningSession.h"
 #include "TemporaryDir.h"
 
+#include <stdexcept>
 #include <QThread>
 #include <QAbstractEventDispatcher>
-#include <QTemporaryFile>
 
 extern "C"
 {
 #include <xccdf_session.h>
 }
 
-OscapScannerLocal::OscapScannerLocal():
-    OscapScannerBase()
-{}
-
-OscapScannerLocal::~OscapScannerLocal()
-{}
-
-QStringList OscapScannerLocal::getCommandLineArgs() const
+LocalOscapSession::LocalOscapSession()
 {
-    QStringList args("oscap");
-
-    if (mScannerMode == SM_OFFLINE_REMEDIATION)
+    QTemporaryFile* temp_files[] = {&mArfFile, &mReportFile, &mResultFile};
+    for (QTemporaryFile* temp_file: temp_files)
     {
-        QTemporaryFile inputARFFile;
-        inputARFFile.setAutoRemove(true);
-        inputARFFile.open();
-        inputARFFile.write(getARFForRemediation());
-        inputARFFile.close();
-
-        args += buildOfflineRemediationArgs(inputARFFile.fileName(),
-            "/tmp/xccdf-results.xml",
-            "/tmp/report.html",
-            "/tmp/arf.xml",
-            // ignore capabilities because of dry-run
-            true
-        );
-    }
-    else
-    {
-        args += buildEvaluationArgs(mSession->getOpenedFilePath(),
-            mSession->getUserTailoringFilePath(),
-            "/tmp/xccdf-results.xml",
-            "/tmp/report.html",
-            "/tmp/arf.xml",
-            mScannerMode == SM_SCAN_ONLINE_REMEDIATION,
-            // ignore capabilities because of dry-run
-            true
-        );
+        temp_file->setAutoRemove(true);
+        setFilenameToTempFile(temp_file);
     }
 
-    args.removeOne("--progress");
+    TemporaryDir workingDir;
+}
 
-    return args;
+void LocalOscapSession::setFilenameToTempFile(QTemporaryFile* file)
+{
+    file->open();
+    file->close();
+}
+
+
+void OscapScannerLocal::fillInCapabilities()
+{
+    SyncProcess proc(this);
+    proc.setCommand(SCAP_WORKBENCH_LOCAL_OSCAP_PATH);
+    proc.setArguments(QStringList("-V"));
+    proc.run();
+
+    if (proc.getExitCode() != 0)
+    {
+        QString message = QObject::tr("Failed to query capabilities of oscap on local machine.\n"
+                "Diagnostic info:\n%1").arg(proc.getDiagnosticInfo());
+
+        mCancelRequested = true;
+        signalCompletion(mCancelRequested);
+        throw std::runtime_error(message.toUtf8().constData());
+    }
+
+    mCapabilities.parse(proc.getStdOutContents());
 }
 
 void OscapScannerLocal::evaluate()
@@ -87,26 +81,14 @@ void OscapScannerLocal::evaluate()
     }
 
     emit infoMessage(QObject::tr("Querying capabilities..."));
-
+    try
     {
-        SyncProcess proc(this);
-        proc.setCommand(SCAP_WORKBENCH_LOCAL_OSCAP_PATH);
-        proc.setArguments(QStringList("-V"));
-        proc.run();
-
-        if (proc.getExitCode() != 0)
-        {
-            emit errorMessage(
-                QObject::tr("Failed to query capabilities of oscap on local machine.\n"
-                    "Diagnostic info:\n%1").arg(proc.getDiagnosticInfo())
-            );
-
-            mCancelRequested = true;
-            signalCompletion(mCancelRequested);
-            return;
-        }
-
-        mCapabilities.parse(proc.getStdOutContents());
+        fillInCapabilities();
+    }
+    catch (std::exception& e)
+    {
+        emit errorMessage(e.what());
+        return;
     }
 
     if (!checkPrerequisites())
@@ -117,34 +99,25 @@ void OscapScannerLocal::evaluate()
     }
 
     // TODO: Error handling!
-    emit infoMessage(QObject::tr("Creating temporary files..."));
+    // TODO: vvv Move to a relevant place vvv
+    // emit infoMessage(QObject::tr("Creating temporary files..."));
 
-    QTemporaryFile resultFile;
-    resultFile.setAutoRemove(true);
-    // the following forces Qt to give us the filename
-    resultFile.open(); resultFile.close();
+    // This is mainly for check-engine-results and oval-results, to ensure
+    // we get a full report, including info from these files. openscap's XSLT
+    // uses info in the check engine results if it can find them.
 
-    QTemporaryFile reportFile;
-    reportFile.setAutoRemove(true);
-    reportFile.open(); reportFile.close();
+    emit infoMessage(QObject::tr("Starting the oscap process..."));
 
-    QTemporaryFile arfFile;
-    arfFile.setAutoRemove(true);
-    arfFile.open(); arfFile.close();
+    QProcess process(this);
 
     // This is mainly for check-engine-results and oval-results, to ensure
     // we get a full report, including info from these files. openscap's XSLT
     // uses info in the check engine results if it can find them.
     TemporaryDir workingDir;
-
-    emit infoMessage(QObject::tr("Starting the oscap process..."));
-    QProcess process(this);
     process.setWorkingDirectory(workingDir.getPath());
 
     QStringList args;
-
     QTemporaryFile inputARFFile;
-    inputARFFile.setAutoRemove(true);
 
     if (mScannerMode == SM_OFFLINE_REMEDIATION)
     {
@@ -153,30 +126,20 @@ void OscapScannerLocal::evaluate()
         inputARFFile.close();
 
         args = buildOfflineRemediationArgs(inputARFFile.fileName(),
-                resultFile.fileName(),
-                reportFile.fileName(),
-                arfFile.fileName());
+                mLocalSession.mResultFile.fileName(),
+                mLocalSession.mReportFile.fileName(),
+                mLocalSession.mArfFile.fileName());
     }
     else
     {
         args = buildEvaluationArgs(mSession->getOpenedFilePath(),
                 mSession->hasTailoring() ? mSession->getTailoringFilePath() : QString(),
-                resultFile.fileName(),
-                reportFile.fileName(),
-                arfFile.fileName(),
+                mLocalSession.mResultFile.fileName(),
+                mLocalSession.mReportFile.fileName(),
+                mLocalSession.mArfFile.fileName(),
                 mScannerMode == SM_SCAN_ONLINE_REMEDIATION);
     }
-
-    QString program = "";
-#ifdef SCAP_WORKBENCH_LOCAL_NICE_FOUND
-    args.prepend(getPkexecOscapPath());
-    args.prepend(QString::number(SCAP_WORKBENCH_LOCAL_OSCAP_NICENESS));
-    args.prepend("-n");
-
-    program = SCAP_WORKBENCH_LOCAL_NICE_PATH;
-#else
-    program = getPkexecOscapPath();
-#endif
+    QString program = getOscapProgram(args);
 
     process.start(program, args);
     process.waitForStarted();
@@ -225,17 +188,17 @@ void OscapScannerLocal::evaluate()
 
             emit infoMessage(QObject::tr("The oscap tool has finished. Reading results..."));
 
-            resultFile.open();
-            mResults = resultFile.readAll();
-            resultFile.close();
+            mLocalSession.mResultFile.open();
+            mResults = mLocalSession.mResultFile.readAll();
+            mLocalSession.mResultFile.close();
 
-            reportFile.open();
-            mReport = reportFile.readAll();
-            reportFile.close();
+            mLocalSession.mReportFile.open();
+            mReport = mLocalSession.mReportFile.readAll();
+            mLocalSession.mReportFile.close();
 
-            arfFile.open();
-            mARF = arfFile.readAll();
-            arfFile.close();
+            mLocalSession.mArfFile.open();
+            mARF = mLocalSession.mArfFile.readAll();
+            mLocalSession.mArfFile.close();
 
             emit infoMessage(QObject::tr("Processing has been finished!"));
         }
@@ -248,6 +211,52 @@ void OscapScannerLocal::evaluate()
     signalCompletion(mCancelRequested);
 }
 
+OscapScannerLocal::OscapScannerLocal():
+    OscapScannerBase()
+{}
+
+OscapScannerLocal::~OscapScannerLocal()
+{}
+
+QStringList OscapScannerLocal::getCommandLineArgs() const
+{
+    // TODO: This seems outdated (and it is used only during dry runs)
+    QStringList args("oscap");
+
+    if (mScannerMode == SM_OFFLINE_REMEDIATION)
+    {
+        QTemporaryFile inputARFFile;
+        inputARFFile.setAutoRemove(true);
+        inputARFFile.open();
+        inputARFFile.write(getARFForRemediation());
+        inputARFFile.close();
+
+        args += buildOfflineRemediationArgs(inputARFFile.fileName(),
+            "/tmp/xccdf-results.xml",
+            "/tmp/report.html",
+            "/tmp/arf.xml",
+            // ignore capabilities because of dry-run
+            true
+        );
+    }
+    else
+    {
+        args += buildEvaluationArgs(mSession->getOpenedFilePath(),
+            mSession->getUserTailoringFilePath(),
+            "/tmp/xccdf-results.xml",
+            "/tmp/report.html",
+            "/tmp/arf.xml",
+            mScannerMode == SM_SCAN_ONLINE_REMEDIATION,
+            // ignore capabilities because of dry-run
+            true
+        );
+    }
+
+    args.removeOne("--progress");
+
+    return args;
+}
+
 QString OscapScannerLocal::getPkexecOscapPath()
 {
     const QByteArray path = qgetenv("SCAP_WORKBENCH_PKEXEC_OSCAP_PATH");
@@ -256,4 +265,74 @@ QString OscapScannerLocal::getPkexecOscapPath()
         return SCAP_WORKBENCH_LOCAL_PKEXEC_OSCAP_PATH;
     else
         return path;
+}
+
+QString OscapScannerLocal::getOscapProgram(QStringList& args)
+{
+    QString program = "";
+#ifdef SCAP_WORKBENCH_LOCAL_NICE_FOUND
+    args.prepend(getPkexecOscapPath());
+    args.prepend(QString::number(SCAP_WORKBENCH_LOCAL_OSCAP_NICENESS));
+    args.prepend("-n");
+
+    program = SCAP_WORKBENCH_LOCAL_NICE_PATH;
+#else
+    program = getPkexecOscapPath();
+#endif
+    return program;
+}
+
+void OscapScannerLocal::createRemediationRoleAfterEvaluate(const QString& fix_type, const QString& roleFile)
+{
+    QString profileId = mSession->getProfile();
+    if (profileId.isEmpty())
+    {
+        emit errorMessage(QObject::tr("Unable to get profile ID for the passed check. It is impossible to get the result ID without the profile ID, so no remediation role can be generated."));
+        return;
+    }
+
+    // Create the file so the oscap process (running under root) does not create it
+    // with bad privileges.
+    QFile remediation_target(roleFile);
+    remediation_target.open(QIODevice::WriteOnly);
+    remediation_target.close();
+
+    QStringList args;
+    args.append("xccdf");
+    args.append("generate");
+    args.append("fix");
+
+    args.append("--fix-type");
+    args.append(fix_type);
+    args.append("--output");
+    args.append(roleFile);
+
+    args.append("--result-id");
+    args.append(profileId);
+
+    args.append(mLocalSession.mArfFile.fileName());
+
+    // TODO: Launching a process and going through its output is something we do already
+    // This is a lightweight launch though.
+    QProcess process(this);
+
+    TemporaryDir workingDir;
+    process.setWorkingDirectory(workingDir.getPath());
+    QString program = getOscapProgram(args);
+
+    process.start(program, args);
+    process.waitForStarted();
+
+    unsigned int pollInterval = 100;
+
+    emit infoMessage(QObject::tr("Processing..."));
+    while (!process.waitForFinished(pollInterval))
+    {
+        watchStdErr(process);
+    }
+    if (process.exitCode() == 1) // error happened
+    {
+        watchStdErr(process);
+        emit errorMessage(QObject::tr("There was an error in course of remediation role generation! Exit code of the 'oscap' process was 1."));
+    }
 }

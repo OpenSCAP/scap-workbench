@@ -22,8 +22,23 @@
 #ifndef SCAP_WORKBENCH_OSCAP_SCANNER_LOCAL_H_
 #define SCAP_WORKBENCH_OSCAP_SCANNER_LOCAL_H_
 
+#include <QTemporaryFile>
+
 #include "ForwardDecls.h"
 #include "OscapScannerBase.h"
+
+class LocalOscapSession
+{
+    public:
+        LocalOscapSession();
+        QTemporaryFile mArfFile;
+        QTemporaryFile mReportFile;
+        QTemporaryFile mResultFile;
+
+    private:
+        static void setFilenameToTempFile(QTemporaryFile* file);
+};
+
 
 class OscapScannerLocal : public OscapScannerBase
 {
@@ -35,10 +50,19 @@ class OscapScannerLocal : public OscapScannerBase
 
         virtual QStringList getCommandLineArgs() const;
         virtual void evaluate();
+        static QString getOscapProgram(QStringList& args);
+
+        void createRemediationRoleAfterEvaluate(const QString& fix_type,
+                                                const QString& roleFile);
 
     private:
         static QString getPkexecOscapPath();
+        void fillInCapabilities();
 
+        void evaluateWithOfflineRemediation();
+        void evaluateWithOtherSettings();
+
+        LocalOscapSession mLocalSession;
 };
 
 #endif

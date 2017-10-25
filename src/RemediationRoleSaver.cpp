@@ -126,5 +126,10 @@ ResultBasedRemediationSaver<saveMessage, filetypeExtension, filetypeTemplate, fi
 template <QString* saveMessage, QString* filetypeExtension, QString* filetypeTemplate, QString* fixType>
 void ResultBasedRemediationSaver<saveMessage, filetypeExtension, filetypeTemplate, fixType>::saveToFile(const QString& filename)
 {
+    if (mScanner == NULL)
+    {
+        std::cerr << QObject::tr("The scan was not a local one, so we can't generate local remediations.\n").toUtf8().constData();
+        return;
+    }
     mScanner->createRemediationRoleAfterEvaluate(RemediationSaverBase<saveMessage, filetypeExtension, filetypeTemplate, fixType>::mFixType, filename);
 }
