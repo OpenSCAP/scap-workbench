@@ -35,7 +35,6 @@
 #include "Utils.h"
 #include "SSGIntegrationDialog.h"
 #include "RemediationRoleSaver.h"
-#include "RemediationRoleSaver.cpp"
 
 #include <QFileDialog>
 #include <QAbstractEventDispatcher>

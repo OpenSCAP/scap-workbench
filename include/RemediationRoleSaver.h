@@ -30,11 +30,11 @@
 
 
 /// Base for all remediation generators
-template <QString* saveMessage, QString* filetypeExtension, QString* filetypeTemplate, QString* fixType>
 class RemediationSaverBase
 {
     public:
-        RemediationSaverBase(QWidget* parentWindow);
+        RemediationSaverBase(QWidget* parentWindow,
+                const QString& saveMessage, const QString& filetypeExtension, const QString& filetypeTemplate, const QString& fixType);
         void selectFilenameAndSaveRole();
 
     protected:
@@ -55,11 +55,11 @@ class RemediationSaverBase
 
 
 /// Base for all profile-based remediation generators
-template <QString* saveMessage, QString* filetypeExtension, QString* filetypeTemplate, QString* fixType>
-class ProfileBasedRemediationSaver : public RemediationSaverBase<saveMessage, filetypeExtension, filetypeTemplate, fixType>
+class ProfileBasedRemediationSaver : public RemediationSaverBase
 {
     public:
-        ProfileBasedRemediationSaver(QWidget* parentWindow, ScanningSession* session);
+        ProfileBasedRemediationSaver(QWidget* parentWindow, ScanningSession* session,
+                const QString& saveMessage, const QString& filetypeExtension, const QString& filetypeTemplate, const QString& fixType);
 
     private:
         virtual void saveToFile(const QString& filename) override;
@@ -67,12 +67,33 @@ class ProfileBasedRemediationSaver : public RemediationSaverBase<saveMessage, fi
 };
 
 
-/// Base for all result-based remediation generators that uses the openscap library
-template <QString* saveMessage, QString* filetypeExtension, QString* filetypeTemplate, QString* fixType>
-class ResultBasedLibraryRemediationSaver : public RemediationSaverBase<saveMessage, filetypeExtension, filetypeTemplate, fixType>
+class BashProfileRemediationSaver : public ProfileBasedRemediationSaver
 {
     public:
-        ResultBasedLibraryRemediationSaver(QWidget* parentWindow, const QByteArray& arf);
+        BashProfileRemediationSaver(QWidget* parentWindow, ScanningSession* session);
+};
+
+
+class AnsibleProfileRemediationSaver : public ProfileBasedRemediationSaver
+{
+    public:
+        AnsibleProfileRemediationSaver(QWidget* parentWindow, ScanningSession* session);
+};
+
+
+class PuppetProfileRemediationSaver : public ProfileBasedRemediationSaver
+{
+    public:
+        PuppetProfileRemediationSaver(QWidget* parentWindow, ScanningSession* session);
+};
+
+
+/// Base for all result-based remediation generators that uses the openscap library
+class ResultBasedLibraryRemediationSaver : public RemediationSaverBase
+{
+    public:
+        ResultBasedLibraryRemediationSaver(QWidget* parentWindow, const QByteArray& arfContents,
+                const QString& saveMessage, const QString& filetypeExtension, const QString& filetypeTemplate, const QString& fixType);
 
     private:
         virtual void saveToFile(const QString& filename) override;
@@ -81,11 +102,11 @@ class ResultBasedLibraryRemediationSaver : public RemediationSaverBase<saveMessa
 
 
 /// Base for all result-based remediation generators that uses oscap process
-template <QString* saveMessage, QString* filetypeExtension, QString* filetypeTemplate, QString* fixType>
-class ResultBasedProcessRemediationSaver : public RemediationSaverBase<saveMessage, filetypeExtension, filetypeTemplate, fixType>
+class ResultBasedProcessRemediationSaver : public RemediationSaverBase
 {
     public:
-        ResultBasedProcessRemediationSaver(QWidget* parentWindow, const QByteArray& arf);
+        ResultBasedProcessRemediationSaver(QWidget* parentWindow, const QByteArray& arfContents,
+                const QString& saveMessage, const QString& filetypeExtension, const QString& filetypeTemplate, const QString& fixType);
 
     private:
         virtual void saveToFile(const QString& filename) override;
@@ -94,31 +115,25 @@ class ResultBasedProcessRemediationSaver : public RemediationSaverBase<saveMessa
 };
 
 
-static QString bashSaveMessage = QObject::tr("Save remediation role as a bash script");
-static QString bashFiletypeExtension = "sh";
-static QString bashFiletypeTemplate = QObject::tr("bash script (*.%1)");
-static QString bashFixTemplate = QString("sh");
-static QString bashFixType = QString("bash");
-
-static QString ansibleSaveMessage = QObject::tr("Save remediation role as an ansible playbook");
-static QString ansibleFiletypeExtension = "yml";
-static QString ansibleFiletypeTemplate = QObject::tr("ansible playbook (*.%1)");
-static QString ansibleFixType = QString("ansible");
-
-static QString puppetSaveMessage = QObject::tr("Save remediation role as a puppet manifest");
-static QString puppetFiletypeExtension = "pp";
-static QString puppetFiletypeTemplate = QObject::tr("puppet manifest (*.%1)");
-static QString puppetFixType = QString("puppet");
+class BashResultRemediationSaver : public ResultBasedLibraryRemediationSaver
+{
+    public:
+        BashResultRemediationSaver(QWidget* parentWindow, const QByteArray& arfContents);
+};
 
 
-typedef ProfileBasedRemediationSaver<&bashSaveMessage, &bashFiletypeExtension, &bashFiletypeTemplate, &bashFixTemplate> BashProfileRemediationSaver;
-typedef ProfileBasedRemediationSaver<&ansibleSaveMessage, &ansibleFiletypeExtension, &ansibleFiletypeTemplate, &ansibleFixType> AnsibleProfileRemediationSaver;
-typedef ProfileBasedRemediationSaver<&puppetSaveMessage, &puppetFiletypeExtension, &puppetFiletypeTemplate, &puppetFixType> PuppetProfileRemediationSaver;
+class AnsibleResultRemediationSaver : public ResultBasedProcessRemediationSaver
+{
+    public:
+        AnsibleResultRemediationSaver(QWidget* parentWindow, const QByteArray& arfContents);
+};
 
-// typedef ResultBasedProcessRemediationSaver<&bashSaveMessage, &bashFiletypeExtension, &bashFiletypeTemplate, &bashFixType> BashResultRemediationSaver;
-typedef ResultBasedLibraryRemediationSaver<&bashSaveMessage, &bashFiletypeExtension, &bashFiletypeTemplate, &bashFixType> BashResultRemediationSaver;
-typedef ResultBasedProcessRemediationSaver<&ansibleSaveMessage, &ansibleFiletypeExtension, &ansibleFiletypeTemplate, &ansibleFixType> AnsibleResultRemediationSaver;
-typedef ResultBasedProcessRemediationSaver<&puppetSaveMessage, &puppetFiletypeExtension, &puppetFiletypeTemplate, &puppetFixType> PuppetResultRemediationSaver;
+
+class PuppetResultRemediationSaver : public ResultBasedProcessRemediationSaver
+{
+    public:
+        PuppetResultRemediationSaver(QWidget* parentWindow, const QByteArray& arfContents);
+};
 
 
 #endif // SCAP_WORKBENCH_REMEDIATION_ROLE_SAVER_H_

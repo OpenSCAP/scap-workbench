@@ -26,7 +26,6 @@
 #include "ScanningSession.h"
 #include "Utils.h"
 #include "RemediationRoleSaver.h"
-#include "RemediationRoleSaver.cpp"
 
 #include <QFileDialog>
 #include <QMessageBox>

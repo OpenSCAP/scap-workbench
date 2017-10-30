@@ -37,14 +37,31 @@ extern "C"
 #include "RemediationRoleSaver.h"
 
 
-template <QString* saveMessage, QString* filetypeExtension, QString* filetypeTemplate, QString* fixType>
-RemediationSaverBase<saveMessage, filetypeExtension, filetypeTemplate, fixType>::RemediationSaverBase(QWidget* parentWindow):
-    mParentWindow(parentWindow), mSaveMessage(*saveMessage), mFiletypeExtension(*filetypeExtension), mFiletypeTemplate(*filetypeTemplate), mFixType(*fixType)
+QString bashSaveMessage = QObject::tr("Save remediation role as a bash script");
+QString bashFiletypeExtension = "sh";
+QString bashFiletypeTemplate = QObject::tr("bash script (*.%1)");
+// template in liboscap for Bash is 'sh', whereas the oscap CLI knows of fix type 'bash'
+QString bashFixTemplate = QString("sh");
+QString bashFixType = QString("bash");
+
+QString ansibleSaveMessage = QObject::tr("Save remediation role as an ansible playbook");
+QString ansibleFiletypeExtension = "yml";
+QString ansibleFiletypeTemplate = QObject::tr("ansible playbook (*.%1)");
+QString ansibleFixType = QString("ansible");
+
+QString puppetSaveMessage = QObject::tr("Save remediation role as a puppet manifest");
+QString puppetFiletypeExtension = "pp";
+QString puppetFiletypeTemplate = QObject::tr("puppet manifest (*.%1)");
+QString puppetFixType = QString("puppet");
+
+
+RemediationSaverBase::RemediationSaverBase(QWidget* parentWindow,
+                const QString& saveMessage, const QString& filetypeExtension, const QString& filetypeTemplate, const QString& fixType):
+    mParentWindow(parentWindow), mSaveMessage(saveMessage), mFiletypeExtension(filetypeExtension), mFiletypeTemplate(filetypeTemplate), mFixType(fixType)
 {}
 
 
-template <QString* saveMessage, QString* filetypeExtension, QString* filetypeTemplate, QString* fixType>
-void RemediationSaverBase<saveMessage, filetypeExtension, filetypeTemplate, fixType>::selectFilenameAndSaveRole()
+void RemediationSaverBase::selectFilenameAndSaveRole()
 {
     const QString filename = QFileDialog::getSaveFileName(mParentWindow,
         mSaveMessage.toUtf8(),
@@ -69,45 +86,41 @@ void RemediationSaverBase<saveMessage, filetypeExtension, filetypeTemplate, fixT
 }
 
 
-template <QString* saveMessage, QString* filetypeExtension, QString* filetypeTemplate, QString* fixType>
-void RemediationSaverBase<saveMessage, filetypeExtension, filetypeTemplate, fixType>::saveFileOK(const QString& filename)
+void RemediationSaverBase::saveFileOK(const QString& filename)
 {
     // TODO: if OK - inform the user
 }
 
 
-template <QString* saveMessage, QString* filetypeExtension, QString* filetypeTemplate, QString* fixType>
-void RemediationSaverBase<saveMessage, filetypeExtension, filetypeTemplate, fixType>::saveFileError(const QString& filename, const QString& error_msg)
+void RemediationSaverBase::saveFileError(const QString& filename, const QString& error_msg)
 {
     // TODO: if not OK - show error message
     std::cerr << QObject::tr("Error saving remediation role: %1\n").arg(error_msg).toUtf8().constData();
 }
 
 
-template <QString* saveMessage, QString* filetypeExtension, QString* filetypeTemplate, QString* fixType>
-QString RemediationSaverBase<saveMessage, filetypeExtension, filetypeTemplate, fixType>::guessFilenameStem() const
+QString RemediationSaverBase::guessFilenameStem() const
 {
     // TODO: Add guess that uses benchmark and profile names
     return QString("remediation");
 }
 
 
-template <QString* saveMessage, QString* filetypeExtension, QString* filetypeTemplate, QString* fixType>
-ProfileBasedRemediationSaver<saveMessage, filetypeExtension, filetypeTemplate, fixType>::ProfileBasedRemediationSaver(QWidget* parentWindow, ScanningSession* session):
-    RemediationSaverBase<saveMessage, filetypeExtension, filetypeTemplate, fixType>(parentWindow), mScanningSession(session)
+ProfileBasedRemediationSaver::ProfileBasedRemediationSaver(QWidget* parentWindow, ScanningSession* session,
+        const QString& saveMessage, const QString& filetypeExtension, const QString& filetypeTemplate, const QString& fixType):
+    RemediationSaverBase(parentWindow, saveMessage, filetypeExtension, filetypeTemplate, fixType), mScanningSession(session)
 {}
 
 
-template <QString* saveMessage, QString* filetypeExtension, QString* filetypeTemplate, QString* fixType>
-void ProfileBasedRemediationSaver<saveMessage, filetypeExtension, filetypeTemplate, fixType>::saveToFile(const QString& filename)
+void ProfileBasedRemediationSaver::saveToFile(const QString& filename)
 {
     QFile outputFile(filename);
     outputFile.open(QIODevice::WriteOnly);
     struct xccdf_session* session = mScanningSession->getXCCDFSession();
     struct xccdf_policy* policy = xccdf_session_get_xccdf_policy(session);
     QString role_template("urn:xccdf:fix:script:%1");
-    role_template = role_template.arg(RemediationSaverBase<saveMessage, filetypeExtension, filetypeTemplate, fixType>::mFixType);
-    int result = xccdf_policy_generate_fix(policy, NULL, RemediationSaverBase<saveMessage, filetypeExtension, filetypeTemplate, fixType>::mFixType.toUtf8(), outputFile.handle());
+    role_template = role_template.arg(mFixType);
+    int result = xccdf_policy_generate_fix(policy, NULL, role_template.toUtf8().constData(), outputFile.handle());
     outputFile.close();
     if (result != 0)
     {
@@ -119,19 +132,18 @@ void ProfileBasedRemediationSaver<saveMessage, filetypeExtension, filetypeTempla
 }
 
 
-template <QString* saveMessage, QString* filetypeExtension, QString* filetypeTemplate, QString* fixType>
-ResultBasedProcessRemediationSaver<saveMessage, filetypeExtension, filetypeTemplate, fixType>::ResultBasedProcessRemediationSaver(QWidget* parentWindow, const QByteArray& arf):
-    RemediationSaverBase<saveMessage, filetypeExtension, filetypeTemplate, fixType>(parentWindow), mParentWindow(parentWindow)
+ResultBasedProcessRemediationSaver::ResultBasedProcessRemediationSaver(QWidget* parentWindow, const QByteArray& arfContents,
+        const QString& saveMessage, const QString& filetypeExtension, const QString& filetypeTemplate, const QString& fixType):
+    RemediationSaverBase(parentWindow, saveMessage, filetypeExtension, filetypeTemplate, fixType), mParentWindow(parentWindow)
 {
     mArfFile.setAutoRemove(true);
     mArfFile.open();
-    mArfFile.write(arf);
+    mArfFile.write(arfContents);
     mArfFile.close();
 }
 
 
-template <QString* saveMessage, QString* filetypeExtension, QString* filetypeTemplate, QString* fixType>
-void ResultBasedProcessRemediationSaver<saveMessage, filetypeExtension, filetypeTemplate, fixType>::saveToFile(const QString& filename)
+void ResultBasedProcessRemediationSaver::saveToFile(const QString& filename)
 {
     QStringList args;
     args.append("xccdf");
@@ -139,7 +151,7 @@ void ResultBasedProcessRemediationSaver<saveMessage, filetypeExtension, filetype
     args.append("fix");
 
     args.append("--fix-type");
-    args.append(RemediationSaverBase<saveMessage, filetypeExtension, filetypeTemplate, fixType>::mFixType);
+    args.append(mFixType);
     args.append("--output");
     args.append(filename);
 
@@ -152,7 +164,7 @@ void ResultBasedProcessRemediationSaver<saveMessage, filetypeExtension, filetype
 
     // TODO: Launching a process and going through its output is something we do already
     // This is a lightweight launch though.
-    QProcess process(RemediationSaverBase<saveMessage, filetypeExtension, filetypeTemplate, fixType>::mParentWindow);
+    QProcess process(RemediationSaverBase::mParentWindow);
 
     TemporaryDir workingDir;
     process.setWorkingDirectory(workingDir.getPath());
@@ -172,19 +184,18 @@ void ResultBasedProcessRemediationSaver<saveMessage, filetypeExtension, filetype
 }
 
 
-template <QString* saveMessage, QString* filetypeExtension, QString* filetypeTemplate, QString* fixType>
-ResultBasedLibraryRemediationSaver<saveMessage, filetypeExtension, filetypeTemplate, fixType>::ResultBasedLibraryRemediationSaver(QWidget* parentWindow, const QByteArray& arf):
-    RemediationSaverBase<saveMessage, filetypeExtension, filetypeTemplate, fixType>(parentWindow)
+ResultBasedLibraryRemediationSaver::ResultBasedLibraryRemediationSaver(QWidget* parentWindow, const QByteArray& arfContents,
+        const QString& saveMessage, const QString& filetypeExtension, const QString& filetypeTemplate, const QString& fixType):
+    RemediationSaverBase(parentWindow, saveMessage, filetypeExtension, filetypeTemplate, fixType)
 {
     mArfFile.setAutoRemove(true);
     mArfFile.open();
-    mArfFile.write(arf);
+    mArfFile.write(arfContents);
     mArfFile.close();
 }
 
 
-template <QString* saveMessage, QString* filetypeExtension, QString* filetypeTemplate, QString* fixType>
-void ResultBasedLibraryRemediationSaver<saveMessage, filetypeExtension, filetypeTemplate, fixType>::saveToFile(const QString& filename)
+void ResultBasedLibraryRemediationSaver::saveToFile(const QString& filename)
 {
     struct oscap_source* source = oscap_source_new_from_file(mArfFile.fileName().toUtf8().constData());
     oscap_document_type_t document_type = oscap_source_get_scap_type(source);
@@ -233,12 +244,12 @@ void ResultBasedLibraryRemediationSaver<saveMessage, filetypeExtension, filetype
     /* Result-oriented fixes */
 
     QString role_template("urn:xccdf:fix:script:%1");
-    role_template = role_template.arg(RemediationSaverBase<saveMessage, filetypeExtension, filetypeTemplate, fixType>::mFixType);
+    role_template = role_template.arg(mFixType);
 
     QFile outputFile(filename);
     outputFile.open(QIODevice::WriteOnly);
     // Generate fix
-    int rc = xccdf_policy_generate_fix(policy, NULL, role_template.toUtf8().constData(), outputFile.handle());
+    int rc = xccdf_policy_generate_fix(policy, result, role_template.toUtf8().constData(), outputFile.handle());
     outputFile.close();
     ds_rds_session_free(arf_session);
     xccdf_session_free(session);
@@ -251,3 +262,39 @@ void ResultBasedLibraryRemediationSaver<saveMessage, filetypeExtension, filetype
         throw std::runtime_error(err);
     }
 }
+
+
+BashProfileRemediationSaver::BashProfileRemediationSaver(QWidget* parentWindow, ScanningSession* session):
+    ProfileBasedRemediationSaver(parentWindow, session,
+            bashSaveMessage, bashFiletypeExtension, bashFiletypeTemplate, bashFixTemplate)
+{}
+
+
+AnsibleProfileRemediationSaver::AnsibleProfileRemediationSaver(QWidget* parentWindow, ScanningSession* session):
+    ProfileBasedRemediationSaver(parentWindow, session,
+            ansibleSaveMessage, ansibleFiletypeExtension, ansibleFiletypeTemplate, ansibleFixType)
+{}
+
+
+PuppetProfileRemediationSaver::PuppetProfileRemediationSaver(QWidget* parentWindow, ScanningSession* session):
+    ProfileBasedRemediationSaver(parentWindow, session,
+            puppetSaveMessage, puppetFiletypeExtension, puppetFiletypeTemplate, puppetFixType)
+{}
+
+
+BashResultRemediationSaver::BashResultRemediationSaver(QWidget* parentWindow, const QByteArray& arfContents):
+    ResultBasedLibraryRemediationSaver(parentWindow, arfContents,
+            bashSaveMessage, bashFiletypeExtension, bashFiletypeTemplate, bashFixTemplate)
+{}
+
+
+AnsibleResultRemediationSaver::AnsibleResultRemediationSaver(QWidget* parentWindow, const QByteArray& arfContents):
+    ResultBasedProcessRemediationSaver(parentWindow, arfContents,
+            ansibleSaveMessage, ansibleFiletypeExtension, ansibleFiletypeTemplate, ansibleFixType)
+{}
+
+
+PuppetResultRemediationSaver::PuppetResultRemediationSaver(QWidget* parentWindow, const QByteArray& arfContents):
+    ResultBasedProcessRemediationSaver(parentWindow, arfContents,
+            puppetSaveMessage, puppetFiletypeExtension, puppetFiletypeTemplate, puppetFixType)
+{}
