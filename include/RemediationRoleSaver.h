@@ -67,16 +67,17 @@ class ProfileBasedRemediationSaver : public RemediationSaverBase<saveMessage, fi
 };
 
 
-/// Base for all result-based remediation generators
+/// Base for all result-based remediation generators that uses oscap process
 template <QString* saveMessage, QString* filetypeExtension, QString* filetypeTemplate, QString* fixType>
-class ResultBasedRemediationSaver : public RemediationSaverBase<saveMessage, filetypeExtension, filetypeTemplate, fixType>
+class ResultBasedProcessRemediationSaver : public RemediationSaverBase<saveMessage, filetypeExtension, filetypeTemplate, fixType>
 {
     public:
-        ResultBasedRemediationSaver(QWidget* parentWindow, OscapScannerLocal* scanner);
+        ResultBasedProcessRemediationSaver(QWidget* parentWindow, const QByteArray& arf);
 
     private:
         virtual void saveToFile(const QString& filename) override;
-        OscapScannerLocal* mScanner;
+        QTemporaryFile mArfFile;
+        QWidget mParentWindow;
 };
 
 
@@ -101,9 +102,9 @@ typedef ProfileBasedRemediationSaver<&bashSaveMessage, &bashFiletypeExtension, &
 typedef ProfileBasedRemediationSaver<&ansibleSaveMessage, &ansibleFiletypeExtension, &ansibleFiletypeTemplate, &ansibleFixType> AnsibleProfileRemediationSaver;
 typedef ProfileBasedRemediationSaver<&puppetSaveMessage, &puppetFiletypeExtension, &puppetFiletypeTemplate, &puppetFixType> PuppetProfileRemediationSaver;
 
-typedef ResultBasedRemediationSaver<&bashSaveMessage, &bashFiletypeExtension, &bashFiletypeTemplate, &bashFixType> BashResultRemediationSaver;
-typedef ResultBasedRemediationSaver<&ansibleSaveMessage, &ansibleFiletypeExtension, &ansibleFiletypeTemplate, &ansibleFixType> AnsibleResultRemediationSaver;
-typedef ResultBasedRemediationSaver<&puppetSaveMessage, &puppetFiletypeExtension, &puppetFiletypeTemplate, &puppetFixType> PuppetResultRemediationSaver;
+typedef ResultBasedProcessRemediationSaver<&bashSaveMessage, &bashFiletypeExtension, &bashFiletypeTemplate, &bashFixType> BashResultRemediationSaver;
+typedef ResultBasedProcessRemediationSaver<&ansibleSaveMessage, &ansibleFiletypeExtension, &ansibleFiletypeTemplate, &ansibleFixType> AnsibleResultRemediationSaver;
+typedef ResultBasedProcessRemediationSaver<&puppetSaveMessage, &puppetFiletypeExtension, &puppetFiletypeTemplate, &puppetFixType> PuppetResultRemediationSaver;
 
 
 #endif // SCAP_WORKBENCH_REMEDIATION_ROLE_SAVER_H_

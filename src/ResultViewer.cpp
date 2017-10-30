@@ -179,20 +179,19 @@ void ResultViewer::openReport()
 
 void ResultViewer::generateBashRemediationRole()
 {
-    // TODO: Other scanners may be used.
-    BashResultRemediationSaver remediation(this, mCurrentLocalScanner);
+    BashResultRemediationSaver remediation(this, mARF);
     remediation.selectFilenameAndSaveRole();
 }
 
 void ResultViewer::generateAnsibleRemediationRole()
 {
-    AnsibleResultRemediationSaver remediation(this, mCurrentLocalScanner);
+    AnsibleResultRemediationSaver remediation(this, mARF);
     remediation.selectFilenameAndSaveRole();
 }
 
 void ResultViewer::generatePuppetRemediationRole()
 {
-    PuppetResultRemediationSaver remediation(this, mCurrentLocalScanner);
+    PuppetResultRemediationSaver remediation(this, mARF);
     remediation.selectFilenameAndSaveRole();
 }
 

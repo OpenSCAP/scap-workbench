@@ -30,8 +30,10 @@ extern "C"
 #include <xccdf_benchmark.h>
 #include <xccdf_policy.h>
 #include <xccdf_session.h>
+#include <ds_rds_session.h>
 }
 
+#include "TemporaryDir.h"
 #include "RemediationRoleSaver.h"
 
 
@@ -118,18 +120,53 @@ void ProfileBasedRemediationSaver<saveMessage, filetypeExtension, filetypeTempla
 
 
 template <QString* saveMessage, QString* filetypeExtension, QString* filetypeTemplate, QString* fixType>
-ResultBasedRemediationSaver<saveMessage, filetypeExtension, filetypeTemplate, fixType>::ResultBasedRemediationSaver(QWidget* parentWindow, OscapScannerLocal* scanner):
-    RemediationSaverBase<saveMessage, filetypeExtension, filetypeTemplate, fixType>(parentWindow), mScanner(scanner)
-{}
+ResultBasedProcessRemediationSaver<saveMessage, filetypeExtension, filetypeTemplate, fixType>::ResultBasedProcessRemediationSaver(QWidget* parentWindow, const QByteArray& arf):
+    RemediationSaverBase<saveMessage, filetypeExtension, filetypeTemplate, fixType>(parentWindow), mParentWindow(parentWindow)
+{
+    mArfFile.setAutoRemove(true);
+    mArfFile.open();
+    mArfFile.write(arf);
+    mArfFile.close();
+}
 
 
 template <QString* saveMessage, QString* filetypeExtension, QString* filetypeTemplate, QString* fixType>
-void ResultBasedRemediationSaver<saveMessage, filetypeExtension, filetypeTemplate, fixType>::saveToFile(const QString& filename)
+void ResultBasedProcessRemediationSaver<saveMessage, filetypeExtension, filetypeTemplate, fixType>::saveToFile(const QString& filename)
 {
-    if (mScanner == NULL)
+    QStringList args;
+    args.append("xccdf");
+    args.append("generate");
+    args.append("fix");
+
+    args.append("--fix-type");
+    args.append(RemediationSaverBase<saveMessage, filetypeExtension, filetypeTemplate, fixType>::mFixType);
+    args.append("--output");
+    args.append(filename);
+
+    // vvv This will work, if there is only one result ID in the ARF file, it will be picked no matter what the argument value is.
+    // However, ommitting --result-id "" won't work.
+    args.append("--result-id");
+    args.append("");
+
+    args.append(mArfFile.fileName());
+
+    // TODO: Launching a process and going through its output is something we do already
+    // This is a lightweight launch though.
+    QProcess process(RemediationSaverBase<saveMessage, filetypeExtension, filetypeTemplate, fixType>::mParentWindow);
+
+    TemporaryDir workingDir;
+    process.setWorkingDirectory(workingDir.getPath());
+    QString program("oscap");
+
+    process.start(program, args);
+    process.waitForStarted();
+
+    unsigned int pollInterval = 100;
+
+    while (!process.waitForFinished(pollInterval))
+    {}
+    if (process.exitCode() == 1)
     {
-        std::cerr << QObject::tr("The scan was not a local one, so we can't generate local remediations.\n").toUtf8().constData();
-        return;
+        throw std::runtime_error(QObject::tr("There was an error in course of remediation role generation! Exit code of the 'oscap' process was 1.").toUtf8().constData());
     }
-    mScanner->createRemediationRoleAfterEvaluate(RemediationSaverBase<saveMessage, filetypeExtension, filetypeTemplate, fixType>::mFixType, filename);
 }
