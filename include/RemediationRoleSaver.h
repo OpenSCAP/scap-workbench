@@ -67,6 +67,19 @@ class ProfileBasedRemediationSaver : public RemediationSaverBase<saveMessage, fi
 };
 
 
+/// Base for all result-based remediation generators that uses the openscap library
+template <QString* saveMessage, QString* filetypeExtension, QString* filetypeTemplate, QString* fixType>
+class ResultBasedLibraryRemediationSaver : public RemediationSaverBase<saveMessage, filetypeExtension, filetypeTemplate, fixType>
+{
+    public:
+        ResultBasedLibraryRemediationSaver(QWidget* parentWindow, const QByteArray& arf);
+
+    private:
+        virtual void saveToFile(const QString& filename) override;
+        QTemporaryFile mArfFile;
+};
+
+
 /// Base for all result-based remediation generators that uses oscap process
 template <QString* saveMessage, QString* filetypeExtension, QString* filetypeTemplate, QString* fixType>
 class ResultBasedProcessRemediationSaver : public RemediationSaverBase<saveMessage, filetypeExtension, filetypeTemplate, fixType>
@@ -102,7 +115,8 @@ typedef ProfileBasedRemediationSaver<&bashSaveMessage, &bashFiletypeExtension, &
 typedef ProfileBasedRemediationSaver<&ansibleSaveMessage, &ansibleFiletypeExtension, &ansibleFiletypeTemplate, &ansibleFixType> AnsibleProfileRemediationSaver;
 typedef ProfileBasedRemediationSaver<&puppetSaveMessage, &puppetFiletypeExtension, &puppetFiletypeTemplate, &puppetFixType> PuppetProfileRemediationSaver;
 
-typedef ResultBasedProcessRemediationSaver<&bashSaveMessage, &bashFiletypeExtension, &bashFiletypeTemplate, &bashFixType> BashResultRemediationSaver;
+// typedef ResultBasedProcessRemediationSaver<&bashSaveMessage, &bashFiletypeExtension, &bashFiletypeTemplate, &bashFixType> BashResultRemediationSaver;
+typedef ResultBasedLibraryRemediationSaver<&bashSaveMessage, &bashFiletypeExtension, &bashFiletypeTemplate, &bashFixType> BashResultRemediationSaver;
 typedef ResultBasedProcessRemediationSaver<&ansibleSaveMessage, &ansibleFiletypeExtension, &ansibleFiletypeTemplate, &ansibleFixType> AnsibleResultRemediationSaver;
 typedef ResultBasedProcessRemediationSaver<&puppetSaveMessage, &puppetFiletypeExtension, &puppetFiletypeTemplate, &puppetFixType> PuppetResultRemediationSaver;
 

@@ -170,3 +170,84 @@ void ResultBasedProcessRemediationSaver<saveMessage, filetypeExtension, filetype
         throw std::runtime_error(QObject::tr("There was an error in course of remediation role generation! Exit code of the 'oscap' process was 1.").toUtf8().constData());
     }
 }
+
+
+template <QString* saveMessage, QString* filetypeExtension, QString* filetypeTemplate, QString* fixType>
+ResultBasedLibraryRemediationSaver<saveMessage, filetypeExtension, filetypeTemplate, fixType>::ResultBasedLibraryRemediationSaver(QWidget* parentWindow, const QByteArray& arf):
+    RemediationSaverBase<saveMessage, filetypeExtension, filetypeTemplate, fixType>(parentWindow)
+{
+    mArfFile.setAutoRemove(true);
+    mArfFile.open();
+    mArfFile.write(arf);
+    mArfFile.close();
+}
+
+
+template <QString* saveMessage, QString* filetypeExtension, QString* filetypeTemplate, QString* fixType>
+void ResultBasedLibraryRemediationSaver<saveMessage, filetypeExtension, filetypeTemplate, fixType>::saveToFile(const QString& filename)
+{
+    struct oscap_source* source = oscap_source_new_from_file(mArfFile.fileName().toUtf8().constData());
+    oscap_document_type_t document_type = oscap_source_get_scap_type(source);
+    if (document_type != OSCAP_DOCUMENT_ARF) {
+        throw std::runtime_error("Expected an ARF file");
+    }
+
+    struct xccdf_session* session;
+    struct ds_rds_session* arf_session;
+    arf_session = ds_rds_session_new_from_source(source);
+    if (arf_session == NULL) {
+        throw std::runtime_error("Couldn't open ARF session");
+    }
+    struct oscap_source *report_source = ds_rds_session_select_report(arf_session, NULL);
+    if (report_source == NULL) {
+        throw std::runtime_error("Couldn't get report source from the ARF session");
+    }
+    struct oscap_source *report_request_source = ds_rds_session_select_report_request(arf_session, NULL);
+    if (report_request_source == NULL) {
+        throw std::runtime_error("Couldn't get report request source from the ARF session");
+    }
+
+    session = xccdf_session_new_from_source(oscap_source_clone(report_request_source));
+    if (xccdf_session_add_report_from_source(session, oscap_source_clone(report_source))) {
+        throw std::runtime_error("Couldn't get report request source from the ARF session");
+    }
+    oscap_source_free(source);
+
+    if (session == NULL)
+        throw std::runtime_error("Couldn't get XCCDF session from the report source");
+
+    xccdf_session_set_loading_flags(session, XCCDF_SESSION_LOAD_XCCDF);
+    if (xccdf_session_load(session) != 0)
+        throw std::runtime_error("Couldn't get load XCCDF");
+
+    xccdf_session_set_loading_flags(session, XCCDF_SESSION_LOAD_XCCDF);
+    if (xccdf_session_load(session) != 0)
+        throw std::runtime_error("Couldn't load XCCDF");
+
+    // "" for profile should work, as it works when passed to the command-line oscap
+    if (xccdf_session_build_policy_from_testresult(session, "") != 0)
+        throw std::runtime_error("Couldn't get build policy from testresult");
+
+    struct xccdf_policy* policy = xccdf_session_get_xccdf_policy(session);
+    struct xccdf_result* result = xccdf_policy_get_result_by_id(policy, xccdf_session_get_result_id(session));
+    /* Result-oriented fixes */
+
+    QString role_template("urn:xccdf:fix:script:%1");
+    role_template = role_template.arg(RemediationSaverBase<saveMessage, filetypeExtension, filetypeTemplate, fixType>::mFixType);
+
+    QFile outputFile(filename);
+    outputFile.open(QIODevice::WriteOnly);
+    // Generate fix
+    int rc = xccdf_policy_generate_fix(policy, NULL, role_template.toUtf8().constData(), outputFile.handle());
+    outputFile.close();
+    ds_rds_session_free(arf_session);
+    xccdf_session_free(session);
+
+    if (rc != 0)
+    {
+        const char* err = oscap_err_desc();
+        if (err == NULL)
+            err = "Unknown error";
+        throw std::runtime_error(err);
+    }
+}
