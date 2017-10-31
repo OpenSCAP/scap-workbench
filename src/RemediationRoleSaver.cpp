@@ -282,9 +282,10 @@ PuppetProfileRemediationSaver::PuppetProfileRemediationSaver(QWidget* parentWind
 {}
 
 
+#ifndef SCAP_WORKBENCH_USE_LIBRARY_FOR_REMEDIATION_ROLES_GENERATION
 BashResultRemediationSaver::BashResultRemediationSaver(QWidget* parentWindow, const QByteArray& arfContents):
-    ResultBasedLibraryRemediationSaver(parentWindow, arfContents,
-            bashSaveMessage, bashFiletypeExtension, bashFiletypeTemplate, bashFixTemplate)
+    ResultBasedProcessRemediationSaver(parentWindow, arfContents,
+            bashSaveMessage, bashFiletypeExtension, bashFiletypeTemplate, bashFixType)
 {}
 
 
@@ -298,3 +299,24 @@ PuppetResultRemediationSaver::PuppetResultRemediationSaver(QWidget* parentWindow
     ResultBasedProcessRemediationSaver(parentWindow, arfContents,
             puppetSaveMessage, puppetFiletypeExtension, puppetFiletypeTemplate, puppetFixType)
 {}
+
+
+#else  // SCAP_WORKBENCH_USE_LIBRARY_FOR_REMEDIATION_ROLES_GENERATION
+BashResultRemediationSaver::BashResultRemediationSaver(QWidget* parentWindow, const QByteArray& arfContents):
+    ResultBasedLibraryRemediationSaver(parentWindow, arfContents,
+            bashSaveMessage, bashFiletypeExtension, bashFiletypeTemplate, bashFixTemplate)
+{}
+
+
+AnsibleResultRemediationSaver::AnsibleResultRemediationSaver(QWidget* parentWindow, const QByteArray& arfContents):
+    ResultBasedLibraryRemediationSaver(parentWindow, arfContents,
+            ansibleSaveMessage, ansibleFiletypeExtension, ansibleFiletypeTemplate, ansibleFixType)
+{}
+
+
+PuppetResultRemediationSaver::PuppetResultRemediationSaver(QWidget* parentWindow, const QByteArray& arfContents):
+    ResultBasedLibraryRemediationSaver(parentWindow, arfContents,
+            puppetSaveMessage, puppetFiletypeExtension, puppetFiletypeTemplate, puppetFixType)
+{}
+
+#endif  // SCAP_WORKBENCH_USE_LIBRARY_FOR_REMEDIATION_ROLES_GENERATION

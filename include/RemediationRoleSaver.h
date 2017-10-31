@@ -115,7 +115,8 @@ class ResultBasedProcessRemediationSaver : public RemediationSaverBase
 };
 
 
-class BashResultRemediationSaver : public ResultBasedLibraryRemediationSaver
+#ifndef SCAP_WORKBENCH_USE_LIBRARY_FOR_REMEDIATION_ROLES_GENERATION
+class BashResultRemediationSaver : public ResultBasedProcessRemediationSaver
 {
     public:
         BashResultRemediationSaver(QWidget* parentWindow, const QByteArray& arfContents);
@@ -134,6 +135,29 @@ class PuppetResultRemediationSaver : public ResultBasedProcessRemediationSaver
     public:
         PuppetResultRemediationSaver(QWidget* parentWindow, const QByteArray& arfContents);
 };
+
+#else  // SCAP_WORKBENCH_USE_LIBRARY_FOR_REMEDIATION_ROLES_GENERATION
+class BashResultRemediationSaver : public ResultBasedLibraryRemediationSaver
+{
+    public:
+        BashResultRemediationSaver(QWidget* parentWindow, const QByteArray& arfContents);
+};
+
+
+class AnsibleResultRemediationSaver : public ResultBasedLibraryRemediationSaver
+{
+    public:
+        AnsibleResultRemediationSaver(QWidget* parentWindow, const QByteArray& arfContents);
+};
+
+
+class PuppetResultRemediationSaver : public ResultBasedLibraryRemediationSaver
+{
+    public:
+        PuppetResultRemediationSaver(QWidget* parentWindow, const QByteArray& arfContents);
+};
+
+#endif  // SCAP_WORKBENCH_USE_LIBRARY_FOR_REMEDIATION_ROLES_GENERATION
 
 
 #endif // SCAP_WORKBENCH_REMEDIATION_ROLE_SAVER_H_
