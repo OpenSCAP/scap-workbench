@@ -46,7 +46,7 @@ class OscapScannerLocal : public OscapScannerBase
 
         void evaluateWithOfflineRemediation();
         void evaluateWithOtherSettings();
-        static void setFilenameToTempFile(QTemporaryFile* file);
+        static void setFilenameToTempFile(QTemporaryFile& file);
 };
 
 #endif

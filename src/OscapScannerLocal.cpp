@@ -33,10 +33,10 @@ extern "C"
 #include <xccdf_session.h>
 }
 
-void OscapScannerLocal::setFilenameToTempFile(QTemporaryFile* file)
+void OscapScannerLocal::setFilenameToTempFile(QTemporaryFile& file)
 {
-    file->open();
-    file->close();
+    file.open();
+    file.close();
 }
 
 
@@ -107,16 +107,18 @@ void OscapScannerLocal::evaluate()
     QStringList args;
     QTemporaryFile inputARFFile;
 
-    QTemporaryFile mArfFile;
-    QTemporaryFile mReportFile;
-    QTemporaryFile mResultFile;
+    QTemporaryFile arfFile;
+    arfFile.setAutoRemove(true);
+    setFilenameToTempFile(arfFile);
 
-    QTemporaryFile* temp_files[] = {&mArfFile, &mReportFile, &mResultFile};
-    for (QTemporaryFile* temp_file: temp_files)
-    {
-        temp_file->setAutoRemove(true);
-        setFilenameToTempFile(temp_file);
-    }
+    QTemporaryFile reportFile;
+    reportFile.setAutoRemove(true);
+    setFilenameToTempFile(reportFile);
+
+    QTemporaryFile resultFile;
+    resultFile.setAutoRemove(true);
+    setFilenameToTempFile(resultFile);
+
 
     if (mScannerMode == SM_OFFLINE_REMEDIATION)
     {
@@ -125,17 +127,17 @@ void OscapScannerLocal::evaluate()
         inputARFFile.close();
 
         args = buildOfflineRemediationArgs(inputARFFile.fileName(),
-                mResultFile.fileName(),
-                mReportFile.fileName(),
-                mArfFile.fileName());
+                resultFile.fileName(),
+                reportFile.fileName(),
+                arfFile.fileName());
     }
     else
     {
         args = buildEvaluationArgs(mSession->getOpenedFilePath(),
                 mSession->hasTailoring() ? mSession->getTailoringFilePath() : QString(),
-                mResultFile.fileName(),
-                mReportFile.fileName(),
-                mArfFile.fileName(),
+                resultFile.fileName(),
+                reportFile.fileName(),
+                arfFile.fileName(),
                 mScannerMode == SM_SCAN_ONLINE_REMEDIATION);
     }
     QString program = getOscapProgram(args);
@@ -187,17 +189,17 @@ void OscapScannerLocal::evaluate()
 
             emit infoMessage(QObject::tr("The oscap tool has finished. Reading results..."));
 
-            mResultFile.open();
-            mResults = mResultFile.readAll();
-            mResultFile.close();
+            resultFile.open();
+            mResults = resultFile.readAll();
+            resultFile.close();
 
-            mReportFile.open();
-            mReport = mReportFile.readAll();
-            mReportFile.close();
+            reportFile.open();
+            mReport = reportFile.readAll();
+            reportFile.close();
 
-            mArfFile.open();
-            mARF = mArfFile.readAll();
-            mArfFile.close();
+            arfFile.open();
+            mARF = arfFile.readAll();
+            arfFile.close();
 
             emit infoMessage(QObject::tr("Processing has been finished!"));
         }
