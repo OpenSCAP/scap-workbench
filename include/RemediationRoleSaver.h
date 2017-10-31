@@ -62,7 +62,7 @@ class ProfileBasedRemediationSaver : public RemediationSaverBase
                 const QString& saveMessage, const QString& filetypeExtension, const QString& filetypeTemplate, const QString& fixType);
 
     private:
-        virtual void saveToFile(const QString& filename) override;
+        virtual void saveToFile(const QString& filename);
         const ScanningSession* mScanningSession;
 };
 
@@ -96,7 +96,7 @@ class ResultBasedLibraryRemediationSaver : public RemediationSaverBase
                 const QString& saveMessage, const QString& filetypeExtension, const QString& filetypeTemplate, const QString& fixType);
 
     private:
-        virtual void saveToFile(const QString& filename) override;
+        virtual void saveToFile(const QString& filename);
         QTemporaryFile mArfFile;
 };
 
@@ -109,7 +109,7 @@ class ResultBasedProcessRemediationSaver : public RemediationSaverBase
                 const QString& saveMessage, const QString& filetypeExtension, const QString& filetypeTemplate, const QString& fixType);
 
     private:
-        virtual void saveToFile(const QString& filename) override;
+        virtual void saveToFile(const QString& filename);
         QTemporaryFile mArfFile;
         QWidget mParentWindow;
 };
