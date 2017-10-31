@@ -88,19 +88,7 @@ class PuppetProfileRemediationSaver : public ProfileBasedRemediationSaver
 };
 
 
-/// Base for all result-based remediation generators that uses the openscap library
-class ResultBasedLibraryRemediationSaver : public RemediationSaverBase
-{
-    public:
-        ResultBasedLibraryRemediationSaver(QWidget* parentWindow, const QByteArray& arfContents,
-                const QString& saveMessage, const QString& filetypeExtension, const QString& filetypeTemplate, const QString& fixType);
-
-    private:
-        virtual void saveToFile(const QString& filename);
-        QTemporaryFile mArfFile;
-};
-
-
+#ifndef SCAP_WORKBENCH_USE_LIBRARY_FOR_REMEDIATION_ROLES_GENERATION
 /// Base for all result-based remediation generators that uses oscap process
 class ResultBasedProcessRemediationSaver : public RemediationSaverBase
 {
@@ -115,7 +103,6 @@ class ResultBasedProcessRemediationSaver : public RemediationSaverBase
 };
 
 
-#ifndef SCAP_WORKBENCH_USE_LIBRARY_FOR_REMEDIATION_ROLES_GENERATION
 class BashResultRemediationSaver : public ResultBasedProcessRemediationSaver
 {
     public:
@@ -136,7 +123,21 @@ class PuppetResultRemediationSaver : public ResultBasedProcessRemediationSaver
         PuppetResultRemediationSaver(QWidget* parentWindow, const QByteArray& arfContents);
 };
 
-#else  // SCAP_WORKBENCH_USE_LIBRARY_FOR_REMEDIATION_ROLES_GENERATION
+#else  // i.e. SCAP_WORKBENCH_USE_LIBRARY_FOR_REMEDIATION_ROLES_GENERATION is defined
+
+/// Base for all result-based remediation generators that uses the openscap library
+class ResultBasedLibraryRemediationSaver : public RemediationSaverBase
+{
+    public:
+        ResultBasedLibraryRemediationSaver(QWidget* parentWindow, const QByteArray& arfContents,
+                const QString& saveMessage, const QString& filetypeExtension, const QString& filetypeTemplate, const QString& fixType);
+
+    private:
+        virtual void saveToFile(const QString& filename);
+        QTemporaryFile mArfFile;
+};
+
+
 class BashResultRemediationSaver : public ResultBasedLibraryRemediationSaver
 {
     public:

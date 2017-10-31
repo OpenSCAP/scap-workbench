@@ -132,6 +132,25 @@ void ProfileBasedRemediationSaver::saveToFile(const QString& filename)
 }
 
 
+BashProfileRemediationSaver::BashProfileRemediationSaver(QWidget* parentWindow, ScanningSession* session):
+    ProfileBasedRemediationSaver(parentWindow, session,
+            bashSaveMessage, bashFiletypeExtension, bashFiletypeTemplate, bashFixTemplate)
+{}
+
+
+AnsibleProfileRemediationSaver::AnsibleProfileRemediationSaver(QWidget* parentWindow, ScanningSession* session):
+    ProfileBasedRemediationSaver(parentWindow, session,
+            ansibleSaveMessage, ansibleFiletypeExtension, ansibleFiletypeTemplate, ansibleFixType)
+{}
+
+
+PuppetProfileRemediationSaver::PuppetProfileRemediationSaver(QWidget* parentWindow, ScanningSession* session):
+    ProfileBasedRemediationSaver(parentWindow, session,
+            puppetSaveMessage, puppetFiletypeExtension, puppetFiletypeTemplate, puppetFixType)
+{}
+
+
+#ifndef SCAP_WORKBENCH_USE_LIBRARY_FOR_REMEDIATION_ROLES_GENERATION
 ResultBasedProcessRemediationSaver::ResultBasedProcessRemediationSaver(QWidget* parentWindow, const QByteArray& arfContents,
         const QString& saveMessage, const QString& filetypeExtension, const QString& filetypeTemplate, const QString& fixType):
     RemediationSaverBase(parentWindow, saveMessage, filetypeExtension, filetypeTemplate, fixType), mParentWindow(parentWindow)
@@ -184,6 +203,25 @@ void ResultBasedProcessRemediationSaver::saveToFile(const QString& filename)
 }
 
 
+BashResultRemediationSaver::BashResultRemediationSaver(QWidget* parentWindow, const QByteArray& arfContents):
+    ResultBasedProcessRemediationSaver(parentWindow, arfContents,
+            bashSaveMessage, bashFiletypeExtension, bashFiletypeTemplate, bashFixType)
+{}
+
+
+AnsibleResultRemediationSaver::AnsibleResultRemediationSaver(QWidget* parentWindow, const QByteArray& arfContents):
+    ResultBasedProcessRemediationSaver(parentWindow, arfContents,
+            ansibleSaveMessage, ansibleFiletypeExtension, ansibleFiletypeTemplate, ansibleFixType)
+{}
+
+
+PuppetResultRemediationSaver::PuppetResultRemediationSaver(QWidget* parentWindow, const QByteArray& arfContents):
+    ResultBasedProcessRemediationSaver(parentWindow, arfContents,
+            puppetSaveMessage, puppetFiletypeExtension, puppetFiletypeTemplate, puppetFixType)
+{}
+
+
+#else  // i.e. SCAP_WORKBENCH_USE_LIBRARY_FOR_REMEDIATION_ROLES_GENERATION is defined
 ResultBasedLibraryRemediationSaver::ResultBasedLibraryRemediationSaver(QWidget* parentWindow, const QByteArray& arfContents,
         const QString& saveMessage, const QString& filetypeExtension, const QString& filetypeTemplate, const QString& fixType):
     RemediationSaverBase(parentWindow, saveMessage, filetypeExtension, filetypeTemplate, fixType)
@@ -264,44 +302,6 @@ void ResultBasedLibraryRemediationSaver::saveToFile(const QString& filename)
 }
 
 
-BashProfileRemediationSaver::BashProfileRemediationSaver(QWidget* parentWindow, ScanningSession* session):
-    ProfileBasedRemediationSaver(parentWindow, session,
-            bashSaveMessage, bashFiletypeExtension, bashFiletypeTemplate, bashFixTemplate)
-{}
-
-
-AnsibleProfileRemediationSaver::AnsibleProfileRemediationSaver(QWidget* parentWindow, ScanningSession* session):
-    ProfileBasedRemediationSaver(parentWindow, session,
-            ansibleSaveMessage, ansibleFiletypeExtension, ansibleFiletypeTemplate, ansibleFixType)
-{}
-
-
-PuppetProfileRemediationSaver::PuppetProfileRemediationSaver(QWidget* parentWindow, ScanningSession* session):
-    ProfileBasedRemediationSaver(parentWindow, session,
-            puppetSaveMessage, puppetFiletypeExtension, puppetFiletypeTemplate, puppetFixType)
-{}
-
-
-#ifndef SCAP_WORKBENCH_USE_LIBRARY_FOR_REMEDIATION_ROLES_GENERATION
-BashResultRemediationSaver::BashResultRemediationSaver(QWidget* parentWindow, const QByteArray& arfContents):
-    ResultBasedProcessRemediationSaver(parentWindow, arfContents,
-            bashSaveMessage, bashFiletypeExtension, bashFiletypeTemplate, bashFixType)
-{}
-
-
-AnsibleResultRemediationSaver::AnsibleResultRemediationSaver(QWidget* parentWindow, const QByteArray& arfContents):
-    ResultBasedProcessRemediationSaver(parentWindow, arfContents,
-            ansibleSaveMessage, ansibleFiletypeExtension, ansibleFiletypeTemplate, ansibleFixType)
-{}
-
-
-PuppetResultRemediationSaver::PuppetResultRemediationSaver(QWidget* parentWindow, const QByteArray& arfContents):
-    ResultBasedProcessRemediationSaver(parentWindow, arfContents,
-            puppetSaveMessage, puppetFiletypeExtension, puppetFiletypeTemplate, puppetFixType)
-{}
-
-
-#else  // SCAP_WORKBENCH_USE_LIBRARY_FOR_REMEDIATION_ROLES_GENERATION
 BashResultRemediationSaver::BashResultRemediationSaver(QWidget* parentWindow, const QByteArray& arfContents):
     ResultBasedLibraryRemediationSaver(parentWindow, arfContents,
             bashSaveMessage, bashFiletypeExtension, bashFiletypeTemplate, bashFixTemplate)
