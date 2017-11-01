@@ -30,7 +30,11 @@ extern "C"
 #include <xccdf_benchmark.h>
 #include <xccdf_policy.h>
 #include <xccdf_session.h>
+#ifdef SCAP_WORKBENCH_USE_LIBRARY_FOR_RESULT_BASED_REMEDIATION_ROLES_GENERATION
+    // vvv This include is used only for library-based generation of result-base remediation roles
+    // vvv and it requires (relatively recent) openscap 1.2.16
 #include <ds_rds_session.h>
+#endif
 }
 
 #include "TemporaryDir.h"
@@ -120,7 +124,7 @@ void ProfileBasedRemediationSaver::saveToFile(const QString& filename)
     struct xccdf_policy* policy = xccdf_session_get_xccdf_policy(session);
     QString role_template("urn:xccdf:fix:script:%1");
     role_template = role_template.arg(mFixType);
-    int result = xccdf_policy_generate_fix(policy, NULL, role_template.toUtf8().constData(), outputFile.handle());
+    const int result = xccdf_policy_generate_fix(policy, NULL, role_template.toUtf8().constData(), outputFile.handle());
     outputFile.close();
     if (result != 0)
     {
@@ -150,7 +154,7 @@ PuppetProfileRemediationSaver::PuppetProfileRemediationSaver(QWidget* parentWind
 {}
 
 
-#ifndef SCAP_WORKBENCH_USE_LIBRARY_FOR_REMEDIATION_ROLES_GENERATION
+#ifndef SCAP_WORKBENCH_USE_LIBRARY_FOR_RESULT_BASED_REMEDIATION_ROLES_GENERATION
 ResultBasedProcessRemediationSaver::ResultBasedProcessRemediationSaver(QWidget* parentWindow, const QByteArray& arfContents,
         const QString& saveMessage, const QString& filetypeExtension, const QString& filetypeTemplate, const QString& fixType):
     RemediationSaverBase(parentWindow, saveMessage, filetypeExtension, filetypeTemplate, fixType), mParentWindow(parentWindow)
@@ -187,12 +191,12 @@ void ResultBasedProcessRemediationSaver::saveToFile(const QString& filename)
 
     TemporaryDir workingDir;
     process.setWorkingDirectory(workingDir.getPath());
-    QString program("oscap");
+    QString program(SCAP_WORKBENCH_LOCAL_OSCAP_PATH);
 
     process.start(program, args);
     process.waitForStarted();
 
-    unsigned int pollInterval = 100;
+    const unsigned int pollInterval = 100;
 
     while (!process.waitForFinished(pollInterval))
     {}
@@ -221,7 +225,7 @@ PuppetResultRemediationSaver::PuppetResultRemediationSaver(QWidget* parentWindow
 {}
 
 
-#else  // i.e. SCAP_WORKBENCH_USE_LIBRARY_FOR_REMEDIATION_ROLES_GENERATION is defined
+#else  // i.e. SCAP_WORKBENCH_USE_LIBRARY_FOR_RESULT_BASED_REMEDIATION_ROLES_GENERATION is defined
 ResultBasedLibraryRemediationSaver::ResultBasedLibraryRemediationSaver(QWidget* parentWindow, const QByteArray& arfContents,
         const QString& saveMessage, const QString& filetypeExtension, const QString& filetypeTemplate, const QString& fixType):
     RemediationSaverBase(parentWindow, saveMessage, filetypeExtension, filetypeTemplate, fixType)
@@ -241,9 +245,7 @@ void ResultBasedLibraryRemediationSaver::saveToFile(const QString& filename)
         throw std::runtime_error("Expected an ARF file");
     }
 
-    struct xccdf_session* session;
-    struct ds_rds_session* arf_session;
-    arf_session = ds_rds_session_new_from_source(source);
+    struct ds_rds_session* arf_session = ds_rds_session_new_from_source(source);
     if (arf_session == NULL) {
         throw std::runtime_error("Couldn't open ARF session");
     }
@@ -256,7 +258,7 @@ void ResultBasedLibraryRemediationSaver::saveToFile(const QString& filename)
         throw std::runtime_error("Couldn't get report request source from the ARF session");
     }
 
-    session = xccdf_session_new_from_source(oscap_source_clone(report_request_source));
+    struct xccdf_session* session = xccdf_session_new_from_source(oscap_source_clone(report_request_source));
     if (xccdf_session_add_report_from_source(session, oscap_source_clone(report_source))) {
         throw std::runtime_error("Couldn't get report request source from the ARF session");
     }
@@ -264,10 +266,6 @@ void ResultBasedLibraryRemediationSaver::saveToFile(const QString& filename)
 
     if (session == NULL)
         throw std::runtime_error("Couldn't get XCCDF session from the report source");
-
-    xccdf_session_set_loading_flags(session, XCCDF_SESSION_LOAD_XCCDF);
-    if (xccdf_session_load(session) != 0)
-        throw std::runtime_error("Couldn't get load XCCDF");
 
     xccdf_session_set_loading_flags(session, XCCDF_SESSION_LOAD_XCCDF);
     if (xccdf_session_load(session) != 0)
@@ -286,8 +284,8 @@ void ResultBasedLibraryRemediationSaver::saveToFile(const QString& filename)
 
     QFile outputFile(filename);
     outputFile.open(QIODevice::WriteOnly);
-    // Generate fix
-    int rc = xccdf_policy_generate_fix(policy, result, role_template.toUtf8().constData(), outputFile.handle());
+
+    const int rc = xccdf_policy_generate_fix(policy, result, role_template.toUtf8().constData(), outputFile.handle());
     outputFile.close();
     ds_rds_session_free(arf_session);
     xccdf_session_free(session);
@@ -319,4 +317,4 @@ PuppetResultRemediationSaver::PuppetResultRemediationSaver(QWidget* parentWindow
             puppetSaveMessage, puppetFiletypeExtension, puppetFiletypeTemplate, puppetFixType)
 {}
 
-#endif  // SCAP_WORKBENCH_USE_LIBRARY_FOR_REMEDIATION_ROLES_GENERATION
+#endif  // SCAP_WORKBENCH_USE_LIBRARY_FOR_RESULT_BASED_REMEDIATION_ROLES_GENERATION

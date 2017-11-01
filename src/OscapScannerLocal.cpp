@@ -87,17 +87,13 @@ void OscapScannerLocal::evaluate()
     }
 
     // TODO: Error handling!
-    // TODO: vvv Move to a relevant place vvv
-    // emit infoMessage(QObject::tr("Creating temporary files..."));
-
     // This is mainly for check-engine-results and oval-results, to ensure
     // we get a full report, including info from these files. openscap's XSLT
     // uses info in the check engine results if it can find them.
 
-    emit infoMessage(QObject::tr("Starting the oscap process..."));
-
     QProcess process(this);
 
+    emit infoMessage(QObject::tr("Creating temporary files..."));
     // This is mainly for check-engine-results and oval-results, to ensure
     // we get a full report, including info from these files. openscap's XSLT
     // uses info in the check engine results if it can find them.
@@ -140,8 +136,9 @@ void OscapScannerLocal::evaluate()
                 arfFile.fileName(),
                 mScannerMode == SM_SCAN_ONLINE_REMEDIATION);
     }
-    QString program = getOscapProgram(args);
+    QString program = getOscapProgramAndAdaptArgs(args);
 
+    emit infoMessage(QObject::tr("Starting the oscap process..."));
     process.start(program, args);
     process.waitForStarted();
 
@@ -268,7 +265,7 @@ QString OscapScannerLocal::getPkexecOscapPath()
         return path;
 }
 
-QString OscapScannerLocal::getOscapProgram(QStringList& args)
+QString OscapScannerLocal::getOscapProgramAndAdaptArgs(QStringList& args)
 {
     QString program = "";
 #ifdef SCAP_WORKBENCH_LOCAL_NICE_FOUND

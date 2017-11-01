@@ -38,7 +38,15 @@ class OscapScannerLocal : public OscapScannerBase
 
         virtual QStringList getCommandLineArgs() const;
         virtual void evaluate();
-        static QString getOscapProgram(QStringList& args);
+        /**
+         * @brief Return the executable name to execute and adjusts args if neccessary
+         * (e.g. the executable is a launcher and s.a. 'nice' and the oscap itself
+         * has to be added as an argument to it, i.e. prepended to args)
+         *
+         * @returns false when there is nothing to be read, true otherwise
+         * @see readStdOut
+         */
+        static QString getOscapProgramAndAdaptArgs(QStringList& args);
 
     private:
         static QString getPkexecOscapPath();

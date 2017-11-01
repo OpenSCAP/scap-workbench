@@ -25,8 +25,10 @@
 #include <QString>
 #include <QFileDialog>
 
-#include "ScanningSession.h"
+#include "ForwardDecls.h"
+
 #include "OscapScannerLocal.h"
+#include "ScanningSession.h"
 
 
 /// Base for all remediation generators
@@ -88,7 +90,7 @@ class PuppetProfileRemediationSaver : public ProfileBasedRemediationSaver
 };
 
 
-#ifndef SCAP_WORKBENCH_USE_LIBRARY_FOR_REMEDIATION_ROLES_GENERATION
+#ifndef SCAP_WORKBENCH_USE_LIBRARY_FOR_RESULT_BASED_REMEDIATION_ROLES_GENERATION
 /// Base for all result-based remediation generators that uses oscap process
 class ResultBasedProcessRemediationSaver : public RemediationSaverBase
 {
@@ -123,7 +125,7 @@ class PuppetResultRemediationSaver : public ResultBasedProcessRemediationSaver
         PuppetResultRemediationSaver(QWidget* parentWindow, const QByteArray& arfContents);
 };
 
-#else  // i.e. SCAP_WORKBENCH_USE_LIBRARY_FOR_REMEDIATION_ROLES_GENERATION is defined
+#else  // i.e. SCAP_WORKBENCH_USE_LIBRARY_FOR_RESULT_BASED_REMEDIATION_ROLES_GENERATION is defined
 
 /// Base for all result-based remediation generators that uses the openscap library
 class ResultBasedLibraryRemediationSaver : public RemediationSaverBase
@@ -158,7 +160,7 @@ class PuppetResultRemediationSaver : public ResultBasedLibraryRemediationSaver
         PuppetResultRemediationSaver(QWidget* parentWindow, const QByteArray& arfContents);
 };
 
-#endif  // SCAP_WORKBENCH_USE_LIBRARY_FOR_REMEDIATION_ROLES_GENERATION
+#endif  // SCAP_WORKBENCH_USE_LIBRARY_FOR_RESULT_BASED_REMEDIATION_ROLES_GENERATION
 
 
 #endif // SCAP_WORKBENCH_REMEDIATION_ROLE_SAVER_H_
