@@ -24,6 +24,8 @@
 
 #include <QFile>
 
+#include "RemediationRoleSaver.h"
+
 extern "C"
 {
 #include <oscap_error.h>
@@ -38,7 +40,6 @@ extern "C"
 }
 
 #include "TemporaryDir.h"
-#include "RemediationRoleSaver.h"
 
 
 QString bashSaveMessage = QObject::tr("Save remediation role as a bash script");
@@ -185,7 +186,7 @@ void ResultBasedProcessRemediationSaver::saveToFile(const QString& filename)
 
     args.append(mArfFile.fileName());
 
-    // TODO: Launching a process and going through its output is something we do already
+    // Launching a process and going through its output is something we do already in OscapScannerLocal::evaluate()
     // This is a lightweight launch though.
     QProcess process(RemediationSaverBase::mParentWindow);
 
@@ -196,10 +197,17 @@ void ResultBasedProcessRemediationSaver::saveToFile(const QString& filename)
     process.start(program, args);
     process.waitForStarted();
 
-    const unsigned int pollInterval = 100;
+    const unsigned int remediation_generation_timeout = 10000;
 
-    while (!process.waitForFinished(pollInterval))
-    {}
+    const int process_finished_on_time = process.waitForFinished(remediation_generation_timeout);
+
+    if (!process_finished_on_time)
+    {
+        QString message = QObject::tr("The process that was supposed to generate remediations didn't finish on time (i.e. within %1 secs), so it was terminated.").arg(remediation_generation_timeout / 1000);
+        process.kill();
+        throw std::runtime_error(message.toUtf8().constData());
+    }
+
     if (process.exitCode() == 1)
     {
         throw std::runtime_error(QObject::tr("There was an error in course of remediation role generation! Exit code of the 'oscap' process was 1.").toUtf8().constData());
