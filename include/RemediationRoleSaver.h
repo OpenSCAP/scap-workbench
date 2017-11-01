@@ -22,10 +22,10 @@
 #ifndef SCAP_WORKBENCH_REMEDIATION_ROLE_SAVER_H_
 #define SCAP_WORKBENCH_REMEDIATION_ROLE_SAVER_H_
 
+#include "ForwardDecls.h"
+
 #include <QString>
 #include <QFileDialog>
-
-#include "ForwardDecls.h"
 
 #include "OscapScannerLocal.h"
 #include "ScanningSession.h"

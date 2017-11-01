@@ -123,8 +123,7 @@ void ProfileBasedRemediationSaver::saveToFile(const QString& filename)
     outputFile.open(QIODevice::WriteOnly);
     struct xccdf_session* session = mScanningSession->getXCCDFSession();
     struct xccdf_policy* policy = xccdf_session_get_xccdf_policy(session);
-    QString role_template("urn:xccdf:fix:script:%1");
-    role_template = role_template.arg(mFixType);
+    const QString role_template("urn:xccdf:fix:script:%1").arg(mFixType);
     const int result = xccdf_policy_generate_fix(policy, NULL, role_template.toUtf8().constData(), outputFile.handle());
     outputFile.close();
     if (result != 0)
