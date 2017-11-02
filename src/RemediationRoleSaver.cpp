@@ -45,9 +45,7 @@ extern "C"
 QString bashSaveMessage = QObject::tr("Save remediation role as a bash script");
 QString bashFiletypeExtension = "sh";
 QString bashFiletypeTemplate = QObject::tr("bash script (*.%1)");
-// template in liboscap for Bash is 'sh', whereas the oscap CLI knows of fix type 'bash'
 QString bashFixTemplate = QString("sh");
-QString bashFixType = QString("bash");
 
 QString ansibleSaveMessage = QObject::tr("Save remediation role as an ansible playbook");
 QString ansibleFiletypeExtension = "yml";
@@ -62,7 +60,8 @@ QString puppetFixType = QString("puppet");
 
 RemediationSaverBase::RemediationSaverBase(QWidget* parentWindow,
                 const QString& saveMessage, const QString& filetypeExtension, const QString& filetypeTemplate, const QString& fixType):
-    mParentWindow(parentWindow), mSaveMessage(saveMessage), mFiletypeExtension(filetypeExtension), mFiletypeTemplate(filetypeTemplate), mFixType(fixType)
+    mParentWindow(parentWindow), mSaveMessage(saveMessage), mFiletypeExtension(filetypeExtension), mFiletypeTemplate(filetypeTemplate),
+    mTemplateString(QString("urn:xccdf:fix:script:%1").arg(fixType))
 {}
 
 
@@ -123,8 +122,7 @@ void ProfileBasedRemediationSaver::saveToFile(const QString& filename)
     outputFile.open(QIODevice::WriteOnly);
     struct xccdf_session* session = mScanningSession->getXCCDFSession();
     struct xccdf_policy* policy = xccdf_session_get_xccdf_policy(session);
-    const QString role_template = QString("urn:xccdf:fix:script:%1").arg(mFixType);
-    const int result = xccdf_policy_generate_fix(policy, NULL, role_template.toUtf8().constData(), outputFile.handle());
+    const int result = xccdf_policy_generate_fix(policy, NULL, mTemplateString.toUtf8().constData(), outputFile.handle());
     outputFile.close();
     if (result != 0)
     {
@@ -173,8 +171,8 @@ void ResultBasedProcessRemediationSaver::saveToFile(const QString& filename)
     args.append("generate");
     args.append("fix");
 
-    args.append("--fix-type");
-    args.append(mFixType);
+    args.append("--template");
+    args.append(mTemplateString);
     args.append("--output");
     args.append(filename);
 
@@ -216,7 +214,7 @@ void ResultBasedProcessRemediationSaver::saveToFile(const QString& filename)
 
 BashResultRemediationSaver::BashResultRemediationSaver(QWidget* parentWindow, const QByteArray& arfContents):
     ResultBasedProcessRemediationSaver(parentWindow, arfContents,
-            bashSaveMessage, bashFiletypeExtension, bashFiletypeTemplate, bashFixType)
+            bashSaveMessage, bashFiletypeExtension, bashFiletypeTemplate, bashFixTemplate)
 {}
 
 
@@ -286,12 +284,10 @@ void ResultBasedLibraryRemediationSaver::saveToFile(const QString& filename)
     struct xccdf_result* result = xccdf_policy_get_result_by_id(policy, xccdf_session_get_result_id(session));
     /* Result-oriented fixes */
 
-    const QString role_template = QString("urn:xccdf:fix:script:%1").arg(mFixType);
-
     QFile outputFile(filename);
     outputFile.open(QIODevice::WriteOnly);
 
-    const int rc = xccdf_policy_generate_fix(policy, result, role_template.toUtf8().constData(), outputFile.handle());
+    const int rc = xccdf_policy_generate_fix(policy, result, mTemplateString.toUtf8().constData(), outputFile.handle());
     outputFile.close();
     ds_rds_session_free(arf_session);
     xccdf_session_free(session);

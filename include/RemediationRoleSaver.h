@@ -45,10 +45,11 @@ class RemediationSaverBase
 
         QWidget* mParentWindow;
 
-        QString mSaveMessage;
-        QString mFiletypeExtension;
-        QString mFiletypeTemplate;
-        QString mFixType;
+        const QString mSaveMessage;
+        const QString mFiletypeExtension;
+        const QString mFiletypeTemplate;
+        const QString mTemplateString;
+
 
     private:
         virtual void saveToFile(const QString& filename) = 0;
