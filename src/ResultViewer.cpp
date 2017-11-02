@@ -33,7 +33,7 @@
 ResultViewer::ResultViewer(QWidget* parent):
     QWidget(parent),
 
-    mReportFile(0), mCurrentLocalScanner(NULL)
+    mReportFile(0)
 {
     mUI.setupUi(this);
 
@@ -58,26 +58,25 @@ ResultViewer::ResultViewer(QWidget* parent):
     mSaveMenu->addAction(mSaveReportAction);
     mUI.saveButton->setMenu(mSaveMenu);
 
-    // TODO: Are the menu and actions neccessary as class atributes?
-    QAction* mGenBashRemediation = new QAction("&bash", this);
+    QAction* genBashRemediation = new QAction("&bash", this);
     QObject::connect(
-        mGenBashRemediation, SIGNAL(triggered()),
+        genBashRemediation, SIGNAL(triggered()),
         this, SLOT(generateBashRemediationRole())
     );
-    QAction* mGenAnsibleRemediation = new QAction("&ansible", this);
+    QAction* genAnsibleRemediation = new QAction("&ansible", this);
     QObject::connect(
-        mGenAnsibleRemediation, SIGNAL(triggered()),
+        genAnsibleRemediation, SIGNAL(triggered()),
         this, SLOT(generateAnsibleRemediationRole())
     );
-    QAction* mGenPuppetRemediation = new QAction("&puppet", this);
+    QAction* genPuppetRemediation = new QAction("&puppet", this);
     QObject::connect(
-        mGenPuppetRemediation, SIGNAL(triggered()),
+        genPuppetRemediation, SIGNAL(triggered()),
         this, SLOT(generatePuppetRemediationRole())
     );
     QMenu* genMenu = new QMenu(this);
-    genMenu->addAction(mGenBashRemediation);
-    genMenu->addAction(mGenAnsibleRemediation);
-    genMenu->addAction(mGenPuppetRemediation);
+    genMenu->addAction(genBashRemediation);
+    genMenu->addAction(genAnsibleRemediation);
+    genMenu->addAction(genPuppetRemediation);
     mUI.genRemediationButton->setMenu(genMenu);
 
     QObject::connect(
@@ -123,11 +122,6 @@ void ResultViewer::loadContent(Scanner* scanner)
 
     mARF.clear();
     scanner->getARF(mARF);
-
-    mCurrentLocalScanner = NULL;
-    if (scanner->getTarget() == QString("localhost"))
-        // If the target is localhost, we are dealing with OscapScannerLocal
-        mCurrentLocalScanner = (OscapScannerLocal*)scanner;
 }
 
 const QByteArray& ResultViewer::getARF() const

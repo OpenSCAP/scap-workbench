@@ -155,7 +155,7 @@ PuppetProfileRemediationSaver::PuppetProfileRemediationSaver(QWidget* parentWind
 #ifndef SCAP_WORKBENCH_USE_LIBRARY_FOR_RESULT_BASED_REMEDIATION_ROLES_GENERATION
 ResultBasedProcessRemediationSaver::ResultBasedProcessRemediationSaver(QWidget* parentWindow, const QByteArray& arfContents,
         const QString& saveMessage, const QString& filetypeExtension, const QString& filetypeTemplate, const QString& fixType):
-    RemediationSaverBase(parentWindow, saveMessage, filetypeExtension, filetypeTemplate, fixType), mParentWindow(parentWindow)
+    RemediationSaverBase(parentWindow, saveMessage, filetypeExtension, filetypeTemplate, fixType)
 {
     mArfFile.setAutoRemove(true);
     mArfFile.open();
@@ -185,7 +185,7 @@ void ResultBasedProcessRemediationSaver::saveToFile(const QString& filename)
 
     // Launching a process and going through its output is something we do already in OscapScannerLocal::evaluate()
     // This is a lightweight launch though.
-    QProcess process(RemediationSaverBase::mParentWindow);
+    QProcess process(mParentWindow);
 
     TemporaryDir workingDir;
     process.setWorkingDirectory(workingDir.getPath());
@@ -194,13 +194,13 @@ void ResultBasedProcessRemediationSaver::saveToFile(const QString& filename)
     process.start(program, args);
     process.waitForStarted();
 
-    const unsigned int remediation_generation_timeout = 10000;
+    const unsigned int remediationGenerationTimeout = 10000;
 
-    const int process_finished_on_time = process.waitForFinished(remediation_generation_timeout);
+    const int process_finished_on_time = process.waitForFinished(remediationGenerationTimeout);
 
     if (!process_finished_on_time)
     {
-        QString message = QObject::tr("The process that was supposed to generate remediations didn't finish on time (i.e. within %1 secs), so it was terminated.").arg(remediation_generation_timeout / 1000);
+        QString message = QObject::tr("The process that was supposed to generate remediations didn't finish on time (i.e. within %1 secs), so it was terminated.").arg(remediationGenerationTimeout / 1000);
         process.kill();
         throw std::runtime_error(message.toUtf8().constData());
     }

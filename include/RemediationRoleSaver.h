@@ -102,7 +102,6 @@ class ResultBasedProcessRemediationSaver : public RemediationSaverBase
     private:
         virtual void saveToFile(const QString& filename);
         QTemporaryFile mArfFile;
-        QWidget mParentWindow;
 };
 
 

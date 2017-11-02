@@ -99,8 +99,6 @@ class ResultViewer : public QWidget
         /// If user requests to open the file via desktop services
         QTemporaryFile* mReportFile;
         QByteArray mARF;
-
-        OscapScannerLocal* mCurrentLocalScanner;
 };
 
 #endif
