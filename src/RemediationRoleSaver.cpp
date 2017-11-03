@@ -92,6 +92,18 @@ void RemediationSaverBase::selectFilenameAndSaveRole()
 }
 
 
+void RemediationSaverBase::removeFileWhenEmpty(const QString& filename)
+{
+    QFile outputFile(filename);
+    outputFile.open(QIODevice::ReadOnly);
+    int fileSize = outputFile.size();
+    outputFile.close();
+
+    if (fileSize == 0)
+        QFile::remove(filename);
+}
+
+
 void RemediationSaverBase::saveFileOK(const QString& filename)
 {
     // TODO: if OK - inform the user
@@ -100,6 +112,7 @@ void RemediationSaverBase::saveFileOK(const QString& filename)
 
 void RemediationSaverBase::saveFileError(const QString& filename, const QString& errorMsg)
 {
+    removeFileWhenEmpty(filename);
     const QString completeErrorMessage = QObject::tr("Error saving remediation role to '%2': %1\n").arg(errorMsg, filename);
     if (mDiagnostics != NULL)
     {
@@ -109,7 +122,7 @@ void RemediationSaverBase::saveFileError(const QString& filename, const QString&
     {
         std::cerr << completeErrorMessage.toUtf8().constData();
 
-        // TODO: This doesn't work for some reason, if mParentWindow points to ResultViewer instance
+        // TODO: This doesn't work for some reason, even if mParentWindow points to ResultViewer instance
         QErrorMessage qErrorMsg(mParentWindow);
         qErrorMsg.showMessage(completeErrorMessage);
     }
@@ -136,6 +149,10 @@ void ProfileBasedRemediationSaver::saveToFile(const QString& filename)
     struct xccdf_session* session = mScanningSession->getXCCDFSession();
     struct xccdf_policy* policy = xccdf_session_get_xccdf_policy(session);
     const int result = xccdf_policy_generate_fix(policy, NULL, mTemplateString.toUtf8().constData(), outputFile.handle());
+    if (!outputFile.flush())
+    {
+        throw std::runtime_error("Could not write to the destination location.");
+    }
     outputFile.close();
     if (result != 0)
     {
@@ -301,6 +318,10 @@ void ResultBasedLibraryRemediationSaver::saveToFile(const QString& filename)
     outputFile.open(QIODevice::WriteOnly);
 
     const int rc = xccdf_policy_generate_fix(policy, result, mTemplateString.toUtf8().constData(), outputFile.handle());
+    if (!outputFile.flush())
+    {
+        throw std::runtime_error("Could not write to the destination location.");
+    }
     outputFile.close();
     ds_rds_session_free(arf_session);
     xccdf_session_free(session);
