@@ -172,19 +172,19 @@ void ResultViewer::openReport()
 
 void ResultViewer::generateBashRemediationRole()
 {
-    BashResultRemediationSaver remediation(this, mARF);
+    BashResultRemediationSaver remediation(this, NULL, mARF);
     remediation.selectFilenameAndSaveRole();
 }
 
 void ResultViewer::generateAnsibleRemediationRole()
 {
-    AnsibleResultRemediationSaver remediation(this, mARF);
+    AnsibleResultRemediationSaver remediation(this, NULL, mARF);
     remediation.selectFilenameAndSaveRole();
 }
 
 void ResultViewer::generatePuppetRemediationRole()
 {
-    PuppetResultRemediationSaver remediation(this, mARF);
+    PuppetResultRemediationSaver remediation(this, NULL, mARF);
     remediation.selectFilenameAndSaveRole();
 }
 

@@ -1558,18 +1558,18 @@ QMessageBox::StandardButton MainWindow::openNewFileQuestionDialog(const QString&
 
 void MainWindow::generateBashRemediationRole()
 {
-    BashProfileRemediationSaver saver(this, mScanningSession);
+    BashProfileRemediationSaver saver(this, mDiagnosticsDialog, mScanningSession);
     saver.selectFilenameAndSaveRole();
 }
 
 void MainWindow::generateAnsibleRemediationRole()
 {
-    AnsibleProfileRemediationSaver saver(this, mScanningSession);
+    AnsibleProfileRemediationSaver saver(this, mDiagnosticsDialog, mScanningSession);
     saver.selectFilenameAndSaveRole();
 }
 
 void MainWindow::generatePuppetRemediationRole()
 {
-    PuppetProfileRemediationSaver saver(this, mScanningSession);
+    PuppetProfileRemediationSaver saver(this, mDiagnosticsDialog, mScanningSession);
     saver.selectFilenameAndSaveRole();
 }

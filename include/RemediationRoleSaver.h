@@ -35,15 +35,17 @@
 class RemediationSaverBase
 {
     public:
-        RemediationSaverBase(QWidget* parentWindow,
+        RemediationSaverBase(QWidget* parentWindow, DiagnosticsDialog* diagnostics,
                 const QString& saveMessage, const QString& filetypeExtension, const QString& filetypeTemplate, const QString& fixType);
         void selectFilenameAndSaveRole();
 
     protected:
         void saveFileError(const QString& filename, const QString& error_msg);
         void saveFileOK(const QString& filename);
+        void removeFileWhenEmpty(const QString& filename);
 
         QWidget* mParentWindow;
+        DiagnosticsDialog * mDiagnostics;
 
         const QString mSaveMessage;
         const QString mFiletypeExtension;
@@ -61,7 +63,7 @@ class RemediationSaverBase
 class ProfileBasedRemediationSaver : public RemediationSaverBase
 {
     public:
-        ProfileBasedRemediationSaver(QWidget* parentWindow, ScanningSession* session,
+        ProfileBasedRemediationSaver(QWidget* parentWindow, DiagnosticsDialog* diagnostics, ScanningSession* session,
                 const QString& saveMessage, const QString& filetypeExtension, const QString& filetypeTemplate, const QString& fixType);
 
     private:
@@ -73,21 +75,21 @@ class ProfileBasedRemediationSaver : public RemediationSaverBase
 class BashProfileRemediationSaver : public ProfileBasedRemediationSaver
 {
     public:
-        BashProfileRemediationSaver(QWidget* parentWindow, ScanningSession* session);
+        BashProfileRemediationSaver(QWidget* parentWindow, DiagnosticsDialog* diagnostics, ScanningSession* session);
 };
 
 
 class AnsibleProfileRemediationSaver : public ProfileBasedRemediationSaver
 {
     public:
-        AnsibleProfileRemediationSaver(QWidget* parentWindow, ScanningSession* session);
+        AnsibleProfileRemediationSaver(QWidget* parentWindow, DiagnosticsDialog* diagnostics, ScanningSession* session);
 };
 
 
 class PuppetProfileRemediationSaver : public ProfileBasedRemediationSaver
 {
     public:
-        PuppetProfileRemediationSaver(QWidget* parentWindow, ScanningSession* session);
+        PuppetProfileRemediationSaver(QWidget* parentWindow, DiagnosticsDialog* diagnostics, ScanningSession* session);
 };
 
 
@@ -96,7 +98,7 @@ class PuppetProfileRemediationSaver : public ProfileBasedRemediationSaver
 class ResultBasedProcessRemediationSaver : public RemediationSaverBase
 {
     public:
-        ResultBasedProcessRemediationSaver(QWidget* parentWindow, const QByteArray& arfContents,
+        ResultBasedProcessRemediationSaver(QWidget* parentWindow, DiagnosticsDialog* diagnostics, const QByteArray& arfContents,
                 const QString& saveMessage, const QString& filetypeExtension, const QString& filetypeTemplate, const QString& fixType);
 
     private:
@@ -108,21 +110,21 @@ class ResultBasedProcessRemediationSaver : public RemediationSaverBase
 class BashResultRemediationSaver : public ResultBasedProcessRemediationSaver
 {
     public:
-        BashResultRemediationSaver(QWidget* parentWindow, const QByteArray& arfContents);
+        BashResultRemediationSaver(QWidget* parentWindow, DiagnosticsDialog* diagnostics, const QByteArray& arfContents);
 };
 
 
 class AnsibleResultRemediationSaver : public ResultBasedProcessRemediationSaver
 {
     public:
-        AnsibleResultRemediationSaver(QWidget* parentWindow, const QByteArray& arfContents);
+        AnsibleResultRemediationSaver(QWidget* parentWindow, DiagnosticsDialog* diagnostics, const QByteArray& arfContents);
 };
 
 
 class PuppetResultRemediationSaver : public ResultBasedProcessRemediationSaver
 {
     public:
-        PuppetResultRemediationSaver(QWidget* parentWindow, const QByteArray& arfContents);
+        PuppetResultRemediationSaver(QWidget* parentWindow, DiagnosticsDialog* diagnostics, const QByteArray& arfContents);
 };
 
 #else  // i.e. SCAP_WORKBENCH_USE_LIBRARY_FOR_RESULT_BASED_REMEDIATION_ROLES_GENERATION is defined
@@ -131,7 +133,7 @@ class PuppetResultRemediationSaver : public ResultBasedProcessRemediationSaver
 class ResultBasedLibraryRemediationSaver : public RemediationSaverBase
 {
     public:
-        ResultBasedLibraryRemediationSaver(QWidget* parentWindow, const QByteArray& arfContents,
+        ResultBasedLibraryRemediationSaver(QWidget* parentWindow, DiagnosticsDialog* diagnostics, const QByteArray& arfContents,
                 const QString& saveMessage, const QString& filetypeExtension, const QString& filetypeTemplate, const QString& fixType);
 
     private:
@@ -143,21 +145,21 @@ class ResultBasedLibraryRemediationSaver : public RemediationSaverBase
 class BashResultRemediationSaver : public ResultBasedLibraryRemediationSaver
 {
     public:
-        BashResultRemediationSaver(QWidget* parentWindow, const QByteArray& arfContents);
+        BashResultRemediationSaver(QWidget* parentWindow, DiagnosticsDialog* diagnostics, const QByteArray& arfContents);
 };
 
 
 class AnsibleResultRemediationSaver : public ResultBasedLibraryRemediationSaver
 {
     public:
-        AnsibleResultRemediationSaver(QWidget* parentWindow, const QByteArray& arfContents);
+        AnsibleResultRemediationSaver(QWidget* parentWindow, DiagnosticsDialog* diagnostics, const QByteArray& arfContents);
 };
 
 
 class PuppetResultRemediationSaver : public ResultBasedLibraryRemediationSaver
 {
     public:
-        PuppetResultRemediationSaver(QWidget* parentWindow, const QByteArray& arfContents);
+        PuppetResultRemediationSaver(QWidget* parentWindow, DiagnosticsDialog* diagnostics, const QByteArray& arfContents);
 };
 
 #endif  // SCAP_WORKBENCH_USE_LIBRARY_FOR_RESULT_BASED_REMEDIATION_ROLES_GENERATION
