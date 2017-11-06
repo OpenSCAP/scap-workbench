@@ -112,7 +112,7 @@ void RemediationSaverBase::saveFileOK(const QString& filename)
 void RemediationSaverBase::saveFileError(const QString& filename, const QString& errorMsg)
 {
     removeFileWhenEmpty(filename);
-    const QString completeErrorMessage = QObject::tr("Error saving remediation role to '%2': %1\n").arg(errorMsg, filename);
+    const QString completeErrorMessage = QObject::tr("Error generating remediation role '%2': %1").arg(errorMsg, filename);
     mDiagnostics->errorMessage(completeErrorMessage);
 }
 
@@ -225,7 +225,8 @@ void ResultBasedProcessRemediationSaver::saveToFile(const QString& filename)
 
     if (process.exitCode() != 0)
     {
-        throw std::runtime_error(QObject::tr("There was an error in course of remediation role generation! Exit code of the 'oscap' process was %1.").arg(process.exitCode()).toUtf8().constData());
+        QString completeErrorMessage(QObject::tr("Exit code of 'oscap' was %1: %2"));
+        throw std::runtime_error(completeErrorMessage.arg(process.exitCode()).arg(QString(process.readAllStandardError())).toUtf8().constData());
     }
 }
 
