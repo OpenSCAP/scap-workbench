@@ -20,6 +20,7 @@
  */
 
 #include "ResultViewer.h"
+#include "MainWindow.h"
 #include "Scanner.h"
 #include "OscapScannerBase.h"
 #include "OscapScannerLocal.h"
@@ -172,19 +173,19 @@ void ResultViewer::openReport()
 
 void ResultViewer::generateBashRemediationRole()
 {
-    BashResultRemediationSaver remediation(this, NULL, mARF);
+    BashResultRemediationSaver remediation(this, mARF);
     remediation.selectFilenameAndSaveRole();
 }
 
 void ResultViewer::generateAnsibleRemediationRole()
 {
-    AnsibleResultRemediationSaver remediation(this, NULL, mARF);
+    AnsibleResultRemediationSaver remediation(this, mARF);
     remediation.selectFilenameAndSaveRole();
 }
 
 void ResultViewer::generatePuppetRemediationRole()
 {
-    PuppetResultRemediationSaver remediation(this, NULL, mARF);
+    PuppetResultRemediationSaver remediation(this, mARF);
     remediation.selectFilenameAndSaveRole();
 }
 

@@ -218,6 +218,7 @@ MainWindow::MainWindow(QWidget* parent):
 
     mDiagnosticsDialog = new DiagnosticsDialog(this);
     mDiagnosticsDialog->hide();
+    globalDiagnosticsDialog = mDiagnosticsDialog;
 
     mCommandLineArgsDialog = new CommandLineArgsDialog(this);
     mCommandLineArgsDialog->hide();
@@ -275,6 +276,8 @@ MainWindow::MainWindow(QWidget* parent):
 
 MainWindow::~MainWindow()
 {
+    globalDiagnosticsDialog = NULL;
+
     delete mScanner;
     mScanner = 0;
 
@@ -1558,18 +1561,18 @@ QMessageBox::StandardButton MainWindow::openNewFileQuestionDialog(const QString&
 
 void MainWindow::generateBashRemediationRole()
 {
-    BashProfileRemediationSaver saver(this, mDiagnosticsDialog, mScanningSession);
+    BashProfileRemediationSaver saver(this, mScanningSession);
     saver.selectFilenameAndSaveRole();
 }
 
 void MainWindow::generateAnsibleRemediationRole()
 {
-    AnsibleProfileRemediationSaver saver(this, mDiagnosticsDialog, mScanningSession);
+    AnsibleProfileRemediationSaver saver(this, mScanningSession);
     saver.selectFilenameAndSaveRole();
 }
 
 void MainWindow::generatePuppetRemediationRole()
 {
-    PuppetProfileRemediationSaver saver(this, mDiagnosticsDialog, mScanningSession);
+    PuppetProfileRemediationSaver saver(this, mScanningSession);
     saver.selectFilenameAndSaveRole();
 }

@@ -61,6 +61,7 @@ enum MessageFormat
     MF_PREFORMATTED_XML = MF_PREFORMATTED | MF_XML,
 };
 
+
 /**
  * @brief Workbench displays errors and warnings, this dialog groups them
  *
@@ -135,5 +136,10 @@ class DiagnosticsDialog : public QDialog
          */
         void copyToClipboard();
 };
+
+
+// Global pointer to the diagnostics dialog.
+// As it is basically write-only, it doesn't share state, so it doesn't matter that it is global.
+extern DiagnosticsDialog* globalDiagnosticsDialog;
 
 #endif
