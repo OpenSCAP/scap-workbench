@@ -267,7 +267,7 @@ QString OscapScannerLocal::getPkexecOscapPath()
 
 QString OscapScannerLocal::getOscapProgramAndAdaptArgs(QStringList& args)
 {
-    QString program = "";
+    QString program;
 #ifdef SCAP_WORKBENCH_LOCAL_NICE_FOUND
     args.prepend(getPkexecOscapPath());
     args.prepend(QString::number(SCAP_WORKBENCH_LOCAL_OSCAP_NICENESS));
