@@ -164,3 +164,5 @@ void DiagnosticsDialog::copyToClipboard()
     QClipboard* clipboard = QApplication::clipboard();
     clipboard->setText(fullLog);
 }
+
+DiagnosticsDialog* globalDiagnosticsDialog = NULL;

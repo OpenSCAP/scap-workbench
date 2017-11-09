@@ -50,6 +50,7 @@ enum MessageSeverity
     MS_ERROR
 };
 
+
 /**
  * @brief MessageFormat can be any subset of this flags
  */
@@ -60,6 +61,7 @@ enum MessageFormat
     MF_XML = 0x04, // Replace xml metacharacters with xml entities
     MF_PREFORMATTED_XML = MF_PREFORMATTED | MF_XML,
 };
+
 
 /**
  * @brief Workbench displays errors and warnings, this dialog groups them
@@ -135,5 +137,14 @@ class DiagnosticsDialog : public QDialog
          */
         void copyToClipboard();
 };
+
+
+/**
+ * @brief Global pointer to the diagnostics dialog.
+ *
+ * As it is basically write-only, it doesn't share state, so it doesn't matter that it is global.
+ * When the application is running, it is the same MainWindow::mDiagnosticsDialog, which should be considered the single point of truth.
+ */
+extern DiagnosticsDialog* globalDiagnosticsDialog;
 
 #endif
