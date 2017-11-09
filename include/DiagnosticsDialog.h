@@ -50,6 +50,7 @@ enum MessageSeverity
     MS_ERROR
 };
 
+
 /**
  * @brief MessageFormat can be any subset of this flags
  */
