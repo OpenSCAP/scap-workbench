@@ -138,8 +138,12 @@ class DiagnosticsDialog : public QDialog
 };
 
 
-// Global pointer to the diagnostics dialog.
-// As it is basically write-only, it doesn't share state, so it doesn't matter that it is global.
+/**
+ * @brief Global pointer to the diagnostics dialog.
+ *
+ * As it is basically write-only, it doesn't share state, so it doesn't matter that it is global.
+ * When the application is running, it is the same MainWindow::mDiagnosticsDialog, which should be considered the single point of truth.
+ */
 extern DiagnosticsDialog* globalDiagnosticsDialog;
 
 #endif
