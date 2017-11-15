@@ -35,9 +35,9 @@ optional dependencies:
 2) Build SCAP Workbench:
 ```console
 $ mkdir build; cd build
-$ # this export line is only required if openscap was
-$ # compiled locally and libopenscap is in /usr/local/lib/
-$ export PKG_CONFIG_PATH=/PATH/TO/YOUR/SOURCE/openscap/
+$ # This export line is only required if openscap was compiled locally;
+$ # add to PKG_CONFIG_PATH the directory containing libopenscap.pc
+$ export PKG_CONFIG_PATH=$PKG_CONFIG_PATH:/PATH/TO/DIR/WITH/.pcFILE/
 $ cmake ../
 $ make
 ```
