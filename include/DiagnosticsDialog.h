@@ -136,6 +136,11 @@ class DiagnosticsDialog : public QDialog
          * @brief Copies plain text log to system clipboard, useful for bug reports
          */
         void copyToClipboard();
+
+        /**
+         * @brief Clears the diagnostics dialog
+         */
+        void clearDialog();
 };
 
 

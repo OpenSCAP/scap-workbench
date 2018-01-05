@@ -34,6 +34,11 @@ DiagnosticsDialog::DiagnosticsDialog(QWidget* parent):
     mUI.setupUi(this);
 
     QObject::connect(
+        mUI.clearDialog, SIGNAL(clicked()),
+        this, SLOT(clearDialog())
+    );
+
+    QObject::connect(
         mUI.clipboardButton, SIGNAL(clicked()),
         this, SLOT(copyToClipboard())
     );
@@ -163,6 +168,11 @@ void DiagnosticsDialog::copyToClipboard()
     const QString fullLog = mUI.messages->toPlainText();
     QClipboard* clipboard = QApplication::clipboard();
     clipboard->setText(fullLog);
+}
+
+void DiagnosticsDialog::clearDialog()
+{
+    mUI.messages->clear();
 }
 
 DiagnosticsDialog* globalDiagnosticsDialog = NULL;
