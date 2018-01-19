@@ -393,7 +393,7 @@ The possibility to save remediations to a file puts you in charge -
 you can examine it, edit it and decide what remediations to apply.
 However, the result-based remediations export produces output
 that fits your system better.
-See <<View-and-Analyze-Results>> to learn more about it.
+See <<view-and-analyze-results>> to learn more about it.
 
 Be aware that remediations may not be implemented in all formats.
 The most widely supported formats are bash scripts and Ansible playbooks.
@@ -453,17 +453,6 @@ be undone.
 Pressing *Show Report* will open the HTML report of the evaluation in your
 internet browser.
 
-Opening the *Generate remediation role* pop-up menu will let you to save
-result-based remediations to a file.
-The output file will contain all available remediations for rules
-that have failed the scan, so it should fit your needs better
-than profile-based remediations.
-As the saved content is based on actual scan results,
-it is referred to as results-based remediation role.
-
-If you scan with a customized profile, you may encounter an error -
-see <<Known-issues>> for a workaround.
-
 ****
 SCAP Workbench will open the report in the default web browser set in your
 desktop environment. Make sure you have a browser installed.
@@ -499,6 +488,17 @@ when archiving.
 However, ARF files are not as well supported by SCAP toolchains as XCCDF result files are.
 XCCDF result files can be generated from ARF files, this operation is called *ARF splitting*.
 ****
+
+Opening the *Generate remediation role* pop-up menu will let you to save
+result-based remediations to a file.
+The output file will contain all available remediations for rules
+that have failed the scan, so it should fit your needs better
+than profile-based remediations.
+As the saved content is based on actual scan results,
+it is referred to as results-based remediation role.
+
+If you scan with a customized profile, you may encounter an error -
+see <<known-issues>> for a workaround.
 
 == Notable shortcuts
 
