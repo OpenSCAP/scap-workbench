@@ -31,8 +31,6 @@
 
 Application::Application(int& argc, char** argv):
     QApplication(argc, argv),
-
-    mShouldQuit(false),
     mTranslator(),
     mMainWindow(0)
 {
@@ -60,12 +58,6 @@ Application::Application(int& argc, char** argv):
 
     QStringList args = arguments();
     processCLI(args);
-
-    if (mShouldQuit)
-    {
-        mMainWindow->closeMainWindowAsync();
-        return;
-    }
 
     // Showing the window before processing command line arguments causes crashes occasionally
     mMainWindow->show();
@@ -130,25 +122,4 @@ void Application::openSSG()
 void Application::browseForContent()
 {
     mMainWindow->openFileDialogAsync();
-}
-
-void Application::printVersion()
-{
-    const QString versionInfo = QString("SCAP Workbench %1\n").arg(SCAP_WORKBENCH_VERSION);
-    std::cout << versionInfo.toUtf8().constData();
-}
-
-void Application::printHelp()
-{
-    const QString help = QString(
-            "Usage: ./scap-workbench [options] [file]\n"
-            "\nOptions:\n"
-            "   -h, --help\r\t\t\t\t Displays this help.\n"
-            "   -V, --version\r\t\t\t\t Displays version information.\n"
-            "   --skip-valid\r\t\t\t\t Skips OpenSCAP validation.\n"
-            "   --tailoring TAILORING_FILE\r\t\t\t\t Opens given tailoring file after the given XCCDF or SDS file is loaded.\n"
-            "\nArguments:\n"
-            "   file\r\t\t\t\t A file to load, can be an XCCDF or SDS file.\n");
-
-    std::cout << help.toUtf8().constData();
 }

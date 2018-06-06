@@ -61,17 +61,10 @@ class Application : public QApplication
         void browseForContent();
 
         /**
-         * @brief Prints version of SCAP Workbench
+         * @brief Whether the application should skip OpenSCAP validation
          */
-        void printVersion();
+        bool mSkipValid;
 
-        /**
-         * @brief Prints help of SCAP Workbench
-         */
-        void printHelp();
-
-        /// Whether the application should quit
-        bool mShouldQuit;
         /// Needed for QObject::tr(..) to work properly, loaded on app startup
         QTranslator mTranslator;
         MainWindow* mMainWindow;
