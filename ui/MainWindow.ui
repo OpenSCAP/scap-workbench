@@ -184,7 +184,16 @@
           </sizepolicy>
          </property>
          <layout class="QHBoxLayout" name="horizontalLayout_5">
-          <property name="margin">
+          <property name="leftMargin">
+           <number>0</number>
+          </property>
+          <property name="topMargin">
+           <number>0</number>
+          </property>
+          <property name="rightMargin">
+           <number>0</number>
+          </property>
+          <property name="bottomMargin">
            <number>0</number>
           </property>
           <item>
@@ -220,7 +229,11 @@
         </widget>
        </item>
        <item row="11" column="0" colspan="3">
-        <widget class="RemoteMachineComboBox" name="remoteMachineDetails" native="true"/>
+        <widget class="RemoteMachineComboBox" name="remoteMachineDetails" native="true">
+         <property name="focusPolicy">
+          <enum>Qt::StrongFocus</enum>
+         </property>
+        </widget>
        </item>
       </layout>
      </widget>
@@ -278,7 +291,9 @@
           <verstretch>0</verstretch>
          </sizepolicy>
         </property>
-        <zorder>scanProperties</zorder>
+        <property name="focusPolicy">
+         <enum>Qt::TabFocus</enum>
+        </property>
        </widget>
       </item>
       <item>
@@ -308,19 +323,47 @@
        <item>
         <widget class="QWidget" name="widget_5" native="true">
          <layout class="QVBoxLayout" name="verticalLayout_3">
-          <property name="margin">
+          <property name="leftMargin">
+           <number>0</number>
+          </property>
+          <property name="topMargin">
+           <number>0</number>
+          </property>
+          <property name="rightMargin">
+           <number>0</number>
+          </property>
+          <property name="bottomMargin">
            <number>0</number>
           </property>
           <item>
            <widget class="QWidget" name="preScanTools" native="true">
             <layout class="QHBoxLayout" name="horizontalLayout">
-             <property name="margin">
+             <property name="leftMargin">
+              <number>0</number>
+             </property>
+             <property name="topMargin">
+              <number>0</number>
+             </property>
+             <property name="rightMargin">
+              <number>0</number>
+             </property>
+             <property name="bottomMargin">
               <number>0</number>
              </property>
              <item>
               <widget class="QPushButton" name="showGuideButton">
                <property name="text">
                 <string>Show Guide</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="genRemediationButton">
+               <property name="toolTip">
+                <string>Generate remediation role that contains fix for every single rule the in the profile. Note that not every rule implements a fix.</string>
+               </property>
+               <property name="text">
+                <string>Generate remediation role</string>
                </property>
               </widget>
              </item>
@@ -339,11 +382,6 @@
              </item>
              <item>
               <widget class="QCheckBox" name="dryRunCheckBox">
-               <property name="font">
-                <font>
-                 <pointsize>11</pointsize>
-                </font>
-               </property>
                <property name="toolTip">
                 <string>When checked no action is performed after pressing Scan, a dialog with the used command-line arguments is shown instead.</string>
                </property>
@@ -354,11 +392,6 @@
              </item>
              <item>
               <widget class="QCheckBox" name="fetchRemoteResourcesCheckbox">
-               <property name="font">
-                <font>
-                 <pointsize>11</pointsize>
-                </font>
-               </property>
                <property name="toolTip">
                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Allow download of&amp;nbsp;remote OVAL content referenced from&amp;nbsp;XCCDF by&amp;nbsp;check-content-ref/@href.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                </property>
@@ -369,11 +402,6 @@
              </item>
              <item>
               <widget class="QCheckBox" name="onlineRemediationCheckBox">
-               <property name="font">
-                <font>
-                 <pointsize>11</pointsize>
-                </font>
-               </property>
                <property name="toolTip">
                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Attempts to automatically correct issues identified by the scan.&lt;/p&gt;&lt;p&gt;Note: Automated remediation may impact system functionality.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                </property>
@@ -405,7 +433,16 @@
           <item>
            <widget class="QWidget" name="scanTools" native="true">
             <layout class="QHBoxLayout" name="horizontalLayout_4">
-             <property name="margin">
+             <property name="leftMargin">
+              <number>0</number>
+             </property>
+             <property name="topMargin">
+              <number>0</number>
+             </property>
+             <property name="rightMargin">
+              <number>0</number>
+             </property>
+             <property name="bottomMargin">
               <number>0</number>
              </property>
              <item>
@@ -447,7 +484,16 @@
           <item>
            <widget class="QWidget" name="postScanTools" native="true">
             <layout class="QHBoxLayout" name="horizontalLayout_3">
-             <property name="margin">
+             <property name="leftMargin">
+              <number>0</number>
+             </property>
+             <property name="topMargin">
+              <number>0</number>
+             </property>
+             <property name="rightMargin">
+              <number>0</number>
+             </property>
+             <property name="bottomMargin">
               <number>0</number>
              </property>
              <item>
@@ -520,7 +566,7 @@
      <x>0</x>
      <y>0</y>
      <width>800</width>
-     <height>27</height>
+     <height>29</height>
     </rect>
    </property>
    <property name="font">
@@ -648,6 +694,25 @@
    <container>1</container>
   </customwidget>
  </customwidgets>
+ <tabstops>
+  <tabstop>checklistComboBox</tabstop>
+  <tabstop>tailoringFileComboBox</tabstop>
+  <tabstop>profileComboBox</tabstop>
+  <tabstop>customizeProfileButton</tabstop>
+  <tabstop>localMachineRadioButton</tabstop>
+  <tabstop>remoteMachineRadioButton</tabstop>
+  <tabstop>remoteMachineDetails</tabstop>
+  <tabstop>expandRulesButton</tabstop>
+  <tabstop>ruleResultsTree</tabstop>
+  <tabstop>showGuideButton</tabstop>
+  <tabstop>dryRunCheckBox</tabstop>
+  <tabstop>fetchRemoteResourcesCheckbox</tabstop>
+  <tabstop>onlineRemediationCheckBox</tabstop>
+  <tabstop>scanButton</tabstop>
+  <tabstop>cancelButton</tabstop>
+  <tabstop>clearButton</tabstop>
+  <tabstop>offlineRemediateButton</tabstop>
+ </tabstops>
  <resources/>
  <connections>
   <connection>

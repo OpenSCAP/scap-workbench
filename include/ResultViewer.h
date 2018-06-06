@@ -77,6 +77,13 @@ class ResultViewer : public QWidget
         /// Pops up a save dialog for ARF / result datastream
         void saveARF();
 
+        /// Pops up a save dialog for a bash remediation
+        void generateBashRemediationRole();
+        /// Pops up a save dialog for an ansible remediation
+        void generateAnsibleRemediationRole();
+        /// Pops up a save dialog for a puppet remediation
+        void generatePuppetRemediationRole();
+
     private:
         Ui_ResultViewer mUI;
 

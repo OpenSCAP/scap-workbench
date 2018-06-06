@@ -20,9 +20,13 @@
  */
 
 #include "ResultViewer.h"
+#include "MainWindow.h"
 #include "Scanner.h"
+#include "OscapScannerBase.h"
+#include "OscapScannerLocal.h"
 #include "ScanningSession.h"
 #include "Utils.h"
+#include "RemediationRoleSaver.h"
 
 #include <QFileDialog>
 #include <QMessageBox>
@@ -54,6 +58,27 @@ ResultViewer::ResultViewer(QWidget* parent):
     mSaveMenu->addAction(mSaveARFAction);
     mSaveMenu->addAction(mSaveReportAction);
     mUI.saveButton->setMenu(mSaveMenu);
+
+    QAction* genBashRemediation = new QAction("&bash", this);
+    QObject::connect(
+        genBashRemediation, SIGNAL(triggered()),
+        this, SLOT(generateBashRemediationRole())
+    );
+    QAction* genAnsibleRemediation = new QAction("&ansible", this);
+    QObject::connect(
+        genAnsibleRemediation, SIGNAL(triggered()),
+        this, SLOT(generateAnsibleRemediationRole())
+    );
+    QAction* genPuppetRemediation = new QAction("&puppet", this);
+    QObject::connect(
+        genPuppetRemediation, SIGNAL(triggered()),
+        this, SLOT(generatePuppetRemediationRole())
+    );
+    QMenu* genMenu = new QMenu(this);
+    genMenu->addAction(genBashRemediation);
+    genMenu->addAction(genAnsibleRemediation);
+    genMenu->addAction(genPuppetRemediation);
+    mUI.genRemediationButton->setMenu(genMenu);
 
     QObject::connect(
         mUI.openReportButton, SIGNAL(clicked()),
@@ -143,6 +168,25 @@ void ResultViewer::openReport()
     openUrlGuarded(QUrl::fromLocalFile(mReportFile->fileName()));
 
     // the temporary file will be destroyed when SCAP Workbench closes or after another one is requested
+}
+
+
+void ResultViewer::generateBashRemediationRole()
+{
+    BashResultRemediationSaver remediation(this, mARF);
+    remediation.selectFilenameAndSaveRole();
+}
+
+void ResultViewer::generateAnsibleRemediationRole()
+{
+    AnsibleResultRemediationSaver remediation(this, mARF);
+    remediation.selectFilenameAndSaveRole();
+}
+
+void ResultViewer::generatePuppetRemediationRole()
+{
+    PuppetResultRemediationSaver remediation(this, mARF);
+    remediation.selectFilenameAndSaveRole();
 }
 
 void ResultViewer::saveResults()

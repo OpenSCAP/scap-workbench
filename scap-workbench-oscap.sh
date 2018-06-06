@@ -18,7 +18,7 @@
 
 set -u -o pipefail
 
-trap "" SIGHUP SIGINT SIGTERM
+trap "" SIGHUP SIGINT
 
 # pkexec writes a message to stderr when user dismisses it, we always skip 1 line.
 # if user did not dismiss it we should print a dummy line to stderr so that nothing
@@ -74,7 +74,7 @@ while kill -0 $PID 2> /dev/null; do
     ret=$?
     if [ 0 -lt $ret -a $ret -lt 128 ]; then
         # If read failed & it was not due to timeout --> parents are gone.
-        kill -s SIGINT $PID 2> /dev/null
+        kill -s SIGTERM $PID 2> /dev/null
         break
     fi
 done

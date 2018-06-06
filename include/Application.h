@@ -61,11 +61,10 @@ class Application : public QApplication
         void browseForContent();
 
         /**
-         * @brief Whether the application should quit
+         * @brief Whether the application should skip OpenSCAP validation
          */
-        bool shouldQuit;
-
         bool mSkipValid;
+
         /// Needed for QObject::tr(..) to work properly, loaded on app startup
         QTranslator mTranslator;
         MainWindow* mMainWindow;

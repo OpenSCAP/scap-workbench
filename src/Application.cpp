@@ -27,16 +27,15 @@
 #include <QTranslator>
 #include <QCommandLineParser>
 
+#include <iostream>
+
 Application::Application(int& argc, char** argv):
     QApplication(argc, argv),
-
-    mSkipValid(false),
-    shouldQuit(false),
     mTranslator(),
     mMainWindow(0)
 {
     setOrganizationName("SCAP Workbench upstream");
-    setOrganizationDomain("http://fedorahosted.org/scap-workbench");
+    setOrganizationDomain("https://www.open-scap.org/tools/scap-workbench");
 
     setApplicationName("SCAP Workbench");
     setApplicationVersion(SCAP_WORKBENCH_VERSION);
@@ -63,14 +62,6 @@ Application::Application(int& argc, char** argv):
     // Showing the window before processing command line arguments causes crashes occasionally
     mMainWindow->show();
 
-    if (shouldQuit)
-    {
-        mMainWindow->closeMainWindowAsync();
-        return;
-    }
-
-    mMainWindow->setSkipValid(mSkipValid);
-
     // Only open default content if no file to open was given.
     if (!mMainWindow->fileOpened())
         openSSG();
@@ -92,19 +83,35 @@ void Application::processCLI(QStringList& args)
     QCommandLineOption skipValid("skip-valid", "Skips OpenSCAP validation.");
     parser.addOption(skipValid);
 
-    parser.addPositionalArgument("file", "A file to load, can be an XCCDF or SDS file.", "[file]");
+    QCommandLineOption tailoring("tailoring", "Opens the given tailoring file after "
+                                              "the given XCCDF or SDS file is loaded.",
+                                 "ssg-tailoring.xml");
+    parser.addOption(tailoring);
+
+    parser.addPositionalArgument("file", "A file to load; can be either an XCCDF or SDS file.", "[file]");
     parser.process(args);
 
     if (parser.isSet(skipValid))
     {
-        mSkipValid = true;
+        mMainWindow->setSkipValid(true);
     }
 
     QStringList posArguments = parser.positionalArguments();
-    if (posArguments.isEmpty())
+    if (posArguments.isEmpty()) {
+        if (parser.isSet(tailoring)) {
+            std::cout << "Tailoring file was provided via --tailoring, but no SCAP "
+                      << "input was provided. Ignoring the tailoring file."
+                      << std::endl;
+        }
         return;
+    }
 
     mMainWindow->openFile(posArguments.first());
+
+    if (parser.isSet(tailoring))
+        mMainWindow->openTailoringFile(parser.value(tailoring));
+
+    // We ignore all other positional arguments suplied, if any
 }
 
 void Application::openSSG()

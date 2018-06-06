@@ -34,11 +34,13 @@
 #include "RPMOpenHelper.h"
 #include "Utils.h"
 #include "SSGIntegrationDialog.h"
+#include "RemediationRoleSaver.h"
 
 #include <QFileDialog>
 #include <QAbstractEventDispatcher>
 #include <QCloseEvent>
 #include <QDesktopWidget>
+#include <QMenu>
 
 #include <cassert>
 #include <set>
@@ -216,6 +218,7 @@ MainWindow::MainWindow(QWidget* parent):
 
     mDiagnosticsDialog = new DiagnosticsDialog(this);
     mDiagnosticsDialog->hide();
+    globalDiagnosticsDialog = mDiagnosticsDialog;
 
     mCommandLineArgsDialog = new CommandLineArgsDialog(this);
     mCommandLineArgsDialog->hide();
@@ -247,10 +250,34 @@ MainWindow::MainWindow(QWidget* parent):
 
     // start centered
     move(QApplication::desktop()->screen()->rect().center() - rect().center());
+
+    QAction* genBashRemediation = new QAction("&bash", this);
+    QObject::connect(
+        genBashRemediation, SIGNAL(triggered()),
+        this, SLOT(generateBashRemediationRole())
+    );
+    QAction* genAnsibleRemediation = new QAction("&ansible", this);
+    QObject::connect(
+        genAnsibleRemediation, SIGNAL(triggered()),
+        this, SLOT(generateAnsibleRemediationRole())
+    );
+    QAction* genPuppetRemediation = new QAction("&puppet", this);
+    QObject::connect(
+        genPuppetRemediation, SIGNAL(triggered()),
+        this, SLOT(generatePuppetRemediationRole())
+    );
+
+    QMenu* remediationButtonMenu = new QMenu(this);
+    remediationButtonMenu->addAction(genBashRemediation);
+    remediationButtonMenu->addAction(genAnsibleRemediation);
+    remediationButtonMenu->addAction(genPuppetRemediation);
+    mUI.genRemediationButton->setMenu(remediationButtonMenu);
 }
 
 MainWindow::~MainWindow()
 {
+    globalDiagnosticsDialog = NULL;
+
     delete mScanner;
     mScanner = 0;
 
@@ -469,6 +496,17 @@ void MainWindow::openSSGDialog(const QString& customDismissLabel)
     }
 
     delete dialog;
+}
+
+void MainWindow::openTailoringFile(const QString& path)
+{
+    if (!fileOpened())
+        throw MainWindowException("Can't load a tailoring file, SCAP input hasn't been loaded yet.");
+
+    mScanningSession->setTailoringFile(path);
+    markLoadedTailoringFile(path);
+    reloadSession();
+    refreshTailoringProfiles();
 }
 
 void MainWindow::closeMainWindowAsync()
@@ -794,13 +832,20 @@ void MainWindow::refreshProfiles()
     try
     {
         const std::map<QString, struct xccdf_profile*> profiles = mScanningSession->getAvailableProfiles();
+        struct xccdf_policy_model* policyModel = xccdf_session_get_policy_model(mScanningSession->getXCCDFSession());
 
         // A nice side effect here is that profiles will be sorted by their IDs
         // because of the RB-tree implementation of std::map.
         for (std::map<QString, struct xccdf_profile*>::const_iterator it = profiles.begin();
              it != profiles.end(); ++it)
         {
-            const QString profileTitle = oscapTextIteratorGetPreferred(xccdf_profile_get_title(it->second));
+            QString profileTitle = oscapTextIteratorGetPreferred(xccdf_profile_get_title(it->second));
+
+            struct xccdf_policy* policy = xccdf_policy_new(policyModel, it->second);
+            const int selectedRulesCount = xccdf_policy_get_selected_rules_count(policy);
+            xccdf_policy_free(policy);
+
+            profileTitle = profileTitle +" ("+ QString::number(selectedRulesCount) + ")";
             mUI.profileComboBox->addItem(profileTitle, QVariant(it->first));
         }
 
@@ -811,11 +856,29 @@ void MainWindow::refreshProfiles()
                 mUI.profileComboBox->setCurrentIndex(indexCandidate);
         }
 
-        // Intentionally comes last. Users are more likely to use profiles other than (default)
-#if (QT_VERSION >= QT_VERSION_CHECK(4, 4, 0))
-        mUI.profileComboBox->insertSeparator(mUI.profileComboBox->count());
+        // default profile
+        {
+            QString profileTitle = QObject::tr("(default)");
+
+            // We use QT_VERSION_CHECK to transform major, minor, patch numbers into
+            // one easy comparable number.
+            // We can only count selected rules for default profile if we are compiling against
+            // OpenSCAP versions newer than 1.2.12.
+            // See https://github.com/OpenSCAP/openscap/pull/607
+#if (QT_VERSION_CHECK(OPENSCAP_VERSION_MAJOR, OPENSCAP_VERSION_MINOR, OPENSCAP_VERSION_PATCH) > QT_VERSION_CHECK(1, 2, 12))
+            struct xccdf_policy* policy = xccdf_policy_new(policyModel, NULL);
+            const int selectedRulesCount = xccdf_policy_get_selected_rules_count(policy);
+            xccdf_policy_free(policy);
+
+            profileTitle = profileTitle + " ("+ QString::number(selectedRulesCount) + ")";
 #endif
-        mUI.profileComboBox->addItem(QObject::tr("(default)"), QVariant(QString::Null()));
+
+            // Intentionally comes last. Users are more likely to use profiles other than (default)
+#if (QT_VERSION >= QT_VERSION_CHECK(4, 4, 0))
+            mUI.profileComboBox->insertSeparator(mUI.profileComboBox->count());
+#endif
+            mUI.profileComboBox->addItem(profileTitle, QVariant(QString::Null()));
+        }
     }
     catch (const std::exception& e)
     {
@@ -1017,21 +1080,7 @@ void MainWindow::tailoringFileComboboxChanged(int index)
     reloadSession();
     if (tailoringLoaded)
     {
-        const std::map<QString, struct xccdf_profile*> profiles = mScanningSession->getAvailableProfiles();
-
-        // Select the first tailored profile from the newly loaded tailoring
-        for (std::map<QString, struct xccdf_profile*>::const_iterator it = profiles.begin();
-             it != profiles.end(); ++it)
-        {
-            if (xccdf_profile_get_tailoring(it->second))
-            {
-                const QString profileId = it->first;
-                const int idx = mUI.profileComboBox->findData(QVariant(profileId));
-                if (idx != -1)
-                    mUI.profileComboBox->setCurrentIndex(idx);
-                break;
-            }
-        }
+        refreshTailoringProfiles();
     }
 
     mOldTailoringComboBoxIdx = index;
@@ -1063,6 +1112,25 @@ void MainWindow::profileComboboxChanged(int index)
 
     mUI.ruleResultsTree->refreshSelectedRules(mScanningSession);
     clearResults();
+}
+
+void MainWindow::refreshTailoringProfiles()
+{
+    const std::map<QString, struct xccdf_profile*> profiles = mScanningSession->getAvailableProfiles();
+
+    // Select the first tailored profile from the newly loaded tailoring
+    for (std::map<QString, struct xccdf_profile*>::const_iterator it = profiles.begin();
+         it != profiles.end(); ++it)
+    {
+        if (xccdf_profile_get_tailoring(it->second))
+        {
+            const QString profileId = it->first;
+            const int idx = mUI.profileComboBox->findData(QVariant(profileId));
+            if (idx != -1)
+                mUI.profileComboBox->setCurrentIndex(idx);
+            break;
+        }
+    }
 }
 
 void MainWindow::toggleRuleResultsExpanded()
@@ -1226,16 +1294,6 @@ void MainWindow::inheritAndEditProfile(bool shadowed)
         if (dialog.exec() == QDialog::Rejected)
             return;
 
-        if (!dialog.isProfileIDValid(dialog.getProfileID(), xccdf12))
-        {
-            // this branch will not be triggered unless user tries to circumvent the lineedit validation
-            QMessageBox::warning(this,
-                 QObject::tr("Invalid profile ID"),
-                 QObject::tr("Cannot create XCCDF profile with an invalid ID '%1'.").arg(dialog.getProfileID())
-            );
-            return;
-        }
-
         newProfile = mScanningSession->tailorCurrentProfile(shadowed, dialog.getProfileID());
     }
     catch (const std::exception& e)
@@ -1295,6 +1353,7 @@ TailoringWindow* MainWindow::editProfile(bool newProfile)
     struct xccdf_benchmark* benchmark = xccdf_policy_model_get_benchmark(policyModel);
 
     TailoringWindow* ret = new TailoringWindow(policy, benchmark, newProfile, this);
+    ret->setAttribute(Qt::WA_DeleteOnClose, true);
 #ifndef _WIN32
     // disabling MainWindow on Windows causes workbench to hang
     setEnabled(false);
@@ -1498,4 +1557,22 @@ QMessageBox::StandardButton MainWindow::openNewFileQuestionDialog(const QString&
           "Do you want to proceed?").arg(oldFilepath),
           QMessageBox::Yes | QMessageBox::No, QMessageBox::No
     );
+}
+
+void MainWindow::generateBashRemediationRole()
+{
+    BashProfileRemediationSaver saver(this, mScanningSession);
+    saver.selectFilenameAndSaveRole();
+}
+
+void MainWindow::generateAnsibleRemediationRole()
+{
+    AnsibleProfileRemediationSaver saver(this, mScanningSession);
+    saver.selectFilenameAndSaveRole();
+}
+
+void MainWindow::generatePuppetRemediationRole()
+{
+    PuppetProfileRemediationSaver saver(this, mScanningSession);
+    saver.selectFilenameAndSaveRole();
 }

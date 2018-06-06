@@ -29,7 +29,7 @@ image::intro_screenshot.png[align="center"]
 
  * cmake >= 2.6
  * Qt4 (Core, GUI, XmlPatterns)
- * openscap >= 1.2.11
+ * openscap >= 1.2.0
  * cmake-gui [optional]
 
 === Runtime Dependencies (workbench machine)
@@ -68,7 +68,7 @@ if you do not need the feature explained in it.
 
 Even before we start the workbench we need to find content to open. Probably
 the best choice right now is scap-security-guide
-footnote:[https://fedorahosted.org/scap-security-guide/].
+footnote:[https://www.open-scap.org/security-policies/scap-security-guide/].
 
 It is possible that scap-security-guide has already been installed on your
 system as a dependency of scap-workbench. If it isn't, install it:
@@ -76,13 +76,13 @@ system as a dependency of scap-workbench. If it isn't, install it:
 From the package repository (YUM):: # yum install scap-security-guide
 From the package repository (APT):: # apt-get install scap-security-guide
 From upstream source (for advanced users or content developers)::
- . $ git clone https://git.fedorahosted.org/git/scap-security-guide.git ; cd scap-security-guide
+ . $ git clone https://github.com/OpenSCAP/scap-security-guide.git ; cd scap-security-guide
  . $ make
 
 ==== Alternative SCAP content (optional)
 [[alternative-contents]]
  * http://usgcb.nist.gov/usgcb/rhel_content.html[USGCB for RHEL5] - XCCDF and OVAL, only suitable for RHEL5.
- * https://fedorahosted.org/sce-community-content/[SCE Community Content] - Uses SCE, only suitable for Fedora.
+ * https://github.com/OpenSCAP/sce-community-content[SCE Community Content] - Uses SCE, only suitable for Fedora.
 
 === Start SCAP Workbench
 
@@ -114,7 +114,7 @@ image::default_content_opened.png[align="center"]
 
 === Open Different Content (optional)
 
-Clicking Open Other content in the SSG integration dialog or choosing the *Open Other content*
+Selecting *Other SCAP content* in the SSG integration dialog or choosing the *Open Other content*
 action from the File menu (top of the main window) will enable
 you to change opened content. Keep in mind that workbench only supports opening
 XCCDF, Source DataStream, SCAP RPM files or their bzip2 variants. Everything else will
@@ -156,7 +156,7 @@ workbench will show an error dialog and open default content automatically.
 
 In case you have prepared or were given a tailoring file for your specific evaluation
 use-case, you can load by clicking on the *Customization* combobox and selecting
-the *(open customization file...)* option. This will bring up a file open dialog where
+the *Select customization file...* option. This will bring up a file open dialog where
 you can select your customization file (XCCDF tailoring file).
 
 ****
@@ -266,11 +266,20 @@ image::tailoring_set_value.png[align="center"]
 Changes to the values are applied immediately as you change the combobox or
 editbox.
 
-After desired customization changes are done, click *Confirm changes* to get back
+After desired customization changes are done, click *OK* to get back
 to the previous GUI. To undo all of the changes to the profile, click
-*Discard*. If you want to delete the profile from tailoring, click *Delete profile*.
+*Cancel*. If you want to delete the profile from tailoring, click *Delete profile*.
 
 All of these options will close the customization window.
+
+=== Create new Profile from scratch (optional)
+
+To create a new Profile from scratch select the *(default)* profile and click *Customize*.
+Profiles created this way will not inherit any other profiles and will instead be
+"standalone".
+
+Keep in mind that this won't enable you to create new XCCDF rules or OVAL checks.
+The new profile can only contain checks already in the benchmark.
 
 === Save content (optional)
 
@@ -371,6 +380,24 @@ to remediate each of them.
 
 The rules that were remediated will show up as *fixed* in the rule result list.
 
+=== Export remediation role for the selected profile
+
+After you select a profile, you can export a remediation role to a file.
+Bash scripts, Ansible playbooks and Puppet manifests are the formats supported.
+The output file will contain all remediations for rules selected by the profile
+that are available.
+As the content of the remediation role solely depends on the profile,
+it is referred to as profile-based remediation role.
+
+The possibility to save remediations to a file puts you in charge -
+you can examine it, edit it and decide what remediations to apply.
+However, the result-based remediations export produces output
+that fits your system better.
+See <<view-and-analyze-results>> to learn more about it.
+
+Be aware that remediations may not be implemented in all formats.
+The most widely supported formats are bash scripts and Ansible playbooks.
+
 === Evaluate
 
 Everything is set up we can now start the evaluation. Click the *Scan*
@@ -415,7 +442,8 @@ which will clear all results.
 
 === View and Analyze Results
 
-After evaluation finishes, you should see three new buttons: *Clear*, *Save Results* and *Show Report*.
+After evaluation finishes, you should see three new buttons:
+*Clear*, *Save Results*, *Generate remediation role* and *Show Report*.
 
 ****
 Pressing Clear will *permanently* destroy scan results! This action cannot
@@ -461,6 +489,17 @@ However, ARF files are not as well supported by SCAP toolchains as XCCDF result 
 XCCDF result files can be generated from ARF files, this operation is called *ARF splitting*.
 ****
 
+Opening the *Generate remediation role* pop-up menu will let you to save
+result-based remediations to a file.
+The output file will contain all available remediations for rules
+that have failed the scan, so it should fit your needs better
+than profile-based remediations.
+As the saved content is based on actual scan results,
+it is referred to as results-based remediation role.
+
+If you scan with a customized profile, you may encounter an error -
+see <<known-issues>> for a workaround.
+
 == Notable shortcuts
 
 === Main Window
@@ -484,6 +523,20 @@ Passing *--skip-valid* on the command line will disable all validation.
 Both while opening the files and when scanning. This option is discouraged and
 should only be used by content creators and/or people who really know what they
 are doing.
+
+== Known issues
+
+=== Result-based remediations of tailored profiles
+
+Saving remediation roles to the disk may not work for a customized profile. Specifically, it won't work if you add additional rules to it.
+If this limitation affects you, follow these steps:
+
+Remark: You will need to use the oscap command-line utility, which is bundled together with scap-workbench.
+
+1. Save the scan results
+2. Save your profile customization to a file using the "File->Save customization only" option.
+3. Run this command: oscap xccdf generate fix --output <role filename> --result-id '' --tailoring-file <saved-customization> <saved-result>.
+Refer to oscap xccdf generate fix -h if you want other than Bash output.
 
 == Where to Get Help?
 

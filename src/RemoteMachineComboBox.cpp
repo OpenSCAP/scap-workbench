@@ -26,6 +26,7 @@ RemoteMachineComboBox::RemoteMachineComboBox(QWidget* parent):
     QWidget(parent)
 {
     mUI.setupUi(this);
+    setFocusProxy(mUI.host);
 
 #if (QT_VERSION >= QT_VERSION_CHECK(4, 7, 0))
     // placeholder text is only supported in Qt 4.7 onwards
@@ -72,7 +73,7 @@ unsigned int RemoteMachineComboBox::getRecentMachineCount() const
 void RemoteMachineComboBox::notifyTargetUsed(const QString& target)
 {
     QString host;
-    short port;
+    unsigned short port;
     OscapScannerRemoteSsh::splitTarget(target, host, port);
 
     // skip invalid suggestions
@@ -81,7 +82,7 @@ void RemoteMachineComboBox::notifyTargetUsed(const QString& target)
 
     const unsigned int machineCount = getRecentMachineCount();
 
-    // this moves target to the beginning of the list of it was in the list already
+    // this moves target to the beginning of the list if it was in the list already
     mRecentTargets.prepend(target);
     mRecentTargets.removeDuplicates();
 
@@ -89,6 +90,9 @@ void RemoteMachineComboBox::notifyTargetUsed(const QString& target)
 
     syncToQSettings();
     syncRecentMenu();
+
+    // we can be sure there is at least 2 itens in ComboBox, "Recent" and the last entered host
+    mRecentComboBox->setCurrentIndex(1);
 }
 
 void RemoteMachineComboBox::clearHistory()
@@ -167,7 +171,7 @@ void RemoteMachineComboBox::updateHostPort(int index)
 
 
     QString host;
-    short port;
+    unsigned short port;
 
     OscapScannerRemoteSsh::splitTarget(target, host, port);
 

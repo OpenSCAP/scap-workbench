@@ -70,13 +70,6 @@ class TailoringWindow : public QMainWindow
          */
         void synchronizeProfileItem();
 
-        /**
-         * @brief Synchronizes given tree item to represent given XCCDF item
-         *
-         * @param recursive If true synchronization is called on children of the tree item and XCCDF item as well
-         */
-        void synchronizeTreeItem(QTreeWidgetItem* treeItem, struct xccdf_item* xccdfItem, bool recursive);
-
         void setValueValue(struct xccdf_value* xccdfValue, const QString& newValue);
         void refreshXccdfItemPropertiesDockWidget();
 
@@ -93,7 +86,7 @@ class TailoringWindow : public QMainWindow
         /**
          * @brief Traverses the tree into all selected groups and deselects all their items
          */
-        void deselectAllChildrenItems(QTreeWidgetItem* parent = 0, bool undoMacro = true);
+        void deselectAllChildrenItems();
 
     public:
 
@@ -178,6 +171,11 @@ class TailoringWindow : public QMainWindow
         void syncCollapsedItems();
         void syncCollapsedItem(QTreeWidgetItem* item, QSet<QString>& usedCollapsedIds);
 
+        void createTreeItem(QTreeWidgetItem* treeItem, struct xccdf_item* xccdfItem);
+        void synchronizeTreeItemSelections(QTreeWidgetItem *treeItem);
+        
+        void createSelectionMacro(QTreeWidgetItem* treeItem, bool checkState, const QString& commandName);
+
         MainWindow* mParentMainWindow;
         /// Used to remember manually collapsed items for a particular item
         QSet<QString> mCollapsedItemIds;
@@ -219,9 +217,12 @@ class TailoringWindow : public QMainWindow
 
         typedef std::map<struct xccdf_value*, std::vector<struct xccdf_rule*> > ValueAffectsRulesMap;
         ValueAffectsRulesMap mValueAffectsRulesMap;
+        
+        QAction* mDeselectAllAction;
 
     private slots:
         void searchNext();
+        void synchronizeTreeItem();
         void itemSelectionChanged(QTreeWidgetItem* current, QTreeWidgetItem* previous);
         void itemChanged(QTreeWidgetItem* item, int column);
         void itemExpanded(QTreeWidgetItem* item);

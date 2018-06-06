@@ -132,14 +132,12 @@ void XCCDFItemSelectUndoCommand::redo()
 {
     struct xccdf_item* xccdfItem = TailoringWindow::getXccdfItemFromTreeItem(mTreeItem);
     mWindow->setItemSelected(xccdfItem, mNewSelect);
-    mWindow->synchronizeTreeItem(mTreeItem, xccdfItem, false);
 }
 
 void XCCDFItemSelectUndoCommand::undo()
 {
     struct xccdf_item* xccdfItem = TailoringWindow::getXccdfItemFromTreeItem(mTreeItem);
     mWindow->setItemSelected(xccdfItem, !mNewSelect);
-    mWindow->synchronizeTreeItem(mTreeItem, xccdfItem, false);
 }
 
 void XCCDFItemSelectUndoCommand::refreshText()
@@ -150,9 +148,9 @@ void XCCDFItemSelectUndoCommand::refreshText()
         title = QString::fromUtf8(xccdf_item_get_id(xccdfItem));
 
     if (mNewSelect)
-        setText(QObject::tr("select \"%1\"").arg(title));
+        setText(QObject::tr("Select Rule \"%1\"").arg(title));
     else
-        setText(QObject::tr("unselect \"%1\"").arg(title));
+        setText(QObject::tr("Deselect Rule \"%1\"").arg(title));
 }
 
 XCCDFValueChangeUndoCommand::XCCDFValueChangeUndoCommand(TailoringWindow* window, struct xccdf_value* xccdfValue, const QString& newValue, const QString& oldValue):
@@ -206,33 +204,5 @@ void XCCDFValueChangeUndoCommand::refreshText()
     if (title.isEmpty())
         title = QString::fromUtf8(xccdf_value_get_id(mXccdfValue));
 
-    setText(QObject::tr("set value '%1' to '%2'").arg(title, mNewValue));
-}
-
-MacroProgressUndoCommand::MacroProgressUndoCommand(bool end):
-    mEnd(end)
-{}
-
-MacroProgressUndoCommand::~MacroProgressUndoCommand()
-{}
-
-int MacroProgressUndoCommand::id() const
-{
-    return 5;
-}
-
-void MacroProgressUndoCommand::redo()
-{
-    if (mEnd)
-        QApplication::restoreOverrideCursor();
-    else
-        QApplication::setOverrideCursor(Qt::WaitCursor);
-}
-
-void MacroProgressUndoCommand::undo()
-{
-    if (mEnd)
-        QApplication::setOverrideCursor(Qt::WaitCursor);
-    else
-        QApplication::restoreOverrideCursor();
+    setText(QObject::tr("Set Value '%1' to '%2'").arg(title, mNewValue));
 }

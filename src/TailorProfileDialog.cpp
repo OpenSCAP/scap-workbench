@@ -35,17 +35,17 @@ const QString TailorProfileDialog::XCCDF11ProfileIDRegExp("[a-zA-Z0-9\\-_.]+");
 const QString TailorProfileDialog::XCCDF12ProfileIDRegExp("xccdf_[a-zA-Z0-9\\-.]+_profile_[a-zA-Z0-9\\-_.]+");
 
 TailorProfileDialog::TailorProfileDialog(const QString& startId, bool xccdf12, QWidget* parent):
-    QDialog(parent)
+    QDialog(parent),
+    mRegexp(xccdf12 ? XCCDF12ProfileIDRegExp : XCCDF11ProfileIDRegExp)
 {
     mUI.setupUi(this);
     mUI.idLineEdit->setText(startId);
-
-    mUI.idLineEdit->setValidator(
-        new QRegExpValidator(QRegExp(xccdf12 ? XCCDF12ProfileIDRegExp : XCCDF11ProfileIDRegExp), mUI.idLineEdit)
-    );
+    onIdLineEditChanged(startId);
 
     mUI.xccdf11Warning->setVisible(!xccdf12);
     mUI.xccdf12Warning->setVisible(xccdf12);
+
+    connect(mUI.idLineEdit, SIGNAL(textChanged(const QString&)), this, SLOT(onIdLineEditChanged(const QString&)));
 }
 
 TailorProfileDialog::~TailorProfileDialog()
@@ -56,7 +56,7 @@ QString TailorProfileDialog::getProfileID() const
     return mUI.idLineEdit->text();
 }
 
-bool TailorProfileDialog::isProfileIDValid(const QString& id, bool xccdf12)
+void TailorProfileDialog::onIdLineEditChanged(const QString& newText)
 {
-    return QRegExp(xccdf12 ? XCCDF12ProfileIDRegExp : XCCDF11ProfileIDRegExp).exactMatch(id);
+    mUI.buttonBox->button(QDialogButtonBox::Ok)->setEnabled(mRegexp.exactMatch(newText));
 }

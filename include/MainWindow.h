@@ -69,6 +69,8 @@ class MainWindow : public QMainWindow
 
         void openSSGDialog(const QString& customDismissLabel = "");
 
+        void openTailoringFile(const QString& path);
+
         /**
          * @brief Opens a file dialog and makes user select a file or exit the app
          *
@@ -275,6 +277,11 @@ class MainWindow : public QMainWindow
 
     private:
         /**
+         * @brief Refreshes the list of tailoring profiles and loads the first tailored one
+         */
+        void refreshTailoringProfiles();
+
+        /**
          * @brief Retrieves number of currently selected rules
          *
          * Do not rely on this number, it is a fairly reliable estimate
@@ -412,6 +419,13 @@ class MainWindow : public QMainWindow
          */
         void toggleRuleResultsExpanded();
         void toggleRuleResultsExpanded(bool checked);
+
+        /// Pops up a save dialog for a bash remediation (based just on the currently selected profile)
+        void generateBashRemediationRole();
+        /// Pops up a save dialog for an ansible remediation (based just on the currently selected profile)
+        void generateAnsibleRemediationRole();
+        /// Pops up a save dialog for an puppet remediation (based just on the currently selected profile)
+        void generatePuppetRemediationRole();
 
     public slots:
         /**

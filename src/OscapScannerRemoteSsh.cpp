@@ -46,7 +46,7 @@ OscapScannerRemoteSsh::OscapScannerRemoteSsh():
 OscapScannerRemoteSsh::~OscapScannerRemoteSsh()
 {}
 
-void OscapScannerRemoteSsh::splitTarget(const QString& in, QString& target, short& port)
+void OscapScannerRemoteSsh::splitTarget(const QString& in, QString& target, unsigned short& port)
 {
     // NB: We dodge a bullet here because the editor will always pass a port
     //     as the last component. A lot of checking and parsing does not need
@@ -63,7 +63,7 @@ void OscapScannerRemoteSsh::splitTarget(const QString& in, QString& target, shor
 
     {
         bool status = false;
-        const short portCandidate = portString.toShort(&status, 10);
+        const unsigned short portCandidate = portString.toUShort(&status, 10);
 
         // FIXME: Error reporting?
         port = status ? portCandidate : 22;
@@ -80,7 +80,7 @@ void OscapScannerRemoteSsh::setTarget(const QString& target)
         mSshConnection.disconnect();
 
     QString cleanTarget;
-    short port;
+    unsigned short port;
 
     splitTarget(target, cleanTarget, port);
 
@@ -176,7 +176,7 @@ void OscapScannerRemoteSsh::evaluate()
 
         emit infoMessage(QObject::tr("Querying capabilities on remote machine..."));
         proc.setCommand(SCAP_WORKBENCH_REMOTE_OSCAP_PATH);
-        proc.setArguments(QStringList("--v"));
+        proc.setArguments(QStringList("-V"));
         proc.setCancelRequestSource(&mCancelRequested);
         proc.run();
 
