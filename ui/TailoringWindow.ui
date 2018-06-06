@@ -121,13 +121,6 @@
          </property>
         </widget>
        </item>
-       <item>
-        <widget class="Line" name="line">
-         <property name="orientation">
-          <enum>Qt::Vertical</enum>
-         </property>
-        </widget>
-       </item>
       </layout>
      </widget>
     </item>
@@ -139,7 +132,7 @@
      <x>0</x>
      <y>0</y>
      <width>1200</width>
-     <height>23</height>
+     <height>25</height>
     </rect>
    </property>
   </widget>
