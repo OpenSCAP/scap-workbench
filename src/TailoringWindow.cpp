@@ -76,8 +76,8 @@ TailoringWindow::TailoringWindow(struct xccdf_policy* policy, struct xccdf_bench
 
     mSearchSkippedItems(0),
     mSearchCurrentNeedle(""),
-    
-    
+
+    mSelectAllAction(new QAction(this)),
     mDeselectAllAction(new QAction(this))
 {
     generateValueAffectsRulesMap(xccdf_benchmark_to_item(benchmark));
@@ -186,6 +186,13 @@ TailoringWindow::TailoringWindow(struct xccdf_policy* policy, struct xccdf_bench
 
     mUI.toolBar->addSeparator();
 
+    mSelectAllAction->setText(QObject::tr("Select All"));
+    QObject::connect(
+        mSelectAllAction, SIGNAL(triggered()),
+        this, SLOT(selectAllChildrenItems())
+    );
+    mUI.toolBar->addAction(mSelectAllAction);
+
     mDeselectAllAction->setText(QObject::tr("Deselect All"));
     QObject::connect(
         mDeselectAllAction, SIGNAL(triggered()),
@@ -280,11 +287,15 @@ void TailoringWindow::synchronizeTreeItem()
     
     // Enables/disables "Deselect All action based on weather the top level rules/groups are checked"
     bool anySelected = false;
+    bool anyNotSelected = false;
     for (int i = 0; i < mBenchmarkItem->childCount(); ++i)
     {
-        anySelected |= mBenchmarkItem->child(i)->checkState(0) != Qt::Unchecked;
+        const bool isSelected = mBenchmarkItem->child(i)->checkState(0) != Qt::Unchecked;
+        anySelected |= isSelected;
+        anyNotSelected |= !isSelected;
     }
     mDeselectAllAction->setEnabled(anySelected);
+    mSelectAllAction->setEnabled(anyNotSelected);
 }
 
 void TailoringWindow::synchronizeTreeItemSelections(QTreeWidgetItem* treeItem)
@@ -425,6 +436,11 @@ const std::vector<struct xccdf_rule*>& TailoringWindow::getRulesAffectedByValue(
         return it->second;
 
     return empty;
+}
+
+void TailoringWindow::selectAllChildrenItems()
+{
+    createSelectionMacro(mBenchmarkItem, true, QObject::tr("Select All"));
 }
 
 void TailoringWindow::deselectAllChildrenItems()
