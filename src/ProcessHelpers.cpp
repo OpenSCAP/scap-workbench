@@ -180,7 +180,7 @@ void SyncProcess::run()
 }
 
 QDialog* SyncProcess::runWithDialog(QWidget* widgetParent, const QString& title,
-    bool showCancelButton, bool closeAfterFinished, bool modal)
+    bool closeAfterFinished, bool modal)
 {
     ProcessProgressDialog* dialog = new ProcessProgressDialog(widgetParent);
     dialog->setModal(modal);

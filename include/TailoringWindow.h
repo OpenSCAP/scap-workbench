@@ -223,8 +223,8 @@ class TailoringWindow : public QMainWindow
     private slots:
         void searchNext();
         void synchronizeTreeItem();
-        void itemSelectionChanged(QTreeWidgetItem* current, QTreeWidgetItem* previous);
-        void itemChanged(QTreeWidgetItem* item, int column);
+        void itemSelectionChanged(QTreeWidgetItem* current);
+        void itemChanged(QTreeWidgetItem* item);
         void itemExpanded(QTreeWidgetItem* item);
         void itemCollapsed(QTreeWidgetItem* item);
 };

@@ -131,11 +131,11 @@ TailoringWindow::TailoringWindow(struct xccdf_policy* policy, struct xccdf_bench
 
     QObject::connect(
         mUI.itemsTree, SIGNAL(currentItemChanged(QTreeWidgetItem*,QTreeWidgetItem*)),
-        this, SLOT(itemSelectionChanged(QTreeWidgetItem*,QTreeWidgetItem*))
+        this, SLOT(itemSelectionChanged(QTreeWidgetItem*))
     );
     QObject::connect(
-        mUI.itemsTree, SIGNAL(itemChanged(QTreeWidgetItem*,int)),
-        this, SLOT(itemChanged(QTreeWidgetItem*,int))
+        mUI.itemsTree, SIGNAL(itemChanged(QTreeWidgetItem*, int)),
+        this, SLOT(itemChanged(QTreeWidgetItem*))
     );
     QObject::connect(
         mUI.itemsTree, SIGNAL(itemExpanded(QTreeWidgetItem*)),
@@ -333,8 +333,8 @@ void TailoringWindow::synchronizeTreeItemSelections(QTreeWidgetItem* treeItem)
                 }
                 break;
             }
-            //fall through
         }
+        //fallthrough
         case XCCDF_RULE:
             treeItem->setCheckState(0,
                     getXccdfItemInternalSelected(mPolicy, xccdfItem) ? Qt::Checked : Qt::Unchecked);
@@ -911,7 +911,7 @@ void TailoringWindow::searchNext()
             // Emulate setting of "currentItem"
             match->setSelected(true);
             mUI.itemsTree->scrollToItem(match);
-            emit itemSelectionChanged(match, NULL);
+            emit itemSelectionChanged(match);
         }
 
         mSearchBox->setStyleSheet("");
@@ -926,7 +926,7 @@ void TailoringWindow::searchNext()
     }
 }
 
-void TailoringWindow::itemSelectionChanged(QTreeWidgetItem* current, QTreeWidgetItem* previous)
+void TailoringWindow::itemSelectionChanged(QTreeWidgetItem* current)
 {
     struct xccdf_item* item = getXccdfItemFromTreeItem(current);
     setUpdatesEnabled(false);
@@ -945,7 +945,7 @@ void TailoringWindow::itemSelectionChanged(QTreeWidgetItem* current, QTreeWidget
     setUpdatesEnabled(true);
 }
 
-void TailoringWindow::itemChanged(QTreeWidgetItem* treeItem, int column)
+void TailoringWindow::itemChanged(QTreeWidgetItem* treeItem)
 {
     if (mSynchronizeItemLock > 0)
         return;

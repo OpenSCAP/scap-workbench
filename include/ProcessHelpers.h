@@ -98,7 +98,7 @@ class SyncProcess : public QObject
          * this method finishes!
          */
         QDialog* runWithDialog(QWidget* widgetParent, const QString& title,
-            bool showCancelButton = true, bool closeAfterFinished = false, bool modal = true);
+            bool closeAfterFinished = false, bool modal = true);
 
     public slots:
         /**

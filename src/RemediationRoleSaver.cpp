@@ -23,6 +23,7 @@
 #include <iostream>
 
 #include <QFile>
+#include <QMessageBox>
 
 #include "RemediationRoleSaver.h"
 #include "DiagnosticsDialog.h"
@@ -102,7 +103,10 @@ void RemediationSaverBase::removeFileWhenEmpty(const QString& filename)
 
 void RemediationSaverBase::saveFileOK(const QString& filename)
 {
-    // TODO: if OK - inform the user
+    QMessageBox::information(
+        mParentWindow, QObject::tr("SCAP Workbench"),
+        QObject::tr("Success saving file: %1").arg(filename)
+    );
 }
 
 void RemediationSaverBase::saveFileError(const QString& filename, const QString& errorMsg)

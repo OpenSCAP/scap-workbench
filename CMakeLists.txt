@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.6)
+cmake_minimum_required(VERSION 2.8.6)
 
 project("scap-workbench")
 set(SCAP_WORKBENCH_VERSION_MAJOR "1")
@@ -9,6 +9,7 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/")
 
 include(GNUInstallDirs)
 
+set(CMAKE_AUTOMOC ON)
 find_package(Qt5Widgets REQUIRED)
 find_package(Qt5XmlPatterns REQUIRED)
 
@@ -101,7 +102,6 @@ set(SCAP_WORKBENCH_SCAP_CONTENT_DIRECTORY "/usr/share/xml/scap" CACHE PATH
     "Directory where SCAP content is *usually* stored. This is the default directory when opening a file via file open dialog.")
 
 file(GLOB scap_workbench_HEADERS "${CMAKE_SOURCE_DIR}/include/*.h")
-qt5_wrap_cpp(scap_workbench_HEADERS_MOC ${scap_workbench_HEADERS})
 
 file(GLOB scap_workbench_UIS "${CMAKE_SOURCE_DIR}/ui/*.ui")
 qt5_wrap_ui(scap_workbench_UIS_HEADERS ${scap_workbench_UIS})
@@ -125,6 +125,15 @@ configure_file("scap-workbench-oscap.policy.in" "${CMAKE_CURRENT_BINARY_DIR}/sca
 if (WIN32)
     configure_file("win32-resource.rc.in" "${CMAKE_CURRENT_BINARY_DIR}/win32-resource.rc")
     configure_file("scap-workbench.wxs.in" "${CMAKE_CURRENT_BINARY_DIR}/scap-workbench.wxs")
+endif()
+
+# Enforce std=c++11 for old gcc versions to fix build in RHEL 7
+if (${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU" AND ${CMAKE_CXX_COMPILER_VERSION} VERSION_LESS 4.9)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+endif()
+
+if (${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU" OR ${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Werror")
 endif()
 
 include_directories(${SCAP_WORKBENCH_INCLUDE_DIRS})

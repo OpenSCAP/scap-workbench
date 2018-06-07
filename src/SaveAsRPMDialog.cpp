@@ -148,7 +148,7 @@ void SaveAsRPMDialog::slotFinished(int result)
 
     scapAsRPM.setArguments(args);
 
-    QPointer<QDialog> dialog = scapAsRPM.runWithDialog(this, QObject::tr("Saving SCAP content as RPM..."), true, false);
+    QPointer<QDialog> dialog = scapAsRPM.runWithDialog(this, QObject::tr("Saving SCAP content as RPM..."));
     dialog->exec();
     delete dialog;
 }

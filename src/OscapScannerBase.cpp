@@ -383,6 +383,9 @@ bool OscapScannerBase::tryToReadStdOutChar(QProcess& process)
                         emit warningMessage(QString("Failed to download \"%1\"!").arg(mLastDownloadingFile));
                 }
                 break;
+            default:
+                // noop
+                break;
         }
         mReadingState = RS_READING_PREFIX;
         mReadBuffer = "";
