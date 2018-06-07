@@ -310,7 +310,7 @@ fields at their default settings and confirm the dialog.
 Another dialog opens, this time asking for destination directory where SCAP Workbench
 will create the RPM.
 
-[[img-tailoring-dialog-opened]]
+[[img-save-as-rpm-dialog]]
 .Saving Fedora scap-security-guide content as RPM
 image::save_as_rpm_dialog.png[align="center"]
 
