@@ -90,9 +90,6 @@ void RemoteMachineComboBox::notifyTargetUsed(const QString& target)
 
     syncToQSettings();
     syncRecentMenu();
-
-    // we can be sure there is at least 2 itens in ComboBox, "Recent" and the last entered host
-    mRecentComboBox->setCurrentIndex(1);
 }
 
 void RemoteMachineComboBox::clearHistory()
@@ -146,6 +143,9 @@ void RemoteMachineComboBox::syncRecentMenu()
         mRecentComboBox->insertSeparator(mRecentComboBox->count());
         QString clear = QString("Clear History");
         mRecentComboBox->addItem(clear, QVariant(clear));
+
+        // we can be sure there is at least 2 itens in ComboBox, "Recent" and the last entered host
+        mRecentComboBox->setCurrentIndex(1);
     }
 
     mRecentComboBox->setEnabled(!empty);
