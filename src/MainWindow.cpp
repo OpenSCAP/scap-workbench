@@ -402,6 +402,9 @@ void MainWindow::openFileDialog()
     if (!QFileInfo(defaultDirectory).isDir())
         defaultDirectory = "";
 
+    // Save the current file path to restore if we're unable to open a valid file
+    const QString currentFile = getOpenedFilePath();
+
     bool opened = false;
     while (!opened)
     {
@@ -441,7 +444,19 @@ void MainWindow::openFileDialog()
 
     if (!fileOpened())
     {
-        if (!close())
+        if (currentFile != "")
+        {
+            openFile(currentFile);
+
+            if (!fileOpened())
+            {
+                // Error occurred, keep pumping events and don't move on until user
+                // dismisses diagnostics dialog.
+                mDiagnosticsDialog->waitUntilHidden();
+            }
+        }
+
+        if (!fileOpened() && !close())
             throw MainWindowException("Failed to close main window!");
     }
 }
@@ -1553,7 +1568,8 @@ QMessageBox::StandardButton MainWindow::openNewFileQuestionDialog(const QString&
 {
     return QMessageBox::question(this,
           QObject::tr("Close currently opened file?"),
-          QObject::tr("Opened file '%1' has to be closed before opening another file.\n\n"
+          QObject::tr("Opened file '%1' has to be closed before opening another file. "
+          "Closing this file will lose any unsaved tailoring.\n\n"
           "Do you want to proceed?").arg(oldFilepath),
           QMessageBox::Yes | QMessageBox::No, QMessageBox::No
     );
