@@ -84,6 +84,11 @@ class TailoringWindow : public QMainWindow
 
     public slots:
         /**
+         * @brief Traverses the tree into all selected groups and selects all their items
+         */
+        void selectAllChildrenItems();
+
+        /**
          * @brief Traverses the tree into all selected groups and deselects all their items
          */
         void deselectAllChildrenItems();
@@ -218,6 +223,7 @@ class TailoringWindow : public QMainWindow
         typedef std::map<struct xccdf_value*, std::vector<struct xccdf_rule*> > ValueAffectsRulesMap;
         ValueAffectsRulesMap mValueAffectsRulesMap;
         
+        QAction* mSelectAllAction;
         QAction* mDeselectAllAction;
 
     private slots:
