@@ -65,7 +65,7 @@ class MainWindow : public QMainWindow
         /**
          * @brief Opens a specific file
          */
-        void openFile(const QString& path);
+        void openFile(const QString& path, bool reload = false);
 
         void openSSGDialog(const QString& customDismissLabel = "");
 
@@ -94,6 +94,15 @@ class MainWindow : public QMainWindow
          * @see MainWindow::closeMainWindow
          */
         void closeMainWindowAsync();
+
+        /**
+         * @bried Reloads the opened content
+         *
+         *
+         * If a content file is opened, it might have changed on disk. This
+         * allows the user to update reload it in case it has changed.
+         */
+        void reloadContent();
 
         /**
          * @brief Checks whether a file is currently opened

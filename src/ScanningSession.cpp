@@ -186,6 +186,8 @@ void ScanningSession::cloneToTemporaryFile(const QString& path)
             QFile::copy(cur, tmpPath + curInfo.fileName());
         }
     }
+
+    mOriginalPath = path;
 }
 
 void ScanningSession::openFile(const QString& path, bool reload)
@@ -193,7 +195,7 @@ void ScanningSession::openFile(const QString& path, bool reload)
     if (mSession)
         closeFile();
 
-    if (reload || mOpenPath != path)
+    if (reload || mOriginalPath != path)
     {
         cloneToTemporaryFile(path);
     }
@@ -242,6 +244,15 @@ QString ScanningSession::getOpenedFilePath() const
     // therefore this is guaranteed to be absolute
     return xccdf_session_get_filename(mSession);
 }
+
+QString ScanningSession::getOriginalFilePath() const
+{
+    if (!fileOpened())
+        return QString("");
+
+    return mOriginalPath;
+}
+
 
 void ScanningSession::getDependencyClosureOfFile(const QString& filePath, QSet<QString>& targetSet) const
 {

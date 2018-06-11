@@ -77,6 +77,11 @@ class ScanningSession
         QString getOpenedFilePath() const;
 
         /**
+         * @brief Retrieves full absolute path of the opened file
+         */
+        QString getOriginalFilePath() const;
+
+        /**
          * @brief A helper method that gets the longest common ancestor dir from a set of paths
          */
         static QDir getCommonAncestorDirectory(const QSet<QString>& paths);
@@ -285,6 +290,8 @@ class ScanningSession
         QTemporaryDir* mOpenDir;
         /// Path to temporary XCCDF file
         QString mOpenPath;
+        /// Path to original XCCDF file
+        QString mOriginalPath;
 
         /// Temporary file provides auto deletion and a valid temp file path
         QTemporaryFile mTailoringFile;

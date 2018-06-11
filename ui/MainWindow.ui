@@ -566,7 +566,7 @@
      <x>0</x>
      <y>0</y>
      <width>800</width>
-     <height>29</height>
+     <height>26</height>
     </rect>
    </property>
    <property name="font">
@@ -590,6 +590,7 @@
     </widget>
     <addaction name="actionOpenSSG"/>
     <addaction name="actionOpen"/>
+    <addaction name="actionReloadContent"/>
     <addaction name="separator"/>
     <addaction name="actionOpenCustomizationFile"/>
     <addaction name="separator"/>
@@ -671,6 +672,17 @@
   <action name="actionOpenCustomizationFile">
    <property name="text">
     <string>Open &amp;Customization File</string>
+   </property>
+  </action>
+  <action name="actionReloadContent">
+   <property name="text">
+    <string>&amp;Reload Opened Content</string>
+   </property>
+   <property name="iconText">
+    <string>Reload Opened Content</string>
+   </property>
+   <property name="toolTip">
+    <string>Reload Opened Content</string>
    </property>
   </action>
  </widget>
