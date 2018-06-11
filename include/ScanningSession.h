@@ -24,6 +24,7 @@
 
 #include "ForwardDecls.h"
 
+#include <QTemporaryDir>
 #include <QTemporaryFile>
 #include <QSet>
 #include <QDir>
@@ -61,7 +62,7 @@ class ScanningSession
          * Passed file may be an XCCDF file (any openscap supported version)
          * or source datastream (SDS) file (any openscap supported version)
          */
-        void openFile(const QString& path);
+        void openFile(const QString& path, bool reload = false);
 
         /**
          * @brief Closes currently opened file (if any)
@@ -280,6 +281,11 @@ class ScanningSession
         /// Our own tailoring that may or may not initially be loaded from a file
         mutable struct xccdf_tailoring* mTailoring;
 
+        /// Temporary copy of opened XCCDF file
+        QTemporaryDir* mOpenDir;
+        /// Path to temporary XCCDF file
+        QString mOpenPath;
+
         /// Temporary file provides auto deletion and a valid temp file path
         QTemporaryFile mTailoringFile;
         /// Temporary file provides auto deletion and a valid temp file path
@@ -297,6 +303,14 @@ class ScanningSession
 
         QString mUserTailoringFile;
         QString mUserTailoringCID;
+
+        /// Gets the dependency closure of the specified file.
+        void getDependencyClosureOfFile(const QString& filePath, QSet<QString>& targetSet) const;
+
+        /// Clones openFile(path) to a Temporary File
+        void cloneToTemporaryFile(const QString& path);
+        /// Closes mOpenFile if it is open
+        void cleanTmpDir();
 };
 
 #endif
