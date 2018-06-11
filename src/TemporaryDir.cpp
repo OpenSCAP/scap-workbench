@@ -36,7 +36,7 @@ static bool recursiveRemoveDir(const QString& dirName)
 
     if (dir.exists(dirName))
     {
-        Q_FOREACH(QFileInfo info, dir.entryInfoList(QDir::NoDotAndDotDot | QDir::System | QDir::Hidden  | QDir::AllDirs | QDir::Files, QDir::DirsFirst))
+        for (QFileInfo info : dir.entryInfoList(QDir::NoDotAndDotDot | QDir::System | QDir::Hidden  | QDir::AllDirs | QDir::Files, QDir::DirsFirst))
         {
             if (info.isDir())
                 result = recursiveRemoveDir(info.absoluteFilePath());
