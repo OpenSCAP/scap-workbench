@@ -159,8 +159,9 @@ inline void getDependencyClosureOfFile(const QString& filePath, QSet<QString>& t
             {
                 QXmlNodeModelIndex itemIdx = item.toNodeModelIndex();
                 const QAbstractXmlNodeModel* model = itemIdx.model();
-                const QString  relativeFileName = model->stringValue(itemIdx);
-                getDependencyClosureOfFile(parentDir.absoluteFilePath(relativeFileName), targetSet);
+                const QString relativeFileName = model->stringValue(itemIdx);
+                const QString absUncleanPath = parentDir.absoluteFilePath(relativeFileName);
+                getDependencyClosureOfFile(QDir::cleanPath(absUncleanPath), targetSet);
                 item = result.next();
             }
 
