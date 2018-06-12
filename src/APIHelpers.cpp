@@ -51,7 +51,7 @@ QString oscapItemGetReadableTitle(struct xccdf_item* item, struct xccdf_policy* 
     return ret;
 }
 
-QString oscapItemGetReadableDescription(struct xccdf_item *item, struct xccdf_policy *policy, const QString& lang)
+QString oscapItemGetReadableDescription(struct xccdf_item* item, struct xccdf_policy* policy, const QString& lang)
 {
     struct oscap_text_iterator* desc_it = xccdf_item_get_description(item);
     oscap_text* unresolved = oscap_textlist_get_preferred_text(desc_it, lang.isEmpty() ? NULL : lang.toUtf8().constData());

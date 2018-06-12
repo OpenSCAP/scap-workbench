@@ -240,7 +240,7 @@ class MainWindow : public QMainWindow
         /**
          * @brief We signal this to show the dialog
          *
-         * This is to make sure we open the dialog in the event loop, not 
+         * This is to make sure we open the dialog in the event loop, not
          * before it even starts.
          */
         void showOpenFileDialog();
