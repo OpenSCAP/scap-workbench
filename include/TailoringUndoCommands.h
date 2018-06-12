@@ -99,7 +99,7 @@ class ProfileTitleChangeUndoCommand : public QUndoCommand
         virtual void redo();
         virtual void undo();
 
-        virtual bool mergeWith(const QUndoCommand *other);
+        virtual bool mergeWith(const QUndoCommand* other);
 
     private:
         void refreshText();
@@ -124,7 +124,7 @@ class ProfileDescriptionChangeUndoCommand : public QUndoCommand
         virtual void redo();
         virtual void undo();
 
-        virtual bool mergeWith(const QUndoCommand *other);
+        virtual bool mergeWith(const QUndoCommand* other);
 
     private:
         void refreshText();

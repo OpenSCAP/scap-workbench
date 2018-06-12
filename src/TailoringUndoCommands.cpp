@@ -50,7 +50,7 @@ void ProfileTitleChangeUndoCommand::undo()
     mWindow->refreshProfileDockWidget();
 }
 
-bool ProfileTitleChangeUndoCommand::mergeWith(const QUndoCommand *other)
+bool ProfileTitleChangeUndoCommand::mergeWith(const QUndoCommand* other)
 {
     if (other->id() != id())
         return false;
@@ -93,7 +93,7 @@ void ProfileDescriptionChangeUndoCommand::undo()
     mWindow->refreshProfileDockWidget();
 }
 
-bool ProfileDescriptionChangeUndoCommand::mergeWith(const QUndoCommand *other)
+bool ProfileDescriptionChangeUndoCommand::mergeWith(const QUndoCommand* other)
 {
     if (other->id() != id())
         return false;

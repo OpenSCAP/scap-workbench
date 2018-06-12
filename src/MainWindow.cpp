@@ -1225,7 +1225,7 @@ void MainWindow::scanWarningMessage(const QString& message)
     mDiagnosticsDialog->warningMessage(message);
 }
 
-void MainWindow::scanErrorMessage(const QString &message)
+void MainWindow::scanErrorMessage(const QString& message)
 {
     mDiagnosticsDialog->errorMessage(message);
 }

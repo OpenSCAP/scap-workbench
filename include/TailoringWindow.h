@@ -177,8 +177,8 @@ class TailoringWindow : public QMainWindow
         void syncCollapsedItem(QTreeWidgetItem* item, QSet<QString>& usedCollapsedIds);
 
         void createTreeItem(QTreeWidgetItem* treeItem, struct xccdf_item* xccdfItem);
-        void synchronizeTreeItemSelections(QTreeWidgetItem *treeItem);
-        
+        void synchronizeTreeItemSelections(QTreeWidgetItem* treeItem);
+
         void createSelectionMacro(QTreeWidgetItem* treeItem, bool checkState, const QString& commandName);
 
         MainWindow* mParentMainWindow;
@@ -222,7 +222,7 @@ class TailoringWindow : public QMainWindow
 
         typedef std::map<struct xccdf_value*, std::vector<struct xccdf_rule*> > ValueAffectsRulesMap;
         ValueAffectsRulesMap mValueAffectsRulesMap;
-        
+
         QAction* mSelectAllAction;
         QAction* mDeselectAllAction;
 

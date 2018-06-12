@@ -64,7 +64,7 @@ class RemoteMachineComboBox : public QWidget
         QSettings* mQSettings;
 
         QStringList mRecentTargets;
-        QComboBox *mRecentComboBox;
+        QComboBox* mRecentComboBox;
 };
 
 #endif
