@@ -29,6 +29,7 @@
 #include <QThread>
 #include <QMenu>
 #include <QMessageBox>
+#include <QFileSystemWatcher>
 
 extern "C"
 {
@@ -245,6 +246,10 @@ class MainWindow : public QMainWindow
         /// If true, the profile combobox change signal is ignored, this avoids unnecessary profile refreshes
         bool mIgnoreProfileComboBox;
 
+        /// Implement watching of original XCCDF/DS
+        QFileSystemWatcher* mFSWatch;
+        QString mFSLastSeen;
+
     signals:
         /**
          * @brief We signal this to show the dialog
@@ -390,6 +395,11 @@ class MainWindow : public QMainWindow
         void markRemoveLoadedTailoringFile();
         void markLoadedTailoringFile(const QString& filePath);
         bool unsavedTailoringChanges() const;
+
+        /**
+         * @brief Slot handler for notifying user that opened files changed
+         */
+        void fileChanged(const QString& path);
 
     public:
         QString getDefaultSaveDirectory();

@@ -39,6 +39,7 @@
 #include <QFileDialog>
 #include <QAbstractEventDispatcher>
 #include <QCloseEvent>
+#include <QFileSystemWatcher>
 #include <QDesktopWidget>
 #include <QMenu>
 
@@ -84,6 +85,9 @@ MainWindow::MainWindow(QWidget* parent):
     mLoadedTailoringFileUserData(TAILORING_NO_LOADED_FILE_DATA),
 
     mIgnoreProfileComboBox(false),
+
+    mFSWatch(new QFileSystemWatcher()),
+    mFSLastSeen(""),
 
     mRuleResultsExpanded(false)
 {
@@ -276,6 +280,11 @@ MainWindow::MainWindow(QWidget* parent):
     remediationButtonMenu->addAction(genAnsibleRemediation);
     remediationButtonMenu->addAction(genPuppetRemediation);
     mUI.genRemediationButton->setMenu(remediationButtonMenu);
+
+    QObject::connect(
+        mFSWatch, SIGNAL(fileChanged(const QString&)),
+        this, SLOT(fileChanged(const QString&))
+    );
 }
 
 MainWindow::~MainWindow()
@@ -292,6 +301,9 @@ MainWindow::~MainWindow()
 
     delete mQSettings;
     mQSettings = 0;
+
+    delete mFSWatch;
+    mFSWatch = NULL;
 }
 
 void MainWindow::setSkipValid(bool skipValid)
@@ -378,6 +390,14 @@ void MainWindow::openFile(const QString& path, bool reload)
         checklistComboboxChanged(0);
 
         centralWidget()->setEnabled(true);
+
+        // Refill mFSWatch after opening file
+        mFSWatch->removePaths(mFSWatch->files());
+        for (const QString path : mScanningSession->getOriginalClosure())
+        {
+            mFSWatch->addPath(path);
+        }
+        mFSLastSeen = "";
 
         mDiagnosticsDialog->infoMessage(QObject::tr("Opened file '%1'.").arg(path));
     }
@@ -1530,6 +1550,19 @@ bool MainWindow::unsavedTailoringChanges() const
 
     const int idx = mUI.tailoringFileComboBox->findText(TAILORING_UNSAVED);
     return mUI.tailoringFileComboBox->currentIndex() == idx;
+}
+
+void MainWindow::fileChanged(const QString& path)
+{
+    if (path == mFSLastSeen)
+        return;
+    mFSLastSeen = path;
+
+    QMessageBox::information(
+        this, QObject::tr("SCAP Workbench"),
+        QObject::tr("Opened file was modified after opening: %1\n\n"
+                    "To reload, click File -> Reload Opened Content").arg(path)
+    );
 }
 
 QString MainWindow::getDefaultSaveDirectory()

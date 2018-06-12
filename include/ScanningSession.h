@@ -82,6 +82,11 @@ class ScanningSession
         QString getOriginalFilePath() const;
 
         /**
+         * @brief Retrives the closure set of the original file
+         */
+        QSet<QString> getOriginalClosure() const;
+
+        /**
          * @brief A helper method that gets the longest common ancestor dir from a set of paths
          */
         static QDir getCommonAncestorDirectory(const QSet<QString>& paths);
@@ -292,6 +297,8 @@ class ScanningSession
         QString mOpenPath;
         /// Path to original XCCDF file
         QString mOriginalPath;
+        /// Closure of original XCCDF file
+        QSet<QString> mClosureOfFile;
 
         /// Temporary file provides auto deletion and a valid temp file path
         QTemporaryFile mTailoringFile;

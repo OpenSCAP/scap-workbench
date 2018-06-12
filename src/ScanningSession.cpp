@@ -128,12 +128,12 @@ void ScanningSession::cloneToTemporaryFile(const QString& path)
     //
     // Files which violate this constraint are rare; thus it should be safe
     // to refuse to open them.
-    QSet<QString> closureOfFile;
-    getDependencyClosureOfFile(path, closureOfFile);
+    mClosureOfFile.clear();
+    getDependencyClosureOfFile(path, mClosureOfFile);
 
     const QFileInfo pathInfo(path);
     QString baseDirectory = pathInfo.absolutePath();
-    for (const QString& cur : closureOfFile)
+    for (const QString& cur : mClosureOfFile)
     {
         // Since getDependencyClosureOfFile(...) returns cleaned absolute
         // paths, we can check if the path starts with the baseDirectory
@@ -154,7 +154,7 @@ void ScanningSession::cloneToTemporaryFile(const QString& path)
     QFile::copy(path, mOpenPath);
 
     QDir tmpDir(tmpPath);
-    for (const QString& cur : closureOfFile)
+    for (const QString& cur : mClosureOfFile)
     {
         const QFileInfo curInfo(cur);
         const QDir curDir = curInfo.absoluteDir();
@@ -253,6 +253,10 @@ QString ScanningSession::getOriginalFilePath() const
     return mOriginalPath;
 }
 
+QSet<QString> ScanningSession::getOriginalClosure() const
+{
+    return mClosureOfFile;
+}
 
 void ScanningSession::getDependencyClosureOfFile(const QString& filePath, QSet<QString>& targetSet) const
 {
