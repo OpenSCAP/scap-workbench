@@ -248,25 +248,30 @@ void ResultBasedLibraryRemediationSaver::saveToFile(const QString& filename)
 {
     struct oscap_source* source = oscap_source_new_from_file(mArfFile.fileName().toUtf8().constData());
     oscap_document_type_t document_type = oscap_source_get_scap_type(source);
-    if (document_type != OSCAP_DOCUMENT_ARF) {
+    if (document_type != OSCAP_DOCUMENT_ARF)
+    {
         throw std::runtime_error("Expected an ARF file");
     }
 
     struct ds_rds_session* arf_session = ds_rds_session_new_from_source(source);
-    if (arf_session == NULL) {
+    if (arf_session == NULL)
+    {
         throw std::runtime_error("Couldn't open ARF session");
     }
     struct oscap_source* report_source = ds_rds_session_select_report(arf_session, NULL);
-    if (report_source == NULL) {
+    if (report_source == NULL)
+    {
         throw std::runtime_error("Couldn't get report source from the ARF session");
     }
     struct oscap_source* report_request_source = ds_rds_session_select_report_request(arf_session, NULL);
-    if (report_request_source == NULL) {
+    if (report_request_source == NULL)
+    {
         throw std::runtime_error("Couldn't get report request source from the ARF session");
     }
 
     struct xccdf_session* session = xccdf_session_new_from_source(oscap_source_clone(report_request_source));
-    if (xccdf_session_add_report_from_source(session, oscap_source_clone(report_source))) {
+    if (xccdf_session_add_report_from_source(session, oscap_source_clone(report_source)))
+    {
         throw std::runtime_error("Couldn't get report request source from the ARF session");
     }
     oscap_source_free(source);
