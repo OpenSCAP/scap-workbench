@@ -415,7 +415,8 @@ QString OscapScannerRemoteSsh::createRemoteTemporaryFile(bool cancelOnFailure)
                         "data to! Diagnostic info: %1").arg(proc.getDiagnosticInfo())
         );
 
-        if (cancelOnFailure) {
+        if (cancelOnFailure)
+        {
             mCancelRequested = true;
         }
         signalCompletion(mCancelRequested);
@@ -443,7 +444,8 @@ QString OscapScannerRemoteSsh::createRemoteTemporaryDirectory(bool cancelOnFailu
                         "Diagnostic info: %1").arg(proc.getDiagnosticInfo())
         );
 
-        if (cancelOnFailure) {
+        if (cancelOnFailure)
+        {
             mCancelRequested = true;
         }
         signalCompletion(mCancelRequested);
