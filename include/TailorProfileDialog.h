@@ -33,7 +33,7 @@ class TailorProfileDialog : public QDialog
     Q_OBJECT
 
     public:
-        TailorProfileDialog(const QString &startId, bool xccdf12, QWidget* parent = 0);
+        TailorProfileDialog(const QString& startId, bool xccdf12, QWidget* parent = 0);
         virtual ~TailorProfileDialog();
 
         QString getProfileID() const;
