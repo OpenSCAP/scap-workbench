@@ -172,7 +172,7 @@ class TailoringWindow : public QMainWindow
         void syncCollapsedItem(QTreeWidgetItem* item, QSet<QString>& usedCollapsedIds);
 
         void createTreeItem(QTreeWidgetItem* treeItem, struct xccdf_item* xccdfItem);
-        void synchronizeTreeItemSelections(QTreeWidgetItem *treeItem);
+        void synchronizeTreeItemSelections(QTreeWidgetItem* treeItem);
         
         void createSelectionMacro(QTreeWidgetItem* treeItem, bool checkState, const QString& commandName);
 

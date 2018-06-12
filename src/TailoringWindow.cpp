@@ -541,7 +541,7 @@ void TailoringWindow::deleteProfileAndDiscard()
     close();
 }
 
-void TailoringWindow::closeEvent(QCloseEvent * event)
+void TailoringWindow::closeEvent(QCloseEvent* event)
 {
     if (!mChangesConfirmed)
     {
@@ -899,7 +899,7 @@ void TailoringWindow::searchNext()
             // We cannot use setCurrentItem() on disabled items
             // so we will use a workaround
 
-            QTreeWidgetItem * dummyItem = mUI.itemsTree->currentItem();
+            QTreeWidgetItem* dummyItem = mUI.itemsTree->currentItem();
 
             // Setting of "new" current item cause removing selection
             // from rest of items

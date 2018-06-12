@@ -45,7 +45,7 @@ class RemediationSaverBase
         void removeFileWhenEmpty(const QString& filename);
 
         QWidget* mParentWindow;
-        DiagnosticsDialog * mDiagnostics;
+        DiagnosticsDialog* mDiagnostics;
 
         const QString mSaveMessage;
         const QString mFiletypeExtension;

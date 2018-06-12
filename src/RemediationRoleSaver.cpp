@@ -256,11 +256,11 @@ void ResultBasedLibraryRemediationSaver::saveToFile(const QString& filename)
     if (arf_session == NULL) {
         throw std::runtime_error("Couldn't open ARF session");
     }
-    struct oscap_source *report_source = ds_rds_session_select_report(arf_session, NULL);
+    struct oscap_source* report_source = ds_rds_session_select_report(arf_session, NULL);
     if (report_source == NULL) {
         throw std::runtime_error("Couldn't get report source from the ARF session");
     }
-    struct oscap_source *report_request_source = ds_rds_session_select_report_request(arf_session, NULL);
+    struct oscap_source* report_request_source = ds_rds_session_select_report_request(arf_session, NULL);
     if (report_request_source == NULL) {
         throw std::runtime_error("Couldn't get report request source from the ARF session");
     }
