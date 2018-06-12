@@ -97,8 +97,10 @@ void Application::processCLI(QStringList& args)
     }
 
     QStringList posArguments = parser.positionalArguments();
-    if (posArguments.isEmpty()) {
-        if (parser.isSet(tailoring)) {
+    if (posArguments.isEmpty())
+    {
+        if (parser.isSet(tailoring))
+        {
             std::cout << "Tailoring file was provided via --tailoring, but no SCAP "
                       << "input was provided. Ignoring the tailoring file."
                       << std::endl;
