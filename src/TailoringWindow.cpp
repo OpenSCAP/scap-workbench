@@ -266,18 +266,18 @@ void TailoringWindow::synchronizeTreeItem()
 {
     // If itemsTree has focus, it will lose it when it becomes invisible
     QWidget* focused = QApplication::focusWidget();
-    
+
     // If QTreeWidget remains visible during the sync, it'll recalculate its geometry for each checked
     // row. Configuring "visible" as false seems to be the only way to avoid entering the "if" in
     // https://github.com/qt/qt/blob/4.8/src/gui/itemviews/qabstractitemview.cpp#L3190
     mUI.itemsTree->setVisible(false);
     synchronizeTreeItemSelections(mBenchmarkItem);
     mUI.itemsTree->setVisible(true);
-    
+
     // So we set the focus to the widget again
     if (focused)
         focused->setFocus();
-    
+
     // Enables/disables "Deselect All action based on weather the top level rules/groups are checked"
     bool anySelected = false;
     for (int i = 0; i < mBenchmarkItem->childCount(); ++i)
@@ -671,7 +671,7 @@ void TailoringWindow::syncCollapsedItem(QTreeWidgetItem* item, QSet<QString>& us
 {
     struct xccdf_item* xccdfItem = getXccdfItemFromTreeItem(item);
     const QString id = QString::fromUtf8(xccdf_item_get_id(xccdfItem));
-    
+
     for (int i = 0; i < item->childCount(); ++i)
         syncCollapsedItem(item->child(i), usedCollapsedIds);
 

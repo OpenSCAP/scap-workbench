@@ -138,18 +138,18 @@ void DiagnosticsDialog::pushMessage(MessageSeverity severity, const QString& ful
     strSeverity = strSeverity.leftJustified(8);
 
     std::cerr << stime << " | " << strSeverity.toUtf8().constData() << " | " << fullMessage.toUtf8().constData() << std::endl;
-   
+
     QString outputMessage = fullMessage;
     if (format & MF_XML)
     {
         outputMessage = Qt::escape(outputMessage);
     }
-    
+
     if (format & MF_PREFORMATTED)
     {
         outputMessage = QString("<pre>%1</pre>").arg(outputMessage);
     }
-    
+
     mUI.messages->append(
         QString("<table><tr><td style=\"padding:5px 0px 0px 5px\"><pre>%1 </pre></td><td style=\"background: %2; padding:5px\"><pre>%3 </pre></td><td>%4</td></tr></table>\n")
             .arg(stime, bgCol, strSeverity, outputMessage)
