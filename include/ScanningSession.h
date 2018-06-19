@@ -291,14 +291,14 @@ class ScanningSession
         /// Our own tailoring that may or may not initially be loaded from a file
         mutable struct xccdf_tailoring* mTailoring;
 
-        /// Temporary copy of opened XCCDF file
-        QTemporaryDir* mOpenDir;
-        /// Path to temporary XCCDF file
-        QString mOpenPath;
-        /// Path to original XCCDF file
-        QString mOriginalPath;
-        /// Closure of original XCCDF file
-        QSet<QString> mClosureOfFile;
+        /// Temporary copy of opened DS or XCCDF file
+        QTemporaryDir* mTempOpenDir;
+        /// Path to temporary DS or XCCDF file
+        QString mTempOpenPath;
+        /// Path to original DS or XCCDF file
+        QString mOriginalOpenPath;
+        /// Closure of original DS or XCCDF file
+        QSet<QString> mClosureOfOriginalFile;
 
         /// Temporary file provides auto deletion and a valid temp file path
         QTemporaryFile mTailoringFile;
@@ -319,12 +319,14 @@ class ScanningSession
         QString mUserTailoringCID;
 
         /// Gets the dependency closure of the specified file.
-        void getDependencyClosureOfFile(const QString& filePath, QSet<QString>& targetSet) const;
+        void updateDependencyClosureOfFile(const QString& filePath, QSet<QString>& targetSet) const;
 
         /// Clones openFile(path) to a Temporary File
         void cloneToTemporaryFile(const QString& path);
         /// Closes mOpenFile if it is open
         void cleanTmpDir();
+        /// Copies all files from the path into the temporary location
+        void copyTempFiles(QString path, QString baseDirectory, const QFileInfo pathInfo);
 };
 
 #endif
