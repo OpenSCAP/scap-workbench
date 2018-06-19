@@ -448,7 +448,7 @@ void MainWindow::openFileDialog()
 
         if (fileOpened())
         {
-            if (openNewFileQuestionDialog(mScanningSession->getOpenedFilePath()) == QMessageBox::Yes)
+            if (openNewFileQuestionDialog(mScanningSession->getOriginalFilePath()) == QMessageBox::Yes)
                 closeFile();
             else
                 // user cancelled closing current file, we have to abort
@@ -514,7 +514,7 @@ void MainWindow::openSSGDialog(const QString& customDismissLabel)
 
             if (fileOpened())
             {
-                if (openNewFileQuestionDialog(mScanningSession->getOpenedFilePath()) == QMessageBox::Yes)
+                if (openNewFileQuestionDialog(mScanningSession->getOriginalFilePath()) == QMessageBox::Yes)
                 {
                     closeFile();
                 }
