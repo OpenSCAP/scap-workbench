@@ -37,6 +37,7 @@
 #include "RemediationRoleSaver.h"
 
 #include <QFileDialog>
+#include <QPushButton>
 #include <QAbstractEventDispatcher>
 #include <QCloseEvent>
 #include <QFileSystemWatcher>
@@ -1558,11 +1559,21 @@ void MainWindow::fileChanged(const QString& path)
         return;
     mFSLastSeen = path;
 
-    QMessageBox::information(
-        this, QObject::tr("SCAP Workbench"),
-        QObject::tr("Opened file was modified after opening: %1\n\n"
-                    "To reload, click File -> Reload Opened Content").arg(path)
-    );
+    QMessageBox question;
+    question.setText(QObject::tr("The following file was modified after opening: %1").arg(path));
+    question.setInformativeText(QObject::tr("Do you wish to reload it, losing any unsaved tailoring changes?"));
+
+    QPushButton *reload = question.addButton(QObject::tr("Reload"), QMessageBox::AcceptRole);
+    QPushButton *ignore = question.addButton(QObject::tr("Ignore"), QMessageBox::RejectRole);
+    question.setDefaultButton(ignore);
+    question.setIcon(QMessageBox::Question);
+
+    question.exec();
+
+    if (question.clickedButton() == reload)
+    {
+        reloadContent();
+    }
 }
 
 QString MainWindow::getDefaultSaveDirectory()
