@@ -37,8 +37,10 @@
 #include "RemediationRoleSaver.h"
 
 #include <QFileDialog>
+#include <QPushButton>
 #include <QAbstractEventDispatcher>
 #include <QCloseEvent>
+#include <QFileSystemWatcher>
 #include <QDesktopWidget>
 #include <QMenu>
 
@@ -85,6 +87,9 @@ MainWindow::MainWindow(QWidget* parent):
 
     mIgnoreProfileComboBox(false),
 
+    mFSWatch(new QFileSystemWatcher()),
+    mFSLastSeen(""),
+
     mRuleResultsExpanded(false)
 {
     mUI.setupUi(this);
@@ -124,6 +129,10 @@ MainWindow::MainWindow(QWidget* parent):
     QObject::connect(
         mUI.actionOpenCustomizationFile, SIGNAL(triggered()),
         this, SLOT(openCustomizationFile())
+    );
+    QObject::connect(
+        mUI.actionReloadContent, SIGNAL(triggered()),
+        this, SLOT(reloadContent())
     );
     QObject::connect(
         mUI.checklistComboBox, SIGNAL(currentIndexChanged(int)),
@@ -272,6 +281,11 @@ MainWindow::MainWindow(QWidget* parent):
     remediationButtonMenu->addAction(genAnsibleRemediation);
     remediationButtonMenu->addAction(genPuppetRemediation);
     mUI.genRemediationButton->setMenu(remediationButtonMenu);
+
+    QObject::connect(
+        mFSWatch, SIGNAL(fileChanged(const QString&)),
+        this, SLOT(fileChanged(const QString&))
+    );
 }
 
 MainWindow::~MainWindow()
@@ -288,6 +302,9 @@ MainWindow::~MainWindow()
 
     delete mQSettings;
     mQSettings = 0;
+
+    delete mFSWatch;
+    mFSWatch = NULL;
 }
 
 void MainWindow::setSkipValid(bool skipValid)
@@ -333,7 +350,7 @@ void MainWindow::clearResults()
     mUI.actionOpen->setEnabled(true);
 }
 
-void MainWindow::openFile(const QString& path)
+void MainWindow::openFile(const QString& path, bool reload)
 {
     try
     {
@@ -348,7 +365,7 @@ void MainWindow::openFile(const QString& path)
         }
 
         mScanningSession->setSkipValid(mSkipValid);
-        mScanningSession->openFile(inputPath);
+        mScanningSession->openFile(inputPath, reload);
 
         // In case openscap autonegotiated opening a tailoring file directly
         if (tailoringPath.isEmpty() && mScanningSession->hasTailoring())
@@ -374,6 +391,14 @@ void MainWindow::openFile(const QString& path)
         checklistComboboxChanged(0);
 
         centralWidget()->setEnabled(true);
+
+        // Refill mFSWatch after opening file
+        mFSWatch->removePaths(mFSWatch->files());
+        for (const QString path : mScanningSession->getOriginalClosure())
+        {
+            mFSWatch->addPath(path);
+        }
+        mFSLastSeen = "";
 
         mDiagnosticsDialog->infoMessage(QObject::tr("Opened file '%1'.").arg(path));
     }
@@ -423,7 +448,7 @@ void MainWindow::openFileDialog()
 
         if (fileOpened())
         {
-            if (openNewFileQuestionDialog(mScanningSession->getOpenedFilePath()) == QMessageBox::Yes)
+            if (openNewFileQuestionDialog(mScanningSession->getOriginalFilePath()) == QMessageBox::Yes)
                 closeFile();
             else
                 // user cancelled closing current file, we have to abort
@@ -489,7 +514,7 @@ void MainWindow::openSSGDialog(const QString& customDismissLabel)
 
             if (fileOpened())
             {
-                if (openNewFileQuestionDialog(mScanningSession->getOpenedFilePath()) == QMessageBox::Yes)
+                if (openNewFileQuestionDialog(mScanningSession->getOriginalFilePath()) == QMessageBox::Yes)
                 {
                     closeFile();
                 }
@@ -522,6 +547,24 @@ void MainWindow::openTailoringFile(const QString& path)
     markLoadedTailoringFile(path);
     reloadSession();
     refreshTailoringProfiles();
+}
+
+void MainWindow::reloadContent()
+{
+    const QString currentFile = mScanningSession->getOriginalFilePath();
+    openFile(currentFile, true);
+
+    if (!fileOpened())
+    {
+        // Error occurred, keep pumping events and don't move on until user
+        // dismisses diagnostics dialog.
+        mDiagnosticsDialog->waitUntilHidden();
+
+        if (!close())
+        {
+            throw MainWindowException("Failed to close main window!");
+        }
+    }
 }
 
 void MainWindow::closeMainWindowAsync()
@@ -581,6 +624,7 @@ void MainWindow::scanAsync(ScannerMode scannerMode)
 
     mUI.menuSave->setEnabled(false);
     mUI.actionOpen->setEnabled(false);
+    mUI.actionReloadContent->setEnabled(false);
 
     mUI.ruleResultsTree->prepareForScanning();
 
@@ -599,6 +643,7 @@ void MainWindow::scanAsync(ScannerMode scannerMode)
 
         mUI.menuSave->setEnabled(true);
         mUI.actionOpen->setEnabled(true);
+        mUI.actionReloadContent->setEnabled(true);
 
         return;
     }
@@ -1275,6 +1320,7 @@ void MainWindow::scanEnded(bool canceled)
 
     mUI.menuSave->setEnabled(true);
     mUI.actionOpen->setEnabled(true);
+    mUI.actionReloadContent->setEnabled(true);
 
     cleanupScanThread();
 }
@@ -1505,6 +1551,29 @@ bool MainWindow::unsavedTailoringChanges() const
 
     const int idx = mUI.tailoringFileComboBox->findText(TAILORING_UNSAVED);
     return mUI.tailoringFileComboBox->currentIndex() == idx;
+}
+
+void MainWindow::fileChanged(const QString& path)
+{
+    if (path == mFSLastSeen)
+        return;
+    mFSLastSeen = path;
+
+    QMessageBox question;
+    question.setText(QObject::tr("The following file was modified after opening: %1").arg(path));
+    question.setInformativeText(QObject::tr("Do you wish to reload it, losing any unsaved tailoring changes?"));
+
+    QPushButton *reload = question.addButton(QObject::tr("Reload"), QMessageBox::AcceptRole);
+    QPushButton *ignore = question.addButton(QObject::tr("Ignore"), QMessageBox::RejectRole);
+    question.setDefaultButton(ignore);
+    question.setIcon(QMessageBox::Question);
+
+    question.exec();
+
+    if (question.clickedButton() == reload)
+    {
+        reloadContent();
+    }
 }
 
 QString MainWindow::getDefaultSaveDirectory()

@@ -24,6 +24,7 @@
 
 #include "ForwardDecls.h"
 
+#include <QTemporaryDir>
 #include <QTemporaryFile>
 #include <QSet>
 #include <QDir>
@@ -61,7 +62,7 @@ class ScanningSession
          * Passed file may be an XCCDF file (any openscap supported version)
          * or source datastream (SDS) file (any openscap supported version)
          */
-        void openFile(const QString& path);
+        void openFile(const QString& path, bool reload = false);
 
         /**
          * @brief Closes currently opened file (if any)
@@ -74,6 +75,16 @@ class ScanningSession
          * @brief Retrieves full absolute path of the opened file
          */
         QString getOpenedFilePath() const;
+
+        /**
+         * @brief Retrieves full absolute path of the opened file
+         */
+        QString getOriginalFilePath() const;
+
+        /**
+         * @brief Retrives the closure set of the original file
+         */
+        QSet<QString> getOriginalClosure() const;
 
         /**
          * @brief A helper method that gets the longest common ancestor dir from a set of paths
@@ -280,6 +291,15 @@ class ScanningSession
         /// Our own tailoring that may or may not initially be loaded from a file
         mutable struct xccdf_tailoring* mTailoring;
 
+        /// Temporary copy of opened DS or XCCDF file
+        QTemporaryDir* mTempOpenDir;
+        /// Path to temporary DS or XCCDF file
+        QString mTempOpenPath;
+        /// Path to original DS or XCCDF file
+        QString mOriginalOpenPath;
+        /// Closure of original DS or XCCDF file
+        QSet<QString> mClosureOfOriginalFile;
+
         /// Temporary file provides auto deletion and a valid temp file path
         QTemporaryFile mTailoringFile;
         /// Temporary file provides auto deletion and a valid temp file path
@@ -297,6 +317,16 @@ class ScanningSession
 
         QString mUserTailoringFile;
         QString mUserTailoringCID;
+
+        /// Gets the dependency closure of the specified file.
+        void updateDependencyClosureOfFile(const QString& filePath, QSet<QString>& targetSet) const;
+
+        /// Clones openFile(path) to a Temporary File
+        void cloneToTemporaryFile(const QString& path);
+        /// Closes mOpenFile if it is open
+        void cleanTmpDir();
+        /// Copies all files from the path into the temporary location
+        void copyTempFiles(QString path, QString baseDirectory, const QFileInfo pathInfo);
 };
 
 #endif

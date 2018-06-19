@@ -29,6 +29,7 @@
 #include <QThread>
 #include <QMenu>
 #include <QMessageBox>
+#include <QFileSystemWatcher>
 
 extern "C"
 {
@@ -65,7 +66,7 @@ class MainWindow : public QMainWindow
         /**
          * @brief Opens a specific file
          */
-        void openFile(const QString& path);
+        void openFile(const QString& path, bool reload = false);
 
         void openSSGDialog(const QString& customDismissLabel = "");
 
@@ -94,6 +95,15 @@ class MainWindow : public QMainWindow
          * @see MainWindow::closeMainWindow
          */
         void closeMainWindowAsync();
+
+        /**
+         * @bried Reloads the opened content
+         *
+         *
+         * If a content file is opened, it might have changed on disk. This
+         * allows the user to update reload it in case it has changed.
+         */
+        void reloadContent();
 
         /**
          * @brief Checks whether a file is currently opened
@@ -235,6 +245,10 @@ class MainWindow : public QMainWindow
 
         /// If true, the profile combobox change signal is ignored, this avoids unnecessary profile refreshes
         bool mIgnoreProfileComboBox;
+
+        /// Implement watching of original XCCDF/DS
+        QFileSystemWatcher* mFSWatch;
+        QString mFSLastSeen;
 
     signals:
         /**
@@ -381,6 +395,11 @@ class MainWindow : public QMainWindow
         void markRemoveLoadedTailoringFile();
         void markLoadedTailoringFile(const QString& filePath);
         bool unsavedTailoringChanges() const;
+
+        /**
+         * @brief Slot handler for notifying user that opened files changed
+         */
+        void fileChanged(const QString& path);
 
     public:
         QString getDefaultSaveDirectory();

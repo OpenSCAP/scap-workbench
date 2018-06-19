@@ -34,6 +34,8 @@ extern "C" {
 
 #include <cassert>
 #include <ctime>
+#include <QTemporaryDir>
+#include <QTemporaryFile>
 #include <QFileInfo>
 #include <QBuffer>
 #include <QXmlQuery>
@@ -45,8 +47,13 @@ ScanningSession::ScanningSession():
     mSession(0),
     mTailoring(0),
 
+    mTempOpenDir(NULL),
+    mTempOpenPath(""),
+    mOriginalOpenPath(""),
+
     mSkipValid(false),
     mSessionDirty(false),
+
     mTailoringUserChanges(false)
 {
     mTailoringFile.setAutoRemove(true);
@@ -54,6 +61,7 @@ ScanningSession::ScanningSession():
 
 ScanningSession::~ScanningSession()
 {
+    cleanTmpDir();
     closeFile();
 }
 
@@ -71,12 +79,138 @@ struct xccdf_session* ScanningSession::getXCCDFSession() const
     return mSession;
 }
 
-void ScanningSession::openFile(const QString& path)
+void ScanningSession::cleanTmpDir()
+{
+    /*
+     * For use in cloneToTemporaryFile(...); closes mTempOpenDir
+     * if it is open and removes backing source. Ignores errors.
+     *
+     * A new Temporary Directory will be created afterwards,
+     * so the worst case is leaving temporary directory (+files),
+     * but this is cleaned on reboot or manually by the user.
+     */
+    if (mTempOpenDir != NULL) {
+        mTempOpenDir->remove();
+        delete mTempOpenDir;
+        mTempOpenDir = NULL;
+    }
+}
+
+void ScanningSession::copyTempFiles(QString path, QString baseDirectory,
+                                    const QFileInfo pathInfo)
+{
+    // File is valid; extract the new location and copy dependencies into
+    // their correct places.
+    QString tmpPath = mTempOpenDir->path() + QDir::separator();
+
+    // set mTempOpenPath to the new temporary location and copy it.
+    mTempOpenPath = tmpPath + pathInfo.fileName();
+    QFile::copy(path, mTempOpenPath);
+
+    QDir tmpDir(tmpPath);
+    for (const QString& cur : mClosureOfOriginalFile)
+    {
+        const QFileInfo curInfo(cur);
+        const QDir curDir = curInfo.absoluteDir();
+
+        if (curDir.absolutePath() != baseDirectory)
+        {
+            // Create subdirectories and copy into the new directory
+            //
+            // Since curPath is an absolute path, which has an eventual
+            // parent of baseDirectory, the left n = baseDirectory.length()+1
+            // characters are baseDirectory plus a trailing slash; the
+            // remaining characters to the right of this (curPath.length()-n)
+            // is the recursive directory structure of cur (e.g., all the
+            // subdirs it resides in). We can then plant this on tmpPath
+            // and use mkpath to recreate that directory structure. We ignore
+            // errors from mkpath because we might have previously created
+            // this path in a previous loop iteration.
+            const QString curPath = curDir.absolutePath();
+            const int pathLen = curPath.length() - baseDirectory.length() - 1;
+            const QString subDirs = curPath.right(pathLen);
+            const QString newPath = tmpPath + subDirs + QDir::separator() + curInfo.fileName();
+
+            tmpDir.mkpath(tmpPath + subDirs);
+            QFile::copy(cur, newPath);
+        }
+        else
+        {
+            // Simply copy the file since it resides in baseDirectory
+            QFile::copy(cur, tmpPath + curInfo.fileName());
+        }
+    }
+}
+
+void ScanningSession::cloneToTemporaryFile(const QString& path)
+{
+    /*
+     * There are two situations when calling this function:
+     *
+     * 1) We've already opened a temporary file:
+     *      In this case, close and delete it, then:
+     * 2) We need to create a new temporary file:
+     *      Then we can copy data into it from path.
+     *
+     * By not closing and removing mTempOpenDir in closeFile()
+     * until openFile() is called, we prevent unintentional reloading
+     * of the real path. Further, calling fileOpen(...) with the same
+     * path results in reloading the file.
+     */
+
+    // Clean the temporary directory if it is open already, then create
+    // a new one.
+    cleanTmpDir();
+    mTempOpenDir = new QTemporaryDir();
+
+    // Recalling is unlikely to succeed, so throw a fatal exception
+    if (!mTempOpenDir->isValid())
+    {
+        throw std::runtime_error(mTempOpenDir->errorString().toUtf8().constData());
+    }
+
+    // XCCDF files can have relative includes; get a complete closure set
+    // of the opened file and validate that they all share a common
+    // ancestor which is the ancestor of the input path. Otherwise, this
+    // file cannot be opened without recreating excessive directory structure.
+    //
+    // Files which violate this constraint are rare; thus it should be safe
+    // to refuse to open them.
+    mClosureOfOriginalFile.clear();
+    updateDependencyClosureOfFile(path, mClosureOfOriginalFile);
+
+    const QFileInfo pathInfo(path);
+    QString baseDirectory = pathInfo.absolutePath();
+    for (const QString& cur : mClosureOfOriginalFile)
+    {
+        // Since updateDependencyClosureOfFile(...) returns cleaned, absolute
+        // paths, we can check if the path starts with the baseDirectory
+        if (!cur.startsWith(baseDirectory))
+        {
+            throw std::runtime_error("Refusing to open XCCDF file because "
+                                     "closure of includes violate "
+                                     "directory constraints: common ancestor");
+        }
+    }
+
+    // Copy all files into the new temporary directory since the structure is valid.
+    copyTempFiles(path, baseDirectory, pathInfo);
+
+    mOriginalOpenPath = path;
+}
+
+void ScanningSession::openFile(const QString& path, bool reload)
 {
     if (mSession)
         closeFile();
 
-    const QFileInfo pathInfo(path);
+    if (reload || mOriginalOpenPath != path)
+    {
+        cloneToTemporaryFile(path);
+    }
+
+    const QString tmpPath = mTempOpenPath;
+    const QFileInfo pathInfo(mTempOpenPath);
 
     // We have to make sure that we *ALWAYS* open the session by absolute
     // path. oscap local won't be run from the same directory from where
@@ -120,7 +254,20 @@ QString ScanningSession::getOpenedFilePath() const
     return xccdf_session_get_filename(mSession);
 }
 
-inline void getDependencyClosureOfFile(const QString& filePath, QSet<QString>& targetSet)
+QString ScanningSession::getOriginalFilePath() const
+{
+    if (!fileOpened())
+        return QString("");
+
+    return mOriginalOpenPath;
+}
+
+QSet<QString> ScanningSession::getOriginalClosure() const
+{
+    return mClosureOfOriginalFile;
+}
+
+void ScanningSession::updateDependencyClosureOfFile(const QString& filePath, QSet<QString>& targetSet) const
 {
     QFileInfo fileInfo(filePath);
     targetSet.insert(fileInfo.absoluteFilePath()); // insert current file
@@ -159,8 +306,9 @@ inline void getDependencyClosureOfFile(const QString& filePath, QSet<QString>& t
             {
                 QXmlNodeModelIndex itemIdx = item.toNodeModelIndex();
                 const QAbstractXmlNodeModel* model = itemIdx.model();
-                const QString  relativeFileName = model->stringValue(itemIdx);
-                getDependencyClosureOfFile(parentDir.absoluteFilePath(relativeFileName), targetSet);
+                const QString relativeFileName = model->stringValue(itemIdx);
+                const QString absUncleanPath = parentDir.absoluteFilePath(relativeFileName);
+                updateDependencyClosureOfFile(QDir::cleanPath(absUncleanPath), targetSet);
                 item = result.next();
             }
 
@@ -184,7 +332,7 @@ inline void getDependencyClosureOfFile(const QString& filePath, QSet<QString>& t
 QSet<QString> ScanningSession::getOpenedFilesClosure() const
 {
     QSet<QString> ret;
-    getDependencyClosureOfFile(getOpenedFilePath(), ret);
+    ScanningSession::updateDependencyClosureOfFile(getOpenedFilePath(), ret);
     return ret;
 }
 
