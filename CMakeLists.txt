@@ -12,6 +12,12 @@ include(GNUInstallDirs)
 find_package(Qt4 REQUIRED QtCore QtGui QtXmlPatterns)
 include(${QT_USE_FILE})
 
+if (MINGW)
+    find_path(OPENSCAP_INCLUDE NAMES openscap/oscap.h)
+    find_library(OPENSCAP_LIBRARIES NAMES libopenscap.dll openscap.dll)
+    set(OPENSCAP_INCLUDE_DIRS "${OPENSCAP_INCLUDE}/openscap")
+endif()
+
 # This conditional is here to avoid checking openscap version if user supplies
 # custom openscap parameters.
 if (NOT DEFINED OPENSCAP_LIBRARIES OR NOT DEFINED OPENSCAP_INCLUDE_DIRS)
