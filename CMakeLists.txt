@@ -123,6 +123,10 @@ configure_file("scap-workbench-oscap.policy.in" "${CMAKE_CURRENT_BINARY_DIR}/sca
 if (WIN32)
     configure_file("win32-resource.rc.in" "${CMAKE_CURRENT_BINARY_DIR}/win32-resource.rc")
     configure_file("scap-workbench.wxs.in" "${CMAKE_CURRENT_BINARY_DIR}/scap-workbench.wxs")
+    configure_file("AppIcon.ico" "${CMAKE_CURRENT_BINARY_DIR}/scap-workbench/AppIcon.ico" COPYONLY)
+    configure_file("banner.png" "${CMAKE_CURRENT_BINARY_DIR}/banner.png" COPYONLY)
+    configure_file("dialog.png" "${CMAKE_CURRENT_BINARY_DIR}/dialog.png" COPYONLY)
+    configure_file("win32-LICENSE.rtf" "${CMAKE_CURRENT_BINARY_DIR}/win32-LICENSE.rtf" COPYONLY)
 endif()
 
 include_directories(${SCAP_WORKBENCH_INCLUDE_DIRS})
