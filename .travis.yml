@@ -1,0 +1,4 @@
+os: osx
+before_install:
+  - brew install qt4
+  - brew install cmake
