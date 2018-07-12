@@ -24,9 +24,9 @@
 #include <QAbstractEventDispatcher>
 #include <QApplication>
 #include <QClipboard>
+#include <QThread>
 
 #include <iostream>
-#include <unistd.h>
 
 DiagnosticsDialog::DiagnosticsDialog(QWidget* parent):
     QDialog(parent)
@@ -51,6 +51,16 @@ DiagnosticsDialog::DiagnosticsDialog(QWidget* parent):
     dumpVersionInfo();
 }
 
+/*
+ * Sleep Class is here because QThread::sleep is protected in QT4 but not QT5.
+ * This can be removed with the migration to QT5 is complete.
+ */
+class Sleeper : public QThread
+{
+public:
+    static void sleep(unsigned long secs){QThread::sleep(secs);}
+};
+
 DiagnosticsDialog::~DiagnosticsDialog()
 {}
 
@@ -64,7 +74,7 @@ void DiagnosticsDialog::waitUntilHidden(unsigned int interval)
     while (isVisible())
     {
         QAbstractEventDispatcher::instance(0)->processEvents(QEventLoop::AllEvents);
-        usleep(interval * 1000);
+        Sleeper::sleep(interval * 1000);
     }
 }
 
