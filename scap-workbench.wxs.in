@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
-    <Product Id="171211AD-F987-4051-BF5A-30A116CD6784" Name="SCAP Workbench" Language="1033" Version="@SCAP_WORKBENCH_VERSION_MAJOR@.@SCAP_WORKBENCH_VERSION_MINOR@.@SCAP_WORKBENCH_VERSION_PATCH@.0" Manufacturer="OpenSCAP" UpgradeCode="E3925738-54A3-402B-852D-866BEF6FC98C">
-        <Package Description="SCAP Workbench" Comments="SCAP Workbench" InstallerVersion="200" Compressed="yes" />
+    <?define VERSION="@SCAP_WORKBENCH_VERSION_MAJOR@.@SCAP_WORKBENCH_VERSION_MINOR@.@SCAP_WORKBENCH_VERSION_PATCH@.0" ?>
+    <Product Id="171211AD-F987-4051-BF5A-30A116CD6784" Name="SCAP Workbench" Language="1033" Version="$(var.VERSION)" Manufacturer="OpenSCAP" UpgradeCode="E3925738-54A3-402B-852D-866BEF6FC98C">
+        <Package Description="SCAP Workbench" Comments="SCAP Workbench" InstallerVersion="200" Compressed="yes" InstallPrivileges="elevated" InstallScope="perMachine" />
         <Media Id="1" Cabinet="simple.cab" EmbedCab="yes" />
         <Directory Id="TARGETDIR" Name="SourceDir">
             <Directory Id="ProgramFilesFolder" Name="PFiles">
@@ -111,9 +112,9 @@
                     </Component>
 
                     <Component Id="SCAP_WORKBENCH.EXE" DiskId="1" Guid="628FE581-5590-43BF-B8E6-46B3FB4AD6B2">
-                        <File Id="SCAP_WORKBENCH.EXE" Name="scap-workbench.exe" Source="scap-workbench\scap-workbench.exe">
-                            <Shortcut Id="desktopShortcut" Directory="DesktopFolder" Name="SCAP Workbench" WorkingDirectory="INSTALLDIR" Advertise="no" Icon="DesktopIcon.exe" IconIndex="0" />
-                            <Shortcut Id="ExeShortcut" Directory="ProgramMenuDir" Name="SCAP Workbench" Advertise="no" Icon="StartMenuIcon.exe" IconIndex="0" />
+                        <File Id="SCAP_WORKBENCH.EXE" Name="scap-workbench.exe" Source="scap-workbench\scap-workbench.exe" Vital="yes" KeyPath="yes">
+                            <Shortcut Id="desktopShortcut" Directory="DesktopFolder" Name="SCAP Workbench" WorkingDirectory="INSTALLDIR" Advertise="yes" Icon="DesktopIcon.exe" IconIndex="0" />
+                            <Shortcut Id="ExeShortcut" Directory="ProgramMenuDir" Name="SCAP Workbench" Advertise="yes" Icon="StartMenuIcon.exe" IconIndex="0" />
                         </File>
                     </Component>
 
@@ -287,10 +288,11 @@
             </Directory>
             <Directory Id="DesktopFolder" />
             <Directory Id="ProgramMenuFolder">
-                <Directory Id="ProgramMenuDir" Name="OpenSCAP">
+                <Directory Id="ProgramMenuDir" Name="scap-workbench" />
                     <Component Id="StartMenuShortcuts" Guid="4E5A445A-89F2-4415-A56A-64A604DB7256">
-                        <RemoveFolder Id="ProgramMenuDir" On="uninstall" />
-                        <RegistryValue Root="HKCU" Key="Software\[Manufacturer]\[ProductName]" Type="string" Value="" />
+                        <RemoveFolder Id="RemoveProgramMenuDir" Directory="ProgramMenuDir" On="uninstall" />
+                        <RegistryValue Root="HKMU" Key="Software\[Manufacturer]\[ProductName]" Name="installed" Type="integer" Value="1" />
+                        <RegistryValue Root="HKMU" Key="Software\[Manufacturer]\[ProductName]" Name="version" Type="string" Value="$(var.VERSION)" />
                     </Component>
                 </Directory>
             </Directory>
@@ -391,6 +393,10 @@
         <UIRef Id="WixUI_Minimal" />
         <Icon Id="DesktopIcon.exe" SourceFile="scap-workbench\scap-workbench.exe" />
         <Icon Id="StartMenuIcon.exe" SourceFile="scap-workbench\scap-workbench.exe" />
-        <WixVariable Id="WixUILicenseRtf" Value="@CMAKE_SOURCE_DIR@\win32-LICENSE.rtf" />
+        <Icon Id="AppIcon.ico" SourceFile="scap-workbench\AppIcon.ico" />
+        <Property Id="ARPPRODUCTICON" Value="AppIcon.ico" />
+        <WixVariable Id="WixUILicenseRtf" Value="win32-LICENSE.rtf" />
+        <WixVariable Id="WixUIBannerBmp" Value="banner.bmp" />
+        <WixVariable Id="WixUIDialogBmp" Value="dialog.bmp" />
     </Product>
 </Wix>
