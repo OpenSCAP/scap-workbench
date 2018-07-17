@@ -111,9 +111,9 @@ void SSGIntegrationDialog::scrapeSSGVariants()
 
         bool favorite = false;
         // Make the label nicer for known variants
-        if (label.startsWith("rhel"))
+        if (label.startsWith("rhel") || label.startsWith("ol"))
         {
-            // use RHEL instead of rhel
+            // use RHEL instead of rhel and OL instead of ol
             label = name.toUpper();
             favorite = true;
         }
