@@ -7,10 +7,13 @@ language: cpp
 compiler:
   - gcc
 
+env:
+  - PATH="/usr/local/opt/qt:$PATH"
+
 before_install:
   - brew update
   - brew install jq
-  - brew install cartr/qt4/qt@4
+  - brew install qt5
   - brew install asciidoc
 
 before_script:
