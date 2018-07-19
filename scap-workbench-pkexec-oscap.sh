@@ -18,9 +18,6 @@
 
 set -u -o pipefail
 
-uid=`id -u`
-gid=`id -g`
-
 PARENT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 PKEXEC_PATH="pkexec"
@@ -29,7 +26,7 @@ SCAP_WORKBENCH_OSCAP="$PARENT_DIR/scap-workbench-oscap.sh"
 # We run unprivileged if pkexec was not found.
 #which $PKEXEC_PATH > /dev/null || exit 1 # fail if pkexec was not found
 
-$PKEXEC_PATH --disable-internal-agent "$SCAP_WORKBENCH_OSCAP" $uid $gid "$@" 2> >(tail -n +2 1>&2)
+$PKEXEC_PATH --disable-internal-agent "$SCAP_WORKBENCH_OSCAP" "$@" 2> >(tail -n +2 1>&2)
 EC=$?
 
 # 126 is a special exit code of pkexec when user dismisses the auth dialog
@@ -38,7 +35,7 @@ EC=$?
 # This is common in niche desktop environments.
 if [ $EC -eq 126 ] || [ $EC -eq 127 ]; then
     # in case of dismissed dialog we run without super user rights
-    "$SCAP_WORKBENCH_OSCAP" $uid $gid "$@" 2> >(tail -n +2 1>&2);
+    "$SCAP_WORKBENCH_OSCAP" "$@" 2> >(tail -n +2 1>&2);
     exit $?
 fi
 
