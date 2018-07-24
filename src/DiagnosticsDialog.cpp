@@ -24,9 +24,9 @@
 #include <QAbstractEventDispatcher>
 #include <QApplication>
 #include <QClipboard>
+#include <QThread>
 
 #include <iostream>
-#include <unistd.h>
 
 DiagnosticsDialog::DiagnosticsDialog(QWidget* parent):
     QDialog(parent)
@@ -64,7 +64,7 @@ void DiagnosticsDialog::waitUntilHidden(unsigned int interval)
     while (isVisible())
     {
         QAbstractEventDispatcher::instance(0)->processEvents(QEventLoop::AllEvents);
-        usleep(interval * 1000);
+        QThread::usleep(interval * 1000);
     }
 }
 
