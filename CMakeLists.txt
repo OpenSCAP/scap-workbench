@@ -89,15 +89,15 @@ if (SCAP_AS_RPM_EXECUTABLE)
 endif()
 
 # This is optional, only required if user wants documentation rebuilt
-find_program(ASCIIDOCTOR_EXECUTABLE NAMES asciidoctor)
-option(SCAP_WORKBENCH_REBUILD_MANUAL "If enabled, user manual will be rebuilt (requires asciidoctor to be installed)" TRUE)
+find_program(ASCIIDOC_EXECUTABLE NAMES asciidoc)
+option(SCAP_WORKBENCH_REBUILD_MANUAL "If enabled, user manual will be rebuilt (requires asciidoc to be installed)" TRUE)
 option(SCAP_WORKBENCH_USE_NATIVE_FILE_DIALOGS "If enabled, native desktop environment file dialogs are used (disable if you have crashes at startup)" TRUE)
-if (SCAP_WORKBENCH_REBUILD_MANUAL AND NOT ASCIIDOCTOR_EXECUTABLE)
-    message("asciidoctor has not been found, user manual won't be rebuilt even though SCAP_WORKBENCH_REBUILD_MANUAL has been enabled.")
+if (SCAP_WORKBENCH_REBUILD_MANUAL AND NOT ASCIIDOC_EXECUTABLE)
+    message("asciidoc has not been found, user manual won't be rebuilt even though SCAP_WORKBENCH_REBUILD_MANUAL has been enabled.")
 endif()
 if (NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/doc/user_manual.html")
-    if (NOT ASCIIDOCTOR_EXECUTABLE)
-        message(FATAL_ERROR "You seem to be using scap-workbench from the repository ('${CMAKE_SOURCE_DIR}/doc/user_manual.html' hasn't been found). Please install asciidoctor to build the manual! You can use `gem install asciidoctor` if asciidoctor is not in your distribution package repository. If you don't have access to asciidoctor and don't mind not having a manual, run `touch ${CMAKE_SOURCE_DIR}/doc/user_manual.html` and rerun cmake.")
+    if (NOT ASCIIDOC_EXECUTABLE)
+        message(FATAL_ERROR "You seem to be using scap-workbench from the repository ('${CMAKE_SOURCE_DIR}/doc/user_manual.html' hasn't been found). Please install asciidoc to build the manual! If you don't have access to asciidoc and don't mind not having a manual, run `touch ${CMAKE_SOURCE_DIR}/doc/user_manual.html` and rerun cmake.")
     endif()
     set(SCAP_WORKBENCH_REBUILD_MANUAL TRUE)
 endif()
@@ -269,12 +269,12 @@ install(FILES "share/pixmaps/scap-workbench.svg"
 install(FILES "scap-workbench.appdata.xml"
     DESTINATION "${CMAKE_INSTALL_DATADIR}/appdata")
 
-if (ASCIIDOCTOR_EXECUTABLE)
+if (ASCIIDOC_EXECUTABLE)
     file(GLOB USER_MANUAL_SCREENSHOTS "${CMAKE_CURRENT_SOURCE_DIR}/doc/user_manual/*.png")
     add_custom_command(
         OUTPUT doc/user_manual.html
         COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_BINARY_DIR}/doc
-        COMMAND ${ASCIIDOCTOR_EXECUTABLE} --destination-dir ${CMAKE_CURRENT_BINARY_DIR}/doc -b html5 -a data-uri user_manual.adoc
+        COMMAND ${ASCIIDOC_EXECUTABLE} -o ${CMAKE_CURRENT_BINARY_DIR}/doc/user_manual.html -b html5 -a data-uri user_manual.adoc
         COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_BINARY_DIR}/doc/user_manual.html ${CMAKE_CURRENT_SOURCE_DIR}/doc/user_manual.html
         DEPENDS doc/user_manual.adoc ${USER_MANUAL_SCREENSHOTS}
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/doc
