@@ -8,7 +8,7 @@ compiler:
   - gcc
 
 env:
-  - PATH="/usr/local/opt/qt:$PATH"
+  - PATH="/usr/local/opt/qt:/usr/local/opt/qt/bin:$PATH"
 
 before_install:
   - brew update
