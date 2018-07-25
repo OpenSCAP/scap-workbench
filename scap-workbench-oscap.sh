@@ -25,13 +25,14 @@ trap "" SIGHUP SIGINT
 # valuable gets skipped
 echo "Dummy text" 1>&2
 
-wrapper_uid=$1
-shift
-wrapper_gid=$1
-shift
+# prevent world-readable files being created
+umask 0007
 
 real_uid=`id -u`
 real_gid=`id -g`
+
+wrapper_uid=${PKEXEC_UID:-${real_uid}}
+wrapper_gid=$(id -g ${wrapper_uid})
 
 TEMP_DIR=`mktemp -d`
 
@@ -84,18 +85,33 @@ RET=$?
 
 popd > /dev/null
 
+# only copy files with the target user's permissions via sudo if we're running
+# privileged, otherwise he can trick us into overwriting arbitrary files
+do_chown=false
+if [ $wrapper_uid -ne $real_uid ] || [ $wrapper_gid -ne $real_gid ]; then
+    do_chown=true
+fi
+
 function chown_copy
 {
     local what="$1"
     local where="$2"
 
-    [ ! -f "$what" ] || cp "$what" "$where"
+    [ -f "$what" ] || return
 
-    # chown only required if wrapper_{uid,gid} differs from real_{uid,gid}
-    if [ $wrapper_uid -ne $real_uid ] || [ $wrapper_gid -ne $real_gid ]; then
-        chown $wrapper_uid:$wrapper_gid $where
+    if $do_chown; then
+        chown $wrapper_uid:$wrapper_gid "$what"
+        sudo -u "#${wrapper_uid}" cp "$what" "$where"
+    else
+        cp "$what" "$where"
     fi
 }
+
+if $do_chown; then
+    # don't grant the user ownership of or write access to the directory,
+    # otherwise he could trick us by replacing the files with symlinks
+    chmod o+rx "${TEMP_DIR}"
+fi
 
 chown_copy "$TEMP_DIR/results-xccdf.xml" "$TARGET_RESULTS_XCCDF"
 chown_copy "$TEMP_DIR/results-arf.xml" "$TARGET_RESULTS_ARF"
