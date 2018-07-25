@@ -1,3 +1,5 @@
+set -e
+
 mkdir -p build-osx/
 pushd build-osx/
 cmake -D SCAP_WORKBENCH_LOCAL_SCAN_ENABLED=false -D SCAP_AS_RPM_EXECUTABLE="" ../
