@@ -142,8 +142,8 @@
                             <Component Id="INTRO_SCREENSHOT.PNG" DiskId="1" Guid="D73F334F-EEC2-4C30-A440-7EDFC26D8897">
                                 <File Id="INTRO_SCREENSHOT.PNG" Name="intro_screenshot.png" Source="scap-workbench\doc\user_manual\intro_screenshot.png" />
                             </Component>
-                            <Component Id="LOGO.SVG" DiskId="1" Guid="DE026BBD-9241-4004-A2EC-7A9F459C8049">
-                                <File Id="LOGO.SVG" Name="logo.svg" Source="scap-workbench\doc\user_manual\logo.svg" />
+                            <Component Id="LOGO.PNG" DiskId="1" Guid="DE026BBD-9241-4004-A2EC-7A9F459C8049">
+                                <File Id="LOGO.PNG" Name="logo.png" Source="scap-workbench\doc\user_manual\logo.png" />
                             </Component>
                             <Component Id="OPENING_TAILORING_FILE.PNG" DiskId="1" Guid="EFB14DFD-697F-4314-8476-E798EA1A1E93">
                                 <File Id="OPENING_TAILORING_FILE.PNG" Name="opening_tailoring_file.png" Source="scap-workbench\doc\user_manual\opening_tailoring_file.png" />
@@ -342,7 +342,7 @@
             <ComponentRef Id="CUSTOMIZING_SSG_PROFILE.PNG" />
             <ComponentRef Id="DEFAULT_CONTENT_OPENED.PNG" />
             <ComponentRef Id="INTRO_SCREENSHOT.PNG" />
-            <ComponentRef Id="LOGO.SVG" />
+            <ComponentRef Id="LOGO.PNG" />
             <ComponentRef Id="OPENING_TAILORING_FILE.PNG" />
             <ComponentRef Id="SAVE_AS_RPM_DIALOG.PNG" />
             <ComponentRef Id="SCANNING_REMOTE_MACHINE.PNG" />
