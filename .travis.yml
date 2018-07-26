@@ -11,7 +11,7 @@ before_install:
   - brew update
   - brew install jq
   - brew install cartr/qt4/qt@4
-  - brew install asciidoctor
+  - brew install asciidoc
 
 before_script:
   - git clone --depth 1 https://github.com/openscap/openscap.git -b master

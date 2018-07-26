@@ -2,7 +2,7 @@
 :imagesdir: ./user_manual
 :toc:
 
-image::logo.svg[align="center"]
+image::logo.png[align="center"]
 
 SCAP Workbench is a tool that can open XCCDF footnote:[The Extensible
 Configuration Checklist Description Format] or SDS footnote:[Source

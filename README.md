@@ -24,7 +24,7 @@ required dependencies:
 
 required dependencies (only for the git repo, not required for released tarballs):
 ```console
-# yum install rubygem-asciidoctor
+# yum install asciidoc
 ```
 
 optional dependencies:
