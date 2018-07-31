@@ -127,24 +127,23 @@ set(SCAP_WORKBENCH_LINK_LIBRARIES
 
 # ---------- RPATHS for linking
 
-# see https://cmake.org/Wiki/CMake_RPATH_handling
+# see https://gitlab.kitware.com/cmake/community/wikis/doc/cmake/RPATH-handling
 
-# use, i.e. don't skip the full RPATH for the build tree
-set(CMAKE_SKIP_BUILD_RPATH FALSE)
+if (APPLE)
+    # when building, use the install RPATH
+    # (but later on when installing)
+    set(CMAKE_BUILD_WITH_INSTALL_RPATH ON)
 
-# when building, don't use the install RPATH already
-# (but later on when installing)
-set(CMAKE_BUILD_WITH_INSTALL_RPATH ON)
+    set(CMAKE_INSTALL_RPATH ${CMAKE_INSTALL_FULL_LIBDIR})
 
-set(CMAKE_INSTALL_RPATH ${CMAKE_INSTALL_FULL_LIBDIR})
+    # add the automatically determined parts of the RPATH
+    # which point to directories outside the build tree to the install RPATH
+    set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
-# add the automatically determined parts of the RPATH
-# which point to directories outside the build tree to the install RPATH
-set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
-
-# Turn on RPATH for OSX for policy warning
-set(CMAKE_MACOSX_RPATH ON)
-# ---------- CONFIGURATION
+    # Turn on RPATH for OSX for policy warning
+    set(CMAKE_MACOSX_RPATH ON)
+    # ---------- CONFIGURATION
+endif()
 
 configure_file("include/Config.h.in" "${CMAKE_CURRENT_BINARY_DIR}/Config.h")
 # It is not trivial to make the resulting file executable :-(
