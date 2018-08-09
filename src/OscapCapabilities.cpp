@@ -50,8 +50,10 @@ void OscapCapabilities::clear()
 
 static bool versionGreaterOrEqual(const QString& a, const QString& b)
 {
-    const QStringList aSplit = a.split('.');
-    const QStringList bSplit = b.split('.');
+    // the first split chops off any suffix such as _alpha2
+    // we have a guarantee that _ will occur at most once in the string
+    const QStringList aSplit = a.split("_")[0].split('.');
+    const QStringList bSplit = b.split("_")[0].split('.');
 
     // we only compare versions of the same number of components!
     assert(aSplit.size() == bSplit.size());
@@ -89,7 +91,11 @@ void OscapCapabilities::parse(const QString& mmv)
     const QStringList firstLine = lines[0].split(' ', QString::SkipEmptyParts);
     const QString& versionCandidate = firstLine.last();
 
-    if (!versionCandidate.contains(QRegExp("^([0-9]+\\.){2,}[0-9]+$")))
+    // Examples:
+    //   1.3.0_alpha2
+    //   0.8.0
+    //   1.2.18
+    if (!versionCandidate.contains(QRegExp("^([0-9]+\\.){2,}[0-9]+(_[a-z0-9]+)?$")))
         return; // TODO: Throw exception?
 
     mVersion = versionCandidate;
