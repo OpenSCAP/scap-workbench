@@ -26,7 +26,8 @@ before_script:
 
 script:
   - ./build-for-osx.sh
-  - wget `curl -s https://api.github.com/repos/openscap/scap-security-guide/releases/latest?access_token=$GITHUB_TOKEN | jq -r ".assets[] | select(.name | test(\"(scap-security-guide-[0-9].[0-9].[0-9]*).zip\")) | .browser_download_url"` -O ssg.zip
+# Parse release page json to obtain link to latest content zip file and download it
+  - wget `curl -s https://api.github.com/repos/ComplianceAsCode/content/releases/latest?access_token=$GITHUB_TOKEN | jq -r ".assets[] | select(.name | test(\"(scap-security-guide-[0-9].[0-9].[0-9]*).zip\")) | .browser_download_url"` -O ssg.zip
   - mkdir -p `pwd`/build-osx/scap-workbench.app/Contents/Resources/ssg/ && unzip ssg.zip && cp -a scap-security-guide-*/* `pwd`/build-osx/scap-workbench.app/Contents/Resources/ssg/
   - cd build-osx && sh osx-create-dmg.sh
 
