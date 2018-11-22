@@ -42,11 +42,21 @@ $ cmake ../
 $ make
 ```
 
+If you have built openscap locally it is possible to use it through custom CMake definitions:
+
+```console
+$ cmake -DOPENSCAP_LIBRARIES:PATH=/local/openscap.so/filepath/ \
+    -DOPENSCAP_INCLUDE_DIRS:PATH=/local/openscap/include/path \
+    -DOPENSCAP_VERSION:STRING="X.Y.Z" \
+    ../
+$ make
+```
+
 3) Install SCAP Workbench: (optional)
 
 (inside the build folder):
 ```console
-# make install
+$ make install
 ```
 
 4a) Run SCAP Workbench: (if it was installed)
