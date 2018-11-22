@@ -717,6 +717,7 @@
   <tabstop>expandRulesButton</tabstop>
   <tabstop>ruleResultsTree</tabstop>
   <tabstop>showGuideButton</tabstop>
+  <tabstop>genRemediationButton</tabstop>
   <tabstop>dryRunCheckBox</tabstop>
   <tabstop>fetchRemoteResourcesCheckbox</tabstop>
   <tabstop>onlineRemediationCheckBox</tabstop>
