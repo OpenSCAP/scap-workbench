@@ -92,10 +92,11 @@ void SSGIntegrationDialog::loadContent()
 void SSGIntegrationDialog::scrapeSSGVariants()
 {
     const QDir& dir = getSSGDirectory();
-    const QStringList variants = dir.entryList(QDir::Files | QDir::NoDotAndDotDot);
+    QStringList variants = dir.entryList(QDir::Files | QDir::NoDotAndDotDot);
     QComboBox* cBox = mUI.contentComboBox;
 
     int lastFavoriteIndex = 0;
+    variants.sort();
     for (QStringList::const_iterator it = variants.constBegin();
          it != variants.constEnd(); ++it)
     {
