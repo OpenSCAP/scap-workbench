@@ -48,7 +48,7 @@ $ export LIBRARY_PATH=/PATH/TO/DIR/WITH/openscap.soFILE/
 Additionally it is possible to use custom CMake definitions instead of exporting environment variables:
 
 ```console
-$$ cmake -DOPENSCAP_LIBRARIES:PATH=/local/openscap.so/filepath/ \
+$ cmake -DOPENSCAP_LIBRARIES:PATH=/local/openscap.so/filepath/ \
     -DOPENSCAP_INCLUDE_DIRS:PATH=/local/openscap/include/path \
     -DOPENSCAP_VERSION:STRING="X.Y.Z" \
     ../
@@ -83,12 +83,7 @@ $ scap-workbench /path/to/sds-file
 
 4b) Run SCAP Workbench: (straight from build dir, without installation)
 
-```console
-$ cd build/
-$ bash runwrapper.sh ./scap-workbench
-```
-
-If you have built SCAP-Workbench against locally built OpenSCAP library, then run one of the following commands:
+Note: If you have built SCAP-Workbench against locally built OpenSCAP library, then run one of the following commands:
 
 ```console
 $ ldconfig /PATH/TO/DIR/WITH/openscap.soFILE/
@@ -96,6 +91,13 @@ $ ldconfig /PATH/TO/DIR/WITH/openscap.soFILE/
 or
 ```console
 $ export LD_LIBRARY_PATH=/PATH/TO/DIR/WITH/openscap.soFILE/
+```
+
+and then:
+
+```console
+$ cd build/
+$ bash runwrapper.sh ./scap-workbench
 ```
 
 What now?
