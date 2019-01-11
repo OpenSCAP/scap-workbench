@@ -35,17 +35,20 @@ optional dependencies:
 2) Build SCAP Workbench:
 ```console
 $ mkdir build; cd build
-$ # This export line is only required if openscap was compiled locally;
-$ # add to PKG_CONFIG_PATH the directory containing installed libopenscap.pc
-$ export PKG_CONFIG_PATH="$PKG_CONFIG_PATH:/PATH/TO/DIR/WITH/.pcFILE/"
 $ cmake ../
 $ make
 ```
-
-If you have built openscap locally it is possible to use it through custom CMake definitions:
+To build against locally built OpenSCAP library export following variables:
 
 ```console
-$ cmake -DOPENSCAP_LIBRARIES:PATH=/local/openscap.so/filepath/ \
+$ export PKG_CONFIG_PATH="$PKG_CONFIG_PATH:/PATH/TO/DIR/WITH/.pcFILE/"
+$ export LIBRARY_PATH=/PATH/TO/DIR/WITH/openscap.soFILE/
+```
+
+Additionally it is possible to use custom CMake definitions instead of exporting environment variables:
+
+```console
+$$ cmake -DOPENSCAP_LIBRARIES:PATH=/local/openscap.so/filepath/ \
     -DOPENSCAP_INCLUDE_DIRS:PATH=/local/openscap/include/path \
     -DOPENSCAP_VERSION:STRING="X.Y.Z" \
     ../
@@ -56,6 +59,8 @@ $ make
 
 (inside the build folder):
 ```console
+$ # may require superuser privileges if you didn't set different installation
+$ # prefix (CMAKE_INSTALL_PREFIX)
 $ make install
 ```
 
@@ -81,6 +86,16 @@ $ scap-workbench /path/to/sds-file
 ```console
 $ cd build/
 $ bash runwrapper.sh ./scap-workbench
+```
+
+If you have built SCAP-Workbench against locally built OpenSCAP library, then run one of the following commands:
+
+```console
+$ ldconfig /PATH/TO/DIR/WITH/openscap.soFILE/
+```
+or
+```console
+$ export LD_LIBRARY_PATH=/PATH/TO/DIR/WITH/openscap.soFILE/
 ```
 
 What now?
