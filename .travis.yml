@@ -28,7 +28,9 @@ script:
   - ./build-for-osx.sh
 # Parse release page json to obtain link to latest content zip file and download it
   - |
-    DWN_LINK=`curl -s https://api.github.com/repos/ComplianceAsCode/content/releases/latest?access_token=$GITHUB_TOKEN | jq -r ".assets[] | select(.name | test(\"(scap-security-guide-[0-9].[0-9].[0-9]*).zip\")) | .browser_download_url"`
+    REL_TAG=`curl -s "https://github.com/ComplianceAsCode/content/releases/latest" | grep -o 'tag/[v.0-9]*' | awk -F/ '{print $2}'`
+    REL_TAG_NUM=`echo ${REL_TAG} | cut -d"v" -f2`
+    DWN_LINK=https://github.com/ComplianceAsCode/content/releases/download/${REL_TAG}/scap-security-guide-${REL_TAG_NUM}.zip
     if [ -z "${DWN_LINK}" ] ; then
         echo "Could not get the ZIP URL! It is empty!"
         exit 1
