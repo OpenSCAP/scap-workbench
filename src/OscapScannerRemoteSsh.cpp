@@ -336,7 +336,7 @@ void OscapScannerRemoteSsh::ensureConnected()
 
     try
     {
-        emit infoMessage(QObject::tr("Establishing connecting to remote target..."));
+        emit infoMessage(QObject::tr("Establishing a connection to remote target..."));
         mSshConnection.connect();
         emit infoMessage(QObject::tr("Connection established."));
     }
