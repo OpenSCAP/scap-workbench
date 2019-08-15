@@ -909,7 +909,7 @@ void MainWindow::refreshProfiles()
             mUI.profileComboBox->addItem(profileTitle, QVariant(it->first));
         }
 
-        if (previouslySelected != QString::Null())
+        if (!previouslySelected.isNull())
         {
             const int indexCandidate = mUI.profileComboBox->findData(QVariant(previouslySelected));
             if (indexCandidate != -1)
