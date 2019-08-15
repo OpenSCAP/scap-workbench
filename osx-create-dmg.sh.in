@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 # Original by Andy Maloney
 # http://asmaloney.com/2013/07/howto/packaging-a-mac-os-x-application-using-a-dmg/
 # Changes specific to SCAP Workbench by Martin Preisler <mpreisle@redhat.com>

@@ -93,7 +93,7 @@ function chown_copy
 
     # chown only required if wrapper_{uid,gid} differs from real_{uid,gid}
     if [ $wrapper_uid -ne $real_uid ] || [ $wrapper_gid -ne $real_gid ]; then
-        chown $wrapper_uid:$wrapper_gid $where
+        chown $wrapper_uid:$wrapper_gid "$where"
     fi
 }
 
