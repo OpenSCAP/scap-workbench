@@ -44,7 +44,7 @@ QString oscapItemGetReadableTitle(struct xccdf_item* item, struct xccdf_policy* 
     oscap_text_iterator_free(title_it);
     if (!unresolved)
         return "";
-    char* resolved = xccdf_policy_substitute(Qt::escape(QString::fromUtf8(unresolved)).toUtf8().constData(), policy);
+    char* resolved = xccdf_policy_substitute(QString::fromUtf8(unresolved).toHtmlEscaped().toUtf8().constData(), policy);
     free(unresolved);
     const QString ret = QString::fromUtf8(resolved);
     free(resolved);
