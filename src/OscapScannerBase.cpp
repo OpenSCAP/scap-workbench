@@ -333,7 +333,7 @@ bool OscapScannerBase::tryToReadStdOutChar(QProcess& process)
                 {
                     // When fetching remote content, openscap will inform scap-workbench about
                     // resources being downloaded. Keep any colon found in URL of file being downloaded.
-                    mReadBuffer.append(QChar::fromAscii(readChar));
+                    mReadBuffer.append(QChar::fromLatin1(readChar));
                 }
                 break;
 
@@ -405,7 +405,7 @@ bool OscapScannerBase::tryToReadStdOutChar(QProcess& process)
     {
         // we know for sure that buffer[0] can only contain ASCII characters
         // (IDs and special keywords regarding rule status)
-        mReadBuffer.append(QChar::fromAscii(readChar));
+        mReadBuffer.append(QChar::fromLatin1(readChar));
     }
 
     return true;
