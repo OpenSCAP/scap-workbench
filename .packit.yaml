@@ -1,0 +1,14 @@
+downstream_package_name: scap-workbench
+jobs:
+- job: copr_build
+  metadata:
+    targets:
+    - fedora-30-x86_64
+    - fedora-31-x86_64
+    - fedora-rawhide-x86_64
+  trigger: pull_request
+specfile_path: scap-workbench.spec
+synced_files:
+- scap-workbench.spec
+- .packit.yaml
+upstream_package_name: scap-workbench
