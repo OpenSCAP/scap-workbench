@@ -37,7 +37,6 @@ Application::Application(int& argc, char** argv):
     setOrganizationName("SCAP Workbench upstream");
     setOrganizationDomain("https://www.open-scap.org/tools/scap-workbench");
 
-    setApplicationName("SCAP Workbench");
     setApplicationVersion(SCAP_WORKBENCH_VERSION);
 
     mMainWindow = new MainWindow();
