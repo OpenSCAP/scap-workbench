@@ -109,8 +109,8 @@ void SshConnection::connect()
             mSocketDir = 0;
         }
 
-        mSocketDir = new TemporaryDir();
-        mMasterSocket = mSocketDir->getPath() + "/ssh_socket";
+        mSocketDir = new SpacelessQTemporaryDir();
+        mMasterSocket = mSocketDir->path() + "/ssh_socket";
     }
     catch (const SyncProcessException& e)
     {

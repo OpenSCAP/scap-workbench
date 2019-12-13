@@ -158,7 +158,7 @@ void ResultViewer::openReport()
         mReportFile = 0;
     }
 
-    mReportFile = new QTemporaryFile();
+    mReportFile = new SpacelessQTemporaryFile();
     mReportFile->setFileTemplate(mReportFile->fileTemplate() + ".html");
     mReportFile->open();
     mReportFile->write(mReport);

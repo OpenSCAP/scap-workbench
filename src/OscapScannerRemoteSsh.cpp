@@ -25,7 +25,6 @@
 
 #include <QThread>
 #include <QAbstractEventDispatcher>
-#include <QTemporaryFile>
 #include <QFileInfo>
 #include <QDir>
 #include <cassert>
@@ -105,7 +104,7 @@ QStringList OscapScannerRemoteSsh::getCommandLineArgs() const
 
     if (mScannerMode == SM_OFFLINE_REMEDIATION)
     {
-        QTemporaryFile inputARFFile;
+        SpacelessQTemporaryFile inputARFFile;
         inputARFFile.setAutoRemove(true);
         inputARFFile.open();
         inputARFFile.write(getARFForRemediation());
@@ -381,7 +380,7 @@ QString OscapScannerRemoteSsh::copyInputFileOver()
 
     QString localPath = "";
 
-    QTemporaryFile inputARFFile;
+    SpacelessQTemporaryFile inputARFFile;
     inputARFFile.setAutoRemove(true);
     if (mScannerMode == SM_OFFLINE_REMEDIATION)
     {

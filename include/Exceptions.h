@@ -57,9 +57,6 @@ SCAP_WORKBENCH_SIMPLE_EXCEPTION(SshConnectionException,
 SCAP_WORKBENCH_SIMPLE_EXCEPTION(TailoringWindowException,
     "There was a problem with TailoringWindow!\n");
 
-SCAP_WORKBENCH_SIMPLE_EXCEPTION(TemporaryDirException,
-    "There was a problem with TemporaryDir!\n");
-
 SCAP_WORKBENCH_SIMPLE_EXCEPTION(OscapScannerRemoteSshException,
     "There was a problem with OscapScannerRemoteSsh!\n");
 

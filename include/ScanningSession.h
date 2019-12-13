@@ -23,9 +23,8 @@
 #define SCAP_WORKBENCH_SCANNING_SESSION_H_
 
 #include "ForwardDecls.h"
+#include "Utils.h"
 
-#include <QTemporaryDir>
-#include <QTemporaryFile>
 #include <QSet>
 #include <QDir>
 #include <map>
@@ -292,7 +291,7 @@ class ScanningSession
         mutable struct xccdf_tailoring* mTailoring;
 
         /// Temporary copy of opened DS or XCCDF file
-        QTemporaryDir* mTempOpenDir;
+        SpacelessQTemporaryDir* mTempOpenDir;
         /// Path to temporary DS or XCCDF file
         QString mTempOpenPath;
         /// Path to original DS or XCCDF file
@@ -301,9 +300,9 @@ class ScanningSession
         QSet<QString> mClosureOfOriginalFile;
 
         /// Temporary file provides auto deletion and a valid temp file path
-        QTemporaryFile mTailoringFile;
+        SpacelessQTemporaryFile mTailoringFile;
         /// Temporary file provides auto deletion and a valid temp file path
-        QTemporaryFile mGuideFile;
+        SpacelessQTemporaryFile mGuideFile;
 
         /// Whether or not validation should be skipped
         bool mSkipValid;

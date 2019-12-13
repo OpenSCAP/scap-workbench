@@ -24,7 +24,6 @@
 
 #include <QThread>
 #include <QAbstractEventDispatcher>
-#include <QTemporaryFile>
 #include <cassert>
 
 extern "C"
