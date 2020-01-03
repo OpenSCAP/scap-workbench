@@ -142,7 +142,7 @@ void DiagnosticsDialog::pushMessage(MessageSeverity severity, const QString& ful
     QString outputMessage = fullMessage;
     if (format & MF_XML)
     {
-        outputMessage = Qt::escape(outputMessage);
+        outputMessage = outputMessage.toHtmlEscaped();
     }
 
     if (format & MF_PREFORMATTED)
