@@ -219,7 +219,7 @@ const QString& getSetSidPath()
 }
 
 SpacelessQTemporaryFile::SpacelessQTemporaryFile () :
-    QTemporaryFile(QDir::cleanPath(QDir::tempPath() + "/" + "XXXXXX")) {}
+    QTemporaryFile(QDir::cleanPath(QDir::tempPath() + "/" + "scap-workbench-XXXXXX")) {}
 
 SpacelessQTemporaryDir::SpacelessQTemporaryDir () :
-    QTemporaryDir(QDir::cleanPath(QDir::tempPath() + "/" + "XXXXXX")) {}
+    QTemporaryDir(QDir::cleanPath(QDir::tempPath() + "/" + "scap-workbench-XXXXXX")) {}
