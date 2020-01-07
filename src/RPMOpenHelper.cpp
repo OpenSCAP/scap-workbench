@@ -33,12 +33,12 @@ RPMOpenHelper::RPMOpenHelper(const QString& path)
         const QFileInfo pathInfo(path);
         proc.setCommand(getRPMExtractPath());
         proc.setArguments(QStringList(pathInfo.absoluteFilePath()));
-        proc.setWorkingDirectory(mTempDir.getPath());
+        proc.setWorkingDirectory(mTempDir.path());
     }
 
     proc.run();
 
-    const QDir tempDir(mTempDir.getPath());
+    const QDir tempDir(mTempDir.path());
 
     if (proc.getExitCode() != 0)
     {

@@ -21,7 +21,6 @@
 
 #include "SaveAsRPMDialog.h"
 #include "MainWindow.h"
-#include "TemporaryDir.h"
 #include "ScanningSession.h"
 #include "ProcessHelpers.h"
 
@@ -128,7 +127,7 @@ void SaveAsRPMDialog::slotFinished(int result)
         args.append(cwd.relativeFilePath(*it));
     }
 
-    TemporaryDir tailoringDir;
+    SpacelessQTemporaryDir tailoringDir;
 
     // Tailoring file is a special case since it may be in memory only.
     // In case it is memory only we don't want it to cause our common ancestor dir to be /
@@ -138,7 +137,7 @@ void SaveAsRPMDialog::slotFinished(int result)
         QFileInfo tailoringFile(mScanningSession->getTailoringFilePath());
         assert(tailoringFile.exists());
 
-        const QString tailoringFilePath = QString("%1/%2").arg(tailoringDir.getPath(), "tailoring-xccdf.xml");
+        const QString tailoringFilePath = QString("%1/%2").arg(tailoringDir.path(), "tailoring-xccdf.xml");
 
         ScanningSession::copyOrReplace(tailoringFile.absoluteFilePath(),
             tailoringFilePath);

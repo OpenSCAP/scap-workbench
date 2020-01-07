@@ -103,7 +103,7 @@ class ResultBasedProcessRemediationSaver : public RemediationSaverBase
 
     private:
         virtual void saveToFile(const QString& filename);
-        QTemporaryFile mArfFile;
+        SpacelessQTemporaryFile mArfFile;
 };
 
 
@@ -138,7 +138,7 @@ class ResultBasedLibraryRemediationSaver : public RemediationSaverBase
 
     private:
         virtual void saveToFile(const QString& filename);
-        QTemporaryFile mArfFile;
+        SpacelessQTemporaryFile mArfFile;
 };
 
 

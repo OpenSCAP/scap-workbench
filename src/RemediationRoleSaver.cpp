@@ -27,6 +27,7 @@
 
 #include "RemediationRoleSaver.h"
 #include "DiagnosticsDialog.h"
+#include "Utils.h"
 
 extern "C"
 {
@@ -41,7 +42,6 @@ extern "C"
 #endif
 }
 
-#include "TemporaryDir.h"
 
 
 const QString bashSaveMessage = QObject::tr("Save remediation role as a bash script");
@@ -197,8 +197,8 @@ void ResultBasedProcessRemediationSaver::saveToFile(const QString& filename)
     // This is a lightweight launch though.
     QProcess process(mParentWindow);
 
-    TemporaryDir workingDir;
-    process.setWorkingDirectory(workingDir.getPath());
+    SpacelessQTemporaryDir workingDir;
+    process.setWorkingDirectory(workingDir.path());
     QString program(SCAP_WORKBENCH_LOCAL_OSCAP_PATH);
 
     process.start(program, args);
