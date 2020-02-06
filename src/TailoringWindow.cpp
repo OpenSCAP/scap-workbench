@@ -717,6 +717,21 @@ void TailoringWindow::syncCollapsedItem(QTreeWidgetItem* item, QSet<QString>& us
     }
 }
 
+static const char* _xccdf_item_description(struct xccdf_item* item)
+{
+    struct oscap_text_iterator* title_it = xccdf_item_get_title(item);
+    char* title = oscap_textlist_get_preferred_plaintext(title_it, NULL);
+    oscap_text_iterator_free(title_it);
+    return title ? title : "";
+}
+
+static bool _xccdf_item_compare(struct xccdf_item* a, struct xccdf_item* b)
+{
+    const char* a_title = _xccdf_item_description(a);
+    const char* b_title = _xccdf_item_description(b);
+    return (strcmp(a_title, b_title) < 0);
+}
+
 void TailoringWindow::createTreeItem(QTreeWidgetItem* treeItem, struct xccdf_item* xccdfItem)
 {
     ++mSynchronizeItemLock;
@@ -777,7 +792,9 @@ void TailoringWindow::createTreeItem(QTreeWidgetItem* treeItem, struct xccdf_ite
 
     typedef std::vector<struct xccdf_item*> XCCDFItemVector;
 
-    XCCDFItemVector itemsToAdd;
+    XCCDFItemVector valuesToAdd;
+    XCCDFItemVector groupsToAdd;
+    XCCDFItemVector rulesToAdd;
 
     // valuesIt contains Values
     struct xccdf_value_iterator* valuesIt = NULL;
@@ -803,7 +820,7 @@ void TailoringWindow::createTreeItem(QTreeWidgetItem* treeItem, struct xccdf_ite
         while (xccdf_value_iterator_has_more(valuesIt))
         {
             struct xccdf_value* childItem = xccdf_value_iterator_next(valuesIt);
-            itemsToAdd.push_back(xccdf_value_to_item(childItem));
+            valuesToAdd.push_back(xccdf_value_to_item(childItem));
         }
         xccdf_value_iterator_free(valuesIt);
     }
@@ -813,14 +830,38 @@ void TailoringWindow::createTreeItem(QTreeWidgetItem* treeItem, struct xccdf_ite
         while (xccdf_item_iterator_has_more(itemsIt))
         {
             struct xccdf_item* childItem = xccdf_item_iterator_next(itemsIt);
-            itemsToAdd.push_back(childItem);
+            xccdf_type_t xccdfItemType = xccdf_item_get_type(childItem);
+            switch (xccdfItemType)
+            {
+                case XCCDF_RULE:
+                    rulesToAdd.push_back(childItem);
+                    break;
+                case XCCDF_GROUP:
+                    groupsToAdd.push_back(childItem);
+                    break;
+                case XCCDF_VALUE:
+                    valuesToAdd.push_back(childItem);
+                    break;
+                default:
+                    break;
+            }
         }
         xccdf_item_iterator_free(itemsIt);
     }
 
+    std::sort(groupsToAdd.begin(), groupsToAdd.end(), _xccdf_item_compare);
+    std::sort(valuesToAdd.begin(), valuesToAdd.end(), _xccdf_item_compare);
+    std::sort(rulesToAdd.begin(), rulesToAdd.end(), _xccdf_item_compare);
+
+    /* Concatenate 3 vectors to 1 vector */
+    XCCDFItemVector allObjectsToAdd;
+    allObjectsToAdd.insert(allObjectsToAdd.end(), groupsToAdd.begin(), groupsToAdd.end());
+    allObjectsToAdd.insert(allObjectsToAdd.end(), valuesToAdd.begin(), valuesToAdd.end());
+    allObjectsToAdd.insert(allObjectsToAdd.end(), rulesToAdd.begin(), rulesToAdd.end());
+
     unsigned int idx = 0;
-    for (XCCDFItemVector::const_iterator it = itemsToAdd.begin();
-            it != itemsToAdd.end(); ++it, ++idx)
+    for (XCCDFItemVector::const_iterator it = allObjectsToAdd.begin();
+            it != allObjectsToAdd.end(); ++it, ++idx)
     {
         struct xccdf_item* childXccdfItem = *it;
         QTreeWidgetItem* childTreeItem = 0;
