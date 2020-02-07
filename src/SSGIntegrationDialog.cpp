@@ -89,6 +89,22 @@ void SSGIntegrationDialog::loadContent()
     accept();
 }
 
+/*
+ * Given the string list passed as the first argument,
+ * either make sure that the passed value is the first item,
+ * or don't do anything (if the value is not present in the string).
+ */
+static void put_value_as_first_item(QStringList& list, const QString& value)
+{
+    const int value_index = list.indexOf(value);
+    if (value_index == -1)
+    {
+        return;
+    }
+    list.removeAt(value_index);
+    list.push_front(value);
+}
+
 void SSGIntegrationDialog::scrapeSSGVariants()
 {
     const QDir& dir = getSSGDirectory();
@@ -97,6 +113,7 @@ void SSGIntegrationDialog::scrapeSSGVariants()
 
     int lastFavoriteIndex = 0;
     variants.sort();
+    put_value_as_first_item(variants, QString(SCAP_WORKBENCH_PREFERRED_DATASTREAM_BASENAME));
     for (QStringList::const_iterator it = variants.constBegin();
          it != variants.constEnd(); ++it)
     {
