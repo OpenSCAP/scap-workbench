@@ -93,16 +93,32 @@ void SSGIntegrationDialog::loadContent()
  * Given the string list passed as the first argument,
  * either make sure that the passed value is the first item,
  * or don't do anything (if the value is not present in the string).
+ *
+ * Returns true if the priority item matched a list item, returns false otherwise.
  */
-static void put_value_as_first_item(QStringList& list, const QString& value)
+static bool put_value_as_first_item(QStringList& list, const QString& value)
 {
     const int value_index = list.indexOf(value);
     if (value_index == -1)
     {
-        return;
+        return false;
     }
     list.removeAt(value_index);
     list.push_front(value);
+    return true;
+}
+
+static void ensure_good_string_list_ordering(QStringList& list, const QStringList& priority_items, int& matched_priority_items)
+{
+    list.sort();
+    for (QStringList::const_reverse_iterator it = priority_items.rbegin();
+         it != priority_items.rend(); ++it)
+    {
+        if (put_value_as_first_item(list, * it))
+        {
+            matched_priority_items++;
+        }
+    }
 }
 
 void SSGIntegrationDialog::scrapeSSGVariants()
@@ -111,9 +127,10 @@ void SSGIntegrationDialog::scrapeSSGVariants()
     QStringList variants = dir.entryList(QDir::Files | QDir::NoDotAndDotDot);
     QComboBox* cBox = mUI.contentComboBox;
 
-    int lastFavoriteIndex = 0;
-    variants.sort();
-    put_value_as_first_item(variants, QString(SCAP_WORKBENCH_PREFERRED_DATASTREAM_BASENAME));
+    const QString first_items = QString(SCAP_WORKBENCH_PREFERRED_DATASTREAM_BASENAMES);
+    const QStringList priority_products = first_items.split(",");
+    int matched_priority_items = 0;
+    ensure_good_string_list_ordering(variants, priority_products, matched_priority_items);
     for (QStringList::const_iterator it = variants.constBegin();
          it != variants.constEnd(); ++it)
     {
@@ -127,13 +144,11 @@ void SSGIntegrationDialog::scrapeSSGVariants()
 
         QString label = name;
 
-        bool favorite = false;
         // Make the label nicer for known variants
         if (label.startsWith("rhel") || label.startsWith("ol"))
         {
             // use RHEL instead of rhel and OL instead of ol
             label = name.toUpper();
-            favorite = true;
         }
         else if (label.startsWith("centos")) // use CentOS instead of centos
             label.replace(0, 6, "CentOS");
@@ -147,19 +162,15 @@ void SSGIntegrationDialog::scrapeSSGVariants()
         else
             label[0] = label[0].toUpper(); // Capitalize first letter
 
-        if (label.startsWith("Fedora"))
-            favorite = true;
+        cBox->addItem(label, QVariant(name));
 
-        if (favorite)
-            cBox->insertItem(lastFavoriteIndex++, label, QVariant(name));
-
-        else
-            cBox->addItem(label, QVariant(name));
-
+    }
+    if (matched_priority_items)
+    {
+        cBox->insertSeparator(matched_priority_items);
     }
     cBox->insertSeparator(cBox->count());
     cBox->addItem(QString("Other SCAP Content"), QVariant(QString("other-scap-content")));
 
-    cBox->insertSeparator(lastFavoriteIndex);
     cBox->setCurrentIndex(0);
 }

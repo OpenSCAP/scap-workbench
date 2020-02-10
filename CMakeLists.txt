@@ -332,7 +332,7 @@ if (CPPCHECK_EXECUTABLE)
     )
 endif()
 
-set(SCAP_WORKBENCH_PREFERRED_DATASTREAM_BASENAME "ssg-<productname>-ds.xml" CACHE STRING "Name of the datastream that should be the first one on the selection list in the initial dialogue.")
+set(SCAP_WORKBENCH_PREFERRED_DATASTREAM_BASENAMES "ssg-<productname1>-ds.xml" CACHE STRING "Comma-separated list of datastream that should be the first ones on the selection list in the initial dialogue.")
 
 # only CPack should follow
 set(CPACK_CMAKE_GENERATOR "Unix Makefiles")
