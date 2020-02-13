@@ -253,7 +253,9 @@ void XCCDFItemPropertiesDockWidget::refresh()
                 }
                 html += "</ul>\n";
 
-                mUI.affectsRulesBrowser->setHtml(empty ? "This value doesn't seem to be affecting any rules!" : html);
+		// The variable-rules map is constructed in a generateValueAffectsRulesMap method
+		// that only uses checks as input data.
+                mUI.affectsRulesBrowser->setHtml(empty ? "This value doesn't seem to be used in any rule's check." : html);
             }
 
             mUI.affectsRulesLabel->show();
