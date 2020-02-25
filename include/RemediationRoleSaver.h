@@ -98,33 +98,35 @@ class PuppetProfileRemediationSaver : public ProfileBasedRemediationSaver
 class ResultBasedProcessRemediationSaver : public RemediationSaverBase
 {
     public:
-        ResultBasedProcessRemediationSaver(QWidget* parentWindow, const QByteArray& arfContents,
+        ResultBasedProcessRemediationSaver(
+                QWidget* parentWindow, const QByteArray& arfContents, const QString& tailoringFilePath,
                 const QString& saveMessage, const QString& filetypeExtension, const QString& filetypeTemplate, const QString& fixType);
 
     private:
         virtual void saveToFile(const QString& filename);
         SpacelessQTemporaryFile mArfFile;
+        QString tailoring;
 };
 
 
 class BashResultRemediationSaver : public ResultBasedProcessRemediationSaver
 {
     public:
-        BashResultRemediationSaver(QWidget* parentWindow, const QByteArray& arfContents);
+        BashResultRemediationSaver(QWidget* parentWindow, const QByteArray& arfContents, const QString& tailoringFilePath);
 };
 
 
 class AnsibleResultRemediationSaver : public ResultBasedProcessRemediationSaver
 {
     public:
-        AnsibleResultRemediationSaver(QWidget* parentWindow, const QByteArray& arfContents);
+        AnsibleResultRemediationSaver(QWidget* parentWindow, const QByteArray& arfContents, const QString& tailoringFilePath);
 };
 
 
 class PuppetResultRemediationSaver : public ResultBasedProcessRemediationSaver
 {
     public:
-        PuppetResultRemediationSaver(QWidget* parentWindow, const QByteArray& arfContents);
+        PuppetResultRemediationSaver(QWidget* parentWindow, const QByteArray& arfContents, const QString& tailoringFilePath);
 };
 
 #else  // i.e. SCAP_WORKBENCH_USE_LIBRARY_FOR_RESULT_BASED_REMEDIATION_ROLES_GENERATION is defined
@@ -133,33 +135,34 @@ class PuppetResultRemediationSaver : public ResultBasedProcessRemediationSaver
 class ResultBasedLibraryRemediationSaver : public RemediationSaverBase
 {
     public:
-        ResultBasedLibraryRemediationSaver(QWidget* parentWindow, const QByteArray& arfContents,
+        ResultBasedLibraryRemediationSaver(QWidget* parentWindow, const QByteArray& arfContents, const QString& tailoringFilePath,
                 const QString& saveMessage, const QString& filetypeExtension, const QString& filetypeTemplate, const QString& fixType);
 
     private:
         virtual void saveToFile(const QString& filename);
         SpacelessQTemporaryFile mArfFile;
+        QString tailoring;
 };
 
 
 class BashResultRemediationSaver : public ResultBasedLibraryRemediationSaver
 {
     public:
-        BashResultRemediationSaver(QWidget* parentWindow, const QByteArray& arfContents);
+        BashResultRemediationSaver(QWidget* parentWindow, const QByteArray& arfContents, const QString& tailoringFilePath);
 };
 
 
 class AnsibleResultRemediationSaver : public ResultBasedLibraryRemediationSaver
 {
     public:
-        AnsibleResultRemediationSaver(QWidget* parentWindow, const QByteArray& arfContents);
+        AnsibleResultRemediationSaver(QWidget* parentWindow, const QByteArray& arfContents, const QString& tailoringFilePath);
 };
 
 
 class PuppetResultRemediationSaver : public ResultBasedLibraryRemediationSaver
 {
     public:
-        PuppetResultRemediationSaver(QWidget* parentWindow, const QByteArray& arfContents);
+        PuppetResultRemediationSaver(QWidget* parentWindow, const QByteArray& arfContents, const QString& tailoringFilePath);
 };
 
 #endif  // SCAP_WORKBENCH_USE_LIBRARY_FOR_RESULT_BASED_REMEDIATION_ROLES_GENERATION
