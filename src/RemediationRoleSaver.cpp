@@ -35,11 +35,7 @@ extern "C"
 #include <xccdf_benchmark.h>
 #include <xccdf_policy.h>
 #include <xccdf_session.h>
-#ifdef SCAP_WORKBENCH_USE_LIBRARY_FOR_RESULT_BASED_REMEDIATION_ROLES_GENERATION
-    // vvv This include is used only for library-based generation of result-base remediation roles
-    // vvv and it requires (relatively recent) openscap 1.2.16
 #include <ds_rds_session.h>
-#endif
 }
 
 
@@ -163,88 +159,6 @@ PuppetProfileRemediationSaver::PuppetProfileRemediationSaver(QWidget* parentWind
             puppetSaveMessage, puppetFiletypeExtension, puppetFiletypeTemplate, puppetFixType)
 {}
 
-#ifndef SCAP_WORKBENCH_USE_LIBRARY_FOR_RESULT_BASED_REMEDIATION_ROLES_GENERATION
-ResultBasedProcessRemediationSaver::ResultBasedProcessRemediationSaver(
-        QWidget* parentWindow, const QByteArray& arfContents, const QString& tailoringFilePath,
-        const QString& saveMessage, const QString& filetypeExtension, const QString& filetypeTemplate, const QString& fixType):
-    RemediationSaverBase(parentWindow, saveMessage, filetypeExtension, filetypeTemplate, fixType)
-{
-    mArfFile.setAutoRemove(true);
-    mArfFile.open();
-    mArfFile.write(arfContents);
-    mArfFile.close();
-    tailoring = tailoringFilePath;
-}
-
-void ResultBasedProcessRemediationSaver::saveToFile(const QString& filename)
-{
-    QStringList args;
-    args.append("xccdf");
-    args.append("generate");
-    args.append("fix");
-
-    args.append("--template");
-    args.append(mTemplateString);
-    args.append("--output");
-    args.append(filename);
-
-    // vvv This will work, if there is only one result ID in the ARF file, it will be picked no matter what the argument value is.
-    // However, ommitting --result-id "" won't work.
-    args.append("--result-id");
-    args.append("");
-
-    if (!tailoring.isNull()) {
-        args.append("--tailoring-file");
-        args.append(tailoring.toUtf8().constData());
-    }
-
-    args.append(mArfFile.fileName());
-
-    // Launching a process and going through its output is something we do already in OscapScannerLocal::evaluate()
-    // This is a lightweight launch though.
-    QProcess process(mParentWindow);
-
-    SpacelessQTemporaryDir workingDir;
-    process.setWorkingDirectory(workingDir.path());
-    QString program(SCAP_WORKBENCH_LOCAL_OSCAP_PATH);
-
-    process.start(program, args);
-    process.waitForStarted();
-
-    const unsigned int remediationGenerationTimeout = 10000;
-
-    const int process_finished_on_time = process.waitForFinished(remediationGenerationTimeout);
-
-    if (!process_finished_on_time)
-    {
-        QString message = QObject::tr("The process that was supposed to generate remediations didn't finish on time (i.e. within %1 secs), so it was terminated.").arg(remediationGenerationTimeout / 1000);
-        process.kill();
-        throw std::runtime_error(message.toUtf8().constData());
-    }
-
-    if (process.exitCode() != 0)
-    {
-        QString completeErrorMessage(QObject::tr("Exit code of 'oscap' was %1: %2"));
-        throw std::runtime_error(completeErrorMessage.arg(process.exitCode()).arg(QString(process.readAllStandardError())).toUtf8().constData());
-    }
-}
-
-BashResultRemediationSaver::BashResultRemediationSaver(QWidget* parentWindow, const QByteArray& arfContents, const QString& tailoringFilePath):
-    ResultBasedProcessRemediationSaver(parentWindow, arfContents, tailoringFilePath,
-            bashSaveMessage, bashFiletypeExtension, bashFiletypeTemplate, bashFixTemplate)
-{}
-
-AnsibleResultRemediationSaver::AnsibleResultRemediationSaver(QWidget* parentWindow, const QByteArray& arfContents, const QString& tailoringFilePath):
-    ResultBasedProcessRemediationSaver(parentWindow, arfContents, tailoringFilePath,
-            ansibleSaveMessage, ansibleFiletypeExtension, ansibleFiletypeTemplate, ansibleFixType)
-{}
-
-PuppetResultRemediationSaver::PuppetResultRemediationSaver(QWidget* parentWindow, const QByteArray& arfContents, const QString& tailoringFilePath):
-    ResultBasedProcessRemediationSaver(parentWindow, arfContents, tailoringFilePath,
-            puppetSaveMessage, puppetFiletypeExtension, puppetFiletypeTemplate, puppetFixType)
-{}
-
-#else  // i.e. SCAP_WORKBENCH_USE_LIBRARY_FOR_RESULT_BASED_REMEDIATION_ROLES_GENERATION is defined
 ResultBasedLibraryRemediationSaver::ResultBasedLibraryRemediationSaver(
         QWidget* parentWindow, const QByteArray& arfContents, const QString& tailoringFilePath,
         const QString& saveMessage, const QString& filetypeExtension, const QString& filetypeTemplate, const QString& fixType):
@@ -343,4 +257,3 @@ PuppetResultRemediationSaver::PuppetResultRemediationSaver(QWidget* parentWindow
             puppetSaveMessage, puppetFiletypeExtension, puppetFiletypeTemplate, puppetFixType)
 {}
 
-#endif  // SCAP_WORKBENCH_USE_LIBRARY_FOR_RESULT_BASED_REMEDIATION_ROLES_GENERATION
