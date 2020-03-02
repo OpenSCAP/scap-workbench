@@ -164,7 +164,8 @@ PuppetProfileRemediationSaver::PuppetProfileRemediationSaver(QWidget* parentWind
 {}
 
 #ifndef SCAP_WORKBENCH_USE_LIBRARY_FOR_RESULT_BASED_REMEDIATION_ROLES_GENERATION
-ResultBasedProcessRemediationSaver::ResultBasedProcessRemediationSaver(QWidget* parentWindow, const QByteArray& arfContents,
+ResultBasedProcessRemediationSaver::ResultBasedProcessRemediationSaver(
+        QWidget* parentWindow, const QByteArray& arfContents, const QString& tailoringFilePath,
         const QString& saveMessage, const QString& filetypeExtension, const QString& filetypeTemplate, const QString& fixType):
     RemediationSaverBase(parentWindow, saveMessage, filetypeExtension, filetypeTemplate, fixType)
 {
@@ -172,6 +173,7 @@ ResultBasedProcessRemediationSaver::ResultBasedProcessRemediationSaver(QWidget* 
     mArfFile.open();
     mArfFile.write(arfContents);
     mArfFile.close();
+    tailoring = tailoringFilePath;
 }
 
 void ResultBasedProcessRemediationSaver::saveToFile(const QString& filename)
@@ -190,6 +192,11 @@ void ResultBasedProcessRemediationSaver::saveToFile(const QString& filename)
     // However, ommitting --result-id "" won't work.
     args.append("--result-id");
     args.append("");
+
+    if (!tailoring.isNull()) {
+        args.append("--tailoring-file");
+        args.append(tailoring.toUtf8().constData());
+    }
 
     args.append(mArfFile.fileName());
 
@@ -222,23 +229,24 @@ void ResultBasedProcessRemediationSaver::saveToFile(const QString& filename)
     }
 }
 
-BashResultRemediationSaver::BashResultRemediationSaver(QWidget* parentWindow, const QByteArray& arfContents):
-    ResultBasedProcessRemediationSaver(parentWindow, arfContents,
+BashResultRemediationSaver::BashResultRemediationSaver(QWidget* parentWindow, const QByteArray& arfContents, const QString& tailoringFilePath):
+    ResultBasedProcessRemediationSaver(parentWindow, arfContents, tailoringFilePath,
             bashSaveMessage, bashFiletypeExtension, bashFiletypeTemplate, bashFixTemplate)
 {}
 
-AnsibleResultRemediationSaver::AnsibleResultRemediationSaver(QWidget* parentWindow, const QByteArray& arfContents):
-    ResultBasedProcessRemediationSaver(parentWindow, arfContents,
+AnsibleResultRemediationSaver::AnsibleResultRemediationSaver(QWidget* parentWindow, const QByteArray& arfContents, const QString& tailoringFilePath):
+    ResultBasedProcessRemediationSaver(parentWindow, arfContents, tailoringFilePath,
             ansibleSaveMessage, ansibleFiletypeExtension, ansibleFiletypeTemplate, ansibleFixType)
 {}
 
-PuppetResultRemediationSaver::PuppetResultRemediationSaver(QWidget* parentWindow, const QByteArray& arfContents):
-    ResultBasedProcessRemediationSaver(parentWindow, arfContents,
+PuppetResultRemediationSaver::PuppetResultRemediationSaver(QWidget* parentWindow, const QByteArray& arfContents, const QString& tailoringFilePath):
+    ResultBasedProcessRemediationSaver(parentWindow, arfContents, tailoringFilePath,
             puppetSaveMessage, puppetFiletypeExtension, puppetFiletypeTemplate, puppetFixType)
 {}
 
 #else  // i.e. SCAP_WORKBENCH_USE_LIBRARY_FOR_RESULT_BASED_REMEDIATION_ROLES_GENERATION is defined
-ResultBasedLibraryRemediationSaver::ResultBasedLibraryRemediationSaver(QWidget* parentWindow, const QByteArray& arfContents,
+ResultBasedLibraryRemediationSaver::ResultBasedLibraryRemediationSaver(
+        QWidget* parentWindow, const QByteArray& arfContents, const QString& tailoringFilePath,
         const QString& saveMessage, const QString& filetypeExtension, const QString& filetypeTemplate, const QString& fixType):
     RemediationSaverBase(parentWindow, saveMessage, filetypeExtension, filetypeTemplate, fixType)
 {
@@ -246,6 +254,7 @@ ResultBasedLibraryRemediationSaver::ResultBasedLibraryRemediationSaver(QWidget* 
     mArfFile.open();
     mArfFile.write(arfContents);
     mArfFile.close();
+    tailoring = tailoringFilePath;
 }
 
 void ResultBasedLibraryRemediationSaver::saveToFile(const QString& filename)
@@ -282,6 +291,9 @@ void ResultBasedLibraryRemediationSaver::saveToFile(const QString& filename)
 
     if (session == NULL)
         throw std::runtime_error("Couldn't get XCCDF session from the report source");
+    if (!tailoring.isNull()) {
+        xccdf_session_set_user_tailoring_file(session, tailoring.toUtf8().constData());
+    }
 
     xccdf_session_set_loading_flags(session, XCCDF_SESSION_LOAD_XCCDF);
     if (xccdf_session_load(session) != 0)
@@ -316,18 +328,18 @@ void ResultBasedLibraryRemediationSaver::saveToFile(const QString& filename)
     }
 }
 
-BashResultRemediationSaver::BashResultRemediationSaver(QWidget* parentWindow, const QByteArray& arfContents):
-    ResultBasedLibraryRemediationSaver(parentWindow, arfContents,
+BashResultRemediationSaver::BashResultRemediationSaver(QWidget* parentWindow, const QByteArray& arfContents, const QString& tailoringFilePath):
+    ResultBasedLibraryRemediationSaver(parentWindow, arfContents, tailoringFilePath,
             bashSaveMessage, bashFiletypeExtension, bashFiletypeTemplate, bashFixTemplate)
 {}
 
-AnsibleResultRemediationSaver::AnsibleResultRemediationSaver(QWidget* parentWindow, const QByteArray& arfContents):
-    ResultBasedLibraryRemediationSaver(parentWindow, arfContents,
+AnsibleResultRemediationSaver::AnsibleResultRemediationSaver(QWidget* parentWindow, const QByteArray& arfContents, const QString& tailoringFilePath):
+    ResultBasedLibraryRemediationSaver(parentWindow, arfContents, tailoringFilePath,
             ansibleSaveMessage, ansibleFiletypeExtension, ansibleFiletypeTemplate, ansibleFixType)
 {}
 
-PuppetResultRemediationSaver::PuppetResultRemediationSaver(QWidget* parentWindow, const QByteArray& arfContents):
-    ResultBasedLibraryRemediationSaver(parentWindow, arfContents,
+PuppetResultRemediationSaver::PuppetResultRemediationSaver(QWidget* parentWindow, const QByteArray& arfContents, const QString& tailoringFilePath):
+    ResultBasedLibraryRemediationSaver(parentWindow, arfContents, tailoringFilePath,
             puppetSaveMessage, puppetFiletypeExtension, puppetFiletypeTemplate, puppetFixType)
 {}
 

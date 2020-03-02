@@ -99,6 +99,8 @@ class ResultViewer : public QWidget
         /// If user requests to open the file via desktop services
         SpacelessQTemporaryFile* mReportFile;
         QByteArray mARF;
+
+        QString tailoringFilePath;
 };
 
 #endif
