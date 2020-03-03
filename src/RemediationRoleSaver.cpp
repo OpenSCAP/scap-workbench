@@ -40,17 +40,17 @@ extern "C"
 
 
 
-const QString bashSaveMessage = QObject::tr("Save remediation role as a bash script");
+const QString bashSaveMessage = QObject::tr("Save remediation as a bash script");
 const QString bashFiletypeExtension = "sh";
 const QString bashFiletypeTemplate = QObject::tr("bash script (*.%1)");
 const QString bashFixTemplate = QString("sh");
 
-const QString ansibleSaveMessage = QObject::tr("Save remediation role as an ansible playbook");
+const QString ansibleSaveMessage = QObject::tr("Save remediation as an ansible playbook");
 const QString ansibleFiletypeExtension = "yml";
 const QString ansibleFiletypeTemplate = QObject::tr("ansible playbook (*.%1)");
 const QString ansibleFixType = QString("ansible");
 
-const QString puppetSaveMessage = QObject::tr("Save remediation role as a puppet manifest");
+const QString puppetSaveMessage = QObject::tr("Save remediation as a puppet manifest");
 const QString puppetFiletypeExtension = "pp";
 const QString puppetFiletypeTemplate = QObject::tr("puppet manifest (*.%1)");
 const QString puppetFixType = QString("puppet");
@@ -108,7 +108,7 @@ void RemediationSaverBase::saveFileOK(const QString& filename)
 void RemediationSaverBase::saveFileError(const QString& filename, const QString& errorMsg)
 {
     removeFileWhenEmpty(filename);
-    const QString completeErrorMessage = QObject::tr("Error generating remediation role '%2': %1").arg(errorMsg, filename);
+    const QString completeErrorMessage = QObject::tr("Error generating remediation '%2': %1").arg(errorMsg, filename);
     mDiagnostics->errorMessage(completeErrorMessage);
 }
 
