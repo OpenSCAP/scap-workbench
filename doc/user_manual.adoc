@@ -524,20 +524,6 @@ Both while opening the files and when scanning. This option is discouraged and
 should only be used by content creators and/or people who really know what they
 are doing.
 
-== Known issues
-
-=== Result-based remediations of tailored profiles
-
-Saving remediation roles to the disk may not work for a customized profile. Specifically, it won't work if you add additional rules to it.
-If this limitation affects you, follow these steps:
-
-Remark: You will need to use the oscap command-line utility, which is bundled together with scap-workbench.
-
-1. Save the scan results
-2. Save your profile customization to a file using the "File->Save customization only" option.
-3. Run this command: oscap xccdf generate fix --output <role filename> --result-id '' --tailoring-file <saved-customization> <saved-result>.
-Refer to oscap xccdf generate fix -h if you want other than Bash output.
-
 == Where to Get Help?
 
 You ask for help with the application using
