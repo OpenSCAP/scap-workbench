@@ -50,7 +50,7 @@ endif()
 option(SCAP_WORKBENCH_LOCAL_SCAN_ENABLED "If enabled, scanning of local machine is possible from workbench. Else the option is disabled in the GUI." TRUE)
 
 if(${OPENSCAP_VERSION_MAJOR} LESS 2 AND ${OPENSCAP_VERSION_MINOR} LESS 3 AND ${OPENSCAP_VERSION_PATCH} LESS 16)  # i.e. oscap<1.2.16
-    message(FATAL_ERROR "Library-powered generation of result-based remediation roles is supported only if you have oscap>=1.2.16, whereas you have oscap==${OPENSCAP_VERSION}")
+    message(FATAL_ERROR "Library-powered generation of result-based remediations is supported only if you have oscap>=1.2.16, whereas you have oscap==${OPENSCAP_VERSION}")
 endif()
 
 find_program(NICE_EXECUTABLE NAMES nice) # fully optional, local scan still available when missing

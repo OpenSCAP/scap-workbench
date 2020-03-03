@@ -380,14 +380,14 @@ to remediate each of them.
 
 The rules that were remediated will show up as *fixed* in the rule result list.
 
-=== Export remediation role for the selected profile
+=== Export remediation for the selected profile
 
-After you select a profile, you can export a remediation role to a file.
-Bash scripts, Ansible playbooks and Puppet manifests are the formats supported.
+After you select a profile, you can export a remediation to a file.
+Bash scripts, Ansible Playbooks and Puppet manifests are the formats supported.
 The output file will contain all remediations for rules selected by the profile
 that are available.
-As the content of the remediation role solely depends on the profile,
-it is referred to as profile-based remediation role.
+As the content of the remediation solely depends on the profile,
+it is referred to as profile-based remediation.
 
 The possibility to save remediations to a file puts you in charge -
 you can examine it, edit it and decide what remediations to apply.
@@ -443,7 +443,7 @@ which will clear all results.
 === View and Analyze Results
 
 After evaluation finishes, you should see three new buttons:
-*Clear*, *Save Results*, *Generate remediation role* and *Show Report*.
+*Clear*, *Save Results*, *Generate remediation* and *Show Report*.
 
 ****
 Pressing Clear will *permanently* destroy scan results! This action cannot
@@ -489,13 +489,13 @@ However, ARF files are not as well supported by SCAP toolchains as XCCDF result 
 XCCDF result files can be generated from ARF files, this operation is called *ARF splitting*.
 ****
 
-Opening the *Generate remediation role* pop-up menu will let you to save
+Opening the *Generate remediation* pop-up menu will let you to save
 result-based remediations to a file.
 The output file will contain all available remediations for rules
 that have failed the scan, so it should fit your needs better
 than profile-based remediations.
 As the saved content is based on actual scan results,
-it is referred to as results-based remediation role.
+it is referred to as results-based remediation.
 
 If you scan with a customized profile, you may encounter an error -
 see <<known-issues>> for a workaround.
