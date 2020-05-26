@@ -119,7 +119,7 @@ set(SCAP_WORKBENCH_INCLUDE_DIRS
 
 set(SCAP_WORKBENCH_LINK_LIBRARIES
     Qt5::Widgets Qt5::XmlPatterns
-    ${OPENSCAP_LIBRARIES})
+    ${OPENSCAP_LINK_LIBRARIES})
 
 # ---------- RPATHS for linking
 
