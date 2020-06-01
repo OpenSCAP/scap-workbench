@@ -8,8 +8,6 @@ jobs:
   build-macos:
     # The type of runner that the job will run on
     runs-on: macos-latest
-    # Allows you to skip a ci job - [skip ci] or [skip-ci]
-    if: (!contains(github.event.head_commit.message, 'skip ci') && !contains(github.event.head_commit.message, 'skip-ci'))
     steps:
     # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
     - uses: actions/checkout@v2
