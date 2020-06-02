@@ -30,6 +30,13 @@ if (NOT DEFINED OPENSCAP_LIBRARIES OR NOT DEFINED OPENSCAP_INCLUDE_DIRS)
     pkg_check_modules(OPENSCAP REQUIRED libopenscap>=1.2.0)
 endif()
 
+if (APPLE)
+    # We need to use OPENSCAP_LINK_LIBRARIES for make to find openscap lib
+    set(OPENSCAP_LINK_LIB ${OPENSCAP_LINK_LIBRARIES})
+else()
+    set(OPENSCAP_LINK_LIB ${OPENSCAP_LIBRARIES})
+endif()
+
 # Gather info about openscap version
 if (DEFINED OPENSCAP_VERSION)
     # pkg_check_modules() defines the string OPENSCAP_VERSION, lets use it
@@ -119,7 +126,7 @@ set(SCAP_WORKBENCH_INCLUDE_DIRS
 
 set(SCAP_WORKBENCH_LINK_LIBRARIES
     Qt5::Widgets Qt5::XmlPatterns
-    ${OPENSCAP_LIBRARIES})
+    ${OPENSCAP_LINK_LIB})
 
 # ---------- RPATHS for linking
 
