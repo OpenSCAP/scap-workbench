@@ -1,0 +1,66 @@
+name: OpenScap Workbench CI
+
+# Controls when the action will run. Triggers the workflow on push or pull request
+# events but only for the master branch
+on: [push, pull_request]
+
+jobs:
+  build-macos:
+    # The type of runner that the job will run on
+    runs-on: macos-latest
+    steps:
+    # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+    - uses: actions/checkout@v2
+
+    # *before_install* port
+    - name: Install additional packages
+      run: |
+        brew install jq
+        brew install qt5
+        brew install asciidoc
+        brew install pkg-config
+        brew install doxygen
+        brew install opendbx
+        brew install popt
+        brew install swig
+        brew install upx
+        npm install -g appdmg
+        echo "::add-path::/usr/local/opt/qt/bin"
+
+    # Runs a set of commands using the runners shell
+    - name: Run openSCAP build process
+      run: |
+        git clone --depth 1 https://github.com/openscap/openscap.git -b master
+        pushd openscap/build
+        cmake -DENABLE_PROBES=FALSE ../
+        make -j 4
+        make install
+        popd
+
+    # Build OSX image
+    - name: Build OSX image
+      run: |
+        chmod +x ./build-for-osx.sh
+        ./build-for-osx.sh
+        REL_TAG=`curl -s "https://github.com/ComplianceAsCode/content/releases/latest" | grep -o 'tag/[v.0-9]*' | awk -F/ '{print $2}'`
+        REL_TAG_NUM=`echo ${REL_TAG} | cut -d"v" -f2`
+        DWN_LINK=https://github.com/ComplianceAsCode/content/releases/download/${REL_TAG}/scap-security-guide-${REL_TAG_NUM}.zip
+        if [ -z "${DWN_LINK}" ]; then echo 'Could not get the ZIP URL! It is empty!'; exit 1; fi
+        wget "${DWN_LINK}" -O ssg.zip
+        mkdir -p `pwd`/build-osx/scap-workbench.app/Contents/Resources/ssg/ && unzip ssg.zip && cp -a scap-security-guide-*/* `pwd`/build-osx/scap-workbench.app/Contents/Resources/ssg/
+        cd build-osx && bash osx-create-dmg.sh
+
+    # Get tag release version (1.2.X etc,.)
+    - name: Get the release version
+      id: get_version
+      run: echo ::set-output name=VERSION::${GITHUB_REF/refs\/tags\//}
+
+    # Deploy package to release
+    - name: Release
+      uses: softprops/action-gh-release@v1
+      if: startsWith(github.ref, 'refs/tags/')
+      with:
+        files: build-osx/scap-workbench-${{ steps.get_version.outputs.VERSION }}.dmg
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
