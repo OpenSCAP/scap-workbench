@@ -1,0 +1,30 @@
+version: master-{build}
+image: Visual Studio 2017
+configuration: Release
+init:
+  # This enables RDP access to the instance for debugging - very nice feature
+  - ps: iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
+clone_folder: c:\projects\scap-workbench
+install:
+  #- cinst pkgconfiglite    # If you need to have pkg-config, this is how to install it
+  - cmd: vcpkg install openscap curl libxml2 libxslt bzip2 pcre pthreads zlib getopt-win32
+  - cmd: vcpkg integrate install
+  - cmd: touch doc\user_manual.html   # can also install asciidoctor for Windows, but does not use same naming schema
+  #- cmd: sleep 900   # This sleep is here only to be used when RDP'ing for debugging
+
+cache: c:\tools\vcpkg\installed\
+before_build:
+  - set PATH=%PATH%;C:\Qt\5.13.2\msvc2017\bin
+  - cmd: |
+      cd c:\projects\scap-workbench\build
+      cmake -DCMAKE_TOOLCHAIN_FILE=c:/tools/vcpkg/scripts/buildsystems/vcpkg.cmake ..
+build:
+  project: c:\projects\scap-workbench\build\scap-workbench.sln
+  verbosity: minimal
+after_build:
+  - cmd: cpack
+artifacts:
+  - path: build\*.msi
+    name: Windows Installer
+  - path: build\*.msi.sha512
+    name: SHA512 checksum
