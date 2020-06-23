@@ -20,16 +20,19 @@ include(GNUInstallDirs)
 set(CMAKE_AUTOMOC ON)
 find_package(Qt5Widgets REQUIRED)
 find_package(Qt5XmlPatterns REQUIRED)
-find_package(OPENSCAP REQUIRED)
 
 add_definitions(-DQT_DISABLE_DEPRECATED_BEFORE=0)
 
 # This conditional is here to avoid checking openscap version if user supplies
 # custom openscap parameters.
-# if (NOT DEFINED OPENSCAP_LIBRARIES OR NOT DEFINED OPENSCAP_INCLUDE_DIRS)
-#     include("${CMAKE_ROOT}/Modules/FindPkgConfig.cmake")
-#     pkg_check_modules(OPENSCAP REQUIRED libopenscap>=1.2.0)
-# endif()
+if (NOT DEFINED OPENSCAP_LIBRARIES OR NOT DEFINED OPENSCAP_INCLUDE_DIRS)
+    if (NOT WIN32)
+        include("${CMAKE_ROOT}/Modules/FindPkgConfig.cmake")
+        pkg_check_modules(OPENSCAP REQUIRED libopenscap>=1.2.0)
+    else()
+        find_package(OPENSCAP REQUIRED)
+    endif()
+endif()
 
 if (APPLE)
     # We need to use OPENSCAP_LINK_LIBRARIES for make to find openscap lib
