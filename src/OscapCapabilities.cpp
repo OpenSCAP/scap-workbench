@@ -86,7 +86,11 @@ void OscapCapabilities::parse(const QString& mmv)
     if (lines.size() < 1)
         return; // TODO: Throw exception?
 
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 15, 0))
+    const QStringList firstLine = lines[0].split(' ', Qt::SkipEmptyParts);
+#else
     const QStringList firstLine = lines[0].split(' ', QString::SkipEmptyParts);
+#endif
     const QString& versionCandidate = firstLine.last();
 
     if (!versionCandidate.contains(QRegExp("^([0-9]+\\.){2,}[0-9]+$")))
