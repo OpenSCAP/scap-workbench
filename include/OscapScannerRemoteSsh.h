@@ -36,6 +36,7 @@ class OscapScannerRemoteSsh : public OscapScannerBase
         OscapScannerRemoteSsh();
         virtual ~OscapScannerRemoteSsh();
 
+        void setUserIsSudoer(bool userIsSudoer);
         virtual void setTarget(const QString& target);
         virtual void setSession(ScanningSession* session);
 
@@ -57,6 +58,7 @@ class OscapScannerRemoteSsh : public OscapScannerBase
         void removeRemoteDirectory(const QString& path, const QString& desc);
 
         SshConnection mSshConnection;
+        bool mUserIsSudoer;
 };
 
 #endif

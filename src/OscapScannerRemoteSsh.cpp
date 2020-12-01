@@ -37,7 +37,8 @@ extern "C"
 
 OscapScannerRemoteSsh::OscapScannerRemoteSsh():
     OscapScannerBase(),
-    mSshConnection(this)
+    mSshConnection(this),
+    mUserIsSudoer(false)
 {
     mSshConnection.setCancelRequestSource(&mCancelRequested);
 }
@@ -87,6 +88,11 @@ void OscapScannerRemoteSsh::setTarget(const QString& target)
     mSshConnection.setPort(port);
 }
 
+void OscapScannerRemoteSsh::setUserIsSudoer(bool userIsSudoer)
+{
+    mUserIsSudoer = userIsSudoer;
+}
+
 void OscapScannerRemoteSsh::setSession(ScanningSession* session)
 {
     OscapScannerBase::setSession(session);
@@ -99,6 +105,10 @@ void OscapScannerRemoteSsh::setSession(ScanningSession* session)
 QStringList OscapScannerRemoteSsh::getCommandLineArgs() const
 {
     QStringList args("oscap-ssh");
+    if (mUserIsSudoer)
+    {
+	    args.append("--sudo");
+    }
     args.append(mSshConnection.getTarget());
     args.append(QString::number(mSshConnection.getPort()));
 
@@ -235,19 +245,19 @@ void OscapScannerRemoteSsh::evaluate()
 
     if (mScannerMode == SM_OFFLINE_REMEDIATION)
     {
-        args = buildOfflineRemediationArgs(inputFile,
+        args.append(buildOfflineRemediationArgs(inputFile,
                 resultFile,
                 reportFile,
-                arfFile);
+                arfFile));
     }
     else
     {
-        args = buildEvaluationArgs(inputFile,
+        args.append(buildEvaluationArgs(inputFile,
                 tailoringFile,
                 resultFile,
                 reportFile,
                 arfFile,
-                mScannerMode == SM_SCAN_ONLINE_REMEDIATION);
+                mScannerMode == SM_SCAN_ONLINE_REMEDIATION));
     }
 
     const QString sshCmd = args.join(" ");
@@ -255,8 +265,14 @@ void OscapScannerRemoteSsh::evaluate()
     emit infoMessage(QObject::tr("Starting the remote process..."));
 
     QProcess process(this);
+    QString sudo;
+    if (mUserIsSudoer)
+    {
+	    // tell sudo not to bother to read password from the terminal
+	    sudo = " sudo -n";
+    }
 
-    process.start(SCAP_WORKBENCH_LOCAL_SSH_PATH, baseArgs + QStringList(QString("cd '%1'; " SCAP_WORKBENCH_REMOTE_OSCAP_PATH " %2").arg(workingDir).arg(sshCmd)));
+    process.start(SCAP_WORKBENCH_LOCAL_SSH_PATH, baseArgs + QStringList(QString("cd '%1';" "%2 " SCAP_WORKBENCH_REMOTE_OSCAP_PATH " %3").arg(workingDir).arg(sudo).arg(sshCmd)));
     process.waitForStarted();
 
     if (process.state() != QProcess::Running)

@@ -41,6 +41,8 @@ RemoteMachineComboBox::RemoteMachineComboBox(QWidget* parent):
         this, SLOT(updateHostPort(int))
     );
 
+    mUserIsSudoer = mUI.userIsSudoer;
+
     setRecentMachineCount(5);
     syncFromQSettings();
 
@@ -49,6 +51,11 @@ RemoteMachineComboBox::RemoteMachineComboBox(QWidget* parent):
 RemoteMachineComboBox::~RemoteMachineComboBox()
 {
     delete mQSettings;
+}
+
+bool RemoteMachineComboBox::userIsSudoer() const
+{
+    return mUserIsSudoer->isChecked();
 }
 
 QString RemoteMachineComboBox::getTarget() const
