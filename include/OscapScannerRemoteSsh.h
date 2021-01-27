@@ -43,6 +43,11 @@ class OscapScannerRemoteSsh : public OscapScannerBase
         virtual QStringList getCommandLineArgs() const;
         virtual void evaluate();
 
+    protected:
+
+       virtual void selectError(MessageType& kind, const QString& message);
+       virtual void processError(QString& message);
+
     private:
         void ensureConnected();
 

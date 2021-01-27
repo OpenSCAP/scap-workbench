@@ -344,6 +344,29 @@ void OscapScannerRemoteSsh::evaluate()
     signalCompletion(mCancelRequested);
 }
 
+void OscapScannerRemoteSsh::selectError(MessageType& kind, const QString& message)
+{
+    OscapScannerBase::selectError(kind, message);
+    if (mUserIsSudoer)
+    {
+        if (message.contains(QRegExp("^sudo:")))
+        {
+            kind = MSG_ERROR;
+        }
+    }
+
+}
+
+void OscapScannerRemoteSsh::processError(QString& message)
+{
+    OscapScannerBase::processError(message);
+    if (mUserIsSudoer && message.contains(QRegExp("^sudo:")))
+    {
+        message.replace(QRegExp("^sudo:"), "Error invoking sudo on the host:");
+        message += ".\nOnly passwordless sudo setup on the remote host is supported by scap-workbench.";
+    }
+}
+
 void OscapScannerRemoteSsh::ensureConnected()
 {
     if (mSshConnection.isConnected())
