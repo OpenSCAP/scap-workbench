@@ -418,6 +418,117 @@ void OscapScannerBase::readStdOut(QProcess& process)
     while (tryToReadStdOutChar(process));
 }
 
+
+void OscapScannerBase::emitMessage(MessageType kind, QString& message)
+{
+    QString rawMessage = QObject::tr(message.toUtf8().constData());
+    switch (kind)
+    {
+        case MSG_INFO:
+	{
+	    emit infoMessage(message);
+	    break;
+	}
+        case MSG_WARNING:
+	{
+	    emit warningMessage(message);
+	    break;
+	}
+	default:
+	    emit errorMessage(message);
+    }
+}
+
+
+void OscapScannerBase::selectWarning(MessageType& kind, const QString& message)
+{
+    if (message.contains("WARNING: "))
+    {
+	kind = MSG_WARNING;
+    }
+    if (message.contains(QRegExp("^W:\\s")))
+    {
+	kind = MSG_WARNING;
+    }
+}
+
+
+void OscapScannerBase::processWarning(QString& message)
+{
+    message = guiFriendlyMessage(message);
+}
+
+
+void OscapScannerBase::selectInfo(MessageType& kind, const QString& message)
+{
+    if (message.contains(QRegExp("^Downloading: .+ \\.{3} \\w+\\n")))
+    {
+	kind = MSG_INFO;
+    }
+}
+
+
+void OscapScannerBase::processInfo(QString& message)
+{
+    (void)message; // suppress the unused arg warning
+}
+
+
+void OscapScannerBase::selectError(MessageType& kind, const QString& message)
+{
+    if (message.contains(QRegExp("^E:\\s")))
+    {
+	kind = MSG_ERROR;
+    }
+}
+
+
+void OscapScannerBase::processError(QString& message)
+{
+    message.remove(QRegExp("Error:\\s*"));
+    message.remove(QRegExp("^E:\\s*"));
+    message.remove(QRegExp("\\n"));
+}
+
+
+void OscapScannerBase::processUnknown(QString& message)
+{
+    message = QString("The 'oscap' process has written the following content to stderr:\n%1").arg(message);
+}
+
+
+void OscapScannerBase::filterStdErr(QString& errorText)
+{
+    MessageType type = MSG_UNKNOWN;
+    // let detection of a more severe type of message (error) overrule a benign one (info)
+    selectInfo(type, errorText);
+    selectWarning(type, errorText);
+    selectError(type, errorText);
+    switch(type)
+    {
+        case MSG_INFO:
+        {
+            processInfo(errorText);
+            break;
+        }
+        case MSG_WARNING:
+        {
+            processWarning(errorText);
+            break;
+        }
+        case MSG_ERROR:
+        {
+            processError(errorText);
+            break;
+        }
+        default:
+        {
+            processUnknown(errorText);
+        }
+    }
+    emitMessage(type, errorText);
+}
+
 void OscapScannerBase::watchStdErr(QProcess& process)
 {
     process.setReadChannel(QProcess::StandardError);
@@ -433,21 +544,7 @@ void OscapScannerBase::watchStdErr(QProcess& process)
 
         if (!stdErrOutput.isEmpty())
         {
-            if (stdErrOutput.contains("WARNING: "))
-            {
-                QString guiMessage = guiFriendlyMessage(stdErrOutput);
-                emit warningMessage(QObject::tr(guiMessage.toUtf8().constData()));
-            }
-            // Openscap >= 1.2.11 (60fb9f0c98eee) sends this message through stderr
-            else if (stdErrOutput.contains(QRegExp("^Downloading: .+ \\.{3} \\w+\\n")))
-            {
-                emit infoMessage(stdErrOutput);
-            }
-            else
-            {
-                emit errorMessage(QObject::tr("The 'oscap' process has written the following content to stderr:\n"
-                                            "%1").arg(stdErrOutput));
-            }
+            filterStdErr(stdErrOutput);
         }
 
     }
@@ -458,8 +555,9 @@ QString OscapScannerBase::guiFriendlyMessage(const QString& cliMessage)
 {
     QString guiMessage = cliMessage;
 
-    // Remove "WARNING:" prefix and trailing \n
-    guiMessage.remove(QRegExp("(WARNING: )|\n"));
+    guiMessage.remove(QRegExp("WARNING:\\s*"));
+    guiMessage.remove(QRegExp("^W:\\s*"));
+    guiMessage.remove(QRegExp("\\n"));
 
     if (cliMessage.contains("--fetch-remote-resources"))
         guiMessage = QString("Remote resources might be necessary for this profile to work properly. Please select \"Fetch remote resources\" for complete scan");
