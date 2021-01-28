@@ -763,7 +763,10 @@ void MainWindow::scanAsync(ScannerMode scannerMode)
     );
 
     if (target != "localhost")
-        mUI.remoteMachineDetails->notifyTargetUsed(mScanner->getTarget());
+    {
+        bool userIsSudoer = ((OscapScannerRemoteSsh *)mScanner)->getUserIsSudoer();
+        mUI.remoteMachineDetails->notifyTargetUsed(mScanner->getTarget(), userIsSudoer);
+    }
 
     mScanThread->start();
 }

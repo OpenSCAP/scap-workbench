@@ -47,7 +47,7 @@ class RemoteMachineComboBox : public QWidget
         bool userIsSudoer() const;
 
     public slots:
-        void notifyTargetUsed(const QString& target);
+        void notifyTargetUsed(const QString& target, bool userIsSudoer);
         void clearHistory();
 
     protected slots:

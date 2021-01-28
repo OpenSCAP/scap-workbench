@@ -46,7 +46,7 @@ OscapScannerRemoteSsh::OscapScannerRemoteSsh():
 OscapScannerRemoteSsh::~OscapScannerRemoteSsh()
 {}
 
-void OscapScannerRemoteSsh::splitTarget(const QString& in, QString& target, unsigned short& port)
+void OscapScannerRemoteSsh::splitTarget(const QString& in, QString& target, unsigned short& port, bool& userIsSudoer)
 {
     // NB: We dodge a bullet here because the editor will always pass a port
     //     as the last component. A lot of checking and parsing does not need
@@ -56,10 +56,19 @@ void OscapScannerRemoteSsh::splitTarget(const QString& in, QString& target, unsi
     //     being there and always being the last component.
 
     // FIXME: Ideally, this should split from the right side and stop after one split
-    QStringList split = in.split(':');
+    userIsSudoer = false;
+    QStringList sudoerSplit = in.split(' ');
+    if (sudoerSplit.size() > 1)
+    {
+        if (sudoerSplit.at(1) == "sudo")
+	{
+	    userIsSudoer = true;
+	}
+    }
+    QStringList hostPortSplit = sudoerSplit.at(0).split(':');
 
-    const QString portString = split.back();
-    split.removeLast();
+    const QString portString = hostPortSplit.back();
+    hostPortSplit.removeLast();
 
     {
         bool status = false;
@@ -69,23 +78,30 @@ void OscapScannerRemoteSsh::splitTarget(const QString& in, QString& target, unsi
         port = status ? portCandidate : 22;
     }
 
-    target = split.join(":");
+    target = hostPortSplit.join(":");
 }
 
 void OscapScannerRemoteSsh::setTarget(const QString& target)
 {
-    OscapScannerBase::setTarget(target);
+    QStringList sudoerSplit = target.split(' ');
+    OscapScannerBase::setTarget(sudoerSplit.at(0));
 
     if (mSshConnection.isConnected())
         mSshConnection.disconnect();
 
     QString cleanTarget;
     unsigned short port;
+    bool userIsSudoer;
 
-    splitTarget(target, cleanTarget, port);
+    splitTarget(target, cleanTarget, port, userIsSudoer);
 
     mSshConnection.setTarget(cleanTarget);
     mSshConnection.setPort(port);
+}
+
+bool OscapScannerRemoteSsh::getUserIsSudoer() const
+{
+    return mUserIsSudoer;
 }
 
 void OscapScannerRemoteSsh::setUserIsSudoer(bool userIsSudoer)
