@@ -364,6 +364,8 @@ void OscapScannerRemoteSsh::processError(QString& message)
     {
         message.replace(QRegExp("^sudo:"), "Error invoking sudo on the host:");
         message += ".\nOnly passwordless sudo setup on the remote host is supported by scap-workbench.";
+        message += " \nTo configure a non-privileged user oscap-user to run only the oscap binary as root, "
+		"add this User Specification to your sudoers file: oscap-user ALL=(root) NOPASSWD: /usr/bin/oscap xccdf eval *";
     }
 }
 
