@@ -30,7 +30,7 @@ RemoteMachineComboBox::RemoteMachineComboBox(QWidget* parent):
 
 #if (QT_VERSION >= QT_VERSION_CHECK(4, 7, 0))
     // placeholder text is only supported in Qt 4.7 onwards
-    mUI.host->setPlaceholderText(QObject::tr("username@hostname"));
+    mUI.host->setPlaceholderText(QObject::tr("username@hostname [sudo]"));
 #endif
 
     mQSettings = new QSettings(this);
@@ -41,6 +41,8 @@ RemoteMachineComboBox::RemoteMachineComboBox(QWidget* parent):
         this, SLOT(updateHostPort(int))
     );
 
+    mUserIsSudoer = mUI.userIsSudoer;
+
     setRecentMachineCount(5);
     syncFromQSettings();
 
@@ -49,6 +51,11 @@ RemoteMachineComboBox::RemoteMachineComboBox(QWidget* parent):
 RemoteMachineComboBox::~RemoteMachineComboBox()
 {
     delete mQSettings;
+}
+
+bool RemoteMachineComboBox::userIsSudoer() const
+{
+    return mUserIsSudoer->isChecked();
 }
 
 QString RemoteMachineComboBox::getTarget() const
@@ -70,11 +77,12 @@ unsigned int RemoteMachineComboBox::getRecentMachineCount() const
     return mRecentTargets.size();
 }
 
-void RemoteMachineComboBox::notifyTargetUsed(const QString& target)
+void RemoteMachineComboBox::notifyTargetUsed(const QString& target, bool userIsSudoer)
 {
     QString host;
     unsigned short port;
-    OscapScannerRemoteSsh::splitTarget(target, host, port);
+    bool placeholder;
+    OscapScannerRemoteSsh::splitTarget(target, host, port, placeholder);
 
     // skip invalid suggestions
     if (host.isEmpty() || port == 0)
@@ -83,7 +91,8 @@ void RemoteMachineComboBox::notifyTargetUsed(const QString& target)
     const unsigned int machineCount = getRecentMachineCount();
 
     // this moves target to the beginning of the list if it was in the list already
-    mRecentTargets.prepend(target);
+    QString targetWithSudo = target + (userIsSudoer ? " sudo" : "");
+    mRecentTargets.prepend(targetWithSudo);
     mRecentTargets.removeDuplicates();
 
     setRecentMachineCount(machineCount);
@@ -99,6 +108,7 @@ void RemoteMachineComboBox::clearHistory()
 {
     mUI.host->setText("");
     mUI.port->setValue(22);
+    mUI.userIsSudoer->setChecked(false);
 
     const unsigned int machineCount = getRecentMachineCount();
     mRecentTargets.clear();
@@ -160,6 +170,7 @@ void RemoteMachineComboBox::updateHostPort(int index)
     {
         mUI.host->setText("");
         mUI.port->setValue(22);
+        mUI.userIsSudoer->setChecked(false);
         return;
     }
 
@@ -172,10 +183,11 @@ void RemoteMachineComboBox::updateHostPort(int index)
 
     QString host;
     unsigned short port;
+    bool userIsSudoer;
 
-    OscapScannerRemoteSsh::splitTarget(target, host, port);
+    OscapScannerRemoteSsh::splitTarget(target, host, port, userIsSudoer);
 
     mUI.host->setText(host);
     mUI.port->setValue(port);
-
+    mUI.userIsSudoer->setChecked(userIsSudoer);
 }

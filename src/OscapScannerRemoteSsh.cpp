@@ -37,7 +37,8 @@ extern "C"
 
 OscapScannerRemoteSsh::OscapScannerRemoteSsh():
     OscapScannerBase(),
-    mSshConnection(this)
+    mSshConnection(this),
+    mUserIsSudoer(false)
 {
     mSshConnection.setCancelRequestSource(&mCancelRequested);
 }
@@ -45,7 +46,7 @@ OscapScannerRemoteSsh::OscapScannerRemoteSsh():
 OscapScannerRemoteSsh::~OscapScannerRemoteSsh()
 {}
 
-void OscapScannerRemoteSsh::splitTarget(const QString& in, QString& target, unsigned short& port)
+void OscapScannerRemoteSsh::splitTarget(const QString& in, QString& target, unsigned short& port, bool& userIsSudoer)
 {
     // NB: We dodge a bullet here because the editor will always pass a port
     //     as the last component. A lot of checking and parsing does not need
@@ -55,10 +56,19 @@ void OscapScannerRemoteSsh::splitTarget(const QString& in, QString& target, unsi
     //     being there and always being the last component.
 
     // FIXME: Ideally, this should split from the right side and stop after one split
-    QStringList split = in.split(':');
+    userIsSudoer = false;
+    QStringList sudoerSplit = in.split(' ');
+    if (sudoerSplit.size() > 1)
+    {
+        if (sudoerSplit.at(1) == "sudo")
+	{
+	    userIsSudoer = true;
+	}
+    }
+    QStringList hostPortSplit = sudoerSplit.at(0).split(':');
 
-    const QString portString = split.back();
-    split.removeLast();
+    const QString portString = hostPortSplit.back();
+    hostPortSplit.removeLast();
 
     {
         bool status = false;
@@ -68,23 +78,35 @@ void OscapScannerRemoteSsh::splitTarget(const QString& in, QString& target, unsi
         port = status ? portCandidate : 22;
     }
 
-    target = split.join(":");
+    target = hostPortSplit.join(":");
 }
 
 void OscapScannerRemoteSsh::setTarget(const QString& target)
 {
-    OscapScannerBase::setTarget(target);
+    QStringList sudoerSplit = target.split(' ');
+    OscapScannerBase::setTarget(sudoerSplit.at(0));
 
     if (mSshConnection.isConnected())
         mSshConnection.disconnect();
 
     QString cleanTarget;
     unsigned short port;
+    bool userIsSudoer;
 
-    splitTarget(target, cleanTarget, port);
+    splitTarget(target, cleanTarget, port, userIsSudoer);
 
     mSshConnection.setTarget(cleanTarget);
     mSshConnection.setPort(port);
+}
+
+bool OscapScannerRemoteSsh::getUserIsSudoer() const
+{
+    return mUserIsSudoer;
+}
+
+void OscapScannerRemoteSsh::setUserIsSudoer(bool userIsSudoer)
+{
+    mUserIsSudoer = userIsSudoer;
 }
 
 void OscapScannerRemoteSsh::setSession(ScanningSession* session)
@@ -99,6 +121,10 @@ void OscapScannerRemoteSsh::setSession(ScanningSession* session)
 QStringList OscapScannerRemoteSsh::getCommandLineArgs() const
 {
     QStringList args("oscap-ssh");
+    if (mUserIsSudoer)
+    {
+	    args.append("--sudo");
+    }
     args.append(mSshConnection.getTarget());
     args.append(QString::number(mSshConnection.getPort()));
 
@@ -235,19 +261,19 @@ void OscapScannerRemoteSsh::evaluate()
 
     if (mScannerMode == SM_OFFLINE_REMEDIATION)
     {
-        args = buildOfflineRemediationArgs(inputFile,
+        args.append(buildOfflineRemediationArgs(inputFile,
                 resultFile,
                 reportFile,
-                arfFile);
+                arfFile));
     }
     else
     {
-        args = buildEvaluationArgs(inputFile,
+        args.append(buildEvaluationArgs(inputFile,
                 tailoringFile,
                 resultFile,
                 reportFile,
                 arfFile,
-                mScannerMode == SM_SCAN_ONLINE_REMEDIATION);
+                mScannerMode == SM_SCAN_ONLINE_REMEDIATION));
     }
 
     const QString sshCmd = args.join(" ");
@@ -255,8 +281,14 @@ void OscapScannerRemoteSsh::evaluate()
     emit infoMessage(QObject::tr("Starting the remote process..."));
 
     QProcess process(this);
+    QString sudo;
+    if (mUserIsSudoer)
+    {
+	    // tell sudo not to bother to read password from the terminal
+	    sudo = " sudo -n";
+    }
 
-    process.start(SCAP_WORKBENCH_LOCAL_SSH_PATH, baseArgs + QStringList(QString("cd '%1'; " SCAP_WORKBENCH_REMOTE_OSCAP_PATH " %2").arg(workingDir).arg(sshCmd)));
+    process.start(SCAP_WORKBENCH_LOCAL_SSH_PATH, baseArgs + QStringList(QString("cd '%1';" "%2 " SCAP_WORKBENCH_REMOTE_OSCAP_PATH " %3").arg(workingDir).arg(sudo).arg(sshCmd)));
     process.waitForStarted();
 
     if (process.state() != QProcess::Running)
@@ -326,6 +358,31 @@ void OscapScannerRemoteSsh::evaluate()
 
     emit infoMessage(QObject::tr("Processing has been finished!"));
     signalCompletion(mCancelRequested);
+}
+
+void OscapScannerRemoteSsh::selectError(MessageType& kind, const QString& message)
+{
+    OscapScannerBase::selectError(kind, message);
+    if (mUserIsSudoer)
+    {
+        if (message.contains(QRegExp("^sudo:")))
+        {
+            kind = MSG_ERROR;
+        }
+    }
+
+}
+
+void OscapScannerRemoteSsh::processError(QString& message)
+{
+    OscapScannerBase::processError(message);
+    if (mUserIsSudoer && message.contains(QRegExp("^sudo:")))
+    {
+        message.replace(QRegExp("^sudo:"), "Error invoking sudo on the host:");
+        message += ".\nOnly passwordless sudo setup on the remote host is supported by scap-workbench.";
+        message += " \nTo configure a non-privileged user oscap-user to run only the oscap binary as root, "
+		"add this User Specification to your sudoers file: oscap-user ALL=(root) NOPASSWD: /usr/bin/oscap xccdf eval *";
+    }
 }
 
 void OscapScannerRemoteSsh::ensureConnected()

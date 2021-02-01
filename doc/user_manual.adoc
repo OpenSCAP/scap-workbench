@@ -363,6 +363,17 @@ files are not supported yet!
 .Selecting a remote machine for scanning
 image::scanning_remote_machine.png[align="center"]
 
+The remote user doesn't have to be a superuser - you can setup the remote
+`/etc/sudoers` file (using `visudo`) to enable the paswordless sudo for that particular user,
+and you check the "user is sudoer" checkbox.
+
+For example, if the scanning user is `oscap-user`, that would involve putting
+
+   oscap-user ALL=(root) NOPASSWD: /usr/bin/oscap xccdf eval *
+
+user specification into the `sudoers` file, or into a separate file
+that is included by `sudoers` s.a. `/etc/sudoers.d/99-oscap-user`.
+
 === Enable Online Remediation (optional)
 
 ****

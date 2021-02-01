@@ -678,6 +678,7 @@ void MainWindow::scanAsync(ScannerMode scannerMode)
     // In the OscapScannerRemoteSsh class the port will be parsed out again...
     const QString target = mUI.localMachineRadioButton->isChecked() ?
         "localhost" : mUI.remoteMachineDetails->getTarget();
+    const bool userIsSudoer = mUI.remoteMachineDetails->userIsSudoer();
 
     bool fetchRemoteResources = mUI.fetchRemoteResourcesCheckbox->isChecked();
     try
@@ -689,7 +690,10 @@ void MainWindow::scanAsync(ScannerMode scannerMode)
             if (target == "localhost")
                 mScanner = new OscapScannerLocal();
             else
+            {
                 mScanner = new OscapScannerRemoteSsh();
+                ((OscapScannerRemoteSsh *)mScanner)->setUserIsSudoer(userIsSudoer);
+            }
 
             mScanner->setTarget(target);
 
@@ -759,7 +763,10 @@ void MainWindow::scanAsync(ScannerMode scannerMode)
     );
 
     if (target != "localhost")
-        mUI.remoteMachineDetails->notifyTargetUsed(mScanner->getTarget());
+    {
+        bool userIsSudoer = ((OscapScannerRemoteSsh *)mScanner)->getUserIsSudoer();
+        mUI.remoteMachineDetails->notifyTargetUsed(mScanner->getTarget(), userIsSudoer);
+    }
 
     mScanThread->start();
 }
