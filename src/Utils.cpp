@@ -62,7 +62,7 @@ inline QString _generateApplicationIconPath()
     dir.cd("Resources");
     dir.cd("share");
     dir.cd("pixmaps");
-    return dir.absoluteFilePath("scap-workbench.png");
+    return dir.absoluteFilePath("scap-workbench.svg");
 }
 
 inline QString _generateSetSidPath()
@@ -99,7 +99,7 @@ inline QString _generateApplicationIconPath()
     QDir dir(QCoreApplication::applicationDirPath());
     dir.cd("share");
     dir.cd("pixmaps");
-    return dir.absoluteFilePath("scap-workbench.png");
+    return dir.absoluteFilePath("scap-workbench.svg");
 }
 #endif
 
