@@ -409,7 +409,7 @@ void MainWindow::openFile(const QString& path, bool reload)
 
         // Refill mFSWatch after opening file
         mFSWatch->removePaths(mFSWatch->files());
-        for (const QString path : mScanningSession->getOriginalClosure())
+        for (const QString &path : mScanningSession->getOriginalClosure())
         {
             mFSWatch->addPath(path);
         }
