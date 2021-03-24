@@ -113,9 +113,10 @@ void ResultViewer::loadContent(Scanner* scanner)
 
         if (mInputBaseName.endsWith("-xccdf"))
             mInputBaseName.chop(QString("-xccdf").length());
-    }
-    if (session->isSelectedProfileTailoring()) {
-        tailoringFilePath = session->getTailoringFilePath();
+
+        if (session->isSelectedProfileTailoring()) {
+            tailoringFilePath = session->getTailoringFilePath();
+        }
     }
 
     mReport.clear();
