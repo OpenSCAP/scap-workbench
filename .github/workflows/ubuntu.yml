@@ -1,0 +1,23 @@
+name: OpenScap Workbench CI
+
+# Controls when the action will run. Triggers the workflow on push or pull request
+# events but only for the master branch
+on: [push, pull_request]
+
+jobs:
+  build-ubuntu:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Install required dependencies
+      run: |
+        sudo apt install -y build-essential openssh-client libopenscap-dev
+        sudo apt install -y libqt5xmlpatterns5-dev ssh-askpass asciidoc
+        sudo apt install -y libpolkit-agent-1-0
+    - name: Build SCAP Workbench
+      run: |
+        mkdir -p build
+        pushd build
+        cmake ..
+        make
+        popd

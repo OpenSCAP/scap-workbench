@@ -63,4 +63,3 @@ jobs:
         files: build-osx/scap-workbench-${{ steps.get_version.outputs.VERSION }}.dmg
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
