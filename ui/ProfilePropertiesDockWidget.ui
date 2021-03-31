@@ -21,7 +21,16 @@
   </property>
   <widget class="QWidget" name="dockWidgetContents">
    <layout class="QVBoxLayout" name="verticalLayout">
-    <property name="margin">
+    <property name="leftMargin">
+     <number>0</number>
+    </property>
+    <property name="topMargin">
+     <number>0</number>
+    </property>
+    <property name="rightMargin">
+     <number>0</number>
+    </property>
+    <property name="bottomMargin">
      <number>0</number>
     </property>
     <item>
@@ -34,8 +43,8 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>388</width>
-         <height>304</height>
+         <width>398</width>
+         <height>314</height>
         </rect>
        </property>
        <layout class="QGridLayout" name="gridLayout">
@@ -57,7 +66,7 @@
            <bool>false</bool>
           </property>
           <property name="readOnly">
-           <bool>true</bool>
+           <bool>false</bool>
           </property>
          </widget>
         </item>
