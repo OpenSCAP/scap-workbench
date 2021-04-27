@@ -90,6 +90,7 @@ class XCCDFItemPropertiesDockWidget : public QDockWidget
 
     protected slots:
         void valueChanged(const QString& newValue);
+        void remarkChanged();
         void selectValue(const QUrl& url);
         void selectRule(const QUrl& url);
 
