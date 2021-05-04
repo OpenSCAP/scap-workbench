@@ -32,6 +32,14 @@ optional dependencies:
 # yum install polkit
 ```
 
+On Ubuntu this is roughly equivalent to:
+
+```console
+# apt install build-essential openssh-client libopenscap-dev libqt5xmlpatterns5-dev ssh-askpass
+# apt install asciidoc
+# apt install libpolkit-agent-1-0
+```
+
 2) Build SCAP Workbench:
 ```console
 $ mkdir build; cd build
