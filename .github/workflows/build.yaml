@@ -1,0 +1,92 @@
+name: Gating
+on:
+  push:
+    branches: [ '*' ]
+  pull_request:
+    branches: [ master, v1-2 ]
+jobs:
+  build-ubuntu:
+    name: Build on Ubuntu Latest
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install Deps
+        uses: mstksg/get-package@master
+        with:
+          apt-get: build-essential openssh-client libopenscap-dev libqt5xmlpatterns5-dev ssh-askpass asciidoc libpolkit-agent-1-0
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Build
+        run: |
+          mkdir -p build
+          pushd build
+          cmake ..
+          make -j4
+          popd
+
+  build-fedora:
+    name: Build on Fedora 33 (Container)
+    runs-on: ubuntu-latest
+    container:
+      image: fedora:33
+    steps:
+      - name: Install Deps
+        run: dnf install -y cmake gcc-c++ openssh-clients util-linux openscap-devel qt5-qtbase-devel qt5-qtxmlpatterns-devel openssh-askpass asciidoc polkit-libs
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Build
+        run: |
+          mkdir -p build
+          pushd build
+          cmake ..
+          make -j4
+          popd
+
+# Disabled
+#  build-macos:
+#    name: Build on MacOS X Latest
+#    runs-on: macos-latest
+#    steps:
+#    - uses: actions/checkout@v2
+#    - name: Install Deps
+#      run: |
+#        brew install jq
+#        brew install qt5
+#        brew install asciidoc
+#        brew install pkg-config
+#        brew install doxygen
+#        brew install opendbx
+#        brew install popt
+#        brew install swig
+#        brew install upx
+#        brew install libxmlsec1
+#        npm install -g appdmg
+#        echo "/usr/local/opt/qt/bin" >> $GITHUB_PATH
+#        echo "Qt5_DIR=/usr/local/opt/qt5/lib/cmake/Qt5" >> $GITHUB_ENV
+#    - name: Build OpenSCAP
+#      run: |
+#        git clone --depth 1 https://github.com/openscap/openscap.git
+#        pushd openscap/build
+#        cmake -DENABLE_PROBES=FALSE ../
+#        make -j4
+#        make install
+#        popd
+# Broken
+#    - name: Build OSX Image
+#      run: |
+#        chmod +x ./build-for-osx.sh
+#        ./build-for-osx.sh
+#        REL_TAG=`curl -s "https://github.com/ComplianceAsCode/content/releases/latest" | grep -o 'tag/[v.0-9]*' | awk -F/ '{print $2}'`
+#        REL_TAG_NUM=`echo ${REL_TAG} | cut -d"v" -f2`
+#        DWN_LINK=https://github.com/ComplianceAsCode/content/releases/download/${REL_TAG}/scap-security-guide-${REL_TAG_NUM}.zip
+#        if [ -z "${DWN_LINK}" ]; then echo 'Could not get the ZIP URL! It is empty!'; exit 1; fi
+#        wget "${DWN_LINK}" -O ssg.zip
+#        mkdir -p `pwd`/build-osx/scap-workbench.app/Contents/Resources/ssg/ && unzip ssg.zip && cp -a scap-security-guide-*/* `pwd`/build-osx/scap-workbench.app/Contents/Resources/ssg/
+#        cd build-osx && bash osx-create-dmg.sh
+# We don't do automatic releases, do we?
+#    - name: Release
+#      uses: softprops/action-gh-release@v1
+#      if: startsWith(github.ref, 'refs/tags/')
+#      with:
+#        files: build-osx/scap-workbench-${{ steps.get_version.outputs.VERSION }}.dmg
+#      env:
+#        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
