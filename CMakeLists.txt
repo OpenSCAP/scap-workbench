@@ -270,7 +270,7 @@ install(FILES "share/pixmaps/scap-workbench.png"
 install(FILES "share/pixmaps/scap-workbench.svg"
     DESTINATION "${CMAKE_INSTALL_DATADIR}/pixmaps")
 install(FILES "scap-workbench.appdata.xml"
-    DESTINATION "${CMAKE_INSTALL_DATADIR}/appdata")
+    DESTINATION "${CMAKE_INSTALL_DATADIR}/metainfo")
 
 if (ASCIIDOC_EXECUTABLE)
     file(GLOB USER_MANUAL_SCREENSHOTS "${CMAKE_CURRENT_SOURCE_DIR}/doc/user_manual/*.png")
