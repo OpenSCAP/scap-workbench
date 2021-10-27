@@ -40,6 +40,9 @@ jobs:
           cmake ..
           make -j4
           popd
+      - name: Install
+        run: make install
+        working-directory: build
 
 # Disabled
 #  build-macos:
