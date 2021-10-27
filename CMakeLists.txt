@@ -155,8 +155,14 @@ endif()
 include_directories(${SCAP_WORKBENCH_INCLUDE_DIRS})
 
 # Which languages we want generated
-#set(scap_workbench_LANGUAGES de_DE fr_FR)
-set(scap_workbench_LANGUAGES)
+set(scap_workbench_LANGUAGES
+                            cs # Czech
+                            es # Spanish
+                            fr # French
+                            fi # Finnish
+                            it # Italian
+                            pt_BR # Portuguese Brazilian
+                            )
 set(scap_workbench_LANGUAGE_TS_FILES)
 
 foreach(LANGUAGE ${scap_workbench_LANGUAGES})
