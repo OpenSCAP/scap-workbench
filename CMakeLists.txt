@@ -263,14 +263,14 @@ install(FILES "man/scap-workbench.8"
 
 install(DIRECTORY "share/scap-workbench"
     DESTINATION "${CMAKE_INSTALL_DATADIR}")
-install(FILES "scap-workbench.desktop"
+install(FILES "scap_workbench.desktop"
     DESTINATION "${CMAKE_INSTALL_DATADIR}/applications")
 install(FILES "share/pixmaps/scap-workbench.png"
     DESTINATION "${CMAKE_INSTALL_DATADIR}/pixmaps")
 install(FILES "share/pixmaps/scap-workbench.svg"
     DESTINATION "${CMAKE_INSTALL_DATADIR}/pixmaps")
-install(FILES "scap-workbench.appdata.xml"
-    DESTINATION "${CMAKE_INSTALL_DATADIR}/appdata")
+install(FILES "org.open-scap.scap-workbench.appdata.xml"
+    DESTINATION "${CMAKE_INSTALL_DATADIR}/metainfo")
 
 if (ASCIIDOC_EXECUTABLE)
     file(GLOB USER_MANUAL_SCREENSHOTS "${CMAKE_CURRENT_SOURCE_DIR}/doc/user_manual/*.png")
