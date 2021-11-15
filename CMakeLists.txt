@@ -263,13 +263,13 @@ install(FILES "man/scap-workbench.8"
 
 install(DIRECTORY "share/scap-workbench"
     DESTINATION "${CMAKE_INSTALL_DATADIR}")
-install(FILES "scap_workbench.desktop"
+install(FILES "org.open_scap.scap_workbench.desktop"
     DESTINATION "${CMAKE_INSTALL_DATADIR}/applications")
 install(FILES "share/pixmaps/scap-workbench.png"
     DESTINATION "${CMAKE_INSTALL_DATADIR}/pixmaps")
 install(FILES "share/pixmaps/scap-workbench.svg"
-    DESTINATION "${CMAKE_INSTALL_DATADIR}/pixmaps")
-install(FILES "org.open-scap.scap-workbench.appdata.xml"
+    DESTINATION "${CMAKE_INSTALL_DATADIR}/icons/hicolor/scalable/apps")
+install(FILES "org.open_scap.scap_workbench.appdata.xml"
     DESTINATION "${CMAKE_INSTALL_DATADIR}/metainfo")
 
 if (ASCIIDOC_EXECUTABLE)
