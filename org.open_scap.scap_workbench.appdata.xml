@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<component type="desktop">
-    <id>org.openscap.scap_workbench.desktop</id>
+<component type="desktop-application">
+    <id>org.open_scap.scap_workbench</id>
     <metadata_license>CC0-1.0</metadata_license>
     <project_license>GPL-3.0+</project_license>
     <name>SCAP Workbench</name>
     <summary>A GUI tool that serves as an SCAP scanner and provides tailoring functionality for SCAP content</summary>
+    <launchable type="desktop-id">org.open_scap.scap_workbench.desktop</launchable>
     <description>
         <p>
             The main goal of this application is to lower the initial barrier of using SCAP.
