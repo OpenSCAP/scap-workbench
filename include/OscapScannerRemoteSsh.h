@@ -55,12 +55,12 @@ class OscapScannerRemoteSsh : public OscapScannerBase
         QString copyFileOver(const QString& localPath);
         QString copyInputFileOver();
 
-        QString createRemoteTemporaryFile(bool cancelOnFailure = true);
+        QString createRemoteTemporaryFile(bool cancelOnFailure = true, bool with_sudo = false);
         QString createRemoteTemporaryDirectory(bool cancelOnFailure = true);
 
-        QString readRemoteFile(const QString& path, const QString& desc);
+        QString readRemoteFile(const QString& path, const QString& desc, bool with_sudo = false);
 
-        void removeRemoteFile(const QString& path, const QString& desc);
+        void removeRemoteFile(const QString& path, const QString& desc, bool with_sudo = false);
         void removeRemoteDirectory(const QString& path, const QString& desc);
 
         SshConnection mSshConnection;

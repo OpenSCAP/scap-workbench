@@ -245,9 +245,9 @@ void OscapScannerRemoteSsh::evaluate()
         return;
     }
 
-    const QString reportFile = createRemoteTemporaryFile();
-    const QString resultFile = createRemoteTemporaryFile();
-    const QString arfFile = createRemoteTemporaryFile();
+    const QString reportFile = createRemoteTemporaryFile(true, mUserIsSudoer);
+    const QString resultFile = createRemoteTemporaryFile(true, mUserIsSudoer);
+    const QString arfFile = createRemoteTemporaryFile(true, mUserIsSudoer);
     const QString workingDir = createRemoteTemporaryDirectory();
 
     // TODO: We could be leaking any of the temporary files at this point!
@@ -340,9 +340,9 @@ void OscapScannerRemoteSsh::evaluate()
         readStdOut(process);
         watchStdErr(process);
 
-        mResults = readRemoteFile(resultFile, QObject::tr("XCCDF results")).toUtf8();
-        mReport = readRemoteFile(reportFile, QObject::tr("XCCDF report (HTML)")).toUtf8();
-        mARF = readRemoteFile(arfFile, QObject::tr("Result DataStream (ARF)")).toUtf8();
+        mResults = readRemoteFile(resultFile, QObject::tr("XCCDF results"), mUserIsSudoer).toUtf8();
+        mReport = readRemoteFile(reportFile, QObject::tr("XCCDF report (HTML)"), mUserIsSudoer).toUtf8();
+        mARF = readRemoteFile(arfFile, QObject::tr("Result DataStream (ARF)"), mUserIsSudoer).toUtf8();
     }
 
     emit infoMessage(QObject::tr("Cleaning up..."));
@@ -351,9 +351,9 @@ void OscapScannerRemoteSsh::evaluate()
     removeRemoteFile(inputFile, QObject::tr("input file"));
     if (!tailoringFile.isEmpty())
         removeRemoteFile(tailoringFile, QObject::tr("tailoring file"));
-    removeRemoteFile(resultFile, QObject::tr("XCCDF result file"));
-    removeRemoteFile(reportFile, QObject::tr("XCCDF report file"));
-    removeRemoteFile(arfFile, QObject::tr("Result DataStream file"));
+    removeRemoteFile(resultFile, QObject::tr("XCCDF result file"), mUserIsSudoer);
+    removeRemoteFile(reportFile, QObject::tr("XCCDF report file"), mUserIsSudoer);
+    removeRemoteFile(arfFile, QObject::tr("Result DataStream file"), mUserIsSudoer);
     removeRemoteDirectory(workingDir, QObject::tr("Temporary Working Directory"));
 
     emit infoMessage(QObject::tr("Processing has been finished!"));
@@ -455,12 +455,20 @@ QString OscapScannerRemoteSsh::copyInputFileOver()
     return copyFileOver(localPath);
 }
 
-QString OscapScannerRemoteSsh::createRemoteTemporaryFile(bool cancelOnFailure)
+QString OscapScannerRemoteSsh::createRemoteTemporaryFile(bool cancelOnFailure, bool with_sudo)
 {
     ensureConnected();
 
     SshSyncProcess proc(mSshConnection, this);
-    proc.setCommand("mktemp");
+    if (with_sudo)
+    {
+        proc.setCommand("sudo");
+        proc.setArguments(QStringList("mktemp"));
+    }
+    else
+    {
+        proc.setCommand("mktemp");
+    }
     proc.setCancelRequestSource(&mCancelRequested);
     proc.run();
 
@@ -512,10 +520,18 @@ QString OscapScannerRemoteSsh::createRemoteTemporaryDirectory(bool cancelOnFailu
     return proc.getStdOutContents().trimmed();
 }
 
-QString OscapScannerRemoteSsh::readRemoteFile(const QString& path, const QString& desc)
+QString OscapScannerRemoteSsh::readRemoteFile(const QString& path, const QString& desc, bool with_sudo)
 {
     SshSyncProcess proc(mSshConnection, this);
-    proc.setCommand("cat");
+    if (with_sudo)
+    {
+        proc.setCommand("sudo");
+        proc.setArguments(QStringList("cat"));
+    }
+    else
+    {
+        proc.setCommand("cat");
+    }
     proc.setArguments(QStringList(path));
     proc.setCancelRequestSource(&mCancelRequested);
     proc.run();
@@ -534,10 +550,17 @@ QString OscapScannerRemoteSsh::readRemoteFile(const QString& path, const QString
     return proc.getStdOutContents();
 }
 
-void OscapScannerRemoteSsh::removeRemoteFile(const QString& path, const QString& desc)
+void OscapScannerRemoteSsh::removeRemoteFile(const QString& path, const QString& desc, bool with_sudo)
 {
     SshSyncProcess proc(mSshConnection, this);
-    proc.setCommand("rm");
+    if (with_sudo)
+    {
+        proc.setCommand("sudo rm");
+    }
+    else
+    {
+        proc.setCommand("rm");
+    }
     proc.setArguments(QStringList(path));
     proc.setCancelRequestSource(&mCancelRequested);
     proc.run();
