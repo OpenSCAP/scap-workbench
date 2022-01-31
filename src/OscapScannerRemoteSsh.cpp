@@ -245,6 +245,15 @@ void OscapScannerRemoteSsh::evaluate()
         return;
     }
 
+    if (mUserIsSudoer && sudoNotPasswordless())
+    {
+        QString message = "Error invoking sudo on the host. "
+        message += ".\nOnly passwordless sudo setup on the remote host is supported by scap-workbench.";
+        message += " \nTo configure a non-privileged user oscap-user to run only the oscap binary as root, "
+		"add this User Specification to your sudoers file: oscap-user ALL=(root) NOPASSWD: /usr/bin/oscap xccdf eval *";
+	emit errorMessage(message);
+    }
+
     const QString reportFile = createRemoteTemporaryFile(true, mUserIsSudoer);
     const QString resultFile = createRemoteTemporaryFile(true, mUserIsSudoer);
     const QString arfFile = createRemoteTemporaryFile(true, mUserIsSudoer);
@@ -453,6 +462,31 @@ QString OscapScannerRemoteSsh::copyInputFileOver()
     }
 
     return copyFileOver(localPath);
+}
+
+
+QString OscapScannerRemoteSsh::sudoNotPasswordless()
+{
+    ensureConnected();
+
+    SshSyncProcess proc(mSshConnection, this);
+
+    proc.setCommand("sudo");
+    proc.setArguments(QStringList(SCAP_WORKBENCH_REMOTE_OSCAP_PATH, "--version"));
+
+    proc.setCancelRequestSource(&mCancelRequested);
+    proc.run();
+
+    if (proc.getExitCode() != 0)
+    {
+	QString errorMessage = proc.getDiagnosticInfo();
+	if (errorMessage.contains(QRegExp("^sudo:\s"))):
+	{
+            return true;
+        }
+    }
+
+    return false;
 }
 
 QString OscapScannerRemoteSsh::createRemoteTemporaryFile(bool cancelOnFailure, bool with_sudo)
