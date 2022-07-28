@@ -78,11 +78,6 @@ From the package repository (APT):: # apt-get install scap-security-guide
 From upstream source (for advanced users or content developers)::
 Follow instructions from https://complianceascode.readthedocs.io/en/latest/manual/developer/02_building_complianceascode.html[Building ComplianceAsCode].
 
-==== Alternative SCAP content (optional)
-[[alternative-contents]]
- * http://usgcb.nist.gov/usgcb/rhel_content.html[USGCB for RHEL5] - XCCDF and OVAL, only suitable for RHEL5.
- * https://github.com/OpenSCAP/sce-community-content[SCE Community Content] - Uses SCE, only suitable for Fedora.
-
 === Start SCAP Workbench
 
 After installation a new application entry for SCAP Workbench should appear
