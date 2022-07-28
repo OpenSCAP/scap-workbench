@@ -76,8 +76,7 @@ system as a dependency of scap-workbench. If it isn't, install it:
 From the package repository (YUM):: # yum install scap-security-guide
 From the package repository (APT):: # apt-get install scap-security-guide
 From upstream source (for advanced users or content developers)::
- . $ git clone https://github.com/OpenSCAP/scap-security-guide.git ; cd scap-security-guide
- . $ make
+Follow instructions from https://complianceascode.readthedocs.io/en/latest/manual/developer/02_building_complianceascode.html[Building ComplianceAsCode].
 
 ==== Alternative SCAP content (optional)
 [[alternative-contents]]
