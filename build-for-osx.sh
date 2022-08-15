@@ -2,7 +2,7 @@ set -ex
 
 mkdir -p build-osx/
 pushd build-osx/
-cmake -D SCAP_WORKBENCH_LOCAL_SCAN_ENABLED=false -D SCAP_AS_RPM_EXECUTABLE="" ../
+cmake -D SCAP_WORKBENCH_LOCAL_SCAN_ENABLED=false -D SCAP_AS_RPM_EXECUTABLE="" -DCMAKE_PREFIX_PATH="/usr/local/opt/qt5/lib/cmake/" ../
 make -j 4
 mkdir -p ./scap-workbench.app/Contents/Frameworks/
 cp /usr/local/lib/libpcre.1.dylib ./scap-workbench.app/Contents/Frameworks/

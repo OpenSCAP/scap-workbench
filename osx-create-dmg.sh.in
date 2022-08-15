@@ -15,7 +15,7 @@ DMG_BACKGROUND_IMG="@CMAKE_SOURCE_DIR@/osx-dmg-background.png"
 APP_EXE="@CMAKE_BINARY_DIR@/${APP_NAME}.app/Contents/MacOS/${APP_NAME}"
 
 # make sure Qt frameworks are included
-macdeployqt @CMAKE_BINARY_DIR@/${APP_NAME}.app
+/usr/local/opt/qt5/bin/macdeployqt @CMAKE_BINARY_DIR@/${APP_NAME}.app
 
 VOL_NAME="${APP_NAME}-${VERSION}"   # volume name will be "SuperCoolApp-1.0.0"
 DMG_TMP="${VOL_NAME}-temp.dmg"
