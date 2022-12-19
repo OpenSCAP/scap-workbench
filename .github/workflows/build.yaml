@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Install Deps
-        uses: mstksg/get-package@master
+        uses: mstksg/get-package@v1
         with:
           apt-get: build-essential openssh-client libopenscap-dev libqt5xmlpatterns5-dev ssh-askpass asciidoc libpolkit-agent-1-0
       - name: Checkout
