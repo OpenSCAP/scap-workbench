@@ -110,7 +110,7 @@ void SshConnection::connect()
         }
 
         mSocketDir = new TemporaryDir();
-        mMasterSocket = mSocketDir->getPath() + "/ssh_socket";
+        mControlSocket = mSocketDir->getPath() + "/ssh_socket";
     }
     catch (const SyncProcessException& e)
     {
@@ -131,13 +131,13 @@ void SshConnection::connect()
         args.append(SCAP_WORKBENCH_LOCAL_SSH_PATH);
 #endif
 
-        args.append("-M"); // place ssh client into "master" mode for connection sharing
+        args.append("-M"); // place ssh client in control of the shared connection socket
         args.append("-f"); // requests ssh to go to background before command execution
         args.append("-N"); // do not execute a remote command (yet)
 
         // send keep alive null messages every 60 seconds to make sure the connection stays alive
         args.append("-o"); args.append(QString("ServerAliveInterval=%1").arg(60));
-        args.append("-o"); args.append(QString("ControlPath=%1").arg(mMasterSocket));
+        args.append("-o"); args.append(QString("ControlPath=%1").arg(mControlSocket));
         args.append("-p"); args.append(QString::number(mPort));
         // TODO: sanitize input?
         args.append(mTarget);
@@ -156,13 +156,13 @@ void SshConnection::connect()
         if (proc.getExitCode() != 0)
         {
             throw SshConnectionException(
-                QString("Failed to create SSH master socket! Diagnostic info: %1").arg(proc.getDiagnosticInfo()));
+                QString("Failed to create SSH control socket! Diagnostic info: %1").arg(proc.getDiagnosticInfo()));
         }
     }
     catch (const SyncProcessException& e)
     {
         throw SshConnectionException(
-            QString("Failed to create SSH master socket! Exception was: %1").arg(QString::fromUtf8(e.what())));
+            QString("Failed to create SSH control socket! Exception was: %1").arg(QString::fromUtf8(e.what())));
     }
 
     if (mCancelRequestSource && *mCancelRequestSource)
@@ -186,7 +186,7 @@ void SshConnection::disconnect()
         args.append(SCAP_WORKBENCH_LOCAL_SSH_PATH);
 #endif
 
-        args.append("-S"); args.append(mMasterSocket);
+        args.append("-S"); args.append(mControlSocket);
         args.append("-p"); args.append(QString::number(mPort));
         args.append("-O"); args.append("exit");
         args.append(mTarget);
@@ -217,9 +217,9 @@ bool SshConnection::isConnected() const
     return mConnected;
 }
 
-const QString& SshConnection::_getMasterSocket() const
+const QString& SshConnection::_getControlSocket() const
 {
-    return mMasterSocket;
+    return mControlSocket;
 }
 
 const QProcessEnvironment& SshConnection::_getEnvironment() const
@@ -258,7 +258,7 @@ QStringList SshSyncProcess::generateFullArguments() const
     args.append(SCAP_WORKBENCH_LOCAL_SSH_PATH);
 #endif
 
-    args.append("-o"); args.append(QString("ControlPath=%1").arg(mSshConnection._getMasterSocket()));
+    args.append("-o"); args.append(QString("ControlPath=%1").arg(mSshConnection._getControlSocket()));
     args.append("-p"); args.append(QString::number(mSshConnection.getPort()));
     args.append(mSshConnection.getTarget());
     args.append(SyncProcess::generateFullCommand() + QString(" ") + SyncProcess::generateFullArguments().join(" "));

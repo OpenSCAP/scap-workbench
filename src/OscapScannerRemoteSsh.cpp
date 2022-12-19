@@ -203,7 +203,7 @@ void OscapScannerRemoteSsh::evaluate()
     }
 
     QStringList baseArgs;
-    baseArgs.append("-o"); baseArgs.append(QString("ControlPath=%1").arg(mSshConnection._getMasterSocket()));
+    baseArgs.append("-o"); baseArgs.append(QString("ControlPath=%1").arg(mSshConnection._getControlSocket()));
     baseArgs.append(mTarget);
 
     QString diagnosticInfo;
