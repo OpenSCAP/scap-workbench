@@ -50,7 +50,7 @@ class SshConnection : public QObject
         void disconnect();
         bool isConnected() const;
 
-        const QString& _getMasterSocket() const;
+        const QString& _getControlSocket() const;
         const QProcessEnvironment& _getEnvironment() const;
 
     private:
@@ -58,7 +58,7 @@ class SshConnection : public QObject
         unsigned short mPort;
 
         SpacelessQTemporaryDir* mSocketDir;
-        QString mMasterSocket;
+        QString mControlSocket;
         QProcessEnvironment mEnvironment;
 
         bool mConnected;

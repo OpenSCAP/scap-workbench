@@ -3,14 +3,14 @@ on:
   push:
     branches: [ '*' ]
   pull_request:
-    branches: [ master, v1-2 ]
+    branches: [ main, v1-2 ]
 jobs:
   build-ubuntu:
     name: Build on Ubuntu Latest
     runs-on: ubuntu-latest
     steps:
       - name: Install Deps
-        uses: mstksg/get-package@master
+        uses: mstksg/get-package@v1
         with:
           apt-get: build-essential openssh-client libopenscap-dev libqt5xmlpatterns5-dev ssh-askpass asciidoc libpolkit-agent-1-0
       - name: Checkout
@@ -24,10 +24,10 @@ jobs:
           popd
 
   build-fedora:
-    name: Build on Fedora 33 (Container)
+    name: Build on Fedora Latest (Container)
     runs-on: ubuntu-latest
     container:
-      image: fedora:33
+      image: fedora:latest
     steps:
       - name: Install Deps
         run: dnf install -y cmake gcc-c++ openssh-clients util-linux openscap-devel qt5-qtbase-devel qt5-qtxmlpatterns-devel openssh-askpass asciidoc polkit-libs
