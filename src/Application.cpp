@@ -43,12 +43,13 @@ Application::Application(int& argc, char** argv):
     setApplicationDisplayName("SCAP Workbench");
     setApplicationVersion(SCAP_WORKBENCH_VERSION);
 
-    mMainWindow = new MainWindow();
-
 #if (QT_VERSION >= QT_VERSION_CHECK(4, 8, 0))
-    mTranslator.load(QLocale(), "scap-workbench", "", getShareTranslationDirectory().absolutePath());
+    mTranslator.load(QLocale(), "scap-workbench", ".", getShareTranslationDirectory().absolutePath());
     installTranslator(&mTranslator);
 #endif
+
+    // create the main window after loading any translations so it loads properly
+    mMainWindow = new MainWindow();
 
     const QIcon& icon = getApplicationIcon();
     setWindowIcon(icon);

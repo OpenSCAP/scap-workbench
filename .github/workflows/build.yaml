@@ -12,7 +12,7 @@ jobs:
       - name: Install Deps
         uses: mstksg/get-package@v1
         with:
-          apt-get: build-essential openssh-client libopenscap-dev libqt5xmlpatterns5-dev ssh-askpass asciidoc libpolkit-agent-1-0
+          apt-get: build-essential openssh-client libopenscap-dev libqt5xmlpatterns5-dev ssh-askpass asciidoc libpolkit-agent-1-0 qttools5-dev
       - name: Checkout
         uses: actions/checkout@v2
       - name: Build
@@ -30,7 +30,7 @@ jobs:
       image: fedora:latest
     steps:
       - name: Install Deps
-        run: dnf install -y cmake gcc-c++ openssh-clients util-linux openscap-devel qt5-qtbase-devel qt5-qtxmlpatterns-devel openssh-askpass asciidoc polkit-libs
+        run: dnf install -y cmake gcc-c++ openssh-clients util-linux openscap-devel qt5-qtbase-devel qt5-qtxmlpatterns-devel openssh-askpass asciidoc polkit-libs qt5-linguist
       - name: Checkout
         uses: actions/checkout@v2
       - name: Build
@@ -40,6 +40,9 @@ jobs:
           cmake ..
           make -j4
           popd
+      - name: Install
+        run: make install
+        working-directory: build
 
 # Disabled
 #  build-macos:

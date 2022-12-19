@@ -20,6 +20,7 @@ include(GNUInstallDirs)
 set(CMAKE_AUTOMOC ON)
 find_package(Qt5Widgets REQUIRED)
 find_package(Qt5XmlPatterns REQUIRED)
+find_package(Qt5LinguistTools REQUIRED)
 
 add_definitions(-DQT_DISABLE_DEPRECATED_BEFORE=0)
 
@@ -154,12 +155,18 @@ endif()
 include_directories(${SCAP_WORKBENCH_INCLUDE_DIRS})
 
 # Which languages we want generated
-#set(scap_workbench_LANGUAGES de_DE fr_FR)
-set(scap_workbench_LANGUAGES)
+set(scap_workbench_LANGUAGES
+                            cs # Czech
+                            es # Spanish
+                            fr # French
+                            fi # Finnish
+                            it # Italian
+                            pt_BR # Portuguese Brazilian
+                            )
 set(scap_workbench_LANGUAGE_TS_FILES)
 
 foreach(LANGUAGE ${scap_workbench_LANGUAGES})
-    set(TS_FILE "${CMAKE_CURRENT_SOURCE_DIR}/i18n/${LANGUAGE}.ts")
+    set(TS_FILE "${CMAKE_CURRENT_SOURCE_DIR}/i18n/scap-workbench.${LANGUAGE}.ts")
     set(scap_workbench_LANGUAGE_TS_FILES ${scap_workbench_LANGUAGE_TS_FILES} ${TS_FILE})
     set_source_files_properties(${TS_FILE} PROPERTIES OUTPUT_LOCATION "${CMAKE_CURRENT_BINARY_DIR}/i18n")
 endforeach()
@@ -183,7 +190,7 @@ add_executable("scap-workbench" MACOSX_BUNDLE
 
     ${scap_workbench_HEADERS_MOC}
     ${scap_workbench_UIS_HEADERS}
-    ${scap_workbench_LANGUAGE_TS_FILES}
+    ${qm_files}
 )
 
 set_target_properties("scap-workbench" PROPERTIES MACOSX_BUNDLE_INFO_PLIST MacOSXBundleInfo.plist.in)
@@ -299,6 +306,9 @@ install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/COPYING"
 
 install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/README.md"
     DESTINATION ${CMAKE_INSTALL_DOCDIR})
+
+install(DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/i18n"
+    DESTINATION "${CMAKE_INSTALL_DATADIR}/scap-workbench")
 
 if (CPPCHECK_EXECUTABLE)
     set(CPPCHECK_INCL_PARAMS -I /usr/include)
