@@ -81,7 +81,7 @@
          <enum>Qt::NoContextMenu</enum>
         </property>
         <property name="styleSheet">
-         <string notr="true">text-align: left; border: 0; padding-left: 5px; </string>
+         <string notr="true">text-align: left; border: 0; padding-left: 5px;</string>
         </property>
         <property name="text">
          <string>Title</string>
@@ -122,8 +122,7 @@
    <item>
     <widget class="QLabel" name="description">
      <property name="styleSheet">
-      <string notr="true">margin-left: 25px;
-border: 1px solid #ddd;</string>
+      <string notr="true">margin-left: 25px; border: 1px solid #ddd; color: #000000;</string>
      </property>
      <property name="text">
       <string/>

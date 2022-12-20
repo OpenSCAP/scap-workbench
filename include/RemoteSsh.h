@@ -24,7 +24,7 @@
 
 #include "ForwardDecls.h"
 #include "ProcessHelpers.h"
-#include "TemporaryDir.h"
+#include "Utils.h"
 #include <QObject>
 
 class SshConnection : public QObject
@@ -50,15 +50,15 @@ class SshConnection : public QObject
         void disconnect();
         bool isConnected() const;
 
-        const QString& _getMasterSocket() const;
+        const QString& _getControlSocket() const;
         const QProcessEnvironment& _getEnvironment() const;
 
     private:
         QString mTarget;
         unsigned short mPort;
 
-        TemporaryDir* mSocketDir;
-        QString mMasterSocket;
+        SpacelessQTemporaryDir* mSocketDir;
+        QString mControlSocket;
         QProcessEnvironment mEnvironment;
 
         bool mConnected;

@@ -22,7 +22,6 @@
 #include "OscapScannerLocal.h"
 #include "ProcessHelpers.h"
 #include "ScanningSession.h"
-#include "TemporaryDir.h"
 
 #include <stdexcept>
 #include <QThread>
@@ -33,7 +32,7 @@ extern "C"
 #include <xccdf_session.h>
 }
 
-void OscapScannerLocal::setFilenameToTempFile(QTemporaryFile& file)
+void OscapScannerLocal::setFilenameToTempFile(SpacelessQTemporaryFile& file)
 {
     file.open();
     file.close();
@@ -97,21 +96,21 @@ void OscapScannerLocal::evaluate()
     // This is mainly for check-engine-results and oval-results, to ensure
     // we get a full report, including info from these files. openscap's XSLT
     // uses info in the check engine results if it can find them.
-    TemporaryDir workingDir;
-    process.setWorkingDirectory(workingDir.getPath());
+    SpacelessQTemporaryDir workingDir;
+    process.setWorkingDirectory(workingDir.path());
 
     QStringList args;
-    QTemporaryFile inputARFFile;
+    SpacelessQTemporaryFile inputARFFile;
 
-    QTemporaryFile arfFile;
+    SpacelessQTemporaryFile arfFile;
     arfFile.setAutoRemove(true);
     setFilenameToTempFile(arfFile);
 
-    QTemporaryFile reportFile;
+    SpacelessQTemporaryFile reportFile;
     reportFile.setAutoRemove(true);
     setFilenameToTempFile(reportFile);
 
-    QTemporaryFile resultFile;
+    SpacelessQTemporaryFile resultFile;
     resultFile.setAutoRemove(true);
     setFilenameToTempFile(resultFile);
 
@@ -223,7 +222,7 @@ QStringList OscapScannerLocal::getCommandLineArgs() const
 
     if (mScannerMode == SM_OFFLINE_REMEDIATION)
     {
-        QTemporaryFile inputARFFile;
+        SpacelessQTemporaryFile inputARFFile;
         inputARFFile.setAutoRemove(true);
         inputARFFile.open();
         inputARFFile.write(getARFForRemediation());

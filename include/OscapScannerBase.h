@@ -77,6 +77,21 @@ class OscapScannerBase : public Scanner
 
         ReadingState mReadingState;
 
+       enum MessageType
+       {
+	       MSG_INFO, MSG_WARNING, MSG_ERROR, MSG_UNKNOWN
+       };
+
+       virtual void filterStdErr(QString& errorText);
+       void emitMessage(MessageType kind, QString& message);
+       virtual void selectWarning(MessageType& kind, const QString& message);
+       virtual void processWarning(QString& message);
+       virtual void selectInfo(MessageType& kind, const QString& message);
+       virtual void processInfo(QString& message);
+       virtual void selectError(MessageType& kind, const QString& message);
+       virtual void processError(QString& message);
+       virtual void processUnknown(QString& message);
+
         /// We keep filling this buffer until we reach : or \n
         QString mReadBuffer;
 

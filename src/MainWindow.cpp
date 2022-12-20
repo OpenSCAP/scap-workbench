@@ -43,6 +43,7 @@
 #include <QFileSystemWatcher>
 #include <QDesktopWidget>
 #include <QMenu>
+#include <QScreen>
 
 #include <cassert>
 #include <set>
@@ -257,8 +258,22 @@ MainWindow::MainWindow(QWidget* parent):
 
     closeFile();
 
-    // start centered
-    move(QApplication::desktop()->screen()->rect().center() - rect().center());
+    /* start centered
+
+    As of https://codereview.qt.nokia.com/c/qt/qtbase/+/268417,
+    QWidget *QDesktopWidget::screen(int) or Application::desktop()->screen() has been
+    deprecated with no replacement. A replacement might be provided in QT6 which
+    the following 4 lines of code should be re-evaluated if a replacement is provided.
+
+    The solution of the following 4 lines of code was indirectly provided by
+    Riccardo Fagiolo in "window_main.cpp" at
+    https://stackoverflow.com/questions/46300065/dynamically-resizing-two-qlabel-implementations
+    */
+    QSize size = QGuiApplication::screens().at(0)->availableSize();
+    int x = size.width() / 2 - width() / 2;
+    int y = size.height() / 2 - height() / 2;
+    move(x, y);
+    // End stackoverflow provided code by Riccardo Fagiolo
 
     QAction* genBashRemediation = new QAction("&bash", this);
     QObject::connect(
@@ -394,7 +409,7 @@ void MainWindow::openFile(const QString& path, bool reload)
 
         // Refill mFSWatch after opening file
         mFSWatch->removePaths(mFSWatch->files());
-        for (const QString path : mScanningSession->getOriginalClosure())
+        for (const QString &path : mScanningSession->getOriginalClosure())
         {
             mFSWatch->addPath(path);
         }
@@ -663,6 +678,7 @@ void MainWindow::scanAsync(ScannerMode scannerMode)
     // In the OscapScannerRemoteSsh class the port will be parsed out again...
     const QString target = mUI.localMachineRadioButton->isChecked() ?
         "localhost" : mUI.remoteMachineDetails->getTarget();
+    const bool userIsSudoer = mUI.remoteMachineDetails->userIsSudoer();
 
     bool fetchRemoteResources = mUI.fetchRemoteResourcesCheckbox->isChecked();
     try
@@ -674,7 +690,10 @@ void MainWindow::scanAsync(ScannerMode scannerMode)
             if (target == "localhost")
                 mScanner = new OscapScannerLocal();
             else
+            {
                 mScanner = new OscapScannerRemoteSsh();
+                ((OscapScannerRemoteSsh *)mScanner)->setUserIsSudoer(userIsSudoer);
+            }
 
             mScanner->setTarget(target);
 
@@ -744,7 +763,10 @@ void MainWindow::scanAsync(ScannerMode scannerMode)
     );
 
     if (target != "localhost")
-        mUI.remoteMachineDetails->notifyTargetUsed(mScanner->getTarget());
+    {
+        bool userIsSudoer = ((OscapScannerRemoteSsh *)mScanner)->getUserIsSudoer();
+        mUI.remoteMachineDetails->notifyTargetUsed(mScanner->getTarget(), userIsSudoer);
+    }
 
     mScanThread->start();
 }
@@ -909,7 +931,7 @@ void MainWindow::refreshProfiles()
             mUI.profileComboBox->addItem(profileTitle, QVariant(it->first));
         }
 
-        if (previouslySelected != QString::Null())
+        if (!previouslySelected.isNull())
         {
             const int indexCandidate = mUI.profileComboBox->findData(QVariant(previouslySelected));
             if (indexCandidate != -1)

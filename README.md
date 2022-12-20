@@ -19,7 +19,7 @@ How to run it out of the box
 
 required dependencies:
 ```console
-# yum install cmake gcc-c++ openssh-clients util-linux openscap-devel qt5-devel openssh-askpass
+# yum install cmake gcc-c++ openssh-clients util-linux openscap-devel qt5-qtbase-devel qt5-qtxmlpatterns-devel openssh-askpass
 ```
 
 required dependencies (only for the git repo, not required for released tarballs):
@@ -30,6 +30,14 @@ required dependencies (only for the git repo, not required for released tarballs
 optional dependencies:
 ```console
 # yum install polkit
+```
+
+On Ubuntu this is roughly equivalent to:
+
+```console
+# apt install build-essential openssh-client libopenscap-dev libqt5xmlpatterns5-dev ssh-askpass
+# apt install asciidoc
+# apt install libpolkit-agent-1-0
 ```
 
 2) Build SCAP Workbench:

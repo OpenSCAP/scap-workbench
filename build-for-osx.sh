@@ -1,4 +1,4 @@
-set -e
+set -ex
 
 mkdir -p build-osx/
 pushd build-osx/

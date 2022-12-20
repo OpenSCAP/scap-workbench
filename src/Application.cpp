@@ -35,9 +35,12 @@ Application::Application(int& argc, char** argv):
     mMainWindow(0)
 {
     setOrganizationName("SCAP Workbench upstream");
-    setOrganizationDomain("https://www.open-scap.org/tools/scap-workbench");
+    // The org domain messes up the app title in the Gnome top bar.
+    // Other QT apps s.a. Wireshark, QT Creator don't specify the domain.
+    // setOrganizationDomain("open-scap.org");
 
     setApplicationName("SCAP Workbench");
+    setApplicationDisplayName("SCAP Workbench");
     setApplicationVersion(SCAP_WORKBENCH_VERSION);
 
     mMainWindow = new MainWindow();

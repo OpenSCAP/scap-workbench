@@ -28,6 +28,8 @@
 #include <QDir>
 #include <QIcon>
 #include <QUrl>
+#include <QTemporaryFile>
+#include <QTemporaryDir>
 
 /**
  * @brief Retrieves QDir representing the share directory
@@ -114,5 +116,15 @@ void openUrlGuarded(const QUrl& url);
  * @brief Retrieves path to setsid
  */
 const QString& getSetSidPath();
+
+class SpacelessQTemporaryFile: public QTemporaryFile {
+    public:
+        SpacelessQTemporaryFile ();
+};
+
+class SpacelessQTemporaryDir: public QTemporaryDir {
+    public:
+        SpacelessQTemporaryDir ();
+};
 
 #endif

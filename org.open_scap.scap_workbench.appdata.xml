@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<application>
-    <id type="desktop">scap-workbench.desktop</id>
+<component type="desktop-application">
+    <id>org.open_scap.scap_workbench</id>
     <metadata_license>CC0-1.0</metadata_license>
     <project_license>GPL-3.0+</project_license>
     <name>SCAP Workbench</name>
     <summary>A GUI tool that serves as an SCAP scanner and provides tailoring functionality for SCAP content</summary>
+    <launchable type="desktop-id">org.open_scap.scap_workbench.desktop</launchable>
     <description>
         <p>
             The main goal of this application is to lower the initial barrier of using SCAP.
@@ -23,10 +24,16 @@
         </ul>
     </description>
     <screenshots>
-        <screenshot type="default" width="1280" height="720">https://github.com/OpenSCAP/scap-workbench/raw/v1-1/doc/user_manual/default_content_opened.png</screenshot>
-        <screenshot width="1280" height="720">https://github.com/OpenSCAP/scap-workbench/raw/v1-1/doc/user_manual/intro_screenshot.png</screenshot>
-        <screenshot width="1280" height="720">https://github.com/OpenSCAP/scap-workbench/raw/v1-1/doc/user_manual/tailoring_undo_history.png</screenshot>
+        <screenshot type="default">
+            <image type="source" width="1280" height="720">https://github.com/OpenSCAP/scap-workbench/raw/v1-1/doc/user_manual/default_content_opened.png</image>
+        </screenshot>
+        <screenshot>
+            <image type="source" width="1280" height="720">https://github.com/OpenSCAP/scap-workbench/raw/v1-1/doc/user_manual/intro_screenshot.png</image>
+        </screenshot>
+        <screenshot>
+            <image type="source" width="1280" height="720">https://github.com/OpenSCAP/scap-workbench/raw/v1-1/doc/user_manual/tailoring_undo_history.png</image>
+        </screenshot>
     </screenshots>
     <url type="homepage">https://www.open-scap.org/tools/scap-workbench</url>
-    <updatecontact>open-scap-list@redhat.com</updatecontact>
-</application>
+    <update_contact>open-scap-list@redhat.com</update_contact>
+</component>

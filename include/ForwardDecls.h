@@ -50,7 +50,6 @@ class SyncProcess;
 class SSGIntegrationDialog;
 class TailoringWindow;
 class TailorProfileDialog;
-class TemporaryDir;
 class XCCDFItemPropertiesDockWidget;
 class XCCDFItemSelectUndoCommand;
 class XCCDFValueChangeUndoCommand;

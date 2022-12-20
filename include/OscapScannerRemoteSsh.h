@@ -31,16 +31,23 @@ class OscapScannerRemoteSsh : public OscapScannerBase
     Q_OBJECT
 
     public:
-        static void splitTarget(const QString& in, QString& target, unsigned short& port);
+        static void splitTarget(const QString& in, QString& target, unsigned short& port, bool& userIsSudoer);
 
         OscapScannerRemoteSsh();
         virtual ~OscapScannerRemoteSsh();
 
+        bool getUserIsSudoer() const;
+        void setUserIsSudoer(bool userIsSudoer);
         virtual void setTarget(const QString& target);
         virtual void setSession(ScanningSession* session);
 
         virtual QStringList getCommandLineArgs() const;
         virtual void evaluate();
+
+    protected:
+
+       virtual void selectError(MessageType& kind, const QString& message);
+       virtual void processError(QString& message);
 
     private:
         void ensureConnected();
@@ -57,6 +64,7 @@ class OscapScannerRemoteSsh : public OscapScannerBase
         void removeRemoteDirectory(const QString& path, const QString& desc);
 
         SshConnection mSshConnection;
+        bool mUserIsSudoer;
 };
 
 #endif

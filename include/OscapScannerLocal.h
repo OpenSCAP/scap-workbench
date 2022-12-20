@@ -22,10 +22,9 @@
 #ifndef SCAP_WORKBENCH_OSCAP_SCANNER_LOCAL_H_
 #define SCAP_WORKBENCH_OSCAP_SCANNER_LOCAL_H_
 
-#include <QTemporaryFile>
-
 #include "ForwardDecls.h"
 #include "OscapScannerBase.h"
+#include "Utils.h"
 
 
 class OscapScannerLocal : public OscapScannerBase
@@ -54,7 +53,7 @@ class OscapScannerLocal : public OscapScannerBase
 
         void evaluateWithOfflineRemediation();
         void evaluateWithOtherSettings();
-        static void setFilenameToTempFile(QTemporaryFile& file);
+        static void setFilenameToTempFile(SpacelessQTemporaryFile& file);
 };
 
 #endif
