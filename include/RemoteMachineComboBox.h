@@ -44,9 +44,10 @@ class RemoteMachineComboBox : public QWidget
 
         void setRecentMachineCount(unsigned int count);
         unsigned int getRecentMachineCount() const;
+        bool userIsSudoer() const;
 
     public slots:
-        void notifyTargetUsed(const QString& target);
+        void notifyTargetUsed(const QString& target, bool userIsSudoer);
         void clearHistory();
 
     protected slots:
@@ -65,6 +66,7 @@ class RemoteMachineComboBox : public QWidget
 
         QStringList mRecentTargets;
         QComboBox* mRecentComboBox;
+        QCheckBox* mUserIsSudoer;
 };
 
 #endif

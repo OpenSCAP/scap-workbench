@@ -33,12 +33,12 @@ RPMOpenHelper::RPMOpenHelper(const QString& path)
         const QFileInfo pathInfo(path);
         proc.setCommand(getRPMExtractPath());
         proc.setArguments(QStringList(pathInfo.absoluteFilePath()));
-        proc.setWorkingDirectory(mTempDir.getPath());
+        proc.setWorkingDirectory(mTempDir.path());
     }
 
     proc.run();
 
-    const QDir tempDir(mTempDir.getPath());
+    const QDir tempDir(mTempDir.path());
 
     if (proc.getExitCode() != 0)
     {
@@ -54,7 +54,11 @@ RPMOpenHelper::RPMOpenHelper(const QString& path)
         static QRegExp tailoringRE("^\\.\\/usr\\/share\\/xml\\/scap\\/[^\\/]+\\/tailoring-xccdf\\.xml+$");
         static QRegExp inputRE("^\\.\\/usr\\/share\\/xml\\/scap\\/[^\\/]+\\/[^\\/]+\\-(xccdf|ds)\\.xml+$");
 
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 15, 0))
+        QStringList lines = proc.getStdErrContents().split('\n', Qt::SkipEmptyParts);
+#else
         QStringList lines = proc.getStdErrContents().split('\n', QString::SkipEmptyParts);
+#endif
         for (QStringList::const_iterator it = lines.constBegin(); it != lines.constEnd(); ++it)
         {
             const QString& line = *it;

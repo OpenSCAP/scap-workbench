@@ -36,6 +36,7 @@
 #include <QTimer>
 #include <QDateTime>
 #include <QStack>
+#include <QScreen>
 
 #include <algorithm>
 #include <cassert>
@@ -162,7 +163,7 @@ TailoringWindow::TailoringWindow(struct xccdf_policy* policy, struct xccdf_bench
     createTreeItem(mBenchmarkItem, xccdf_benchmark_to_item(mBenchmark));
     synchronizeTreeItem();
 
-    mUI.itemsTree->header()->setResizeMode(0, QHeaderView::ResizeToContents);
+    mUI.itemsTree->header()->setSectionResizeMode(0, QHeaderView::ResizeToContents);
     mUI.itemsTree->header()->setStretchLastSection(false);
 
     deserializeCollapsedItems();
@@ -230,8 +231,22 @@ TailoringWindow::TailoringWindow(struct xccdf_policy* policy, struct xccdf_bench
         this, SLOT(searchNext())
     );
 
-    // start centered
-    move(QApplication::desktop()->screen()->rect().center() - rect().center());
+    /* start centered
+
+    As of https://codereview.qt.nokia.com/c/qt/qtbase/+/268417,
+    QWidget *QDesktopWidget::screen(int) or Application::desktop()->screen() has been
+    deprecated with no replacement. A replacement might be provided in QT6 which
+    the following 4 lines of code should be re-evaluated if a replacement is provided.
+
+    The solution of the following 4 lines of code was indirectly provided by
+    Riccardo Fagiolo in "window_main.cpp" at
+    https://stackoverflow.com/questions/46300065/dynamically-resizing-two-qlabel-implementations
+    */
+    QSize size = QGuiApplication::screens().at(0)->availableSize();
+    int x = size.width() / 2 - width() / 2;
+    int y = size.height() / 2 - height() / 2;
+    move(x, y);
+    // End stackoverflow provided code by Riccardo Fagiolo
     show();
 }
 
@@ -630,7 +645,12 @@ QString TailoringWindow::getQSettingsKey() const
 void TailoringWindow::deserializeCollapsedItems()
 {
     const QStringList list = mQSettings->value(getQSettingsKey()).toStringList();
-    mCollapsedItemIds = QSet<QString>::fromList(list);
+    #if (QT_VERSION >= QT_VERSION_CHECK(5, 14, 0))
+        mCollapsedItemIds = QSet<QString>(list.begin(), list.end());
+    #else
+        // support older versions where deprecation warning is not fatal
+        mCollapsedItemIds = QSet<QString>::fromList(list);
+    #endif
 }
 
 void TailoringWindow::serializeCollapsedItems()
@@ -642,7 +662,12 @@ void TailoringWindow::serializeCollapsedItems()
     }
     else
     {
-        mQSettings->setValue(getQSettingsKey(), QVariant(mCollapsedItemIds.toList()));
+        #if (QT_VERSION >= QT_VERSION_CHECK(5, 14, 0))
+            mQSettings->setValue(getQSettingsKey(), QVariant(mCollapsedItemIds.values()));
+        #else
+            // support older versions where deprecation warning is not fatal
+            mQSettings->setValue(getQSettingsKey(), QVariant(mCollapsedItemIds.toList()));
+        #endif
         mQSettings->setValue(getQSettingsKey() + "_lastUsed", QVariant(QDateTime::currentDateTime()));
     }
 }
@@ -700,6 +725,21 @@ void TailoringWindow::syncCollapsedItem(QTreeWidgetItem* item, QSet<QString>& us
     {
         mUI.itemsTree->expandItem(item);
     }
+}
+
+static const char* _xccdf_item_description(struct xccdf_item* item)
+{
+    struct oscap_text_iterator* title_it = xccdf_item_get_title(item);
+    char* title = oscap_textlist_get_preferred_plaintext(title_it, NULL);
+    oscap_text_iterator_free(title_it);
+    return title ? title : "";
+}
+
+static bool _xccdf_item_compare(struct xccdf_item* a, struct xccdf_item* b)
+{
+    const char* a_title = _xccdf_item_description(a);
+    const char* b_title = _xccdf_item_description(b);
+    return (strcmp(a_title, b_title) < 0);
 }
 
 void TailoringWindow::createTreeItem(QTreeWidgetItem* treeItem, struct xccdf_item* xccdfItem)
@@ -762,7 +802,9 @@ void TailoringWindow::createTreeItem(QTreeWidgetItem* treeItem, struct xccdf_ite
 
     typedef std::vector<struct xccdf_item*> XCCDFItemVector;
 
-    XCCDFItemVector itemsToAdd;
+    XCCDFItemVector valuesToAdd;
+    XCCDFItemVector groupsToAdd;
+    XCCDFItemVector rulesToAdd;
 
     // valuesIt contains Values
     struct xccdf_value_iterator* valuesIt = NULL;
@@ -788,7 +830,7 @@ void TailoringWindow::createTreeItem(QTreeWidgetItem* treeItem, struct xccdf_ite
         while (xccdf_value_iterator_has_more(valuesIt))
         {
             struct xccdf_value* childItem = xccdf_value_iterator_next(valuesIt);
-            itemsToAdd.push_back(xccdf_value_to_item(childItem));
+            valuesToAdd.push_back(xccdf_value_to_item(childItem));
         }
         xccdf_value_iterator_free(valuesIt);
     }
@@ -798,14 +840,38 @@ void TailoringWindow::createTreeItem(QTreeWidgetItem* treeItem, struct xccdf_ite
         while (xccdf_item_iterator_has_more(itemsIt))
         {
             struct xccdf_item* childItem = xccdf_item_iterator_next(itemsIt);
-            itemsToAdd.push_back(childItem);
+            xccdf_type_t xccdfItemType = xccdf_item_get_type(childItem);
+            switch (xccdfItemType)
+            {
+                case XCCDF_RULE:
+                    rulesToAdd.push_back(childItem);
+                    break;
+                case XCCDF_GROUP:
+                    groupsToAdd.push_back(childItem);
+                    break;
+                case XCCDF_VALUE:
+                    valuesToAdd.push_back(childItem);
+                    break;
+                default:
+                    break;
+            }
         }
         xccdf_item_iterator_free(itemsIt);
     }
 
+    std::sort(groupsToAdd.begin(), groupsToAdd.end(), _xccdf_item_compare);
+    std::sort(valuesToAdd.begin(), valuesToAdd.end(), _xccdf_item_compare);
+    std::sort(rulesToAdd.begin(), rulesToAdd.end(), _xccdf_item_compare);
+
+    /* Concatenate 3 vectors to 1 vector */
+    XCCDFItemVector allObjectsToAdd;
+    allObjectsToAdd.insert(allObjectsToAdd.end(), groupsToAdd.begin(), groupsToAdd.end());
+    allObjectsToAdd.insert(allObjectsToAdd.end(), valuesToAdd.begin(), valuesToAdd.end());
+    allObjectsToAdd.insert(allObjectsToAdd.end(), rulesToAdd.begin(), rulesToAdd.end());
+
     unsigned int idx = 0;
-    for (XCCDFItemVector::const_iterator it = itemsToAdd.begin();
-            it != itemsToAdd.end(); ++it, ++idx)
+    for (XCCDFItemVector::const_iterator it = allObjectsToAdd.begin();
+            it != allObjectsToAdd.end(); ++it, ++idx)
     {
         struct xccdf_item* childXccdfItem = *it;
         QTreeWidgetItem* childTreeItem = 0;

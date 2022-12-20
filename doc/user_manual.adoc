@@ -76,13 +76,7 @@ system as a dependency of scap-workbench. If it isn't, install it:
 From the package repository (YUM):: # yum install scap-security-guide
 From the package repository (APT):: # apt-get install scap-security-guide
 From upstream source (for advanced users or content developers)::
- . $ git clone https://github.com/OpenSCAP/scap-security-guide.git ; cd scap-security-guide
- . $ make
-
-==== Alternative SCAP content (optional)
-[[alternative-contents]]
- * http://usgcb.nist.gov/usgcb/rhel_content.html[USGCB for RHEL5] - XCCDF and OVAL, only suitable for RHEL5.
- * https://github.com/OpenSCAP/sce-community-content[SCE Community Content] - Uses SCE, only suitable for Fedora.
+Follow instructions from https://complianceascode.readthedocs.io/en/latest/manual/developer/02_building_complianceascode.html[Building ComplianceAsCode].
 
 === Start SCAP Workbench
 
@@ -363,6 +357,17 @@ files are not supported yet!
 .Selecting a remote machine for scanning
 image::scanning_remote_machine.png[align="center"]
 
+The remote user doesn't have to be a superuser - you can setup the remote
+`/etc/sudoers` file (using `visudo`) to enable the paswordless sudo for that particular user,
+and you check the "user is sudoer" checkbox.
+
+For example, if the scanning user is `oscap-user`, that would involve putting
+
+   oscap-user ALL=(root) NOPASSWD: /usr/bin/oscap xccdf eval *
+
+user specification into the `sudoers` file, or into a separate file
+that is included by `sudoers` s.a. `/etc/sudoers.d/99-oscap-user`.
+
 === Enable Online Remediation (optional)
 
 ****
@@ -380,14 +385,14 @@ to remediate each of them.
 
 The rules that were remediated will show up as *fixed* in the rule result list.
 
-=== Export remediation role for the selected profile
+=== Export remediation for the selected profile
 
-After you select a profile, you can export a remediation role to a file.
-Bash scripts, Ansible playbooks and Puppet manifests are the formats supported.
+After you select a profile, you can export a remediation to a file.
+Bash scripts, Ansible Playbooks and Puppet manifests are the formats supported.
 The output file will contain all remediations for rules selected by the profile
 that are available.
-As the content of the remediation role solely depends on the profile,
-it is referred to as profile-based remediation role.
+As the content of the remediation solely depends on the profile,
+it is referred to as profile-based remediation.
 
 The possibility to save remediations to a file puts you in charge -
 you can examine it, edit it and decide what remediations to apply.
@@ -443,7 +448,7 @@ which will clear all results.
 === View and Analyze Results
 
 After evaluation finishes, you should see three new buttons:
-*Clear*, *Save Results*, *Generate remediation role* and *Show Report*.
+*Clear*, *Save Results*, *Generate remediation* and *Show Report*.
 
 ****
 Pressing Clear will *permanently* destroy scan results! This action cannot
@@ -489,13 +494,13 @@ However, ARF files are not as well supported by SCAP toolchains as XCCDF result 
 XCCDF result files can be generated from ARF files, this operation is called *ARF splitting*.
 ****
 
-Opening the *Generate remediation role* pop-up menu will let you to save
+Opening the *Generate remediation* pop-up menu will let you to save
 result-based remediations to a file.
 The output file will contain all available remediations for rules
 that have failed the scan, so it should fit your needs better
 than profile-based remediations.
 As the saved content is based on actual scan results,
-it is referred to as results-based remediation role.
+it is referred to as results-based remediation.
 
 If you scan with a customized profile, you may encounter an error -
 see <<known-issues>> for a workaround.
@@ -523,20 +528,6 @@ Passing *--skip-valid* on the command line will disable all validation.
 Both while opening the files and when scanning. This option is discouraged and
 should only be used by content creators and/or people who really know what they
 are doing.
-
-== Known issues
-
-=== Result-based remediations of tailored profiles
-
-Saving remediation roles to the disk may not work for a customized profile. Specifically, it won't work if you add additional rules to it.
-If this limitation affects you, follow these steps:
-
-Remark: You will need to use the oscap command-line utility, which is bundled together with scap-workbench.
-
-1. Save the scan results
-2. Save your profile customization to a file using the "File->Save customization only" option.
-3. Run this command: oscap xccdf generate fix --output <role filename> --result-id '' --tailoring-file <saved-customization> <saved-result>.
-Refer to oscap xccdf generate fix -h if you want other than Bash output.
 
 == Where to Get Help?
 

@@ -35,9 +35,6 @@ int main(int argc, char** argv)
     FreeConsole();
 #endif
 
-    // Needed for TemporaryDir
-    qsrand(QTime::currentTime().msec());
-
     Application app(argc, argv);
     return app.exec();
 }

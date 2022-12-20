@@ -23,7 +23,7 @@
 #define SCAP_WORKBENCH_RPM_OPEN_HELPER_H_
 
 #include "ForwardDecls.h"
-#include "TemporaryDir.h"
+#include "Utils.h"
 #include <QWidget>
 
 /**
@@ -66,7 +66,7 @@ class RPMOpenHelper
     private:
         static QString getRPMExtractPath();
 
-        TemporaryDir mTempDir;
+        SpacelessQTemporaryDir mTempDir;
 
         QString mInputPath;
         QString mTailoringPath;

@@ -23,9 +23,9 @@
 #define SCAP_WORKBENCH_RESULT_VIEWER_H_
 
 #include "ForwardDecls.h"
+#include "Utils.h"
 
 #include <QWidget>
-#include <QTemporaryFile>
 #include <QUrl>
 #include <QMenu>
 #include <QLabel>
@@ -97,8 +97,10 @@ class ResultViewer : public QWidget
         QByteArray mResults;
         QByteArray mReport;
         /// If user requests to open the file via desktop services
-        QTemporaryFile* mReportFile;
+        SpacelessQTemporaryFile* mReportFile;
         QByteArray mARF;
+
+        QString tailoringFilePath;
 };
 
 #endif

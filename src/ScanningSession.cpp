@@ -34,8 +34,6 @@ extern "C" {
 
 #include <cassert>
 #include <ctime>
-#include <QTemporaryDir>
-#include <QTemporaryFile>
 #include <QFileInfo>
 #include <QBuffer>
 #include <QXmlQuery>
@@ -161,7 +159,7 @@ void ScanningSession::cloneToTemporaryFile(const QString& path)
     // Clean the temporary directory if it is open already, then create
     // a new one.
     cleanTmpDir();
-    mTempOpenDir = new QTemporaryDir();
+    mTempOpenDir = new SpacelessQTemporaryDir();
 
     // Recalling is unlikely to succeed, so throw a fatal exception
     if (!mTempOpenDir->isValid())

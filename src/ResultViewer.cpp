@@ -113,6 +113,10 @@ void ResultViewer::loadContent(Scanner* scanner)
 
         if (mInputBaseName.endsWith("-xccdf"))
             mInputBaseName.chop(QString("-xccdf").length());
+
+        if (session->isSelectedProfileTailoring()) {
+            tailoringFilePath = session->getTailoringFilePath();
+        }
     }
 
     mReport.clear();
@@ -158,7 +162,7 @@ void ResultViewer::openReport()
         mReportFile = 0;
     }
 
-    mReportFile = new QTemporaryFile();
+    mReportFile = new SpacelessQTemporaryFile();
     mReportFile->setFileTemplate(mReportFile->fileTemplate() + ".html");
     mReportFile->open();
     mReportFile->write(mReport);
@@ -173,19 +177,19 @@ void ResultViewer::openReport()
 
 void ResultViewer::generateBashRemediationRole()
 {
-    BashResultRemediationSaver remediation(this, mARF);
+    BashResultRemediationSaver remediation(this, mARF, tailoringFilePath);
     remediation.selectFilenameAndSaveRole();
 }
 
 void ResultViewer::generateAnsibleRemediationRole()
 {
-    AnsibleResultRemediationSaver remediation(this, mARF);
+    AnsibleResultRemediationSaver remediation(this, mARF, tailoringFilePath);
     remediation.selectFilenameAndSaveRole();
 }
 
 void ResultViewer::generatePuppetRemediationRole()
 {
-    PuppetResultRemediationSaver remediation(this, mARF);
+    PuppetResultRemediationSaver remediation(this, mARF, tailoringFilePath);
     remediation.selectFilenameAndSaveRole();
 }
 
