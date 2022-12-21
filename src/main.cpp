@@ -21,6 +21,7 @@
 
 #include "Application.h"
 #include <QTime>
+#include <QGuiApplication>
 
 #ifdef _WIN32
 #define WIN32_LEAN_AND_MEAN
@@ -34,6 +35,8 @@ int main(int argc, char** argv)
     // Leaves everything intact if started from the command line.
     FreeConsole();
 #endif
+
+    QGuiApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
 
     Application app(argc, argv);
     return app.exec();

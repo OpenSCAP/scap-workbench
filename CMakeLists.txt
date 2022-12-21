@@ -129,8 +129,6 @@ set(SCAP_WORKBENCH_LINK_LIBRARIES
     ${OPENSCAP_LINK_LIB})
 
 configure_file("include/Config.h.in" "${CMAKE_CURRENT_BINARY_DIR}/Config.h")
-# It is not trivial to make the resulting file executable :-(
-# People will have to `bash runwrapper.sh ...` in the meantime.
 configure_file("runwrapper.sh.in" "${CMAKE_CURRENT_BINARY_DIR}/runwrapper.sh")
 configure_file("scap-workbench-oscap.policy.in" "${CMAKE_CURRENT_BINARY_DIR}/scap-workbench-oscap.policy")
 if (WIN32)
