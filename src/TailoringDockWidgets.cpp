@@ -103,6 +103,11 @@ XCCDFItemPropertiesDockWidget::XCCDFItemPropertiesDockWidget(TailoringWindow* wi
     );
 
     QObject::connect(
+        mUI.remarkEdit, SIGNAL(textChanged()),
+        this, SLOT(remarkChanged())
+    );
+
+    QObject::connect(
         mUI.dependsOnValuesBrowser, SIGNAL(anchorClicked(QUrl)),
         this, SLOT(selectValue(QUrl))
     );
@@ -330,6 +335,18 @@ void XCCDFItemPropertiesDockWidget::refresh()
                 }
             }
         }
+
+        {
+            struct xccdf_select* select = xccdf_policy_get_select_by_id(mXccdfPolicy, xccdf_item_get_id(mXccdfItem));
+            if (select)
+            {
+                struct oscap_text_iterator* remarks = xccdf_select_get_remarks(select);
+                if (remarks && oscap_text_iterator_has_more(remarks))
+                {
+                    mUI.remarkEdit->setHtml(oscapTextIteratorGetPreferred(remarks));
+                }
+            }
+        }
     }
 
     mRefreshInProgress = false;
@@ -343,6 +360,16 @@ void XCCDFItemPropertiesDockWidget::valueChanged(const QString& newValue)
     mWindow->setValueValueWithUndoCommand(xccdf_item_to_value(mXccdfItem), newValue);
     // For the unlikely case of description or title having a <sub> element dependent
     // on the value we just changed.
+    refresh();
+}
+
+void XCCDFItemPropertiesDockWidget::remarkChanged()
+{
+    if (mRefreshInProgress)
+        return;
+
+    // TODO: Actually push history and set this stuff correctly.
+
     refresh();
 }
 
