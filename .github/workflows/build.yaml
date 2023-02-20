@@ -72,11 +72,12 @@ jobs:
         popd
     - name: Build OSX Image
       run: |
+        REPOSITORY="ComplianceAsCode/content"
         chmod +x ./build-for-osx.sh
         ./build-for-osx.sh
-        REL_TAG=`curl -s "https://github.com/ComplianceAsCode/content/releases/latest" | grep -o 'tag/[v.0-9]*' | awk -F/ '{print $2}'`
+        REL_TAG=`wget -q -O- https://api.github.com/repos/${REPOSITORY}/releases/latest | jq -r '.tag_name'`
         REL_TAG_NUM=`echo ${REL_TAG} | cut -d"v" -f2`
-        DWN_LINK=https://github.com/ComplianceAsCode/content/releases/download/v0.1.63/scap-security-guide-0.1.63.zip
+        DWN_LINK="https://github.com/${REPOSITORY}/releases/download/${REL_TAG}/scap-security-guide-${REL_TAG_NUM}.zip"
         if [ -z "${DWN_LINK}" ]; then echo 'Could not get the ZIP URL! It is empty!'; exit 1; fi
         wget "${DWN_LINK}" -O ssg.zip
         mkdir -p `pwd`/build-osx/scap-workbench.app/Contents/Resources/ssg/ && unzip ssg.zip && cp -a scap-security-guide-*/* `pwd`/build-osx/scap-workbench.app/Contents/Resources/ssg/
