@@ -24,10 +24,10 @@ jobs:
           popd
 
   build-fedora:
-    name: Build on Fedora 33 (Container)
+    name: Build on Fedora Latest (Container)
     runs-on: ubuntu-latest
     container:
-      image: fedora:33
+      image: fedora:latest
     steps:
       - name: Install Deps
         run: dnf install -y cmake gcc-c++ openssh-clients util-linux openscap-devel qt5-qtbase-devel qt5-qtxmlpatterns-devel openssh-askpass asciidoc polkit-libs
