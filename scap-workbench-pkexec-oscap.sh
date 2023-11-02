@@ -26,10 +26,28 @@ PARENT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 PKEXEC_PATH="pkexec"
 SCAP_WORKBENCH_OSCAP="$PARENT_DIR/scap-workbench-oscap.sh"
 
+# Preserve proxy variables if they exist
+ENV_STR=""
+if [ -n "${http_proxy+x}" ]; then
+    ENV_STR+="http_proxy=\"$http_proxy\" "
+fi
+
+if [ -n "${https_proxy+x}" ]; then
+    ENV_STR+="https_proxy=\"$https_proxy\" "
+fi
+
+if [ -n "${no_proxy+x}" ]; then
+    ENV_STR+="no_proxy=\"$no_proxy\" "
+fi
+
+if [ -n "$ENV_STR" ]; then
+    ENV_STR="env $ENV_STR"
+fi
+
 # We run unprivileged if pkexec was not found.
 #which $PKEXEC_PATH > /dev/null || exit 1 # fail if pkexec was not found
 
-$PKEXEC_PATH --disable-internal-agent "$SCAP_WORKBENCH_OSCAP" $uid $gid "$@" 2> >(tail -n +2 1>&2)
+$PKEXEC_PATH $ENV_STR --disable-internal-agent "$SCAP_WORKBENCH_OSCAP" $uid $gid "$@" 2> >(tail -n +2 1>&2)
 EC=$?
 
 # 126 is a special exit code of pkexec when user dismisses the auth dialog
