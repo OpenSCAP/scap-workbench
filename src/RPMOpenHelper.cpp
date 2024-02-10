@@ -54,7 +54,7 @@ RPMOpenHelper::RPMOpenHelper(const QString& path)
         static QRegExp tailoringRE("^\\.\\/usr\\/share\\/xml\\/scap\\/[^\\/]+\\/tailoring-xccdf\\.xml+$");
         static QRegExp inputRE("^\\.\\/usr\\/share\\/xml\\/scap\\/[^\\/]+\\/[^\\/]+\\-(xccdf|ds)\\.xml+$");
 
-#if (QT_VERSION >= QT_VERSION_CHECK(5, 15, 0))
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 14, 0))
         QStringList lines = proc.getStdErrContents().split('\n', Qt::SkipEmptyParts);
 #else
         QStringList lines = proc.getStdErrContents().split('\n', QString::SkipEmptyParts);
