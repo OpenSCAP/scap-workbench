@@ -41,47 +41,53 @@ jobs:
           make -j4
           popd
 
-# Disabled
-#  build-macos:
-#    name: Build on MacOS X Latest
-#    runs-on: macos-latest
-#    steps:
-#    - uses: actions/checkout@v2
-#    - name: Install Deps
-#      run: |
-#        brew install jq
-#        brew install qt5
-#        brew install asciidoc
-#        brew install pkg-config
-#        brew install doxygen
-#        brew install opendbx
-#        brew install popt
-#        brew install swig
-#        brew install upx
-#        brew install libxmlsec1
-#        npm install -g appdmg
-#        echo "/usr/local/opt/qt/bin" >> $GITHUB_PATH
-#        echo "Qt5_DIR=/usr/local/opt/qt5/lib/cmake/Qt5" >> $GITHUB_ENV
-#    - name: Build OpenSCAP
-#      run: |
-#        git clone --depth 1 https://github.com/openscap/openscap.git
-#        pushd openscap/build
-#        cmake -DENABLE_PROBES=FALSE ../
-#        make -j4
-#        make install
-#        popd
-# Broken
-#    - name: Build OSX Image
-#      run: |
-#        chmod +x ./build-for-osx.sh
-#        ./build-for-osx.sh
-#        REL_TAG=`curl -s "https://github.com/ComplianceAsCode/content/releases/latest" | grep -o 'tag/[v.0-9]*' | awk -F/ '{print $2}'`
-#        REL_TAG_NUM=`echo ${REL_TAG} | cut -d"v" -f2`
-#        DWN_LINK=https://github.com/ComplianceAsCode/content/releases/download/${REL_TAG}/scap-security-guide-${REL_TAG_NUM}.zip
-#        if [ -z "${DWN_LINK}" ]; then echo 'Could not get the ZIP URL! It is empty!'; exit 1; fi
-#        wget "${DWN_LINK}" -O ssg.zip
-#        mkdir -p `pwd`/build-osx/scap-workbench.app/Contents/Resources/ssg/ && unzip ssg.zip && cp -a scap-security-guide-*/* `pwd`/build-osx/scap-workbench.app/Contents/Resources/ssg/
-#        cd build-osx && bash osx-create-dmg.sh
+  build-macos:
+    name: Build on MacOS X Latest
+    runs-on: macos-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Install Deps
+      run: |
+        brew install jq
+        brew install qt5
+        brew install asciidoc
+        brew install pkg-config
+        brew install doxygen
+        brew install opendbx
+        brew install popt
+        brew install swig
+        brew install upx
+        brew install libxmlsec1
+        brew install pcre
+        npm install -g appdmg
+        echo "/usr/local/opt/qt/bin" >> $GITHUB_PATH
+        echo "Qt5_DIR=/usr/local/opt/qt5/lib/cmake/Qt5" >> $GITHUB_ENV
+    - name: Build OpenSCAP
+      run: |
+        git clone --depth 1 https://github.com/openscap/openscap.git
+        pushd openscap/build
+        cmake -DENABLE_PROBES=FALSE ../
+        make -j4
+        make install
+        popd
+    - name: Build OSX Image
+      run: |
+        REPOSITORY="ComplianceAsCode/content"
+        chmod +x ./build-for-osx.sh
+        ./build-for-osx.sh
+        REL_TAG=`wget -q -O- https://api.github.com/repos/${REPOSITORY}/releases/latest | jq -r '.tag_name'`
+        REL_TAG_NUM=`echo ${REL_TAG} | cut -d"v" -f2`
+        DWN_LINK="https://github.com/${REPOSITORY}/releases/download/${REL_TAG}/scap-security-guide-${REL_TAG_NUM}.zip"
+        if [ -z "${DWN_LINK}" ]; then echo 'Could not get the ZIP URL! It is empty!'; exit 1; fi
+        wget "${DWN_LINK}" -O ssg.zip
+        mkdir -p `pwd`/build-osx/scap-workbench.app/Contents/Resources/ssg/ && unzip ssg.zip && cp -a scap-security-guide-*/* `pwd`/build-osx/scap-workbench.app/Contents/Resources/ssg/
+        cd build-osx && bash osx-create-dmg.sh
+    - name: Upload OSX Image
+      uses: actions/upload-artifact@v2
+      with:
+        name: scap-workbench-1.2.1.dmg
+        path: build-osx/scap-workbench-1.2.1.dmg
+
 # We don't do automatic releases, do we?
 #    - name: Release
 #      uses: softprops/action-gh-release@v1
